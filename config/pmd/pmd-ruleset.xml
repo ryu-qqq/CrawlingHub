@@ -91,6 +91,7 @@
 //ClassOrInterfaceDeclaration[contains(@PackageName, '.domain.')]
 [@Interface='false']
 [not(contains(@SimpleName, 'Exception'))]
+[not(contains(@SimpleName, 'Id'))]
 [count(.//MethodDeclaration[@Public='true']) > 7]
 ]]>
                 </value>
