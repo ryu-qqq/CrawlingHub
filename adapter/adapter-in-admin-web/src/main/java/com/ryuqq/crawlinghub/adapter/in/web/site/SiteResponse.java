@@ -28,7 +28,7 @@ public record SiteResponse(
      */
     public static SiteResponse from(CrawlSite site) {
         return new SiteResponse(
-                site.getSiteId() != null ? site.getSiteId().value() : null,
+                site.getIdValue(),
                 site.getSiteName(),
                 site.getBaseUrl(),
                 site.getSiteType().name(),

@@ -48,12 +48,8 @@ public class CrawlSiteController {
      */
     @PostMapping
     public ResponseEntity<SiteResponse> createSite(@Valid @RequestBody CreateSiteRequest request) {
-        // Request → Command
-        RegisterSiteCommand command = new RegisterSiteCommand(
-                request.siteName(),
-                request.baseUrl(),
-                request.siteType()
-        );
+        // Request → Command (encapsulated in DTO)
+        RegisterSiteCommand command = request.toCommand();
 
         // Execute UseCase (returns created site directly - no additional DB query needed)
         CrawlSite site = registerSiteUseCase.execute(command);
@@ -111,14 +107,8 @@ public class CrawlSiteController {
             @PathVariable Long siteId,
             @Valid @RequestBody UpdateSiteRequest request) {
 
-        // Request → Command
-        UpdateSiteCommand command = new UpdateSiteCommand(
-                SiteId.of(siteId),
-                request.siteName(),
-                request.baseUrl(),
-                request.siteType(),
-                request.isActive()
-        );
+        // Request → Command (encapsulated in DTO)
+        UpdateSiteCommand command = request.toCommand(SiteId.of(siteId));
 
         // Execute UseCase
         updateSiteUseCase.execute(command);

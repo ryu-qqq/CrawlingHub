@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.web.site;
 
+import com.ryuqq.crawlinghub.application.site.usecase.UpdateSiteCommand;
+import com.ryuqq.crawlinghub.domain.site.SiteId;
 import jakarta.validation.constraints.Pattern;
 
 /**
@@ -16,7 +18,10 @@ public record UpdateSiteRequest(
 
         String siteName,
 
-        @Pattern(regexp = "^https?://.*", message = "Base URL must be a valid HTTP/HTTPS URL")
+        @Pattern(
+                regexp = "^https?://(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
+                message = "Base URL must be a valid HTTP/HTTPS URL"
+        )
         String baseUrl,
 
         String siteType,
@@ -24,4 +29,14 @@ public record UpdateSiteRequest(
         Boolean isActive
 
 ) {
+    /**
+     * Convert request DTO to command object
+     * Encapsulates conversion logic within the DTO
+     *
+     * @param siteId the site ID from path parameter
+     * @return update site command
+     */
+    public UpdateSiteCommand toCommand(SiteId siteId) {
+        return new UpdateSiteCommand(siteId, siteName, baseUrl, siteType, isActive);
+    }
 }
