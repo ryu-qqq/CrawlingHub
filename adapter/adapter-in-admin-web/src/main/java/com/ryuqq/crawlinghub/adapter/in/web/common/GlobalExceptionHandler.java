@@ -2,6 +2,8 @@ package com.ryuqq.crawlinghub.adapter.in.web.common;
 
 import com.ryuqq.crawlinghub.application.site.usecase.DuplicateSiteException;
 import com.ryuqq.crawlinghub.application.site.usecase.SiteNotFoundException;
+import com.ryuqq.crawlinghub.application.workflow.usecase.InvalidWorkflowException;
+import com.ryuqq.crawlinghub.application.workflow.usecase.WorkflowNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle entity not found
+     * Handle entity not found - site
      */
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(SiteNotFoundException.class)
@@ -54,6 +56,40 @@ public class GlobalExceptionHandler {
         return ErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
                 ErrorCode.SITE_NOT_FOUND,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    /**
+     * Handle entity not found - workflow
+     */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(WorkflowNotFoundException.class)
+    public ErrorResponse handleWorkflowNotFound(
+            WorkflowNotFoundException ex,
+            HttpServletRequest request) {
+
+        return ErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                ErrorCode.WORKFLOW_NOT_FOUND,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    /**
+     * Handle business rule violation - invalid workflow
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidWorkflowException.class)
+    public ErrorResponse handleInvalidWorkflow(
+            InvalidWorkflowException ex,
+            HttpServletRequest request) {
+
+        return ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                ErrorCode.INVALID_WORKFLOW,
                 ex.getMessage(),
                 request.getRequestURI()
         );
