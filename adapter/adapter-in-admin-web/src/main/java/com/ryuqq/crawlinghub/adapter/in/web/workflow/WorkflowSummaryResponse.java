@@ -33,7 +33,7 @@ public record WorkflowSummaryResponse(
                 workflow.getSiteId().value(),
                 workflow.getWorkflowName(),
                 workflow.isActive(),
-                0  // TODO: Get step count from workflow when domain model supports it
+                workflow.getStepsCount()
         );
     }
 }

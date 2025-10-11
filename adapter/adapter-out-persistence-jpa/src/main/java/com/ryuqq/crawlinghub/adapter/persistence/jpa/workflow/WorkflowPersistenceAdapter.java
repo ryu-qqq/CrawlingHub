@@ -50,13 +50,14 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
         CrawlWorkflowEntity entity = mapper.toEntity(workflow);
         CrawlWorkflowEntity savedWorkflow = jpaRepository.save(entity);
 
-        // 2. Save steps if present
-        if (workflow.getStepsCount() > 0) {
-            // Get the saved workflow ID
-            Long workflowId = savedWorkflow.getWorkflowId();
+        // 2. Get the saved workflow ID
+        Long workflowId = savedWorkflow.getWorkflowId();
 
-            // Delete existing steps (for update operations)
-            stepRepository.deleteByWorkflowId(workflowId);
+        // 3. Delete existing steps first (for update operations, even if replacing with empty list)
+        stepRepository.deleteByWorkflowId(workflowId);
+
+        // 4. Save new steps if present
+        if (workflow.getStepsCount() > 0) {
 
             // Convert domain steps to entities and set the persisted workflow ID
             List<WorkflowStepEntity> stepEntities = workflow.getSteps().stream()
@@ -132,12 +133,59 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
         }
     }
 
+    /**
+     * Helper method to convert multiple entities to domains with steps loaded in batch
+     * Solves N+1 query problem by loading all steps in a single query
+     * @param workflowEntities list of workflow entities
+     * @return list of domain models with steps
+     */
+    private List<CrawlWorkflow> toDomainWithStepsBatch(List<CrawlWorkflowEntity> workflowEntities) {
+        if (workflowEntities.isEmpty()) {
+            return List.of();
+        }
+
+        // Extract all workflow IDs
+        List<Long> workflowIds = workflowEntities.stream()
+                .map(CrawlWorkflowEntity::getWorkflowId)
+                .toList();
+
+        // Load all steps in a single query
+        List<WorkflowStepEntity> allSteps = stepRepository.findByWorkflowIdIn(workflowIds);
+
+        // Group steps by workflow ID
+        java.util.Map<Long, List<WorkflowStepEntity>> stepsByWorkflowId = allSteps.stream()
+                .collect(java.util.stream.Collectors.groupingBy(WorkflowStepEntity::getWorkflowId));
+
+        // Convert to domain objects
+        return workflowEntities.stream()
+                .map(entity -> {
+                    List<WorkflowStepEntity> steps = stepsByWorkflowId.getOrDefault(
+                            entity.getWorkflowId(),
+                            List.of()
+                    );
+
+                    if (steps.isEmpty()) {
+                        return mapper.toDomain(entity);
+                    } else {
+                        List<WorkflowStep> domainSteps = mapper.toStepDomains(steps);
+                        return CrawlWorkflow.reconstituteWithSteps(
+                                new WorkflowId(entity.getWorkflowId()),
+                                new SiteId(entity.getSiteId()),
+                                entity.getWorkflowName(),
+                                entity.getWorkflowDescription(),
+                                entity.getIsActive(),
+                                domainSteps
+                        );
+                    }
+                })
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<CrawlWorkflow> findBySiteId(SiteId siteId) {
-        return queryRepository.findBySiteId(siteId.value()).stream()
-                .map(this::toDomainWithSteps)
-                .toList();
+        List<CrawlWorkflowEntity> entities = queryRepository.findBySiteId(siteId.value());
+        return toDomainWithStepsBatch(entities);
     }
 
     @Override
@@ -150,17 +198,15 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     @Override
     @Transactional(readOnly = true)
     public List<CrawlWorkflow> findBySiteId(SiteId siteId, Long lastWorkflowId, int pageSize) {
-        return queryRepository.findBySiteId(siteId.value(), lastWorkflowId, pageSize).stream()
-                .map(this::toDomainWithSteps)
-                .toList();
+        List<CrawlWorkflowEntity> entities = queryRepository.findBySiteId(siteId.value(), lastWorkflowId, pageSize);
+        return toDomainWithStepsBatch(entities);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CrawlWorkflow> findActiveWorkflows() {
-        return queryRepository.findActiveWorkflows().stream()
-                .map(this::toDomainWithSteps)
-                .toList();
+        List<CrawlWorkflowEntity> entities = queryRepository.findActiveWorkflows();
+        return toDomainWithStepsBatch(entities);
     }
 
     @Override
@@ -173,9 +219,8 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     @Override
     @Transactional(readOnly = true)
     public List<CrawlWorkflow> findActiveWorkflows(Long lastWorkflowId, int pageSize) {
-        return queryRepository.findActiveWorkflows(lastWorkflowId, pageSize).stream()
-                .map(this::toDomainWithSteps)
-                .toList();
+        List<CrawlWorkflowEntity> entities = queryRepository.findActiveWorkflows(lastWorkflowId, pageSize);
+        return toDomainWithStepsBatch(entities);
     }
 
 }
