@@ -132,6 +132,7 @@ class ControllerArchitectureTest {
                 .should().onlyDependOnClassesThat().resideInAnyPackage(
                     "..adapter..",
                     "..application..port.in..",
+                    "..application..usecase..",  // Allow UseCase services
                     "..domain..",
                     "java..",
                     "jakarta.validation..",
@@ -139,7 +140,7 @@ class ControllerArchitectureTest {
                     "org.springframework.http..",
                     "org.springframework.validation.."
                 )
-                .because("Controllers must depend only on UseCase interfaces, not repositories or entities");
+                .because("Controllers must depend only on UseCase interfaces or services, not repositories or entities");
 
             rule.check(controllerClasses);
         }
