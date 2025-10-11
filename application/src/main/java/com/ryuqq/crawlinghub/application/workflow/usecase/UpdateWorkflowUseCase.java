@@ -2,9 +2,13 @@ package com.ryuqq.crawlinghub.application.workflow.usecase;
 
 import com.ryuqq.crawlinghub.application.workflow.port.out.LoadWorkflowPort;
 import com.ryuqq.crawlinghub.application.workflow.port.out.SaveWorkflowPort;
+import com.ryuqq.crawlinghub.domain.common.StepType;
 import com.ryuqq.crawlinghub.domain.workflow.CrawlWorkflow;
+import com.ryuqq.crawlinghub.domain.workflow.WorkflowStep;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Use Case for workflow update
@@ -44,9 +48,23 @@ public class UpdateWorkflowUseCase {
         // 2. Update domain model
         workflow.updateDescription(command.workflowDescription());
 
-        // 3. Save updated workflow
-        // Note: The adapter layer should handle replacing steps
-        // This requires deleting all existing steps and creating new ones
+        // 3. Replace steps if provided
+        if (command.steps() != null && !command.steps().isEmpty()) {
+            List<WorkflowStep> newSteps = command.steps().stream()
+                    .map(stepCommand -> WorkflowStep.create(
+                            command.workflowId(),
+                            stepCommand.stepName(),
+                            stepCommand.stepOrder(),
+                            StepType.valueOf(stepCommand.stepType()),
+                            stepCommand.endpointKey(),
+                            stepCommand.parallelExecution()
+                    ))
+                    .toList();
+
+            workflow.replaceSteps(newSteps);
+        }
+
+        // 4. Save updated workflow (adapter layer will handle replacing steps in DB)
         saveWorkflowPort.save(workflow);
     }
 }

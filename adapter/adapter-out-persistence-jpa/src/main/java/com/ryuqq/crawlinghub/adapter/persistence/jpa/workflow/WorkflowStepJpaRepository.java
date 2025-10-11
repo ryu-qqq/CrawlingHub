@@ -27,6 +27,12 @@ public interface WorkflowStepJpaRepository extends JpaRepository<WorkflowStepEnt
     List<WorkflowStepEntity> findByWorkflowId(Long workflowId);
 
     /**
+     * Find all steps by multiple workflow IDs for batch retrieval operations
+     * Used to solve N+1 query problem when loading multiple workflows with steps
+     */
+    List<WorkflowStepEntity> findByWorkflowIdIn(List<Long> workflowIds);
+
+    /**
      * Delete all steps by workflow ID for cascade operations
      * Used when deleting a workflow or replacing all steps
      */

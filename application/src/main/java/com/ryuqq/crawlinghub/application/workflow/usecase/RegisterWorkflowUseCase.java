@@ -79,9 +79,21 @@ public class RegisterWorkflowUseCase {
         Map<Integer, Set<String>> stepOutputMap = buildStepOutputMap(command.steps());
         validateOutputReferences(command.steps(), stepOutputMap);
 
-        // 4. Save workflow (will be persisted with generated ID)
-        // Note: In a real implementation, we need to save steps, params, and outputs together
-        // This requires the adapter layer to handle the nested save operation
+        // 4. Convert command steps to domain objects and add to workflow
+        List<WorkflowStep> workflowSteps = command.steps().stream()
+                .map(stepCommand -> WorkflowStep.create(
+                        null,  // workflowId will be set when workflow is saved
+                        stepCommand.stepName(),
+                        stepCommand.stepOrder(),
+                        StepType.valueOf(stepCommand.stepType()),
+                        stepCommand.endpointKey(),
+                        stepCommand.parallelExecution()
+                ))
+                .toList();
+
+        workflow.replaceSteps(workflowSteps);
+
+        // 5. Save workflow (will be persisted with generated ID and steps)
         return saveWorkflowPort.save(workflow);
     }
 

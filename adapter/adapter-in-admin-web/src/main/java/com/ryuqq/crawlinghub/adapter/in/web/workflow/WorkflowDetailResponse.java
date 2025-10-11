@@ -32,13 +32,26 @@ public record WorkflowDetailResponse(
      * @return detail response DTO
      */
     public static WorkflowDetailResponse from(CrawlWorkflow workflow) {
+        List<WorkflowStepResponse> stepResponses = workflow.getSteps().stream()
+                .map(step -> new WorkflowStepResponse(
+                        step.getStepId() != null ? step.getStepId().value() : null,
+                        step.getStepName(),
+                        step.getStepOrder(),
+                        step.getStepType().name(),
+                        step.getEndpointKey(),
+                        step.getParallelExecution(),
+                        List.of(),  // TODO: Add params when WorkflowStep domain includes params
+                        List.of()   // TODO: Add outputs when WorkflowStep domain includes outputs
+                ))
+                .toList();
+
         return new WorkflowDetailResponse(
                 workflow.getWorkflowId() != null ? workflow.getWorkflowId().value() : null,
                 workflow.getSiteId().value(),
                 workflow.getWorkflowName(),
                 workflow.getWorkflowDescription(),
                 workflow.isActive(),
-                List.of()  // TODO: Map steps when domain model supports retrieving steps
+                stepResponses
         );
     }
 
