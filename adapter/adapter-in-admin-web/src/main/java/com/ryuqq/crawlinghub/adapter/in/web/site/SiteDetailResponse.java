@@ -30,7 +30,7 @@ public record SiteDetailResponse(
      */
     public static SiteDetailResponse from(CrawlSite site) {
         return new SiteDetailResponse(
-                site.getSiteId().value(),
+                site.getSiteId() != null ? site.getSiteId().value() : null,
                 site.getSiteName(),
                 site.getBaseUrl(),
                 site.getSiteType().name(),

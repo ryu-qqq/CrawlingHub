@@ -55,11 +55,8 @@ public class CrawlSiteController {
                 request.siteType()
         );
 
-        // Execute UseCase
-        SiteId siteId = registerSiteUseCase.execute(command);
-
-        // Load created site and convert to Response
-        CrawlSite site = getSiteUseCase.getDetail(siteId);
+        // Execute UseCase (returns created site directly - no additional DB query needed)
+        CrawlSite site = registerSiteUseCase.execute(command);
         SiteResponse response = SiteResponse.from(site);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
