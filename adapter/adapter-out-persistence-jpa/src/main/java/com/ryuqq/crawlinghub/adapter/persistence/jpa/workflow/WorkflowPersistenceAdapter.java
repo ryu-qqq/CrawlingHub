@@ -5,6 +5,8 @@ import com.ryuqq.crawlinghub.application.workflow.port.out.SaveWorkflowPort;
 import com.ryuqq.crawlinghub.domain.site.SiteId;
 import com.ryuqq.crawlinghub.domain.workflow.CrawlWorkflow;
 import com.ryuqq.crawlinghub.domain.workflow.WorkflowId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Optional;
  * Persistence Adapter for CrawlWorkflow
  * Implements both Command (Save) and Query (Load) ports
  * Follows CQRS pattern by delegating to appropriate repositories
+ * Supports both Offset-Based and No-Offset pagination strategies
  */
 @Component
 public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflowPort {
@@ -66,8 +69,34 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     }
 
     @Override
+    public Page<CrawlWorkflow> findBySiteId(SiteId siteId, Pageable pageable) {
+        return queryRepository.findBySiteId(siteId.value(), pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlWorkflow> findBySiteId(SiteId siteId, Long lastWorkflowId, int pageSize) {
+        return queryRepository.findBySiteId(siteId.value(), lastWorkflowId, pageSize).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<CrawlWorkflow> findActiveWorkflows() {
         return queryRepository.findActiveWorkflows().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlWorkflow> findActiveWorkflows(Pageable pageable) {
+        return queryRepository.findActiveWorkflows(pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlWorkflow> findActiveWorkflows(Long lastWorkflowId, int pageSize) {
+        return queryRepository.findActiveWorkflows(lastWorkflowId, pageSize).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
