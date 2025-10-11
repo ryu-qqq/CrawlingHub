@@ -56,11 +56,13 @@ public class CrawlWorkflowQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
+        Long totalCount = queryFactory
                 .select(workflow.count())
                 .from(workflow)
                 .where(workflow.siteId.eq(siteId))
                 .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
 
         return new PageImpl<>(content, pageable, total);
     }
@@ -110,11 +112,13 @@ public class CrawlWorkflowQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
+        Long totalCount = queryFactory
                 .select(workflow.count())
                 .from(workflow)
                 .where(workflow.isActive.isTrue())
                 .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
 
         return new PageImpl<>(content, pageable, total);
     }

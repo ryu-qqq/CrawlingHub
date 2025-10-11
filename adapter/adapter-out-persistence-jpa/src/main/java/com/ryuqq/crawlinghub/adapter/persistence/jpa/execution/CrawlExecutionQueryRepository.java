@@ -58,11 +58,13 @@ public class CrawlExecutionQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
+        Long totalCount = queryFactory
                 .select(execution.count())
                 .from(execution)
                 .where(execution.status.eq(status))
                 .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
 
         return new PageImpl<>(content, pageable, total);
     }

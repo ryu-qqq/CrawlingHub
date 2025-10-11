@@ -54,11 +54,13 @@ public class CrawlSiteQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
+        Long totalCount = queryFactory
                 .select(site.count())
                 .from(site)
                 .where(site.isActive.isTrue())
                 .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
 
         return new PageImpl<>(content, pageable, total);
     }
