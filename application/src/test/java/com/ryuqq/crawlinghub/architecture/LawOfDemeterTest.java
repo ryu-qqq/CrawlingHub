@@ -1,4 +1,4 @@
-package com.jooheon.crawler.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -52,23 +52,23 @@ class LawOfDemeterTest {
     static void setup() {
         allClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler");
+            .importPackages("com.ryuqq.crawlinghub");
 
         domainClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.domain");
+            .importPackages("com.ryuqq.crawlinghub.domain");
 
         applicationClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.application");
+            .importPackages("com.ryuqq.crawlinghub.application");
 
         persistenceClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.adapter.out.persistence");
+            .importPackages("com.ryuqq.crawlinghub.adapter.out.persistence");
 
         controllerClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.adapter.in");
+            .importPackages("com.ryuqq.crawlinghub.adapter.in");
     }
 
     // ========================================
@@ -88,7 +88,7 @@ class LawOfDemeterTest {
             // Domain 객체는 내부 구조를 노출하지 않고
             // 위임 메서드를 통해 기능 제공
             ArchRule rule = classes()
-                .that().resideInPackage("..domain..")
+                .that().resideInAPackage("..domain..")
                 .and().haveSimpleNameNotEndingWith("Id")
                 .and().haveSimpleNameNotEndingWith("Exception")
                 .should(provideBusinessMethods())
@@ -110,7 +110,7 @@ class LawOfDemeterTest {
         @DisplayName("Entities MUST use Long FK, NOT JPA relationships")
         void entitiesMustUseLongFk() {
             ArchRule rule = noClasses()
-                .that().resideInPackage("..adapter.out.persistence..")
+                .that().resideInAPackage("..adapter.out.persistence..")
                 .and().haveSimpleNameEndingWith("Entity")
                 .should().dependOnClassesThat().haveSimpleNameEndingWith("Entity")
                 .because("Use Long FK instead of JPA relationships to prevent Demeter violations");
@@ -124,7 +124,7 @@ class LawOfDemeterTest {
             // Setter는 데미터 위반을 유발하므로 금지
             // 대신 static factory method 사용
             ArchRule rule = classes()
-                .that().resideInPackage("..adapter.out.persistence..")
+                .that().resideInAPackage("..adapter.out.persistence..")
                 .and().haveSimpleNameEndingWith("Entity")
                 .should(notHaveSetterMethods())
                 .because("Entities should be immutable - use static factory methods");
@@ -145,13 +145,13 @@ class LawOfDemeterTest {
         @DisplayName("Request/Response DTOs MUST be records")
         void dtosShouldBeRecords() {
             ArchRule requestRule = classes()
-                .that().resideInPackage("..adapter.in.web..")
+                .that().resideInAPackage("..adapter.in.web..")
                 .and().haveSimpleNameEndingWith("Request")
                 .should().beRecords()
                 .because("Records prevent getter chaining and enforce immutability");
 
             ArchRule responseRule = classes()
-                .that().resideInPackage("..adapter.in.web..")
+                .that().resideInAPackage("..adapter.in.web..")
                 .and().haveSimpleNameEndingWith("Response")
                 .should().beRecords()
                 .because("Records prevent getter chaining and enforce immutability");
@@ -166,7 +166,7 @@ class LawOfDemeterTest {
             // Controller → Repository는 데미터 위반
             // Controller → UseCase → Repository 패턴 강제
             ArchRule rule = noClasses()
-                .that().resideInPackage("..adapter.in..")
+                .that().resideInAPackage("..adapter.in..")
                 .and().haveSimpleNameEndingWith("Controller")
                 .should().dependOnClassesThat().haveSimpleNameEndingWith("Repository")
                 .orShould().dependOnClassesThat().haveSimpleNameEndingWith("Port")
