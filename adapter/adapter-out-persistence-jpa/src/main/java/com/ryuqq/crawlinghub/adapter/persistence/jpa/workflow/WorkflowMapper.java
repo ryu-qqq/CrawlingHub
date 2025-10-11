@@ -2,8 +2,14 @@ package com.ryuqq.crawlinghub.adapter.persistence.jpa.workflow;
 
 import com.ryuqq.crawlinghub.domain.site.SiteId;
 import com.ryuqq.crawlinghub.domain.workflow.CrawlWorkflow;
+import com.ryuqq.crawlinghub.domain.workflow.StepId;
 import com.ryuqq.crawlinghub.domain.workflow.WorkflowId;
+import com.ryuqq.crawlinghub.domain.workflow.WorkflowStep;
+import com.ryuqq.crawlinghub.domain.workflow.WorkflowStepReconstituteParams;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Mapper between CrawlWorkflow domain model and CrawlWorkflowEntity
@@ -46,6 +52,78 @@ public class WorkflowMapper {
                 entity.getWorkflowDescription(),
                 entity.getIsActive()
         );
+    }
+
+    /**
+     * Convert domain WorkflowStep to JPA entity
+     * @param domain the domain model
+     * @return JPA entity
+     */
+    public WorkflowStepEntity toStepEntity(WorkflowStep domain) {
+        return WorkflowStepEntity.builder()
+                .stepId(domain.getStepId() != null ? domain.getStepId().value() : null)
+                .workflowId(domain.getWorkflowId().value())
+                .stepName(domain.getStepName())
+                .stepOrder(domain.getStepOrder())
+                .stepType(domain.getStepType())
+                .endpointKey(domain.getEndpointKey())
+                .parallelExecution(domain.getParallelExecution())
+                .stepConfig(domain.getStepConfig())
+                .build();
+    }
+
+    /**
+     * Convert JPA entity to domain WorkflowStep
+     * @param entity the JPA entity
+     * @return domain model
+     * @throws IllegalStateException if entity ID is null (should not happen for persisted entities)
+     */
+    public WorkflowStep toStepDomain(WorkflowStepEntity entity) {
+        // Defensive: Ensure entity is already persisted (has ID)
+        if (entity.getStepId() == null) {
+            throw new IllegalStateException("Cannot convert non-persisted step entity to domain model. Entity must have an ID.");
+        }
+
+        WorkflowStepReconstituteParams params = WorkflowStepReconstituteParams.of(
+                new StepId(entity.getStepId()),
+                new WorkflowId(entity.getWorkflowId()),
+                entity.getStepName(),
+                entity.getStepOrder(),
+                entity.getStepType(),
+                entity.getEndpointKey(),
+                entity.getParallelExecution(),
+                entity.getStepConfig()
+        );
+
+        return WorkflowStep.reconstitute(params);
+    }
+
+    /**
+     * Convert list of domain WorkflowSteps to JPA entities
+     * @param steps the domain models
+     * @return list of JPA entities
+     */
+    public List<WorkflowStepEntity> toStepEntities(List<WorkflowStep> steps) {
+        if (steps == null) {
+            return List.of();
+        }
+        return steps.stream()
+                .map(this::toStepEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert list of JPA entities to domain WorkflowSteps
+     * @param entities the JPA entities
+     * @return list of domain models
+     */
+    public List<WorkflowStep> toStepDomains(List<WorkflowStepEntity> entities) {
+        if (entities == null) {
+            return List.of();
+        }
+        return entities.stream()
+                .map(this::toStepDomain)
+                .collect(Collectors.toList());
     }
 
 }
