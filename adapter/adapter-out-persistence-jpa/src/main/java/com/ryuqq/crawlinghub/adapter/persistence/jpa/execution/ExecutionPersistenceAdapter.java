@@ -4,6 +4,8 @@ import com.ryuqq.crawlinghub.application.execution.port.out.LoadExecutionPort;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.ExecutionId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Optional;
  * Persistence Adapter for CrawlExecution
  * Implements Query (Load) port only
  * Follows CQRS pattern - read operations using QueryDSL
+ * Supports both Offset-Based and No-Offset pagination strategies
  *
  * Note: For this implementation, we only implement LoadExecutionPort
  * as execution creation/modification might be handled by other services
@@ -46,6 +49,19 @@ public class ExecutionPersistenceAdapter implements LoadExecutionPort {
     @Override
     public List<CrawlExecution> findByStatus(ExecutionStatus status) {
         return queryRepository.findByStatus(status).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlExecution> findByStatus(ExecutionStatus status, Pageable pageable) {
+        return queryRepository.findByStatus(status, pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlExecution> findByStatus(ExecutionStatus status, Long lastExecutionId, int pageSize) {
+        return queryRepository.findByStatus(status, lastExecutionId, pageSize).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

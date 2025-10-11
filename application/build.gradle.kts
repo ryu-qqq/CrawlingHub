@@ -22,6 +22,10 @@ dependencies {
     implementation(libs.spring.context)
     implementation(libs.spring.tx)
 
+    // Spring Data Commons (for Page and Pageable interfaces only)
+    // Note: Only using abstraction interfaces, not implementation
+    implementation("org.springframework.data:spring-data-commons")
+
     // Validation
     implementation(libs.spring.boot.starter.validation)
 
