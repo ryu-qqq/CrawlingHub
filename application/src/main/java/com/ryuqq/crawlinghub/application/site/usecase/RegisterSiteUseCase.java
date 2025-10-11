@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.application.site.port.out.SaveSitePort;
 import com.ryuqq.crawlinghub.domain.common.SiteType;
 import com.ryuqq.crawlinghub.domain.site.CrawlSite;
 import com.ryuqq.crawlinghub.domain.site.SiteId;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,13 +34,13 @@ public class RegisterSiteUseCase {
      * Register a new crawl site
      *
      * @param command the registration command
-     * @return the site ID of the created site
+     * @return the created site with generated ID
      * @throws DuplicateSiteException if site name already exists
      * @throws IllegalArgumentException if site type is invalid
      */
     @Transactional
-    public SiteId execute(RegisterSiteCommand command) {
-        // 1. Validate business rules
+    public CrawlSite execute(RegisterSiteCommand command) {
+        // 1. Fast-fail validation for duplicate site names (optimization)
         if (loadSitePort.existsBySiteName(command.siteName())) {
             throw new DuplicateSiteException("Site name already exists: " + command.siteName());
         }
@@ -61,8 +62,12 @@ public class RegisterSiteUseCase {
         );
 
         // 4. Save domain model (Adapter will convert to JPA Entity)
-        CrawlSite saved = saveSitePort.save(site);
-
-        return saved.getSiteId();
+        // Handle race condition: catch DataIntegrityViolationException for concurrent requests
+        try {
+            return saveSitePort.save(site);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition detected: another request created the same site name
+            throw new DuplicateSiteException("Site name already exists: " + command.siteName());
+        }
     }
 }
