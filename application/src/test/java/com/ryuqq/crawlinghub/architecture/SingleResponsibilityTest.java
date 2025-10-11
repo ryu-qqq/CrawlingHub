@@ -1,4 +1,4 @@
-package com.jooheon.crawler.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -50,19 +50,19 @@ class SingleResponsibilityTest {
     static void setup() {
         allClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler");
+            .importPackages("com.ryuqq.crawlinghub");
 
         domainClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.domain");
+            .importPackages("com.ryuqq.crawlinghub.domain");
 
         applicationClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.application");
+            .importPackages("com.ryuqq.crawlinghub.application");
 
         adapterClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.adapter");
+            .importPackages("com.ryuqq.crawlinghub.adapter");
     }
 
     // ========================================
@@ -77,7 +77,7 @@ class SingleResponsibilityTest {
         @DisplayName("Domain classes MUST have ≤ 7 public methods")
         void domainClassesShouldHaveLimitedMethods() {
             ArchRule rule = classes()
-                .that().resideInPackage("..domain..")
+                .that().resideInAPackage("..domain..")
                 .and().areNotInterfaces()
                 .and().haveSimpleNameNotEndingWith("Exception")
                 .and().haveSimpleNameNotEndingWith("Id")
@@ -91,7 +91,7 @@ class SingleResponsibilityTest {
         @DisplayName("Domain classes MUST have ≤ 5 instance fields")
         void domainClassesShouldHaveLimitedFields() {
             ArchRule rule = classes()
-                .that().resideInPackage("..domain..")
+                .that().resideInAPackage("..domain..")
                 .and().areNotInterfaces()
                 .and().haveSimpleNameNotEndingWith("Exception")
                 .should(haveAtMostFields(5))
@@ -116,7 +116,7 @@ class SingleResponsibilityTest {
         @DisplayName("UseCases MUST have ≤ 5 public methods")
         void useCasesShouldHaveLimitedMethods() {
             ArchRule rule = classes()
-                .that().resideInPackage("..application..")
+                .that().resideInAPackage("..application..")
                 .and().haveSimpleNameEndingWith("UseCase")
                 .or().haveSimpleNameEndingWith("Service")
                 .should(haveAtMostPublicMethods(5))
@@ -131,7 +131,7 @@ class SingleResponsibilityTest {
             // UseCase는 보통 하나의 트랜잭션 메서드만 가져야 함
             // 여러 개의 @Transactional 메서드 = 여러 책임 의심
             ArchRule rule = classes()
-                .that().resideInPackage("..application..")
+                .that().resideInAPackage("..application..")
                 .and().haveSimpleNameEndingWith("UseCase")
                 .should(haveAtMostTransactionalMethods(1))
                 .because("Multiple transactional methods suggest multiple responsibilities");
@@ -152,7 +152,7 @@ class SingleResponsibilityTest {
         @DisplayName("Controllers MUST have ≤ 10 endpoints")
         void controllersShouldHaveLimitedEndpoints() {
             ArchRule rule = classes()
-                .that().resideInPackage("..adapter.in.web..")
+                .that().resideInAPackage("..adapter.in.web..")
                 .and().haveSimpleNameEndingWith("Controller")
                 .should(haveAtMostPublicMethods(10))
                 .because("Controllers should be organized by resource (max 10 endpoints per resource)");
@@ -166,7 +166,7 @@ class SingleResponsibilityTest {
             // Repository는 하나의 Entity만 다뤄야 함
             // 여러 Entity 의존 = 여러 책임
             ArchRule rule = classes()
-                .that().resideInPackage("..adapter.out.persistence..")
+                .that().resideInAPackage("..adapter.out.persistence..")
                 .and().haveSimpleNameEndingWith("Repository")
                 .should(haveSingleEntityDependency())
                 .because("Repository should manage single Entity type only");

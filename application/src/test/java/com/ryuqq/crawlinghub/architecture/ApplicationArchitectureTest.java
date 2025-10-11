@@ -1,4 +1,4 @@
-package com.jooheon.crawler.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -33,11 +33,11 @@ class ApplicationArchitectureTest {
     static void setup() {
         applicationClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler.application");
+            .importPackages("com.ryuqq.crawlinghub.application");
 
         allClasses = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.jooheon.crawler");
+            .importPackages("com.ryuqq.crawlinghub");
     }
 
     // ========================================
@@ -205,7 +205,13 @@ class ApplicationArchitectureTest {
         void useCaseDtosShouldBeRecords() {
             ArchRule rule = classes()
                 .that().resideInAPackage("..application..")
-                .and().haveSimpleNameMatching(".*Command|.*Query|.*Result")
+                .and(com.tngtech.archunit.base.DescribedPredicate.describe(
+                    "have name matching Command/Query/Result",
+                    (com.tngtech.archunit.core.domain.JavaClass c) ->
+                        c.getSimpleName().endsWith("Command") ||
+                        c.getSimpleName().endsWith("Query") ||
+                        c.getSimpleName().endsWith("Result")
+                ))
                 .should().beRecords()
                 .orShould().haveOnlyFinalFields()
                 .because("UseCase DTOs must be immutable - prefer Java records");
@@ -312,7 +318,7 @@ class ApplicationArchitectureTest {
         void noLombokInApplication() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..application..")
-                .should().dependOnClassesThat().resideInPackage("lombok..")
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..")
                 .because("Lombok is strictly prohibited across entire project");
 
             rule.check(applicationClasses);

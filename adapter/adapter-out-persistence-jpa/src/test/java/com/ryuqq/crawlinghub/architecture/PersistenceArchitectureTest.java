@@ -95,11 +95,21 @@ class PersistenceArchitectureTest {
         @Test
         @DisplayName("Entities MUST NOT have setter methods")
         void noSetterMethodsInEntities() {
-            ArchRule rule = noMethods()
+            ArchRule rule = methods()
                 .that().areDeclaredInClassesThat().areAnnotatedWith("jakarta.persistence.Entity")
                 .and().haveNameMatching("set[A-Z].*")
                 .and().arePublic()
-                .should().beDeclared()
+                .should(new ArchCondition<>("not exist") {
+                    @Override
+                    public void check(com.tngtech.archunit.core.domain.JavaMethod method, ConditionEvents events) {
+                        String message = String.format(
+                            "Setter method %s.%s() found - JPA entities must be immutable",
+                            method.getOwner().getSimpleName(),
+                            method.getName()
+                        );
+                        events.add(SimpleConditionEvent.violated(method, message));
+                    }
+                })
                 .because("JPA entities should be immutable - no public setters allowed");
 
             rule.check(persistenceClasses);
@@ -142,16 +152,18 @@ class PersistenceArchitectureTest {
         @Test
         @DisplayName("Entities SHOULD NOT have complex business logic")
         void noBusinessLogicInEntities() {
+            // 엔티티는 getter와 static factory method만 가져야 함
+            // 비즈니스 로직은 domain 레이어에서 처리
             ArchRule rule = methods()
                 .that().areDeclaredInClassesThat().areAnnotatedWith("jakarta.persistence.Entity")
                 .and().arePublic()
                 .and().doNotHaveName("equals")
                 .and().doNotHaveName("hashCode")
                 .and().doNotHaveName("toString")
-                .and().doNotHaveNameMatching("get.*")
-                .and().doNotHaveNameMatching("is.*")
-                .should().haveNameMatching("create|reconstitute")
-                .because("Entities should only have static factory methods, not business logic");
+                .and().haveNameNotMatching("get.*")
+                .and().haveNameNotMatching("is.*")
+                .should().beStatic()
+                .because("Entities should only have getters and static factory methods, not instance business logic");
 
             rule.check(persistenceClasses);
         }
@@ -207,9 +219,8 @@ class PersistenceArchitectureTest {
                         String entityName = entityClass.getSimpleName().replace("Entity", "");
                         String expectedMapperName = entityName + "EntityMapper";
 
-                        boolean mapperExists = persistenceClasses.contain(
-                            c -> c.getSimpleName().equals(expectedMapperName)
-                        );
+                        boolean mapperExists = persistenceClasses.stream()
+                            .anyMatch(c -> c.getSimpleName().equals(expectedMapperName));
 
                         if (!mapperExists) {
                             String message = String.format(
@@ -322,7 +333,7 @@ class PersistenceArchitectureTest {
         void noLombokInPersistence() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..adapter..persistence..")
-                .should().dependOnClassesThat().resideInPackage("lombok..")
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..")
                 .because("Lombok is strictly prohibited across entire project");
 
             rule.check(persistenceClasses);

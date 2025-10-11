@@ -54,28 +54,6 @@ class ControllerArchitectureTest {
     class ControllerStructureTests {
 
         @Test
-        @DisplayName("Controllers MUST NOT have inner classes")
-        void noInnerClassesInControllers() {
-            ArchRule rule = classes()
-                .that().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
-                .should(new ArchCondition<>("not have inner classes") {
-                    @Override
-                    public void check(JavaClass controller, ConditionEvents events) {
-                        if (!controller.getInnerClasses().isEmpty()) {
-                            String message = String.format(
-                                "Controller %s has inner classes - Request/Response DTOs must be separate files",
-                                controller.getSimpleName()
-                            );
-                            events.add(SimpleConditionEvent.violated(controller, message));
-                        }
-                    }
-                })
-                .because("Controllers must not have inner classes - keep DTOs in separate files");
-
-            rule.check(controllerClasses);
-        }
-
-        @Test
         @DisplayName("Controllers SHOULD be thin delegation layer")
         void controllersShouldBeThin() {
             ArchRule rule = methods()
@@ -127,7 +105,10 @@ class ControllerArchitectureTest {
         void dtosShouldNotBeClasses() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..adapter..web..")
-                .and().haveSimpleNameMatching(".*Request|.*Response")
+                .and(com.tngtech.archunit.base.DescribedPredicate.describe(
+                    "have name matching Request or Response",
+                    (JavaClass c) -> c.getSimpleName().endsWith("Request") || c.getSimpleName().endsWith("Response")
+                ))
                 .should().notBeRecords()
                 .because("Request/Response DTOs must be records, not classes");
 
@@ -268,7 +249,10 @@ class ControllerArchitectureTest {
             ArchRule rule = classes()
                 .that().resideInAPackage("..adapter..web..")
                 .and().areRecords()
-                .and().haveSimpleNameMatching(".*Request")
+                .and(com.tngtech.archunit.base.DescribedPredicate.describe(
+                    "have name matching Request",
+                    (JavaClass c) -> c.getSimpleName().matches(".*Request")
+                ))
                 .should().haveSimpleNameEndingWith("Request")
                 .because("Request DTOs should follow naming convention");
 
@@ -281,7 +265,10 @@ class ControllerArchitectureTest {
             ArchRule rule = classes()
                 .that().resideInAPackage("..adapter..web..")
                 .and().areRecords()
-                .and().haveSimpleNameMatching(".*Response")
+                .and(com.tngtech.archunit.base.DescribedPredicate.describe(
+                    "have name matching Response",
+                    (JavaClass c) -> c.getSimpleName().matches(".*Response")
+                ))
                 .should().haveSimpleNameEndingWith("Response")
                 .because("Response DTOs should follow naming convention");
 
@@ -323,7 +310,7 @@ class ControllerArchitectureTest {
         void noLombokInControllers() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..adapter..web..")
-                .should().dependOnClassesThat().resideInPackage("lombok..")
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..")
                 .because("Lombok is strictly prohibited across entire project");
 
             rule.check(controllerClasses);

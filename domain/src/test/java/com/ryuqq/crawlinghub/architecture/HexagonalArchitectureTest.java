@@ -1,8 +1,6 @@
 package com.ryuqq.crawlinghub.architecture;
 
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -149,7 +147,7 @@ class HexagonalArchitectureTest {
         void noLombokAnnotations() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInPackage("lombok..")
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..")
                 .because("Lombok is strictly prohibited across entire project");
 
             rule.check(domainClasses);
@@ -171,11 +169,21 @@ class HexagonalArchitectureTest {
         @Test
         @DisplayName("Domain MUST NOT have setter methods")
         void noSetterMethods() {
-            ArchRule rule = noMethods()
+            ArchRule rule = methods()
                 .that().areDeclaredInClassesThat().resideInAPackage("..domain..")
                 .and().haveNameMatching("set[A-Z].*")
                 .and().arePublic()
-                .should().beDeclared()
+                .should(new ArchCondition<>("not exist") {
+                    @Override
+                    public void check(com.tngtech.archunit.core.domain.JavaMethod method, ConditionEvents events) {
+                        String message = String.format(
+                            "Setter method %s.%s() found - domain objects must be immutable",
+                            method.getOwner().getSimpleName(),
+                            method.getName()
+                        );
+                        events.add(SimpleConditionEvent.violated(method, message));
+                    }
+                })
                 .because("Domain objects must be immutable - no setter methods allowed");
 
             rule.check(domainClasses);
@@ -236,7 +244,7 @@ class HexagonalArchitectureTest {
         void domainShouldNotUseJacksonAnnotations() {
             ArchRule rule = noClasses()
                 .that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInPackage("com.fasterxml.jackson..")
+                .should().dependOnClassesThat().resideInAnyPackage("com.fasterxml.jackson..")
                 .because("Domain must not depend on JSON serialization concerns");
 
             rule.check(domainClasses);
@@ -351,7 +359,7 @@ class HexagonalArchitectureTest {
         @DisplayName("NO Lombok in Domain")
         void noLombokInDomain() {
             ArchRule rule = noClasses()
-                .should().dependOnClassesThat().resideInPackage("lombok..");
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..");
 
             rule.check(domainClasses);
         }
@@ -360,7 +368,7 @@ class HexagonalArchitectureTest {
         @DisplayName("NO Lombok in Application")
         void noLombokInApplication() {
             ArchRule rule = noClasses()
-                .should().dependOnClassesThat().resideInPackage("lombok..");
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..");
 
             rule.check(applicationClasses);
         }
@@ -369,7 +377,7 @@ class HexagonalArchitectureTest {
         @DisplayName("NO Lombok in Adapters")
         void noLombokInAdapters() {
             ArchRule rule = noClasses()
-                .should().dependOnClassesThat().resideInPackage("lombok..");
+                .should().dependOnClassesThat().resideInAnyPackage("lombok..");
 
             rule.check(adapterClasses);
         }
