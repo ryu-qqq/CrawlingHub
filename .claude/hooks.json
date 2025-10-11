@@ -1,27 +1,45 @@
 {
   "hooks": {
-    "SessionStart": {
-      "command": "./.claude/hooks/scripts/init-session.sh",
-      "timeout": 3000,
-      "description": "Initialize session context with Git branch, Jira task, and core architecture rules"
-    },
-    "UserPromptSubmit": {
-      "command": "./.claude/hooks/user-prompt-submit.sh",
-      "timeout": 1000,
-      "description": "Inject module-specific guidelines before code generation"
-    },
-    "AfterToolUse": {
-      "command": "./.claude/hooks/after-tool-use.sh",
-      "matchers": {
-        "tool": "Write|Edit"
-      },
-      "timeout": 2000,
-      "description": "Validate generated code against architecture rules"
-    },
-    "PreCompact": {
-      "command": "./.claude/hooks/scripts/preserve-rules.sh",
-      "timeout": 1000,
-      "description": "Preserve critical architecture rules before context compaction"
-    }
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/init-session.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/preserve-rules.sh"
+          }
+        ]
+      }
+    ],
+    "AfterToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/after-tool-use.sh {{toolName}} {{filePath}}"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/user-prompt-submit.sh '{{prompt}}'"
+          }
+        ]
+      }
+    ]
   }
 }

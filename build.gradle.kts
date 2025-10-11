@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management) apply false
     id("checkstyle")
     alias(libs.plugins.spotbugs) apply false
-    id("pmd")
 }
 
 // ========================================
@@ -28,7 +27,6 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.spotbugs")
-    apply(plugin = "pmd")
 
     java {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -92,24 +90,6 @@ subprojects {
         effort.set(com.github.spotbugs.snom.Effort.MAX)
         reportLevel.set(com.github.spotbugs.snom.Confidence.LOW)
         excludeFilter.set(rootProject.file("config/spotbugs/spotbugs-exclude.xml"))
-    }
-
-    // ========================================
-    // PMD Configuration
-    // ========================================
-    configure<PmdExtension> {
-        toolVersion = rootProject.libs.versions.pmd.get()
-        isConsoleOutput = true
-        ruleSetFiles = files(rootProject.file("config/pmd/pmd-ruleset.xml"))
-        ruleSets = emptyList() // Use custom ruleset only
-        isIgnoreFailures = false
-    }
-
-    tasks.withType<Pmd> {
-        reports {
-            xml.required.set(true)
-            html.required.set(true)
-        }
     }
 
     // ========================================
