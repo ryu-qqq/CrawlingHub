@@ -31,16 +31,28 @@ public class CrawlTaskAttempt {
     }
 
     public void start() {
+        if (this.status != TaskStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Cannot start attempt in " + status + " state. Only PENDING attempts can be started.");
+        }
         this.status = TaskStatus.RUNNING;
         this.startedAt = LocalDateTime.now();
     }
 
     public void complete() {
+        if (this.status != TaskStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot complete attempt in " + status + " state. Only RUNNING attempts can be completed.");
+        }
         this.status = TaskStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
 
     public void fail(String errorMessage, String errorType) {
+        if (this.status != TaskStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot fail attempt in " + status + " state. Only RUNNING attempts can be failed.");
+        }
         this.status = TaskStatus.FAILED;
         this.completedAt = LocalDateTime.now();
         this.errorMessage = errorMessage;

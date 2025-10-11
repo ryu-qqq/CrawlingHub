@@ -48,22 +48,38 @@ public class CrawlExecution {
     }
 
     public void start() {
+        if (this.status != ExecutionStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Cannot start execution in " + status + " state. Only PENDING executions can be started.");
+        }
         this.status = ExecutionStatus.RUNNING;
         this.startedAt = LocalDateTime.now();
     }
 
     public void complete() {
+        if (this.status != ExecutionStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot complete execution in " + status + " state. Only RUNNING executions can be completed.");
+        }
         this.status = ExecutionStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
 
     public void fail(String errorMessage) {
+        if (this.status != ExecutionStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot fail execution in " + status + " state. Only RUNNING executions can be failed.");
+        }
         this.status = ExecutionStatus.FAILED;
         this.completedAt = LocalDateTime.now();
         this.errorMessage = errorMessage;
     }
 
     public void cancel() {
+        if (this.status != ExecutionStatus.PENDING && this.status != ExecutionStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot cancel execution in " + status + " state. Only PENDING or RUNNING executions can be cancelled.");
+        }
         this.status = ExecutionStatus.CANCELLED;
         this.completedAt = LocalDateTime.now();
     }

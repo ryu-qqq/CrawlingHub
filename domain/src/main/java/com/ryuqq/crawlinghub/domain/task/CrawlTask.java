@@ -73,21 +73,37 @@ public class CrawlTask {
     }
 
     public void enqueue() {
+        if (this.status != TaskStatus.PENDING && this.status != TaskStatus.RETRY) {
+            throw new IllegalStateException(
+                    "Cannot enqueue task in " + status + " state. Only PENDING or RETRY tasks can be enqueued.");
+        }
         this.status = TaskStatus.QUEUED;
         this.queuedAt = LocalDateTime.now();
     }
 
     public void start() {
+        if (this.status != TaskStatus.QUEUED) {
+            throw new IllegalStateException(
+                    "Cannot start task in " + status + " state. Only QUEUED tasks can be started.");
+        }
         this.status = TaskStatus.RUNNING;
         this.startedAt = LocalDateTime.now();
     }
 
     public void complete() {
+        if (this.status != TaskStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot complete task in " + status + " state. Only RUNNING tasks can be completed.");
+        }
         this.status = TaskStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
 
     public void fail(String errorMessage) {
+        if (this.status != TaskStatus.RUNNING) {
+            throw new IllegalStateException(
+                    "Cannot fail task in " + status + " state. Only RUNNING tasks can be failed.");
+        }
         this.status = TaskStatus.FAILED;
         this.completedAt = LocalDateTime.now();
         this.errorMessage = errorMessage;
@@ -98,6 +114,10 @@ public class CrawlTask {
     }
 
     public void incrementRetry() {
+        if (this.status != TaskStatus.FAILED) {
+            throw new IllegalStateException(
+                    "Cannot retry task in " + status + " state. Only FAILED tasks can be retried.");
+        }
         if (!canRetry()) {
             throw new IllegalStateException("Cannot retry: maximum retry count reached");
         }
