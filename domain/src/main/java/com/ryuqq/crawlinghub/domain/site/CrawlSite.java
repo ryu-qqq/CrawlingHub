@@ -52,6 +52,16 @@ public class CrawlSite {
         return siteId;
     }
 
+    /**
+     * Get site ID value safely handling null case
+     * Helper method to prevent NullPointerException in DTOs
+     *
+     * @return site ID value or null if not persisted yet
+     */
+    public Long getIdValue() {
+        return siteId != null ? siteId.value() : null;
+    }
+
     public String getSiteName() {
         return siteName;
     }
