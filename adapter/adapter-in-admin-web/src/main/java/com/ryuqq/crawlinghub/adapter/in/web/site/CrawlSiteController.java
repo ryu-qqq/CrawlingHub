@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -44,7 +46,7 @@ public class CrawlSiteController {
      * Create a new crawl site
      *
      * @param request the site creation request
-     * @return the created site response
+     * @return the created site response with Location header
      */
     @PostMapping
     public ResponseEntity<SiteResponse> createSite(@Valid @RequestBody CreateSiteRequest request) {
@@ -55,7 +57,14 @@ public class CrawlSiteController {
         CrawlSite site = registerSiteUseCase.execute(command);
         SiteResponse response = SiteResponse.from(site);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        // Build Location header URI for the created resource
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{siteId}")
+                .buildAndExpand(response.siteId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
     }
 
     /**
