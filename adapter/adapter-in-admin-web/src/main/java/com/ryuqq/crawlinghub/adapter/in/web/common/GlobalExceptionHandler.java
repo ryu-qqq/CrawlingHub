@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
-                "DUPLICATE_SITE",
+                ErrorCode.DUPLICATE_SITE,
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
-                "SITE_NOT_FOUND",
+                ErrorCode.SITE_NOT_FOUND,
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                "VALIDATION_ERROR",
+                ErrorCode.VALIDATION_ERROR,
                 message,
                 request.getRequestURI()
         );
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                "INVALID_ARGUMENT",
+                ErrorCode.INVALID_ARGUMENT,
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
         // Return generic message to client (no internal details exposed)
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_SERVER_ERROR",
+                ErrorCode.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred.",
                 request.getRequestURI()
         );

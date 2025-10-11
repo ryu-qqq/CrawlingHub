@@ -45,13 +45,16 @@ public class RegisterSiteUseCase {
             throw new DuplicateSiteException("Site name already exists: " + command.siteName());
         }
 
-        // 2. Parse and validate site type
+        // 2. Parse and validate site type (case-insensitive, dynamic enum list)
         SiteType siteType;
         try {
-            siteType = SiteType.valueOf(command.siteType());
+            siteType = SiteType.valueOf(command.siteType().toUpperCase());
         } catch (IllegalArgumentException e) {
+            String validTypes = java.util.Arrays.stream(SiteType.values())
+                    .map(Enum::name)
+                    .collect(java.util.stream.Collectors.joining(", "));
             throw new IllegalArgumentException("Invalid site type: " + command.siteType() +
-                    ". Valid types: REST_API, GRAPHQL, WEB_SCRAPING, RSS_FEED, SOAP, CUSTOM");
+                    ". Valid types: " + validTypes);
         }
 
         // 3. Create Domain Model using factory method

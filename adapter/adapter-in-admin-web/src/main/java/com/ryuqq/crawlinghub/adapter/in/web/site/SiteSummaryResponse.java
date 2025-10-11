@@ -29,7 +29,7 @@ public record SiteSummaryResponse(
      */
     public static SiteSummaryResponse from(CrawlSite site) {
         return new SiteSummaryResponse(
-                site.getSiteId() != null ? site.getSiteId().value() : null,
+                site.getIdValue(),
                 site.getSiteName(),
                 site.getBaseUrl(),
                 site.getSiteType().name(),
