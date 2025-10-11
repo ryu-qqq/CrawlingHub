@@ -93,23 +93,6 @@ public class CrawlTaskAttemptEntity extends BaseTimeEntity {
         return apiResponseTimeMs;
     }
 
-    public void start() {
-        this.status = TaskStatus.RUNNING;
-        this.startedAt = LocalDateTime.now();
-    }
-
-    public void complete() {
-        this.status = TaskStatus.COMPLETED;
-        this.completedAt = LocalDateTime.now();
-    }
-
-    public void fail(String errorMessage, String errorType) {
-        this.status = TaskStatus.FAILED;
-        this.completedAt = LocalDateTime.now();
-        this.errorMessage = errorMessage;
-        this.errorType = errorType;
-    }
-
     public static Builder builder() {
         return new Builder();
     }

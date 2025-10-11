@@ -55,18 +55,6 @@ public class CrawlWorkflowEntity extends BaseTimeEntity {
         return isActive;
     }
 
-    public void activate() {
-        this.isActive = true;
-    }
-
-    public void deactivate() {
-        this.isActive = false;
-    }
-
-    public void updateDescription(String newDescription) {
-        this.workflowDescription = newDescription;
-    }
-
     public static Builder builder() {
         return new Builder();
     }

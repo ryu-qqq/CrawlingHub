@@ -117,36 +117,6 @@ public class CrawlTaskEntity extends BaseTimeEntity {
         return errorMessage;
     }
 
-    public void enqueue() {
-        this.status = TaskStatus.QUEUED;
-        this.queuedAt = LocalDateTime.now();
-    }
-
-    public void start() {
-        this.status = TaskStatus.RUNNING;
-        this.startedAt = LocalDateTime.now();
-    }
-
-    public void complete() {
-        this.status = TaskStatus.COMPLETED;
-        this.completedAt = LocalDateTime.now();
-    }
-
-    public void fail(String errorMessage) {
-        this.status = TaskStatus.FAILED;
-        this.completedAt = LocalDateTime.now();
-        this.errorMessage = errorMessage;
-    }
-
-    public boolean canRetry() {
-        return this.retryCount < this.maxRetryCount;
-    }
-
-    public void incrementRetry() {
-        this.retryCount++;
-        this.status = TaskStatus.RETRY;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
