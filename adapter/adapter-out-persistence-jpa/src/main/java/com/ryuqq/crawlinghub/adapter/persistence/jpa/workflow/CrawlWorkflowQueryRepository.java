@@ -16,6 +16,8 @@ import java.util.List;
 @Repository
 public class CrawlWorkflowQueryRepository {
 
+    private static final QCrawlWorkflowEntity workflow = QCrawlWorkflowEntity.crawlWorkflowEntity;
+
     private final JPAQueryFactory queryFactory;
 
     public CrawlWorkflowQueryRepository(JPAQueryFactory queryFactory) {
@@ -28,8 +30,6 @@ public class CrawlWorkflowQueryRepository {
      * @return list of workflows for the site
      */
     public List<CrawlWorkflowEntity> findBySiteId(Long siteId) {
-        QCrawlWorkflowEntity workflow = QCrawlWorkflowEntity.crawlWorkflowEntity;
-
         return queryFactory
                 .selectFrom(workflow)
                 .where(workflow.siteId.eq(siteId))
@@ -42,8 +42,6 @@ public class CrawlWorkflowQueryRepository {
      * @return list of active workflows ordered by workflow name
      */
     public List<CrawlWorkflowEntity> findActiveWorkflows() {
-        QCrawlWorkflowEntity workflow = QCrawlWorkflowEntity.crawlWorkflowEntity;
-
         return queryFactory
                 .selectFrom(workflow)
                 .where(workflow.isActive.isTrue())

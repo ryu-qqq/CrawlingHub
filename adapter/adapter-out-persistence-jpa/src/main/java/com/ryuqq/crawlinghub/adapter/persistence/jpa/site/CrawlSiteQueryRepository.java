@@ -16,6 +16,8 @@ import java.util.List;
 @Repository
 public class CrawlSiteQueryRepository {
 
+    private static final QCrawlSiteEntity site = QCrawlSiteEntity.crawlSiteEntity;
+
     private final JPAQueryFactory queryFactory;
 
     public CrawlSiteQueryRepository(JPAQueryFactory queryFactory) {
@@ -27,8 +29,6 @@ public class CrawlSiteQueryRepository {
      * @return list of active sites ordered by site name
      */
     public List<CrawlSiteEntity> findActiveSites() {
-        QCrawlSiteEntity site = QCrawlSiteEntity.crawlSiteEntity;
-
         return queryFactory
                 .selectFrom(site)
                 .where(site.isActive.isTrue())
@@ -42,8 +42,6 @@ public class CrawlSiteQueryRepository {
      * @return true if exists, false otherwise
      */
     public boolean existsBySiteName(String siteName) {
-        QCrawlSiteEntity site = QCrawlSiteEntity.crawlSiteEntity;
-
         Integer fetchOne = queryFactory
                 .selectOne()
                 .from(site)

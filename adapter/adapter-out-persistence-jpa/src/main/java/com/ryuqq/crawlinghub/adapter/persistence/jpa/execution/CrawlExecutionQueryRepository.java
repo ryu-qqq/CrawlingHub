@@ -18,6 +18,8 @@ import java.util.List;
 @Repository
 public class CrawlExecutionQueryRepository {
 
+    private static final QCrawlExecutionEntity execution = QCrawlExecutionEntity.crawlExecutionEntity;
+
     private final JPAQueryFactory queryFactory;
 
     public CrawlExecutionQueryRepository(JPAQueryFactory queryFactory) {
@@ -30,8 +32,6 @@ public class CrawlExecutionQueryRepository {
      * @return list of executions with the given status, ordered by started time (desc)
      */
     public List<CrawlExecutionEntity> findByStatus(ExecutionStatus status) {
-        QCrawlExecutionEntity execution = QCrawlExecutionEntity.crawlExecutionEntity;
-
         return queryFactory
                 .selectFrom(execution)
                 .where(execution.status.eq(status))

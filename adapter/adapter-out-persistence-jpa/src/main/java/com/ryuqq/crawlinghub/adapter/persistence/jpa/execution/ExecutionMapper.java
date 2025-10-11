@@ -34,8 +34,14 @@ public class ExecutionMapper {
      * Convert JPA entity to domain model
      * @param entity the JPA entity
      * @return domain model
+     * @throws IllegalStateException if entity ID is null (should not happen for persisted entities)
      */
     public CrawlExecution toDomain(CrawlExecutionEntity entity) {
+        // Defensive: Ensure entity is already persisted (has ID)
+        if (entity.getExecutionId() == null) {
+            throw new IllegalStateException("Cannot convert non-persisted entity to domain model. Entity must have an ID.");
+        }
+
         ExecutionReconstituteParams params = new ExecutionReconstituteParams(
                 new ExecutionId(entity.getExecutionId()),
                 new ScheduleId(entity.getScheduleId()),

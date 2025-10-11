@@ -30,8 +30,14 @@ public class SiteMapper {
      * Convert JPA entity to domain model
      * @param entity the JPA entity
      * @return domain model
+     * @throws IllegalStateException if entity ID is null (should not happen for persisted entities)
      */
     public CrawlSite toDomain(CrawlSiteEntity entity) {
+        // Defensive: Ensure entity is already persisted (has ID)
+        if (entity.getSiteId() == null) {
+            throw new IllegalStateException("Cannot convert non-persisted entity to domain model. Entity must have an ID.");
+        }
+
         return CrawlSite.reconstitute(
                 new SiteId(entity.getSiteId()),
                 entity.getSiteName(),

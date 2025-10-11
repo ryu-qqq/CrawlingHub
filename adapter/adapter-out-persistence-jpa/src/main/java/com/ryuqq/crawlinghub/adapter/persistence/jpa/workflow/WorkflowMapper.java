@@ -31,8 +31,14 @@ public class WorkflowMapper {
      * Convert JPA entity to domain model
      * @param entity the JPA entity
      * @return domain model
+     * @throws IllegalStateException if entity ID is null (should not happen for persisted entities)
      */
     public CrawlWorkflow toDomain(CrawlWorkflowEntity entity) {
+        // Defensive: Ensure entity is already persisted (has ID)
+        if (entity.getWorkflowId() == null) {
+            throw new IllegalStateException("Cannot convert non-persisted entity to domain model. Entity must have an ID.");
+        }
+
         return CrawlWorkflow.reconstitute(
                 new WorkflowId(entity.getWorkflowId()),
                 new SiteId(entity.getSiteId()),
