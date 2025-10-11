@@ -38,11 +38,17 @@ public class WorkflowStep {
                 endpointKey, parallelExecution, stepConfig);
     }
 
-    public static WorkflowStep reconstitute(StepId stepId, WorkflowId workflowId, String stepName,
-                                           Integer stepOrder, StepType stepType, String endpointKey,
-                                           Boolean parallelExecution, String stepConfig) {
-        return new WorkflowStep(stepId, workflowId, stepName, stepOrder, stepType,
-                endpointKey, parallelExecution, stepConfig);
+    public static WorkflowStep reconstitute(WorkflowStepReconstituteParams params) {
+        return new WorkflowStep(
+                params.stepId(),
+                params.workflowId(),
+                params.stepName(),
+                params.stepOrder(),
+                params.stepType(),
+                params.endpointKey(),
+                params.parallelExecution(),
+                params.stepConfig()
+        );
     }
 
     private static void validateCreate(WorkflowId workflowId, String stepName, Integer stepOrder,

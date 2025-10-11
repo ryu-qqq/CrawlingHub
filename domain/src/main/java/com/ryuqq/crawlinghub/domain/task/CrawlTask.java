@@ -49,12 +49,21 @@ public class CrawlTask {
                 TaskStatus.PENDING, 0, maxRetryCount, null, null, null, null);
     }
 
-    public static CrawlTask reconstitute(TaskId taskId, ExecutionId executionId, StepId stepId, TaskId parentTaskId,
-                                        String taskName, TaskStatus status, int retryCount, int maxRetryCount,
-                                        LocalDateTime queuedAt, LocalDateTime startedAt,
-                                        LocalDateTime completedAt, String errorMessage) {
-        return new CrawlTask(taskId, executionId, stepId, parentTaskId, taskName, status,
-                retryCount, maxRetryCount, queuedAt, startedAt, completedAt, errorMessage);
+    public static CrawlTask reconstitute(TaskReconstituteParams params) {
+        return new CrawlTask(
+                params.taskId(),
+                params.executionId(),
+                params.stepId(),
+                params.parentTaskId(),
+                params.taskName(),
+                params.status(),
+                params.retryCount(),
+                params.maxRetryCount(),
+                params.queuedAt(),
+                params.startedAt(),
+                params.completedAt(),
+                params.errorMessage()
+        );
     }
 
     private static void validateCreate(ExecutionId executionId, StepId stepId, String taskName, int maxRetryCount) {

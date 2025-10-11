@@ -31,11 +31,16 @@ public class CrawlExecution {
         return new CrawlExecution(null, scheduleId, executionName, ExecutionStatus.PENDING, null, null, null);
     }
 
-    public static CrawlExecution reconstitute(ExecutionId executionId, ScheduleId scheduleId, String executionName,
-                                             ExecutionStatus status, LocalDateTime startedAt,
-                                             LocalDateTime completedAt, String errorMessage) {
-        return new CrawlExecution(executionId, scheduleId, executionName, status,
-                startedAt, completedAt, errorMessage);
+    public static CrawlExecution reconstitute(ExecutionReconstituteParams params) {
+        return new CrawlExecution(
+                params.executionId(),
+                params.scheduleId(),
+                params.executionName(),
+                params.status(),
+                params.startedAt(),
+                params.completedAt(),
+                params.errorMessage()
+        );
     }
 
     private static void validateCreate(ScheduleId scheduleId, String executionName) {
