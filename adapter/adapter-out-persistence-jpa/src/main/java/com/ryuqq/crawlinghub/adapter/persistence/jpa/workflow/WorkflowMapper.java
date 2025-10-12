@@ -56,13 +56,14 @@ public class WorkflowMapper {
 
     /**
      * Convert domain WorkflowStep to JPA entity
+     * Note: workflowId is not mapped here as it will be set by the adapter layer
+     * after the parent workflow is persisted
      * @param domain the domain model
      * @return JPA entity
      */
     public WorkflowStepEntity toStepEntity(WorkflowStep domain) {
         return WorkflowStepEntity.builder()
                 .stepId(domain.getStepId() != null ? domain.getStepId().value() : null)
-                .workflowId(domain.getWorkflowId().value())
                 .stepName(domain.getStepName())
                 .stepOrder(domain.getStepOrder())
                 .stepType(domain.getStepType())
