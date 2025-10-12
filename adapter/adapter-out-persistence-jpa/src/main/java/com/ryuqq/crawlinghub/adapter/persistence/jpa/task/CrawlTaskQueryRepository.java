@@ -81,9 +81,9 @@ public class CrawlTaskQueryRepository {
                 .selectFrom(task)
                 .where(
                         task.executionId.eq(executionId),
-                        lastTaskId != null ? task.taskId.gt(lastTaskId) : null
+                        lastTaskId != null ? task.taskId.lt(lastTaskId) : null
                 )
-                .orderBy(task.taskId.asc())
+                .orderBy(task.startedAt.desc())
                 .limit(pageSize)
                 .fetch();
     }
@@ -194,9 +194,9 @@ public class CrawlTaskQueryRepository {
                         task.executionId.eq(executionId),
                         statusEq(status),
                         stepIdEq(stepId),
-                        lastTaskId != null ? task.taskId.gt(lastTaskId) : null
+                        lastTaskId != null ? task.taskId.lt(lastTaskId) : null
                 )
-                .orderBy(task.taskId.asc())
+                .orderBy(task.startedAt.desc())
                 .limit(pageSize)
                 .fetch();
     }

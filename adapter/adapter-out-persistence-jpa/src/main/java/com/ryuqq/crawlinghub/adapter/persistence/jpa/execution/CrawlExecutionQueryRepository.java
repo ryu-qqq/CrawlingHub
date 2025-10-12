@@ -83,9 +83,9 @@ public class CrawlExecutionQueryRepository {
                 .selectFrom(execution)
                 .where(
                         execution.status.eq(status),
-                        lastExecutionId != null ? execution.executionId.gt(lastExecutionId) : null
+                        lastExecutionId != null ? execution.executionId.lt(lastExecutionId) : null
                 )
-                .orderBy(execution.executionId.asc())
+                .orderBy(execution.startedAt.desc())
                 .limit(pageSize)
                 .fetch();
     }
@@ -161,9 +161,9 @@ public class CrawlExecutionQueryRepository {
                         statusEq(status),
                         startedAtGoe(startDate),
                         startedAtLoe(endDate),
-                        lastExecutionId != null ? execution.executionId.gt(lastExecutionId) : null
+                        lastExecutionId != null ? execution.executionId.lt(lastExecutionId) : null
                 )
-                .orderBy(execution.executionId.asc())
+                .orderBy(execution.startedAt.desc())
                 .limit(pageSize)
                 .fetch();
     }
@@ -212,9 +212,9 @@ public class CrawlExecutionQueryRepository {
         return queryFactory
                 .selectFrom(execution)
                 .where(
-                        lastExecutionId != null ? execution.executionId.gt(lastExecutionId) : null
+                        lastExecutionId != null ? execution.executionId.lt(lastExecutionId) : null
                 )
-                .orderBy(execution.executionId.asc())
+                .orderBy(execution.startedAt.desc())
                 .limit(pageSize)
                 .fetch();
     }
