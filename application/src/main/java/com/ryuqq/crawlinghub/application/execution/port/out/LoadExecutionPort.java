@@ -52,7 +52,7 @@ public interface LoadExecutionPort {
     List<CrawlExecution> findByStatus(ExecutionStatus status, Long lastExecutionId, int pageSize);
 
     /**
-     * Find executions with dynamic filters
+     * Find executions with dynamic filters (Offset-Based pagination)
      * @param scheduleId optional schedule ID filter
      * @param status optional execution status filter
      * @param startDate optional start date filter (inclusive)
@@ -69,9 +69,43 @@ public interface LoadExecutionPort {
     );
 
     /**
+     * Find executions with dynamic filters (No-Offset cursor-based pagination)
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param lastExecutionId cursor - last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions matching the filters after the cursor
+     */
+    List<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Long lastExecutionId,
+            int pageSize
+    );
+
+    /**
      * Find all executions
      * @return list of all executions
      */
     List<CrawlExecution> findAll();
+
+    /**
+     * Find all executions with Offset-Based pagination
+     * @param pageable pagination parameters
+     * @return page of all executions
+     */
+    Page<CrawlExecution> findAll(Pageable pageable);
+
+    /**
+     * Find all executions with No-Offset cursor-based pagination
+     * @param lastExecutionId cursor - last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions after the cursor
+     */
+    List<CrawlExecution> findAll(Long lastExecutionId, int pageSize);
 
 }
