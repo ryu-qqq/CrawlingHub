@@ -38,6 +38,28 @@ public class GetTaskUseCase {
     }
 
     /**
+     * Gets a task by ID and validates it belongs to the specified execution
+     *
+     * @param taskId the task ID
+     * @param executionId the execution ID to validate against
+     * @return the task
+     * @throws TaskNotFoundException if task not found
+     * @throws IllegalArgumentException if task does not belong to the specified execution
+     */
+    public CrawlTask getByIdAndValidateExecution(Long taskId, Long executionId) {
+        CrawlTask task = loadTaskPort.findById(TaskId.of(taskId))
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        if (!task.getExecutionId().value().equals(executionId)) {
+            throw new IllegalArgumentException(
+                    String.format("Task %d does not belong to execution %d", taskId, executionId)
+            );
+        }
+
+        return task;
+    }
+
+    /**
      * Gets all tasks for an execution
      *
      * @param executionId the execution ID
