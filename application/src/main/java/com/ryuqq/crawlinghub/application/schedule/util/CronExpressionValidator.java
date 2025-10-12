@@ -35,31 +35,18 @@ public class CronExpressionValidator {
      * Spring: "0 0 9 * * *" (second minute hour day month dayOfWeek)
      * AWS: "0 9 * * ? *" (minute hour day month dayOfWeek year)
      *
-     * @param springCron the Spring cron expression (6-field)
+     * Note: Only Spring 6-field cron expressions are supported.
+     * Standard 5-field cron expressions are not supported because Spring's
+     * CronExpression.parse() only accepts 6-field format.
+     *
+     * @param springCron the Spring cron expression (6-field only)
      * @return AWS-compatible cron expression (6-field)
      */
     public static String convertToAwsCronExpression(String springCron) {
         validate(springCron);
 
         String[] parts = springCron.trim().split("\\s+");
-        if (parts.length == 5) {
-            // Standard 5-field cron: minute hour day month dayOfWeek
-            // AWS requires 6 fields: minute hour day month dayOfWeek year
-            // Replace day-of-week with ? if day-of-month is specified (not *)
-            String dayOfMonth = parts[2];
-            String dayOfWeek = parts[4];
-
-            if (!"*".equals(dayOfMonth) && !"?".equals(dayOfMonth)) {
-                // If day-of-month is specified, day-of-week must be ?
-                return String.format("%s %s %s %s ? *", parts[0], parts[1], parts[2], parts[3]);
-            } else if (!"*".equals(dayOfWeek) && !"?".equals(dayOfWeek)) {
-                // If day-of-week is specified, day-of-month must be ?
-                return String.format("%s %s ? %s %s *", parts[0], parts[1], parts[3], parts[4]);
-            } else {
-                // Both are *, use standard conversion
-                return String.format("%s %s %s %s ? *", parts[0], parts[1], parts[2], parts[3]);
-            }
-        } else if (parts.length == 6) {
+        if (parts.length == 6) {
             // Spring 6-field cron: second minute hour day month dayOfWeek
             // AWS 6-field cron: minute hour day month dayOfWeek year
             // Need to remove second field and add year field
