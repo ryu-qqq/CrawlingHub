@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.persistence.jpa.execution;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import org.springframework.data.domain.Page;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -86,6 +88,80 @@ public class CrawlExecutionQueryRepository {
                 .orderBy(execution.executionId.asc())
                 .limit(pageSize)
                 .fetch();
+    }
+
+    /**
+     * Find executions with dynamic filters
+     * Supports optional filters: scheduleId, status, startDate, endDate
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param pageable pagination parameters
+     * @return page of executions matching the filters
+     */
+    public Page<CrawlExecutionEntity> findWithFilters(
+            Long scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    ) {
+        List<CrawlExecutionEntity> content = queryFactory
+                .selectFrom(execution)
+                .where(
+                        scheduleIdEq(scheduleId),
+                        statusEq(status),
+                        startedAtGoe(startDate),
+                        startedAtLoe(endDate)
+                )
+                .orderBy(execution.startedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(execution.count())
+                .from(execution)
+                .where(
+                        scheduleIdEq(scheduleId),
+                        statusEq(status),
+                        startedAtGoe(startDate),
+                        startedAtLoe(endDate)
+                )
+                .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * Find all executions ordered by started time (descending)
+     * @return list of all executions
+     */
+    public List<CrawlExecutionEntity> findAll() {
+        return queryFactory
+                .selectFrom(execution)
+                .orderBy(execution.startedAt.desc())
+                .fetch();
+    }
+
+    // Dynamic query helper methods
+    private BooleanExpression scheduleIdEq(Long scheduleId) {
+        return scheduleId != null ? execution.scheduleId.eq(scheduleId) : null;
+    }
+
+    private BooleanExpression statusEq(ExecutionStatus status) {
+        return status != null ? execution.status.eq(status) : null;
+    }
+
+    private BooleanExpression startedAtGoe(LocalDateTime startDate) {
+        return startDate != null ? execution.startedAt.goe(startDate) : null;
+    }
+
+    private BooleanExpression startedAtLoe(LocalDateTime endDate) {
+        return endDate != null ? execution.startedAt.loe(endDate) : null;
     }
 
 }
