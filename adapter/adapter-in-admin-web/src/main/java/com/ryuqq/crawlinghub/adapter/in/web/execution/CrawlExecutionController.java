@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.web.execution;
 
 import com.ryuqq.crawlinghub.application.execution.usecase.GetExecutionUseCase;
+import com.ryuqq.crawlinghub.application.task.usecase.GetTaskUseCase;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
+import com.ryuqq.crawlinghub.domain.common.TaskStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
+import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +30,11 @@ import java.util.stream.Collectors;
 public class CrawlExecutionController {
 
     private final GetExecutionUseCase getExecutionUseCase;
+    private final GetTaskUseCase getTaskUseCase;
 
-    public CrawlExecutionController(GetExecutionUseCase getExecutionUseCase) {
+    public CrawlExecutionController(GetExecutionUseCase getExecutionUseCase, GetTaskUseCase getTaskUseCase) {
         this.getExecutionUseCase = getExecutionUseCase;
+        this.getTaskUseCase = getTaskUseCase;
     }
 
     /**
@@ -55,15 +60,10 @@ public class CrawlExecutionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
 
-        List<CrawlExecution> executions;
-
-        if (scheduleId != null || status != null || startDate != null || endDate != null) {
-            // TODO: Use filtered query when filters are provided
-            executions = getExecutionUseCase.getAll();
-        } else {
-            // Get all executions
-            executions = getExecutionUseCase.getAll();
-        }
+        // Execute UseCase with filters
+        List<CrawlExecution> executions = getExecutionUseCase.getExecutionsWithFilters(
+                scheduleId, status, startDate, endDate
+        );
 
         // Domain → Response
         // TODO: Fetch schedule name, workflow name, and statistics from appropriate services
@@ -159,12 +159,16 @@ public class CrawlExecutionController {
     @GetMapping("/{executionId}/tasks")
     public ResponseEntity<List<TaskSummaryResponse>> getExecutionTasks(
             @PathVariable Long executionId,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) Long stepId) {
 
-        // TODO: Implement GetTaskUseCase and fetch tasks for the execution
-        // For now, return empty list as placeholder
-        List<TaskSummaryResponse> response = List.of();
+        // Execute UseCase with filters
+        List<CrawlTask> tasks = getTaskUseCase.getTasksWithFilters(executionId, status, stepId);
+
+        // Domain → Response
+        List<TaskSummaryResponse> response = tasks.stream()
+                .map(TaskSummaryResponse::from)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -183,8 +187,20 @@ public class CrawlExecutionController {
             @PathVariable Long executionId,
             @PathVariable Long taskId) {
 
-        // TODO: Implement GetTaskUseCase and fetch task detail
-        // For now, return placeholder response
-        throw new UnsupportedOperationException("Task detail endpoint not yet implemented");
+        // Execute UseCase
+        CrawlTask task = getTaskUseCase.getById(taskId);
+
+        // TODO: Fetch input params, output data, result metadata, and attempts from appropriate services
+        // Domain → Response
+        TaskDetailResponse response = TaskDetailResponse.from(
+                task,
+                "Step Name", // TODO: Fetch from workflow service
+                List.of(), // TODO: Fetch input params
+                List.of(), // TODO: Fetch output data
+                null, // TODO: Fetch result metadata
+                List.of() // TODO: Fetch attempts
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -61,6 +61,35 @@ public class GetExecutionUseCase {
     }
 
     /**
+     * Gets executions with dynamic filters (without pagination)
+     *
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter
+     * @param endDate optional end date filter
+     * @return list of executions matching the filters
+     */
+    public List<CrawlExecution> getExecutionsWithFilters(
+            Long scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    ) {
+        // If no filters provided, return all
+        if (scheduleId == null && status == null && startDate == null && endDate == null) {
+            return loadExecutionPort.findAll();
+        }
+
+        // Apply filters using the query repository's dynamic filtering
+        ScheduleId scheduleIdValue = scheduleId != null ? ScheduleId.of(scheduleId) : null;
+        Page<CrawlExecution> page = loadExecutionPort.findWithFilters(
+                scheduleIdValue, status, startDate, endDate,
+                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+        );
+        return page.getContent();
+    }
+
+    /**
      * Gets all executions
      *
      * @return list of all executions
