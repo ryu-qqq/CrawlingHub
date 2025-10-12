@@ -25,6 +25,10 @@ public record TaskSummaryResponse(
         Integer apiStatusCode,
         Long dataSizeBytes
 ) {
+    public static TaskSummaryResponse from(CrawlTask task) {
+        return from(task, "Step Name", 0, 0, 0L);
+    }
+
     public static TaskSummaryResponse from(
             CrawlTask task,
             String stepName,
