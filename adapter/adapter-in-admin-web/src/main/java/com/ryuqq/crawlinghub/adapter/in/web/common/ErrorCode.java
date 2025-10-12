@@ -10,9 +10,13 @@ public final class ErrorCode {
         throw new AssertionError("Cannot instantiate utility class");
     }
 
-    // Business rule violations
+    // Business rule violations - Site
     public static final String DUPLICATE_SITE = "DUPLICATE_SITE";
     public static final String SITE_NOT_FOUND = "SITE_NOT_FOUND";
+
+    // Business rule violations - Workflow
+    public static final String WORKFLOW_NOT_FOUND = "WORKFLOW_NOT_FOUND";
+    public static final String INVALID_WORKFLOW = "INVALID_WORKFLOW";
 
     // Validation errors
     public static final String VALIDATION_ERROR = "VALIDATION_ERROR";
