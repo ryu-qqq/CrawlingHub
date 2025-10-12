@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.web.execution;
 
+import com.ryuqq.crawlinghub.adapter.in.web.util.DurationFormatter;
 import com.ryuqq.crawlinghub.domain.common.TaskStatus;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -36,7 +36,10 @@ public record TaskSummaryResponse(
             Integer apiStatusCode,
             Long dataSizeBytes
     ) {
-        String duration = calculateDuration(task.getStartedAt(), task.getCompletedAt());
+        String duration = DurationFormatter.formatShortDuration(
+                task.getStartedAt(),
+                task.getCompletedAt()
+        );
 
         return new TaskSummaryResponse(
                 task.getTaskId() != null ? task.getTaskId().value() : null,
@@ -53,23 +56,5 @@ public record TaskSummaryResponse(
                 apiStatusCode,
                 dataSizeBytes
         );
-    }
-
-    private static String calculateDuration(LocalDateTime startedAt, LocalDateTime completedAt) {
-        if (startedAt == null) {
-            return null;
-        }
-
-        LocalDateTime endTime = completedAt != null ? completedAt : LocalDateTime.now();
-        Duration duration = Duration.between(startedAt, endTime);
-
-        long seconds = duration.getSeconds();
-        if (seconds < 60) {
-            return seconds + "s";
-        }
-
-        long minutes = duration.toMinutes();
-        long remainingSeconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%dm %ds", minutes, remainingSeconds);
     }
 }

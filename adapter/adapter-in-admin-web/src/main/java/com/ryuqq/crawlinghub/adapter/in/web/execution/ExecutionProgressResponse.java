@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.web.execution;
 
+import com.ryuqq.crawlinghub.adapter.in.web.util.DurationFormatter;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -41,7 +41,13 @@ public record ExecutionProgressResponse(
             ProgressStatistics statistics,
             String estimatedTimeRemaining
     ) {
-        String elapsedTime = calculateElapsedTime(execution.getStartedAt());
+        String elapsedTime = DurationFormatter.formatShortDuration(
+                execution.getStartedAt(),
+                null  // null means use current time
+        );
+        if (elapsedTime == null) {
+            elapsedTime = "0m 0s";
+        }
 
         return new ExecutionProgressResponse(
                 execution.getExecutionId() != null ? execution.getExecutionId().value() : null,
@@ -53,28 +59,5 @@ public record ExecutionProgressResponse(
                 execution.getStartedAt(),
                 elapsedTime
         );
-    }
-
-    private static String calculateElapsedTime(LocalDateTime startedAt) {
-        if (startedAt == null) {
-            return "0m 0s";
-        }
-
-        Duration elapsed = Duration.between(startedAt, LocalDateTime.now());
-        long minutes = elapsed.toMinutes();
-        long seconds = elapsed.minusMinutes(minutes).getSeconds();
-
-        return String.format("%dm %ds", minutes, seconds);
-    }
-
-    public static String formatDuration(Duration duration) {
-        if (duration == null || duration.isZero() || duration.isNegative()) {
-            return "0m 0s";
-        }
-
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-
-        return String.format("%dm %ds", minutes, seconds);
     }
 }

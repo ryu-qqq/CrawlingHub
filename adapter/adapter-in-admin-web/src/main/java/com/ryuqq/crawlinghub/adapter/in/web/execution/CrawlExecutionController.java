@@ -181,6 +181,7 @@ public class CrawlExecutionController {
      * @param executionId the execution ID
      * @param taskId the task ID
      * @return detailed task information
+     * @throws IllegalArgumentException if task does not belong to the specified execution
      */
     @GetMapping("/{executionId}/tasks/{taskId}")
     public ResponseEntity<TaskDetailResponse> getTaskDetail(
@@ -189,6 +190,13 @@ public class CrawlExecutionController {
 
         // Execute UseCase
         CrawlTask task = getTaskUseCase.getById(taskId);
+
+        // Security: Verify task belongs to the specified execution
+        if (!task.getExecutionId().value().equals(executionId)) {
+            throw new IllegalArgumentException(
+                    String.format("Task %d does not belong to execution %d", taskId, executionId)
+            );
+        }
 
         // TODO: Fetch input params, output data, result metadata, and attempts from appropriate services
         // Domain → Response
