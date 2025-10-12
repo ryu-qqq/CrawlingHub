@@ -94,8 +94,8 @@ class CrawlScheduleTest {
     }
 
     @Test
-    @DisplayName("스케줄 활성화/비활성화 가능")
-    void shouldEnableAndDisableSchedule() {
+    @DisplayName("스케줄 비활성화 가능")
+    void shouldDisableSchedule() {
         // given
         CrawlSchedule schedule = CrawlSchedule.create(
                 WorkflowId.of(1L),
@@ -104,12 +104,29 @@ class CrawlScheduleTest {
                 "Asia/Seoul"
         );
 
-        // when & then - 비활성화
+        // when
         schedule.disable();
-        assertThat(schedule.isEnabled()).isFalse();
 
-        // when & then - 다시 활성화
+        // then
+        assertThat(schedule.isEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("스케줄 활성화 가능")
+    void shouldEnableSchedule() {
+        // given
+        CrawlSchedule schedule = CrawlSchedule.create(
+                WorkflowId.of(1L),
+                "Test Schedule",
+                "0 0 * * * *",
+                "Asia/Seoul"
+        );
+        schedule.disable();
+
+        // when
         schedule.enable();
+
+        // then
         assertThat(schedule.isEnabled()).isTrue();
     }
 
