@@ -3,6 +3,8 @@ package com.ryuqq.crawlinghub.domain.site;
 import com.ryuqq.crawlinghub.domain.common.SiteType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -173,27 +175,21 @@ class CrawlSiteTest {
         assertThat(idValue).isEqualTo(100L);
     }
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(SiteType.class)
     @DisplayName("다양한 SiteType으로 사이트 생성 가능")
-    void shouldCreateSitesWithDifferentTypes() {
-        // when & then
-        CrawlSite restApiSite = CrawlSite.create("REST API Site", "https://api.rest.com", SiteType.REST_API);
-        assertThat(restApiSite.getSiteType()).isEqualTo(SiteType.REST_API);
+    void shouldCreateSitesWithDifferentTypes(SiteType siteType) {
+        // when
+        CrawlSite site = CrawlSite.create(
+                siteType.name() + " Site",
+                "https://api." + siteType.name().toLowerCase() + ".com",
+                siteType
+        );
 
-        CrawlSite graphqlSite = CrawlSite.create("GraphQL Site", "https://api.graphql.com", SiteType.GRAPHQL);
-        assertThat(graphqlSite.getSiteType()).isEqualTo(SiteType.GRAPHQL);
-
-        CrawlSite scrapingSite = CrawlSite.create("Scraping Site", "https://web.scrape.com", SiteType.WEB_SCRAPING);
-        assertThat(scrapingSite.getSiteType()).isEqualTo(SiteType.WEB_SCRAPING);
-
-        CrawlSite rssSite = CrawlSite.create("RSS Site", "https://rss.feed.com", SiteType.RSS_FEED);
-        assertThat(rssSite.getSiteType()).isEqualTo(SiteType.RSS_FEED);
-
-        CrawlSite soapSite = CrawlSite.create("SOAP Site", "https://soap.api.com", SiteType.SOAP);
-        assertThat(soapSite.getSiteType()).isEqualTo(SiteType.SOAP);
-
-        CrawlSite customSite = CrawlSite.create("Custom Site", "https://custom.com", SiteType.CUSTOM);
-        assertThat(customSite.getSiteType()).isEqualTo(SiteType.CUSTOM);
+        // then
+        assertThat(site).isNotNull();
+        assertThat(site.getSiteType()).isEqualTo(siteType);
+        assertThat(site.isActive()).isTrue();
     }
 
 }

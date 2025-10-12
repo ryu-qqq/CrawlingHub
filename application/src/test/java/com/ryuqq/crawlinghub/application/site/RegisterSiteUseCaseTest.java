@@ -11,6 +11,8 @@ import com.ryuqq.crawlinghub.domain.site.SiteId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -165,32 +167,36 @@ class RegisterSiteUseCaseTest {
         verify(saveSitePort, times(1)).save(any(CrawlSite.class));
     }
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(SiteType.class)
     @DisplayName("다양한 SiteType으로 사이트 등록 가능")
-    void shouldRegisterSitesWithDifferentTypes() {
-        // given - GRAPHQL
-        RegisterSiteCommand graphqlCommand = new RegisterSiteCommand(
-                "GraphQL Site",
-                "https://api.graphql.com",
-                "GRAPHQL"
+    void shouldRegisterSitesWithDifferentTypes(SiteType siteType) {
+        // given
+        RegisterSiteCommand command = new RegisterSiteCommand(
+                siteType.name() + " Site",
+                "https://api." + siteType.name().toLowerCase() + ".com",
+                siteType.name()
         );
 
-        when(loadSitePort.existsBySiteName(graphqlCommand.siteName())).thenReturn(false);
+        when(loadSitePort.existsBySiteName(command.siteName())).thenReturn(false);
 
-        CrawlSite graphqlSite = CrawlSite.reconstitute(
-                SiteId.of(2L),
-                graphqlCommand.siteName(),
-                graphqlCommand.baseUrl(),
-                SiteType.GRAPHQL,
+        CrawlSite savedSite = CrawlSite.reconstitute(
+                SiteId.of(1L),
+                command.siteName(),
+                command.baseUrl(),
+                siteType,
                 true
         );
-        when(saveSitePort.save(any(CrawlSite.class))).thenReturn(graphqlSite);
+        when(saveSitePort.save(any(CrawlSite.class))).thenReturn(savedSite);
 
         // when
-        CrawlSite result = registerSiteUseCase.execute(graphqlCommand);
+        CrawlSite result = registerSiteUseCase.execute(command);
 
         // then
-        assertThat(result.getSiteType()).isEqualTo(SiteType.GRAPHQL);
+        assertThat(result).isNotNull();
+        assertThat(result.getSiteType()).isEqualTo(siteType);
+        verify(loadSitePort, times(1)).existsBySiteName(command.siteName());
+        verify(saveSitePort, times(1)).save(any(CrawlSite.class));
     }
 
 }

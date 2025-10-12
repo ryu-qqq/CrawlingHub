@@ -77,8 +77,8 @@ class CrawlWorkflowTest {
     }
 
     @Test
-    @DisplayName("워크플로우 활성화/비활성화 가능")
-    void shouldActivateAndDeactivateWorkflow() {
+    @DisplayName("워크플로우 비활성화 가능")
+    void shouldDeactivateWorkflow() {
         // given
         CrawlWorkflow workflow = CrawlWorkflow.create(
                 SiteId.of(1L),
@@ -86,12 +86,28 @@ class CrawlWorkflowTest {
                 "설명"
         );
 
-        // when & then - 비활성화
+        // when
         workflow.deactivate();
-        assertThat(workflow.isActive()).isFalse();
 
-        // when & then - 다시 활성화
+        // then
+        assertThat(workflow.isActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("워크플로우 활성화 가능")
+    void shouldActivateWorkflow() {
+        // given
+        CrawlWorkflow workflow = CrawlWorkflow.create(
+                SiteId.of(1L),
+                "Test Workflow",
+                "설명"
+        );
+        workflow.deactivate();
+
+        // when
         workflow.activate();
+
+        // then
         assertThat(workflow.isActive()).isTrue();
     }
 
