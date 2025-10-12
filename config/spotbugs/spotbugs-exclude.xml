@@ -33,4 +33,43 @@
         <Class name="~.*Configuration"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
+
+    <!-- ========================================
+         Spring @ConfigurationProperties Classes
+         EI/EI2: Setters are required by Spring
+         ======================================== -->
+    <Match>
+        <Class name="~.*Properties"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Spring Configuration Beans
+         EI2: Dependency injection by Spring
+         ======================================== -->
+    <Match>
+        <Class name="~.*Config"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Adapter Classes
+         EI2: Spring-managed singleton beans
+         ======================================== -->
+    <Match>
+        <Class name="~.*Adapter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Event Handler Classes
+         EI2: Spring-managed singleton beans
+         ======================================== -->
+    <Match>
+        <Class name="~.*Handler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>

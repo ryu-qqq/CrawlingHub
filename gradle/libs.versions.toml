@@ -73,6 +73,7 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 
 # ========================================
 # Spring Framework
@@ -104,6 +105,7 @@ aws-bom = { module = "software.amazon.awssdk:bom", version.ref = "awsSdk" }
 aws-s3 = { module = "software.amazon.awssdk:s3" }
 aws-s3-transfer = { module = "software.amazon.awssdk:s3-transfer-manager" }
 aws-sqs = { module = "software.amazon.awssdk:sqs" }
+aws-eventbridge = { module = "software.amazon.awssdk:eventbridge" }
 aws-apache-client = { module = "software.amazon.awssdk:apache-client" }
 
 # ========================================
@@ -137,6 +139,7 @@ springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-u
 # ========================================
 # Logging & Monitoring
 # ========================================
+slf4j-api = { module = "org.slf4j:slf4j-api" }
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogback" }
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
