@@ -56,9 +56,9 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
         // 3. Delete existing steps first (for update operations, even if replacing with empty list)
         stepRepository.deleteByWorkflowId(workflowId);
 
+        List<WorkflowStep> domainSteps = List.of();
         // 4. Save new steps if present
         if (workflow.getStepsCount() > 0) {
-
             // Convert domain steps to entities and set the persisted workflow ID
             List<WorkflowStepEntity> stepEntities = workflow.getSteps().stream()
                     .map(step -> {
@@ -77,13 +77,20 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
                     })
                     .toList();
 
-            // Save all steps
-            stepRepository.saveAll(stepEntities);
+            // Save all steps and convert back to domain
+            List<WorkflowStepEntity> savedStepEntities = stepRepository.saveAll(stepEntities);
+            domainSteps = mapper.toStepDomains(savedStepEntities);
         }
 
-        // 3. Return domain model with steps
-        return findById(new WorkflowId(savedWorkflow.getWorkflowId()))
-                .orElse(mapper.toDomain(savedWorkflow));
+        // 5. Return domain model built from saved entities, avoiding a re-fetch
+        return CrawlWorkflow.reconstituteWithSteps(
+                new WorkflowId(savedWorkflow.getWorkflowId()),
+                new SiteId(savedWorkflow.getSiteId()),
+                savedWorkflow.getWorkflowName(),
+                savedWorkflow.getWorkflowDescription(),
+                savedWorkflow.getIsActive(),
+                domainSteps
+        );
     }
 
     @Override

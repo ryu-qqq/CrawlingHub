@@ -53,9 +53,8 @@ public class WorkflowStep {
 
     private static void validateCreate(WorkflowId workflowId, String stepName, Integer stepOrder,
                                        StepType stepType, String endpointKey) {
-        if (workflowId == null) {
-            throw new IllegalArgumentException("Workflow ID cannot be null");
-        }
+        // Note: workflowId can be null for newly created steps before parent workflow is persisted
+        // It will be set when the workflow aggregate is saved
         if (stepName == null || stepName.isBlank()) {
             throw new IllegalArgumentException("Step name cannot be null or blank");
         }

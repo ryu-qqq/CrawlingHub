@@ -31,6 +31,7 @@ public record CreateWorkflowRequest(
 
         String workflowDescription,
 
+        @NotEmpty(message = "워크플로우는 최소 하나 이상의 스텝을 포함해야 합니다.")
         @Valid
         List<WorkflowStepRequest> steps
 

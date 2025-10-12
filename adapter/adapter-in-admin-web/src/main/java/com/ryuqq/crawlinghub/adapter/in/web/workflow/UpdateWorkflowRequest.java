@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.adapter.in.web.workflow;
 import com.ryuqq.crawlinghub.application.workflow.usecase.UpdateWorkflowCommand;
 import com.ryuqq.crawlinghub.domain.workflow.WorkflowId;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
  * Must be an immutable Java record (enforced by architecture tests)
  *
  * @param workflowDescription the new workflow description (optional)
- * @param steps the new list of workflow steps (required, replaces all existing)
+ * @param steps the new list of workflow steps (optional, replaces all existing if provided)
  */
 public record UpdateWorkflowRequest(
 
