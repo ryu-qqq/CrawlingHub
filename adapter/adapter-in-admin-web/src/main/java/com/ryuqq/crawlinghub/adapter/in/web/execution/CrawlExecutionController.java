@@ -188,15 +188,8 @@ public class CrawlExecutionController {
             @PathVariable Long executionId,
             @PathVariable Long taskId) {
 
-        // Execute UseCase
-        CrawlTask task = getTaskUseCase.getById(taskId);
-
-        // Security: Verify task belongs to the specified execution
-        if (!task.getExecutionId().value().equals(executionId)) {
-            throw new IllegalArgumentException(
-                    String.format("Task %d does not belong to execution %d", taskId, executionId)
-            );
-        }
+        // Execute UseCase with execution validation
+        CrawlTask task = getTaskUseCase.getByIdAndValidateExecution(taskId, executionId);
 
         // TODO: Fetch input params, output data, result metadata, and attempts from appropriate services
         // Domain → Response
