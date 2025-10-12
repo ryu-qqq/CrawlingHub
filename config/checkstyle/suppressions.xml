@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+    Checkstyle Suppressions - Enterprise Spring Boot Standards
+
+    @author Architecture Team (arch-team@company.com)
+    @since 2024-01-01
+-->
+
+<suppressions>
+    <!-- ========================================
+         @ConfigurationProperties Classes
+         Setters are required by Spring Framework
+         ======================================== -->
+    <suppress checks="Regexp"
+              files=".*Properties\.java$"
+              message="Setter methods detected in Entity class"/>
+
+    <!-- ========================================
+         EventBridge Adapter
+         Uses @TransactionalEventListener, not @Transactional
+         ======================================== -->
+    <suppress checks="Regexp"
+              files=".*EventBridgeAdapter\.java$"
+              message="@Transactional detected in adapter package"/>
+
+    <!-- ========================================
+         Schedule Event Handler
+         Uses @TransactionalEventListener, not @Transactional
+         ======================================== -->
+    <suppress checks="Regexp"
+              files=".*ScheduleEventBridgeHandler\.java$"
+              message="@Transactional detected in adapter package"/>
+
+    <!-- ========================================
+         AWS EventBridge Config Package
+         Spring configuration classes need @Transactional reference
+         ======================================== -->
+    <suppress checks="Regexp"
+              files=".*adapter/config/.*\.java$"
+              message="@Transactional detected in adapter package"/>
+</suppressions>
