@@ -137,6 +137,38 @@ public class CrawlExecutionQueryRepository {
     }
 
     /**
+     * Find executions with dynamic filters using No-Offset cursor-based pagination
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param lastExecutionId last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions matching the filters after the cursor
+     */
+    public List<CrawlExecutionEntity> findWithFilters(
+            Long scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Long lastExecutionId,
+            int pageSize
+    ) {
+        return queryFactory
+                .selectFrom(execution)
+                .where(
+                        scheduleIdEq(scheduleId),
+                        statusEq(status),
+                        startedAtGoe(startDate),
+                        startedAtLoe(endDate),
+                        lastExecutionId != null ? execution.executionId.gt(lastExecutionId) : null
+                )
+                .orderBy(execution.executionId.asc())
+                .limit(pageSize)
+                .fetch();
+    }
+
+    /**
      * Find all executions ordered by started time (descending)
      * @return list of all executions
      */
@@ -144,6 +176,46 @@ public class CrawlExecutionQueryRepository {
         return queryFactory
                 .selectFrom(execution)
                 .orderBy(execution.startedAt.desc())
+                .fetch();
+    }
+
+    /**
+     * Find all executions with Offset-Based pagination
+     * @param pageable pagination parameters
+     * @return page of all executions
+     */
+    public Page<CrawlExecutionEntity> findAll(Pageable pageable) {
+        List<CrawlExecutionEntity> content = queryFactory
+                .selectFrom(execution)
+                .orderBy(execution.startedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(execution.count())
+                .from(execution)
+                .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * Find all executions with No-Offset cursor-based pagination
+     * @param lastExecutionId last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions after the cursor
+     */
+    public List<CrawlExecutionEntity> findAll(Long lastExecutionId, int pageSize) {
+        return queryFactory
+                .selectFrom(execution)
+                .where(
+                        lastExecutionId != null ? execution.executionId.gt(lastExecutionId) : null
+                )
+                .orderBy(execution.executionId.asc())
+                .limit(pageSize)
                 .fetch();
     }
 

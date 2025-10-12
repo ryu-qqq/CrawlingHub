@@ -3,6 +3,9 @@ package com.ryuqq.crawlinghub.adapter.persistence.jpa.task;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.domain.common.TaskStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -10,6 +13,11 @@ import java.util.List;
 /**
  * Query Repository for CrawlTask (CQRS Pattern)
  * Handles all complex read operations using QueryDSL
+ * - Complex conditions
+ * - Joins
+ * - Aggregations
+ * - Projections
+ * - Pagination (Offset-Based and No-Offset)
  */
 @Repository
 public class CrawlTaskQueryRepository {
@@ -32,6 +40,51 @@ public class CrawlTaskQueryRepository {
                 .selectFrom(task)
                 .where(task.executionId.eq(executionId))
                 .orderBy(task.startedAt.desc())
+                .fetch();
+    }
+
+    /**
+     * Find tasks for an execution with Offset-Based pagination
+     * @param executionId the execution ID
+     * @param pageable pagination parameters
+     * @return page of tasks for the execution
+     */
+    public Page<CrawlTaskEntity> findByExecutionId(Long executionId, Pageable pageable) {
+        List<CrawlTaskEntity> content = queryFactory
+                .selectFrom(task)
+                .where(task.executionId.eq(executionId))
+                .orderBy(task.startedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(task.count())
+                .from(task)
+                .where(task.executionId.eq(executionId))
+                .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * Find tasks for an execution with No-Offset cursor-based pagination
+     * @param executionId the execution ID
+     * @param lastTaskId last task ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of tasks after the cursor
+     */
+    public List<CrawlTaskEntity> findByExecutionId(Long executionId, Long lastTaskId, int pageSize) {
+        return queryFactory
+                .selectFrom(task)
+                .where(
+                        task.executionId.eq(executionId),
+                        lastTaskId != null ? task.taskId.gt(lastTaskId) : null
+                )
+                .orderBy(task.taskId.asc())
+                .limit(pageSize)
                 .fetch();
     }
 
@@ -86,6 +139,65 @@ public class CrawlTaskQueryRepository {
                         stepIdEq(stepId)
                 )
                 .orderBy(task.startedAt.desc())
+                .fetch();
+    }
+
+    /**
+     * Find tasks with dynamic filters using Offset-Based pagination
+     * @param executionId the execution ID (required)
+     * @param status optional task status filter
+     * @param stepId optional step ID filter
+     * @param pageable pagination parameters
+     * @return page of tasks matching the filters
+     */
+    public Page<CrawlTaskEntity> findWithFilters(Long executionId, TaskStatus status, Long stepId, Pageable pageable) {
+        List<CrawlTaskEntity> content = queryFactory
+                .selectFrom(task)
+                .where(
+                        task.executionId.eq(executionId),
+                        statusEq(status),
+                        stepIdEq(stepId)
+                )
+                .orderBy(task.startedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(task.count())
+                .from(task)
+                .where(
+                        task.executionId.eq(executionId),
+                        statusEq(status),
+                        stepIdEq(stepId)
+                )
+                .fetchOne();
+
+        long total = totalCount != null ? totalCount : 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
+     * Find tasks with dynamic filters using No-Offset cursor-based pagination
+     * @param executionId the execution ID (required)
+     * @param status optional task status filter
+     * @param stepId optional step ID filter
+     * @param lastTaskId last task ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of tasks matching the filters after the cursor
+     */
+    public List<CrawlTaskEntity> findWithFilters(Long executionId, TaskStatus status, Long stepId, Long lastTaskId, int pageSize) {
+        return queryFactory
+                .selectFrom(task)
+                .where(
+                        task.executionId.eq(executionId),
+                        statusEq(status),
+                        stepIdEq(stepId),
+                        lastTaskId != null ? task.taskId.gt(lastTaskId) : null
+                )
+                .orderBy(task.taskId.asc())
+                .limit(pageSize)
                 .fetch();
     }
 

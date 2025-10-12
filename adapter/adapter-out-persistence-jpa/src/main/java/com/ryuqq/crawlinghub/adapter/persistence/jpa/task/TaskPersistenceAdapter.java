@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.execution.ExecutionId;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
 import com.ryuqq.crawlinghub.domain.workflow.StepId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Optional;
  * Persistence Adapter for CrawlTask
  * Implements Query (Load) port only
  * Follows CQRS pattern - read operations using QueryDSL
+ * Supports both Offset-Based and No-Offset pagination strategies
  */
 @Component
 public class TaskPersistenceAdapter implements LoadTaskPort {
@@ -45,6 +48,19 @@ public class TaskPersistenceAdapter implements LoadTaskPort {
     }
 
     @Override
+    public Page<CrawlTask> findByExecutionId(ExecutionId executionId, Pageable pageable) {
+        return queryRepository.findByExecutionId(executionId.value(), pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlTask> findByExecutionId(ExecutionId executionId, Long lastTaskId, int pageSize) {
+        return queryRepository.findByExecutionId(executionId.value(), lastTaskId, pageSize).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<CrawlTask> findByExecutionIdAndStatus(ExecutionId executionId, TaskStatus status) {
         return queryRepository.findByExecutionIdAndStatus(executionId.value(), status).stream()
                 .map(mapper::toDomain)
@@ -62,6 +78,21 @@ public class TaskPersistenceAdapter implements LoadTaskPort {
     public List<CrawlTask> findWithFilters(ExecutionId executionId, TaskStatus status, StepId stepId) {
         Long stepIdValue = stepId != null ? stepId.value() : null;
         return queryRepository.findWithFilters(executionId.value(), status, stepIdValue).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlTask> findWithFilters(ExecutionId executionId, TaskStatus status, StepId stepId, Pageable pageable) {
+        Long stepIdValue = stepId != null ? stepId.value() : null;
+        return queryRepository.findWithFilters(executionId.value(), status, stepIdValue, pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlTask> findWithFilters(ExecutionId executionId, TaskStatus status, StepId stepId, Long lastTaskId, int pageSize) {
+        Long stepIdValue = stepId != null ? stepId.value() : null;
+        return queryRepository.findWithFilters(executionId.value(), status, stepIdValue, lastTaskId, pageSize).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

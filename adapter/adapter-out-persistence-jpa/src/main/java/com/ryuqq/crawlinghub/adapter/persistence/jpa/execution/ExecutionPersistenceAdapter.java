@@ -82,8 +82,36 @@ public class ExecutionPersistenceAdapter implements LoadExecutionPort {
     }
 
     @Override
+    public List<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Long lastExecutionId,
+            int pageSize
+    ) {
+        Long scheduleIdValue = scheduleId != null ? scheduleId.value() : null;
+        return queryRepository.findWithFilters(scheduleIdValue, status, startDate, endDate, lastExecutionId, pageSize).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<CrawlExecution> findAll() {
         return queryRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlExecution> findAll(Pageable pageable) {
+        return queryRepository.findAll(pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlExecution> findAll(Long lastExecutionId, int pageSize) {
+        return queryRepository.findAll(lastExecutionId, pageSize).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
