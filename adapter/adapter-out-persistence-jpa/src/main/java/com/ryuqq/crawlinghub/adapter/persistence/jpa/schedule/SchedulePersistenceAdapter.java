@@ -103,15 +103,11 @@ public class SchedulePersistenceAdapter implements CrawlScheduleCommandPort, Cra
             return Optional.empty();
         }
 
-        // Load input parameters
-        List<ScheduleInputParamEntity> paramEntities = inputParamRepository.findByScheduleId(scheduleId.value());
-
         // Convert to domain
         CrawlSchedule schedule = mapper.toDomain(scheduleEntity);
 
-        // If there are input params, we could enhance the domain model to include them
-        // For now, we just return the schedule
-        // The caller can use findInputParamsByScheduleId if needed
+        // Note: Input params are loaded separately via findInputParamsByScheduleId if needed
+        // This keeps the domain model clean and avoids unnecessary data loading
         return Optional.of(schedule);
     }
 
