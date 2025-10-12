@@ -4,10 +4,12 @@ import com.ryuqq.crawlinghub.application.execution.port.out.LoadExecutionPort;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.ExecutionId;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,6 +64,54 @@ public class ExecutionPersistenceAdapter implements LoadExecutionPort {
     @Override
     public List<CrawlExecution> findByStatus(ExecutionStatus status, Long lastExecutionId, int pageSize) {
         return queryRepository.findByStatus(status, lastExecutionId, pageSize).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    ) {
+        Long scheduleIdValue = scheduleId != null ? scheduleId.value() : null;
+        return queryRepository.findWithFilters(scheduleIdValue, status, startDate, endDate, pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Long lastExecutionId,
+            int pageSize
+    ) {
+        Long scheduleIdValue = scheduleId != null ? scheduleId.value() : null;
+        return queryRepository.findWithFilters(scheduleIdValue, status, startDate, endDate, lastExecutionId, pageSize).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<CrawlExecution> findAll() {
+        return queryRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CrawlExecution> findAll(Pageable pageable) {
+        return queryRepository.findAll(pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CrawlExecution> findAll(Long lastExecutionId, int pageSize) {
+        return queryRepository.findAll(lastExecutionId, pageSize).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
