@@ -76,12 +76,18 @@ public class UpdateScheduleUseCase {
             // Save new params
             if (!command.inputParams().isEmpty()) {
                 List<ScheduleInputParam> inputParams = command.inputParams().stream()
-                        .map(paramCmd -> ScheduleInputParam.create(
-                                command.scheduleId(),
-                                paramCmd.paramKey(),
-                                paramCmd.paramValue(),
-                                ParamType.valueOf(paramCmd.paramType())
-                        ))
+                        .map(paramCmd -> {
+                            try {
+                                return ScheduleInputParam.create(
+                                        command.scheduleId(),
+                                        paramCmd.paramKey(),
+                                        paramCmd.paramValue(),
+                                        ParamType.valueOf(paramCmd.paramType())
+                                );
+                            } catch (IllegalArgumentException e) {
+                                throw new InvalidParamTypeException(paramCmd.paramType(), e);
+                            }
+                        })
                         .collect(Collectors.toList());
 
                 scheduleCommandPort.saveInputParams(inputParams);

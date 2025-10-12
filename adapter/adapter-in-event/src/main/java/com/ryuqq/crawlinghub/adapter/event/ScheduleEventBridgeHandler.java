@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.event;
 
+import com.ryuqq.crawlinghub.adapter.eventbridge.EventBridgeAdapter;
 import com.ryuqq.crawlinghub.application.schedule.port.CrawlScheduleCommandPort;
 import com.ryuqq.crawlinghub.application.schedule.port.EventBridgePort;
 import com.ryuqq.crawlinghub.domain.schedule.ScheduleId;
@@ -62,7 +63,7 @@ public class ScheduleEventBridgeHandler {
             LOG.info("Successfully enabled schedule in EventBridge: scheduleId={}, ruleName={}",
                     event.scheduleId(), event.ruleName());
 
-        } catch (Exception e) {
+        } catch (EventBridgeAdapter.EventBridgeOperationException e) {
             LOG.error("Failed to enable schedule in EventBridge: scheduleId={}, ruleName={}",
                     event.scheduleId(), event.ruleName(), e);
 
@@ -89,7 +90,7 @@ public class ScheduleEventBridgeHandler {
                 LOG.warn("EventBridge rule not found for disable operation: ruleName={}", event.ruleName());
             }
 
-        } catch (Exception e) {
+        } catch (EventBridgeAdapter.EventBridgeOperationException e) {
             LOG.error("Failed to disable schedule in EventBridge: scheduleId={}, ruleName={}",
                     event.scheduleId(), event.ruleName(), e);
 
@@ -128,7 +129,7 @@ public class ScheduleEventBridgeHandler {
                 LOG.warn("EventBridge rule not found for delete operation: ruleName={}", event.ruleName());
             }
 
-        } catch (Exception e) {
+        } catch (EventBridgeAdapter.EventBridgeOperationException e) {
             LOG.error("Failed to delete schedule from EventBridge: scheduleId={}, ruleName={}",
                     event.scheduleId(), event.ruleName(), e);
 
@@ -162,7 +163,7 @@ public class ScheduleEventBridgeHandler {
                 LOG.warn("EventBridge rule not found for update operation: ruleName={}", event.ruleName());
             }
 
-        } catch (Exception e) {
+        } catch (EventBridgeAdapter.EventBridgeOperationException e) {
             LOG.error("Failed to update schedule in EventBridge: scheduleId={}, ruleName={}",
                     event.scheduleId(), event.ruleName(), e);
 
