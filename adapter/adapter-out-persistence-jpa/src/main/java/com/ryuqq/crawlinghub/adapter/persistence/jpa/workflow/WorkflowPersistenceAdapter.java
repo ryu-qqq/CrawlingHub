@@ -59,22 +59,9 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
         List<WorkflowStep> domainSteps = List.of();
         // 4. Save new steps if present
         if (workflow.getStepsCount() > 0) {
-            // Convert domain steps to entities and set the persisted workflow ID
+            // Convert domain steps to entities with the persisted workflow ID
             List<WorkflowStepEntity> stepEntities = workflow.getSteps().stream()
-                    .map(step -> {
-                        WorkflowStepEntity stepEntity = mapper.toStepEntity(step);
-                        // Override workflowId with the persisted ID
-                        return WorkflowStepEntity.builder()
-                                .stepId(stepEntity.getStepId())
-                                .workflowId(workflowId)
-                                .stepName(stepEntity.getStepName())
-                                .stepOrder(stepEntity.getStepOrder())
-                                .stepType(stepEntity.getStepType())
-                                .endpointKey(stepEntity.getEndpointKey())
-                                .parallelExecution(stepEntity.getParallelExecution())
-                                .stepConfig(stepEntity.getStepConfig())
-                                .build();
-                    })
+                    .map(step -> mapper.toStepEntity(step, workflowId))
                     .toList();
 
             // Save all steps and convert back to domain
@@ -198,8 +185,9 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     @Override
     @Transactional(readOnly = true)
     public Page<CrawlWorkflow> findBySiteId(SiteId siteId, Pageable pageable) {
-        return queryRepository.findBySiteId(siteId.value(), pageable)
-                .map(this::toDomainWithSteps);
+        Page<CrawlWorkflowEntity> entityPage = queryRepository.findBySiteId(siteId.value(), pageable);
+        List<CrawlWorkflow> workflows = toDomainWithStepsBatch(entityPage.getContent());
+        return new org.springframework.data.domain.PageImpl<>(workflows, pageable, entityPage.getTotalElements());
     }
 
     @Override
@@ -219,8 +207,9 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     @Override
     @Transactional(readOnly = true)
     public Page<CrawlWorkflow> findActiveWorkflows(Pageable pageable) {
-        return queryRepository.findActiveWorkflows(pageable)
-                .map(this::toDomainWithSteps);
+        Page<CrawlWorkflowEntity> entityPage = queryRepository.findActiveWorkflows(pageable);
+        List<CrawlWorkflow> workflows = toDomainWithStepsBatch(entityPage.getContent());
+        return new org.springframework.data.domain.PageImpl<>(workflows, pageable, entityPage.getTotalElements());
     }
 
     @Override

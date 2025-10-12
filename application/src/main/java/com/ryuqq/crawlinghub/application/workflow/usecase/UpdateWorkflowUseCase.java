@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.workflow.usecase;
 
 import com.ryuqq.crawlinghub.application.workflow.port.out.LoadWorkflowPort;
 import com.ryuqq.crawlinghub.application.workflow.port.out.SaveWorkflowPort;
+import com.ryuqq.crawlinghub.domain.common.ParamType;
 import com.ryuqq.crawlinghub.domain.common.StepType;
 import com.ryuqq.crawlinghub.domain.workflow.CrawlWorkflow;
 import com.ryuqq.crawlinghub.domain.workflow.WorkflowStep;
@@ -51,14 +52,43 @@ public class UpdateWorkflowUseCase {
         // 3. Replace steps if provided
         if (command.steps() != null && !command.steps().isEmpty()) {
             List<WorkflowStep> newSteps = command.steps().stream()
-                    .map(stepCommand -> WorkflowStep.create(
-                            command.workflowId(),
-                            stepCommand.stepName(),
-                            stepCommand.stepOrder(),
-                            StepType.valueOf(stepCommand.stepType()),
-                            stepCommand.endpointKey(),
-                            stepCommand.parallelExecution()
-                    ))
+                    .map(stepCommand -> {
+                        // Convert params
+                        List<com.ryuqq.crawlinghub.domain.workflow.StepParam> params = stepCommand.params() != null
+                                ? stepCommand.params().stream()
+                                        .map(paramCmd -> com.ryuqq.crawlinghub.domain.workflow.StepParam.create(
+                                                null,  // stepId will be set when step is saved
+                                                paramCmd.paramKey(),
+                                                paramCmd.paramValueExpression(),
+                                                ParamType.valueOf(paramCmd.paramType()),
+                                                paramCmd.isRequired()
+                                        ))
+                                        .toList()
+                                : List.of();
+
+                        // Convert outputs
+                        List<com.ryuqq.crawlinghub.domain.workflow.StepOutput> outputs = stepCommand.outputs() != null
+                                ? stepCommand.outputs().stream()
+                                        .map(outputCmd -> com.ryuqq.crawlinghub.domain.workflow.StepOutput.create(
+                                                null,  // stepId will be set when step is saved
+                                                outputCmd.outputKey(),
+                                                outputCmd.outputPathExpression(),
+                                                outputCmd.outputType()
+                                        ))
+                                        .toList()
+                                : List.of();
+
+                        return WorkflowStep.create(
+                                command.workflowId(),
+                                stepCommand.stepName(),
+                                stepCommand.stepOrder(),
+                                StepType.valueOf(stepCommand.stepType()),
+                                stepCommand.endpointKey(),
+                                stepCommand.parallelExecution(),
+                                params,
+                                outputs
+                        );
+                    })
                     .toList();
 
             workflow.replaceSteps(newSteps);

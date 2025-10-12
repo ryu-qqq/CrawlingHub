@@ -79,7 +79,17 @@ class CrawlWorkflowControllerTest {
                     "siteId": 1,
                     "workflowName": "Test Workflow",
                     "workflowDescription": "Test description",
-                    "steps": []
+                    "steps": [
+                        {
+                            "stepName": "Initial Step",
+                            "stepOrder": 1,
+                            "stepType": "API_CALL",
+                            "endpointKey": "test-endpoint",
+                            "parallelExecution": false,
+                            "params": [],
+                            "outputs": []
+                        }
+                    ]
                 }
                 """;
 
@@ -108,7 +118,17 @@ class CrawlWorkflowControllerTest {
         String invalidRequestJson = """
                 {
                     "workflowName": "Test Workflow",
-                    "steps": []
+                    "steps": [
+                        {
+                            "stepName": "Test Step",
+                            "stepOrder": 1,
+                            "stepType": "API_CALL",
+                            "endpointKey": "test-endpoint",
+                            "parallelExecution": false,
+                            "params": [],
+                            "outputs": []
+                        }
+                    ]
                 }
                 """;
 
@@ -130,7 +150,17 @@ class CrawlWorkflowControllerTest {
                     "siteId": 999,
                     "workflowName": "Test Workflow",
                     "workflowDescription": "Test description",
-                    "steps": []
+                    "steps": [
+                        {
+                            "stepName": "Test Step",
+                            "stepOrder": 1,
+                            "stepType": "API_CALL",
+                            "endpointKey": "test-endpoint",
+                            "parallelExecution": false,
+                            "params": [],
+                            "outputs": []
+                        }
+                    ]
                 }
                 """;
 
@@ -234,7 +264,17 @@ class CrawlWorkflowControllerTest {
         String requestJson = """
                 {
                     "workflowDescription": "Updated description",
-                    "steps": []
+                    "steps": [
+                        {
+                            "stepName": "Updated Step",
+                            "stepOrder": 1,
+                            "stepType": "API_CALL",
+                            "endpointKey": "test-endpoint",
+                            "parallelExecution": false,
+                            "params": [],
+                            "outputs": []
+                        }
+                    ]
                 }
                 """;
 
@@ -257,7 +297,17 @@ class CrawlWorkflowControllerTest {
         String requestJson = """
                 {
                     "workflowDescription": "Updated description",
-                    "steps": []
+                    "steps": [
+                        {
+                            "stepName": "Updated Step",
+                            "stepOrder": 1,
+                            "stepType": "API_CALL",
+                            "endpointKey": "test-endpoint",
+                            "parallelExecution": false,
+                            "params": [],
+                            "outputs": []
+                        }
+                    ]
                 }
                 """;
 

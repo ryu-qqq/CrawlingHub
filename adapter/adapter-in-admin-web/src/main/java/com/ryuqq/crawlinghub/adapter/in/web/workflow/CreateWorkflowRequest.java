@@ -47,9 +47,9 @@ public record CreateWorkflowRequest(
                 siteId,
                 workflowName,
                 workflowDescription,
-                steps != null ? steps.stream()
+                steps.stream()
                         .map(WorkflowStepRequest::toCommand)
-                        .collect(Collectors.toList()) : List.of()
+                        .collect(Collectors.toList())
         );
     }
 

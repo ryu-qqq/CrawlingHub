@@ -2,6 +2,10 @@ package com.ryuqq.crawlinghub.domain.workflow;
 
 import com.ryuqq.crawlinghub.domain.common.StepType;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class WorkflowStep {
 
     private final StepId stepId;
@@ -12,9 +16,12 @@ public class WorkflowStep {
     private final String endpointKey;
     private final Boolean parallelExecution;
     private String stepConfig;
+    private final List<StepParam> params;
+    private final List<StepOutput> outputs;
 
     private WorkflowStep(StepId stepId, WorkflowId workflowId, String stepName, Integer stepOrder, StepType stepType,
-                        String endpointKey, Boolean parallelExecution, String stepConfig) {
+                        String endpointKey, Boolean parallelExecution, String stepConfig,
+                        List<StepParam> params, List<StepOutput> outputs) {
         this.stepId = stepId;
         this.workflowId = workflowId;
         this.stepName = stepName;
@@ -23,19 +30,23 @@ public class WorkflowStep {
         this.endpointKey = endpointKey;
         this.parallelExecution = parallelExecution;
         this.stepConfig = stepConfig;
+        this.params = params != null ? new ArrayList<>(params) : new ArrayList<>();
+        this.outputs = outputs != null ? new ArrayList<>(outputs) : new ArrayList<>();
     }
 
     public static WorkflowStep create(WorkflowId workflowId, String stepName, Integer stepOrder,
-                                     StepType stepType, String endpointKey, Boolean parallelExecution) {
-        return createWithConfig(workflowId, stepName, stepOrder, stepType, endpointKey, parallelExecution, null);
+                                     StepType stepType, String endpointKey, Boolean parallelExecution,
+                                     List<StepParam> params, List<StepOutput> outputs) {
+        return createWithConfig(workflowId, stepName, stepOrder, stepType, endpointKey, parallelExecution, null, params, outputs);
     }
 
     public static WorkflowStep createWithConfig(WorkflowId workflowId, String stepName, Integer stepOrder,
                                                StepType stepType, String endpointKey,
-                                               Boolean parallelExecution, String stepConfig) {
+                                               Boolean parallelExecution, String stepConfig,
+                                               List<StepParam> params, List<StepOutput> outputs) {
         validateCreate(workflowId, stepName, stepOrder, stepType, endpointKey);
         return new WorkflowStep(null, workflowId, stepName, stepOrder, stepType,
-                endpointKey, parallelExecution, stepConfig);
+                endpointKey, parallelExecution, stepConfig, params, outputs);
     }
 
     public static WorkflowStep reconstitute(WorkflowStepReconstituteParams params) {
@@ -47,7 +58,9 @@ public class WorkflowStep {
                 params.stepType(),
                 params.endpointKey(),
                 params.parallelExecution(),
-                params.stepConfig()
+                params.stepConfig(),
+                params.params(),
+                params.outputs()
         );
     }
 
@@ -110,6 +123,14 @@ public class WorkflowStep {
 
     public String getStepConfig() {
         return stepConfig;
+    }
+
+    public List<StepParam> getParams() {
+        return Collections.unmodifiableList(params);
+    }
+
+    public List<StepOutput> getOutputs() {
+        return Collections.unmodifiableList(outputs);
     }
 
 }

@@ -74,6 +74,25 @@ public class WorkflowMapper {
     }
 
     /**
+     * Convert domain WorkflowStep to JPA entity with explicit workflowId
+     * @param domain the domain model
+     * @param workflowId the workflow ID to set
+     * @return JPA entity with workflowId set
+     */
+    public WorkflowStepEntity toStepEntity(WorkflowStep domain, Long workflowId) {
+        return WorkflowStepEntity.builder()
+                .stepId(domain.getStepId() != null ? domain.getStepId().value() : null)
+                .workflowId(workflowId)
+                .stepName(domain.getStepName())
+                .stepOrder(domain.getStepOrder())
+                .stepType(domain.getStepType())
+                .endpointKey(domain.getEndpointKey())
+                .parallelExecution(domain.getParallelExecution())
+                .stepConfig(domain.getStepConfig())
+                .build();
+    }
+
+    /**
      * Convert JPA entity to domain WorkflowStep
      * @param entity the JPA entity
      * @return domain model
@@ -85,6 +104,8 @@ public class WorkflowMapper {
             throw new IllegalStateException("Cannot convert non-persisted step entity to domain model. Entity must have an ID.");
         }
 
+        // TODO: Load params and outputs from repositories
+        // For now, returning empty lists - needs to be implemented with proper batch loading
         WorkflowStepReconstituteParams params = WorkflowStepReconstituteParams.of(
                 new StepId(entity.getStepId()),
                 new WorkflowId(entity.getWorkflowId()),
@@ -93,7 +114,9 @@ public class WorkflowMapper {
                 entity.getStepType(),
                 entity.getEndpointKey(),
                 entity.getParallelExecution(),
-                entity.getStepConfig()
+                entity.getStepConfig(),
+                java.util.List.of(),  // TODO: Load params from repository
+                java.util.List.of()   // TODO: Load outputs from repository
         );
 
         return WorkflowStep.reconstitute(params);
