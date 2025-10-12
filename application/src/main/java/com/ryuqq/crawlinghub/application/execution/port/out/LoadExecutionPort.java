@@ -3,9 +3,11 @@ package com.ryuqq.crawlinghub.application.execution.port.out;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.ExecutionId;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,5 +50,28 @@ public interface LoadExecutionPort {
      * @return list of executions after the cursor
      */
     List<CrawlExecution> findByStatus(ExecutionStatus status, Long lastExecutionId, int pageSize);
+
+    /**
+     * Find executions with dynamic filters
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param pageable pagination parameters
+     * @return page of executions matching the filters
+     */
+    Page<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    );
+
+    /**
+     * Find all executions
+     * @return list of all executions
+     */
+    List<CrawlExecution> findAll();
 
 }
