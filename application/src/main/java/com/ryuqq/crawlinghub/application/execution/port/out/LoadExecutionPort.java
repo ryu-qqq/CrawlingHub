@@ -3,9 +3,11 @@ package com.ryuqq.crawlinghub.application.execution.port.out;
 import com.ryuqq.crawlinghub.domain.common.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.ExecutionId;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,5 +50,62 @@ public interface LoadExecutionPort {
      * @return list of executions after the cursor
      */
     List<CrawlExecution> findByStatus(ExecutionStatus status, Long lastExecutionId, int pageSize);
+
+    /**
+     * Find executions with dynamic filters (Offset-Based pagination)
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param pageable pagination parameters
+     * @return page of executions matching the filters
+     */
+    Page<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    );
+
+    /**
+     * Find executions with dynamic filters (No-Offset cursor-based pagination)
+     * @param scheduleId optional schedule ID filter
+     * @param status optional execution status filter
+     * @param startDate optional start date filter (inclusive)
+     * @param endDate optional end date filter (inclusive)
+     * @param lastExecutionId cursor - last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions matching the filters after the cursor
+     */
+    List<CrawlExecution> findWithFilters(
+            ScheduleId scheduleId,
+            ExecutionStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Long lastExecutionId,
+            int pageSize
+    );
+
+    /**
+     * Find all executions
+     * @return list of all executions
+     */
+    List<CrawlExecution> findAll();
+
+    /**
+     * Find all executions with Offset-Based pagination
+     * @param pageable pagination parameters
+     * @return page of all executions
+     */
+    Page<CrawlExecution> findAll(Pageable pageable);
+
+    /**
+     * Find all executions with No-Offset cursor-based pagination
+     * @param lastExecutionId cursor - last execution ID from previous page (null for first page)
+     * @param pageSize number of records to fetch
+     * @return list of executions after the cursor
+     */
+    List<CrawlExecution> findAll(Long lastExecutionId, int pageSize);
 
 }
