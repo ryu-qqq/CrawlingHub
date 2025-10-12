@@ -81,14 +81,43 @@ public class RegisterWorkflowUseCase {
 
         // 4. Convert command steps to domain objects and add to workflow
         List<WorkflowStep> workflowSteps = command.steps().stream()
-                .map(stepCommand -> WorkflowStep.create(
-                        null,  // workflowId will be set when workflow is saved
-                        stepCommand.stepName(),
-                        stepCommand.stepOrder(),
-                        StepType.valueOf(stepCommand.stepType()),
-                        stepCommand.endpointKey(),
-                        stepCommand.parallelExecution()
-                ))
+                .map(stepCommand -> {
+                    // Convert params
+                    List<com.ryuqq.crawlinghub.domain.workflow.StepParam> params = stepCommand.params() != null
+                            ? stepCommand.params().stream()
+                                    .map(paramCmd -> com.ryuqq.crawlinghub.domain.workflow.StepParam.create(
+                                            null,  // stepId will be set when step is saved
+                                            paramCmd.paramKey(),
+                                            paramCmd.paramValueExpression(),
+                                            ParamType.valueOf(paramCmd.paramType()),
+                                            paramCmd.isRequired()
+                                    ))
+                                    .toList()
+                            : List.of();
+
+                    // Convert outputs
+                    List<com.ryuqq.crawlinghub.domain.workflow.StepOutput> outputs = stepCommand.outputs() != null
+                            ? stepCommand.outputs().stream()
+                                    .map(outputCmd -> com.ryuqq.crawlinghub.domain.workflow.StepOutput.create(
+                                            null,  // stepId will be set when step is saved
+                                            outputCmd.outputKey(),
+                                            outputCmd.outputPathExpression(),
+                                            outputCmd.outputType()
+                                    ))
+                                    .toList()
+                            : List.of();
+
+                    return WorkflowStep.create(
+                            null,  // workflowId will be set when workflow is saved
+                            stepCommand.stepName(),
+                            stepCommand.stepOrder(),
+                            StepType.valueOf(stepCommand.stepType()),
+                            stepCommand.endpointKey(),
+                            stepCommand.parallelExecution(),
+                            params,
+                            outputs
+                    );
+                })
                 .toList();
 
         workflow.replaceSteps(workflowSteps);
