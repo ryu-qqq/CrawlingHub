@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.usecase;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.schedule.port.CrawlScheduleCommandPort;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.ScheduleId;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,13 +42,16 @@ class EnableScheduleUseCaseTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private EnableScheduleUseCase useCase;
 
     private CrawlSchedule schedule;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         schedule = CrawlSchedule.reconstitute(
                 ScheduleId.of(1L),
                 WorkflowId.of(1L),
@@ -57,6 +62,14 @@ class EnableScheduleUseCaseTest {
                 "schedule-1-rule",
                 null
         );
+
+        // Mock ObjectMapper to return valid JSON (lenient to avoid UnnecessaryStubbingException in failure tests)
+        lenient().when(objectMapper.writeValueAsString(any()))
+                .thenAnswer(invocation -> {
+                    // Simple JSON serialization for test purposes
+                    Object obj = invocation.getArgument(0);
+                    return new ObjectMapper().writeValueAsString(obj);
+                });
     }
 
     @Test

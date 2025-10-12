@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.usecase;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.schedule.port.CrawlScheduleCommandPort;
 import com.ryuqq.crawlinghub.application.schedule.util.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
@@ -10,7 +12,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Use case for enabling a crawl schedule
@@ -21,12 +26,15 @@ public class EnableScheduleUseCase {
 
     private final CrawlScheduleCommandPort scheduleCommandPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     public EnableScheduleUseCase(
             CrawlScheduleCommandPort scheduleCommandPort,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            ObjectMapper objectMapper) {
         this.scheduleCommandPort = scheduleCommandPort;
         this.eventPublisher = eventPublisher;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -70,38 +78,26 @@ public class EnableScheduleUseCase {
     }
 
     private String buildTargetInput(CrawlSchedule schedule, List<ScheduleInputParam> inputParams) {
-        // Build simple JSON format manually without Jackson dependency
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"scheduleId\":").append(schedule.getScheduleId().value()).append(",");
-        json.append("\"workflowId\":").append(schedule.getWorkflowId().value()).append(",");
-        json.append("\"scheduleName\":\"").append(escapeJson(schedule.getScheduleName())).append("\",");
-        json.append("\"inputParams\":{");
+        try {
+            Map<String, Object> targetData = new HashMap<>();
+            targetData.put("scheduleId", schedule.getScheduleId().value());
+            targetData.put("workflowId", schedule.getWorkflowId().value());
+            targetData.put("scheduleName", schedule.getScheduleName());
 
-        if (inputParams != null && !inputParams.isEmpty()) {
-            for (int i = 0; i < inputParams.size(); i++) {
-                ScheduleInputParam param = inputParams.get(i);
-                json.append("\"").append(escapeJson(param.getParamKey())).append("\":");
-                json.append("\"").append(escapeJson(param.getParamValue())).append("\"");
-                if (i < inputParams.size() - 1) {
-                    json.append(",");
-                }
+            // Build inputParams map
+            Map<String, String> paramsMap = new HashMap<>();
+            if (inputParams != null && !inputParams.isEmpty()) {
+                paramsMap = inputParams.stream()
+                        .collect(Collectors.toMap(
+                                ScheduleInputParam::getParamKey,
+                                ScheduleInputParam::getParamValue
+                        ));
             }
-        }
+            targetData.put("inputParams", paramsMap);
 
-        json.append("}");
-        json.append("}");
-        return json.toString();
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) {
-            return "";
+            return objectMapper.writeValueAsString(targetData);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize target input to JSON", e);
         }
-        return value.replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\t", "\\t");
     }
 }

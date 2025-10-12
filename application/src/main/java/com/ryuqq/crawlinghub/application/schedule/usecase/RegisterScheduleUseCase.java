@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.usecase;
 
 import com.ryuqq.crawlinghub.application.schedule.port.CrawlScheduleCommandPort;
-import com.ryuqq.crawlinghub.application.schedule.port.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.application.schedule.util.CronExecutionCalculator;
 import com.ryuqq.crawlinghub.application.schedule.util.CronExpressionValidator;
 import com.ryuqq.crawlinghub.application.workflow.usecase.WorkflowNotFoundException;
@@ -25,13 +24,9 @@ import java.util.stream.Collectors;
 public class RegisterScheduleUseCase {
 
     private final CrawlScheduleCommandPort scheduleCommandPort;
-    private final CrawlScheduleQueryPort scheduleQueryPort;
 
-    public RegisterScheduleUseCase(
-            CrawlScheduleCommandPort scheduleCommandPort,
-            CrawlScheduleQueryPort scheduleQueryPort) {
+    public RegisterScheduleUseCase(CrawlScheduleCommandPort scheduleCommandPort) {
         this.scheduleCommandPort = scheduleCommandPort;
-        this.scheduleQueryPort = scheduleQueryPort;
     }
 
     /**
@@ -72,12 +67,18 @@ public class RegisterScheduleUseCase {
         // 6. Save input parameters if provided
         if (command.inputParams() != null && !command.inputParams().isEmpty()) {
             List<ScheduleInputParam> inputParams = command.inputParams().stream()
-                    .map(paramCmd -> ScheduleInputParam.create(
-                            savedSchedule.getScheduleId().value(),
-                            paramCmd.paramKey(),
-                            paramCmd.paramValue(),
-                            ParamType.valueOf(paramCmd.paramType())
-                    ))
+                    .map(paramCmd -> {
+                        try {
+                            return ScheduleInputParam.create(
+                                    savedSchedule.getScheduleId().value(),
+                                    paramCmd.paramKey(),
+                                    paramCmd.paramValue(),
+                                    ParamType.valueOf(paramCmd.paramType())
+                            );
+                        } catch (IllegalArgumentException e) {
+                            throw new InvalidParamTypeException(paramCmd.paramType(), e);
+                        }
+                    })
                     .collect(Collectors.toList());
 
             scheduleCommandPort.saveInputParams(inputParams);

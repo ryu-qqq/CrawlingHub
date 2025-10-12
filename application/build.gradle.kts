@@ -29,6 +29,9 @@ dependencies {
     // Validation
     implementation(libs.spring.boot.starter.validation)
 
+    // JSON serialization (for EventBridge target input)
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+
     // ========================================
     // Test Dependencies
     // ========================================
