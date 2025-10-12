@@ -17,6 +17,14 @@
     <property name="fileExtensions" value="java"/>
 
     <!-- ========================================
+         Suppressions Filter
+         ======================================== -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <property name="optional" value="false"/>
+    </module>
+
+    <!-- ========================================
          Javadoc Requirements
          ======================================== -->
     <!-- JavadocPackage module removed (deprecated in Checkstyle 10.2+)
