@@ -99,8 +99,7 @@ EventBridge 연동에 필요한 최소 권한:
       "Effect": "Allow",
       "Action": [
         "events:PutTargets",
-        "events:RemoveTargets",
-        "events:ListTargetsByRule"
+        "events:RemoveTargets"
       ],
       "Resource": "arn:aws:events:ap-northeast-2:*:rule/crawl-schedule-*"
     }
@@ -115,7 +114,6 @@ EventBridge 연동에 필요한 최소 권한:
 - `events:DescribeRule`: Rule 존재 확인
 - `events:PutTargets`: Target 추가
 - `events:RemoveTargets`: Target 제거
-- `events:ListTargetsByRule`: Target 목록 조회
 
 **리소스 제한**:
 - `crawl-schedule-*` 패턴으로 시작하는 Rule만 관리 가능 (보안 강화)
@@ -200,7 +198,10 @@ enableScheduleUseCase.execute(scheduleId);
 
 **주의사항**:
 - AWS Cron은 `일`과 `요일` 중 하나만 지정 가능 (나머지는 `?` 사용)
-- 프로젝트는 Spring Cron 6필드를 사용하며, AWS Cron도 6필드로 그대로 전달
+- 프로젝트는 Spring Cron 6필드를 사용하며, EventBridge 연동 시에는 `CronExpressionValidator`가 다음과 같이 변환합니다:
+  - 첫 번째 필드(초)는 반드시 `0`이어야 함 (AWS는 초 단위 미지원)
+  - 초 필드를 제외한 나머지 5개 필드를 AWS Cron 형식으로 변환
+  - `일`과 `요일` 필드 중 하나를 `?`로 변환하여 AWS Cron 규칙 준수
 
 ## Timezone 처리
 

@@ -56,18 +56,18 @@ class CronExpressionValidatorTest {
 
     @ParameterizedTest
     @CsvSource({
-            "'0 0 9 * * *', '0 0 9 * * *'",                         // 이미 6필드 - 그대로 반환
-            "'0 0 9 1 * *', '0 0 9 1 * *'",                         // 이미 6필드 - 그대로 반환
-            "'0 0 0 * * MON', '0 0 0 * * MON'",                     // 이미 6필드 - 그대로 반환
-            "'0 */5 * * * *', '0 */5 * * * *'"                      // 이미 6필드 - 그대로 반환
+            "'0 0 9 * * *', '0 9 * * ? *'",      // 매일 9시
+            "'0 0 9 1 * *', '0 9 1 * ? *'",      // 매월 1일 9시
+            "'0 0 0 * * MON', '0 0 ? * MON *'",  // 매주 월요일 자정
+            "'0 */5 * * * *', '*/5 * * * ? *'"   // 5분마다
     })
-    @DisplayName("convertToAwsCronExpression 성공 - 이미 6필드인 경우 그대로 반환")
-    void convertToAwsCronExpressionWith6Fields(String springCron, String expected) {
+    @DisplayName("convertToAwsCronExpression 성공 - Spring 6필드에서 AWS 6필드로 변환")
+    void convertToAwsCronExpressionWith6Fields(String springCron, String expectedAwsCron) {
         // when
         String awsCron = CronExpressionValidator.convertToAwsCronExpression(springCron);
 
         // then
-        assertThat(awsCron).isEqualTo(expected);
+        assertThat(awsCron).isEqualTo(expectedAwsCron);
     }
 
     @Test
@@ -131,48 +131,17 @@ class CronExpressionValidatorTest {
         assertThat(result).isFalse();
     }
 
-    @Test
-    @DisplayName("convertToAwsCronExpression - 다양한 Spring cron 패턴")
-    void convertVariousSpringCronPatterns() {
-        // 매 시간마다
-        assertThat(CronExpressionValidator.convertToAwsCronExpression("0 0 * * * *"))
-                .isEqualTo("0 0 * * * *");
-
-        // 매일 자정
-        assertThat(CronExpressionValidator.convertToAwsCronExpression("0 0 0 * * *"))
-                .isEqualTo("0 0 0 * * *");
-
-        // 평일 9시
-        assertThat(CronExpressionValidator.convertToAwsCronExpression("0 0 9 * * MON-FRI"))
-                .isEqualTo("0 0 9 * * MON-FRI");
-
-        // 매시 30분
-        assertThat(CronExpressionValidator.convertToAwsCronExpression("0 30 * * * *"))
-                .isEqualTo("0 30 * * * *");
-    }
-
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "0 0 9 * * *",        // 매일 9시
+            "0 */5 * * * *",      // 5분마다
+            "0 0 0 1 * *",        // 매월 1일 자정
+            "0 0 9 * * MON",      // 매주 월요일 9시
+            "0 30 14 1 1 *"       // 1월 1일 14:30
+    })
     @DisplayName("validate - Spring cron 6필드 형식 검증")
-    void validateSpringCronFormat() {
-        // 초 분 시 일 월 요일
-        CronExpressionValidator.validate("0 0 9 * * *");        // 매일 9시
-        CronExpressionValidator.validate("0 */5 * * * *");      // 5분마다
-        CronExpressionValidator.validate("0 0 0 1 * *");        // 매월 1일 자정
-        CronExpressionValidator.validate("0 0 9 * * MON");      // 매주 월요일 9시
-        CronExpressionValidator.validate("0 30 14 1 1 *");      // 1월 1일 14:30
-    }
-
-    @Test
-    @DisplayName("convertToAwsCronExpression - 6필드는 검증 후 그대로 반환")
-    void convertSixFieldsReturnAsIs() {
-        // given
-        String springCron = "0 0 9 * * *";
-
-        // when
-        String result = CronExpressionValidator.convertToAwsCronExpression(springCron);
-
-        // then
-        assertThat(result).isEqualTo(springCron);
-        assertThat(result.split(" ")).hasSize(6);
+    void validateSpringCronFormat(String validCron) {
+        // when & then
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> CronExpressionValidator.validate(validCron));
     }
 }
