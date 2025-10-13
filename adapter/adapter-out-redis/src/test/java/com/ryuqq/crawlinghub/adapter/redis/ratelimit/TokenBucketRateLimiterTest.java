@@ -190,4 +190,93 @@ class TokenBucketRateLimiterTest {
         assertThat(result.getRetryAfterMs()).isGreaterThanOrEqualTo(4500); // ~5000ms
         assertThat(result.getRetryAfterMs()).isLessThanOrEqualTo(5500);
     }
+
+    @Test
+    @DisplayName("getWaitTime - 토큰이 충분하면 0 반환")
+    void getWaitTimeReturnsZeroWhenTokensAvailable() {
+        // Given
+        Long userAgentId = 8L;
+        int maxTokens = 10;
+        double refillRate = 1.0;
+
+        rateLimiter.tryConsume(userAgentId, 5, refillRate, maxTokens);
+
+        // When
+        long waitTime = rateLimiter.getWaitTime(userAgentId, 3);
+
+        // Then
+        assertThat(waitTime).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("getWaitTime - 토큰이 부족하면 대기 시간 반환")
+    void getWaitTimeReturnsPositiveWhenTokensInsufficient() {
+        // Given
+        Long userAgentId = 9L;
+        int maxTokens = 10;
+        double refillRate = 1.0;
+
+        rateLimiter.tryConsume(userAgentId, 10, refillRate, maxTokens);
+
+        // When
+        long waitTime = rateLimiter.getWaitTime(userAgentId, 5);
+
+        // Then
+        assertThat(waitTime).isGreaterThan(0L);
+        assertThat(waitTime).isLessThanOrEqualTo(5500L); // ~5초
+    }
+
+    @Test
+    @DisplayName("getWaitTime - 최대 대기 시간 10분 제한")
+    void getWaitTimeMaximumIs10Minutes() {
+        // Given
+        Long userAgentId = 10L;
+        int maxTokens = 10;
+        double refillRate = 0.001; // 매우 느린 재충전
+
+        rateLimiter.tryConsume(userAgentId, 10, refillRate, maxTokens);
+
+        // When
+        long waitTime = rateLimiter.getWaitTime(userAgentId, 100);
+
+        // Then
+        assertThat(waitTime).isLessThanOrEqualTo(600_000L); // 10분
+    }
+
+    @Test
+    @DisplayName("updateBucketConfig - Bucket 설정을 동적으로 조정할 수 있다")
+    void updateBucketConfigDynamicallyAdjustsSettings() {
+        // Given
+        Long userAgentId = 11L;
+        int initialMaxTokens = 10;
+        double initialRefillRate = 1.0;
+
+        rateLimiter.tryConsume(userAgentId, 5, initialRefillRate, initialMaxTokens);
+
+        // When
+        int newMaxTokens = 20;
+        double newRefillRate = 2.0;
+        rateLimiter.updateBucketConfig(userAgentId, newMaxTokens, newRefillRate);
+
+        TokenBucketRateLimiter.BucketStatus status = rateLimiter.getBucketStatus(userAgentId);
+
+        // Then
+        assertThat(status.getMaxTokens()).isEqualTo(newMaxTokens);
+        assertThat(status.getRefillRate()).isEqualTo(newRefillRate);
+    }
+
+    @Test
+    @DisplayName("deleteBucket - Bucket을 삭제할 수 있다")
+    void deleteBucketRemovesBucket() {
+        // Given
+        Long userAgentId = 14L;
+        rateLimiter.tryConsumeDefault(userAgentId);
+
+        // When
+        rateLimiter.deleteBucket(userAgentId);
+
+        // Then
+        TokenBucketRateLimiter.BucketStatus status = rateLimiter.getBucketStatus(userAgentId);
+        assertThat(status).isNull();
+    }
 }
