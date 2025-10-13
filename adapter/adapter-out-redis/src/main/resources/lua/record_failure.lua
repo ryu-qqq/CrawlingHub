@@ -60,6 +60,8 @@ elseif current_state == 'HALF_OPEN' then
         'consecutive_successes', '0',
         'opened_at', current_time
     )
+    -- Remove test_request_active flag (no longer in HALF_OPEN)
+    redis.call('HDEL', circuit_key, 'test_request_active')
     redis.call('EXPIRE', circuit_key, ttl_seconds)
     return 'OPEN'
 

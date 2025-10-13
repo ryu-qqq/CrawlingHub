@@ -378,8 +378,8 @@ class CircuitBreakerManagerTest {
     }
 
     @Test
-    @DisplayName("allowRequest() - HALF_OPEN 상태에서 테스트 요청 1개만 허용")
-    void allowRequestInHalfOpenState() {
+    @DisplayName("allowRequest() - HALF_OPEN 상태에서 동시 요청 방지 (경쟁 조건 해결)")
+    void allowRequestInHalfOpenState() throws InterruptedException {
         // Given
         Long userAgentId = 202L;
 
@@ -393,16 +393,36 @@ class CircuitBreakerManagerTest {
             "timeout_duration_seconds", "600"
         ));
 
-        // When - 첫 번째 요청
-        boolean firstAllowed = circuitBreakerManager.allowRequest(userAgentId);
+        // When - 동시에 10개 요청 시도
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+        List<Boolean> results = new ArrayList<>();
 
-        // 성공 기록 후 두 번째 요청
-        circuitBreakerManager.recordSuccess(userAgentId);
-        boolean secondAllowed = circuitBreakerManager.allowRequest(userAgentId);
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await(); // 동시 시작
+                    boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+                    synchronized (results) {
+                        results.add(allowed);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
 
-        // Then
-        assertThat(firstAllowed).isTrue();  // 첫 요청 허용
-        assertThat(secondAllowed).isFalse(); // 두 번째 요청 차단 (consecutive_successes > 0)
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 정확히 1개의 요청만 허용되어야 함 (경쟁 조건 방지)
+        long allowedCount = results.stream().filter(Boolean::booleanValue).count();
+        assertThat(allowedCount).isEqualTo(1L);  // 1개만 허용
+        assertThat(results.stream().filter(b -> !b).count()).isEqualTo(9L);  // 9개 차단
     }
 
     @Test
