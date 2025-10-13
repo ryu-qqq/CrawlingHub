@@ -18,6 +18,7 @@ include("adapter:adapter-out-persistence-jpa")
 include("adapter:adapter-out-aws-s3")
 include("adapter:adapter-out-aws-sqs")
 include("adapter:adapter-out-aws-eventbridge")
+include("adapter:adapter-out-redis")
 
 // ========================================
 // Bootstrap Modules (Runnable Applications)
@@ -36,5 +37,6 @@ project(":adapter:adapter-out-persistence-jpa").projectDir = file("adapter/adapt
 project(":adapter:adapter-out-aws-s3").projectDir = file("adapter/adapter-out-aws-s3")
 project(":adapter:adapter-out-aws-sqs").projectDir = file("adapter/adapter-out-aws-sqs")
 project(":adapter:adapter-out-aws-eventbridge").projectDir = file("adapter/adapter-out-aws-eventbridge")
+project(":adapter:adapter-out-redis").projectDir = file("adapter/adapter-out-redis")
 
 project(":bootstrap:bootstrap-web-api").projectDir = file("bootstrap/bootstrap-web-api")
