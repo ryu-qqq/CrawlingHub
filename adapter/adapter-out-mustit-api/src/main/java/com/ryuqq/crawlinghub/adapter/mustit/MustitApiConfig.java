@@ -1,8 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.mustit;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +9,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 머스트잇 API HTTP 클라이언트 설정
@@ -53,11 +50,7 @@ public class MustitApiConfig {
     public WebClient mustitWebClient() {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                .responseTimeout(Duration.ofMillis(readTimeout))
-                .doOnConnected(conn ->
-                        conn.addHandlerLast(new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
-                                .addHandlerLast(new WriteTimeoutHandler(writeTimeout, TimeUnit.MILLISECONDS))
-                );
+                .responseTimeout(Duration.ofMillis(readTimeout));
 
         return WebClient.builder()
                 .baseUrl(baseUrl)
