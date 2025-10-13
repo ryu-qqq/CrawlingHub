@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.adapter.persistence.jpa.token;
 import com.ryuqq.crawlinghub.application.token.port.UserAgentInfo;
 import com.ryuqq.crawlinghub.application.token.port.UserAgentTokenPort;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +28,6 @@ public class UserAgentTokenAdapter implements UserAgentTokenPort {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserAgentInfo findActiveToken(Long userAgentId) {
         UserAgentPoolEntity poolEntity = poolRepository.findById(userAgentId)
                 .orElse(null);
@@ -55,7 +53,6 @@ public class UserAgentTokenAdapter implements UserAgentTokenPort {
     }
 
     @Override
-    @Transactional
     public void recordUsage(Long userAgentId) {
         poolRepository.findById(userAgentId)
                 .ifPresent(entity -> {
@@ -65,7 +62,6 @@ public class UserAgentTokenAdapter implements UserAgentTokenPort {
     }
 
     @Override
-    @Transactional
     public void recordSuccess(Long userAgentId) {
         poolRepository.findById(userAgentId)
                 .ifPresent(entity -> {
@@ -75,7 +71,6 @@ public class UserAgentTokenAdapter implements UserAgentTokenPort {
     }
 
     @Override
-    @Transactional
     public void recordFailure(Long userAgentId) {
         poolRepository.findById(userAgentId)
                 .ifPresent(entity -> {
@@ -85,7 +80,30 @@ public class UserAgentTokenAdapter implements UserAgentTokenPort {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public void saveOrUpdateToken(Long userAgentId, String tokenValue, String tokenType, long expiresIn) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusSeconds(expiresIn);
+
+        UserAgentTokenEntity existingToken = tokenRepository.findActiveTokenByAgentId(userAgentId)
+                .orElse(null);
+
+        if (existingToken != null) {
+            // 기존 토큰 업데이트
+            existingToken.refresh(tokenValue, expiresAt);
+            tokenRepository.save(existingToken);
+        } else {
+            // 신규 토큰 생성
+            UserAgentTokenEntity newToken = new UserAgentTokenEntity(
+                    userAgentId,
+                    tokenValue,
+                    now,
+                    expiresAt
+            );
+            tokenRepository.save(newToken);
+        }
+    }
+
+    @Override
     public List<Long> findAllActiveUserAgents() {
         return poolRepository.findAllActiveAndUnblocked(LocalDateTime.now())
                 .stream()
