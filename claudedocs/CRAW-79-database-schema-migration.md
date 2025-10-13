@@ -61,9 +61,11 @@ User-Agent별 토큰 정보 및 라이프사이클 관리
 - `PARTITION BY RANGE (YEAR(request_timestamp) * 100 + MONTH(request_timestamp))`
 
 **인덱스**:
-- `idx_user_agent_time`: (agent_id, request_timestamp)
-- `idx_429_errors`: (is_429_error, agent_id, request_timestamp)
+- `idx_user_agent_time`: (agent_id, request_timestamp) - 복합 인덱스
+- `idx_429_errors`: (is_429_error, agent_id, request_timestamp) - 커버링 인덱스
 - `idx_rate_limit`: (is_rate_limited, request_timestamp)
+- `idx_success_time`: (is_success, request_timestamp)
+- `idx_http_status`: (http_status_code, request_timestamp)
 
 ### 4. circuit_breaker_state
 Circuit Breaker 패턴 구현 - 429 연속 발생 시 자동 차단
@@ -77,8 +79,8 @@ Circuit Breaker 패턴 구현 - 429 연속 발생 시 자동 차단
 - `failure_threshold`: 실패 임계값 (기본 3)
 
 **인덱스**:
-- `idx_user_agent_state`: (agent_id, circuit_state)
 - `idx_opened`: (opened_at)
+- `idx_state_failure`: (circuit_state, failure_count)
 
 ### 5. circuit_breaker_event
 Circuit Breaker 상태 전환 이벤트 추적
@@ -93,6 +95,7 @@ Circuit Breaker 상태 전환 이벤트 추적
 **인덱스**:
 - `idx_user_agent_time`: (agent_id, event_timestamp)
 - `idx_event_type`: (event_type, event_timestamp)
+- `idx_state_change`: (from_state, to_state, event_timestamp)
 
 ### 6. rate_limit_bucket
 Token Bucket 알고리즘 상태 (Redis 백업용)
@@ -120,7 +123,8 @@ Token Bucket 알고리즘 상태 (Redis 백업용)
 - `consecutive_failures`: 연속 실패 횟수
 
 **인덱스**:
-- `idx_next_refresh`: (next_refresh_time, is_enabled)
+- `idx_next_refresh`: (is_enabled, next_refresh_time) - 최적화된 순서
+- `idx_agent_enabled`: (agent_id, is_enabled)
 - `idx_failure_count`: (consecutive_failures, next_refresh_time)
 
 ## 📁 파일 구조
@@ -165,12 +169,21 @@ source scripts/db/rollback_v7_v8.sql;
 1. **복합 인덱스**: 자주 함께 조회되는 컬럼 조합
    - `(is_active, is_blocked, blocked_until)`: User-Agent 활성/차단 상태 조회
    - `(agent_id, request_timestamp)`: 시계열 로그 조회
+   - `(is_enabled, next_refresh_time)`: 스케줄 조회 최적화
 
 2. **커버링 인덱스**: SELECT 쿼리가 인덱스만으로 처리 가능
    - `idx_429_errors (is_429_error, agent_id, request_timestamp)`
 
 3. **인덱스 크기 최적화**: VARCHAR 필드는 prefix index 사용
    - `UNIQUE KEY uk_user_agent (user_agent(255))`
+
+4. **중복 인덱스 제거** (Gemini Code Assist 리뷰 반영):
+   - `token_usage_log`: idx_agent_id, idx_token_id 제거 (복합 인덱스로 커버됨)
+   - `circuit_breaker_state`: idx_user_agent_state 제거 (UNIQUE 키로 충분)
+   - `circuit_breaker_event`: idx_agent_id 제거 (복합 인덱스로 커버됨)
+
+5. **컬럼 최적화**:
+   - `created_at` 컬럼 제거: `request_timestamp`, `event_timestamp`로 대체하여 스토리지 절약
 
 ### 파티셔닝 전략
 
