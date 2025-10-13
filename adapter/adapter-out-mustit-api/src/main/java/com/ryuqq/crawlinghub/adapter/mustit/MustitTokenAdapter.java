@@ -40,6 +40,7 @@ public class MustitTokenAdapter implements MustitTokenPort {
     private static final String COOKIE_TOKEN = "token";
     private static final String COOKIE_TOKEN_TYPE = "token_type";
     private static final String COOKIE_ACCESS_TYPE = "access_type";
+    private static final long DEFAULT_COOKIE_MAX_AGE_SECONDS = 1800; // Default 30 minutes
 
     private final WebClient webClient;
 
@@ -168,7 +169,7 @@ public class MustitTokenAdapter implements MustitTokenPort {
                 }
             }
         }
-        return 1800; // Default 30 minutes
+        return DEFAULT_COOKIE_MAX_AGE_SECONDS;
     }
 
     /**
@@ -189,13 +190,15 @@ public class MustitTokenAdapter implements MustitTokenPort {
     }
 
     /**
-     * 토큰 유효성 검증 (JWT 형식 간단 검증)
-     * 
-     * Mustit의 토큰은 JWT 형식이므로, 구조적 검증만 수행합니다.
-     * 실제 서명 검증은 Mustit API 호출 시 수행됩니다.
+     * JWT 형식 검증 (구조적 검증만 수행)
+     *
+     * 주의: 이 메서드는 토큰의 서명, 만료시간, 발급자 등을 검증하지 않습니다.
+     * JWT의 구조(header.payload.signature)와 Base64 URL-safe 인코딩만 확인합니다.
+     * 실제 토큰의 유효성은 Mustit API 호출 시 검증되며,
+     * 만료 여부는 데이터베이스에 저장된 issuedAt과 expiresIn을 통해 확인해야 합니다.
      */
     @Override
-    public boolean validateToken(String accessToken) {
+    public boolean isJwtFormat(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {
             LOG.debug("Token validation failed: token is null or empty");
             return false;
