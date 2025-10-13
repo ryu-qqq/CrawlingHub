@@ -7,6 +7,7 @@ import java.util.List;
  * DB User-Agent 및 Token 관리
  *
  * @author crawlinghub
+ * @since 2025-10-14
  */
 public interface UserAgentTokenPort {
 
@@ -14,6 +15,16 @@ public interface UserAgentTokenPort {
      * 활성 토큰 조회
      */
     UserAgentInfo findActiveToken(Long userAgentId);
+
+    /**
+     * 토큰 저장 또는 업데이트
+     *
+     * @param userAgentId User-Agent ID
+     * @param tokenValue 토큰 값
+     * @param tokenType 토큰 타입 (Bearer)
+     * @param expiresIn 만료 시간 (초)
+     */
+    void saveOrUpdateToken(Long userAgentId, String tokenValue, String tokenType, long expiresIn);
 
     /**
      * 사용 기록

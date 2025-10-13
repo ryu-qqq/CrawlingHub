@@ -9,7 +9,6 @@ import com.ryuqq.crawlinghub.domain.workflow.WorkflowStep;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,6 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     // ========================================
 
     @Override
-    @Transactional
     public CrawlWorkflow save(CrawlWorkflow workflow) {
         // 1. Save workflow entity
         CrawlWorkflowEntity entity = mapper.toEntity(workflow);
@@ -81,7 +79,6 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     }
 
     @Override
-    @Transactional
     public void delete(WorkflowId workflowId) {
         // Delete steps first (foreign key constraint)
         stepRepository.deleteByWorkflowId(workflowId.value());
@@ -95,7 +92,6 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     // ========================================
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<CrawlWorkflow> findById(WorkflowId workflowId) {
         return jpaRepository.findById(workflowId.value())
                 .map(this::toDomainWithSteps);
@@ -176,14 +172,12 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CrawlWorkflow> findBySiteId(SiteId siteId) {
         List<CrawlWorkflowEntity> entities = queryRepository.findBySiteId(siteId.value());
         return toDomainWithStepsBatch(entities);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<CrawlWorkflow> findBySiteId(SiteId siteId, Pageable pageable) {
         Page<CrawlWorkflowEntity> entityPage = queryRepository.findBySiteId(siteId.value(), pageable);
         List<CrawlWorkflow> workflows = toDomainWithStepsBatch(entityPage.getContent());
@@ -191,21 +185,18 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CrawlWorkflow> findBySiteId(SiteId siteId, Long lastWorkflowId, int pageSize) {
         List<CrawlWorkflowEntity> entities = queryRepository.findBySiteId(siteId.value(), lastWorkflowId, pageSize);
         return toDomainWithStepsBatch(entities);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CrawlWorkflow> findActiveWorkflows() {
         List<CrawlWorkflowEntity> entities = queryRepository.findActiveWorkflows();
         return toDomainWithStepsBatch(entities);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<CrawlWorkflow> findActiveWorkflows(Pageable pageable) {
         Page<CrawlWorkflowEntity> entityPage = queryRepository.findActiveWorkflows(pageable);
         List<CrawlWorkflow> workflows = toDomainWithStepsBatch(entityPage.getContent());
@@ -213,7 +204,6 @@ public class WorkflowPersistenceAdapter implements SaveWorkflowPort, LoadWorkflo
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CrawlWorkflow> findActiveWorkflows(Long lastWorkflowId, int pageSize) {
         List<CrawlWorkflowEntity> entities = queryRepository.findActiveWorkflows(lastWorkflowId, pageSize);
         return toDomainWithStepsBatch(entities);
