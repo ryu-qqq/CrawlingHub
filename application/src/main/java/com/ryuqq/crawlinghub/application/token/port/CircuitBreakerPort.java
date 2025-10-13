@@ -29,7 +29,7 @@ public interface CircuitBreakerPort {
     /**
      * 성공 기록
      * - CLOSED: 실패 카운터 리셋
-     * - HALF_OPEN: 성공 카운트 증가, 임계값 도달 시 CLOSED 전환
+     * - HALF_OPEN: 성공 카운트 증가, 3회 성공 시 CLOSED 전환
      *
      * @param userAgentId User-Agent ID
      */

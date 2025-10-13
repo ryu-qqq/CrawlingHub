@@ -40,12 +40,13 @@ if current_state == 'HALF_OPEN' then
             'consecutive_failures', '0',
             'consecutive_successes', '0'
         )
-        -- Remove opened_at field (not needed in CLOSED state)
-        redis.call('HDEL', circuit_key, 'opened_at')
+        -- Remove opened_at and test_request_active fields (not needed in CLOSED state)
+        redis.call('HDEL', circuit_key, 'opened_at', 'test_request_active')
         redis.call('EXPIRE', circuit_key, ttl_seconds)
         return 'CLOSED'
     else
-        -- Still HALF_OPEN, just refresh TTL
+        -- Still HALF_OPEN, reset test flag for next test request
+        redis.call('HSET', circuit_key, 'test_request_active', '0')
         redis.call('EXPIRE', circuit_key, ttl_seconds)
         return 'HALF_OPEN'
     end
