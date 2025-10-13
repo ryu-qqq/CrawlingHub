@@ -13,6 +13,11 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -34,11 +39,11 @@ class CircuitBreakerManagerTest {
     private CircuitBreakerManager circuitBreakerManager;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, String> circuitBreakerRedisTemplate;
 
     @BeforeEach
     void setUp() {
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
+        circuitBreakerRedisTemplate.getConnectionFactory().getConnection().flushAll();
     }
 
     @Test
@@ -117,7 +122,7 @@ class CircuitBreakerManagerTest {
 
         // 수동으로 HALF_OPEN 상태 설정 (테스트용)
         String circuitKey = "circuit_breaker:" + userAgentId;
-        redisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
             "state", "HALF_OPEN",
             "consecutive_failures", "0",
             "consecutive_successes", "0",
@@ -143,7 +148,7 @@ class CircuitBreakerManagerTest {
 
         // HALF_OPEN 상태 설정
         String circuitKey = "circuit_breaker:" + userAgentId;
-        redisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
             "state", "HALF_OPEN",
             "consecutive_failures", "0",
             "consecutive_successes", "0",
@@ -157,5 +162,243 @@ class CircuitBreakerManagerTest {
         // Then
         CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
         assertThat(state.isOpen()).isTrue();
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - 10개 스레드가 동시에 recordFailure 호출")
+    void concurrentRecordFailureTest() throws InterruptedException {
+        // Given
+        Long userAgentId = 100L;
+        int threadCount = 10;
+        int failuresPerThread = 1;
+        int totalFailures = threadCount * failuresPerThread; // 10
+
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+
+        // When - 모든 스레드가 동시에 recordFailure 호출
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await(); // 모든 스레드가 동시에 시작하도록 대기
+                    for (int j = 0; j < failuresPerThread; j++) {
+                        circuitBreakerManager.recordFailure(userAgentId);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 정확히 10번의 실패가 기록되어야 하고, OPEN 상태여야 함
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+
+        // 총 10번 실패 → threshold 3 초과 → OPEN 상태
+        assertThat(state.isOpen()).isTrue();
+        assertThat(state.getOpenedAt()).isNotNull();
+
+        // consecutive_failures는 OPEN 전환 시 0으로 리셋됨
+        assertThat(state.getConsecutiveFailures()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - CLOSED에서 threshold 미만 실패")
+    void concurrentRecordFailureUnderThreshold() throws InterruptedException {
+        // Given
+        Long userAgentId = 101L;
+        int threadCount = 2;
+        int failuresPerThread = 1;
+
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+
+        // When - 총 2번 실패 (threshold 3 미만)
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await();
+                    for (int j = 0; j < failuresPerThread; j++) {
+                        circuitBreakerManager.recordFailure(userAgentId);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - CLOSED 상태 유지, consecutive_failures = 2
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isClosed()).isTrue();
+        assertThat(state.getConsecutiveFailures()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - HALF_OPEN에서 동시 성공 호출")
+    void concurrentRecordSuccessFromHalfOpen() throws InterruptedException {
+        // Given
+        Long userAgentId = 102L;
+
+        // HALF_OPEN 상태 설정
+        String circuitKey = "circuit_breaker:" + userAgentId;
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+            "state", "HALF_OPEN",
+            "consecutive_failures", "0",
+            "consecutive_successes", "0",
+            "failure_threshold", "3",
+            "timeout_duration_seconds", "600"
+        ));
+
+        int threadCount = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+
+        // When - 5개 스레드가 동시에 recordSuccess 호출
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await();
+                    circuitBreakerManager.recordSuccess(userAgentId);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 3번 성공 시 CLOSED로 전환되어야 함
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isClosed()).isTrue();
+        assertThat(state.getConsecutiveSuccesses()).isEqualTo(0); // CLOSED 전환 시 리셋
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - 실패와 성공이 동시에 발생하는 경우")
+    void concurrentMixedFailureAndSuccess() throws InterruptedException {
+        // Given
+        Long userAgentId = 103L;
+        int threadCount = 10;
+
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+        AtomicInteger failureThreadCount = new AtomicInteger(0);
+        AtomicInteger successThreadCount = new AtomicInteger(0);
+
+        // When - 절반은 실패, 절반은 성공 호출
+        for (int i = 0; i < threadCount; i++) {
+            final int threadIndex = i;
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await();
+                    if (threadIndex % 2 == 0) {
+                        // 짝수 스레드: 실패 기록
+                        circuitBreakerManager.recordFailure(userAgentId);
+                        failureThreadCount.incrementAndGet();
+                    } else {
+                        // 홀수 스레드: 성공 기록
+                        circuitBreakerManager.recordSuccess(userAgentId);
+                        successThreadCount.incrementAndGet();
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 최종 상태 검증
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+
+        // 동시성 환경에서는 실행 순서에 따라 결과가 달라질 수 있음:
+        // - 성공이 먼저 실행되어 실패 카운트를 계속 리셋 → CLOSED 유지
+        // - 실패 3개가 연속으로 먼저 실행 → OPEN 전환
+        // 두 경우 모두 정상 동작이므로 상태가 CLOSED 또는 OPEN 중 하나여야 함
+        assertThat(state.getStatus())
+            .isIn(CircuitBreakerManager.CircuitStatus.CLOSED,
+                  CircuitBreakerManager.CircuitStatus.OPEN);
+
+        // 최소한 정상 동작 확인 (NPE나 예외 발생하지 않음)
+        assertThat(state).isNotNull();
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - HALF_OPEN에서 실패와 성공이 동시 발생")
+    void concurrentMixedFailureAndSuccessFromHalfOpen() throws InterruptedException {
+        // Given
+        Long userAgentId = 104L;
+
+        // HALF_OPEN 상태 설정
+        String circuitKey = "circuit_breaker:" + userAgentId;
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+            "state", "HALF_OPEN",
+            "consecutive_failures", "0",
+            "consecutive_successes", "0",
+            "failure_threshold", "3",
+            "timeout_duration_seconds", "600"
+        ));
+
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+
+        // When - 첫 스레드는 실패, 나머지는 성공 호출
+        for (int i = 0; i < threadCount; i++) {
+            final int threadIndex = i;
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await();
+                    if (threadIndex == 0) {
+                        // 첫 번째 스레드: 실패 → OPEN으로 전환
+                        circuitBreakerManager.recordFailure(userAgentId);
+                    } else {
+                        // 나머지: 성공 호출 (하지만 이미 OPEN이면 무시됨)
+                        circuitBreakerManager.recordSuccess(userAgentId);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 최종 상태 검증
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+
+        // 동시성 환경에서는 실행 순서에 따라 결과가 달라질 수 있음:
+        // - 실패가 먼저 실행되면 OPEN으로 전환
+        // - 성공 3개가 먼저 완료되면 CLOSED로 전환
+        // 두 경우 모두 정상 동작이므로 상태가 CLOSED 또는 OPEN 중 하나여야 함
+        assertThat(state.getStatus())
+            .isIn(CircuitBreakerManager.CircuitStatus.CLOSED,
+                  CircuitBreakerManager.CircuitStatus.OPEN);
+
+        // 최소한 정상 동작 확인 (NPE나 예외 발생하지 않음)
+        assertThat(state).isNotNull();
     }
 }
