@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.token;
 /**
  * 획득된 User-Agent 토큰 정보
  *
- * @author crawlinghub
+ * @author CrawlingHub Team (crawlinghub@ryuqq.com)
  */
 public record AcquiredToken(
         Long userAgentId,

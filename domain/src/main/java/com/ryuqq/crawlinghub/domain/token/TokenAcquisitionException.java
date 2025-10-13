@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.token;
 /**
  * 토큰 획득 실패 예외
  *
- * @author crawlinghub
+ * @author CrawlingHub Team (crawlinghub@ryuqq.com)
  */
 public class TokenAcquisitionException extends RuntimeException {
 
