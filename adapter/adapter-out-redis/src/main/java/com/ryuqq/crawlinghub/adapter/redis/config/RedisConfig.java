@@ -129,6 +129,27 @@ public class RedisConfig {
     }
 
     /**
+     * Circuit Breaker Redis Template
+     * - All Serializers: String (for Lua script compatibility)
+     * - Used by CircuitBreakerManager to ensure plain string storage
+     */
+    @Bean
+    public RedisTemplate<String, String> circuitBreakerRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+
+        template.setKeySerializer(stringSerializer);
+        template.setValueSerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setHashValueSerializer(stringSerializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    /**
      * Token Bucket Lua Script
      * 반환값: [success (1/0), current_tokens, retry_after_ms]
      */
