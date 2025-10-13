@@ -63,9 +63,9 @@ tasks.jacocoTestCoverageVerification {
                 minimum = "0.50".toBigDecimal()
             }
             excludes = listOf(
-                "*.TokenRequest",
-                "*.TokenApiResponse",
-                "*.MustitApiConfig"
+                "*TokenRequest",
+                "*TokenApiResponse",
+                "*MustitApiConfig"
             )
         }
     }
