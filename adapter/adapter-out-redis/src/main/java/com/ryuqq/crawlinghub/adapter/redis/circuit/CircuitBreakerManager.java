@@ -175,7 +175,9 @@ public class CircuitBreakerManager {
      */
     public void reset(Long userAgentId, String reason) {
         transitionToClosed(userAgentId);
-        // TODO: circuit_breaker_event 로깅 추가 예정
+        // 관리자 리셋 로깅 (필요시 별도 이벤트 저장소로 확장 가능)
+        System.out.println(String.format("[CircuitBreaker] Manual reset - userAgentId=%d, reason=%s",
+            userAgentId, reason));
     }
 
     // ========================================
