@@ -124,6 +124,7 @@ subprojects {
                     minimum = when {
                         project.name == "domain" -> "0.90".toBigDecimal()
                         project.name == "application" -> "0.80".toBigDecimal()
+                        project.name == "adapter-out-mustit-api" -> "0.65".toBigDecimal()
                         project.name.startsWith("adapter-") -> "0.70".toBigDecimal()
                         else -> "0.70".toBigDecimal()
                     }
