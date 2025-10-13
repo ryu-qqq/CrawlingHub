@@ -343,6 +343,69 @@ class CircuitBreakerManagerTest {
     }
 
     @Test
+    @DisplayName("allowRequest() - CLOSED 상태에서는 항상 허용")
+    void allowRequestInClosedState() {
+        // Given
+        Long userAgentId = 200L;
+
+        // When
+        boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // Then
+        assertThat(allowed).isTrue();
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isClosed()).isTrue();
+    }
+
+    @Test
+    @DisplayName("allowRequest() - OPEN 상태에서 timeout 미경과 시 차단")
+    void allowRequestInOpenStateBeforeTimeout() {
+        // Given
+        Long userAgentId = 201L;
+
+        // OPEN으로 전환
+        circuitBreakerManager.recordFailure(userAgentId);
+        circuitBreakerManager.recordFailure(userAgentId);
+        circuitBreakerManager.recordFailure(userAgentId);
+
+        // When
+        boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // Then
+        assertThat(allowed).isFalse();
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isOpen()).isTrue();
+    }
+
+    @Test
+    @DisplayName("allowRequest() - HALF_OPEN 상태에서 테스트 요청 1개만 허용")
+    void allowRequestInHalfOpenState() {
+        // Given
+        Long userAgentId = 202L;
+
+        // HALF_OPEN 상태 설정
+        String circuitKey = "circuit_breaker:" + userAgentId;
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+            "state", "HALF_OPEN",
+            "consecutive_failures", "0",
+            "consecutive_successes", "0",
+            "failure_threshold", "3",
+            "timeout_duration_seconds", "600"
+        ));
+
+        // When - 첫 번째 요청
+        boolean firstAllowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // 성공 기록 후 두 번째 요청
+        circuitBreakerManager.recordSuccess(userAgentId);
+        boolean secondAllowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // Then
+        assertThat(firstAllowed).isTrue();  // 첫 요청 허용
+        assertThat(secondAllowed).isFalse(); // 두 번째 요청 차단 (consecutive_successes > 0)
+    }
+
+    @Test
     @DisplayName("동시성 테스트 - HALF_OPEN에서 실패와 성공이 동시 발생")
     void concurrentMixedFailureAndSuccessFromHalfOpen() throws InterruptedException {
         // Given

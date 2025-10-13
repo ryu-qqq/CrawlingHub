@@ -109,6 +109,45 @@ public class CircuitBreakerManager {
     }
 
     /**
+     * 요청 허용 여부 확인 (Jira CRAW-83 요구사항)
+     * - CLOSED: 항상 허용 (return true)
+     * - OPEN: timeout 체크 후 HALF_OPEN 전이 또는 차단
+     * - HALF_OPEN: 테스트 요청 1개만 허용 (consecutive_successes == 0)
+     */
+    public boolean allowRequest(Long userAgentId) {
+        CircuitState state = getState(userAgentId);
+
+        switch (state.getStatus()) {
+            case CLOSED:
+                // 정상 상태: 항상 허용
+                return true;
+
+            case OPEN:
+                // 차단 상태: timeout 경과 확인
+                if (state.getOpenedAt() == null) {
+                    return false;
+                }
+
+                long elapsedSeconds = (System.currentTimeMillis() - state.getOpenedAt()) / 1000;
+                if (elapsedSeconds >= state.getTimeoutDurationSeconds()) {
+                    // Timeout 경과: HALF_OPEN으로 전환하고 허용
+                    transitionToHalfOpen(userAgentId);
+                    return true;
+                } else {
+                    // Timeout 미경과: 차단
+                    return false;
+                }
+
+            case HALF_OPEN:
+                // 복구 시도 중: 테스트 요청 1개만 허용
+                return state.getConsecutiveSuccesses() == 0;
+
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Circuit 복구 시도 (OPEN → HALF_OPEN)
      */
     public boolean tryRecover(Long userAgentId) {
@@ -129,6 +168,14 @@ public class CircuitBreakerManager {
         }
 
         return false;
+    }
+
+    /**
+     * Circuit Breaker 수동 리셋 (관리자 기능)
+     */
+    public void reset(Long userAgentId, String reason) {
+        transitionToClosed(userAgentId);
+        // TODO: circuit_breaker_event 로깅 추가 예정
     }
 
     // ========================================
