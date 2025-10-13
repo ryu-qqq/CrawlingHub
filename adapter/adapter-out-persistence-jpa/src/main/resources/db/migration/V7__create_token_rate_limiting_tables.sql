@@ -73,10 +73,7 @@ CREATE TABLE token_usage_log (
     is_429_error BOOLEAN NOT NULL DEFAULT FALSE COMMENT '429 에러 발생 여부',
     error_message TEXT COMMENT '에러 메시지',
     request_timestamp DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '요청 시각',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 시각',
     PRIMARY KEY (log_id, request_timestamp),
-    INDEX idx_agent_id (agent_id),
-    INDEX idx_token_id (token_id),
     INDEX idx_user_agent_time (agent_id, request_timestamp),
     INDEX idx_rate_limit (is_rate_limited, request_timestamp),
     INDEX idx_429_errors (is_429_error, agent_id, request_timestamp),
@@ -118,7 +115,6 @@ CREATE TABLE circuit_breaker_state (
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정 시각',
     PRIMARY KEY (state_id),
     UNIQUE KEY uk_agent_circuit (agent_id),
-    INDEX idx_user_agent_state (agent_id, circuit_state),
     INDEX idx_opened (opened_at),
     INDEX idx_state_failure (circuit_state, failure_count)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Circuit Breaker 상태 관리';
@@ -136,9 +132,7 @@ CREATE TABLE circuit_breaker_event (
     failure_count INT COMMENT '실패 횟수',
     error_message TEXT COMMENT '에러 메시지',
     event_timestamp DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '이벤트 발생 시각',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 시각',
     PRIMARY KEY (event_id),
-    INDEX idx_agent_id (agent_id),
     INDEX idx_user_agent_time (agent_id, event_timestamp),
     INDEX idx_event_type (event_type, event_timestamp),
     INDEX idx_state_change (from_state, to_state, event_timestamp)
@@ -182,7 +176,7 @@ CREATE TABLE token_refresh_schedule (
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정 시각',
     PRIMARY KEY (schedule_id),
     UNIQUE KEY uk_agent_token_schedule (agent_id, token_id),
-    INDEX idx_next_refresh (next_refresh_time, is_enabled),
+    INDEX idx_next_refresh (is_enabled, next_refresh_time),
     INDEX idx_agent_enabled (agent_id, is_enabled),
     INDEX idx_failure_count (consecutive_failures, next_refresh_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='토큰 갱신 스케줄';
