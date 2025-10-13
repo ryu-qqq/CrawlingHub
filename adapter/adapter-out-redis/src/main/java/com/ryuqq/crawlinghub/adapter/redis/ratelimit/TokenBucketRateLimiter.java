@@ -125,6 +125,96 @@ public class TokenBucketRateLimiter {
     }
 
     /**
+     * 다음 Token 사용 가능 시각까지 대기 시간 계산
+     *
+     * @param userAgentId User-Agent ID
+     * @return 대기 시간 (밀리초), 즉시 사용 가능하면 0
+     * @author crawlinghub
+     */
+    public long getWaitTime(Long userAgentId) {
+        return getWaitTime(userAgentId, 1);
+    }
+
+    /**
+     * 특정 토큰 수 사용을 위한 대기 시간 계산
+     *
+     * @param userAgentId User-Agent ID
+     * @param tokensRequired 필요한 토큰 수
+     * @return 대기 시간 (밀리초), 최대 10분(600,000ms)
+     * @author crawlinghub
+     */
+    public long getWaitTime(Long userAgentId, int tokensRequired) {
+        BucketStatus status = getBucketStatus(userAgentId);
+
+        if (status == null) {
+            // Bucket이 없으면 즉시 사용 가능
+            return 0L;
+        }
+
+        long now = System.currentTimeMillis();
+        long elapsedMs = now - status.getLastRefillTimestamp();
+        double elapsedSeconds = elapsedMs / 1000.0;
+
+        // Refill 계산
+        double tokensAfterRefill = Math.min(
+            status.getMaxTokens(),
+            status.getCurrentTokens() + (elapsedSeconds * status.getRefillRate())
+        );
+
+        if (tokensAfterRefill >= tokensRequired) {
+            // 충분한 토큰이 있음
+            return 0L;
+        }
+
+        // 부족한 토큰 수 계산
+        double shortage = tokensRequired - tokensAfterRefill;
+        double waitSeconds = shortage / status.getRefillRate();
+        long waitMs = (long) Math.ceil(waitSeconds * 1000);
+
+        // 최대 대기 시간 10분 제한
+        long MAX_WAIT_MS = 600_000L;
+        return Math.min(waitMs, MAX_WAIT_MS);
+    }
+
+    /**
+     * Bucket 설정 동적 조정
+     *
+     * @param userAgentId User-Agent ID
+     * @param maxTokens 새로운 최대 토큰 수
+     * @param refillRate 새로운 재충전 속도
+     * @author crawlinghub
+     */
+    public void updateBucketConfig(Long userAgentId, int maxTokens, double refillRate) {
+        String bucketKey = BUCKET_KEY_PREFIX + userAgentId;
+
+        BucketStatus currentStatus = getBucketStatus(userAgentId);
+
+        if (currentStatus == null) {
+            // Bucket이 없으면 초기화와 동시에 설정
+            tryConsume(userAgentId, 0, refillRate, maxTokens);
+            return;
+        }
+
+        // 현재 토큰 수를 새로운 max_tokens로 제한
+        double adjustedTokens = Math.min(currentStatus.getCurrentTokens(), maxTokens);
+
+        redisTemplate.opsForHash().put(bucketKey, "tokens", String.valueOf(adjustedTokens));
+        redisTemplate.opsForHash().put(bucketKey, "max_tokens", String.valueOf(maxTokens));
+        redisTemplate.opsForHash().put(bucketKey, "refill_rate", String.valueOf(refillRate));
+    }
+
+    /**
+     * Bucket 삭제
+     *
+     * @param userAgentId User-Agent ID
+     * @author crawlinghub
+     */
+    public void deleteBucket(Long userAgentId) {
+        String bucketKey = BUCKET_KEY_PREFIX + userAgentId;
+        redisTemplate.delete(bucketKey);
+    }
+
+    /**
      * Rate Limit Result
       *
  * @author crawlinghub
