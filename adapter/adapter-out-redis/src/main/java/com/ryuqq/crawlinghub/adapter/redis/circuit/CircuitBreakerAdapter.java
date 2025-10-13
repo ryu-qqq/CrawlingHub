@@ -22,4 +22,24 @@ public class CircuitBreakerAdapter implements CircuitBreakerPort {
         CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
         return state.getStatus() == CircuitBreakerManager.CircuitStatus.OPEN;
     }
+
+    @Override
+    public boolean allowRequest(Long userAgentId) {
+        return circuitBreakerManager.allowRequest(userAgentId);
+    }
+
+    @Override
+    public void recordSuccess(Long userAgentId) {
+        circuitBreakerManager.recordSuccess(userAgentId);
+    }
+
+    @Override
+    public void recordFailure(Long userAgentId) {
+        circuitBreakerManager.recordFailure(userAgentId);
+    }
+
+    @Override
+    public void reset(Long userAgentId, String reason) {
+        circuitBreakerManager.reset(userAgentId, reason);
+    }
 }
