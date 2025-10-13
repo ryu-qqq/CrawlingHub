@@ -343,6 +343,89 @@ class CircuitBreakerManagerTest {
     }
 
     @Test
+    @DisplayName("allowRequest() - CLOSED 상태에서는 항상 허용")
+    void allowRequestInClosedState() {
+        // Given
+        Long userAgentId = 200L;
+
+        // When
+        boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // Then
+        assertThat(allowed).isTrue();
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isClosed()).isTrue();
+    }
+
+    @Test
+    @DisplayName("allowRequest() - OPEN 상태에서 timeout 미경과 시 차단")
+    void allowRequestInOpenStateBeforeTimeout() {
+        // Given
+        Long userAgentId = 201L;
+
+        // OPEN으로 전환
+        circuitBreakerManager.recordFailure(userAgentId);
+        circuitBreakerManager.recordFailure(userAgentId);
+        circuitBreakerManager.recordFailure(userAgentId);
+
+        // When
+        boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+
+        // Then
+        assertThat(allowed).isFalse();
+        CircuitBreakerManager.CircuitState state = circuitBreakerManager.getState(userAgentId);
+        assertThat(state.isOpen()).isTrue();
+    }
+
+    @Test
+    @DisplayName("allowRequest() - HALF_OPEN 상태에서 동시 요청 방지 (경쟁 조건 해결)")
+    void allowRequestInHalfOpenState() throws InterruptedException {
+        // Given
+        Long userAgentId = 202L;
+
+        // HALF_OPEN 상태 설정
+        String circuitKey = "circuit_breaker:" + userAgentId;
+        circuitBreakerRedisTemplate.opsForHash().putAll(circuitKey, java.util.Map.of(
+            "state", "HALF_OPEN",
+            "consecutive_failures", "0",
+            "consecutive_successes", "0",
+            "failure_threshold", "3",
+            "timeout_duration_seconds", "600"
+        ));
+
+        // When - 동시에 10개 요청 시도
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
+        List<Boolean> results = new ArrayList<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    startBarrier.await(); // 동시 시작
+                    boolean allowed = circuitBreakerManager.allowRequest(userAgentId);
+                    synchronized (results) {
+                        results.add(allowed);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        // Then - 정확히 1개의 요청만 허용되어야 함 (경쟁 조건 방지)
+        long allowedCount = results.stream().filter(Boolean::booleanValue).count();
+        assertThat(allowedCount).isEqualTo(1L);  // 1개만 허용
+        assertThat(results.stream().filter(b -> !b).count()).isEqualTo(9L);  // 9개 차단
+    }
+
+    @Test
     @DisplayName("동시성 테스트 - HALF_OPEN에서 실패와 성공이 동시 발생")
     void concurrentMixedFailureAndSuccessFromHalfOpen() throws InterruptedException {
         // Given

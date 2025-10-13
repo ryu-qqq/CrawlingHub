@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.redis.circuit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CircuitBreakerManager {
 
+    private static final Logger log = LoggerFactory.getLogger(CircuitBreakerManager.class);
     private static final String CIRCUIT_KEY_PREFIX = "circuit_breaker:";
     private static final int DEFAULT_TTL_SECONDS = 3600; // 1시간
     private static final int DEFAULT_TIMEOUT_SECONDS = 600; // 10분
@@ -32,11 +35,13 @@ public class CircuitBreakerManager {
     private final RedisTemplate<String, String> redisTemplate;
     private final DefaultRedisScript<String> recordFailureScript;
     private final DefaultRedisScript<String> recordSuccessScript;
+    private final DefaultRedisScript<String> allowRequestScript;
 
     public CircuitBreakerManager(RedisTemplate<String, String> circuitBreakerRedisTemplate) {
         this.redisTemplate = circuitBreakerRedisTemplate;
         this.recordFailureScript = loadScript("lua/record_failure.lua");
         this.recordSuccessScript = loadScript("lua/record_success.lua");
+        this.allowRequestScript = loadScript("lua/allow_request.lua");
     }
 
     private DefaultRedisScript<String> loadScript(String scriptPath) {
@@ -78,7 +83,7 @@ public class CircuitBreakerManager {
 
     /**
      * 성공 기록 (Atomic - Lua Script)
-     * HALF_OPEN → CLOSED 전환 또는 CLOSED 상태에서 실패 카운터 리셋
+     * HALF_OPEN → CLOSED 전환 (성공 3회 필요) 또는 CLOSED 상태에서 실패 카운터 리셋
      */
     public void recordSuccess(Long userAgentId) {
         String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
@@ -109,6 +114,26 @@ public class CircuitBreakerManager {
     }
 
     /**
+     * 요청 허용 여부 확인 (Jira CRAW-83 요구사항) - Atomic Operation
+     * - CLOSED: 항상 허용 (return true)
+     * - OPEN: timeout 체크 후 HALF_OPEN 전이 또는 차단
+     * - HALF_OPEN: 테스트 요청 1개만 허용 (test_request_active 플래그로 경쟁 조건 방지)
+     */
+    public boolean allowRequest(Long userAgentId) {
+        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
+
+        // Lua script 실행 (atomic operation - 경쟁 조건 방지)
+        String result = redisTemplate.execute(
+            allowRequestScript,
+            List.of(circuitKey),
+            String.valueOf(System.currentTimeMillis()),
+            String.valueOf(DEFAULT_TIMEOUT_SECONDS)
+        );
+
+        return "ALLOW".equals(result);
+    }
+
+    /**
      * Circuit 복구 시도 (OPEN → HALF_OPEN)
      */
     public boolean tryRecover(Long userAgentId) {
@@ -129,6 +154,15 @@ public class CircuitBreakerManager {
         }
 
         return false;
+    }
+
+    /**
+     * Circuit Breaker 수동 리셋 (관리자 기능)
+     */
+    public void reset(Long userAgentId, String reason) {
+        transitionToClosed(userAgentId);
+        // 관리자 리셋 로깅 (필요시 별도 이벤트 저장소로 확장 가능)
+        log.info("[CircuitBreaker] Manual reset - userAgentId={}, reason={}", userAgentId, reason);
     }
 
     // ========================================
