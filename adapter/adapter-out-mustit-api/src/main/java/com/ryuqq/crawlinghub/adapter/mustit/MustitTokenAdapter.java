@@ -60,7 +60,7 @@ public class MustitTokenAdapter implements MustitTokenPort {
                     .uri(TOKEN_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("User-Agent", userAgent)
-                    .bodyValue(TokenRequest.forIssue(userAgent))
+                    .bodyValue(IssueTokenRequest.of(userAgent))
                     .retrieve()
                     .onStatus(
                             HttpStatus.TOO_MANY_REQUESTS::equals,
@@ -99,9 +99,16 @@ public class MustitTokenAdapter implements MustitTokenPort {
                     userAgent, e.getStatusCode(), e.getResponseBodyAsString());
             throw mapException(e);
         } catch (Exception e) {
+            if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
+                LOG.error("Timeout while issuing token for User-Agent: {}", userAgent, e);
+                throw new TokenAcquisitionException(
+                        TokenAcquisitionException.Reason.NETWORK_ERROR,
+                        e
+                );
+            }
             LOG.error("Unexpected error while issuing token for User-Agent: {}", userAgent, e);
             throw new TokenAcquisitionException(
-                    TokenAcquisitionException.Reason.TOKEN_EXPIRED,
+                    TokenAcquisitionException.Reason.NETWORK_ERROR,
                     e
             );
         }
@@ -124,7 +131,7 @@ public class MustitTokenAdapter implements MustitTokenPort {
             TokenApiResponse response = webClient.post()
                     .uri(TOKEN_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(TokenRequest.forRefresh(refreshToken))
+                    .bodyValue(RefreshTokenRequest.of(refreshToken))
                     .retrieve()
                     .onStatus(
                             HttpStatus.UNAUTHORIZED::equals,
@@ -155,9 +162,16 @@ public class MustitTokenAdapter implements MustitTokenPort {
                     e.getStatusCode(), e.getResponseBodyAsString());
             throw mapException(e);
         } catch (Exception e) {
+            if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
+                LOG.error("Timeout while refreshing token", e);
+                throw new TokenAcquisitionException(
+                        TokenAcquisitionException.Reason.NETWORK_ERROR,
+                        e
+                );
+            }
             LOG.error("Unexpected error while refreshing token", e);
             throw new TokenAcquisitionException(
-                    TokenAcquisitionException.Reason.TOKEN_EXPIRED,
+                    TokenAcquisitionException.Reason.NETWORK_ERROR,
                     e
             );
         }
@@ -170,39 +184,40 @@ public class MustitTokenAdapter implements MustitTokenPort {
     public boolean validateToken(String accessToken) {
         LOG.debug("Validating token");
 
-        try {
-            Boolean isValid = webClient.post()
-                    .uri(VALIDATION_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + accessToken)
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .timeout(TIMEOUT)
-                    .onErrorReturn(false)
-                    .block();
+        Boolean isValid = webClient.post()
+                .uri(VALIDATION_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .timeout(TIMEOUT)
+                .onErrorReturn(false)
+                .block();
 
-            boolean valid = isValid != null && isValid;
-            LOG.debug("Token validation result: {}", valid);
-            return valid;
-
-        } catch (Exception e) {
-            LOG.warn("Token validation failed with exception", e);
-            return false;
-        }
+        boolean valid = isValid != null && isValid;
+        LOG.debug("Token validation result: {}", valid);
+        return valid;
     }
 
     /**
      * WebClient 예외를 도메인 예외로 매핑
      */
     private TokenAcquisitionException mapException(WebClientResponseException e) {
-        if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+        HttpStatus status = (HttpStatus) e.getStatusCode();
+
+        if (status == HttpStatus.TOO_MANY_REQUESTS) {
             return new TokenAcquisitionException(
                     TokenAcquisitionException.Reason.RATE_LIMIT_EXCEEDED,
                     e
             );
-        } else if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+        } else if (status == HttpStatus.UNAUTHORIZED) {
             return new TokenAcquisitionException(
                     TokenAcquisitionException.Reason.INVALID_USER_AGENT,
+                    e
+            );
+        } else if (status.is5xxServerError()) {
+            return new TokenAcquisitionException(
+                    TokenAcquisitionException.Reason.API_ERROR,
                     e
             );
         } else {
