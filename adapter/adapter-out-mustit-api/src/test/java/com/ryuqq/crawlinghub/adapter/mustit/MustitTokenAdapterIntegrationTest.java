@@ -92,48 +92,48 @@ class MustitTokenAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("토큰 유효성 검증 - 유효한 토큰")
-    void shouldValidateValidToken() {
+    @DisplayName("JWT 형식 검증 - 유효한 JWT")
+    void shouldValidateValidJwtFormat() {
         // given
         String userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) " +
                 "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1";
         TokenResponse response = adapter.issueToken(userAgent);
 
         // when
-        boolean isValid = adapter.validateToken(response.accessToken());
+        boolean isValid = adapter.isJwtFormat(response.accessToken());
 
         // then
         assertThat(isValid).isTrue();
     }
 
     @Test
-    @DisplayName("토큰 유효성 검증 - 잘못된 형식")
-    void shouldRejectInvalidTokenFormat() {
+    @DisplayName("JWT 형식 검증 - 잘못된 형식")
+    void shouldRejectInvalidJwtFormat() {
         // given
         String invalidToken = "not.a.valid.jwt.token";
 
         // when
-        boolean isValid = adapter.validateToken(invalidToken);
+        boolean isValid = adapter.isJwtFormat(invalidToken);
 
         // then
         assertThat(isValid).isFalse();
     }
 
     @Test
-    @DisplayName("토큰 유효성 검증 - null 토큰")
+    @DisplayName("JWT 형식 검증 - null 토큰")
     void shouldRejectNullToken() {
         // when
-        boolean isValid = adapter.validateToken(null);
+        boolean isValid = adapter.isJwtFormat(null);
 
         // then
         assertThat(isValid).isFalse();
     }
 
     @Test
-    @DisplayName("토큰 유효성 검증 - 빈 문자열")
+    @DisplayName("JWT 형식 검증 - 빈 문자열")
     void shouldRejectEmptyToken() {
         // when
-        boolean isValid = adapter.validateToken("");
+        boolean isValid = adapter.isJwtFormat("");
 
         // then
         assertThat(isValid).isFalse();
