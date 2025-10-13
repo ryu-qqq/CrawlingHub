@@ -1,14 +1,18 @@
 package com.ryuqq.crawlinghub.adapter.redis.circuit;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Circuit Breaker Manager.
- * Redis Hash 기반 Circuit Breaker 상태 관리
+ * Redis Hash + Lua Script 기반 Circuit Breaker 상태 관리 (Atomic Operations)
  *
  * 상태:
  * - CLOSED: 정상 동작
@@ -25,10 +29,21 @@ public class CircuitBreakerManager {
     private static final int DEFAULT_TIMEOUT_SECONDS = 600; // 10분
     private static final int DEFAULT_FAILURE_THRESHOLD = 3;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final DefaultRedisScript<String> recordFailureScript;
+    private final DefaultRedisScript<String> recordSuccessScript;
 
-    public CircuitBreakerManager(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public CircuitBreakerManager(RedisTemplate<String, String> circuitBreakerRedisTemplate) {
+        this.redisTemplate = circuitBreakerRedisTemplate;
+        this.recordFailureScript = loadScript("lua/record_failure.lua");
+        this.recordSuccessScript = loadScript("lua/record_success.lua");
+    }
+
+    private DefaultRedisScript<String> loadScript(String scriptPath) {
+        DefaultRedisScript<String> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+        script.setResultType(String.class);
+        return script;
     }
 
     /**
@@ -43,13 +58,13 @@ public class CircuitBreakerManager {
         }
 
         String state = (String) data.get("state");
-        int failureCount = Integer.parseInt(data.get("consecutive_failures").toString());
-        int successCount = Integer.parseInt(data.get("consecutive_successes").toString());
+        int failureCount = Integer.parseInt((String) data.get("consecutive_failures"));
+        int successCount = Integer.parseInt((String) data.get("consecutive_successes"));
         Long openedAt = data.get("opened_at") != null
-                ? Long.parseLong(data.get("opened_at").toString())
+                ? Long.parseLong((String) data.get("opened_at"))
                 : null;
-        int failureThreshold = Integer.parseInt(data.get("failure_threshold").toString());
-        int timeoutSeconds = Integer.parseInt(data.get("timeout_duration_seconds").toString());
+        int failureThreshold = Integer.parseInt((String) data.get("failure_threshold"));
+        int timeoutSeconds = Integer.parseInt((String) data.get("timeout_duration_seconds"));
 
         return new CircuitState(
             CircuitStatus.valueOf(state),
@@ -62,42 +77,35 @@ public class CircuitBreakerManager {
     }
 
     /**
-     * 성공 기록
+     * 성공 기록 (Atomic - Lua Script)
+     * HALF_OPEN → CLOSED 전환 또는 CLOSED 상태에서 실패 카운터 리셋
      */
     public void recordSuccess(Long userAgentId) {
-        CircuitState currentState = getState(userAgentId);
+        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
 
-        if (currentState.getStatus() == CircuitStatus.HALF_OPEN) {
-            // HALF_OPEN → CLOSED 전환
-            int newSuccessCount = currentState.getConsecutiveSuccesses() + 1;
-            if (newSuccessCount >= 3) {
-                transitionToClosed(userAgentId);
-            } else {
-                incrementSuccessCount(userAgentId, newSuccessCount);
-            }
-        } else if (currentState.getStatus() == CircuitStatus.CLOSED) {
-            // 실패 카운트 리셋
-            resetFailureCount(userAgentId);
-        }
+        // Lua script 실행 (atomic operation)
+        redisTemplate.execute(
+            recordSuccessScript,
+            List.of(circuitKey),
+            String.valueOf(DEFAULT_TTL_SECONDS)
+        );
     }
 
     /**
-     * 실패 기록
+     * 실패 기록 (Atomic - Lua Script)
+     * CLOSED → OPEN 전환 또는 HALF_OPEN → OPEN 재전환
      */
     public void recordFailure(Long userAgentId) {
-        CircuitState currentState = getState(userAgentId);
+        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
 
-        if (currentState.getStatus() == CircuitStatus.CLOSED) {
-            int newFailureCount = currentState.getConsecutiveFailures() + 1;
-            if (newFailureCount >= currentState.getFailureThreshold()) {
-                transitionToOpen(userAgentId);
-            } else {
-                incrementFailureCount(userAgentId, newFailureCount);
-            }
-        } else if (currentState.getStatus() == CircuitStatus.HALF_OPEN) {
-            // HALF_OPEN → OPEN 재전환
-            transitionToOpen(userAgentId);
-        }
+        // Lua script 실행 (atomic operation)
+        redisTemplate.execute(
+            recordFailureScript,
+            List.of(circuitKey),
+            String.valueOf(DEFAULT_FAILURE_THRESHOLD),
+            String.valueOf(System.currentTimeMillis()),
+            String.valueOf(DEFAULT_TTL_SECONDS)
+        );
     }
 
     /**
@@ -185,23 +193,6 @@ public class CircuitBreakerManager {
         redisTemplate.expire(circuitKey, DEFAULT_TTL_SECONDS, TimeUnit.SECONDS);
     }
 
-    private void incrementFailureCount(Long userAgentId, int count) {
-        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
-        redisTemplate.opsForHash().put(circuitKey, "consecutive_failures", String.valueOf(count));
-        redisTemplate.expire(circuitKey, DEFAULT_TTL_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private void incrementSuccessCount(Long userAgentId, int count) {
-        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
-        redisTemplate.opsForHash().put(circuitKey, "consecutive_successes", String.valueOf(count));
-        redisTemplate.expire(circuitKey, DEFAULT_TTL_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private void resetFailureCount(Long userAgentId) {
-        String circuitKey = CIRCUIT_KEY_PREFIX + userAgentId;
-        redisTemplate.opsForHash().put(circuitKey, "consecutive_failures", "0");
-        redisTemplate.expire(circuitKey, DEFAULT_TTL_SECONDS, TimeUnit.SECONDS);
-    }
 
     /**
      * Circuit Status
