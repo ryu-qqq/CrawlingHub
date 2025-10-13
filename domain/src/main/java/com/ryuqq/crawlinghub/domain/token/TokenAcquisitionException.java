@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.token;
 /**
  * 토큰 획득 실패 예외
  *
- * @author crawlinghub
+ * @author CrawlingHub Team (crawlinghub@ryuqq.com)
  */
 public class TokenAcquisitionException extends RuntimeException {
 
@@ -13,7 +13,9 @@ public class TokenAcquisitionException extends RuntimeException {
         CIRCUIT_BREAKER_OPEN("Circuit Breaker가 OPEN 상태입니다"),
         TOKEN_EXPIRED("토큰이 만료되었습니다"),
         RATE_LIMIT_EXCEEDED("Rate Limit을 초과했습니다"),
-        INVALID_USER_AGENT("유효하지 않은 User-Agent입니다");
+        INVALID_USER_AGENT("유효하지 않은 User-Agent입니다"),
+        NETWORK_ERROR("네트워크 오류가 발생했습니다"),
+        API_ERROR("API 서버 오류가 발생했습니다");
 
         private final String message;
 
