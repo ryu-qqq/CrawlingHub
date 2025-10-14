@@ -67,11 +67,9 @@ public class MustitTokenAdapter implements MustitTokenPort {
         LOG.info("Issuing token by visiting Mustit website with User-Agent: {}", userAgent);
 
         try {
-            ClientResponse response = WebClient.builder()
-                    .baseUrl(MUSTIT_WEB_URL)
-                    .build()
+            ClientResponse response = webClient
                     .get()
-                    .uri("/")
+                    .uri(MUSTIT_WEB_URL + "/")
                     .header(HttpHeaders.USER_AGENT, userAgent)
                     .header(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .header(HttpHeaders.ACCEPT_LANGUAGE, "ko-KR,ko;q=0.9")
@@ -173,12 +171,14 @@ public class MustitTokenAdapter implements MustitTokenPort {
     }
 
     /**
-     * 토큰 갱신 (Mustit은 refresh token 미지원)
-     * 
-     * Mustit은 refresh token을 제공하지 않으므로,
-     * 토큰 만료 시 issueToken()으로 새로 발급받아야 합니다.
-     * 
-     * @throws UnsupportedOperationException refresh token 미지원
+     * Refreshes a token (Unsupported by Mustit).
+     *
+     * Mustit does not provide a refresh token mechanism. When a token expires,
+     * a new one must be obtained by calling {@code issueToken()}.
+     *
+     * @param refreshToken The refresh token (unused).
+     * @return This method always throws an exception.
+     * @throws UnsupportedOperationException as refresh tokens are not supported.
      */
     @Override
     public TokenResponse refreshToken(String refreshToken) {

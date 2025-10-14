@@ -113,15 +113,23 @@ public class AcquireTokenUseCase {
 
                     LOG.info("New token issued successfully for userAgentId: {}", userAgentId);
 
+                } catch (TokenAcquisitionException e) {
+                    LOG.error("Failed to issue new token from Mustit for userAgentId: {}. Reason: {}", userAgentId, e.getReason(), e);
+
+                    // 실패 통계 기록 (독립 트랜잭션)
+                    transactionService.recordTokenFailure(userAgentId);
+                    circuitBreakerPort.recordFailure(userAgentId);
+
+                    throw e; // Re-throw with the original, more specific reason
                 } catch (Exception e) {
-                    LOG.error("Failed to issue new token from Mustit for userAgentId: {}", userAgentId, e);
+                    LOG.error("Unexpected error while issuing new token from Mustit for userAgentId: {}", userAgentId, e);
 
                     // 실패 통계 기록 (독립 트랜잭션)
                     transactionService.recordTokenFailure(userAgentId);
                     circuitBreakerPort.recordFailure(userAgentId);
 
                     throw new TokenAcquisitionException(
-                            TokenAcquisitionException.Reason.TOKEN_EXPIRED,
+                            TokenAcquisitionException.Reason.NETWORK_ERROR,
                             e
                     );
                 }
