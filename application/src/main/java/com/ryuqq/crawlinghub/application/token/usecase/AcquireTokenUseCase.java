@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
  * 
  * 토큰 획득 플로우 오케스트레이션 (트랜잭션 관리 제외)
  * 
+ * WARNING: This UseCase is currently NOT USED anywhere in the project.
+ * Consider removing or documenting the future usage plan.
+ * 
  * 설계 원칙:
  * - UseCase는 오케스트레이션만 담당 (트랜잭션 경계 없음)
  * - 트랜잭션 관리는 TokenTransactionService에 위임

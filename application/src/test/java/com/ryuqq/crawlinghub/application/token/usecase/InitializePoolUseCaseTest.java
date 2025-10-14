@@ -19,6 +19,11 @@ import static org.mockito.Mockito.*;
 /**
  * InitializePoolUseCase 단위 테스트
  *
+ * 검증 사항:
+ * - Redis 작업(clearPool, addToPool, initialize)이 트랜잭션 밖에서 실행됨
+ * - DB 조회(findAllActiveUserAgents)만 내부 트랜잭션으로 처리됨
+ * - 실행 순서: clearPool → DB 조회 → Pool 등록 → Rate Limiter 초기화
+ *
  * @author crawlinghub
  */
 @ExtendWith(MockitoExtension.class)
