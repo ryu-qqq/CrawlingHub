@@ -13,6 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
  * Release Token Use Case
  * 토큰 반환 플로우
  *
+ * WARNING: This UseCase is currently NOT USED anywhere in the project.
+ * Consider removing or documenting the future usage plan.
+ *
+ * FIXED: 트랜잭션 분리
+ * - Redis 작업(락 해제, Pool 반환)은 트랜잭션 밖에서 실행
+ * - DB 통계 업데이트만 짧은 독립 트랜잭션으로 처리
+ * - AcquireTokenUseCase 패턴과 일관성 유지
+ *
  * @author crawlinghub
  */
 @Service
@@ -34,17 +42,18 @@ public class ReleaseTokenUseCase {
     }
 
     /**
-     * 토큰 반환
+     * 토큰 반환 (오케스트레이션)
+     *
+     * ⚠️ 트랜잭션 없음 - Redis 작업과 DB 작업 분리
      *
      * 플로우:
-     * 1. 분산 락 해제
-     * 2. DB 통계 업데이트 (성공/실패)
-     * 3. Pool 반환
+     * 1. 분산 락 해제 (Redis, 비트랜잭션)
+     * 2. [트랜잭션] DB 통계 업데이트 (성공/실패)
+     * 3. Pool 반환 (Redis, 비트랜잭션)
      *
      * @param acquiredToken 획득한 토큰
      * @param success 요청 성공 여부
      */
-    @Transactional
     public void execute(AcquiredToken acquiredToken, boolean success) {
         if (acquiredToken == null || !acquiredToken.isAcquired()) {
             log.warn("Invalid acquired token for release");
@@ -52,25 +61,41 @@ public class ReleaseTokenUseCase {
         }
 
         try {
-            // 1. 분산 락 해제
+            // 1. 분산 락 해제 (Redis, 트랜잭션 밖)
             if (acquiredToken.hasLock()) {
                 lockPort.release(acquiredToken.lockKey(), acquiredToken.lockValue());
             }
 
-            // 2. DB 통계 업데이트
-            if (success) {
-                tokenPort.recordSuccess(acquiredToken.userAgentId());
-            } else {
-                tokenPort.recordFailure(acquiredToken.userAgentId());
-            }
+            // 2. DB 통계 업데이트 (짧은 독립 트랜잭션)
+            recordStatisticsInTransaction(acquiredToken.userAgentId(), success);
 
-            // 3. Pool 반환
+            // 3. Pool 반환 (Redis, 트랜잭션 밖)
             poolPort.returnToPool(acquiredToken.userAgentId());
 
             log.debug("Released User-Agent ID: {} (success: {})", acquiredToken.userAgentId(), success);
 
         } catch (Exception e) {
             log.error("Failed to release User-Agent ID: {}", acquiredToken.userAgentId(), e);
+        }
+    }
+
+    /**
+     * DB 통계 기록 (트랜잭션 적용)
+     *
+     * 트랜잭션 특성:
+     * - 독립된 트랜잭션
+     * - 빠른 실행 (DB 쓰기만)
+     * - Redis 작업과 분리
+     *
+     * @param userAgentId User-Agent ID
+     * @param success 요청 성공 여부
+     */
+    @Transactional
+    private void recordStatisticsInTransaction(Long userAgentId, boolean success) {
+        if (success) {
+            tokenPort.recordSuccess(userAgentId);
+        } else {
+            tokenPort.recordFailure(userAgentId);
         }
     }
 }
