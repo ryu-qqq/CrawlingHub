@@ -100,21 +100,11 @@ public class CrawlScheduleController {
             @RequestParam(required = false) Long workflowId,
             @RequestParam(required = false) Boolean isEnabled) {
 
-        List<CrawlSchedule> schedules;
+        // Create filter from query parameters
+        ScheduleFilter filter = new ScheduleFilter(workflowId, isEnabled);
 
-        if (workflowId != null && isEnabled != null) {
-            // Filter by both workflow ID and enabled status
-            schedules = getScheduleUseCase.getByWorkflowIdAndIsEnabled(workflowId, isEnabled);
-        } else if (workflowId != null) {
-            // Filter by workflow ID only
-            schedules = getScheduleUseCase.getByWorkflowId(workflowId);
-        } else if (isEnabled != null) {
-            // Filter by enabled status only
-            schedules = getScheduleUseCase.getByIsEnabled(isEnabled);
-        } else {
-            // Get all schedules
-            schedules = getScheduleUseCase.getAll();
-        }
+        // Execute query with filter
+        List<CrawlSchedule> schedules = getScheduleUseCase.getByFilter(filter);
 
         // Domain → Response
         List<ScheduleSummaryResponse> response = schedules.stream()

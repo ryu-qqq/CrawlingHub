@@ -180,6 +180,26 @@ log_warning "Running common validator..."
 bash "$VALIDATORS_DIR/common-validator.sh" "$FILE_PATH" || true
 
 # ========================================
+# 데미터의 법칙 검증
+# ========================================
+
+log_warning "Running Law of Demeter validator..."
+if ! bash "$VALIDATORS_DIR/demeter-validator.sh" "$FILE_PATH"; then
+    log_error "Law of Demeter validation failed"
+    VALIDATION_FAILED=1
+fi
+
+# ========================================
+# 단일 책임 원칙 검증
+# ========================================
+
+log_warning "Running Single Responsibility Principle validator..."
+if ! bash "$VALIDATORS_DIR/srp-validator.sh" "$FILE_PATH"; then
+    log_error "Single Responsibility Principle validation failed"
+    VALIDATION_FAILED=1
+fi
+
+# ========================================
 # 데드코드 감지
 # ========================================
 

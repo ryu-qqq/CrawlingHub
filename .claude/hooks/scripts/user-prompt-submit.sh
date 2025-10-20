@@ -62,380 +62,156 @@ if [ -n "$MODULE_CONTEXT" ]; then
         domain)
             cat << 'EOF'
 
-# 🏛️ DOMAIN MODULE GUIDELINES
+# 🏛️ DOMAIN MODULE - 핵심 규칙
 
-You are working in the **DOMAIN** module. STRICT RULES:
+## ❌ 절대 금지
+- Spring Framework (org.springframework.*)
+- JPA/Hibernate (jakarta.persistence.*, org.hibernate.*)
+- Lombok, Jackson 애노테이션
+- 인프라 의존성
 
-## ❌ ABSOLUTELY FORBIDDEN
-- NO Spring Framework imports (org.springframework.*)
-- NO JPA/Hibernate imports (jakarta.persistence.*, org.hibernate.*)
-- NO Lombok imports or annotations
-- NO Jackson annotations
-- NO infrastructure concerns
-
-## ✅ ALLOWED
+## ✅ 허용
 - Pure Java (java.*, javax.validation.*)
 - Apache Commons Lang3
-- Domain-specific value objects and entities
-- Business logic only
+- 비즈니스 로직만
 
-## 📝 REQUIRED PATTERNS
+## 📚 상세 가이드
+- **아키텍처**: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md (Domain Layer)
+- **DDD 패턴**: docs/DDD_AGGREGATE_MIGRATION_GUIDE.md
+- **Value Object**: docs/JAVA_RECORD_GUIDE.md (Record 권장)
+- **예외 처리**: docs/EXCEPTION_HANDLING_GUIDE.md
 
-### 1. Complete Purity
-- NO Spring, NO JPA, NO Lombok, NO infrastructure dependencies
-- Pure Java business logic only
-- All business rules MUST be in Domain objects
+## 🎯 테스트: 90%+ 커버리지
 
-### 2. Immutability
-- All fields: `private final` (NO mutable state)
-- NO setter methods (state changes return new objects)
-- Example:
-  public class Order {
-      private final OrderId id;
-      private final OrderStatus status;
-
-      // ✅ State change returns new object
-      public Order confirm() {
-          return new Order(this.id, OrderStatus.CONFIRMED);
-      }
-  }
-
-### 3. Creation Rules
-- NO public constructors
-- Use static factory methods: create(), of(), from()
-- Example:
-  private Order(OrderId id, OrderStatus status) { ... }
-  public static Order create(OrderId id, List<OrderItem> items) { ... }
-  public static Order reconstitute(OrderId id, ...) { ... }
-
-### 4. Business Logic Location
-- All business rules in Domain objects
-- Calculations, validations, state transitions as methods
-- Domain services for multi-aggregate logic only
-
-### 5. Value Objects
-- Prefer Java records for value objects
-- Example:
-  public record OrderId(Long value) {
-      public OrderId {
-          if (value == null || value <= 0) {
-              throw new IllegalArgumentException("Order ID must be positive");
-          }
-      }
-  }
-
-### 6. Exceptions
-- Use Domain-specific exceptions extending DomainException
-- Example:
-  public class OrderNotFoundException extends DomainException { ... }
-
-## 🧪 TEST COVERAGE
-- Target: 90%+ coverage required
-
-REMEMBER: Domain must be framework-independent!
 EOF
             ;;
 
         application)
             cat << 'EOF'
 
-# 🔧 APPLICATION MODULE GUIDELINES
+# 🔧 APPLICATION MODULE - 핵심 규칙
 
-You are working in the **APPLICATION** module. STRICT RULES:
+## ❌ 절대 금지
+- Adapter imports (com.company.template.adapter.*)
+- Lombok imports or annotations
+- 직접적인 JPA 사용 (adapter-out-persistence 소관)
 
-## ❌ ABSOLUTELY FORBIDDEN
-- NO Adapter imports (com.company.template.adapter.*)
-- NO Lombok imports or annotations
-- NO direct JPA usage (belongs in adapter-out-persistence)
-
-## ✅ ALLOWED
+## ✅ 허용
 - Domain imports (com.company.template.domain.*)
 - Spring DI (@Service, @Transactional)
 - Port interfaces (in/out)
 
-## 📝 REQUIRED PATTERNS
+## 📝 필수 패턴
+- **@Transactional**: 이 레이어에서만, Adapter에서는 절대 금지
+- **UseCase Pattern**: 단일 책임 원칙
+- **Port 추상화**: Adapter 직접 참조 금지
+- **Domain 객체만**: JPA Entity 직접 사용 금지
 
-### 1. Transaction Management
-- @Transactional ONLY in this layer, NEVER in adapters
-- All UseCase implementations must have @Transactional
-- Read operations: @Transactional(readOnly = true)
-- Example:
-  @UseCase
-  @Transactional
-  public class CreateOrderService implements CreateOrderUseCase { ... }
+## 📚 상세 가이드
+- **아키텍처**: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md (Application Layer)
+- **DTO 패턴**: docs/DTO_PATTERNS_GUIDE.md
+- **예외 처리**: docs/EXCEPTION_HANDLING_GUIDE.md
 
-### 2. UseCase Pattern
-- Define Input/Output ports as interfaces
-- Implementation in adapters, declaration here
-- Single responsibility per UseCase
+## 🎯 테스트: 80%+ 커버리지
 
-### 3. Port Interfaces
-- Input ports: UseCase interfaces in port/in/
-- Output ports: Repository/External abstractions in port/out/
-- Example:
-  public interface SaveOrderPort {
-      Order save(Order order);
-  }
-
-### 4. Dependencies
-- Depend ONLY on Domain layer
-- NO adapters, NO repositories, NO entities
-- Use Port abstractions only
-
-### 5. DTO Pattern
-- Use Command/Query/Result pattern
-- Prefer records for DTOs
-- Example:
-  public record CreateOrderCommand(
-      UserId userId,
-      List<OrderItem> items
-  ) {
-      public CreateOrderCommand {
-          Objects.requireNonNull(userId, "User ID required");
-      }
-  }
-
-### 6. Domain Objects Only
-- Work with Domain models, NOT JPA entities
-- Convert at adapter boundaries
-
-## 🧪 TEST COVERAGE
-- Target: 80%+ coverage required
-
-REMEMBER: Application orchestrates domain, never accesses adapters directly!
 EOF
             ;;
 
         adapter)
             cat << 'EOF'
 
-# 📡 ADAPTER MODULE GUIDELINES
+# 📡 ADAPTER MODULE - 핵심 규칙
 
-You are working in an **ADAPTER** module. STRICT RULES:
+## ❌ 절대 금지
+- Lombok imports or annotations
+- 비즈니스 로직 (Domain 소관)
 
-## ❌ ABSOLUTELY FORBIDDEN
-- NO Lombok imports or annotations
-- NO business logic (belongs in domain)
-
-## ✅ ALLOWED
+## ✅ 허용
 - Domain and Application imports
 - Spring Framework (Web, JPA, etc.)
 - Infrastructure code (HTTP, DB, AWS SDK)
 
-## 📝 REQUIRED
-- Controllers MUST end with "Controller" suffix
-- Repositories MUST end with "Repository" suffix
-- Public methods MUST have Javadoc
-- MUST include @author tag
-- Use pure Java (no Lombok)
+## 📝 필수 사항
+- Controller 접미사: ~Controller
+- Repository 접미사: ~Repository
+- Public 메서드: Javadoc + @author
+- Pure Java (Lombok 금지)
 
-## 🧪 TEST COVERAGE
-- Target: 70%+ coverage required
-- Use Testcontainers for integration tests
+## 📚 상세 가이드
+- **아키텍처**: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md (Adapter)
+- **예외 처리**: docs/EXCEPTION_HANDLING_GUIDE.md
 
-REMEMBER: Adapters implement ports defined in application layer!
+## 🎯 테스트: 70%+ 커버리지, Testcontainers 사용
+
 EOF
             ;;
 
         adapter-out-persistence)
             cat << 'EOF'
 
-# 💾 PERSISTENCE ADAPTER GUIDELINES
+# 💾 PERSISTENCE ADAPTER - 핵심 규칙
 
-You are working in **ADAPTER-OUT-PERSISTENCE** module. STRICT RULES:
-
-## ❌ ABSOLUTELY FORBIDDEN
+## ❌ 절대 금지
 - NO Lombok imports or annotations
-- NO business logic (belongs in domain)
-- NO domain entities with JPA annotations (use separate JPA entities)
-
-## ✅ ALLOWED
-- Spring Data JPA
-- QueryDSL for complex queries
-- JPA entities (separate from domain entities)
-- Mappers between JPA entities and domain entities
-
-## 📝 REQUIRED PATTERNS
-
-### 1. NO @Transactional
-- Transactions managed by Application layer ONLY
-- Adapters are stateless, transaction-free
-
-### 2. NO JPA Relationships
-- NO @OneToMany, @ManyToOne, @OneToOne, @ManyToMany
-- Use Long foreign key fields only (userId, orderId, etc.)
-- Example:
-  @Entity
-  public class OrderEntity {
-      private Long userId;  // ✅ FK as Long
-      // ❌ NOT: @ManyToOne private UserEntity user;
-  }
-
-### 3. Entity Creation
+- NO @Transactional (Application Layer에서만 관리)
+- NO JPA Relationships (@OneToMany, @ManyToOne, @OneToOne, @ManyToMany)
 - NO public constructors (protected for JPA, private for logic)
-- Use static factory methods: create(), reconstitute()
-- Example:
-  protected OrderEntity() {}  // JPA only
-  private OrderEntity(...) {}  // Private constructor
-  public static OrderEntity create(...) { }  // Factory for new
-  public static OrderEntity reconstitute(...) { }  // Factory for DB load
+- NO setter methods (불변성 보장)
+- NO business logic (Domain 소관)
 
-### 4. NO Setter Methods
-- Entities must be immutable after creation
-- Provide getters only
-- Example:
-  public Long getUserId() { return userId; }  // ✅ Getter only
-  // ❌ NO: public void setUserId(Long id) { }
+## ✅ 허용
+- Spring Data JPA, QueryDSL
+- JPA Entity (Domain Entity와 분리)
+- Long FK 필드 (userId, orderId 등)
+- Mapper classes (Entity ↔ Domain 변환)
 
-### 5. NO Business Logic
-- Business logic belongs in Domain layer
-- Entities are data structures only
-- Use Mapper classes for conversion
+## 📝 필수 패턴
+- **Static Factory Methods**: `create()`, `reconstitute()`
+- **Getter only**: Setter 금지, 불변 객체
+- **Mapper Pattern**: Entity ↔ Domain 변환용 전용 클래스
+- **FK as Long**: JPA 관계 대신 Long ID 참조
 
-### 6. Mapper Pattern
-- Dedicated Mapper classes for Entity ↔ Domain conversion
-- Example:
-  @Component
-  class OrderEntityMapper {
-      public Order toDomain(OrderEntity entity) { ... }
-      public OrderEntity toEntity(Order domain) { ... }
-  }
+## 📚 상세 가이드
+- **아키텍처**: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md (Persistence)
+- **Entity 패턴**: docs/DDD_AGGREGATE_MIGRATION_GUIDE.md
 
-### 7. Example Entity Structure
-  @Entity
-  @Table(name = "orders")
-  public class OrderEntity {
-      @Id
-      @GeneratedValue(strategy = GenerationType.IDENTITY)
-      private Long id;
+## 🎯 테스트: 70%+ 커버리지, Testcontainers 필수
 
-      private Long userId;  // ✅ FK as Long
-
-      protected OrderEntity() {}  // ✅ JPA only
-      private OrderEntity(Long userId, ...) { }  // ✅ Private
-
-      public static OrderEntity create(Long userId, ...) {
-          return new OrderEntity(userId, ...);
-      }
-
-      public Long getUserId() { return userId; }  // ✅ Getter only
-  }
-
-## 🧪 TEST COVERAGE
-- Target: 70%+ coverage
-- MUST use Testcontainers with PostgreSQL
-
-REMEMBER: Map JPA entities to domain entities, keep persistence concerns isolated!
 EOF
             ;;
 
         adapter-in-web)
             cat << 'EOF'
 
-# 🌐 CONTROLLER ADAPTER GUIDELINES
+# 🌐 CONTROLLER ADAPTER - 핵심 규칙
 
-You are working in **ADAPTER-IN-WEB** module. STRICT RULES:
-
-## ❌ ABSOLUTELY FORBIDDEN
+## ❌ 절대 금지
 - NO Lombok imports or annotations
-- NO business logic (belongs in domain)
-- NO domain entities exposure
+- NO Inner Classes (Request/Response는 별도 파일)
+- NO business logic (Domain 소관)
+- NO domain entities 노출
+- NO Repository/Entity 직접 의존
 
-## ✅ ALLOWED
+## ✅ 허용
 - Spring Web (@RestController, @RequestMapping)
-- Request/Response DTOs as records
-- UseCase dependencies only
+- Request/Response DTOs as Records (별도 파일)
+- UseCase 의존만 허용
 
-## 📝 REQUIRED PATTERNS
+## 📝 필수 패턴
+- **DTOs as Records**: Request/Response는 Java Record, 별도 파일로 분리
+- **Record Validation**: Bean Validation + Compact constructor 검증
+- **UseCase Only**: Repository, Entity, Adapter 직접 참조 금지
+- **Thin Controller**: DTO → Command → UseCase → Result → Response 흐름만
+- **Conversion Methods**: `toCommand()` (Request), `from(Result)` (Response)
 
-### 1. NO Inner Classes
-- Request/Response DTOs MUST be separate files
-- Example:
-  ✅ CreateOrderRequest.java (separate file)
-  ✅ CreateOrderResponse.java (separate file)
-  ❌ OrderController with inner class OrderRequest
+## 📚 상세 가이드
+- **아키텍처**: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md (Web Adapter)
+- **DTO 패턴**: docs/DTO_PATTERNS_GUIDE.md (Request/Response 변환)
+- **예외 처리**: docs/EXCEPTION_HANDLING_GUIDE.md
+- **Record 가이드**: docs/JAVA_RECORD_GUIDE.md
 
-### 2. DTOs as Records
-- All Request/Response MUST be Java records
-- Example:
-  public record CreateOrderRequest(
-      @NotNull Long userId,
-      @NotEmpty List<OrderItem> items
-  ) {
-      // ✅ Constructor validation
-      public CreateOrderRequest {
-          if (userId <= 0) throw new IllegalArgumentException();
-      }
-  }
+## 🎯 테스트: 70%+ 커버리지
 
-### 3. Record Validation
-- Compact constructor must include basic validation
-- Use Bean Validation annotations
-- Example:
-  public record CreateOrderRequest(
-      @NotNull(message = "User ID required") Long userId
-  ) {
-      public CreateOrderRequest {
-          if (userId != null && userId <= 0) {
-              throw new IllegalArgumentException("User ID must be positive");
-          }
-      }
-  }
-
-### 4. UseCase Only Dependencies
-- Depend on UseCase interfaces ONLY
-- NO repositories, NO entities, NO adapters
-- Example:
-  private final CreateOrderUseCase createOrderUseCase;  // ✅
-  // ❌ NO: private final OrderRepository orderRepository;
-
-### 5. NO Business Logic
-- Controller should be thin, orchestration only
-- Convert DTO → Command → UseCase → Result → Response
-- Example:
-  public CreateOrderResponse create(@RequestBody CreateOrderRequest request) {
-      CreateOrderCommand command = request.toCommand();
-      CreateOrderResult result = useCase.execute(command);
-      return CreateOrderResponse.from(result);
-  }
-
-### 6. Example Request/Response Structure
-  // CreateOrderRequest.java
-  public record CreateOrderRequest(
-      @NotNull Long userId,
-      @NotEmpty List<OrderItemRequest> items
-  ) {
-      public CreateOrderRequest {
-          if (userId <= 0) throw new IllegalArgumentException();
-      }
-
-      public CreateOrderCommand toCommand() {
-          return new CreateOrderCommand(
-              UserId.of(userId),
-              items.stream().map(OrderItemRequest::toDomain).toList()
-          );
-      }
-  }
-
-  // CreateOrderResponse.java
-  public record CreateOrderResponse(
-      Long orderId,
-      String status,
-      LocalDateTime createdAt
-  ) {
-      public static CreateOrderResponse from(CreateOrderResult result) {
-          return new CreateOrderResponse(
-              result.orderId().value(),
-              result.status().name(),
-              result.createdAt()
-          );
-      }
-  }
-
-## 🧪 TEST COVERAGE
-- Target: 70%+ coverage
-
-REMEMBER: Keep controllers thin, DTOs as separate record files!
 EOF
             ;;
     esac

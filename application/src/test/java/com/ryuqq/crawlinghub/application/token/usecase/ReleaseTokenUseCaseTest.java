@@ -17,6 +17,12 @@ import static org.mockito.Mockito.*;
 /**
  * ReleaseTokenUseCase 단위 테스트
  *
+ * 검증 사항:
+ * - Redis 작업(lockPort.release, poolPort.returnToPool)이 트랜잭션 밖에서 실행됨
+ * - DB 통계 업데이트(recordSuccess/recordFailure)만 내부 트랜잭션으로 처리됨
+ * - 실행 순서: 락 해제 → DB 통계 업데이트 → Pool 반환
+ * - 각 단계는 독립적으로 실행되어 실패가 전파되지 않음
+ *
  * @author crawlinghub
  */
 @ExtendWith(MockitoExtension.class)
