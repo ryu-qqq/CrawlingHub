@@ -105,4 +105,30 @@ public class GetScheduleUseCase {
     public List<CrawlSchedule> getAll() {
         return scheduleQueryPort.findAll();
     }
+
+    /**
+     * Gets schedules by filter criteria
+     * Replaces multiple conditional query methods with a single unified method
+     *
+     * @param filter the filter criteria
+     * @return list of schedules matching the filter
+     */
+    public List<CrawlSchedule> getByFilter(ScheduleFilter filter) {
+        if (filter.hasBothFilters()) {
+            return scheduleQueryPort.findByWorkflowIdAndIsEnabled(
+                    filter.getWorkflowId().orElseThrow(),
+                    filter.getIsEnabled().orElseThrow()
+            );
+        } else if (filter.hasWorkflowId()) {
+            return scheduleQueryPort.findByWorkflowId(
+                    filter.getWorkflowId().orElseThrow()
+            );
+        } else if (filter.hasIsEnabled()) {
+            return scheduleQueryPort.findByIsEnabled(
+                    filter.getIsEnabled().orElseThrow()
+            );
+        } else {
+            return scheduleQueryPort.findAll();
+        }
+    }
 }
