@@ -85,10 +85,26 @@ cat <<'CRITICAL_RULES'
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## 📚 참고 문서 (컨텍스트 압축 후 읽기)
-  - 전체 87개 규칙: docs/ENTERPRISE_SPRING_STANDARDS_PROMPT.md
-  - 작업 진행 상황: TODO_IMPLEMENTATION.md
+
+### 요약본 (빠른 참조용 - 경량)
+  - 엔터프라이즈 표준: docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md
+  - 코딩 표준: docs/CODING_STANDARDS_SUMMARY.md
+
+### 전체 문서 (상세 참조용)
+  - 엔터프라이즈 표준: docs/ENTERPRISE_SPRING_STANDARDS_PROMPT.md (96개 규칙)
+  - 코딩 표준: docs/CODING_STANDARDS.md (87개 규칙)
+
+### 특화 가이드
+  - DDD Aggregate: docs/DDD_AGGREGATE_MIGRATION_GUIDE.md
+  - DTO 패턴: docs/DTO_PATTERNS_GUIDE.md
+  - 예외 처리: docs/EXCEPTION_HANDLING_GUIDE.md
+  - Java Record: docs/JAVA_RECORD_GUIDE.md
+  - Gemini 리뷰: docs/GEMINI_REVIEW_GUIDE.md
+
+### 시스템 문서
   - Dynamic Hooks: .claude/hooks/README.md
   - Git Hooks: hooks/README.md
+  - 작업 추적: TODO_IMPLEMENTATION.md
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚡ 이 규칙들은 절대 타협할 수 없습니다.

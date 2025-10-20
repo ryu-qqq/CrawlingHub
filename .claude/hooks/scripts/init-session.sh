@@ -10,7 +10,9 @@ BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 JIRA_TASK=$(echo "$BRANCH" | grep -oE '[A-Z][A-Z0-9]*-[0-9]+' || echo "")
 
 # ===== 규칙 문서 경로 =====
-RULES_DOC="docs/ENTERPRISE_SPRING_STANDARDS_PROMPT.md"
+# 성능 최적화를 위해 요약본 사용 (186줄)
+# 전체 문서 참조 필요 시: docs/ENTERPRISE_SPRING_STANDARDS_PROMPT.md (3361줄)
+RULES_DOC="docs/ENTERPRISE_SPRING_STANDARDS_SUMMARY.md"
 SESSION_CONTEXT="/tmp/claude-session-context.md"
 
 # ===== 세션 컨텍스트 생성 =====
@@ -81,15 +83,33 @@ cat > "$SESSION_CONTEXT" <<CONTEXT
 ---
 
 ## 📚 참고 문서
-- **규칙 전체**: \`$RULES_DOC\` (87개 규칙, 2850줄)
+
+### 요약본 (세션 로딩용 - 경량)
+- **엔터프라이즈 표준**: \`$RULES_DOC\` (핵심 아키텍처 및 DDD 전략)
+- **코딩 표준**: \`docs/CODING_STANDARDS_SUMMARY.md\` (SOLID, Law of Demeter, Transaction 경계)
+
+### 전체 문서 (상세 참조용)
+- **엔터프라이즈 표준**: \`docs/ENTERPRISE_SPRING_STANDARDS_PROMPT.md\` (96개 규칙, 3361줄)
+- **코딩 표준**: \`docs/CODING_STANDARDS.md\` (87개 규칙, 2676줄)
+
+### 특화 가이드
+- **DDD Aggregate**: \`docs/DDD_AGGREGATE_MIGRATION_GUIDE.md\`
+- **DTO 패턴**: \`docs/DTO_PATTERNS_GUIDE.md\`
+- **예외 처리**: \`docs/EXCEPTION_HANDLING_GUIDE.md\`
+- **Java Record**: \`docs/JAVA_RECORD_GUIDE.md\`
+- **Gemini 리뷰**: \`docs/GEMINI_REVIEW_GUIDE.md\`
+
+### 훅 시스템
 - **Dynamic Hooks**: \`.claude/hooks/README.md\`
 - **Git Hooks**: \`hooks/README.md\`
-- **TODO 추적**: \`TODO_IMPLEMENTATION.md\`
+
+### 작업 추적
+- **TODO 구현**: \`TODO_IMPLEMENTATION.md\`
 
 ---
 
 **⚡ 이 컨텍스트는 세션 시작 시 자동 생성되었습니다.**
-**📍 변경사항 있을 시 수동으로 \`$RULES_DOC\`를 참조하세요.**
+**📍 상세 내용 필요 시 전체 문서를 참조하세요.**
 
 CONTEXT
 
