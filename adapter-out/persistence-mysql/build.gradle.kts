@@ -1,0 +1,63 @@
+plugins {
+    id("java")
+    id("io.spring.dependency-management") version "1.1.5"
+}
+
+group = "com.ryuqq.crawlinghub"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Domain Layer
+    implementation(project(":domain"))
+
+    // Application Layer
+    implementation(project(":application"))
+
+    // Spring Data JPA
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    // MySQL Driver
+    runtimeOnly("com.mysql:mysql-connector-j")
+
+    // QueryDSL
+    implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.1.0:jakarta")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // Lombok (Application Layer에서만, Persistence는 사용 금지)
+    // - Entity는 Plain Java로 작성
+
+    // Test Dependencies
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core")
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
+
+    // TestContainers for Integration Tests
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:mysql")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.6")
+        mavenBom("org.testcontainers:testcontainers-bom:1.19.8")
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}

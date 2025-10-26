@@ -1,0 +1,67 @@
+# ============================================================================
+# CrawlingHub Web API - Common Configuration
+# ============================================================================
+# 모든 환경에서 공통으로 적용되는 설정
+# Profile별 설정은 application-{profile}.yml 참조
+# ============================================================================
+
+spring:
+  application:
+    name: crawlinghub-web-api
+
+  # ========================================
+  # Profile 설정
+  # ========================================
+  profiles:
+    active: local
+
+  # ========================================
+  # JPA 공통 설정
+  # ========================================
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 100
+
+# ========================================
+# Server 설정
+# ========================================
+server:
+  port: 8080
+  shutdown: graceful
+  compression:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# ========================================
+# Actuator 설정 (Health Check)
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# ========================================
+# Logging 설정
+# ========================================
+logging:
+  level:
+    root: INFO
+    com.ryuqq.crawlinghub: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

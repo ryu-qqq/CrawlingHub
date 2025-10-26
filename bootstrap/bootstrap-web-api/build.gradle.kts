@@ -26,14 +26,9 @@ dependencies {
     // Adapters
     // ========================================
     // Inbound
-    implementation(project(":adapter:adapter-in-admin-web"))
-    implementation(project(":adapter:adapter-in-event"))
 
     // Outbound
-    implementation(project(":adapter:adapter-out-persistence-jpa"))
-    implementation(project(":adapter:adapter-out-aws-s3"))
-    implementation(project(":adapter:adapter-out-aws-sqs"))
-    implementation(project(":adapter:adapter-out-aws-eventbridge"))
+
 
     // ========================================
     // Spring Boot Starters
@@ -59,7 +54,7 @@ dependencies {
     // ========================================
     // Database
     // ========================================
-    runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.mysql)
 
     // ========================================
     // AWS SDK (from adapters)
@@ -71,7 +66,7 @@ dependencies {
     // ========================================
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
-    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.mysql)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.rest.assured)
 }
