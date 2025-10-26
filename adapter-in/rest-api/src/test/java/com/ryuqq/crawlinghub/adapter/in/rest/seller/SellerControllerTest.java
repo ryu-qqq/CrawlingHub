@@ -190,4 +190,25 @@ class SellerControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("POST /api/v1/sellers - Validation 실패 (intervalType이 잘못된 값)")
+    void registerSellerValidationFailInvalidIntervalType() throws Exception {
+        // Given
+        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
+                "SELLER001",
+                "Test Seller",
+                "INVALID_TYPE",
+                1
+        );
+
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/sellers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 }
