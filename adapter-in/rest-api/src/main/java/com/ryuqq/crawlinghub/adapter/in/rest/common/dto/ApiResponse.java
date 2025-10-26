@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
  * <p><strong>사용 예시:</strong></p>
  * <pre>{@code
  * // 성공 응답
- * ApiResponse<UserDto> response = ApiResponse.success(userDto);
+ * ApiResponse<UserDto> response = ApiResponse.ofSuccess(userDto);
  *
  * // 에러 응답
  * ErrorInfo error = new ErrorInfo("USER_NOT_FOUND", "사용자를 찾을 수 없습니다");
- * ApiResponse<Void> response = ApiResponse.failure(error);
+ * ApiResponse<Void> response = ApiResponse.ofFailure(error);
  * }</pre>
  *
  * <p><strong>응답 형식:</strong></p>

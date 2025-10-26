@@ -31,7 +31,7 @@ import java.util.Objects;
  * <ul>
  *   <li>sellerId는 수정 불가 (PK)</li>
  *   <li>크롤링 주기 변경 시 SellerCrawlIntervalChangedEvent 발행</li>
- *   <li>변경사항이 있을 때만 저장 (최적화)</li>
+ *   <li>변경된 Aggregate 저장</li>
  * </ul>
  * </p>
  *

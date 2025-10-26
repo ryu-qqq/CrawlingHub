@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
@@ -30,7 +32,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * <ul>
  *   <li>400 Bad Request: {@code MethodArgumentNotValidException} (Validation 실패)</li>
  *   <li>400 Bad Request: {@code IllegalArgumentException} (잘못된 인자)</li>
- *   <li>404 Not Found: {@code SettingNotFoundException} (설정을 찾을 수 없음)</li>
  *   <li>409 Conflict: {@code IllegalStateException} (중복, 상태 충돌)</li>
  *   <li>500 Internal Server Error: {@code Exception} (기타 모든 예외)</li>
  * </ul>
@@ -55,6 +56,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * ProblemDetail 생성 헬퍼 메서드 (코드 중복 제거)
@@ -203,7 +206,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGlobalException(Exception ex) {
-        // TODO: Logging 추가 (실제 에러 메시지는 로그에만 기록)
+        // 실제 에러 메시지는 로그에만 기록 (보안상 사용자에게 노출하지 않음)
+        log.error("Unexpected error occurred", ex);
+
         return createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
