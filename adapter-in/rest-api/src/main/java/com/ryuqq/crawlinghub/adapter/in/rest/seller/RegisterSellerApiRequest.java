@@ -30,6 +30,7 @@ public record RegisterSellerApiRequest(
 
         @JsonProperty("intervalType")
         @NotBlank(message = "intervalType은 필수입니다")
+        @ValidIntervalType
         String intervalType,
 
         @JsonProperty("intervalValue")

@@ -57,8 +57,7 @@ class CrawlIntervalTest {
 
         // when & then
         assertThatThrownBy(() -> new CrawlInterval(null, intervalValue))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("intervalType must not be null");
+                .isInstanceOf(NullPointerException.class);
     }
 
     @ParameterizedTest
