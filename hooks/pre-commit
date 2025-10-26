@@ -215,6 +215,30 @@ else
 fi
 
 # ========================================
+# Transaction Boundary Validation (Issue #28)
+# ========================================
+
+log_info "Validating transaction boundaries (external API calls)..."
+if bash "$VALIDATORS_DIR/transaction-boundary-validator.sh"; then
+    log_success "Transaction boundary validation passed"
+else
+    log_error "Transaction boundary validation failed"
+    VALIDATION_FAILED=1
+fi
+
+# ========================================
+# Spring Proxy Limitation Validation (Issue #27)
+# ========================================
+
+log_info "Validating Spring @Transactional proxy patterns..."
+if bash "$VALIDATORS_DIR/transaction-proxy-validator.sh"; then
+    log_success "Spring proxy validation passed"
+else
+    log_error "Spring proxy validation failed"
+    VALIDATION_FAILED=1
+fi
+
+# ========================================
 # ArchUnit Tests
 # ========================================
 
