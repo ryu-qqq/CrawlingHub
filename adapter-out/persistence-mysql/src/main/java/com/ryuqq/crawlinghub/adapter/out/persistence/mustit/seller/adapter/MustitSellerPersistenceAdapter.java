@@ -67,7 +67,9 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
         MustitSellerEntity entity = mapper.toEntity(seller);
         MustitSellerEntity savedEntity = jpaRepository.save(entity);
 
-        // 2. Domain Event 발행 (트랜잭션 커밋 후 자동 발행)
+        // 2. Domain Event 발행
+        // 실제 발행 타이밍: 리스너 측에서 @TransactionalEventListener(phase = AFTER_COMMIT) 사용 시 트랜잭션 커밋 후 발행
+        // 현재는 동기 방식이므로 즉시 발행되지만, 리스너 구현에 따라 비동기/지연 발행 가능
         publishDomainEvents(seller);
 
         // 3. 저장된 Entity를 Domain으로 변환하여 반환
