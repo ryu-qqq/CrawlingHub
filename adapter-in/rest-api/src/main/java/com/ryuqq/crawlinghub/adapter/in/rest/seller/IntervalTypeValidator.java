@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,6 @@ public class IntervalTypeValidator implements ConstraintValidator<ValidIntervalT
         if (value == null) {
             return false;
         }
-        return VALID_TYPES.contains(value.trim().toUpperCase());
+        return VALID_TYPES.contains(value.trim().toUpperCase(Locale.ROOT));
     }
 }

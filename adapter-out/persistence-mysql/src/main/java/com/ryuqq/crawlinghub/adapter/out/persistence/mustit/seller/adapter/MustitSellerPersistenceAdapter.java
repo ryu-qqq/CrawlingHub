@@ -5,7 +5,9 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.Mustit
 import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.MustitSellerJpaRepository;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
+import com.ryuqq.crawlinghub.domain.common.DomainEvent;
 import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -26,19 +28,23 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
 
     private final MustitSellerJpaRepository jpaRepository;
     private final MustitSellerMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Adapter 생성자
      *
-     * @param jpaRepository JPA Repository
-     * @param mapper        Domain ↔ Entity 변환 Mapper
+     * @param jpaRepository  JPA Repository
+     * @param mapper         Domain ↔ Entity 변환 Mapper
+     * @param eventPublisher Spring Application Event Publisher
      */
     public MustitSellerPersistenceAdapter(
             MustitSellerJpaRepository jpaRepository,
-            MustitSellerMapper mapper
+            MustitSellerMapper mapper,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository must not be null");
         this.mapper = Objects.requireNonNull(mapper, "mapper must not be null");
+        this.eventPublisher = Objects.requireNonNull(eventPublisher, "eventPublisher must not be null");
     }
 
     /**
@@ -46,6 +52,7 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
      * <p>
      * Domain Aggregate를 Entity로 변환하여 저장한 후,
      * 저장된 Entity를 다시 Domain Aggregate로 변환하여 반환합니다.
+     * Domain Event는 트랜잭션 커밋 후 자동으로 발행됩니다.
      * </p>
      *
      * @param seller 저장할 셀러 Aggregate
@@ -56,9 +63,31 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
     public MustitSeller save(MustitSeller seller) {
         Objects.requireNonNull(seller, "seller must not be null");
 
+        // 1. Domain → Entity 변환 및 저장
         MustitSellerEntity entity = mapper.toEntity(seller);
         MustitSellerEntity savedEntity = jpaRepository.save(entity);
-        return mapper.toDomain(savedEntity);
+
+        // 2. Domain Event 발행 (트랜잭션 커밋 후 자동 발행)
+        publishDomainEvents(seller);
+
+        // 3. 저장된 Entity를 Domain으로 변환하여 반환
+        MustitSeller savedSeller = mapper.toDomain(savedEntity);
+
+        // 4. 발행된 이벤트 제거 (중복 발행 방지)
+        seller.clearDomainEvents();
+
+        return savedSeller;
+    }
+
+    /**
+     * Domain Event를 발행합니다.
+     *
+     * @param seller 이벤트를 포함한 셀러 Aggregate
+     */
+    private void publishDomainEvents(MustitSeller seller) {
+        for (DomainEvent event : seller.getDomainEvents()) {
+            eventPublisher.publishEvent(event);
+        }
     }
 
     /**

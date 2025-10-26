@@ -100,4 +100,10 @@
          ======================================== -->
     <suppress checks="MethodName" files=".*persistence-mysql/src/test/.*Test\.java$"/>
     <suppress checks="ParameterNumber" files=".*persistence-mysql/src/test/.*Test\.java$"/>
+
+    <!-- ========================================
+         Common DTO - PageResponse and SliceResponse
+         Java Record factory methods require multiple parameters for complete state
+         ======================================== -->
+    <suppress checks="ParameterNumber" files=".*(PageResponse|SliceResponse)\.java$"/>
 </suppressions>
