@@ -26,7 +26,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *   <li>크롤링 실행 모니터링 및 결과 조회</li>
  * </ul>
  *
- * @author CrawlingHub Platform Team
+ * @author CrawlingHub Platform Team (platform@crawlinghub.com)
  * @since 1.0.0
  */
 @SpringBootApplication
