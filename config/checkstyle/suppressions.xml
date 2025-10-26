@@ -44,6 +44,14 @@
               message="@Transactional detected in adapter package"/>
 
     <!-- ========================================
+         Application Layer UseCase Services
+         Application layer is the correct place for @Transactional
+         ======================================== -->
+    <suppress checks="Regexp"
+              files=".*application/.*\.java$"
+              message="@Transactional detected in adapter package"/>
+
+    <!-- ========================================
          Redis Adapter Test Files
          Test method names use given_when_then pattern with underscores
          ======================================== -->
@@ -84,4 +92,12 @@
          Simple constructor parameter assignment doesn't need Javadoc
          ======================================== -->
     <suppress checks="MissingJavadocMethod" files=".*redis.*\.java$"/>
+
+    <!-- ========================================
+         Persistence-MySQL Test Files
+         Test method names use given_when_then pattern with underscores
+         Test helper methods may exceed 5 parameters for convenience
+         ======================================== -->
+    <suppress checks="MethodName" files=".*persistence-mysql/src/test/.*Test\.java$"/>
+    <suppress checks="ParameterNumber" files=".*persistence-mysql/src/test/.*Test\.java$"/>
 </suppressions>
