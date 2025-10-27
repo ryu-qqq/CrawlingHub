@@ -14,6 +14,8 @@ import com.ryuqq.orchestrator.core.model.OpId;
 import com.ryuqq.orchestrator.core.model.Payload;
 import com.ryuqq.orchestrator.core.outcome.Outcome;
 import com.ryuqq.orchestrator.core.spi.Store;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -161,8 +163,9 @@ public class JpaOrchestratorStoreAdapter implements Store {
     @Transactional(readOnly = true)
     public List<OpId> scanWA(com.ryuqq.orchestrator.core.spi.WriteAheadState state, int limit) {
         WriteAheadState entityState = mapToEntityWriteAheadState(state);
+        Pageable pageable = PageRequest.of(0, limit);
         List<SellerCrawlScheduleOutboxEntity> pendingOutboxes =
-                repository.findByWalStatePending(entityState, limit);
+                repository.findByWalStatePending(entityState, pageable);
 
         return pendingOutboxes.stream()
                 .map(outbox -> OpId.of(outbox.getOpId()))
@@ -185,11 +188,12 @@ public class JpaOrchestratorStoreAdapter implements Store {
         LocalDateTime cutoffTime = LocalDateTime.now()
                 .minusNanos(timeoutMillis * 1_000_000);
 
+        Pageable pageable = PageRequest.of(0, limit);
         List<SellerCrawlScheduleOutboxEntity> timedOutOutboxes =
                 repository.findInProgressAndTimeout(
                         OperationState.IN_PROGRESS,
                         cutoffTime,
-                        limit
+                        pageable
                 );
 
         return timedOutOutboxes.stream()
