@@ -1,9 +1,13 @@
-package com.ryuqq.crawlinghub.adapter.in.rest.seller;
+package com.ryuqq.crawlinghub.adapter.in.rest.seller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.ValidIntervalType;
+
+import java.util.Locale;
 
 /**
  * 셀러 등록 API Request DTO
@@ -49,7 +53,7 @@ public record RegisterSellerApiRequest(
             name = name.trim();
         }
         if (intervalType != null) {
-            intervalType = intervalType.trim().toUpperCase();
+            intervalType = intervalType.trim().toUpperCase(Locale.ROOT);
         }
     }
 }

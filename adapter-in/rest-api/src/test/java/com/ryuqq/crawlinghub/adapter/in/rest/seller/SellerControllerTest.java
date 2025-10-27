@@ -1,8 +1,17 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.controller.SellerController;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
+import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;
+import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateMustitSellerUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,8 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,6 +52,9 @@ class SellerControllerTest {
 
     @Mock
     private RegisterMustitSellerUseCase registerMustitSellerUseCase;
+
+    @Mock
+    private UpdateMustitSellerUseCase updateMustitSellerUseCase;
 
     @Mock
     private SellerApiMapper sellerApiMapper;
@@ -83,12 +97,16 @@ class SellerControllerTest {
                         .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.sellerId").value("SELLER001"))
-                .andExpect(jsonPath("$.name").value("Test Seller"))
-                .andExpect(jsonPath("$.isActive").value(true))
-                .andExpect(jsonPath("$.intervalType").value("DAILY"))
-                .andExpect(jsonPath("$.intervalValue").value(1))
-                .andExpect(jsonPath("$.createdAt").exists());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.name").value("Test Seller"))
+                .andExpect(jsonPath("$.data.isActive").value(true))
+                .andExpect(jsonPath("$.data.intervalType").value("DAILY"))
+                .andExpect(jsonPath("$.data.intervalValue").value(1))
+                .andExpect(jsonPath("$.data.createdAt").exists())
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     private com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller createMockSeller() {
@@ -211,4 +229,124 @@ class SellerControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (활성화 상태 변경)")
+    void updateSellerSuccessActiveStatusOnly() throws Exception {
+        // Given
+        String sellerId = "SELLER001";
+        UpdateSellerApiRequest request = new UpdateSellerApiRequest(false, null, null);
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
+                sellerId, false, null, null
+        );
+
+        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
+                "SELLER001", "Test Seller", false, "DAILY", 1, java.time.LocalDateTime.now()
+        );
+
+        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
+                .willReturn(command);
+        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
+                .willReturn(mockSeller);
+        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+                .willReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.isActive").value(false))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.requestId").exists());
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (크롤링 주기 변경)")
+    void updateSellerSuccessCrawlIntervalOnly() throws Exception {
+        // Given
+        String sellerId = "SELLER001";
+        UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, "HOURLY", 6);
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
+                sellerId, null,
+                com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.HOURLY, 6
+        );
+
+        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
+                "SELLER001", "Test Seller", true, "HOURLY", 6, java.time.LocalDateTime.now()
+        );
+
+        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
+                .willReturn(command);
+        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
+                .willReturn(mockSeller);
+        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+                .willReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.intervalType").value("HOURLY"))
+                .andExpect(jsonPath("$.data.intervalValue").value(6))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.requestId").exists());
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (모든 필드 변경)")
+    void updateSellerSuccessAllFields() throws Exception {
+        // Given
+        String sellerId = "SELLER001";
+        UpdateSellerApiRequest request = new UpdateSellerApiRequest(false, "WEEKLY", 2);
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
+                sellerId, false,
+                com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.WEEKLY, 2
+        );
+
+        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
+                "SELLER001", "Test Seller", false, "WEEKLY", 2, java.time.LocalDateTime.now()
+        );
+
+        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
+                .willReturn(command);
+        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
+                .willReturn(mockSeller);
+        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+                .willReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.isActive").value(false))
+                .andExpect(jsonPath("$.data.intervalType").value("WEEKLY"))
+                .andExpect(jsonPath("$.data.intervalValue").value(2))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.requestId").exists());
+    }
+
 }
