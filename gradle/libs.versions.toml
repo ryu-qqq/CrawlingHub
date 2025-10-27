@@ -29,6 +29,16 @@ hikaricp = "5.1.0"
 awsSdk = "2.25.11"
 
 # ========================================
+# Orchestrator SDK (JitPack)
+# ========================================
+orchestrator = "v0.1.1"
+
+# ========================================
+# Resilience & Fault Tolerance
+# ========================================
+resilience4j = "2.1.0"
+
+# ========================================
 # Testing
 # ========================================
 junit = "5.10.2"
@@ -62,6 +72,7 @@ micrometer = "1.12.4"
 # ========================================
 commonsLang3 = "3.14.0"
 jackson = "2.17.0"
+guava = "33.0.0-jre"
 
 [libraries]
 # ========================================
@@ -112,6 +123,22 @@ aws-eventbridge = { module = "software.amazon.awssdk:eventbridge" }
 aws-apache-client = { module = "software.amazon.awssdk:apache-client" }
 
 # ========================================
+# Orchestrator SDK (JitPack)
+# ========================================
+orchestrator-core = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-core", version.ref = "orchestrator" }
+orchestrator-application = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-application", version.ref = "orchestrator" }
+orchestrator-runner = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-adapter-runner", version.ref = "orchestrator" }
+orchestrator-testkit = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-testkit", version.ref = "orchestrator" }
+
+# ========================================
+# Resilience4j
+# ========================================
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
+resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
+resilience4j-timelimiter = { module = "io.github.resilience4j:resilience4j-timelimiter", version.ref = "resilience4j" }
+
+# ========================================
 # Testing
 # ========================================
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
@@ -153,6 +180,7 @@ micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version = "3.1.0" }
 

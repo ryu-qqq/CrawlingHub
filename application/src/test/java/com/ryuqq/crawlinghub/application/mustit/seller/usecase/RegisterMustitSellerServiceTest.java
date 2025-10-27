@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.mustit.seller.usecase;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
+import com.ryuqq.crawlinghub.application.mustit.seller.service.RegisterMustitSellerService;
 import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType;
 import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.mustit.seller.exception.DuplicateSellerException;

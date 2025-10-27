@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.mustit.seller.usecase;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
+import com.ryuqq.crawlinghub.application.mustit.seller.service.UpdateMustitSellerService;
 import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval;
 import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType;
 import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
@@ -195,11 +196,19 @@ class UpdateMustitSellerServiceTest {
     @Test
     @DisplayName("크롤링 주기만 변경 시 Domain Event가 발행된다")
     void publishDomainEventWhenCrawlIntervalChanged() {
-        // given
-        MustitSeller existingSeller = new MustitSeller(
-                "SELLER001",
-                "Test Seller",
-                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        // given - Persistence에서 로드된 Seller 시뮬레이션 (id 있음)
+        MustitSeller existingSeller = MustitSeller.reconstitute(
+                com.ryuqq.crawlinghub.domain.mustit.seller.SellerBasicInfo.of(
+                        1L,
+                        "SELLER001",
+                        "Test Seller",
+                        true
+                ),
+                new CrawlInterval(CrawlIntervalType.DAILY, 1),
+                com.ryuqq.crawlinghub.domain.mustit.seller.SellerTimeInfo.of(
+                        java.time.LocalDateTime.now().minusDays(1),
+                        java.time.LocalDateTime.now().minusDays(1)
+                )
         );
 
         UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
