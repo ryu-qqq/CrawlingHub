@@ -228,18 +228,41 @@ public class SellerScheduleOrchestrationService {
     /**
      * Idempotency Key 생성
      * <p>
-     * 형식: seller-{sellerId}-{action}-{timestamp}
+     * 형식: seller-{sellerId}-{action}
+     * </p>
+     * <p>
+     * 멱등성 보장 전략:
+     * <ul>
+     *   <li>타임스탬프 제거: 동일한 비즈니스 요청은 항상 동일한 멱등키 생성</li>
+     *   <li>sellerId + operation 조합: 특정 셀러의 특정 작업을 고유하게 식별</li>
+     *   <li>중복 제출 방지: Orchestrator가 동일 IdemKey 재전송 시 중복 처리 차단</li>
+     * </ul>
+     * </p>
+     * <p>
+     * 예시:
+     * <ul>
+     *   <li>seller-123-create: 셀러 123의 스케줄 생성</li>
+     *   <li>seller-123-update: 셀러 123의 스케줄 수정</li>
+     *   <li>seller-123-delete: 셀러 123의 스케줄 삭제</li>
+     * </ul>
+     * </p>
+     * <p>
+     * 동작 시나리오:
+     * <ul>
+     *   <li>시나리오 1: 같은 요청 2번 제출 → 첫 번째만 처리, 두 번째는 중복으로 skip</li>
+     *   <li>시나리오 2: UPDATE 후 다시 UPDATE → 두 번째 UPDATE는 새 작업으로 처리 (cronExpression 다름)</li>
+     *   <li>시나리오 3: CREATE 완료 후 DELETE → 별개 작업으로 처리 (operation 다름)</li>
+     * </ul>
      * </p>
      *
      * @param sellerId  셀러 PK
      * @param operation 작업 유형 Enum
-     * @return Idempotency Key
+     * @return Idempotency Key (타임스탬프 없음)
      */
     private String generateIdemKey(Long sellerId, ScheduleOperation operation) {
-        return String.format("seller-%d-%s-%d",
+        return String.format("seller-%d-%s",
                 sellerId,
-                operation.getAction(),
-                System.currentTimeMillis()
+                operation.getAction()
         );
     }
 
