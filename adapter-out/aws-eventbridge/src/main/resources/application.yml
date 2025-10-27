@@ -1,0 +1,40 @@
+# AWS EventBridge 설정
+aws:
+  region: ap-northeast-2
+  # LocalStack 사용 시 활성화
+  # eventbridge:
+  #   endpoint: http://localhost:4566
+  # accessKeyId: test
+  # secretAccessKey: test
+
+# Resilience4j 설정
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slowCallDurationThreshold: 5s
+        slowCallRateThreshold: 50
+        minimumNumberOfCalls: 5
+    instances:
+      eventbridge:
+        baseConfig: default
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 0  # Orchestrator가 retry 관리
+    instances:
+      eventbridge:
+        baseConfig: default
+
+# Logging
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.eventbridge: DEBUG
+    software.amazon.awssdk: INFO

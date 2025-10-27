@@ -19,6 +19,7 @@ import java.util.Objects;
  */
 public class MustitSeller extends AggregateRoot {
 
+    private Long id;  // Persistence Layer에서 reconstitute 시 주입 (null 가능)
     private final String sellerId;
     private final String name;  // 불변: 머스트잇 셀러명은 한번 등록하면 변경 불가
     private boolean isActive;
@@ -59,7 +60,7 @@ public class MustitSeller extends AggregateRoot {
     /**
      * 기존 셀러 정보를 재구성하는 정적 팩토리 메서드 (Persistence에서 로드 시 사용).
      *
-     * @param basicInfo     기본 정보 (sellerId, name, isActive)
+     * @param basicInfo     기본 정보 (id, sellerId, name, isActive)
      * @param crawlInterval 크롤링 주기
      * @param timeInfo      시간 정보 (createdAt, updatedAt)
      * @return 재구성된 MustitSeller Aggregate
@@ -74,6 +75,7 @@ public class MustitSeller extends AggregateRoot {
                 basicInfo.name(),
                 crawlInterval
         );
+        seller.id = basicInfo.id();  // Persistence PK 주입
         seller.isActive = basicInfo.isActive();
         seller.createdAt = timeInfo.createdAt();
         seller.updatedAt = timeInfo.updatedAt();
@@ -109,6 +111,10 @@ public class MustitSeller extends AggregateRoot {
     /**
      * 크롤링 주기를 변경합니다.
      * 크롤링 주기가 실제로 변경되면 SellerCrawlIntervalChangedEvent를 발행합니다.
+     * <p>
+     * 신규 생성 시점(id가 null)에는 이벤트를 발행하지 않습니다.
+     * Persistence에 저장된 후(id가 설정된 후)에만 이벤트가 발행됩니다.
+     * </p>
      *
      * @param newCrawlInterval 새로운 크롤링 주기
      */
@@ -119,10 +125,12 @@ public class MustitSeller extends AggregateRoot {
         this.crawlInterval = newCrawlInterval;
         this.updatedAt = LocalDateTime.now();
 
-        // 크롤링 주기가 실제로 변경된 경우에만 Event 발행
-        if (!oldInterval.equals(newCrawlInterval)) {
+        // 크롤링 주기가 실제로 변경되고, id가 있는 경우에만 Event 발행
+        // (신규 생성 시점에는 id가 null이므로 이벤트를 발행하지 않음)
+        if (!oldInterval.equals(newCrawlInterval) && this.id != null) {
             registerEvent(new SellerCrawlIntervalChangedEvent(
                     this.sellerId,
+                    this.id,  // Long sellerPk (Persistence에서 로드된 경우에만 not null)
                     oldInterval,
                     newCrawlInterval
             ));
