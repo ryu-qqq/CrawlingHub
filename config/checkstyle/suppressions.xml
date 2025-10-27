@@ -116,4 +116,12 @@
          (Orchestrator SDK Transactional Outbox Pattern)
          ======================================== -->
     <suppress checks="ParameterNumber" files=".*SellerCrawlScheduleOutbox\.java$"/>
+
+    <!-- ========================================
+         JPA Entity - SellerCrawlScheduleOutboxEntity
+         Immutable entity pattern requires private all-args constructor with 18 fields
+         Static factory methods use this constructor for state changes
+         (Orchestrator SDK Transactional Outbox Pattern with Immutability)
+         ======================================== -->
+    <suppress checks="ParameterNumber" files=".*SellerCrawlScheduleOutboxEntity\.java$"/>
 </suppressions>

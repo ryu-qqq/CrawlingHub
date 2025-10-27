@@ -6,9 +6,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.repository.SellerCra
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.outbox.SellerCrawlScheduleOutboxPort;
 import com.ryuqq.crawlinghub.domain.mustit.seller.outbox.SellerCrawlScheduleOutbox;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,14 +60,13 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
     /**
      * Outbox 저장
      * <p>
-     * REQUIRES_NEW 트랜잭션으로 독립적으로 커밋됩니다.
+     * 트랜잭션은 Application Layer에서 관리됩니다.
      * </p>
      *
      * @param outbox Outbox 도메인 모델
      * @return 저장된 Outbox (ID 포함)
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SellerCrawlScheduleOutbox save(SellerCrawlScheduleOutbox outbox) {
         Objects.requireNonNull(outbox, "outbox must not be null");
 
@@ -79,12 +77,14 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
 
     /**
      * OpId로 Outbox 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
      *
      * @param opId Orchestrator OpId (UUID String)
      * @return Outbox 도메인 모델 (존재하지 않으면 null)
      */
     @Override
-    @Transactional(readOnly = true)
     public SellerCrawlScheduleOutbox findByOpId(String opId) {
         Objects.requireNonNull(opId, "opId must not be null");
 
@@ -95,12 +95,14 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
 
     /**
      * Idempotency Key로 Outbox 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
      *
      * @param idemKey Idempotency Key
      * @return Outbox 도메인 모델 (존재하지 않으면 null)
      */
     @Override
-    @Transactional(readOnly = true)
     public SellerCrawlScheduleOutbox findByIdemKey(String idemKey) {
         Objects.requireNonNull(idemKey, "idemKey must not be null");
 
@@ -111,12 +113,14 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
 
     /**
      * Seller ID로 최신 Outbox 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
      *
      * @param sellerId Seller PK (Long FK)
      * @return Outbox 도메인 모델 (존재하지 않으면 null)
      */
     @Override
-    @Transactional(readOnly = true)
     public SellerCrawlScheduleOutbox findLatestBySellerId(Long sellerId) {
         Objects.requireNonNull(sellerId, "sellerId must not be null");
 
@@ -133,14 +137,14 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
     /**
      * OpId 업데이트
      * <p>
-     * REQUIRES_NEW 트랜잭션으로 독립적으로 커밋됩니다.
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * 불변 Entity를 위해 static factory method를 사용합니다.
      * </p>
      *
      * @param outboxId Outbox PK
      * @param opId     Orchestrator OpId
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateOpId(Long outboxId, String opId) {
         Objects.requireNonNull(outboxId, "outboxId must not be null");
         Objects.requireNonNull(opId, "opId must not be null");
@@ -150,7 +154,181 @@ public class SellerCrawlScheduleOutboxAdapter implements SellerCrawlScheduleOutb
                         "Outbox not found for ID: " + outboxId
                 ));
 
-        entity.setOpId(opId);
-        repository.save(entity);
+        SellerCrawlScheduleOutboxEntity updatedEntity =
+                SellerCrawlScheduleOutboxEntity.withOpId(entity, opId);
+        repository.save(updatedEntity);
+    }
+
+    // ========================================
+    // Orchestrator Store 통합 메서드 구현
+    // ========================================
+
+    /**
+     * 작업 진행 중 상태로 표시
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * 불변 Entity를 위해 static factory method를 사용합니다.
+     * </p>
+     *
+     * @param opId        Orchestrator OpId (UUID String)
+     * @param outcomeJson 실행 결과 JSON
+     */
+    @Override
+    public void markInProgress(String opId, String outcomeJson) {
+        Objects.requireNonNull(opId, "opId must not be null");
+        Objects.requireNonNull(outcomeJson, "outcomeJson must not be null");
+
+        SellerCrawlScheduleOutboxEntity entity = repository.findByOpId(opId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Outbox not found for OpId: " + opId
+                ));
+
+        SellerCrawlScheduleOutboxEntity updatedEntity =
+                SellerCrawlScheduleOutboxEntity.withWriteAhead(entity, outcomeJson);
+        repository.save(updatedEntity);
+    }
+
+    /**
+     * 작업 완료 상태로 표시
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * 불변 Entity를 위해 static factory method를 사용합니다.
+     * </p>
+     *
+     * @param opId       Orchestrator OpId (UUID String)
+     * @param finalState 최종 상태 (COMPLETED 또는 FAILED)
+     */
+    @Override
+    public void markCompleted(String opId, String finalState) {
+        Objects.requireNonNull(opId, "opId must not be null");
+        Objects.requireNonNull(finalState, "finalState must not be null");
+
+        SellerCrawlScheduleOutboxEntity entity = repository.findByOpId(opId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Outbox not found for OpId: " + opId
+                ));
+
+        SellerCrawlScheduleOutboxEntity.OperationState entityState =
+                SellerCrawlScheduleOutboxEntity.OperationState.valueOf(finalState);
+        SellerCrawlScheduleOutboxEntity updatedEntity =
+                SellerCrawlScheduleOutboxEntity.withFinalized(entity, entityState);
+        repository.save(updatedEntity);
+    }
+
+    /**
+     * 진행 중 작업의 결과 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
+     *
+     * @param opId Orchestrator OpId (UUID String)
+     * @return Outcome JSON (존재하지 않으면 null)
+     */
+    @Override
+    public String getInProgressOutcome(String opId) {
+        Objects.requireNonNull(opId, "opId must not be null");
+
+        SellerCrawlScheduleOutboxEntity entity = repository.findByOpId(opId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Outbox not found for OpId: " + opId
+                ));
+
+        return entity.getOutcomeJson();
+    }
+
+    /**
+     * 대기 중인 작업 목록 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
+     *
+     * @param limit 조회 제한 (배치 크기)
+     * @return OpId 목록 (UUID String)
+     */
+    @Override
+    public List<String> findPendingOperations(int limit) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, limit);
+
+        List<SellerCrawlScheduleOutboxEntity> pendingOutboxes =
+                repository.findByWalStateOrderByCreatedAtAsc(
+                        SellerCrawlScheduleOutboxEntity.WriteAheadState.PENDING,
+                        pageable
+                );
+
+        return pendingOutboxes.stream()
+                .map(SellerCrawlScheduleOutboxEntity::getOpId)
+                .toList();
+    }
+
+    /**
+     * 타임아웃된 작업 목록 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
+     *
+     * @param timeoutMillis 타임아웃 시간 (밀리초)
+     * @param limit         조회 제한 (배치 크기)
+     * @return OpId 목록 (UUID String)
+     */
+    @Override
+    public List<String> findTimeoutOperations(long timeoutMillis, int limit) {
+        LocalDateTime cutoffTime = LocalDateTime.now()
+                .minusNanos(timeoutMillis * 1_000_000);
+
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, limit);
+
+        List<SellerCrawlScheduleOutboxEntity> timedOutOutboxes =
+                repository.findInProgressAndTimeout(
+                        SellerCrawlScheduleOutboxEntity.OperationState.IN_PROGRESS,
+                        cutoffTime,
+                        pageable
+                );
+
+        return timedOutOutboxes.stream()
+                .map(SellerCrawlScheduleOutboxEntity::getOpId)
+                .toList();
+    }
+
+    /**
+     * 작업 Command 정보 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
+     *
+     * @param opId Orchestrator OpId (UUID String)
+     * @return Outbox 도메인 모델 (Command 재구성용)
+     */
+    @Override
+    public SellerCrawlScheduleOutbox getOperationEnvelope(String opId) {
+        Objects.requireNonNull(opId, "opId must not be null");
+
+        return repository.findByOpId(opId)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Outbox not found for OpId: " + opId
+                ));
+    }
+
+    /**
+     * 작업 상태 조회
+     * <p>
+     * 트랜잭션은 Application Layer에서 관리됩니다.
+     * </p>
+     *
+     * @param opId Orchestrator OpId (UUID String)
+     * @return 작업 상태 (PENDING, IN_PROGRESS, COMPLETED, FAILED)
+     */
+    @Override
+    public String getOperationState(String opId) {
+        Objects.requireNonNull(opId, "opId must not be null");
+
+        SellerCrawlScheduleOutboxEntity entity = repository.findByOpId(opId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Outbox not found for OpId: " + opId
+                ));
+
+        return entity.getOperationState().name();
     }
 }
