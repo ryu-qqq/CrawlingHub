@@ -17,6 +17,7 @@ import com.ryuqq.orchestrator.core.statemachine.OperationState;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.DeleteRuleRequest;
@@ -86,10 +87,12 @@ public class EventBridgeExecutor implements Executor {
     /**
      * EventBridge Target ARN (Lambda 또는 SQS 등)
      * <p>
-     * 실제 환경에서는 application.yml에서 주입받아야 합니다.
+     * application.yml에서 주입받습니다.
+     * 환경별(dev/staging/prod)로 다른 ARN 설정 가능합니다.
      * </p>
      */
-    private static final String TARGET_ARN = "arn:aws:lambda:ap-northeast-2:123456789012:function:seller-crawl-function";
+    @Value("${aws.eventbridge.target.arn}")
+    private String targetArn;
 
     /**
      * 생성자
@@ -345,7 +348,7 @@ public class EventBridgeExecutor implements Executor {
     private void setTarget(String ruleName, Long sellerId) {
         Target target = Target.builder()
                 .id("seller-crawl-target-" + sellerId)
-                .arn(TARGET_ARN)
+                .arn(targetArn)
                 .input(String.format("{\"sellerId\": %d}", sellerId))
                 .build();
 
