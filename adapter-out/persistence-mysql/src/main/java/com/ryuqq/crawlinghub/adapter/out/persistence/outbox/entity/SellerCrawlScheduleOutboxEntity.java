@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * <p>
  * 주요 필드:
  * <ul>
- *   <li>opId: Orchestrator OpId (UUID) - Orchestrator 작업 식별자</li>
+ *   <li>opId: Orchestrator OpId (UUID) - 초기 저장 시 null, Orchestrator.submit() 후 업데이트</li>
  *   <li>sellerId: Long FK - Seller Entity의 PK</li>
  *   <li>idemKey: Idempotency Key - 중복 실행 방지 (sellerId + eventType)</li>
  *   <li>payload: EventBridge Schedule 생성/수정을 위한 JSON 페이로드</li>
@@ -58,7 +58,7 @@ public class SellerCrawlScheduleOutboxEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "op_id", nullable = false, unique = true, length = 36)
+    @Column(name = "op_id", nullable = true, unique = true, length = 36)
     private String opId;
 
     @Column(name = "seller_id", nullable = false)
