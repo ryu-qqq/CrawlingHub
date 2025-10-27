@@ -198,6 +198,7 @@ class MustitSellerMapperTest {
         CrawlInterval crawlInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
         LocalDateTime now = LocalDateTime.now();
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                2L,  // id
                 "SELLER002",
                 "Inactive Seller",
                 false

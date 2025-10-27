@@ -14,6 +14,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -22,6 +23,12 @@ dependencies {
 
     // Application Layer
     implementation(project(":application"))
+
+    // Orchestrator SDK (for Store SPI implementation)
+    implementation(rootProject.libs.orchestrator.core)
+
+    // JSON serialization (for Outcome JSON)
+    implementation("com.fasterxml.jackson.core:jackson-databind")
 
     // Spring Data JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

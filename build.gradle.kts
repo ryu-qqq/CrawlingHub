@@ -14,10 +14,6 @@ plugins {
 allprojects {
     group = "com.ryuqq.crawlinghub"
     version = "1.0.0-SNAPSHOT"
-
-    repositories {
-        mavenCentral()
-    }
 }
 
 // ========================================

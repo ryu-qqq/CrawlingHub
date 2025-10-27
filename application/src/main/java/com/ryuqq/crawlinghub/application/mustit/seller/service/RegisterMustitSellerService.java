@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.mustit.seller.usecase;
+package com.ryuqq.crawlinghub.application.mustit.seller.service;
 
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;

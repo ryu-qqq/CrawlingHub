@@ -58,6 +58,7 @@ public class MustitSellerMapper {
         }
 
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                entity.getId(),  // Long id (Persistence PK)
                 entity.getSellerId(),
                 entity.getName(),
                 entity.getIsActive()

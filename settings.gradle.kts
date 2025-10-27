@@ -1,6 +1,29 @@
 rootProject.name = "crawlinghub"
 
 // ========================================
+// Plugin Management (for JitPack)
+// ========================================
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+// ========================================
+// Dependency Resolution Management
+// ========================================
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri("https://jitpack.io")
+        }
+    }
+}
+
+// ========================================
 // Core Modules (Hexagonal Architecture)
 // ========================================
 include("domain")
@@ -14,6 +37,7 @@ include("adapter-in:rest-api")
 
 // Outbound Adapters (Driven)
 include("adapter-out:persistence-mysql")
+include("adapter-out:aws-eventbridge")
 
 
 // ========================================
