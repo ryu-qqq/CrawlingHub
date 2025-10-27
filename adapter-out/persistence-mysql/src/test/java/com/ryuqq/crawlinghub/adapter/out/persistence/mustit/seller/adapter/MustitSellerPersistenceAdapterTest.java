@@ -14,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -39,9 +38,6 @@ class MustitSellerPersistenceAdapterTest {
 
     @Mock
     private MustitSellerMapper mapper;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MustitSellerPersistenceAdapter adapter;

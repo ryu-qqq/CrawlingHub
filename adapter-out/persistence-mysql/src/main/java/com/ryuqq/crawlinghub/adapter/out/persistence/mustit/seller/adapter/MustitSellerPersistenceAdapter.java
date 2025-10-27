@@ -5,13 +5,12 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.Mustit
 import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.MustitSellerJpaRepository;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
-import com.ryuqq.crawlinghub.domain.common.DomainEvent;
 import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.Optional;
+
+import org.springframework.stereotype.Component;
 
 /**
  * 머스트잇 셀러 Persistence Adapter
@@ -28,23 +27,20 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
 
     private final MustitSellerJpaRepository jpaRepository;
     private final MustitSellerMapper mapper;
-    private final ApplicationEventPublisher eventPublisher;
+
 
     /**
      * Adapter 생성자
      *
      * @param jpaRepository  JPA Repository
      * @param mapper         Domain ↔ Entity 변환 Mapper
-     * @param eventPublisher Spring Application Event Publisher
      */
     public MustitSellerPersistenceAdapter(
             MustitSellerJpaRepository jpaRepository,
-            MustitSellerMapper mapper,
-            ApplicationEventPublisher eventPublisher
+            MustitSellerMapper mapper
     ) {
         this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository must not be null");
         this.mapper = Objects.requireNonNull(mapper, "mapper must not be null");
-        this.eventPublisher = Objects.requireNonNull(eventPublisher, "eventPublisher must not be null");
     }
 
     /**
@@ -67,30 +63,11 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
         MustitSellerEntity entity = mapper.toEntity(seller);
         MustitSellerEntity savedEntity = jpaRepository.save(entity);
 
-        // 2. Domain Event 발행
-        // 실제 발행 타이밍: 리스너 측에서 @TransactionalEventListener(phase = AFTER_COMMIT) 사용 시 트랜잭션 커밋 후 발행
-        // 현재는 동기 방식이므로 즉시 발행되지만, 리스너 구현에 따라 비동기/지연 발행 가능
-        publishDomainEvents(seller);
 
-        // 3. 저장된 Entity를 Domain으로 변환하여 반환
-        MustitSeller savedSeller = mapper.toDomain(savedEntity);
-
-        // 4. 발행된 이벤트 제거 (중복 발행 방지)
-        seller.clearDomainEvents();
-
-        return savedSeller;
+        // 2. 저장된 Entity를 Domain으로 변환하여 반환
+        return mapper.toDomain(savedEntity);
     }
 
-    /**
-     * Domain Event를 발행합니다.
-     *
-     * @param seller 이벤트를 포함한 셀러 Aggregate
-     */
-    private void publishDomainEvents(MustitSeller seller) {
-        for (DomainEvent event : seller.getDomainEvents()) {
-            eventPublisher.publishEvent(event);
-        }
-    }
 
     /**
      * sellerId로 셀러를 조회합니다.
