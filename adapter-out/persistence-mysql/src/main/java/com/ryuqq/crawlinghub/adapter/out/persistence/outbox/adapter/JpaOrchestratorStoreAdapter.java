@@ -165,7 +165,7 @@ public class JpaOrchestratorStoreAdapter implements Store {
         WriteAheadState entityState = mapToEntityWriteAheadState(state);
         Pageable pageable = PageRequest.of(0, limit);
         List<SellerCrawlScheduleOutboxEntity> pendingOutboxes =
-                repository.findByWalStatePending(entityState, pageable);
+                repository.findByWalStateOrderByCreatedAtAsc(entityState, pageable);
 
         return pendingOutboxes.stream()
                 .map(outbox -> OpId.of(outbox.getOpId()))

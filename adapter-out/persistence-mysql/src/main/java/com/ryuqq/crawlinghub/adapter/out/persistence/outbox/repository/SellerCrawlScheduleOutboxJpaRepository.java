@@ -84,20 +84,20 @@ public interface SellerCrawlScheduleOutboxJpaRepository
     );
 
     /**
-     * WAL 상태가 PENDING인 Outbox 조회 (Finalizer용)
+     * WAL 상태로 Outbox 조회 (Finalizer용)
      * <p>
      * Orchestrator Finalizer가 주기적으로 호출하여
      * Write-Ahead Log 기록 후 완료 처리가 안 된 건들을 찾아 finalize() 합니다.
      * </p>
      *
-     * @param walState WAL 상태 (PENDING)
+     * @param walState WAL 상태 (PENDING 또는 COMPLETED)
      * @param pageable 페이징 정보 (조회 제한 포함)
      * @return Outbox Entity 목록
      */
     @Query("SELECT o FROM SellerCrawlScheduleOutboxEntity o "
             + "WHERE o.walState = :walState "
             + "ORDER BY o.createdAt ASC")
-    List<SellerCrawlScheduleOutboxEntity> findByWalStatePending(
+    List<SellerCrawlScheduleOutboxEntity> findByWalStateOrderByCreatedAtAsc(
             @Param("walState") WriteAheadState walState,
             Pageable pageable
     );
