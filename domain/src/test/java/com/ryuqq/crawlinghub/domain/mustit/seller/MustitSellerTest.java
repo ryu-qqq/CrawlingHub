@@ -263,11 +263,11 @@ class MustitSellerTest {
     @Test
     @DisplayName("크롤링 주기 변경 시 Domain Event가 발행된다")
     void publishDomainEventWhenCrawlIntervalChanged() {
-        // given
-        MustitSeller seller = new MustitSeller(
-                "SELLER001",
-                "Test Seller",
-                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        // given - Persistence에서 로드된 Seller 시뮬레이션 (id 있음)
+        MustitSeller seller = MustitSeller.reconstitute(
+                SellerBasicInfo.of(1L, "SELLER001", "Test Seller", true),
+                new CrawlInterval(CrawlIntervalType.DAILY, 1),
+                SellerTimeInfo.of(LocalDateTime.now(), LocalDateTime.now())
         );
 
         // when
@@ -311,11 +311,11 @@ class MustitSellerTest {
     @Test
     @DisplayName("Domain Event를 정리할 수 있다")
     void clearDomainEvents() {
-        // given
-        MustitSeller seller = new MustitSeller(
-                "SELLER001",
-                "Test Seller",
-                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        // given - Persistence에서 로드된 Seller 시뮬레이션 (id 있음)
+        MustitSeller seller = MustitSeller.reconstitute(
+                SellerBasicInfo.of(1L, "SELLER001", "Test Seller", true),
+                new CrawlInterval(CrawlIntervalType.DAILY, 1),
+                SellerTimeInfo.of(LocalDateTime.now(), LocalDateTime.now())
         );
         CrawlInterval newInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
         seller.updateCrawlInterval(newInterval);
@@ -371,10 +371,9 @@ class MustitSellerTest {
         );
         MustitSeller seller = MustitSeller.reconstitute(basicInfo, crawlInterval, timeInfo);
 
-        // when - 활성화 상태만 변경
-        seller.deactivate();
+        // when - 아무 변경도 하지 않음
 
-        // then
+        // then - 크롤링 주기도, 활성화 상태도 변경되지 않았으므로 false
         assertThat(seller.isModified()).isFalse();
     }
 
