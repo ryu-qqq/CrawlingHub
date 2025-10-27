@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.outbox.repository;
 import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity.OperationState;
 import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity.WriteAheadState;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -90,16 +91,15 @@ public interface SellerCrawlScheduleOutboxJpaRepository
      * </p>
      *
      * @param walState WAL 상태 (PENDING)
-     * @param limit    조회 제한 (배치 처리 크기)
+     * @param pageable 페이징 정보 (조회 제한 포함)
      * @return Outbox Entity 목록
      */
     @Query("SELECT o FROM SellerCrawlScheduleOutboxEntity o "
             + "WHERE o.walState = :walState "
-            + "ORDER BY o.createdAt ASC "
-            + "LIMIT :limit")
+            + "ORDER BY o.createdAt ASC")
     List<SellerCrawlScheduleOutboxEntity> findByWalStatePending(
             @Param("walState") WriteAheadState walState,
-            @Param("limit") int limit
+            Pageable pageable
     );
 
     /**
@@ -112,18 +112,17 @@ public interface SellerCrawlScheduleOutboxJpaRepository
      *
      * @param operationState 작업 상태 (IN_PROGRESS)
      * @param cutoffTime     타임아웃 기준 시각 (현재 시각 - timeout)
-     * @param limit          조회 제한 (배치 처리 크기)
+     * @param pageable       페이징 정보 (조회 제한 포함)
      * @return Outbox Entity 목록
      */
     @Query("SELECT o FROM SellerCrawlScheduleOutboxEntity o "
             + "WHERE o.operationState = :operationState "
             + "AND o.createdAt < :cutoffTime "
-            + "ORDER BY o.createdAt ASC "
-            + "LIMIT :limit")
+            + "ORDER BY o.createdAt ASC")
     List<SellerCrawlScheduleOutboxEntity> findInProgressAndTimeout(
             @Param("operationState") OperationState operationState,
             @Param("cutoffTime") LocalDateTime cutoffTime,
-            @Param("limit") int limit
+            Pageable pageable
     );
 
     /**
@@ -145,17 +144,16 @@ public interface SellerCrawlScheduleOutboxJpaRepository
      * </p>
      *
      * @param operationState 작업 상태 (FAILED)
-     * @param limit          조회 제한
+     * @param pageable       페이징 정보 (조회 제한 포함)
      * @return Outbox Entity 목록
      */
     @Query("SELECT o FROM SellerCrawlScheduleOutboxEntity o "
             + "WHERE o.operationState = :operationState "
             + "AND o.retryCount < o.maxRetries "
-            + "ORDER BY o.createdAt ASC "
-            + "LIMIT :limit")
+            + "ORDER BY o.createdAt ASC")
     List<SellerCrawlScheduleOutboxEntity> findRetryableFailed(
             @Param("operationState") OperationState operationState,
-            @Param("limit") int limit
+            Pageable pageable
     );
 
     /**
