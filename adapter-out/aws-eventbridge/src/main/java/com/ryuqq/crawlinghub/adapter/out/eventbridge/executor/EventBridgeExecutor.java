@@ -112,9 +112,9 @@ public class EventBridgeExecutor implements Executor {
     }
 
     /**
-     * EventBridge 스케줄 작업 실행
+     * EventBridge 스케줄 작업을 동기적으로 실행합니다.
      * <p>
-     * 비블로킹으로 즉시 반환되며, 실제 실행은 별도 스레드에서 수행됩니다.
+     * 이 메서드는 Orchestrator의 Runner에 의해 비동기적으로 호출될 것으로 예상됩니다.
      * EventBridge API 호출은 빠르므로 동기 실행 후 즉시 완료 상태로 전환합니다.
      * </p>
      *
