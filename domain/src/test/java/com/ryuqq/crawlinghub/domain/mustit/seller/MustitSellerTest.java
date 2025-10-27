@@ -127,6 +127,7 @@ class MustitSellerTest {
     void activateSeller() {
         // given
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                1L,  // id
                 "SELLER001",
                 "Test Seller",
                 true
@@ -211,6 +212,7 @@ class MustitSellerTest {
     @DisplayName("기존 셀러 정보를 재구성할 수 있다 (Persistence 로드용)")
     void reconstructExistingSeller() {
         // given
+        Long id = 2L;
         String sellerId = "SELLER001";
         String name = "Test Seller";
         boolean isActive = false;
@@ -220,6 +222,7 @@ class MustitSellerTest {
 
         // when
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                id,
                 sellerId,
                 name,
                 isActive
@@ -331,6 +334,7 @@ class MustitSellerTest {
     void isModifiedReturnsTrueWhenCrawlIntervalChanged() {
         // given
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                3L,  // id
                 "SELLER001",
                 "Test Seller",
                 true
@@ -355,6 +359,7 @@ class MustitSellerTest {
     void isModifiedReturnsFalseWhenCrawlIntervalNotChanged() {
         // given
         SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                4L,  // id
                 "SELLER001",
                 "Test Seller",
                 true

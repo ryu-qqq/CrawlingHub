@@ -19,6 +19,7 @@ import java.util.Objects;
  */
 public class MustitSeller extends AggregateRoot {
 
+    private Long id;  // Persistence Layer에서 reconstitute 시 주입 (null 가능)
     private final String sellerId;
     private final String name;  // 불변: 머스트잇 셀러명은 한번 등록하면 변경 불가
     private boolean isActive;
@@ -59,7 +60,7 @@ public class MustitSeller extends AggregateRoot {
     /**
      * 기존 셀러 정보를 재구성하는 정적 팩토리 메서드 (Persistence에서 로드 시 사용).
      *
-     * @param basicInfo     기본 정보 (sellerId, name, isActive)
+     * @param basicInfo     기본 정보 (id, sellerId, name, isActive)
      * @param crawlInterval 크롤링 주기
      * @param timeInfo      시간 정보 (createdAt, updatedAt)
      * @return 재구성된 MustitSeller Aggregate
@@ -74,6 +75,7 @@ public class MustitSeller extends AggregateRoot {
                 basicInfo.name(),
                 crawlInterval
         );
+        seller.id = basicInfo.id();  // Persistence PK 주입
         seller.isActive = basicInfo.isActive();
         seller.createdAt = timeInfo.createdAt();
         seller.updatedAt = timeInfo.updatedAt();
@@ -123,6 +125,7 @@ public class MustitSeller extends AggregateRoot {
         if (!oldInterval.equals(newCrawlInterval)) {
             registerEvent(new SellerCrawlIntervalChangedEvent(
                     this.sellerId,
+                    this.id,  // Long sellerPk (null이면 신규 생성 시점)
                     oldInterval,
                     newCrawlInterval
             ));

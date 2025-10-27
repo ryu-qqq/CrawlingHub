@@ -82,10 +82,13 @@
     <suppress checks="OperatorWrap" files=".*redis.*\.java$"/>
 
     <!-- ========================================
-         Redis Adapter - Logger Constant Naming
+         Logger Constant Naming
          SLF4J logger follows standard lowercase 'log' convention
+         Applied to: redis, application, adapter-in
          ======================================== -->
     <suppress checks="ConstantName" files=".*redis.*\.java$" message=".*log.*"/>
+    <suppress checks="ConstantName" files=".*/application/.*\.java$" message=".*log.*"/>
+    <suppress checks="ConstantName" files=".*/adapter-in/.*\.java$" message=".*log.*"/>
 
     <!-- ========================================
          Redis Adapter - Constructor Javadoc
@@ -106,4 +109,11 @@
          Java Record factory methods require multiple parameters for complete state
          ======================================== -->
     <suppress checks="ParameterNumber" files=".*(PageResponse|SliceResponse)\.java$"/>
+
+    <!-- ========================================
+         Domain Outbox - SellerCrawlScheduleOutbox
+         Persistence restoration factory method requires all 12 fields for complete state
+         (Orchestrator SDK Transactional Outbox Pattern)
+         ======================================== -->
+    <suppress checks="ParameterNumber" files=".*SellerCrawlScheduleOutbox\.java$"/>
 </suppressions>

@@ -31,6 +31,19 @@ dependencies {
 
     // JSON serialization (for EventBridge target input)
     implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // ========================================
+    // Orchestrator SDK (for Outbox Pattern)
+    // ========================================
+    // Core: Command, OpId 등 기본 타입
+    implementation(rootProject.libs.orchestrator.core)
+    // Application: Orchestrator 인터페이스 및 OperationHandle
+    // Note: Orchestrator.submit() API를 사용하기 위해 필요
+    implementation(rootProject.libs.orchestrator.application)
+    // Runner: InlineFastPathRunner 구현체 (Bootstrap에서 빈 등록)
+    // Note: Application layer에서는 인터페이스만 사용, 구현체는 Bootstrap에서 주입
+    implementation(rootProject.libs.orchestrator.runner)
 
     // ========================================
     // Test Dependencies

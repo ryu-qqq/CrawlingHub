@@ -30,6 +30,7 @@ class SellerCrawlIntervalChangedEventTest {
         // when
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,  // sellerPk
                 oldInterval,
                 newInterval
         );
@@ -52,6 +53,7 @@ class SellerCrawlIntervalChangedEventTest {
         // when & then
         assertThatThrownBy(() -> new SellerCrawlIntervalChangedEvent(
                 null,
+                1L,
                 oldInterval,
                 newInterval
         ))
@@ -69,6 +71,7 @@ class SellerCrawlIntervalChangedEventTest {
         // when & then
         assertThatThrownBy(() -> new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,
                 null,
                 newInterval
         ))
@@ -86,6 +89,7 @@ class SellerCrawlIntervalChangedEventTest {
         // when & then
         assertThatThrownBy(() -> new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,
                 oldInterval,
                 null
         ))
@@ -103,6 +107,7 @@ class SellerCrawlIntervalChangedEventTest {
 
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,  // sellerPk
                 oldInterval,
                 newInterval
         );
@@ -122,6 +127,7 @@ class SellerCrawlIntervalChangedEventTest {
         // given
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 "SELLER001",
+                1L,  // sellerPk
                 new CrawlInterval(CrawlIntervalType.DAILY, 1),
                 new CrawlInterval(CrawlIntervalType.HOURLY, 6)
         );
@@ -136,6 +142,7 @@ class SellerCrawlIntervalChangedEventTest {
         // given
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 "SELLER001",
+                1L,  // sellerPk
                 new CrawlInterval(CrawlIntervalType.DAILY, 1),
                 new CrawlInterval(CrawlIntervalType.HOURLY, 6)
         );
@@ -150,6 +157,7 @@ class SellerCrawlIntervalChangedEventTest {
         // given
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 "SELLER001",
+                1L,  // sellerPk
                 new CrawlInterval(CrawlIntervalType.DAILY, 1),
                 new CrawlInterval(CrawlIntervalType.HOURLY, 6)
         );
@@ -165,11 +173,11 @@ class SellerCrawlIntervalChangedEventTest {
         String sellerId = "SELLER001";
         CrawlInterval oldInterval = new CrawlInterval(CrawlIntervalType.DAILY, 1);
         CrawlInterval newInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
-        LocalDateTime now = LocalDateTime.now();
 
         // Create two events with manually set occurredAt to be identical
         SellerCrawlIntervalChangedEvent event1 = new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,  // sellerPk
                 oldInterval,
                 newInterval
         );
@@ -183,6 +191,7 @@ class SellerCrawlIntervalChangedEventTest {
 
         SellerCrawlIntervalChangedEvent event2 = new SellerCrawlIntervalChangedEvent(
                 sellerId,
+                1L,  // sellerPk
                 oldInterval,
                 newInterval
         );
@@ -197,6 +206,7 @@ class SellerCrawlIntervalChangedEventTest {
         // given
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 "SELLER001",
+                1L,  // sellerPk
                 new CrawlInterval(CrawlIntervalType.DAILY, 1),
                 new CrawlInterval(CrawlIntervalType.HOURLY, 6)
         );
@@ -218,6 +228,7 @@ class SellerCrawlIntervalChangedEventTest {
         // when
         SellerCrawlIntervalChangedEvent event = new SellerCrawlIntervalChangedEvent(
                 "SELLER001",
+                1L,  // sellerPk
                 new CrawlInterval(CrawlIntervalType.DAILY, 1),
                 new CrawlInterval(CrawlIntervalType.HOURLY, 6)
         );
