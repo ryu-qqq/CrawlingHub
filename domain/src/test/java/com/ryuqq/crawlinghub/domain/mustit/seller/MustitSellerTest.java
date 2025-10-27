@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.mustit.seller;
 
+import com.ryuqq.crawlinghub.domain.common.DomainEvent;
+import com.ryuqq.crawlinghub.domain.mustit.seller.event.SellerCrawlIntervalChangedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,6 +9,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -252,5 +255,135 @@ class MustitSellerTest {
                 .contains("Test Seller")
                 .contains("true") // isActive
                 .contains("CrawlInterval");
+    }
+
+    @Test
+    @DisplayName("크롤링 주기 변경 시 Domain Event가 발행된다")
+    void publishDomainEventWhenCrawlIntervalChanged() {
+        // given
+        MustitSeller seller = new MustitSeller(
+                "SELLER001",
+                "Test Seller",
+                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        );
+
+        // when
+        CrawlInterval newInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
+        seller.updateCrawlInterval(newInterval);
+
+        // then
+        List<DomainEvent> domainEvents = seller.getDomainEvents();
+        assertThat(domainEvents).hasSize(1);
+        assertThat(domainEvents.get(0)).isInstanceOf(SellerCrawlIntervalChangedEvent.class);
+
+        SellerCrawlIntervalChangedEvent event = (SellerCrawlIntervalChangedEvent) domainEvents.get(0);
+        assertThat(event.getSellerId()).isEqualTo("SELLER001");
+        assertThat(event.getOldInterval().getIntervalType()).isEqualTo(CrawlIntervalType.DAILY);
+        assertThat(event.getOldInterval().getIntervalValue()).isEqualTo(1);
+        assertThat(event.getNewInterval().getIntervalType()).isEqualTo(CrawlIntervalType.HOURLY);
+        assertThat(event.getNewInterval().getIntervalValue()).isEqualTo(6);
+        assertThat(event.getOccurredAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("동일한 크롤링 주기로 변경 시 Domain Event가 발행되지 않는다")
+    void notPublishDomainEventWhenCrawlIntervalNotChanged() {
+        // given
+        CrawlInterval interval = new CrawlInterval(CrawlIntervalType.DAILY, 1);
+        MustitSeller seller = new MustitSeller(
+                "SELLER001",
+                "Test Seller",
+                interval
+        );
+
+        // when
+        CrawlInterval sameInterval = new CrawlInterval(CrawlIntervalType.DAILY, 1);
+        seller.updateCrawlInterval(sameInterval);
+
+        // then
+        List<DomainEvent> domainEvents = seller.getDomainEvents();
+        assertThat(domainEvents).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Domain Event를 정리할 수 있다")
+    void clearDomainEvents() {
+        // given
+        MustitSeller seller = new MustitSeller(
+                "SELLER001",
+                "Test Seller",
+                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        );
+        CrawlInterval newInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
+        seller.updateCrawlInterval(newInterval);
+
+        assertThat(seller.getDomainEvents()).isNotEmpty();
+
+        // when
+        seller.clearDomainEvents();
+
+        // then
+        assertThat(seller.getDomainEvents()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("크롤링 주기가 변경된 경우 isModified()는 true를 반환한다")
+    void isModifiedReturnsTrueWhenCrawlIntervalChanged() {
+        // given
+        SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                "SELLER001",
+                "Test Seller",
+                true
+        );
+        CrawlInterval crawlInterval = new CrawlInterval(CrawlIntervalType.DAILY, 1);
+        SellerTimeInfo timeInfo = SellerTimeInfo.of(
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(1)
+        );
+        MustitSeller seller = MustitSeller.reconstitute(basicInfo, crawlInterval, timeInfo);
+
+        // when
+        CrawlInterval newInterval = new CrawlInterval(CrawlIntervalType.HOURLY, 6);
+        seller.updateCrawlInterval(newInterval);
+
+        // then
+        assertThat(seller.isModified()).isTrue();
+    }
+
+    @Test
+    @DisplayName("크롤링 주기가 변경되지 않은 경우 isModified()는 false를 반환한다")
+    void isModifiedReturnsFalseWhenCrawlIntervalNotChanged() {
+        // given
+        SellerBasicInfo basicInfo = SellerBasicInfo.of(
+                "SELLER001",
+                "Test Seller",
+                true
+        );
+        CrawlInterval crawlInterval = new CrawlInterval(CrawlIntervalType.DAILY, 1);
+        SellerTimeInfo timeInfo = SellerTimeInfo.of(
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(1)
+        );
+        MustitSeller seller = MustitSeller.reconstitute(basicInfo, crawlInterval, timeInfo);
+
+        // when - 활성화 상태만 변경
+        seller.deactivate();
+
+        // then
+        assertThat(seller.isModified()).isFalse();
+    }
+
+    @Test
+    @DisplayName("새로 생성된 셀러의 경우 isModified()는 false를 반환한다")
+    void isModifiedReturnsFalseForNewSeller() {
+        // given
+        MustitSeller seller = new MustitSeller(
+                "SELLER001",
+                "Test Seller",
+                new CrawlInterval(CrawlIntervalType.DAILY, 1)
+        );
+
+        // when & then
+        assertThat(seller.isModified()).isFalse();
     }
 }

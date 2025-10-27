@@ -38,9 +38,9 @@ public class MustitSellerMapper {
         );
 
         MustitSellerEntity.CrawlInfo crawlInfo = new MustitSellerEntity.CrawlInfo(
-                toEntityIntervalType(seller.getCrawlInterval().getIntervalType()),
-                seller.getCrawlInterval().getIntervalValue(),
-                seller.getCrawlInterval().getCronExpression()
+                toEntityIntervalType(seller.getCrawlIntervalType()),
+                seller.getCrawlIntervalValue(),
+                seller.getCronExpression()
         );
 
         return new MustitSellerEntity(basicInfo, crawlInfo);
