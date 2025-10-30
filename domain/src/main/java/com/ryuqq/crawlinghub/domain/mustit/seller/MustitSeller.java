@@ -1,280 +1,294 @@
 package com.ryuqq.crawlinghub.domain.mustit.seller;
 
-import com.ryuqq.crawlinghub.domain.common.AggregateRoot;
-import com.ryuqq.crawlinghub.domain.mustit.seller.event.SellerCrawlIntervalChangedEvent;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * 머스트잇 셀러를 표현하는 Aggregate Root
- * <p>
- * 셀러의 기본 정보와 크롤링 설정을 관리합니다.
- * Domain Event를 발행하여 크롤링 주기 변경 등의 이벤트를 외부에 알립니다.
- * </p>
+ * MustitSeller - 셀러 Aggregate Root
  *
- * @author Claude (claude@anthropic.com)
- * @since 1.0
+ * <p>MustIt 플랫폼의 셀러를 표현하는 도메인 객체입니다.</p>
+ *
+ * <p><strong>설계 원칙:</strong></p>
+ * <ul>
+ *   <li>✅ 실용적인 구조: 필요한 만큼만 캡슐화</li>
+ *   <li>✅ Static Factory Methods: create(신규), reconstitute(DB 재구성)</li>
+ *   <li>✅ 비즈니스 메서드: 상태 변경은 메서드를 통해서만</li>
+ *   <li>❌ Lombok 금지: Pure Java 사용</li>
+ * </ul>
+ *
+ * <p><strong>비즈니스 규칙:</strong></p>
+ * <ul>
+ *   <li>sellerId와 name은 필수</li>
+ *   <li>크롤링 주기는 CrawlInterval로 검증</li>
+ *   <li>active 상태 변경 가능</li>
+ * </ul>
+ *
+ * @author ryu-qqq
+ * @since 2025-10-30
  */
-public class MustitSeller extends AggregateRoot {
+public class MustitSeller {
 
-    private Long id;  // Persistence Layer에서 reconstitute 시 주입 (null 가능)
     private final String sellerId;
-    private final String name;  // 불변: 머스트잇 셀러명은 한번 등록하면 변경 불가
-    private boolean isActive;
+    private final String name;
+    private boolean active;
     private CrawlInterval crawlInterval;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // 변경 감지용 원본 상태 저장
-    private boolean originalIsActive;
-    private CrawlInterval originalCrawlInterval;
-
     /**
-     * 새로운 머스트잇 셀러를 생성합니다.
+     * Private 생성자
      *
-     * @param sellerId 셀러 고유 ID
-     * @param name 셀러명
+     * @param sellerId 셀러 ID
+     * @param name 셀러 이름
+     * @param active 활성화 상태
      * @param crawlInterval 크롤링 주기
-     * @throws IllegalArgumentException sellerId 또는 name이 null이거나 빈 문자열인 경우
+     * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
-    @SuppressFBWarnings(
-            value = "CT_CONSTRUCTOR_THROW",
-            justification = "생성자 검증은 객체 생성 전 필수입니다. Finalizer 공격은 final 클래스로 방어됩니다."
-    )
-    public MustitSeller(String sellerId, String name, CrawlInterval crawlInterval) {
-        validateSellerId(sellerId);
-        validateName(name);
-
+    private MustitSeller(
+            String sellerId,
+            String name,
+            boolean active,
+            CrawlInterval crawlInterval,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
         this.sellerId = sellerId;
         this.name = name;
-        this.isActive = true;  // 기본값: 활성
-        this.crawlInterval = Objects.requireNonNull(crawlInterval, "crawlInterval must not be null");
-        this.originalIsActive = true;  // 생성 시점의 활성 상태 저장 (항상 true)
-        this.originalCrawlInterval = crawlInterval;  // 생성 시점의 크롤링 주기 저장
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.active = active;
+        this.crawlInterval = crawlInterval;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     /**
-     * 기존 셀러 정보를 재구성하는 정적 팩토리 메서드 (Persistence에서 로드 시 사용).
+     * 신규 셀러 생성
      *
-     * @param basicInfo     기본 정보 (id, sellerId, name, isActive)
+     * @param sellerId 셀러 ID (필수)
+     * @param name 셀러 이름 (필수)
+     * @param active 활성화 상태
+     * @param intervalType 크롤링 주기 타입
+     * @param intervalValue 크롤링 주기 값
+     * @return 생성된 MustitSeller
+     * @throws IllegalArgumentException 파라미터 검증 실패 시
+     * @author ryu-qqq
+     * @since 2025-10-30
+     */
+    public static MustitSeller create(
+            String sellerId,
+            String name,
+            boolean active,
+            CrawlIntervalType intervalType,
+            int intervalValue
+    ) {
+        validateSellerId(sellerId);
+        validateName(name);
+        CrawlInterval interval = CrawlInterval.of(intervalType, intervalValue);
+        LocalDateTime now = LocalDateTime.now();
+
+        return new MustitSeller(sellerId, name, active, interval, now, now);
+    }
+
+    /**
+     * DB에서 재구성
+     *
+     * @param sellerId 셀러 ID
+     * @param name 셀러 이름
+     * @param active 활성화 상태
      * @param crawlInterval 크롤링 주기
-     * @param timeInfo      시간 정보 (createdAt, updatedAt)
-     * @return 재구성된 MustitSeller Aggregate
+     * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
+     * @return 재구성된 MustitSeller
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public static MustitSeller reconstitute(
-            SellerBasicInfo basicInfo,
+            String sellerId,
+            String name,
+            boolean active,
             CrawlInterval crawlInterval,
-            SellerTimeInfo timeInfo
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
     ) {
-        MustitSeller seller = new MustitSeller(
-                basicInfo.sellerId(),
-                basicInfo.name(),
-                crawlInterval
-        );
-        seller.id = basicInfo.id();  // Persistence PK 주입
-        seller.isActive = basicInfo.isActive();
-        seller.createdAt = timeInfo.createdAt();
-        seller.updatedAt = timeInfo.updatedAt();
-        seller.originalIsActive = basicInfo.isActive();  // 로드 시점의 활성 상태를 원본으로 저장
-        seller.originalCrawlInterval = crawlInterval;  // 로드 시점의 크롤링 주기를 원본으로 저장
-        return seller;
+        return new MustitSeller(sellerId, name, active, crawlInterval, createdAt, updatedAt);
     }
 
     /**
-     * 셀러 ID 유효성 검증
+     * 크롤링 주기 변경
      *
-     * @param sellerIdValue 검증할 셀러 ID
-     * @throws IllegalArgumentException sellerId가 null이거나 빈 문자열인 경우
+     * @param newIntervalType 새로운 크롤링 주기 타입
+     * @param newIntervalValue 새로운 크롤링 주기 값
+     * @throws IllegalArgumentException 파라미터 검증 실패 시
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
-    private void validateSellerId(String sellerIdValue) {
-        if (sellerIdValue == null || sellerIdValue.isBlank()) {
-            throw new IllegalArgumentException("sellerId must not be null or blank");
-        }
-    }
-
-    /**
-     * 셀러명 유효성 검증
-     *
-     * @param nameValue 검증할 셀러명
-     * @throws IllegalArgumentException name이 null이거나 빈 문자열인 경우
-     */
-    private void validateName(String nameValue) {
-        if (nameValue == null || nameValue.isBlank()) {
-            throw new IllegalArgumentException("name must not be null or blank");
-        }
-    }
-
-    /**
-     * 크롤링 주기를 변경합니다.
-     * 크롤링 주기가 실제로 변경되면 SellerCrawlIntervalChangedEvent를 발행합니다.
-     * <p>
-     * 신규 생성 시점(id가 null)에는 이벤트를 발행하지 않습니다.
-     * Persistence에 저장된 후(id가 설정된 후)에만 이벤트가 발행됩니다.
-     * </p>
-     *
-     * @param newCrawlInterval 새로운 크롤링 주기
-     */
-    public void updateCrawlInterval(CrawlInterval newCrawlInterval) {
-        Objects.requireNonNull(newCrawlInterval, "newCrawlInterval must not be null");
-
-        CrawlInterval oldInterval = this.crawlInterval;
-        this.crawlInterval = newCrawlInterval;
+    public void changeCrawlInterval(CrawlIntervalType newIntervalType, int newIntervalValue) {
+        this.crawlInterval = CrawlInterval.of(newIntervalType, newIntervalValue);
         this.updatedAt = LocalDateTime.now();
-
-        // 크롤링 주기가 실제로 변경되고, id가 있는 경우에만 Event 발행
-        // (신규 생성 시점에는 id가 null이므로 이벤트를 발행하지 않음)
-        if (!oldInterval.equals(newCrawlInterval) && this.id != null) {
-            registerEvent(new SellerCrawlIntervalChangedEvent(
-                    this.sellerId,
-                    this.id,  // Long sellerPk (Persistence에서 로드된 경우에만 not null)
-                    oldInterval,
-                    newCrawlInterval
-            ));
-        }
     }
 
     /**
-     * 셀러를 활성화합니다.
+     * 활성화
+     *
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public void activate() {
-        this.isActive = true;
+        this.active = true;
         this.updatedAt = LocalDateTime.now();
     }
 
     /**
-     * 셀러를 비활성화합니다.
+     * 비활성화
+     *
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public void deactivate() {
-        this.isActive = false;
+        this.active = false;
         this.updatedAt = LocalDateTime.now();
     }
 
     /**
-     * 셀러 ID를 반환합니다.
+     * sellerId 검증
+     *
+     * @param sellerId 검증할 셀러 ID
+     * @throws IllegalArgumentException sellerId가 null이거나 빈 문자열인 경우
+     * @author ryu-qqq
+     * @since 2025-10-30
+     */
+    private static void validateSellerId(String sellerId) {
+        if (sellerId == null || sellerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Seller ID must not be null or empty");
+        }
+    }
+
+    /**
+     * name 검증
+     *
+     * @param name 검증할 셀러 이름
+     * @throws IllegalArgumentException name이 null이거나 빈 문자열인 경우
+     * @author ryu-qqq
+     * @since 2025-10-30
+     */
+    private static void validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Seller name must not be null or empty");
+        }
+    }
+
+    /**
+     * 셀러 ID 반환
      *
      * @return 셀러 ID
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public String getSellerId() {
         return sellerId;
     }
 
     /**
-     * 셀러명을 반환합니다.
+     * 셀러 이름 반환
      *
-     * @return 셀러명
+     * @return 셀러 이름
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public String getName() {
         return name;
     }
 
     /**
-     * 활성 상태를 반환합니다.
+     * 활성화 상태 반환
      *
-     * @return 활성 상태
+     * @return 활성화 상태
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public boolean isActive() {
-        return isActive;
+        return active;
     }
 
     /**
-     * 크롤링 주기를 반환합니다.
+     * 크롤링 주기 반환
      *
      * @return 크롤링 주기
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public CrawlInterval getCrawlInterval() {
         return crawlInterval;
     }
 
     /**
-     * 크롤링 주기 타입을 반환합니다.
-     * Law of Demeter를 준수하기 위한 편의 메서드입니다.
-     *
-     * @return 크롤링 주기 타입
-     */
-    public CrawlIntervalType getCrawlIntervalType() {
-        return crawlInterval.getIntervalType();
-    }
-
-    /**
-     * 크롤링 주기 값을 반환합니다.
-     * Law of Demeter를 준수하기 위한 편의 메서드입니다.
-     *
-     * @return 크롤링 주기 값
-     */
-    public int getCrawlIntervalValue() {
-        return crawlInterval.getIntervalValue();
-    }
-
-    /**
-     * Cron 표현식을 반환합니다.
-     * Law of Demeter를 준수하기 위한 편의 메서드입니다.
-     *
-     * @return Cron 표현식
-     */
-    public String getCronExpression() {
-        return crawlInterval.getCronExpression();
-    }
-
-    /**
-     * 생성 시각을 반환합니다.
+     * 생성 시각 반환
      *
      * @return 생성 시각
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     /**
-     * 수정 시각을 반환합니다.
+     * 수정 시각 반환
      *
      * @return 수정 시각
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     /**
-     * Aggregate가 변경되었는지 확인합니다.
-     * 활성 상태 또는 크롤링 주기가 원본과 다르면 변경된 것으로 판단합니다.
+     * 동등성 비교 (sellerId 기준)
      *
-     * @return 변경 여부
+     * @param o 비교할 객체
+     * @return 동일하면 true
+     * @author ryu-qqq
+     * @since 2025-10-30
      */
-    public boolean isModified() {
-        boolean activeChanged = (this.isActive != this.originalIsActive);
-        boolean intervalChanged = !this.originalCrawlInterval.equals(this.crawlInterval);
-        return activeChanged || intervalChanged;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         MustitSeller that = (MustitSeller) o;
         return Objects.equals(sellerId, that.sellerId);
     }
 
+    /**
+     * 해시코드 생성
+     *
+     * @return 해시코드
+     * @author ryu-qqq
+     * @since 2025-10-30
+     */
     @Override
     public int hashCode() {
         return Objects.hash(sellerId);
     }
 
+    /**
+     * 문자열 표현
+     *
+     * @return 문자열 표현
+     * @author ryu-qqq
+     * @since 2025-10-30
+     */
     @Override
     public String toString() {
-        return "MustitSeller{"
-                + "sellerId='" + sellerId + '\''
-                + ", name='" + name + '\''
-                + ", isActive=" + isActive
-                + ", crawlInterval=" + crawlInterval
-                + ", createdAt=" + createdAt
-                + ", updatedAt=" + updatedAt
-                + '}';
+        return "MustitSeller{" +
+                "sellerId='" + sellerId + '\'' +
+                ", name='" + name + '\'' +
+                ", active=" + active +
+                ", crawlInterval=" + crawlInterval +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
