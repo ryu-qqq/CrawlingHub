@@ -1,4 +1,4 @@
-package com.ryuqq.adapter.in.rest.common.mapper;
+package com.ryuqq.crawlinghub.adapter.in.rest.common.mapper;
 
 import com.ryuqq.domain.common.DomainException;
 

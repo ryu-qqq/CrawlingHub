@@ -1,4 +1,4 @@
-package com.ryuqq.adapter.in.rest.common.dto;
+package com.ryuqq.crawlinghub.adapter.in.rest.common.dto;
 
 /**
  * ErrorInfo - API 에러 정보

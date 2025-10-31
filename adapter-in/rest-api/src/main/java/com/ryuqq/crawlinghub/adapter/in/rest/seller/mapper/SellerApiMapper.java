@@ -6,8 +6,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiResponse;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
-import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
+
 import org.springframework.stereotype.Component;
 
 /**

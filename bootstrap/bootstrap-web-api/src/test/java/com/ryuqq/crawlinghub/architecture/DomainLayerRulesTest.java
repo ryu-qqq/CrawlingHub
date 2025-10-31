@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  *   <li>Lombok 사용 금지</li>
  * </ul>
  *
- * @author Claude Code
+ * @author ryu-qqq
  * @since 2025-10-23
  * @see <a href="docs/coding_convention/02-domain-layer/">Domain Layer Conventions</a>
  */

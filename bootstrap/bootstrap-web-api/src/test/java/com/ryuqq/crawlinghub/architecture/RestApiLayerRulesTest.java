@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
  *   <li>Controller: @RestController 어노테이션 필수</li>
  * </ul>
  *
- * @author Claude Code
+ * @author ryu-qqq
  * @since 2025-10-29
  * @see <a href="docs/coding_convention/01-adapter-rest-api-layer/">REST API Layer Conventions</a>
  */

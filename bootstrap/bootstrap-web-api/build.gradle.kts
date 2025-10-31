@@ -12,7 +12,7 @@ import java.time.Instant
 plugins {
     java
     alias(libs.plugins.spring.boot)
-    alias(libs.plugins.spring.dependency.management)
+    jacoco
 }
 
 dependencies {
@@ -26,8 +26,12 @@ dependencies {
     // Adapters
     // ========================================
     // Inbound
+    implementation(project(":adapter-in:rest-api"))
 
     // Outbound
+    implementation(project(":adapter-out:persistence-mysql"))
+    implementation(project(":adapter-out:persistence-redis"))
+    implementation(project(":adapter-out:aws-eventbridge"))
 
 
     // ========================================
@@ -36,11 +40,15 @@ dependencies {
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.validation)
-    implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.actuator)
 
     // Configuration Processing
     annotationProcessor(libs.spring.boot.configuration.processor)
+
+    // ========================================
+    // API Documentation (Swagger/OpenAPI)
+    // ========================================
+    implementation(libs.springdoc.openapi)
 
     // ========================================
     // Observability
@@ -65,7 +73,6 @@ dependencies {
     // Test Dependencies
     // ========================================
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.spring.security.test)
     testImplementation(libs.testcontainers.mysql)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.rest.assured)
@@ -78,13 +85,15 @@ tasks.bootJar {
     archiveFileName.set("${project.rootProject.name}-web-api.jar")
 
     manifest {
-        attributes(mapOf(
-            "Implementation-Title" to project.rootProject.name,
-            "Implementation-Version" to project.version,
-            "Built-By" to System.getProperty("user.name"),
-            "Built-JDK" to System.getProperty("java.version"),
-            "Build-Timestamp" to Instant.now().toString()
-        ))
+        attributes(
+            mapOf(
+                "Implementation-Title" to project.rootProject.name,
+                "Implementation-Version" to project.version,
+                "Built-By" to System.getProperty("user.name"),
+                "Built-JDK" to System.getProperty("java.version"),
+                "Build-Timestamp" to Instant.now().toString()
+            )
+        )
     }
 }
 

@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.adapter.out.persistence.mysql.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

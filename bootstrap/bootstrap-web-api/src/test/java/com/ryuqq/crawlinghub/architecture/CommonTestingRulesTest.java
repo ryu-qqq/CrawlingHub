@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
  * </ul>
  *
  * @see <a href="file://docs/coding_convention/05-testing/02_test-fixture-pattern.md">TestFixture Pattern 가이드</a>
- * @author Claude Code
+ * @author ryu-qqq
  * @since 1.0.0
  */
 @DisplayName("공통 테스트 규칙 검증 (전체 모듈)")

@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

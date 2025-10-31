@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.adapter.out.persistence.mysql.config;
+package com.ryuqq.crawlinghub.adapter.out.persistence.config;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
  *   <li>Adapter Layer: Application/Domain 의존 가능</li>
  * </ul>
  *
- * @author Claude Code
+ * @author ryu-qqq
  * @since 2025-10-23
  * @see <a href="docs/coding_convention/05-testing/archunit-rules/01_layer-dependency-rules.md">Layer Dependency Rules</a>
  */

@@ -1,9 +1,9 @@
-package com.ryuqq.adapter.in.rest.config;
-
-import java.util.List;
+package com.ryuqq.crawlinghub.adapter.in.rest.config;
 
 import com.ryuqq.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.adapter.in.rest.common.mapper.ErrorMapper;
+
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
