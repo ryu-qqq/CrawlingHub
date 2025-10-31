@@ -1,294 +1,270 @@
 package com.ryuqq.crawlinghub.domain.mustit.seller;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * MustitSeller - 셀러 Aggregate Root
- *
- * <p>MustIt 플랫폼의 셀러를 표현하는 도메인 객체입니다.</p>
- *
- * <p><strong>설계 원칙:</strong></p>
+ * 머스트잇 셀러 Aggregate Root
+ * 
+ * <p>비즈니스 규칙:
  * <ul>
- *   <li>✅ 실용적인 구조: 필요한 만큼만 캡슐화</li>
- *   <li>✅ Static Factory Methods: create(신규), reconstitute(DB 재구성)</li>
- *   <li>✅ 비즈니스 메서드: 상태 변경은 메서드를 통해서만</li>
- *   <li>❌ Lombok 금지: Pure Java 사용</li>
+ *   <li>셀러 코드는 변경 불가능 (불변)</li>
+ *   <li>DISABLED 상태에서는 크롤링 불가</li>
+ *   <li>상품 수는 음수 불가</li>
  * </ul>
- *
- * <p><strong>비즈니스 규칙:</strong></p>
- * <ul>
- *   <li>sellerId와 name은 필수</li>
- *   <li>크롤링 주기는 CrawlInterval로 검증</li>
- *   <li>active 상태 변경 가능</li>
- * </ul>
- *
- * @author ryu-qqq
- * @since 2025-10-30
  */
 public class MustitSeller {
 
-    private final String sellerId;
-    private final String name;
-    private boolean active;
-    private CrawlInterval crawlInterval;
+    private final MustitSellerId id;
+    private final String sellerCode;
+    private final String sellerName;
+    private SellerStatus status;
+    private Integer totalProductCount;
+    private LocalDateTime lastCrawledAt;
+    private final Clock clock;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     /**
-     * Private 생성자
-     *
-     * @param sellerId 셀러 ID
-     * @param name 셀러 이름
-     * @param active 활성화 상태
-     * @param crawlInterval 크롤링 주기
-     * @param createdAt 생성 시각
-     * @param updatedAt 수정 시각
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * Private 전체 생성자 (reconstitute 전용)
      */
     private MustitSeller(
-            String sellerId,
-            String name,
-            boolean active,
-            CrawlInterval crawlInterval,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt
+        MustitSellerId id,
+        String sellerCode,
+        String sellerName,
+        SellerStatus status,
+        Integer totalProductCount,
+        LocalDateTime lastCrawledAt,
+        Clock clock,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
-        this.sellerId = sellerId;
-        this.name = name;
-        this.active = active;
-        this.crawlInterval = crawlInterval;
+        this.id = id;
+        this.sellerCode = sellerCode;
+        this.sellerName = sellerName;
+        this.status = status;
+        this.totalProductCount = totalProductCount;
+        this.lastCrawledAt = lastCrawledAt;
+        this.clock = clock;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     /**
-     * 신규 셀러 생성
-     *
-     * @param sellerId 셀러 ID (필수)
-     * @param name 셀러 이름 (필수)
-     * @param active 활성화 상태
-     * @param intervalType 크롤링 주기 타입
-     * @param intervalValue 크롤링 주기 값
-     * @return 생성된 MustitSeller
-     * @throws IllegalArgumentException 파라미터 검증 실패 시
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * Package-private 주요 생성자 (검증 포함)
      */
-    public static MustitSeller create(
-            String sellerId,
-            String name,
-            boolean active,
-            CrawlIntervalType intervalType,
-            int intervalValue
+    MustitSeller(
+        MustitSellerId id,
+        String sellerCode,
+        String sellerName,
+        SellerStatus status,
+        Clock clock
     ) {
-        validateSellerId(sellerId);
-        validateName(name);
-        CrawlInterval interval = CrawlInterval.of(intervalType, intervalValue);
-        LocalDateTime now = LocalDateTime.now();
+        validateRequiredFields(sellerCode, sellerName, status);
 
-        return new MustitSeller(sellerId, name, active, interval, now, now);
+        this.id = id;
+        this.sellerCode = sellerCode;
+        this.sellerName = sellerName;
+        this.status = status;
+        this.totalProductCount = 0;
+        this.lastCrawledAt = null;
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
-     * DB에서 재구성
-     *
-     * @param sellerId 셀러 ID
-     * @param name 셀러 이름
-     * @param active 활성화 상태
-     * @param crawlInterval 크롤링 주기
-     * @param createdAt 생성 시각
-     * @param updatedAt 수정 시각
-     * @return 재구성된 MustitSeller
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 신규 셀러 생성 (ID 없음)
+     */
+    public static MustitSeller forNew(String sellerCode, String sellerName) {
+        return new MustitSeller(
+            null,
+            sellerCode,
+            sellerName,
+            SellerStatus.ACTIVE,
+            Clock.systemDefaultZone()
+        );
+    }
+
+    /**
+     * 기존 셀러 생성 (ID 있음)
+     */
+    public static MustitSeller of(
+        MustitSellerId id,
+        String sellerCode,
+        String sellerName,
+        SellerStatus status
+    ) {
+        if (id == null) {
+            throw new IllegalArgumentException("MustitSeller ID는 필수입니다");
+        }
+        return new MustitSeller(id, sellerCode, sellerName, status, Clock.systemDefaultZone());
+    }
+
+    /**
+     * DB reconstitute (모든 필드 포함)
      */
     public static MustitSeller reconstitute(
-            String sellerId,
-            String name,
-            boolean active,
-            CrawlInterval crawlInterval,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt
+        MustitSellerId id,
+        String sellerCode,
+        String sellerName,
+        SellerStatus status,
+        Integer totalProductCount,
+        LocalDateTime lastCrawledAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
-        return new MustitSeller(sellerId, name, active, crawlInterval, createdAt, updatedAt);
+        if (id == null) {
+            throw new IllegalArgumentException("DB reconstitute는 ID가 필수입니다");
+        }
+        return new MustitSeller(
+            id,
+            sellerCode,
+            sellerName,
+            status,
+            totalProductCount,
+            lastCrawledAt,
+            Clock.systemDefaultZone(),
+            createdAt,
+            updatedAt
+        );
+    }
+
+    private static void validateRequiredFields(String sellerCode, String sellerName, SellerStatus status) {
+        if (sellerCode == null || sellerCode.isBlank()) {
+            throw new IllegalArgumentException("셀러 코드는 필수입니다");
+        }
+        if (sellerName == null || sellerName.isBlank()) {
+            throw new IllegalArgumentException("셀러 이름은 필수입니다");
+        }
+        if (status == null) {
+            throw new IllegalArgumentException("셀러 상태는 필수입니다");
+        }
     }
 
     /**
-     * 크롤링 주기 변경
-     *
-     * @param newIntervalType 새로운 크롤링 주기 타입
-     * @param newIntervalValue 새로운 크롤링 주기 값
-     * @throws IllegalArgumentException 파라미터 검증 실패 시
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
-    public void changeCrawlInterval(CrawlIntervalType newIntervalType, int newIntervalValue) {
-        this.crawlInterval = CrawlInterval.of(newIntervalType, newIntervalValue);
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 활성화
-     *
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 셀러 활성화
      */
     public void activate() {
-        this.active = true;
-        this.updatedAt = LocalDateTime.now();
+        this.status = SellerStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
-     * 비활성화
-     *
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 셀러 일시정지
      */
-    public void deactivate() {
-        this.active = false;
-        this.updatedAt = LocalDateTime.now();
+    public void pause() {
+        this.status = SellerStatus.PAUSED;
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
-     * sellerId 검증
-     *
-     * @param sellerId 검증할 셀러 ID
-     * @throws IllegalArgumentException sellerId가 null이거나 빈 문자열인 경우
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 셀러 비활성화
      */
-    private static void validateSellerId(String sellerId) {
-        if (sellerId == null || sellerId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Seller ID must not be null or empty");
+    public void disable() {
+        this.status = SellerStatus.DISABLED;
+        this.updatedAt = LocalDateTime.now(clock);
+    }
+
+    /**
+     * 상품 수 업데이트
+     */
+    public void updateProductCount(Integer count) {
+        if (count == null || count < 0) {
+            throw new IllegalArgumentException("상품 수는 0 이상이어야 합니다");
         }
+        this.totalProductCount = count;
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
-     * name 검증
-     *
-     * @param name 검증할 셀러 이름
-     * @throws IllegalArgumentException name이 null이거나 빈 문자열인 경우
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 크롤링 완료 기록
      */
-    private static void validateName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Seller name must not be null or empty");
-        }
+    public void recordCrawlingComplete() {
+        this.lastCrawledAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
-     * 셀러 ID 반환
-     *
-     * @return 셀러 ID
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 크롤링 가능 여부 확인
      */
-    public String getSellerId() {
-        return sellerId;
+    public boolean canCrawl() {
+        return status.canCrawl();
     }
 
     /**
-     * 셀러 이름 반환
-     *
-     * @return 셀러 이름
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * 활성화 상태 반환
-     *
-     * @return 활성화 상태
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 활성 상태 여부 확인
      */
     public boolean isActive() {
-        return active;
+        return status.isActive();
     }
 
     /**
-     * 크롤링 주기 반환
-     *
-     * @return 크롤링 주기
-     * @author ryu-qqq
-     * @since 2025-10-30
+     * 특정 상태인지 확인
      */
-    public CrawlInterval getCrawlInterval() {
-        return crawlInterval;
+    public boolean hasStatus(SellerStatus targetStatus) {
+        return this.status == targetStatus;
     }
 
-    /**
-     * 생성 시각 반환
-     *
-     * @return 생성 시각
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
+    // Law of Demeter 준수 메서드
+    public Long getIdValue() {
+        return id != null ? id.value() : null;
+    }
+
+    public String getSellerCode() {
+        return sellerCode;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public SellerStatus getStatus() {
+        return status;
+    }
+
+    public Integer getTotalProductCount() {
+        return totalProductCount;
+    }
+
+    public LocalDateTime getLastCrawledAt() {
+        return lastCrawledAt;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    /**
-     * 수정 시각 반환
-     *
-     * @return 수정 시각
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    /**
-     * 동등성 비교 (sellerId 기준)
-     *
-     * @param o 비교할 객체
-     * @return 동일하면 true
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         MustitSeller that = (MustitSeller) o;
-        return Objects.equals(sellerId, that.sellerId);
+        return Objects.equals(id, that.id);
     }
 
-    /**
-     * 해시코드 생성
-     *
-     * @return 해시코드
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
     @Override
     public int hashCode() {
-        return Objects.hash(sellerId);
+        return Objects.hash(id);
     }
 
-    /**
-     * 문자열 표현
-     *
-     * @return 문자열 표현
-     * @author ryu-qqq
-     * @since 2025-10-30
-     */
     @Override
     public String toString() {
         return "MustitSeller{" +
-                "sellerId='" + sellerId + '\'' +
-                ", name='" + name + '\'' +
-                ", active=" + active +
-                ", crawlInterval=" + crawlInterval +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+            "id=" + id +
+            ", sellerCode='" + sellerCode + '\'' +
+            ", sellerName='" + sellerName + '\'' +
+            ", status=" + status +
+            ", totalProductCount=" + totalProductCount +
+            '}';
     }
 }

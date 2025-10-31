@@ -1,6 +1,6 @@
 {
   "id": "persistence-layer-jpa-entity-design-01_long-fk-strategy",
-  "sourceFile": "/Users/sangwon-ryu/fileflow/docs/coding_convention/04-persistence-layer/jpa-entity-design/01_long-fk-strategy.md",
+  "sourceFile": "/Users/sangwon-ryu/crawlinghub/docs/coding_convention/04-persistence-layer/jpa-entity-design/01_long-fk-strategy.md",
   "metadata": {
     "keywords": {
       "primary": [

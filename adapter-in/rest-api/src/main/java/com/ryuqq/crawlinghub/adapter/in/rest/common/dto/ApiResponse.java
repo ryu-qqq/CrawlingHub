@@ -1,4 +1,4 @@
-package com.ryuqq.adapter.in.rest.common.dto;
+package com.ryuqq.crawlinghub.adapter.in.rest.common.dto;
 
 import java.time.LocalDateTime;
 

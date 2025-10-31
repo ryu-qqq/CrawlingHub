@@ -1,4 +1,4 @@
-package com.ryuqq.fileflow.architecture;
+package com.ryuqq.crawlinghub.architecture;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

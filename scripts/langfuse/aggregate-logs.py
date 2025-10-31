@@ -52,10 +52,23 @@ class LangFuseAggregator:
                 except json.JSONDecodeError:
                     continue
 
+    def _normalize_timestamp(self, timestamp: str) -> str:
+        """Timestamp를 LangFuse 호환 ISO 8601 UTC 형식으로 변환"""
+        try:
+            # 이미 Z나 타임존이 있으면 그대로 반환
+            if timestamp.endswith('Z') or '+' in timestamp or timestamp.count(':') > 2:
+                return timestamp
+
+            # 타임존 정보 없으면 Z 추가 (UTC)
+            return f"{timestamp}Z"
+        except:
+            # 실패 시 현재 시간 (UTC)
+            return datetime.utcnow().isoformat() + 'Z'
+
     def _process_claude_event(self, event: Dict) -> None:
         """Claude Code 이벤트 → LangFuse Observation"""
         event_type = event.get('event')
-        timestamp = event.get('timestamp', datetime.utcnow().isoformat())
+        timestamp = self._normalize_timestamp(event.get('timestamp', datetime.utcnow().isoformat()))
 
         if event_type == 'session_start':
             # 새 Trace 생성
@@ -93,7 +106,7 @@ class LangFuseAggregator:
 
     def _process_cascade_event(self, event: Dict) -> None:
         """Cascade 이벤트 → LangFuse Observation"""
-        timestamp = event.get('timestamp', datetime.utcnow().isoformat())
+        timestamp = self._normalize_timestamp(event.get('timestamp', datetime.utcnow().isoformat()))
         task_name = event.get('task', 'unknown')
         status_code = event.get('status', 1)
         duration = event.get('duration', 0)
@@ -232,7 +245,7 @@ def main():
     )
     parser.add_argument(
         '--cascade-logs',
-        default='.cascade/metrics.jsonl',
+        default='.pipeline-metrics/metrics.jsonl',
         help='Path to Cascade logs'
     )
     parser.add_argument(
@@ -281,14 +294,14 @@ def main():
 
     print("🚀 LangFuse Log Aggregator")
     print(f"   Claude logs: {args.claude_logs}")
-    print(f"   Cascade logs: {args.cascade_logs}")
+    print(f"   Cascade logs: {args.pipeline-metrics_logs}")
     print(f"   Anonymize: {args.anonymize}")
 
     aggregator = LangFuseAggregator(anonymize=args.anonymize)
 
     # 로그 로드
     aggregator.load_claude_logs(args.claude_logs)
-    aggregator.load_cascade_logs(args.cascade_logs)
+    aggregator.load_cascade_logs(args.pipeline-metrics_logs)
 
     # LangFuse 형식으로 내보내기
     data = aggregator.export_to_langfuse()

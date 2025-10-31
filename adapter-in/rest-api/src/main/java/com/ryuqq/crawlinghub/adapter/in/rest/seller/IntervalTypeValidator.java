@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

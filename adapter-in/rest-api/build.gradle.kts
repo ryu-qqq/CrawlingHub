@@ -1,70 +1,55 @@
-import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+// ========================================
+// Adapter-In REST API (Inbound Adapter)
+// ========================================
+// Purpose: REST API 진입점 (Driving Adapter)
+// - REST Controllers
+// - Request/Response DTOs
+// - Exception Handlers
+// - API Documentation (OpenAPI/Swagger)
+//
+// Dependencies:
+// - application (Use Case 호출)
+// - domain (Domain 모델 참조)
+// - Spring Web
+//
+// Policy:
+// - Controller는 thin layer (비즈니스 로직 없음)
+// - DTO ↔ Domain 변환은 Mapper로 위임
+// - Exception Handling은 @ControllerAdvice
+// ========================================
 
 plugins {
-    id("java")
-    id("io.spring.dependency-management") version "1.1.5"
-}
-
-group = "com.ryuqq.crawlinghub"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
+    java
+    `java-test-fixtures`  // TestFixtures 플러그인
 }
 
 dependencies {
-    // Domain Layer
+    // ========================================
+    // Core Dependencies
+    // ========================================
     implementation(project(":domain"))
-
-    // Application Layer
     implementation(project(":application"))
 
-    // Spring Web (REST API)
+    // ========================================
+    // Spring Web
+    // ========================================
     implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // Jackson (JSON 처리)
+    // ========================================
+    // API Documentation
+    // ========================================
+    implementation(rootProject.libs.springdoc.openapi)
+
+    // ========================================
+    // JSON Processing
+    // ========================================
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
+    // ========================================
     // Test Dependencies
+    // ========================================
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core")
-    testImplementation("org.mockito:mockito-core")
-    testImplementation("org.mockito:mockito-junit-jupiter")
-
-    // Spring MVC Test
-    testImplementation("org.springframework:spring-test")
-
-    // REST Docs (Spring REST Docs)
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.6")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-// ========================================
-// Test Coverage
-// ========================================
-// Note: Jacoco 검증은 새로 추가된 Mapper 및 Exception Handler 클래스들로 인해
-// 현재 작업 범위(Option C 리팩토링)에서는 비활성화합니다.
-// REST API 레이어는 별도의 통합 테스트에서 검증될 예정입니다.
-tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    enabled = false
 }
