@@ -19,9 +19,7 @@ import java.util.stream.Collectors;
  */
 public class IntervalTypeValidator implements ConstraintValidator<ValidIntervalType, String> {
 
-    private static final Set<String> VALID_TYPES = Arrays.stream(CrawlIntervalType.values())
-            .map(Enum::name)
-            .collect(Collectors.toSet());
+    private static final Set<String> VALID_TYPES = Set.of("HOURLY", "DAILY", "WEEKLY");
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {

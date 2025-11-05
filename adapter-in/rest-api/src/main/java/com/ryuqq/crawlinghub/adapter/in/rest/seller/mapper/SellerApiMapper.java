@@ -10,14 +10,13 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.ScheduleHistory
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.ScheduleInfoApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ProductCountHistoryResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleHistoryResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleInfoResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlIntervalType;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 
 import org.springframework.stereotype.Component;
 
@@ -42,18 +41,15 @@ public class SellerApiMapper {
      * @param request API Request
      * @return Application Command
      */
-    public RegisterMustitSellerCommand toCommand(RegisterSellerApiRequest request) {
+    public RegisterSellerCommand toCommand(RegisterSellerApiRequest request) {
         if (request == null) {
             return null;
         }
 
-        CrawlIntervalType intervalType = CrawlIntervalType.valueOf(request.intervalType());
-
-        return new RegisterMustitSellerCommand(
-                request.sellerId(),
-                request.name(),
-                intervalType,
-                request.intervalValue()
+        // RegisterSellerApiRequest는 sellerId를 sellerCode로 사용
+        return new RegisterSellerCommand(
+                request.sellerId(), // sellerCode로 사용
+                request.name()      // sellerName으로 사용
         );
     }
 
@@ -63,18 +59,18 @@ public class SellerApiMapper {
      * @param seller Domain Aggregate
      * @return API Response
      */
-    public RegisterSellerApiResponse toResponse(MustitSeller seller) {
+    public RegisterSellerApiResponse toResponse(SellerResponse seller) {
         if (seller == null) {
             return null;
         }
 
         return new RegisterSellerApiResponse(
-                seller.getSellerId(),
-                seller.getName(),
-                seller.isActive(),
-                seller.getCrawlIntervalType().name(),
-                seller.getCrawlIntervalValue(),
-                seller.getCreatedAt()
+                seller.sellerId().toString(),
+                seller.sellerName(),
+                seller.status() == com.ryuqq.crawlinghub.domain.seller.SellerStatus.ACTIVE,
+                "DAILY", // TODO: intervalType은 현재 구조에 없음, 기본값 사용
+                1,        // TODO: intervalValue는 현재 구조에 없음, 기본값 사용
+                seller.createdAt()
         );
     }
 
@@ -85,21 +81,23 @@ public class SellerApiMapper {
      * @param request Update API Request
      * @return Update Application Command
      */
-    public UpdateMustitSellerCommand toUpdateCommand(String sellerId, UpdateSellerApiRequest request) {
+    public UpdateSellerStatusCommand toUpdateCommand(Long sellerId, UpdateSellerApiRequest request) {
         if (request == null) {
             return null;
         }
 
-        CrawlIntervalType intervalType = null;
-        if (request.intervalType() != null) {
-            intervalType = CrawlIntervalType.valueOf(request.intervalType());
+        // UpdateSellerApiRequest의 isActive를 SellerStatus로 변환
+        com.ryuqq.crawlinghub.domain.seller.SellerStatus status;
+        if (request.isActive() == null) {
+            throw new IllegalArgumentException("isActive 필드는 필수입니다");
         }
+        status = request.isActive() 
+            ? com.ryuqq.crawlinghub.domain.seller.SellerStatus.ACTIVE
+            : com.ryuqq.crawlinghub.domain.seller.SellerStatus.PAUSED;
 
-        return new UpdateMustitSellerCommand(
+        return new UpdateSellerStatusCommand(
                 sellerId,
-                request.isActive(),
-                intervalType,
-                request.intervalValue()
+                status
         );
     }
 
@@ -109,18 +107,18 @@ public class SellerApiMapper {
      * @param seller Domain Aggregate
      * @return Update API Response
      */
-    public UpdateSellerApiResponse toUpdateResponse(MustitSeller seller) {
+    public UpdateSellerApiResponse toUpdateResponse(SellerResponse seller) {
         if (seller == null) {
             return null;
         }
 
         return new UpdateSellerApiResponse(
-                seller.getSellerId(),
-                seller.getName(),
-                seller.isActive(),
-                seller.getCrawlIntervalType().name(),
-                seller.getCrawlIntervalValue(),
-                seller.getUpdatedAt()
+                seller.sellerId().toString(),
+                seller.sellerName(),
+                seller.status() == com.ryuqq.crawlinghub.domain.seller.SellerStatus.ACTIVE,
+                "DAILY", // TODO: intervalType은 현재 구조에 없음, 기본값 사용
+                1,        // TODO: intervalValue는 현재 구조에 없음, 기본값 사용
+                seller.updatedAt()
         );
     }
 
@@ -143,9 +141,9 @@ public class SellerApiMapper {
             response.sellerName(),
             response.status(),
             response.totalProductCount(),
-            toPageApiResponse(response.productCountHistories()), // ⭐
+            toProductCountHistoryPageApiResponse(response.productCountHistories()), // ⭐
             toScheduleInfoApiResponse(response.scheduleInfo()), // ⭐
-            toPageApiResponse(response.scheduleHistories()) // ⭐
+            toScheduleHistoryPageApiResponse(response.scheduleHistories()) // ⭐
         );
     }
 
@@ -155,7 +153,7 @@ public class SellerApiMapper {
      * @param pageResponse Application Layer PageResponse
      * @return REST API PageApiResponse
      */
-    public PageApiResponse<ProductCountHistoryApiResponse> toPageApiResponse(
+    public PageApiResponse<ProductCountHistoryApiResponse> toProductCountHistoryPageApiResponse(
         PageResponse<ProductCountHistoryResponse> pageResponse
     ) {
         if (pageResponse == null) {
@@ -221,7 +219,7 @@ public class SellerApiMapper {
      * @param pageResponse Application Layer PageResponse
      * @return REST API PageApiResponse
      */
-    public PageApiResponse<ScheduleHistoryApiResponse> toPageApiResponse(
+    public PageApiResponse<ScheduleHistoryApiResponse> toScheduleHistoryPageApiResponse(
         PageResponse<ScheduleHistoryResponse> pageResponse
     ) {
         if (pageResponse == null) {

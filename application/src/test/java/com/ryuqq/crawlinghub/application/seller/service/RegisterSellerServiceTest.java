@@ -65,7 +65,7 @@ class RegisterSellerServiceTest {
                 command = RegisterSellerCommandFixture.create();
                 savedSeller = MustitSellerFixture.createWithId(1L);
 
-                // And: 중복된 셀러 코드가 없음
+                // And: 중복된 셀러 코드가 없음 (DTO 반환)
                 given(loadSellerPort.findByCode(command.sellerCode()))
                     .willReturn(Optional.empty());
 
@@ -107,10 +107,20 @@ class RegisterSellerServiceTest {
                 // Given: 등록하려는 셀러 정보
                 command = RegisterSellerCommandFixture.create();
 
-                // And: 이미 존재하는 셀러
+                // And: 이미 존재하는 셀러 (DTO 반환)
                 existingSeller = MustitSellerFixture.createWithCode(command.sellerCode());
+                SellerQueryDto existingDto = new SellerQueryDto(
+                    existingSeller.getIdValue(),
+                    existingSeller.getSellerCode(),
+                    existingSeller.getSellerName(),
+                    existingSeller.getStatus(),
+                    existingSeller.getTotalProductCount(),
+                    existingSeller.getLastCrawledAt(),
+                    existingSeller.getCreatedAt(),
+                    existingSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findByCode(command.sellerCode()))
-                    .willReturn(Optional.of(existingSeller));
+                    .willReturn(Optional.of(existingDto));
             }
 
             @Test
