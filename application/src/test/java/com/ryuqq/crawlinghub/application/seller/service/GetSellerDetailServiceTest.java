@@ -1,7 +1,9 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQueryFixture;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 import com.ryuqq.crawlinghub.application.seller.port.SellerStatsFixture;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
@@ -48,6 +50,9 @@ class GetSellerDetailServiceTest {
     @Mock
     private LoadSellerStatsPort loadSellerStatsPort;
 
+    @Mock
+    private SellerAssembler sellerAssembler;
+
     @InjectMocks
     private GetSellerDetailService sut;
 
@@ -70,9 +75,22 @@ class GetSellerDetailServiceTest {
                 seller = MustitSellerFixture.createActive();
                 stats = SellerStatsFixture.create();
 
-                // Mock 설정
+                // Mock 설정: LoadSellerPort는 SellerQueryDto 반환
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
             }
@@ -150,8 +168,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller activeSeller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    activeSeller.getIdValue(),
+                    activeSeller.getSellerCode(),
+                    activeSeller.getSellerName(),
+                    activeSeller.getStatus(),
+                    activeSeller.getTotalProductCount(),
+                    activeSeller.getLastCrawledAt(),
+                    activeSeller.getCreatedAt(),
+                    activeSeller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(activeSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(activeSeller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -170,8 +201,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller pausedSeller = MustitSellerFixture.createPaused();
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    pausedSeller.getIdValue(),
+                    pausedSeller.getSellerCode(),
+                    pausedSeller.getSellerName(),
+                    pausedSeller.getStatus(),
+                    pausedSeller.getTotalProductCount(),
+                    pausedSeller.getLastCrawledAt(),
+                    pausedSeller.getCreatedAt(),
+                    pausedSeller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(pausedSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(pausedSeller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -190,8 +234,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    disabledSeller.getIdValue(),
+                    disabledSeller.getSellerCode(),
+                    disabledSeller.getSellerName(),
+                    disabledSeller.getStatus(),
+                    disabledSeller.getTotalProductCount(),
+                    disabledSeller.getLastCrawledAt(),
+                    disabledSeller.getCreatedAt(),
+                    disabledSeller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(disabledSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(disabledSeller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -215,8 +272,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.createHighSuccessRate();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -237,8 +307,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.createLowSuccessRate();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -259,8 +342,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.createNoTasks();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -283,8 +379,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.createNoActiveSchedules();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -309,8 +418,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createWithProductCount(10000);
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -329,8 +451,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createWithProductCount(0);
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 
@@ -354,8 +489,21 @@ class GetSellerDetailServiceTest {
                 MustitSeller seller = MustitSellerFixture.createActive();
                 SellerStats stats = SellerStatsFixture.create();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(loadSellerStatsPort.getSellerStats(any(MustitSellerId.class)))
                     .willReturn(stats);
 

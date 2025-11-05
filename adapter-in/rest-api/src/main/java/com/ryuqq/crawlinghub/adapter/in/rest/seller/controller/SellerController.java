@@ -7,13 +7,12 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
 import com.ryuqq.crawlinghub.application.seller.port.in.GetSellerDetailUseCase;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateMustitSellerUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,27 +47,27 @@ import java.util.Objects;
 @Tag(name = "Seller API", description = "셀러 관리 API")
 public class SellerController {
 
-    private final RegisterMustitSellerUseCase registerMustitSellerUseCase;
-    private final UpdateMustitSellerUseCase updateMustitSellerUseCase;
+    private final RegisterSellerUseCase registerSellerUseCase;
+    private final UpdateSellerStatusUseCase updateSellerStatusUseCase;
     private final GetSellerDetailUseCase getSellerDetailUseCase;
     private final SellerApiMapper sellerApiMapper;
 
     /**
      * 생성자 주입 (Constructor Injection)
      *
-     * @param registerMustitSellerUseCase 셀러 등록 UseCase
-     * @param updateMustitSellerUseCase   셀러 수정 UseCase
+     * @param registerSellerUseCase 셀러 등록 UseCase
+     * @param updateSellerStatusUseCase   셀러 상태 변경 UseCase
      * @param getSellerDetailUseCase      셀러 상세 조회 UseCase
      * @param sellerApiMapper             API Mapper
      */
     public SellerController(
-            RegisterMustitSellerUseCase registerMustitSellerUseCase,
-            UpdateMustitSellerUseCase updateMustitSellerUseCase,
+            RegisterSellerUseCase registerSellerUseCase,
+            UpdateSellerStatusUseCase updateSellerStatusUseCase,
             GetSellerDetailUseCase getSellerDetailUseCase,
             SellerApiMapper sellerApiMapper
     ) {
-        this.registerMustitSellerUseCase = registerMustitSellerUseCase;
-        this.updateMustitSellerUseCase = updateMustitSellerUseCase;
+        this.registerSellerUseCase = registerSellerUseCase;
+        this.updateSellerStatusUseCase = updateSellerStatusUseCase;
         this.getSellerDetailUseCase = getSellerDetailUseCase;
         this.sellerApiMapper = sellerApiMapper;
     }
@@ -87,19 +86,19 @@ public class SellerController {
             @Valid @RequestBody RegisterSellerApiRequest request
     ) {
         // 1. API Request → Application Command 변환
-        RegisterMustitSellerCommand command = sellerApiMapper.toCommand(request);
+        RegisterSellerCommand command = sellerApiMapper.toCommand(request);
 
-        // 2. UseCase 실행 → Domain Aggregate 반환
-        MustitSeller seller =
-                registerMustitSellerUseCase.execute(command);
+        // 2. UseCase 실행 → Application Response 반환
+        com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse response =
+                registerSellerUseCase.execute(command);
 
-        // 3. Domain Aggregate → API Response 변환
-        RegisterSellerApiResponse response = sellerApiMapper.toResponse(seller);
+        // 3. Application Response → API Response 변환
+        RegisterSellerApiResponse apiResponse = sellerApiMapper.toResponse(response);
 
         // 4. ApiResponse로 래핑
-        ApiResponse<RegisterSellerApiResponse> apiResponse = ApiResponse.ofSuccess(response);
+        ApiResponse<RegisterSellerApiResponse> wrappedResponse = ApiResponse.ofSuccess(apiResponse);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(wrappedResponse);
     }
 
     /**
@@ -130,19 +129,19 @@ public class SellerController {
         }
 
         // 2. API Request → Application Command 변환
-        UpdateMustitSellerCommand command = sellerApiMapper.toUpdateCommand(sellerId, request);
+        UpdateSellerStatusCommand command = sellerApiMapper.toUpdateCommand(Long.parseLong(sellerId), request);
 
-        // 3. UseCase 실행 → Domain Aggregate 반환
-        MustitSeller seller =
-                updateMustitSellerUseCase.execute(command);
+        // 3. UseCase 실행 → Application Response 반환
+        com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse response =
+                updateSellerStatusUseCase.execute(command);
 
-        // 4. Domain Aggregate → API Response 변환
-        UpdateSellerApiResponse response = sellerApiMapper.toUpdateResponse(seller);
+        // 4. Application Response → API Response 변환
+        UpdateSellerApiResponse apiResponse = sellerApiMapper.toUpdateResponse(response);
 
         // 5. ApiResponse로 래핑
-        ApiResponse<UpdateSellerApiResponse> apiResponse = ApiResponse.ofSuccess(response);
+        ApiResponse<UpdateSellerApiResponse> wrappedResponse = ApiResponse.ofSuccess(apiResponse);
 
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(wrappedResponse);
     }
 
     /**

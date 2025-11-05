@@ -77,8 +77,8 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
         // 1. 셀러 상태 확인
         MustitSeller seller = loadSellerPort.findById(sellerId)
             .map(sellerAssembler::toDomain)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "셀러를 찾을 수 없습니다: " + command.sellerId()
+            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException(
+                command.sellerId()
             ));
 
         if (!seller.isActive()) {

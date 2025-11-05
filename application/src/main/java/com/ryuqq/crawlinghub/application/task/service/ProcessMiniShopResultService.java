@@ -255,8 +255,8 @@ public class ProcessMiniShopResultService implements ProcessMiniShopResultUseCas
 
         MustitSeller seller = loadSellerPort.findById(sellerIdObj)
             .map(sellerAssembler::toDomain)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "셀러를 찾을 수 없습니다: " + sellerId
+            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException(
+                sellerId
             ));
 
         seller.updateProductCount(totalProductCount);

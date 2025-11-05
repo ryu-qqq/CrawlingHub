@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.error;
 
-import com.ryuqq.adapter.in.rest.common.mapper.ErrorMapper;
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper;
+import com.ryuqq.crawlinghub.domain.common.DomainException;
 
 import java.net.URI;
 import java.util.List;

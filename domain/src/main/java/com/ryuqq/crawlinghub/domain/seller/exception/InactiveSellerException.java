@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+
 import java.util.Map;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Map;
  * @author ryu-qqq
  * @since 2025-11-05
  */
-public final class InactiveSellerException extends RuntimeException implements SellerException {
+public final class InactiveSellerException extends SellerException {
 
     private final Long sellerId;
     private final String sellerName;

@@ -1,7 +1,9 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommandFixture;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
@@ -46,6 +48,9 @@ class UpdateSellerStatusServiceTest {
     @Mock
     private SaveSellerPort saveSellerPort;
 
+    @Mock
+    private SellerAssembler sellerAssembler;
+
     @InjectMocks
     private UpdateSellerStatusService sut;
 
@@ -70,9 +75,22 @@ class UpdateSellerStatusServiceTest {
                 // And: 활성화된 셀러
                 activatedSeller = MustitSellerFixture.createActive();
 
-                // Mock 설정
+                // Mock 설정: LoadSellerPort는 SellerQueryDto 반환
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
+
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(activatedSeller);
             }
@@ -112,9 +130,21 @@ class UpdateSellerStatusServiceTest {
                 // And: 일시중지된 셀러
                 pausedSeller = MustitSellerFixture.createPaused();
 
-                // Mock 설정
+                // Mock 설정: LoadSellerPort는 SellerQueryDto 반환
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(pausedSeller);
             }
@@ -154,9 +184,21 @@ class UpdateSellerStatusServiceTest {
                 // And: 비활성화된 셀러
                 disabledSeller = MustitSellerFixture.createDisabled();
 
-                // Mock 설정
+                // Mock 설정: LoadSellerPort는 SellerQueryDto 반환
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt(),
+                    seller.getCreatedAt(),
+                    seller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(seller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(seller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(disabledSeller);
             }
@@ -223,8 +265,20 @@ class UpdateSellerStatusServiceTest {
                 MustitSeller pausedSeller = MustitSellerFixture.createPaused();
                 MustitSeller activeSeller = MustitSellerFixture.createActive();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    pausedSeller.getIdValue(),
+                    pausedSeller.getSellerCode(),
+                    pausedSeller.getSellerName(),
+                    pausedSeller.getStatus(),
+                    pausedSeller.getTotalProductCount(),
+                    pausedSeller.getLastCrawledAt(),
+                    pausedSeller.getCreatedAt(),
+                    pausedSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(pausedSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(pausedSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(activeSeller);
 
@@ -243,8 +297,20 @@ class UpdateSellerStatusServiceTest {
                 MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
                 MustitSeller activeSeller = MustitSellerFixture.createActive();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    disabledSeller.getIdValue(),
+                    disabledSeller.getSellerCode(),
+                    disabledSeller.getSellerName(),
+                    disabledSeller.getStatus(),
+                    disabledSeller.getTotalProductCount(),
+                    disabledSeller.getLastCrawledAt(),
+                    disabledSeller.getCreatedAt(),
+                    disabledSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(disabledSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(disabledSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(activeSeller);
 
@@ -263,8 +329,20 @@ class UpdateSellerStatusServiceTest {
                 MustitSeller activeSeller = MustitSellerFixture.createActive();
                 MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    activeSeller.getIdValue(),
+                    activeSeller.getSellerCode(),
+                    activeSeller.getSellerName(),
+                    activeSeller.getStatus(),
+                    activeSeller.getTotalProductCount(),
+                    activeSeller.getLastCrawledAt(),
+                    activeSeller.getCreatedAt(),
+                    activeSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(activeSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(activeSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(disabledSeller);
 
@@ -283,8 +361,20 @@ class UpdateSellerStatusServiceTest {
                 MustitSeller pausedSeller = MustitSellerFixture.createPaused();
                 MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    pausedSeller.getIdValue(),
+                    pausedSeller.getSellerCode(),
+                    pausedSeller.getSellerName(),
+                    pausedSeller.getStatus(),
+                    pausedSeller.getTotalProductCount(),
+                    pausedSeller.getLastCrawledAt(),
+                    pausedSeller.getCreatedAt(),
+                    pausedSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(pausedSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(pausedSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(disabledSeller);
 
@@ -307,8 +397,20 @@ class UpdateSellerStatusServiceTest {
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createActive();
                 MustitSeller activeSeller = MustitSellerFixture.createActive();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    activeSeller.getIdValue(),
+                    activeSeller.getSellerCode(),
+                    activeSeller.getSellerName(),
+                    activeSeller.getStatus(),
+                    activeSeller.getTotalProductCount(),
+                    activeSeller.getLastCrawledAt(),
+                    activeSeller.getCreatedAt(),
+                    activeSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(activeSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(activeSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(activeSeller);
 
@@ -327,8 +429,20 @@ class UpdateSellerStatusServiceTest {
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createPaused();
                 MustitSeller pausedSeller = MustitSellerFixture.createPaused();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    pausedSeller.getIdValue(),
+                    pausedSeller.getSellerCode(),
+                    pausedSeller.getSellerName(),
+                    pausedSeller.getStatus(),
+                    pausedSeller.getTotalProductCount(),
+                    pausedSeller.getLastCrawledAt(),
+                    pausedSeller.getCreatedAt(),
+                    pausedSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(pausedSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(pausedSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(pausedSeller);
 
@@ -347,8 +461,20 @@ class UpdateSellerStatusServiceTest {
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createDisabled();
                 MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
 
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    disabledSeller.getIdValue(),
+                    disabledSeller.getSellerCode(),
+                    disabledSeller.getSellerName(),
+                    disabledSeller.getStatus(),
+                    disabledSeller.getTotalProductCount(),
+                    disabledSeller.getLastCrawledAt(),
+                    disabledSeller.getCreatedAt(),
+                    disabledSeller.getUpdatedAt()
+                );
                 given(loadSellerPort.findById(any(MustitSellerId.class)))
-                    .willReturn(Optional.of(disabledSeller));
+                    .willReturn(Optional.of(queryDto));
+                given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
+                    .willReturn(disabledSeller);
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(disabledSeller);
 

@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+
 import java.util.Map;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Map;
  * @author ryu-qqq
  * @since 2025-10-31
  */
-public final class DuplicateSellerCodeException extends RuntimeException implements SellerException {
+public final class DuplicateSellerCodeException extends SellerException {
 
     private final String sellerCode;
 

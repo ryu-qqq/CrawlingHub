@@ -23,28 +23,28 @@ import java.util.Optional;
 public interface MustitSellerJpaRepository extends JpaRepository<MustitSellerEntity, Long> {
 
     /**
-     * sellerId로 셀러 조회 (인덱스 활용)
+     * sellerCode로 셀러 조회 (인덱스 활용)
      * <p>
-     * NOTE: idx_seller_id 인덱스를 사용하여 조회 성능을 최적화합니다.
+     * NOTE: idx_seller_code 인덱스를 사용하여 조회 성능을 최적화합니다.
      * </p>
      *
-     * @param sellerId 셀러 고유 ID
+     * @param sellerCode 셀러 코드
      * @return 조회된 셀러 Entity (Optional)
      */
-    @Query("SELECT m FROM MustitSellerEntity m WHERE m.sellerId = :sellerId")
-    Optional<MustitSellerEntity> findBySellerId(@Param("sellerId") String sellerId);
+    @Query("SELECT m FROM MustitSellerEntity m WHERE m.sellerCode = :sellerCode")
+    Optional<MustitSellerEntity> findBySellerCode(@Param("sellerCode") String sellerCode);
 
     /**
-     * sellerId 존재 여부 확인 (최적화 쿼리)
+     * sellerCode 존재 여부 확인 (최적화 쿼리)
      * <p>
      * NOTE: COUNT 쿼리 대신 EXISTS를 사용하여 성능을 최적화합니다.
      * 데이터가 발견되면 즉시 반환되므로 전체 테이블 스캔이 불필요합니다.
      * </p>
      *
-     * @param sellerId 셀러 고유 ID
+     * @param sellerCode 셀러 코드
      * @return 존재 여부
      */
     @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END " +
-           "FROM MustitSellerEntity m WHERE m.sellerId = :sellerId")
-    boolean existsBySellerId(@Param("sellerId") String sellerId);
+           "FROM MustitSellerEntity m WHERE m.sellerCode = :sellerCode")
+    boolean existsBySellerCode(@Param("sellerCode") String sellerCode);
 }
