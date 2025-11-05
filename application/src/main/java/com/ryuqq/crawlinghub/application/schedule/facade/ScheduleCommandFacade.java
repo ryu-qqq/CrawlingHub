@@ -118,7 +118,21 @@ public class ScheduleCommandFacade {
         );
         outboxPort.save(outbox);
 
-        // 7. 즉시 202 Accepted 반환 (EventBridge 호출 없음!)
+        // 7. Domain Event 등록 (트랜잭션 커밋 후 자동 발행)
+        // ✅ 이벤트는 트랜잭션 커밋 후 발행되며, EventListener에서 비동기로 Outbox Processor 호출
+        savedSchedule.registerEvent(
+            com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent.of(
+                savedSchedule.getIdValue(),
+                savedSchedule.getSellerIdValue(),
+                savedSchedule.getCronExpressionValue(),
+                idemKey
+            )
+        );
+        // 이벤트를 등록했으므로 다시 저장해야 함 (Spring Data가 이벤트 발행)
+        saveSchedulePort.save(savedSchedule);
+
+        // 8. 즉시 202 Accepted 반환 (EventBridge 호출 없음!)
+        // ✅ 트랜잭션 커밋 후 이벤트가 발행되고, EventListener에서 비동기로 Outbox Processor 호출
         return toScheduleResponse(savedSchedule.toResponse());
     }
 
@@ -178,7 +192,21 @@ public class ScheduleCommandFacade {
         );
         outboxPort.save(outbox);
 
-        // 8. 즉시 202 Accepted 반환
+        // 8. Domain Event 등록 (트랜잭션 커밋 후 자동 발행)
+        // ✅ 이벤트는 트랜잭션 커밋 후 발행되며, EventListener에서 비동기로 Outbox Processor 호출
+        updatedSchedule.registerEvent(
+            com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent.of(
+                updatedSchedule.getIdValue(),
+                updatedSchedule.getSellerIdValue(),
+                updatedSchedule.getCronExpressionValue(),
+                idemKey
+            )
+        );
+        // 이벤트를 등록했으므로 다시 저장해야 함 (Spring Data가 이벤트 발행)
+        saveSchedulePort.save(updatedSchedule);
+
+        // 9. 즉시 202 Accepted 반환
+        // ✅ 트랜잭션 커밋 후 이벤트가 발행되고, EventListener에서 비동기로 Outbox Processor 호출
         return toScheduleResponse(updatedSchedule.toResponse());
     }
 
