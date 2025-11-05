@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
  * <p><strong>사용 예시:</strong></p>
  * <pre>{@code
  * // 성공 응답
- * ApiResponse<UserDto> response = ApiResponse.ofSuccess(userDto);
+ * ApiResponse<UserDto> response = ApiResponse.success(userDto);
  *
  * // 에러 응답
  * ErrorInfo error = new ErrorInfo("USER_NOT_FOUND", "사용자를 찾을 수 없습니다");
- * ApiResponse<Void> response = ApiResponse.ofFailure(error);
+ * ApiResponse<Void> response = ApiResponse.failure(error);
  * }</pre>
  *
  * <p><strong>응답 형식:</strong></p>
@@ -29,12 +29,7 @@ import java.time.LocalDateTime;
  * }</pre>
  *
  * @param <T> 응답 데이터 타입
- * @param success 성공 여부
- * @param data 응답 데이터
- * @param error 에러 정보
- * @param timestamp 응답 생성 시각
- * @param requestId 요청 ID
- * @author ryu-qqq (ryu@example.com)
+ * @author ryu-qqq
  * @since 2025-10-23
  */
 public record ApiResponse<T>(
@@ -51,7 +46,7 @@ public record ApiResponse<T>(
      * @param data 응답 데이터
      * @param <T> 데이터 타입
      * @return 성공 ApiResponse
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofSuccess(T data) {
@@ -69,7 +64,7 @@ public record ApiResponse<T>(
      *
      * @param <T> 데이터 타입
      * @return 성공 ApiResponse
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofSuccess() {
@@ -82,7 +77,7 @@ public record ApiResponse<T>(
      * @param error 에러 정보
      * @param <T> 데이터 타입
      * @return 실패 ApiResponse
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofFailure(ErrorInfo error) {
@@ -102,7 +97,7 @@ public record ApiResponse<T>(
      * @param message 에러 메시지
      * @param <T> 데이터 타입
      * @return 실패 ApiResponse
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofFailure(String errorCode, String message) {
@@ -115,7 +110,7 @@ public record ApiResponse<T>(
      * <p>실제 운영 환경에서는 MDC나 분산 추적 시스템의 Trace ID를 사용하는 것이 좋습니다.</p>
      *
      * @return Request ID
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     private static String generateRequestId() {

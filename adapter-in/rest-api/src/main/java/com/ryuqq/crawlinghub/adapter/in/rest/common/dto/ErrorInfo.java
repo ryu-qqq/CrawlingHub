@@ -21,7 +21,7 @@ package com.ryuqq.crawlinghub.adapter.in.rest.common.dto;
  *
  * @param errorCode 에러 코드 (예: "TENANT_NOT_FOUND")
  * @param message 에러 메시지 (사용자에게 표시할 메시지)
- * @author ryu-qqq (ryu@example.com)
+ * @author ryu-qqq
  * @since 2025-10-23
  */
 public record ErrorInfo(
@@ -34,7 +34,7 @@ public record ErrorInfo(
      * @param errorCode 에러 코드
      * @param message 에러 메시지
      * @throws IllegalArgumentException errorCode 또는 message가 null이거나 빈 문자열인 경우
-     * @author ryu-qqq (ryu@example.com)
+     * @author ryu-qqq
      * @since 2025-10-23
      */
     public ErrorInfo {

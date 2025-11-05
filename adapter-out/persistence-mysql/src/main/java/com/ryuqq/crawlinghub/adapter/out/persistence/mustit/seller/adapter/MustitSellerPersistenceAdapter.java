@@ -5,7 +5,6 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.Mustit
 import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.MustitSellerJpaRepository;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -48,23 +47,19 @@ public class MustitSellerPersistenceAdapter implements SaveMustitSellerPort, Loa
      * <p>
      * Domain Aggregate를 Entity로 변환하여 저장한 후,
      * 저장된 Entity를 다시 Domain Aggregate로 변환하여 반환합니다.
-     * Domain Event는 트랜잭션 커밋 후 자동으로 발행됩니다.
      * </p>
      *
      * @param seller 저장할 셀러 Aggregate
-     * @return 저장된 셀러 Aggregate
+     * @return 저장된 셀러 Aggregate (DB 생성 PK 포함)
      * @throws IllegalArgumentException seller가 null인 경우
      */
     @Override
     public MustitSeller save(MustitSeller seller) {
         Objects.requireNonNull(seller, "seller must not be null");
 
-        // 1. Domain → Entity 변환 및 저장
         MustitSellerEntity entity = mapper.toEntity(seller);
         MustitSellerEntity savedEntity = jpaRepository.save(entity);
 
-
-        // 2. 저장된 Entity를 Domain으로 변환하여 반환
         return mapper.toDomain(savedEntity);
     }
 
