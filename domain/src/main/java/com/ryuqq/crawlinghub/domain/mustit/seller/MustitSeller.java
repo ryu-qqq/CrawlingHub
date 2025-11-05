@@ -20,6 +20,7 @@ import java.util.Objects;
 public class MustitSeller {
 
     private final MustitSellerId id;
+    private final SellerCode sellerCode;
     private final SellerName sellerName;
     private SellerStatus status;
     private Integer totalProductCount;
@@ -33,6 +34,7 @@ public class MustitSeller {
      */
     private MustitSeller(
         MustitSellerId id,
+        SellerCode sellerCode,
         SellerName sellerName,
         SellerStatus status,
         Integer totalProductCount,
@@ -42,6 +44,7 @@ public class MustitSeller {
         LocalDateTime updatedAt
     ) {
         this.id = id;
+        this.sellerCode = sellerCode;
         this.sellerName = sellerName;
         this.status = status;
         this.totalProductCount = totalProductCount;
@@ -56,13 +59,15 @@ public class MustitSeller {
      */
     MustitSeller(
         MustitSellerId id,
+        SellerCode sellerCode,
         SellerName sellerName,
         SellerStatus status,
         Clock clock
     ) {
-        validateRequiredFields(sellerName, status);
+        validateRequiredFields(sellerCode, sellerName, status);
 
         this.id = id;
+        this.sellerCode = sellerCode;
         this.sellerName = sellerName;
         this.status = status;
         this.totalProductCount = 0;
@@ -75,9 +80,10 @@ public class MustitSeller {
     /**
      * 신규 셀러 생성 (ID 없음)
      */
-    public static MustitSeller forNew(String sellerName) {
+    public static MustitSeller forNew(String sellerCode, String sellerName) {
         return new MustitSeller(
             null,
+            SellerCode.of(sellerCode),
             SellerName.of(sellerName),
             SellerStatus.ACTIVE,
             Clock.systemDefaultZone()
@@ -89,13 +95,14 @@ public class MustitSeller {
      */
     public static MustitSeller of(
         MustitSellerId id,
+        String sellerCode,
         String sellerName,
         SellerStatus status
     ) {
         if (id == null) {
             throw new IllegalArgumentException("MustitSeller ID는 필수입니다");
         }
-        return new MustitSeller(id, SellerName.of(sellerName), status, Clock.systemDefaultZone());
+        return new MustitSeller(id, SellerCode.of(sellerCode), SellerName.of(sellerName), status, Clock.systemDefaultZone());
     }
 
     /**
@@ -103,6 +110,7 @@ public class MustitSeller {
      */
     public static MustitSeller reconstitute(
         MustitSellerId id,
+        String sellerCode,
         String sellerName,
         SellerStatus status,
         Integer totalProductCount,
@@ -115,6 +123,7 @@ public class MustitSeller {
         }
         return new MustitSeller(
             id,
+            SellerCode.of(sellerCode),
             SellerName.of(sellerName),
             status,
             totalProductCount,
@@ -125,7 +134,10 @@ public class MustitSeller {
         );
     }
 
-    private static void validateRequiredFields(SellerName sellerName, SellerStatus status) {
+    private static void validateRequiredFields(SellerCode sellerCode, SellerName sellerName, SellerStatus status) {
+        if (sellerCode == null) {
+            throw new IllegalArgumentException("셀러 코드는 필수입니다");
+        }
         if (sellerName == null) {
             throw new IllegalArgumentException("셀러 이름은 필수입니다");
         }
@@ -216,6 +228,10 @@ public class MustitSeller {
         return id != null ? id.value() : null;
     }
 
+    public String getSellerCode() {
+        return sellerCode.getValue();
+    }
+
     public String getSellerName() {
         return sellerName.getValue();
     }
@@ -250,23 +266,24 @@ public class MustitSeller {
         }
         MustitSeller that = (MustitSeller) o;
 
-        // id가 null이면 sellerCode로 fallback (transient instance 처리)
+        // id가 null이면 sellerName으로 fallback (transient instance 처리)
         if (id == null || that.id == null) {
-            return Objects.equals(sellerCode, that.sellerCode);
+            return Objects.equals(sellerName, that.sellerName);
         }
         return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        // id가 null이면 sellerCode 기반 해시 (transient instance 처리)
-        return id != null ? Objects.hash(id) : Objects.hash(sellerCode);
+        // id가 null이면 sellerName 기반 해시 (transient instance 처리)
+        return id != null ? Objects.hash(id) : Objects.hash(sellerName);
     }
 
     @Override
     public String toString() {
         return "MustitSeller{" +
             "id=" + id +
+            ", sellerCode='" + sellerCode.getValue() + '\'' +
             ", sellerName='" + sellerName.getValue() + '\'' +
             ", status=" + status +
             ", totalProductCount=" + totalProductCount +
