@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    `java-test-fixtures`  // TestFixtures 플러그인
     id("io.spring.dependency-management") version "1.1.5"
 }
 

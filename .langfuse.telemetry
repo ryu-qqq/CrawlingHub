@@ -1,0 +1,5 @@
+enabled=true
+public_key=pk-lf-d028249b-630d-4100-8edb-0a4a89d25b0a
+secret_key=sk-lf-43cd007f-183b-4fbb-a114-8289da1f327f
+host=https://us.cloud.langfuse.com
+anonymize=true

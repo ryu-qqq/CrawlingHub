@@ -1,105 +1,53 @@
 // ========================================
-// Application Module
+// Application Module (Hexagonal Architecture - Use Cases)
 // ========================================
-// Use cases and application services
-// Orchestrates domain logic
-// NO direct adapter dependencies
-// NO Lombok allowed
+// Purpose: 비즈니스 유스케이스 및 애플리케이션 서비스
+// - Use Cases (Command/Query)
+// - Application Services
+// - Inbound Ports (Interfaces)
+// - Outbound Ports (Interfaces)
+// - DTOs, Mappers, Assemblers
+//
+// Dependencies:
+// - domain (의존)
+// - Spring Context (for @Transactional, @Service)
+//
+// Policy:
+// - @Transactional은 Application Layer에서만 사용
+// - 외부 API 호출은 @Transactional 밖에서
+// - Lombok 금지 (Domain은 특히 엄격, Application은 DTO에서만 고려)
 // ========================================
 
 plugins {
-    `java-library`
+    java
+    `java-test-fixtures`  // TestFixtures 플러그인
 }
 
 dependencies {
     // ========================================
     // Core Dependencies
     // ========================================
-    // Domain layer (required)
-    api(project(":domain"))
+    implementation(project(":domain"))
 
-    // Spring Context (Dependency Injection only)
-    implementation(libs.spring.context)
-    implementation(libs.spring.tx)
+    // ========================================
+    // Spring Context (for @Transactional, @Service)
+    // ========================================
+    implementation("org.springframework:spring-context")
+    implementation("org.springframework:spring-tx")
 
-    // Spring Data Commons (for Page and Pageable interfaces only)
-    // Note: Only using abstraction interfaces, not implementation
-    implementation("org.springframework.data:spring-data-commons")
-
+    // ========================================
     // Validation
-    implementation(libs.spring.boot.starter.validation)
-
-    // JSON serialization (for EventBridge target input)
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    // ========================================
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // ========================================
-    // Orchestrator SDK (for Outbox Pattern)
+    // Quartz (Cron Expression Validation)
     // ========================================
-    // Core: Command, OpId 등 기본 타입
-    implementation(rootProject.libs.orchestrator.core)
-    // Application: Orchestrator 인터페이스 및 OperationHandle
-    // Note: Orchestrator.submit() API를 사용하기 위해 필요
-    implementation(rootProject.libs.orchestrator.application)
-    // Runner: InlineFastPathRunner 구현체 (Bootstrap에서 빈 등록)
-    // Note: Application layer에서는 인터페이스만 사용, 구현체는 Bootstrap에서 주입
-    implementation(rootProject.libs.orchestrator.runner)
+    implementation("org.quartz-scheduler:quartz:2.3.2")
 
     // ========================================
     // Test Dependencies
     // ========================================
-    testImplementation(libs.spring.boot.starter.test)
     testImplementation(project(":domain"))
-}
-
-// ========================================
-// Application-Specific Test Coverage
-// ========================================
-// Note: Jacoco 검증은 새로 추가된 Orchestrator 관련 클래스들로 인해
-// 현재 작업 범위(Option C 리팩토링)에서는 비활성화합니다.
-// 이들 클래스는 Integration 테스트에서 검증될 예정입니다.
-tasks.jacocoTestCoverageVerification {
-    enabled = false
-}
-
-// ========================================
-// Architecture Validation
-// ========================================
-tasks.register("verifyApplicationBoundaries") {
-    group = "verification"
-    description = "Verify application module respects architectural boundaries"
-
-    doLast {
-        // Check no adapter dependencies
-        val forbiddenDependencies = listOf(
-            "adapter-in",
-            "adapter-out"
-        )
-
-        project.configurations.runtimeClasspath.get().dependencies.forEach { dep ->
-            forbiddenDependencies.forEach { forbidden ->
-                if (dep.name.contains(forbidden)) {
-                    throw GradleException(
-                        """
-                        ❌ APPLICATION BOUNDARY VIOLATION DETECTED
-
-                        Application layer cannot depend on adapters:
-                        - Dependency: ${dep.name}
-
-                        Application should only depend on:
-                        - domain module
-                        - Spring Context (DI)
-
-                        See: application/build.gradle.kts
-                        """.trimIndent()
-                    )
-                }
-            }
-        }
-        println("✅ Application boundary verification passed")
-    }
-}
-
-tasks.build {
-    dependsOn("verifyApplicationBoundaries")
+    testImplementation(testFixtures(project(":domain")))
 }
