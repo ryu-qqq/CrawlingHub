@@ -31,15 +31,16 @@ public class ProductCountHistoryMapper {
         Objects.requireNonNull(domain, "domain must not be null");
 
         if (domain.getId() != null) {
-            return ProductCountHistoryEntity.reconstitute(
-                domain.getId().getValue(),
-                domain.getSellerId().getValue(),
-                domain.getProductCount(),
-                domain.getExecutedDate()
+            // Domain 객체에는 createdAt, updatedAt이 없으므로
+            // Entity 조회 후 해당 필드를 사용하거나, 현재 시각으로 설정
+            // reconstitute는 DB에서 조회된 Entity에만 사용되므로
+            // toEntity는 create만 사용
+            throw new UnsupportedOperationException(
+                "Domain 객체는 create만 지원합니다. reconstitute는 DB 조회 후 사용하세요."
             );
         } else {
             return ProductCountHistoryEntity.create(
-                domain.getSellerId().getValue(),
+                domain.getSellerId().value(),
                 domain.getProductCount(),
                 domain.getExecutedDate()
             );

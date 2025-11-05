@@ -1,21 +1,22 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.MustitSellerEntity;
-import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerBasicInfo;
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerTimeInfo;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.SellerCode;
+import com.ryuqq.crawlinghub.domain.seller.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
+
 import org.springframework.stereotype.Component;
 
 /**
  * MustitSeller Aggregate와 MustitSellerEntity 간 변환을 담당하는 Mapper
  * <p>
  * Domain 객체와 Persistence Entity 간의 양방향 변환을 제공합니다.
- * Domain의 CrawlIntervalType을 Entity에서 직접 사용하여 중복을 제거합니다.
  * </p>
  *
- * @author Claude (claude@anthropic.com)
- * @since 1.0
+ * @author ryu-qqq
+ * @since 2025-11-05
  */
 @Component
 public class MustitSellerMapper {
@@ -33,24 +34,22 @@ public class MustitSellerMapper {
         }
 
         // Entity ID가 있으면 reconstitute, 없으면 create
-        if (seller.getId() != null) {
+        if (seller.getIdValue() != null) {
             return MustitSellerEntity.reconstitute(
-                    seller.getId(),
-                    seller.getSellerId(),
-                    seller.getName(),
-                    seller.isActive(),
-                    seller.getCrawlIntervalType(),
-                    seller.getCrawlIntervalValue(),
-                    seller.getCronExpression()
+                    seller.getIdValue(),
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt()
             );
         } else {
             return MustitSellerEntity.create(
-                    seller.getSellerId(),
-                    seller.getName(),
-                    seller.isActive(),
-                    seller.getCrawlIntervalType(),
-                    seller.getCrawlIntervalValue(),
-                    seller.getCronExpression()
+                    seller.getSellerCode(),
+                    seller.getSellerName(),
+                    seller.getStatus(),
+                    seller.getTotalProductCount(),
+                    seller.getLastCrawledAt()
             );
         }
     }
@@ -67,23 +66,15 @@ public class MustitSellerMapper {
             throw new IllegalArgumentException("entity must not be null");
         }
 
-        SellerBasicInfo basicInfo = SellerBasicInfo.of(
-                entity.getId(),
-                entity.getSellerId(),
-                entity.getName(),
-                entity.isActive()
-        );
-
-        CrawlInterval crawlInterval = new CrawlInterval(
-                entity.getIntervalType(),
-                entity.getIntervalValue()
-        );
-
-        SellerTimeInfo timeInfo = SellerTimeInfo.of(
+        return MustitSeller.reconstitute(
+                MustitSellerId.of(entity.getId()),
+                entity.getSellerCode(),
+                entity.getSellerName(),
+                entity.getStatus(),
+                entity.getTotalProductCount(),
+                entity.getLastCrawledAt(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
-
-        return MustitSeller.reconstitute(basicInfo, crawlInterval, timeInfo);
     }
 }

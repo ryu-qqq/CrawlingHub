@@ -10,7 +10,7 @@ import java.util.Map;
  * @author ryu-qqq
  * @since 2025-10-31
  */
-public final class SellerNotFoundException extends RuntimeException implements SellerException {
+public final class SellerNotFoundException extends SellerException {
 
     private final Long sellerId;
 

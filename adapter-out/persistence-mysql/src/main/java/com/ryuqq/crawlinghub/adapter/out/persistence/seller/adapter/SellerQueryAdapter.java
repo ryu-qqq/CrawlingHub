@@ -69,15 +69,11 @@ public class SellerQueryAdapter implements LoadSellerPort {
             .select(Projections.constructor(
                 SellerQueryDto.class,
                 seller.id,
-                seller.sellerId,
-                seller.name,
-                new CaseBuilder()
-                    .when(seller.active.isTrue()).then(SellerStatus.ACTIVE)
-                    .otherwise(SellerStatus.DISABLED),
-                // totalProductCount와 lastCrawledAt은 현재 Entity에 없으므로 null로 설정
-                // 향후 다른 테이블과 조인하여 가져올 수 있음
-                com.querydsl.core.types.dsl.Expressions.nullExpression(Integer.class),
-                com.querydsl.core.types.dsl.Expressions.nullExpression(java.time.LocalDateTime.class),
+                seller.sellerCode,
+                seller.sellerName,
+                seller.status,
+                seller.totalProductCount,
+                seller.lastCrawledAt,
                 seller.createdAt,
                 seller.updatedAt
             ))
@@ -108,19 +104,16 @@ public class SellerQueryAdapter implements LoadSellerPort {
             .select(Projections.constructor(
                 SellerQueryDto.class,
                 seller.id,
-                seller.sellerId,
-                seller.name,
-                new CaseBuilder()
-                    .when(seller.active.isTrue()).then(SellerStatus.ACTIVE)
-                    .otherwise(SellerStatus.DISABLED),
-                // totalProductCount와 lastCrawledAt은 현재 Entity에 없으므로 null로 설정
-                com.querydsl.core.types.dsl.Expressions.nullExpression(Integer.class),
-                com.querydsl.core.types.dsl.Expressions.nullExpression(java.time.LocalDateTime.class),
+                seller.sellerCode,
+                seller.sellerName,
+                seller.status,
+                seller.totalProductCount,
+                seller.lastCrawledAt,
                 seller.createdAt,
                 seller.updatedAt
             ))
             .from(seller)
-            .where(seller.sellerId.eq(code))
+            .where(seller.sellerCode.eq(code))
             .fetchOne();
 
         return Optional.ofNullable(result);

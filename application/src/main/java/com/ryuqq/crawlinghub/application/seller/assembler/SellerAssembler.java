@@ -16,7 +16,6 @@ import com.ryuqq.crawlinghub.domain.seller.SellerCode;
 import com.ryuqq.crawlinghub.domain.seller.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
-import java.time.Clock;
 
 /**
  * 셀러 Assembler
@@ -132,14 +131,14 @@ public class SellerAssembler {
 
         return MustitSeller.reconstitute(
             MustitSellerId.of(dto.id()),
-            SellerCode.of(dto.sellerCode()),
-            SellerName.of(dto.sellerName()),
+            dto.sellerCode(),
+            dto.sellerName(),
             dto.status(),
             dto.totalProductCount() != null ? dto.totalProductCount() : 0,
             dto.lastCrawledAt(),
-            Clock.systemDefaultZone(),
             dto.createdAt(),
             dto.updatedAt()
+            // Clock은 MustitSeller.reconstitute() 내부에서 처리됨
         );
     }
 

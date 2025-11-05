@@ -3,10 +3,9 @@ package com.ryuqq.crawlinghub.domain.schedule.exception;
 import com.ryuqq.crawlinghub.domain.common.DomainException;
 
 /**
- * Schedule Exception - Sealed Interface
+ * Schedule Exception - Abstract Class
  *
- * <p>Schedule Bounded Context의 모든 예외를 묶는 Sealed 인터페이스입니다.</p>
- * <p>컴파일 타임에 허용된 예외만 정의할 수 있어 타입 안전성을 보장합니다.</p>
+ * <p>Schedule Bounded Context의 모든 예외를 묶는 추상 클래스입니다.</p>
  *
  * <p><strong>예외 계층:</strong></p>
  * <ul>
@@ -16,7 +15,25 @@ import com.ryuqq.crawlinghub.domain.common.DomainException;
  * @author ryu-qqq
  * @since 2025-11-05
  */
-public sealed interface ScheduleException extends DomainException
-    permits PlaceholderScheduleException {
+public abstract class ScheduleException extends DomainException {
+
+    /**
+     * ScheduleException 생성자
+     *
+     * @param message 에러 메시지
+     */
+    protected ScheduleException(String message) {
+        super(message);
+    }
+
+    /**
+     * ScheduleException 생성자 (원인 포함)
+     *
+     * @param message 에러 메시지
+     * @param cause 원인 예외
+     */
+    protected ScheduleException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper;
 
-import com.ryuqq.adapter.in.rest.common.mapper.ErrorMapper;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper;
 import com.ryuqq.crawlinghub.domain.common.DomainException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerCodeException;
 import com.ryuqq.crawlinghub.domain.seller.exception.InactiveSellerException;
@@ -45,24 +45,31 @@ public class SellerErrorMapper implements ErrorMapper {
 
         return switch (sellerException) {
             case SellerNotFoundException notFound -> new ErrorMapper.MappedError(
-                HttpStatus.NOT_FOUND,
-                "Seller Not Found",
+                HttpStatus.valueOf(SellerErrorCode.SELLER_NOT_FOUND.getHttpStatus()),
+                SellerErrorCode.SELLER_NOT_FOUND.getTitle(),
                 notFound.message(),
                 URI.create("/errors/seller-not-found")
             );
 
             case InactiveSellerException inactive -> new ErrorMapper.MappedError(
-                HttpStatus.CONFLICT,
-                "Seller Inactive",
+                HttpStatus.valueOf(SellerErrorCode.SELLER_INACTIVE.getHttpStatus()),
+                SellerErrorCode.SELLER_INACTIVE.getTitle(),
                 inactive.message(),
                 URI.create("/errors/seller-inactive")
             );
 
             case DuplicateSellerCodeException duplicate -> new ErrorMapper.MappedError(
-                HttpStatus.CONFLICT,
-                "Duplicate Seller Code",
+                HttpStatus.valueOf(SellerErrorCode.DUPLICATE_SELLER_CODE.getHttpStatus()),
+                SellerErrorCode.DUPLICATE_SELLER_CODE.getTitle(),
                 duplicate.message(),
                 URI.create("/errors/duplicate-seller-code")
+            );
+
+            default -> new ErrorMapper.MappedError(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unknown Seller Error",
+                sellerException.message(),
+                URI.create("/errors/seller-unknown")
             );
         };
     }

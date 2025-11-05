@@ -36,22 +36,25 @@ public class SellerCrawlScheduleOutboxMapper {
     public SellerCrawlScheduleOutboxEntity toEntity(SellerCrawlScheduleOutbox domain) {
         Objects.requireNonNull(domain, "domain must not be null");
 
-        // CommandInfo 생성
-        SellerCrawlScheduleOutboxEntity.CommandInfo entityCommandInfo =
-                SellerCrawlScheduleOutboxEntity.CommandInfo.of(
-                        domain.getDomain(),
-                        domain.getEventType(),
-                        domain.getBizKey(),
-                        domain.getIdemKey()
-                );
-
         // 새로운 Entity 생성 (저장 전)
         // 참고: 이 메서드는 Domain → Entity 변환 시 새로운 Entity를 생성할 때만 사용됩니다.
         // 기존 Entity 업데이트는 JPA의 변경 감지(Dirty Checking)를 사용합니다.
         return new SellerCrawlScheduleOutboxEntity(
-                entityCommandInfo,
+                domain.getOpId(),
                 domain.getSellerId(),
-                domain.getPayload()
+                domain.getIdemKey(),
+                domain.getDomain(),
+                domain.getEventType(),
+                domain.getBizKey(),
+                domain.getPayload(),
+                domain.getOutcomeJson(),
+                mapOperationState(domain.getOperationState()),
+                mapWriteAheadState(domain.getWalState()),
+                domain.getErrorMessage(),
+                domain.getRetryCount(),
+                domain.getMaxRetries(),
+                domain.getTimeoutMillis(),
+                domain.getCompletedAt()
         );
     }
 
@@ -75,8 +78,8 @@ public class SellerCrawlScheduleOutboxMapper {
                 entity.getBizKey(),
                 entity.getPayload(),
                 entity.getOutcomeJson(),
-                mapOperationState(entity.getOperationState()),
-                mapWriteAheadState(entity.getWalState()),
+                mapToDomainOperationState(entity.getOperationState()),
+                mapToDomainWriteAheadState(entity.getWalState()),
                 entity.getErrorMessage(),
                 entity.getRetryCount(),
                 entity.getMaxRetries(),
@@ -92,9 +95,41 @@ public class SellerCrawlScheduleOutboxMapper {
     // ========================================
 
     /**
+     * Domain OperationState → Entity OperationState
+     */
+    private SellerCrawlScheduleOutboxEntity.OperationState mapOperationState(
+            SellerCrawlScheduleOutbox.OperationState domainState
+    ) {
+        if (domainState == null) {
+            return SellerCrawlScheduleOutboxEntity.OperationState.PENDING;
+        }
+        return switch (domainState) {
+            case PENDING -> SellerCrawlScheduleOutboxEntity.OperationState.PENDING;
+            case IN_PROGRESS -> SellerCrawlScheduleOutboxEntity.OperationState.IN_PROGRESS;
+            case COMPLETED -> SellerCrawlScheduleOutboxEntity.OperationState.COMPLETED;
+            case FAILED -> SellerCrawlScheduleOutboxEntity.OperationState.FAILED;
+        };
+    }
+
+    /**
+     * Domain WriteAheadState → Entity WriteAheadState
+     */
+    private SellerCrawlScheduleOutboxEntity.WriteAheadState mapWriteAheadState(
+            SellerCrawlScheduleOutbox.WriteAheadState domainState
+    ) {
+        if (domainState == null) {
+            return SellerCrawlScheduleOutboxEntity.WriteAheadState.PENDING;
+        }
+        return switch (domainState) {
+            case PENDING -> SellerCrawlScheduleOutboxEntity.WriteAheadState.PENDING;
+            case COMPLETED -> SellerCrawlScheduleOutboxEntity.WriteAheadState.COMPLETED;
+        };
+    }
+
+    /**
      * Entity OperationState → Domain OperationState
      */
-    private SellerCrawlScheduleOutbox.OperationState mapOperationState(
+    private SellerCrawlScheduleOutbox.OperationState mapToDomainOperationState(
             SellerCrawlScheduleOutboxEntity.OperationState entityState
     ) {
         if (entityState == null) {
@@ -111,7 +146,7 @@ public class SellerCrawlScheduleOutboxMapper {
     /**
      * Entity WriteAheadState → Domain WriteAheadState
      */
-    private SellerCrawlScheduleOutbox.WriteAheadState mapWriteAheadState(
+    private SellerCrawlScheduleOutbox.WriteAheadState mapToDomainWriteAheadState(
             SellerCrawlScheduleOutboxEntity.WriteAheadState entityState
     ) {
         if (entityState == null) {

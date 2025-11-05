@@ -46,9 +46,9 @@ public class CronExpressionConverter {
      * <p>
      * 예시:
      * <ul>
-     *   <li>HOURLY-2 → cron(0 0/2 * * ? *) - 2시간마다</li>
-     *   <li>DAILY-3 → cron(0 0 */3 * ? *) - 3일마다</li>
-     *   <li>WEEKLY-2 → cron(0 0 ? * 1/2 *) - 2주마다 (월요일 기준)</li>
+     *   <li>HOURLY-2 - cron(0 0/2 * * ? *) - 2시간마다</li>
+     *   <li>DAILY-3 - cron(0 0 * /3 * ? *) - 3일마다</li>
+     *   <li>WEEKLY-2 - cron(0 0 ? * 1/2 *) - 2주마다 (월요일 기준)</li>
      * </ul>
      * </p>
      *
@@ -92,7 +92,7 @@ public class CronExpressionConverter {
      * AWS EventBridge Cron 간격 표현:
      * <ul>
      *   <li>시간: 0/N (N시간마다, 0시부터 시작)</li>
-     *   <li>일: *\/N (N일마다)</li>
+     *   <li>일: * /N (N일마다)</li>
      *   <li>주: 1/N (N주마다, 월요일=1 기준)</li>
      * </ul>
      * </p>
