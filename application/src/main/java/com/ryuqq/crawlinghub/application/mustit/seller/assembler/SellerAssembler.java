@@ -147,7 +147,7 @@ public class SellerAssembler {
     public ScheduleHistoryResponse toScheduleHistoryResponse(CrawlScheduleHistory history) {
         // ScheduleExecutionStatus를 문자열로 변환 (COMPLETED -> SUCCESS, FAILED -> FAILURE)
         String statusStr = convertStatusToString(history.getStatus());
-        
+
         return new ScheduleHistoryResponse(
             history.getIdValue(),
             history.getExecutedAt(),

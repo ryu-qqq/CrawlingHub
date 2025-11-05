@@ -191,12 +191,12 @@ public class GetSellerDetailService implements GetSellerDetailUseCase {
         int size
     ) {
         List<CrawlScheduleHistory> histories = loadScheduleHistoryPort.findByScheduleId(scheduleId);
-        
+
         int totalElements = histories.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
         int start = page * size;
         int end = Math.min(start + size, totalElements);
-        
+
         List<CrawlScheduleHistory> pagedHistories = histories.subList(
             Math.min(start, totalElements),
             end
