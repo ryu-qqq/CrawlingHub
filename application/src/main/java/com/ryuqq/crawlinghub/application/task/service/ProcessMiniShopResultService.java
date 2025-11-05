@@ -47,6 +47,7 @@ public class ProcessMiniShopResultService implements ProcessMiniShopResultUseCas
     private final SaveSellerPort saveSellerPort;
     private final IdempotencyKeyGeneratorPort idempotencyKeyGenerator;
     private final OutboxPort outboxPort;
+    private final com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler;
 
     public ProcessMiniShopResultService(
         LoadCrawlTaskPort loadCrawlTaskPort,
@@ -54,9 +55,11 @@ public class ProcessMiniShopResultService implements ProcessMiniShopResultUseCas
         LoadSellerPort loadSellerPort,
         SaveSellerPort saveSellerPort,
         IdempotencyKeyGeneratorPort idempotencyKeyGenerator,
-        OutboxPort outboxPort
+        OutboxPort outboxPort,
+        com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler
     ) {
         this.loadCrawlTaskPort = loadCrawlTaskPort;
+        this.sellerAssembler = sellerAssembler;
         this.saveCrawlTaskPort = saveCrawlTaskPort;
         this.loadSellerPort = loadSellerPort;
         this.saveSellerPort = saveSellerPort;
@@ -251,6 +254,7 @@ public class ProcessMiniShopResultService implements ProcessMiniShopResultUseCas
         MustitSellerId sellerIdObj = MustitSellerId.of(sellerId);
 
         MustitSeller seller = loadSellerPort.findById(sellerIdObj)
+            .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new IllegalArgumentException(
                 "셀러를 찾을 수 없습니다: " + sellerId
             ));
