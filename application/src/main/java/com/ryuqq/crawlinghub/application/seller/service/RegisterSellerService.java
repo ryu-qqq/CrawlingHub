@@ -49,7 +49,7 @@ public class RegisterSellerService implements RegisterSellerUseCase {
     @Override
     @Transactional
     public SellerResponse execute(RegisterSellerCommand command) {
-        // 1. 중복 체크
+        // 1. 중복 체크 (DTO로 충분 - Domain Model 불필요)
         loadSellerPort.findByCode(command.sellerCode())
             .ifPresent(existingSeller -> {
                 throw new DuplicateSellerCodeException(command.sellerCode());

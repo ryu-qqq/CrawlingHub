@@ -1,5 +1,8 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+
+import java.util.Map;
+
 /**
  * 비활성 셀러 예외
  *
@@ -8,7 +11,7 @@ package com.ryuqq.crawlinghub.domain.seller.exception;
  * @author ryu-qqq
  * @since 2025-11-05
  */
-public class InactiveSellerException extends RuntimeException {
+public final class InactiveSellerException extends SellerException {
 
     private final Long sellerId;
     private final String sellerName;
@@ -41,5 +44,20 @@ public class InactiveSellerException extends RuntimeException {
      */
     public String getSellerName() {
         return sellerName;
+    }
+
+    @Override
+    public String code() {
+        return SellerErrorCode.SELLER_INACTIVE.getCode();
+    }
+
+    @Override
+    public String message() {
+        return getMessage();
+    }
+
+    @Override
+    public Map<String, Object> args() {
+        return Map.of("sellerId", sellerId, "sellerName", sellerName);
     }
 }

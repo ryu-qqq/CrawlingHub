@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+import java.util.Map;
+
 /**
  * 셀러를 찾을 수 없는 예외
  *
@@ -8,7 +10,7 @@ package com.ryuqq.crawlinghub.domain.seller.exception;
  * @author ryu-qqq
  * @since 2025-10-31
  */
-public class SellerNotFoundException extends RuntimeException {
+public final class SellerNotFoundException extends SellerException {
 
     private final Long sellerId;
 
@@ -29,5 +31,20 @@ public class SellerNotFoundException extends RuntimeException {
      */
     public Long getSellerId() {
         return sellerId;
+    }
+
+    @Override
+    public String code() {
+        return SellerErrorCode.SELLER_NOT_FOUND.getCode();
+    }
+
+    @Override
+    public String message() {
+        return getMessage();
+    }
+
+    @Override
+    public Map<String, Object> args() {
+        return Map.of("sellerId", sellerId);
     }
 }

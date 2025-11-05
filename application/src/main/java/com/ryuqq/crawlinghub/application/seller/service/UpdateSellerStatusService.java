@@ -26,13 +26,16 @@ public class UpdateSellerStatusService implements UpdateSellerStatusUseCase {
 
     private final LoadSellerPort loadSellerPort;
     private final SaveSellerPort saveSellerPort;
+    private final SellerAssembler sellerAssembler;
 
     public UpdateSellerStatusService(
         LoadSellerPort loadSellerPort,
-        SaveSellerPort saveSellerPort
+        SaveSellerPort saveSellerPort,
+        SellerAssembler sellerAssembler
     ) {
         this.loadSellerPort = loadSellerPort;
         this.saveSellerPort = saveSellerPort;
+        this.sellerAssembler = sellerAssembler;
     }
 
     /**
@@ -50,9 +53,10 @@ public class UpdateSellerStatusService implements UpdateSellerStatusUseCase {
     @Override
     @Transactional
     public SellerResponse execute(UpdateSellerStatusCommand command) {
-        // 1. 셀러 조회
+        // 1. 셀러 조회 (DTO → Domain Model 변환)
         MustitSellerId sellerId = MustitSellerId.of(command.sellerId());
         MustitSeller seller = loadSellerPort.findById(sellerId)
+            .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(command.sellerId()));
 
         // 2. 상태 변경 (도메인 메서드)

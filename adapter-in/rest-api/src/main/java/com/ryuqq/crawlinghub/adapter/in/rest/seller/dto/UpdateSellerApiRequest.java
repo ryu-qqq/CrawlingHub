@@ -75,7 +75,10 @@ public record UpdateSellerApiRequest(
      */
     private void validateIntervalType(String intervalTypeValue) {
         try {
-            com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.valueOf(intervalTypeValue);
+            // TODO: CrawlIntervalType이 현재 구조에 없음, 기본 검증만 수행
+            if (!intervalTypeValue.matches("HOURLY|DAILY|WEEKLY")) {
+                throw new IllegalArgumentException("Invalid intervalType");
+            }
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
                     "intervalType은 HOURLY, DAILY, WEEKLY 중 하나여야 합니다. 입력값: " + intervalTypeValue

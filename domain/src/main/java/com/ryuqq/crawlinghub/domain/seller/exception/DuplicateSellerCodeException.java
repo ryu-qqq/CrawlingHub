@@ -1,5 +1,8 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+
+import java.util.Map;
+
 /**
  * 중복된 셀러 코드 예외
  *
@@ -8,7 +11,7 @@ package com.ryuqq.crawlinghub.domain.seller.exception;
  * @author ryu-qqq
  * @since 2025-10-31
  */
-public class DuplicateSellerCodeException extends RuntimeException {
+public final class DuplicateSellerCodeException extends SellerException {
 
     private final String sellerCode;
 
@@ -29,5 +32,20 @@ public class DuplicateSellerCodeException extends RuntimeException {
      */
     public String getSellerCode() {
         return sellerCode;
+    }
+
+    @Override
+    public String code() {
+        return SellerErrorCode.DUPLICATE_SELLER_CODE.getCode();
+    }
+
+    @Override
+    public String message() {
+        return getMessage();
+    }
+
+    @Override
+    public Map<String, Object> args() {
+        return Map.of("sellerCode", sellerCode);
     }
 }

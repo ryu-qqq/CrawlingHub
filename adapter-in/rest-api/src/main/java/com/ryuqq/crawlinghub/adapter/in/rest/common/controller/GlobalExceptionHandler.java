@@ -4,8 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
-import com.ryuqq.adapter.in.rest.common.error.ErrorMapperRegistry;
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.error.ErrorMapperRegistry;
+import com.ryuqq.crawlinghub.domain.common.DomainException;
 
 import java.net.URI;
 import java.time.Instant;

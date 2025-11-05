@@ -80,9 +80,10 @@ public class GetSellerDetailService implements GetSellerDetailUseCase {
     @Override
     @Transactional(readOnly = true)
     public SellerDetailResponse execute(GetSellerQuery query) {
-        // 1. 셀러 조회
+        // 1. 셀러 조회 (DTO → Domain Model 변환)
         MustitSellerId sellerId = MustitSellerId.of(query.sellerId());
         MustitSeller seller = loadSellerPort.findById(sellerId)
+            .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(query.sellerId()));
 
         // 2. 통계 조회
@@ -109,9 +110,10 @@ public class GetSellerDetailService implements GetSellerDetailUseCase {
     @Override
     @Transactional(readOnly = true)
     public SellerDetailResponse getDetail(Long sellerId) {
-        // 1. 셀러 기본 정보 조회
+        // 1. 셀러 기본 정보 조회 (DTO → Domain Model 변환)
         MustitSellerId mustitSellerId = MustitSellerId.of(sellerId);
         MustitSeller seller = loadSellerPort.findById(mustitSellerId)
+            .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
         // 2. 총 상품 수 조회
