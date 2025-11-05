@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.task;
+package com.ryuqq.crawlinghub.domain.task;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.exception;
+package com.ryuqq.crawlinghub.domain.seller.exception;
 
 /**
  * 중복된 셀러 코드 예외

@@ -1,19 +1,19 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.service;
+package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.in.ProcessMiniShopResultUseCase;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.in.ProcessProductDetailUseCase;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command.MiniShopResultCommand;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command.ProductDetailCommand;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.LoadCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.SaveCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.processing.dto.command.ProcessTaskCommand;
-import com.ryuqq.crawlinghub.application.crawl.processing.dto.command.TaskFailureCommand;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.in.HandleTaskFailureUseCase;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.in.ProcessCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.out.HttpCrawlerPort;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.out.TokenManagerPort;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.out.UserAgentPort;
+import com.ryuqq.crawlinghub.application.task.port.in.ProcessMiniShopResultUseCase;
+import com.ryuqq.crawlinghub.application.task.port.in.ProcessProductDetailUseCase;
+import com.ryuqq.crawlinghub.application.task.assembler.command.MiniShopResultCommand;
+import com.ryuqq.crawlinghub.application.task.assembler.command.ProductDetailCommand;
+import com.ryuqq.crawlinghub.application.task.port.out.LoadCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.command.ProcessTaskCommand;
+import com.ryuqq.crawlinghub.application.task.command.TaskFailureCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.HandleTaskFailureUseCase;
+import com.ryuqq.crawlinghub.application.task.port.in.ProcessCrawlTaskUseCase;
+import com.ryuqq.crawlinghub.application.task.port.out.HttpCrawlerPort;
+import com.ryuqq.crawlinghub.application.task.port.out.TokenManagerPort;
+import com.ryuqq.crawlinghub.application.task.port.out.UserAgentPort;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.TaskType;

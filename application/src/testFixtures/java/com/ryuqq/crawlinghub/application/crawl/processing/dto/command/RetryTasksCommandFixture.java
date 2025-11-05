@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.crawl.processing.dto.command;
 
+import com.ryuqq.crawlinghub.application.task.command.RetryTasksCommand;
 import com.ryuqq.crawlinghub.domain.crawl.task.TaskType;
 
 /**

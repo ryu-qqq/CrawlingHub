@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.common.entity.BaseAuditEntity;
 import jakarta.persistence.Column;

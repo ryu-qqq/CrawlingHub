@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.validator;
+package com.ryuqq.crawlinghub.application.schedule.validator;
 
 import org.quartz.CronExpression;
 import org.springframework.stereotype.Component;

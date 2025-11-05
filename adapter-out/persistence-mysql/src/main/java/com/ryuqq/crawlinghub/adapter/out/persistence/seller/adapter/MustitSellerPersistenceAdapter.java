@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.adapter;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.MustitSellerEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.MustitSellerMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.MustitSellerJpaRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.MustitSellerEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper.MustitSellerMapper;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.MustitSellerJpaRepository;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadMustitSellerPort;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveMustitSellerPort;
 

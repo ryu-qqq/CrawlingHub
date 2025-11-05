@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.application.crawl.processing.dto.command;
 
+import com.ryuqq.crawlinghub.application.task.command.ProcessTaskCommand;
+
 /**
  * ProcessTaskCommand Test Fixture
  *

@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.outbox.mapper;
+package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.SellerCrawlScheduleOutboxEntity;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
 import org.springframework.stereotype.Component;
 

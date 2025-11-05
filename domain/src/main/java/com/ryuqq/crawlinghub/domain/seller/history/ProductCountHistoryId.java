@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.history;
+package com.ryuqq.crawlinghub.domain.seller.history;
 
 /**
  * ProductCountHistoryId - 상품 수 이력 식별자

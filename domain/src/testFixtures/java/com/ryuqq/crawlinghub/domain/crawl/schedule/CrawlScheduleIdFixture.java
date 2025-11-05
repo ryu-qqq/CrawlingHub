@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.crawl.schedule;
 
+import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
+
 /**
  * CrawlScheduleId Test Fixture
  *

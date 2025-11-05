@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command;
+package com.ryuqq.crawlinghub.application.task.assembler.command;
 
 /**
  * 상품 상세 크롤링 결과 처리 Command

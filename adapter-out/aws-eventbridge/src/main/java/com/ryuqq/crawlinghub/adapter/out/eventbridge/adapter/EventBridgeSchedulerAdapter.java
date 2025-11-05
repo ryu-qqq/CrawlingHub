@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.eventbridge.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.converter.CronExpressionConverter;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.EventBridgeSchedulerPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.EventBridgeSchedulerPort;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

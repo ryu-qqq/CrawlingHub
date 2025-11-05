@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.port.out;
+package com.ryuqq.crawlinghub.application.task.port.out;
 
 /**
  * 알림 발송 Port

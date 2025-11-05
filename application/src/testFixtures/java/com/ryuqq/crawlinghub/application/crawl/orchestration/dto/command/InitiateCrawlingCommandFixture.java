@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command;
 
+import com.ryuqq.crawlinghub.application.task.assembler.command.InitiateCrawlingCommand;
+
 /**
  * InitiateCrawlingCommand Test Fixture
  *

@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.history;
+package com.ryuqq.crawlinghub.domain.seller.history;
 
 import java.time.LocalDateTime;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 /**
  * ProductCountHistory - 상품 수 변경 이력

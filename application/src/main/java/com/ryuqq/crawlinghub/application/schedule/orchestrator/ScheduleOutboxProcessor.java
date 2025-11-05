@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.orchestrator;
+package com.ryuqq.crawlinghub.application.schedule.orchestrator;
 
 import java.util.List;
 
@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.crawlinghub.application.crawl.schedule.orchestrator.outcome.ScheduleOutcome;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.EventBridgeSchedulerPort;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.SellerCrawlScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.orchestrator.outcome.ScheduleOutcome;
+import com.ryuqq.crawlinghub.application.schedule.port.out.EventBridgeSchedulerPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
 

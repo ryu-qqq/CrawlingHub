@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.exception;
+package com.ryuqq.crawlinghub.domain.seller.exception;
 
 /**
  * 비활성 셀러 예외

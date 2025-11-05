@@ -1,10 +1,10 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.service;
+package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command.ProductDetailCommand;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.in.ProcessProductDetailUseCase;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.LoadCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.SaveCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.assembler.command.ProductDetailCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.ProcessProductDetailUseCase;
+import com.ryuqq.crawlinghub.application.task.port.out.LoadCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.CrawlTaskId;
 

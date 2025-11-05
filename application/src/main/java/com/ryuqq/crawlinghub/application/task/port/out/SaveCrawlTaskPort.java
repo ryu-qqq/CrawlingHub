@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.port.out;
+package com.ryuqq.crawlinghub.application.task.port.out;
 
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 

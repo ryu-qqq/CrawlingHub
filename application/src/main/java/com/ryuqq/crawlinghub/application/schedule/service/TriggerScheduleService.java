@@ -1,10 +1,10 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.service;
+package com.ryuqq.crawlinghub.application.schedule.service;
 
-import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.TriggerScheduleCommand;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.in.TriggerScheduleUseCase;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.LoadSchedulePort;
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.SaveSchedulePort;
-import com.ryuqq.crawlinghub.application.crawl.schedule.validator.CronExpressionValidator;
+import com.ryuqq.crawlinghub.application.schedule.dto.command.TriggerScheduleCommand;
+import com.ryuqq.crawlinghub.application.schedule.port.in.TriggerScheduleUseCase;
+import com.ryuqq.crawlinghub.application.schedule.port.out.LoadSchedulePort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.SaveSchedulePort;
+import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import org.springframework.stereotype.Service;

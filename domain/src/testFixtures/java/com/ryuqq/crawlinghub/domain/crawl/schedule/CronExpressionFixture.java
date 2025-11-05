@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.crawl.schedule;
 
+import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
+
 /**
  * CronExpression Test Fixture
  *

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.dto.command;
+package com.ryuqq.crawlinghub.application.schedule.dto.command;
 
 /**
  * 크롤링 스케줄 생성 Command

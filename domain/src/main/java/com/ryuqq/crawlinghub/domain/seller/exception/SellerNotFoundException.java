@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.exception;
+package com.ryuqq.crawlinghub.domain.seller.exception;
 
 /**
  * 셀러를 찾을 수 없는 예외

@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.port.in;
+package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.crawl.processing.dto.command.RetryTasksCommand;
+import com.ryuqq.crawlinghub.application.task.command.RetryTasksCommand;
 
 /**
  * 실패 태스크 재시도 UseCase

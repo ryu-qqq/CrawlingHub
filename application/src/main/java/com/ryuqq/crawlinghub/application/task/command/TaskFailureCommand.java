@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.dto.command;
+package com.ryuqq.crawlinghub.application.task.command;
 
 /**
  * 태스크 실패 처리 Command

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.schedule;
+package com.ryuqq.crawlinghub.domain.schedule;
 
 /**
  * 스케줄 상태

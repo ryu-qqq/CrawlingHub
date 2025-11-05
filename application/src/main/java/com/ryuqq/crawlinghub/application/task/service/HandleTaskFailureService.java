@@ -1,12 +1,12 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.service;
+package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.LoadCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.OutboxPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.SaveCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.processing.dto.command.TaskFailureCommand;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.in.HandleTaskFailureUseCase;
-import com.ryuqq.crawlinghub.application.crawl.processing.port.out.NotificationPort;
+import com.ryuqq.crawlinghub.application.task.port.out.LoadCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.port.out.OutboxPort;
+import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.command.TaskFailureCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.HandleTaskFailureUseCase;
+import com.ryuqq.crawlinghub.application.task.port.out.NotificationPort;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.TaskStatus;

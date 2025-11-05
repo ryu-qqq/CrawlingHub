@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.dto.command;
+package com.ryuqq.crawlinghub.application.task.command;
 
 import com.ryuqq.crawlinghub.domain.task.TaskType;
 

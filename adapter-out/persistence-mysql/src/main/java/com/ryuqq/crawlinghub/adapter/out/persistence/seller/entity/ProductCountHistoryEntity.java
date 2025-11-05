@@ -1,10 +1,9 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.common.entity.BaseAuditEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;

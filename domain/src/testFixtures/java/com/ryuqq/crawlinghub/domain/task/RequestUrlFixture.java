@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.task;
+package com.ryuqq.crawlinghub.domain.task;
 
 /**
  * RequestUrl Test Fixture

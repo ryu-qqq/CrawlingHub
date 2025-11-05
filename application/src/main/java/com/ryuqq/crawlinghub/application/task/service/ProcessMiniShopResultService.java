@@ -1,12 +1,12 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.service;
+package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command.MiniShopResultCommand;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.in.ProcessMiniShopResultUseCase;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.IdempotencyKeyGeneratorPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.LoadCrawlTaskPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.OutboxPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.SaveCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.assembler.command.MiniShopResultCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.ProcessMiniShopResultUseCase;
+import com.ryuqq.crawlinghub.application.task.port.out.IdempotencyKeyGeneratorPort;
+import com.ryuqq.crawlinghub.application.task.port.out.LoadCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.port.out.OutboxPort;
+import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;

@@ -1,7 +1,7 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.port.in;
+package com.ryuqq.crawlinghub.application.schedule.port.in;
 
-import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.CreateScheduleCommand;
-import com.ryuqq.crawlinghub.application.crawl.schedule.dto.response.ScheduleResponse;
+import com.ryuqq.crawlinghub.application.schedule.dto.command.CreateScheduleCommand;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleResponse;
 
 /**
  * 크롤링 스케줄 생성 UseCase
