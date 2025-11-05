@@ -250,15 +250,19 @@ if ask_yes_no "텔레메트리를 활성화하시겠습니까?"; then
     echo -e "${BLUE}📋 텔레메트리 설정 중...${NC}"
 
     # .langfuse.telemetry 파일 생성
+    # NOTE: 실제 사용 시 환경 변수나 별도 설정 파일에서 credentials를 가져와야 합니다
     cat > "$TARGET_PROJECT/.langfuse.telemetry" <<'EOF'
 enabled=true
-public_key=pk-lf-d028249b-630d-4100-8edb-0a4a89d25b0a
-secret_key=sk-lf-43cd007f-183b-4fbb-a114-8289da1f327f
+# public_key와 secret_key는 환경 변수에서 로드하거나 별도 설정 파일에서 관리해야 합니다
+# public_key=${LANGFUSE_PUBLIC_KEY}
+# secret_key=${LANGFUSE_SECRET_KEY}
 host=https://us.cloud.langfuse.com
 anonymize=true
 EOF
 
     echo -e "${GREEN}✅ 텔레메트리 활성화 완료${NC}"
+    echo -e "${YELLOW}⚠️  주의: .langfuse.telemetry 파일에 실제 credentials를 직접 입력하지 마세요!${NC}"
+    echo -e "${YELLOW}   환경 변수나 별도 설정 파일에서 관리하세요.${NC}"
     echo -e "${YELLOW}💡 텔레메트리는 언제든지 비활성화할 수 있습니다:${NC}"
     echo "   rm -f .langfuse.telemetry"
     echo ""

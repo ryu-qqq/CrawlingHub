@@ -1,15 +1,18 @@
 package com.ryuqq.crawlinghub.domain.mustit.seller;
 
+import com.ryuqq.crawlinghub.domain.mustit.seller.exception.InactiveSellerException;
+import com.ryuqq.crawlinghub.domain.mustit.seller.exception.SellerNotFoundException;
+
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * 머스트잇 셀러 Aggregate Root
- * 
+ *
  * <p>비즈니스 규칙:
  * <ul>
- *   <li>셀러 코드는 변경 불가능 (불변)</li>
+ *   <li>셀러 이름은 변경 불가능 (불변)</li>
  *   <li>DISABLED 상태에서는 크롤링 불가</li>
  *   <li>상품 수는 음수 불가</li>
  * </ul>
@@ -17,8 +20,7 @@ import java.util.Objects;
 public class MustitSeller {
 
     private final MustitSellerId id;
-    private final String sellerCode;
-    private final String sellerName;
+    private final SellerName sellerName;
     private SellerStatus status;
     private Integer totalProductCount;
     private LocalDateTime lastCrawledAt;
@@ -31,8 +33,7 @@ public class MustitSeller {
      */
     private MustitSeller(
         MustitSellerId id,
-        String sellerCode,
-        String sellerName,
+        SellerName sellerName,
         SellerStatus status,
         Integer totalProductCount,
         LocalDateTime lastCrawledAt,
@@ -41,7 +42,6 @@ public class MustitSeller {
         LocalDateTime updatedAt
     ) {
         this.id = id;
-        this.sellerCode = sellerCode;
         this.sellerName = sellerName;
         this.status = status;
         this.totalProductCount = totalProductCount;
@@ -56,15 +56,13 @@ public class MustitSeller {
      */
     MustitSeller(
         MustitSellerId id,
-        String sellerCode,
-        String sellerName,
+        SellerName sellerName,
         SellerStatus status,
         Clock clock
     ) {
-        validateRequiredFields(sellerCode, sellerName, status);
+        validateRequiredFields(sellerName, status);
 
         this.id = id;
-        this.sellerCode = sellerCode;
         this.sellerName = sellerName;
         this.status = status;
         this.totalProductCount = 0;
@@ -77,11 +75,10 @@ public class MustitSeller {
     /**
      * 신규 셀러 생성 (ID 없음)
      */
-    public static MustitSeller forNew(String sellerCode, String sellerName) {
+    public static MustitSeller forNew(String sellerName) {
         return new MustitSeller(
             null,
-            sellerCode,
-            sellerName,
+            SellerName.of(sellerName),
             SellerStatus.ACTIVE,
             Clock.systemDefaultZone()
         );
@@ -92,14 +89,13 @@ public class MustitSeller {
      */
     public static MustitSeller of(
         MustitSellerId id,
-        String sellerCode,
         String sellerName,
         SellerStatus status
     ) {
         if (id == null) {
             throw new IllegalArgumentException("MustitSeller ID는 필수입니다");
         }
-        return new MustitSeller(id, sellerCode, sellerName, status, Clock.systemDefaultZone());
+        return new MustitSeller(id, SellerName.of(sellerName), status, Clock.systemDefaultZone());
     }
 
     /**
@@ -107,7 +103,6 @@ public class MustitSeller {
      */
     public static MustitSeller reconstitute(
         MustitSellerId id,
-        String sellerCode,
         String sellerName,
         SellerStatus status,
         Integer totalProductCount,
@@ -120,8 +115,7 @@ public class MustitSeller {
         }
         return new MustitSeller(
             id,
-            sellerCode,
-            sellerName,
+            SellerName.of(sellerName),
             status,
             totalProductCount,
             lastCrawledAt,
@@ -131,11 +125,8 @@ public class MustitSeller {
         );
     }
 
-    private static void validateRequiredFields(String sellerCode, String sellerName, SellerStatus status) {
-        if (sellerCode == null || sellerCode.isBlank()) {
-            throw new IllegalArgumentException("셀러 코드는 필수입니다");
-        }
-        if (sellerName == null || sellerName.isBlank()) {
+    private static void validateRequiredFields(SellerName sellerName, SellerStatus status) {
+        if (sellerName == null) {
             throw new IllegalArgumentException("셀러 이름은 필수입니다");
         }
         if (status == null) {
@@ -187,6 +178,19 @@ public class MustitSeller {
     }
 
     /**
+     * 크롤링 가능 상태 검증
+     *
+     * <p>비활성 상태(DISABLED, PAUSED)인 경우 InactiveSellerException을 던집니다.
+     *
+     * @throws InactiveSellerException 비활성 상태인 경우
+     */
+    public void validateCanCrawl() {
+        if (!canCrawl()) {
+            throw new InactiveSellerException(getIdValue(), sellerName.getValue());
+        }
+    }
+
+    /**
      * 크롤링 가능 여부 확인
      */
     public boolean canCrawl() {
@@ -212,12 +216,8 @@ public class MustitSeller {
         return id != null ? id.value() : null;
     }
 
-    public String getSellerCode() {
-        return sellerCode;
-    }
-
     public String getSellerName() {
-        return sellerName;
+        return sellerName.getValue();
     }
 
     public SellerStatus getStatus() {
@@ -249,20 +249,25 @@ public class MustitSeller {
             return false;
         }
         MustitSeller that = (MustitSeller) o;
+
+        // id가 null이면 sellerCode로 fallback (transient instance 처리)
+        if (id == null || that.id == null) {
+            return Objects.equals(sellerCode, that.sellerCode);
+        }
         return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        // id가 null이면 sellerCode 기반 해시 (transient instance 처리)
+        return id != null ? Objects.hash(id) : Objects.hash(sellerCode);
     }
 
     @Override
     public String toString() {
         return "MustitSeller{" +
             "id=" + id +
-            ", sellerCode='" + sellerCode + '\'' +
-            ", sellerName='" + sellerName + '\'' +
+            ", sellerName='" + sellerName.getValue() + '\'' +
             ", status=" + status +
             ", totalProductCount=" + totalProductCount +
             '}';
