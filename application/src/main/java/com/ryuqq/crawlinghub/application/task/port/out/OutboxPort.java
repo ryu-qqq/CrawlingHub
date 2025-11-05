@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.port.out;
+package com.ryuqq.crawlinghub.application.task.port.out;
 
 /**
  * Outbox 저장 Port (Transactional Outbox Pattern)

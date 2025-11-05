@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.application.crawl.schedule.dto.command;
 
+import com.ryuqq.crawlinghub.application.schedule.dto.command.TriggerScheduleCommand;
+
 /**
  * TriggerScheduleCommand Test Fixture
  *

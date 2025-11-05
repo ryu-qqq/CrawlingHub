@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.schedule;
+package com.ryuqq.crawlinghub.domain.schedule;
 
 import java.util.Objects;
 

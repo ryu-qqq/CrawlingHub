@@ -239,7 +239,7 @@ public class SellerApiMapper {
 ```java
 package com.ryuqq.crawlinghub.domain.mustit.seller.history;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 import java.time.LocalDateTime;
 
@@ -400,7 +400,7 @@ public record ProductCountHistoryId(Long value) {
 ```java
 package com.ryuqq.crawlinghub.application.mustit.seller.port.out;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 /**
  * SaveProductCountHistoryPort - 상품 수 이력 저장 포트 (Command)
@@ -427,8 +427,8 @@ public interface SaveProductCountHistoryPort {
 ```java
 package com.ryuqq.crawlinghub.application.mustit.seller.port.out;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import java.util.List;
 
@@ -506,12 +506,12 @@ public interface LoadScheduleHistoryPort {
 ```java
 package com.ryuqq.crawlinghub.application.mustit.seller.component;
 
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadSellerPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveProductCountHistoryPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadSellerPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.SaveProductCountHistoryPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.SaveSellerPort;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -607,12 +607,12 @@ public class SellerManager {
 ```java
 package com.ryuqq.crawlinghub.application.mustit.seller.facade;
 
-import com.ryuqq.crawlinghub.application.mustit.seller.component.SellerManager;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterSellerUseCase;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateSellerStatusUseCase;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
+import component.com.ryuqq.crawlinghub.application.seller.SellerManager;
+import command.dto.com.ryuqq.crawlinghub.application.seller.RegisterSellerCommand;
+import response.dto.com.ryuqq.crawlinghub.application.seller.SellerResponse;
+import in.port.com.ryuqq.crawlinghub.application.seller.RegisterSellerUseCase;
+import in.port.com.ryuqq.crawlinghub.application.seller.UpdateSellerStatusUseCase;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -683,21 +683,21 @@ package com.ryuqq.crawlinghub.application.mustit.seller.service;
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
 import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.LoadScheduleHistoryPort;
 import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.LoadSchedulePort;
-import com.ryuqq.crawlinghub.application.mustit.seller.assembler.SellerAssembler;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ProductCountHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleInfoResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.GetSellerDetailUseCase;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadProductCountHistoryPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadSellerPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadSellerStatsPort;
+import assembler.com.ryuqq.crawlinghub.application.seller.SellerAssembler;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ProductCountHistoryResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ScheduleHistoryResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ScheduleInfoResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.SellerDetailResponse;
+import in.port.com.ryuqq.crawlinghub.application.seller.GetSellerDetailUseCase;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadProductCountHistoryPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadSellerPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadSellerStatsPort;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleHistory;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1126,7 +1126,7 @@ public class ProductCountHistoryEntity {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -1154,8 +1154,8 @@ public interface ProductCountHistoryJpaRepository extends JpaRepository<ProductC
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.QProductCountHistoryEntity;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.QProductCountHistoryEntity;
 
 import org.springframework.stereotype.Repository;
 
@@ -1229,10 +1229,10 @@ public class ProductCountHistoryQueryRepository {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistoryId;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistoryId;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -1281,11 +1281,11 @@ public interface ProductCountHistoryMapper {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.ProductCountHistoryMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.ProductCountHistoryJpaRepository;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveProductCountHistoryPort;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import mapper.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryMapper;
+import repository.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryJpaRepository;
+import out.port.com.ryuqq.crawlinghub.application.seller.SaveProductCountHistoryPort;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -1329,12 +1329,12 @@ public class ProductCountHistoryCommandAdapter implements SaveProductCountHistor
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.ProductCountHistoryMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.ProductCountHistoryQueryRepository;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadProductCountHistoryPort;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import mapper.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryMapper;
+import repository.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryQueryRepository;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadProductCountHistoryPort;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -1601,10 +1601,10 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.ScheduleHistory
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.ScheduleInfoApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ProductCountHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleInfoResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ProductCountHistoryResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ScheduleHistoryResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ScheduleInfoResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.SellerDetailResponse;
 
 import org.springframework.stereotype.Component;
 
@@ -1733,8 +1733,8 @@ package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.GetSellerDetailUseCase;
+import response.dto.com.ryuqq.crawlinghub.application.seller.SellerDetailResponse;
+import in.port.com.ryuqq.crawlinghub.application.seller.GetSellerDetailUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -1815,7 +1815,7 @@ public class SellerController {
 ```java
 package com.ryuqq.crawlinghub.domain.mustit.seller.history;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -1924,14 +1924,14 @@ class ProductCountHistoryTest {
 ```java
 package com.ryuqq.crawlinghub.application.mustit.seller.component;
 
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.LoadSellerPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveProductCountHistoryPort;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerName;
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerStatus;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import out.port.com.ryuqq.crawlinghub.application.seller.LoadSellerPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.SaveProductCountHistoryPort;
+import out.port.com.ryuqq.crawlinghub.application.seller.SaveSellerPort;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -2017,11 +2017,11 @@ class SellerManagerTest {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.ProductCountHistoryMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.ProductCountHistoryJpaRepository;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import mapper.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryMapper;
+import repository.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryJpaRepository;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -2097,11 +2097,11 @@ class ProductCountHistoryCommandAdapterTest {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper.ProductCountHistoryMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository.ProductCountHistoryQueryRepository;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.mustit.seller.history.ProductCountHistory;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
+import mapper.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryMapper;
+import repository.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryQueryRepository;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import history.com.ryuqq.crawlinghub.domain.seller.ProductCountHistory;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -2195,7 +2195,7 @@ class ProductCountHistoryQueryAdapterTest {
 ```java
 package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
+import entity.com.ryuqq.crawlinghub.adapter.out.persistence.seller.ProductCountHistoryEntity;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -2280,9 +2280,9 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.ProductCountHistoryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ProductCountHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.GetSellerDetailUseCase;
+import response.dto.com.ryuqq.crawlinghub.application.seller.ProductCountHistoryResponse;
+import response.dto.com.ryuqq.crawlinghub.application.seller.SellerDetailResponse;
+import in.port.com.ryuqq.crawlinghub.application.seller.GetSellerDetailUseCase;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

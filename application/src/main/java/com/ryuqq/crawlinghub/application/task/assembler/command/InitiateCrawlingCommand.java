@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command;
+package com.ryuqq.crawlinghub.application.task.assembler.command;
 
 /**
  * 크롤링 시작 Command

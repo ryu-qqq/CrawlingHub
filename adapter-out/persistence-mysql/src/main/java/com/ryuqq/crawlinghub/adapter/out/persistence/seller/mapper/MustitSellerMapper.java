@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.MustitSellerEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.MustitSellerEntity;
 import com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.mustit.seller.SellerBasicInfo;

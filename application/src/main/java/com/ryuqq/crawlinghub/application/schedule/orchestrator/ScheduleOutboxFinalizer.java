@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.orchestrator;
+package com.ryuqq.crawlinghub.application.schedule.orchestrator;
 
-import com.ryuqq.crawlinghub.application.crawl.schedule.port.out.SellerCrawlScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

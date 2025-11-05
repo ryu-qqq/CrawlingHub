@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.port.out;
+package com.ryuqq.crawlinghub.application.schedule.port.out;
 
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
 

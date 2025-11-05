@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.port.in;
+package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.crawl.processing.dto.command.TaskFailureCommand;
+import com.ryuqq.crawlinghub.application.task.command.TaskFailureCommand;
 
 /**
  * 태스크 실패 처리 UseCase

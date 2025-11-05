@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.repository;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.QProductCountHistoryEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.ProductCountHistoryEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.QProductCountHistoryEntity;
 
 import org.springframework.stereotype.Repository;
 

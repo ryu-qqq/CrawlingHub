@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.outbox.repository;
+package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity.OperationState;
-import com.ryuqq.crawlinghub.adapter.out.persistence.outbox.entity.SellerCrawlScheduleOutboxEntity.WriteAheadState;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.SellerCrawlScheduleOutboxEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.SellerCrawlScheduleOutboxEntity.OperationState;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.SellerCrawlScheduleOutboxEntity.WriteAheadState;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

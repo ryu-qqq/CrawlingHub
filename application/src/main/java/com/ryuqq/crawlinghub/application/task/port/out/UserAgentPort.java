@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.port.out;
+package com.ryuqq.crawlinghub.application.task.port.out;
 
 /**
  * User-Agent 관리 Port

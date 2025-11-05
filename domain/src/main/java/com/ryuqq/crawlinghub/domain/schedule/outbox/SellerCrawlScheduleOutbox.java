@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.schedule.outbox;
+package com.ryuqq.crawlinghub.domain.schedule.outbox;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

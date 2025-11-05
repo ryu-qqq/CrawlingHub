@@ -1,11 +1,11 @@
-package com.ryuqq.crawlinghub.application.crawl.orchestration.service;
+package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command.InitiateCrawlingCommand;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.in.InitiateCrawlingUseCase;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.IdempotencyKeyGeneratorPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.OutboxPort;
-import com.ryuqq.crawlinghub.application.crawl.orchestration.port.out.SaveCrawlTaskPort;
+import com.ryuqq.crawlinghub.application.task.assembler.command.InitiateCrawlingCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
+import com.ryuqq.crawlinghub.application.task.port.out.IdempotencyKeyGeneratorPort;
+import com.ryuqq.crawlinghub.application.task.port.out.OutboxPort;
+import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.domain.task.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.RequestUrl;

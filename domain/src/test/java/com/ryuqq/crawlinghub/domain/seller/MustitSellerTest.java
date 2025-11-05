@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller;
+package com.ryuqq.crawlinghub.domain.seller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

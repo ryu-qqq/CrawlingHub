@@ -12,12 +12,12 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApi
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ProductCountHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleHistoryResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.ScheduleInfoResponse;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.ProductCountHistoryResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleHistoryResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleInfoResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlIntervalType;
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 
 import org.springframework.stereotype.Component;
 

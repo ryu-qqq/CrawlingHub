@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.schedule;
+package com.ryuqq.crawlinghub.domain.schedule;
 
 /**
  * CrawlSchedule 식별자

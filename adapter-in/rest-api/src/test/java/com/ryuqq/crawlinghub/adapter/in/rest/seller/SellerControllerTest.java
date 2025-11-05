@@ -12,6 +12,8 @@ import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMusti
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateMustitSellerUseCase;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -82,13 +84,13 @@ class SellerControllerTest {
                 com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.DAILY, 1
         );
 
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        MustitSeller mockSeller = createMockSeller();
         RegisterSellerApiResponse apiResponse = createApiResponse();
 
         given(sellerApiMapper.toCommand(any(RegisterSellerApiRequest.class))).willReturn(command);
         given(registerMustitSellerUseCase.execute(any(RegisterMustitSellerCommand.class)))
                 .willReturn(mockSeller);
-        given(sellerApiMapper.toResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+        given(sellerApiMapper.toResponse(any(MustitSeller.class)))
                 .willReturn(apiResponse);
 
         // When & Then
@@ -109,12 +111,12 @@ class SellerControllerTest {
                 .andExpect(jsonPath("$.requestId").exists());
     }
 
-    private com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller createMockSeller() {
+    private MustitSeller createMockSeller() {
         com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval crawlInterval =
                 new com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval(
                         com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.DAILY, 1
                 );
-        return new com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller(
+        return new MustitSeller(
                 "SELLER001", "Test Seller", crawlInterval
         );
     }
@@ -242,7 +244,7 @@ class SellerControllerTest {
                 sellerId, false, null, null
         );
 
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        MustitSeller mockSeller = createMockSeller();
         UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
                 "SELLER001", "Test Seller", false, "DAILY", 1, java.time.LocalDateTime.now()
         );
@@ -251,7 +253,7 @@ class SellerControllerTest {
                 .willReturn(command);
         given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
                 .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
                 .willReturn(apiResponse);
 
         // When & Then
@@ -281,7 +283,7 @@ class SellerControllerTest {
                 com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.HOURLY, 6
         );
 
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        MustitSeller mockSeller = createMockSeller();
         UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
                 "SELLER001", "Test Seller", true, "HOURLY", 6, java.time.LocalDateTime.now()
         );
@@ -290,7 +292,7 @@ class SellerControllerTest {
                 .willReturn(command);
         given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
                 .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
                 .willReturn(apiResponse);
 
         // When & Then
@@ -321,7 +323,7 @@ class SellerControllerTest {
                 com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.WEEKLY, 2
         );
 
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller mockSeller = createMockSeller();
+        MustitSeller mockSeller = createMockSeller();
         UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
                 "SELLER001", "Test Seller", false, "WEEKLY", 2, java.time.LocalDateTime.now()
         );
@@ -330,7 +332,7 @@ class SellerControllerTest {
                 .willReturn(command);
         given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
                 .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller.class)))
+        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
                 .willReturn(apiResponse);
 
         // When & Then

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.dto.command;
+package com.ryuqq.crawlinghub.application.schedule.dto.command;
 
 /**
  * 스케줄 트리거 Command (EventBridge에서 호출)

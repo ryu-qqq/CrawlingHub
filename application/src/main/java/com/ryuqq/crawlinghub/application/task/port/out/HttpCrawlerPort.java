@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.crawl.processing.port.out;
+package com.ryuqq.crawlinghub.application.task.port.out;
 
 /**
  * HTTP 크롤링 Port (외부 API 호출)

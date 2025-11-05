@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller.history;
+package com.ryuqq.crawlinghub.domain.seller.history;
 
 import java.time.LocalDateTime;
 
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 /**
  * ProductCountHistoryTest - ProductCountHistory 도메인 객체 단위 테스트

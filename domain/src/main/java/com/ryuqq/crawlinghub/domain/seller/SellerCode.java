@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller;
+package com.ryuqq.crawlinghub.domain.seller;
 
 import java.util.Objects;
 

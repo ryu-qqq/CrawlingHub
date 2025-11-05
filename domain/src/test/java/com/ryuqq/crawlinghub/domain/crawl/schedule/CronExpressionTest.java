@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.crawl.schedule;
 
+import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

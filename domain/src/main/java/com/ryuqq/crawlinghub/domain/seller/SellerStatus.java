@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller;
+package com.ryuqq.crawlinghub.domain.seller;
 
 /**
  * 셀러 상태

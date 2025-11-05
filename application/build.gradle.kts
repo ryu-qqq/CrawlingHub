@@ -41,6 +41,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // ========================================
+    // Jackson (JSON Processing)
+    // ========================================
+    implementation(rootProject.libs.jackson.databind)
+    implementation(rootProject.libs.jackson.datatype.jsr310)
+
+    // ========================================
     // Quartz (Cron Expression Validation)
     // ========================================
     implementation("org.quartz-scheduler:quartz:2.3.2")

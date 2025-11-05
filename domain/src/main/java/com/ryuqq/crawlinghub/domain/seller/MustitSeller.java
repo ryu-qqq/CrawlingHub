@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.domain.mustit.seller;
+package com.ryuqq.crawlinghub.domain.seller;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.exception.InactiveSellerException;
+import com.ryuqq.crawlinghub.domain.seller.exception.InactiveSellerException;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

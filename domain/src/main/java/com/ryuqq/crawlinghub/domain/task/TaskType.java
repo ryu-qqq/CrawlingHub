@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.crawl.task;
+package com.ryuqq.crawlinghub.domain.task;
 
 /**
  * 크롤링 작업 유형

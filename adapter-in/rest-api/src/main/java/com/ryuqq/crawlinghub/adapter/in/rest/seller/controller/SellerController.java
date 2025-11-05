@@ -9,9 +9,11 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApi
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
 import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.GetSellerDetailUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.GetSellerDetailUseCase;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;
 import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateMustitSellerUseCase;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -88,7 +90,7 @@ public class SellerController {
         RegisterMustitSellerCommand command = sellerApiMapper.toCommand(request);
 
         // 2. UseCase 실행 → Domain Aggregate 반환
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller seller =
+        MustitSeller seller =
                 registerMustitSellerUseCase.execute(command);
 
         // 3. Domain Aggregate → API Response 변환
@@ -131,7 +133,7 @@ public class SellerController {
         UpdateMustitSellerCommand command = sellerApiMapper.toUpdateCommand(sellerId, request);
 
         // 3. UseCase 실행 → Domain Aggregate 반환
-        com.ryuqq.crawlinghub.domain.mustit.seller.MustitSeller seller =
+        MustitSeller seller =
                 updateMustitSellerUseCase.execute(command);
 
         // 4. Domain Aggregate → API Response 변환
@@ -164,7 +166,7 @@ public class SellerController {
             @PathVariable("sellerId") Long sellerId
     ) {
         // 1. UseCase 실행 (확장된 getDetail 메서드 사용)
-        com.ryuqq.crawlinghub.application.mustit.seller.dto.response.SellerDetailResponse response =
+        SellerDetailResponse response =
             getSellerDetailUseCase.getDetail(sellerId);
 
         // 2. Application Response → API Response 변환

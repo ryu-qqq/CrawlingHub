@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.domain.crawl.schedule;
+package com.ryuqq.crawlinghub.domain.schedule;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

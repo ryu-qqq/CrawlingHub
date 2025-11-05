@@ -50,3 +50,6 @@ out/
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+
+# Git Worktrees
+.worktrees/

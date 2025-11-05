@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.common.entity.BaseAuditEntity;
 

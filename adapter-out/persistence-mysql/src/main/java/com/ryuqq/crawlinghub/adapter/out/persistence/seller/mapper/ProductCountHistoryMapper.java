@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.mapper;
+package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.mustit.seller.entity.ProductCountHistoryEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.ProductCountHistoryEntity;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistoryId;

@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.application.crawl.schedule.port.in;
+package com.ryuqq.crawlinghub.application.schedule.port.in;
 
-import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.TriggerScheduleCommand;
+import com.ryuqq.crawlinghub.application.schedule.dto.command.TriggerScheduleCommand;
 
 /**
  * 스케줄 트리거 UseCase (EventBridge에서 호출)
