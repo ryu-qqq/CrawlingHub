@@ -12,18 +12,18 @@ import java.util.Map;
  * @author ryu-qqq
  * @since 2025-11-05
  */
-final class PlaceholderScheduleException extends ScheduleException {
+public final class PlaceholderScheduleException extends ScheduleException {
 
     /**
      * PlaceholderScheduleException 생성자
      */
-    PlaceholderScheduleException() {
+    public PlaceholderScheduleException() {
         super("Placeholder exception");
     }
 
     @Override
     public String code() {
-        return "SCHEDULE-PLACEHOLDER";
+        return ScheduleErrorCode.SCHEDULE_PLACEHOLDER.getCode();
     }
 
     @Override
