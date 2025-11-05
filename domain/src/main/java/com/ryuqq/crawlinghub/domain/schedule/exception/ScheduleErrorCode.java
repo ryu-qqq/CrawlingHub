@@ -22,7 +22,7 @@ public enum ScheduleErrorCode implements ErrorCode {
     /**
      * Placeholder 예외 (임시)
      */
-    SCHEDULE_PLACEHOLDER("SCHEDULE-001", 500, "Placeholder exception", "Schedule Placeholder");
+    SCHEDULE_PLACEHOLDER("SCHEDULE-001", 404, "Placeholder exception", "Schedule Placeholder");
 
     private final String code;
     private final int httpStatus;
