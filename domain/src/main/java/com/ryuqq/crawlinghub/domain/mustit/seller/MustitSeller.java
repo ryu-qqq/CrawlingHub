@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.domain.mustit.seller;
 
 import com.ryuqq.crawlinghub.domain.mustit.seller.exception.InactiveSellerException;
-import com.ryuqq.crawlinghub.domain.mustit.seller.exception.SellerNotFoundException;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -43,6 +42,11 @@ public class MustitSeller {
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
+        validateRequiredFields(sellerCode, sellerName, status);
+        if (id == null) {
+            throw new IllegalArgumentException("DB reconstitute는 ID가 필수입니다");
+        }
+
         this.id = id;
         this.sellerCode = sellerCode;
         this.sellerName = sellerName;
