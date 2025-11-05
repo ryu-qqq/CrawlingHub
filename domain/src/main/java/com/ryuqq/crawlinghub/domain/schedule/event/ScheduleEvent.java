@@ -43,6 +43,13 @@ public sealed interface ScheduleEvent extends DomainEvent
     Long sellerId();
 
     /**
+     * Outbox Idempotency Key 반환
+     *
+     * @return Outbox Idempotency Key
+     */
+    String outboxIdemKey();
+
+    /**
      * 이벤트 발생 시각
      *
      * @return 발생 시각

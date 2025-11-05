@@ -12,6 +12,8 @@ import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValida
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
+import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
+import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 import org.springframework.stereotype.Service;
@@ -108,6 +110,8 @@ public class ScheduleCommandFacade {
         schedule.calculateNextExecution(nextExecution);
 
         // 5. DB 저장
+        // ✅ AbstractAggregateRoot 이벤트 발행: SaveSchedulePort 구현체가 Spring Data JPA Repository를 사용하는 경우,
+        // save() 메서드 호출 시 자동으로 등록된 Domain Event가 트랜잭션 커밋 후 발행됩니다.
         CrawlSchedule savedSchedule = saveSchedulePort.save(schedule);
 
         // 6. Outbox 저장 (같은 트랜잭션 - EventBridge 작업 기록)
@@ -121,7 +125,7 @@ public class ScheduleCommandFacade {
         // 7. Domain Event 등록 (트랜잭션 커밋 후 자동 발행)
         // ✅ 이벤트는 트랜잭션 커밋 후 발행되며, EventListener에서 비동기로 Outbox Processor 호출
         savedSchedule.registerEvent(
-            com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent.of(
+            ScheduleCreatedEvent.of(
                 savedSchedule.getIdValue(),
                 savedSchedule.getSellerIdValue(),
                 savedSchedule.getCronExpressionValue(),
@@ -181,29 +185,28 @@ public class ScheduleCommandFacade {
         );
         schedule.calculateNextExecution(nextExecution);
 
-        // 6. DB 저장
+        // 6. Domain Event 등록 (트랜잭션 커밋 후 자동 발행)
+        // ✅ 이벤트는 트랜잭션 커밋 후 발행되며, EventListener에서 비동기로 Outbox Processor 호출
+        // ✅ ID가 이미 존재하므로 이벤트를 첫 번째 save 전에 등록하여 한 번의 저장으로 처리
+        schedule.registerEvent(
+            ScheduleUpdatedEvent.of(
+                schedule.getIdValue(),
+                schedule.getSellerIdValue(),
+                schedule.getCronExpressionValue(),
+                idemKey
+            )
+        );
+
+        // 7. DB 저장 (이벤트 포함)
         CrawlSchedule updatedSchedule = saveSchedulePort.save(schedule);
 
-        // 7. Outbox 저장 (EventBridge UPDATE 작업 기록)
+        // 8. Outbox 저장 (EventBridge UPDATE 작업 기록)
         SellerCrawlScheduleOutbox outbox = SellerCrawlScheduleOutbox.forEventBridgeUpdate(
             updatedSchedule.getSellerIdValue(),
             toPayloadJson(updatedSchedule.toEventBridgePayload()),
             idemKey
         );
         outboxPort.save(outbox);
-
-        // 8. Domain Event 등록 (트랜잭션 커밋 후 자동 발행)
-        // ✅ 이벤트는 트랜잭션 커밋 후 발행되며, EventListener에서 비동기로 Outbox Processor 호출
-        updatedSchedule.registerEvent(
-            com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent.of(
-                updatedSchedule.getIdValue(),
-                updatedSchedule.getSellerIdValue(),
-                updatedSchedule.getCronExpressionValue(),
-                idemKey
-            )
-        );
-        // 이벤트를 등록했으므로 다시 저장해야 함 (Spring Data가 이벤트 발행)
-        saveSchedulePort.save(updatedSchedule);
 
         // 9. 즉시 202 Accepted 반환
         // ✅ 트랜잭션 커밋 후 이벤트가 발행되고, EventListener에서 비동기로 Outbox Processor 호출

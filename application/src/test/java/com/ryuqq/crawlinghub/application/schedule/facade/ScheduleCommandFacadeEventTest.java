@@ -176,13 +176,13 @@ class ScheduleCommandFacadeEventTest {
         }
 
         @Test
-        @DisplayName("이벤트 등록 후 Schedule을 두 번 저장한다")
-        void it_saves_schedule_twice_for_event_registration() {
+        @DisplayName("이벤트 등록 후 Schedule을 한 번 저장한다")
+        void it_saves_schedule_once_with_event_registration() {
             // When
             sut.updateSchedule(command);
 
-            // Then: 첫 번째 저장 (업데이트) + 두 번째 저장 (이벤트 발행)
-            then(saveSchedulePort).should(times(2)).save(any(CrawlSchedule.class));
+            // Then: 이벤트를 첫 번째 save 전에 등록하므로 한 번의 저장으로 처리
+            then(saveSchedulePort).should(times(1)).save(any(CrawlSchedule.class));
         }
 
         @Test
@@ -191,12 +191,12 @@ class ScheduleCommandFacadeEventTest {
             // When
             sut.updateSchedule(command);
 
-            // Then: 두 번째 save 호출 시 이벤트가 등록되어 있어야 함
+            // Then: save 호출 시 이벤트가 등록되어 있어야 함
             ArgumentCaptor<CrawlSchedule> scheduleCaptor = ArgumentCaptor.forClass(CrawlSchedule.class);
-            then(saveSchedulePort).should(times(2)).save(scheduleCaptor.capture());
+            then(saveSchedulePort).should(times(1)).save(scheduleCaptor.capture());
 
-            // 두 번째 저장된 Schedule 확인 (이벤트가 등록된 상태)
-            CrawlSchedule scheduleWithEvent = scheduleCaptor.getAllValues().get(1);
+            // 저장된 Schedule 확인 (이벤트가 등록된 상태)
+            CrawlSchedule scheduleWithEvent = scheduleCaptor.getValue();
             assertThat(scheduleWithEvent).isNotNull();
             assertThat(scheduleWithEvent.getIdValue()).isEqualTo(updatedSchedule.getIdValue());
         }

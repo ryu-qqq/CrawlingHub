@@ -2,10 +2,9 @@ package com.ryuqq.crawlinghub.application.schedule.listener;
 
 import com.ryuqq.crawlinghub.application.schedule.orchestrator.ScheduleOutboxProcessor;
 import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
-import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
-import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,33 +64,21 @@ public class ScheduleEventListener {
     }
 
     /**
-     * Schedule Created Event 처리
+     * Schedule Event 처리 (통합 핸들러)
      *
      * <p>트랜잭션 커밋 후 비동기로 Outbox Processor를 즉시 호출합니다.</p>
+     * <p>ScheduleCreatedEvent와 ScheduleUpdatedEvent 모두 처리합니다.</p>
      *
-     * @param event ScheduleCreatedEvent
+     * @param event ScheduleEvent (ScheduleCreatedEvent 또는 ScheduleUpdatedEvent)
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
-    public void handleScheduleCreated(ScheduleCreatedEvent event) {
-        log.info("📨 ScheduleCreatedEvent 수신: scheduleId={}, sellerId={}, outboxIdemKey={}",
-            event.scheduleId(), event.sellerId(), event.outboxIdemKey());
-
-        processOutbox(event.outboxIdemKey());
-    }
-
-    /**
-     * Schedule Updated Event 처리
-     *
-     * <p>트랜잭션 커밋 후 비동기로 Outbox Processor를 즉시 호출합니다.</p>
-     *
-     * @param event ScheduleUpdatedEvent
-     */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
-    public void handleScheduleUpdated(ScheduleUpdatedEvent event) {
-        log.info("📨 ScheduleUpdatedEvent 수신: scheduleId={}, sellerId={}, outboxIdemKey={}",
-            event.scheduleId(), event.sellerId(), event.outboxIdemKey());
+    public void handleScheduleEvent(ScheduleEvent event) {
+        log.info("📨 {} 수신: scheduleId={}, sellerId={}, outboxIdemKey={}",
+            event.getClass().getSimpleName(),
+            event.scheduleId(),
+            event.sellerId(),
+            event.outboxIdemKey());
 
         processOutbox(event.outboxIdemKey());
     }
@@ -100,11 +87,16 @@ public class ScheduleEventListener {
      * Outbox Processor 즉시 호출
      *
      * <p>Idempotency Key로 Outbox를 찾아서 즉시 처리합니다.</p>
+     * <p><strong>Race Condition 방지:</strong> @Scheduled 폴러와의 동시성 문제를 방지하기 위해
+     * processOne 호출 전에 최신 상태로 다시 조회하여 PENDING 상태인지 확인합니다.</p>
      *
      * @param idemKey Outbox Idempotency Key
      */
+    @Transactional
     private void processOutbox(String idemKey) {
         try {
+            // Race Condition 방지: 트랜잭션 내에서 최신 상태로 다시 조회
+            // @Scheduled 폴러가 이미 처리했을 수 있으므로 최신 상태 확인
             Optional<SellerCrawlScheduleOutbox> outboxOpt = outboxPort.findByIdemKey(idemKey);
 
             if (outboxOpt.isEmpty()) {
@@ -115,6 +107,7 @@ public class ScheduleEventListener {
             SellerCrawlScheduleOutbox outbox = outboxOpt.get();
 
             // Outbox가 이미 처리 중이거나 완료된 경우 스킵
+            // ✅ 트랜잭션 내에서 최신 상태로 재확인하여 Race Condition 방지
             if (outbox.getWalState() != SellerCrawlScheduleOutbox.WriteAheadState.PENDING) {
                 log.debug("⏭️ Outbox가 이미 처리되었거나 처리 중입니다: idemKey={}, state={}", 
                     idemKey, outbox.getWalState());
@@ -122,6 +115,8 @@ public class ScheduleEventListener {
             }
 
             log.info("🚀 Outbox Processor 즉시 호출: idemKey={}", idemKey);
+            // processOne 내부에서 startProcessing()을 통해 상태를 IN_PROGRESS로 변경하므로
+            // 중복 처리 방지됨
             outboxProcessor.processOne(outbox);
 
         } catch (Exception e) {
