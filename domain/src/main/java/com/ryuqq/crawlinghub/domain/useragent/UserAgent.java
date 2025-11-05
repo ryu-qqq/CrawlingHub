@@ -1,5 +1,9 @@
 package com.ryuqq.crawlinghub.domain.useragent;
 
+import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentException;
+import com.ryuqq.crawlinghub.domain.useragent.exception.RateLimitExceededException;
+import com.ryuqq.crawlinghub.domain.useragent.exception.TokenExpiredException;
+
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -131,7 +135,7 @@ public class UserAgent {
 
     private static void validateRequiredFields(String userAgentString) {
         if (userAgentString == null || userAgentString.isBlank()) {
-            throw new IllegalArgumentException("User Agent 문자열은 필수입니다");
+            throw new InvalidUserAgentException(userAgentString);
         }
     }
 
@@ -153,6 +157,12 @@ public class UserAgent {
      */
     public void consumeRequest() {
         if (!canMakeRequest()) {
+            if (isTokenExpired()) {
+                throw new TokenExpiredException(getIdValue());
+            }
+            if (remainingRequests <= 0) {
+                throw new RateLimitExceededException(getIdValue(), remainingRequests);
+            }
             throw new IllegalStateException("요청을 수행할 수 없는 상태입니다");
         }
         this.remainingRequests--;
