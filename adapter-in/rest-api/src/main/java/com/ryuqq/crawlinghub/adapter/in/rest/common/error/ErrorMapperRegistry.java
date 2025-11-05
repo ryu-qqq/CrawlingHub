@@ -28,7 +28,7 @@ public class ErrorMapperRegistry {
         return new ErrorMapper.MappedError(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
-            ex.getMessage() != null ? ex.getMessage() : "Invalid request",
+            ex.message() != null ? ex.message() : "Invalid request",
             URI.create("about:blank")
         );
     }

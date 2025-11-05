@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.seller.assembler;
 import org.springframework.stereotype.Component;
 
 import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ProductCountHistoryResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleHistoryResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleInfoResponse;
@@ -10,7 +11,12 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailRespons
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerStatsPort;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.SellerCode;
+import com.ryuqq.crawlinghub.domain.seller.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
+import java.time.Clock;
 
 /**
  * 셀러 Assembler
@@ -106,6 +112,34 @@ public class SellerAssembler {
             productCountHistories,
             scheduleInfo,
             scheduleHistories
+        );
+    }
+
+    /**
+     * SellerQueryDto → MustitSeller Domain Model 변환
+     *
+     * <p>Query Port에서 반환된 DTO를 Domain Model로 변환합니다.
+     * 비즈니스 로직이 필요한 경우에만 사용합니다.</p>
+     *
+     * @param dto Seller Query DTO (null 불가)
+     * @return MustitSeller Domain Model
+     * @throws IllegalArgumentException dto가 null인 경우
+     */
+    public MustitSeller toDomain(SellerQueryDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("dto must not be null");
+        }
+
+        return MustitSeller.reconstitute(
+            MustitSellerId.of(dto.id()),
+            SellerCode.of(dto.sellerCode()),
+            SellerName.of(dto.sellerName()),
+            dto.status(),
+            dto.totalProductCount() != null ? dto.totalProductCount() : 0,
+            dto.lastCrawledAt(),
+            Clock.systemDefaultZone(),
+            dto.createdAt(),
+            dto.updatedAt()
         );
     }
 

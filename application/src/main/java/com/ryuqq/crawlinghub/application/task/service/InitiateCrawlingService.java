@@ -40,13 +40,16 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
     private final SaveCrawlTaskPort saveCrawlTaskPort;
     private final IdempotencyKeyGeneratorPort idempotencyKeyGenerator;
     private final OutboxPort outboxPort;
+    private final com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler;
 
     public InitiateCrawlingService(
         LoadSellerPort loadSellerPort,
         SaveCrawlTaskPort saveCrawlTaskPort,
         IdempotencyKeyGeneratorPort idempotencyKeyGenerator,
-        OutboxPort outboxPort
+        OutboxPort outboxPort,
+        com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler
     ) {
+        this.sellerAssembler = sellerAssembler;
         this.loadSellerPort = loadSellerPort;
         this.saveCrawlTaskPort = saveCrawlTaskPort;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
@@ -73,6 +76,7 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
 
         // 1. 셀러 상태 확인
         MustitSeller seller = loadSellerPort.findById(sellerId)
+            .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new IllegalArgumentException(
                 "셀러를 찾을 수 없습니다: " + command.sellerId()
             ));

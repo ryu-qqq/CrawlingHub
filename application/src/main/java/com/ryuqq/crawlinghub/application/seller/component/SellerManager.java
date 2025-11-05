@@ -5,11 +5,13 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveProductCountHistoryPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
 /**
@@ -31,15 +33,18 @@ public class SellerManager {
     private final SaveSellerPort saveSellerPort;
     private final LoadSellerPort loadSellerPort;
     private final SaveProductCountHistoryPort saveHistoryPort;
+    private final SellerAssembler sellerAssembler;
 
     public SellerManager(
         SaveSellerPort saveSellerPort,
         LoadSellerPort loadSellerPort,
-        SaveProductCountHistoryPort saveHistoryPort
+        SaveProductCountHistoryPort saveHistoryPort,
+        SellerAssembler sellerAssembler
     ) {
         this.saveSellerPort = saveSellerPort;
         this.loadSellerPort = loadSellerPort;
         this.saveHistoryPort = saveHistoryPort;
+        this.sellerAssembler = sellerAssembler;
     }
 
     /**
@@ -82,14 +87,16 @@ public class SellerManager {
     }
 
     /**
-     * 셀러 조회
+     * 셀러 조회 (DTO → Domain Model 변환)
      *
      * @param sellerId 셀러 ID
      * @return 조회된 MustitSeller
+     * @throws SellerNotFoundException 셀러를 찾을 수 없는 경우
      */
     public MustitSeller loadSeller(Long sellerId) {
         return loadSellerPort.findById(MustitSellerId.of(sellerId))
-            .orElseThrow(() -> new IllegalArgumentException("셀러를 찾을 수 없습니다: " + sellerId));
+            .map(sellerAssembler::toDomain)
+            .orElseThrow(() -> new SellerNotFoundException(sellerId));
     }
 }
 
