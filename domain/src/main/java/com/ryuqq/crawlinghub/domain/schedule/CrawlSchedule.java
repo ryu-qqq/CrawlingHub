@@ -1,6 +1,10 @@
 package com.ryuqq.crawlinghub.domain.schedule;
 
+import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
+import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -8,15 +12,22 @@ import java.util.Objects;
 
 /**
  * 크롤링 스케줄 Aggregate Root
- * 
+ *
  * <p>비즈니스 규칙:
  * <ul>
  *   <li>한 셀러는 하나의 활성 스케줄만 가능</li>
  *   <li>Cron 표현식은 유효해야 함</li>
  *   <li>최소 크롤링 주기: 1시간</li>
  * </ul>
+ *
+ * <p><strong>Domain Event 발행:</strong></p>
+ * <ul>
+ *   <li>✅ AbstractAggregateRoot 상속으로 registerEvent() 메서드 제공</li>
+ *   <li>✅ 트랜잭션 커밋 시 자동으로 이벤트 발행</li>
+ *   <li>✅ Repository save() 호출 시 Spring Data가 이벤트 발행</li>
+ * </ul>
  */
-public class CrawlSchedule {
+public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
 
     private final CrawlScheduleId id;
     private final MustitSellerId sellerId;
@@ -78,6 +89,9 @@ public class CrawlSchedule {
 
     /**
      * 신규 스케줄 생성 (ID 없음)
+     *
+     * <p>이벤트는 저장 후 ID가 생성된 후에 등록해야 하므로, 여기서는 등록하지 않습니다.</p>
+     * <p>Application Layer에서 저장 후 ID를 확인한 후 이벤트를 등록합니다.</p>
      */
     public static CrawlSchedule forNew(MustitSellerId sellerId, CronExpression cronExpression) {
         return new CrawlSchedule(
