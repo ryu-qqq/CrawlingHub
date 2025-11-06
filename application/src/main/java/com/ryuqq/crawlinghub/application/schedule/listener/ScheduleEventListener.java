@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.schedule.listener;
 
 import com.ryuqq.crawlinghub.application.schedule.orchestrator.ScheduleOutboxProcessor;
-import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
-import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.slf4j.Logger;
@@ -52,11 +52,11 @@ public class ScheduleEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduleEventListener.class);
 
-    private final SellerCrawlScheduleOutboxPort outboxPort;
+    private final ScheduleOutboxPort outboxPort;
     private final ScheduleOutboxProcessor outboxProcessor;
 
     public ScheduleEventListener(
-        SellerCrawlScheduleOutboxPort outboxPort,
+        ScheduleOutboxPort outboxPort,
         ScheduleOutboxProcessor outboxProcessor
     ) {
         this.outboxPort = outboxPort;

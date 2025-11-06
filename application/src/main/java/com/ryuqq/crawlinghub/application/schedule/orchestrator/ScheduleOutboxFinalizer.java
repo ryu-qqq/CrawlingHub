@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.orchestrator;
 
-import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
-import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -52,9 +52,9 @@ public class ScheduleOutboxFinalizer {
      */
     private static final int RETENTION_HOURS = 24;
 
-    private final SellerCrawlScheduleOutboxPort outboxPort;
+    private final ScheduleOutboxPort outboxPort;
 
-    public ScheduleOutboxFinalizer(SellerCrawlScheduleOutboxPort outboxPort) {
+    public ScheduleOutboxFinalizer(ScheduleOutboxPort outboxPort) {
         this.outboxPort = outboxPort;
     }
 

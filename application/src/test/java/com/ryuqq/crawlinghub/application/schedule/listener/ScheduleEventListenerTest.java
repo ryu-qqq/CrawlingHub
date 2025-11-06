@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.schedule.listener;
 
 import com.ryuqq.crawlinghub.application.schedule.orchestrator.ScheduleOutboxProcessor;
-import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 class ScheduleEventListenerTest {
 
     @Mock
-    private SellerCrawlScheduleOutboxPort outboxPort;
+    private ScheduleOutboxPort outboxPort;
 
     @Mock
     private ScheduleOutboxProcessor outboxProcessor;

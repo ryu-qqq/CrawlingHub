@@ -7,13 +7,13 @@ import com.ryuqq.crawlinghub.application.schedule.dto.command.CreateScheduleComm
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.port.out.LoadSchedulePort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.SaveSchedulePort;
-import com.ryuqq.crawlinghub.application.schedule.port.out.SellerCrawlScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
 import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleFixture;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
-import com.ryuqq.crawlinghub.domain.schedule.outbox.SellerCrawlScheduleOutbox;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +56,7 @@ class ScheduleCommandFacadeEventTest {
     private LoadSchedulePort loadSchedulePort;
 
     @Mock
-    private SellerCrawlScheduleOutboxPort outboxPort;
+    private ScheduleOutboxPort outboxPort;
 
     @Mock
     private ObjectMapper objectMapper;

@@ -90,8 +90,11 @@ public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
     /**
      * 신규 스케줄 생성 (ID 없음)
      *
-     * <p>이벤트는 저장 후 ID가 생성된 후에 등록해야 하므로, 여기서는 등록하지 않습니다.</p>
-     * <p>Application Layer에서 저장 후 ID를 확인한 후 이벤트를 등록합니다.</p>
+     * <p><strong>Domain Event 발행:</strong></p>
+     * <ul>
+     *   <li>✅ 생성 시점에는 ID가 없으므로 이벤트 등록 불가</li>
+     *   <li>✅ Application Layer에서 save() 후 publishCreatedEvent() 호출 필요</li>
+     * </ul>
      */
     public static CrawlSchedule forNew(MustitSellerId sellerId, CronExpression cronExpression) {
         return new CrawlSchedule(
@@ -100,6 +103,33 @@ public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
             cronExpression,
             ScheduleStatus.ACTIVE,
             Clock.systemDefaultZone()
+        );
+    }
+
+    /**
+     * 생성 이벤트 발행 (save 후 호출)
+     *
+     * <p><strong>Application Layer에서 호출:</strong></p>
+     * <pre>{@code
+     * CrawlSchedule schedule = CrawlSchedule.forNew(...);
+     * schedule = saveSchedulePort.save(schedule); // ID 생성
+     * schedule.publishCreatedEvent(idemKey);      // 이벤트 발행
+     * saveSchedulePort.save(schedule);            // 이벤트 포함 재저장
+     * }</pre>
+     *
+     * @param idemKey Outbox Idempotency Key
+     */
+    public void publishCreatedEvent(String idemKey) {
+        if (id == null) {
+            throw new IllegalStateException("스케줄 ID가 없어 이벤트를 발행할 수 없습니다");
+        }
+        registerEvent(
+            ScheduleCreatedEvent.of(
+                id.value(),
+                sellerId.value(),
+                cronExpression.getValue(),
+                idemKey
+            )
         );
     }
 
@@ -164,15 +194,38 @@ public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
     }
 
     /**
-     * 스케줄 업데이트
+     * 스케줄 업데이트 (이벤트 발행)
+     *
+     * <p><strong>Domain Event 발행:</strong></p>
+     * <ul>
+     *   <li>✅ 수정 시점에 즉시 이벤트 등록</li>
+     *   <li>✅ Application Layer에서 save() 호출 시 이벤트 자동 발행</li>
+     * </ul>
+     *
+     * @param newExpression 새로운 Cron 표현식
+     * @param idemKey Outbox Idempotency Key
      */
-    public void updateSchedule(CronExpression newExpression) {
+    public void updateSchedule(CronExpression newExpression, String idemKey) {
         if (newExpression == null) {
             throw new IllegalArgumentException("Cron 표현식은 null일 수 없습니다");
         }
+        if (id == null) {
+            throw new IllegalStateException("스케줄 ID가 없어 업데이트할 수 없습니다");
+        }
+
         this.cronExpression = newExpression;
         this.nextExecutionTime = null; // 재계산 필요
         this.updatedAt = LocalDateTime.now(clock);
+
+        // 업데이트 이벤트 발행
+        registerEvent(
+            ScheduleUpdatedEvent.of(
+                id.value(),
+                sellerId.value(),
+                cronExpression.getValue(),
+                idemKey
+            )
+        );
     }
 
     /**
