@@ -21,9 +21,21 @@ jobs:
       max-parallel: 1
       matrix:
         module:
+          - name: github-oidc
+            dir: terraform/github-oidc
+            order: 0
           - name: ecr
             dir: terraform/ecr
-            order: 0
+            order: 1
+          - name: ecs-service
+            dir: terraform/ecs-service
+            order: 2
+          - name: elasticache-redis
+            dir: terraform/elasticache-redis
+            order: 3
+          - name: sqs-queue
+            dir: terraform/sqs-queue
+            order: 4
 
     steps:
       - name: Checkout code
@@ -117,7 +129,11 @@ jobs:
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Modules Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub OIDC Provider" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECR Repository" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Cluster & Services" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ElastiCache Redis" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SQS Queues" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
           echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
