@@ -16,3 +16,8 @@ output "github_actions_role_name" {
   description = "GitHub Actions IAM Role Name"
   value       = data.aws_iam_role.github_actions.name
 }
+
+output "github_actions_iam_read_policy_arn" {
+  description = "GitHub Actions IAM Read Policy ARN"
+  value       = aws_iam_policy.github_actions_iam_read.arn
+}
