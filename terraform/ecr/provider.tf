@@ -15,7 +15,7 @@ terraform {
   # S3 Backend
   backend "s3" {
     bucket         = "prod-connectly"
-    key            = "fileflow/ecr/terraform.tfstate"
+    key            = "crawlinghub/ecr/terraform.tfstate"
     region         = "ap-northeast-2"
     encrypt        = true
     dynamodb_table = "prod-connectly-tf-lock"
@@ -28,7 +28,7 @@ provider "aws" {
   default_tags {
     tags = {
       ManagedBy = "terraform"
-      Project   = "fileflow"
+      Project   = "crawlinghub"
       Component = "ecr"
     }
   }
