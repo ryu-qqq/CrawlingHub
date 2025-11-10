@@ -107,25 +107,8 @@ class CronExpressionTest {
                 .hasMessageContaining("Cron 표현식은 필수입니다");
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {
-            "invalid cron",
-            "60 * * * * ?",       // 분이 60 (범위 초과)
-            "* 60 * * * ?",       // 시간이 60 (범위 초과)
-            "* * 25 * * ?",       // 시간이 25 (범위 초과)
-            "* * * * * * * *",    // 필드 너무 많음
-            "* * *",              // 필드 너무 적음
-            "0 0 0 32 * ?",       // 일이 32 (범위 초과)
-            "0 0 0 * 13 ?",       // 월이 13 (범위 초과)
-            "0 0 0 ? * 8"         // 요일이 8 (범위 초과)
-        })
-        @DisplayName("잘못된 Cron 표현식 형식이면 예외 발생")
-        void shouldThrowExceptionWhenInvalidCronFormat(String invalidExpression) {
-            // When & Then
-            assertThatThrownBy(() -> CronExpression.of(invalidExpression))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("유효하지 않은 Cron 표현식입니다");
-        }
+        // 형식 검증은 Application Layer의 CronExpressionValidator에서 수행
+        // Domain Layer의 CronExpression은 형식 검증 책임을 가지지 않음 (Pure Domain Object)
     }
 
     @Nested

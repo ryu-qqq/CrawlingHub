@@ -39,16 +39,16 @@ class CrawledProductTest {
         @DisplayName("유효한 입력으로 신규 CrawledProduct 생성 성공")
         void shouldCreateNewProductWithValidInputs() {
             // Given
-            String mustitItemNo = "ITEM-12345";
+            Long mustItItemNo = 12345L;
             MustitSellerId sellerId = MustitSellerId.of(100L);
 
             // When
-            CrawledProduct product = CrawledProduct.forNew(mustitItemNo, sellerId);
+            CrawledProduct product = CrawledProduct.forNew(mustItItemNo, sellerId);
 
             // Then
             assertThat(product).isNotNull();
             assertThat(product.getIdValue()).isNull(); // 신규 생성이므로 ID 없음
-            assertThat(product.getMustitItemNo()).isEqualTo(mustitItemNo);
+            assertThat(product.getMustitItemNo()).isEqualTo(mustItItemNo);
             assertThat(product.getSellerIdValue()).isEqualTo(100L);
             assertThat(product.getStatus()).isEqualTo(CompletionStatus.INCOMPLETE); // 초기 상태
             assertThat(product.getVersion()).isEqualTo(1); // 초기 버전
@@ -63,11 +63,11 @@ class CrawledProductTest {
         void shouldCreateProductWithId() {
             // Given
             ProductId productId = ProductId.of(1L);
-            String mustitItemNo = "ITEM-12345";
+            Long mustItItemNo = 12345L;
             MustitSellerId sellerId = MustitSellerId.of(100L);
 
             // When
-            CrawledProduct product = CrawledProduct.of(productId, mustitItemNo, sellerId);
+            CrawledProduct product = CrawledProduct.of(productId, mustItItemNo, sellerId);
 
             // Then
             assertThat(product.getIdValue()).isEqualTo(1L);
@@ -412,14 +412,12 @@ class CrawledProductTest {
     @DisplayName("예외 케이스 테스트")
     class ExceptionTests {
 
-        @ParameterizedTest
-        @NullAndEmptySource
-        @ValueSource(strings = {" ", "  ", "\t", "\n"})
-        @DisplayName("머스트잇 상품 번호가 null 또는 빈 문자열이면 예외 발생")
-        void shouldThrowExceptionWhenMustitItemNoIsNullOrBlank(String invalidItemNo) {
+        @Test
+        @DisplayName("머스트잇 상품 번호가 null이면 예외 발생")
+        void shouldThrowExceptionWhenMustitItemNoIsNull() {
             // When & Then
             assertThatThrownBy(() ->
-                CrawledProduct.forNew(invalidItemNo, MustitSellerId.of(100L))
+                CrawledProduct.forNew(null, MustitSellerId.of(100L))
             )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("머스트잇 상품 번호는 필수입니다");
@@ -429,7 +427,7 @@ class CrawledProductTest {
         @DisplayName("셀러 ID가 null이면 예외 발생")
         void shouldThrowExceptionWhenSellerIdIsNull() {
             // When & Then
-            assertThatThrownBy(() -> CrawledProduct.forNew("ITEM-12345", null))
+            assertThatThrownBy(() -> CrawledProduct.forNew(12345L, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("셀러 ID는 필수입니다");
         }
@@ -439,7 +437,7 @@ class CrawledProductTest {
         void shouldThrowExceptionWhenIdIsNullInOf() {
             // When & Then
             assertThatThrownBy(() ->
-                CrawledProduct.of(null, "ITEM-12345", MustitSellerId.of(100L))
+                CrawledProduct.of(null, 12345L, MustitSellerId.of(100L))
             )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Product ID는 필수입니다");
@@ -452,7 +450,7 @@ class CrawledProductTest {
             assertThatThrownBy(() ->
                 CrawledProduct.reconstitute(
                     null,
-                    "ITEM-12345",
+                    12345L,
                     MustitSellerId.of(100L),
                     null,
                     null,
@@ -607,16 +605,16 @@ class CrawledProductTest {
     class EdgeCaseTests {
 
         @Test
-        @DisplayName("머스트잇 상품 번호가 매우 긴 경우도 정상 생성")
-        void shouldCreateProductWithVeryLongMustitItemNo() {
+        @DisplayName("머스트잇 상품 번호가 매우 큰 경우도 정상 생성")
+        void shouldCreateProductWithVeryLargeMustitItemNo() {
             // Given
-            String longItemNo = "ITEM-" + "1".repeat(1000);
+            Long largeItemNo = Long.MAX_VALUE;
 
             // When
-            CrawledProduct product = CrawledProduct.forNew(longItemNo, MustitSellerId.of(100L));
+            CrawledProduct product = CrawledProduct.forNew(largeItemNo, MustitSellerId.of(100L));
 
             // Then
-            assertThat(product.getMustitItemNo()).hasSize(5 + 1000);
+            assertThat(product.getMustitItemNo()).isEqualTo(largeItemNo);
         }
 
         @Test
@@ -625,7 +623,7 @@ class CrawledProductTest {
             // Given
             CrawledProduct product = CrawledProduct.reconstitute(
                 ProductId.of(1L),
-                "ITEM-12345",
+                12345L,
                 MustitSellerId.of(100L),
                 null,
                 null,

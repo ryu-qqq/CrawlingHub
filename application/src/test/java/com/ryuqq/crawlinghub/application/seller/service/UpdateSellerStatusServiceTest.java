@@ -79,7 +79,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     seller.getIdValue(),
                     seller.getSellerCode(),
-                    seller.getSellerName(),
+                    seller.getSellerNameValue(),
                     seller.getStatus(),
                     seller.getTotalProductCount(),
                     seller.getLastCrawledAt(),
@@ -134,7 +134,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     seller.getIdValue(),
                     seller.getSellerCode(),
-                    seller.getSellerName(),
+                    seller.getSellerNameValue(),
                     seller.getStatus(),
                     seller.getTotalProductCount(),
                     seller.getLastCrawledAt(),
@@ -188,7 +188,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     seller.getIdValue(),
                     seller.getSellerCode(),
-                    seller.getSellerName(),
+                    seller.getSellerNameValue(),
                     seller.getStatus(),
                     seller.getTotalProductCount(),
                     seller.getLastCrawledAt(),
@@ -268,7 +268,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
                     pausedSeller.getSellerCode(),
-                    pausedSeller.getSellerName(),
+                    pausedSeller.getSellerNameValue(),
                     pausedSeller.getStatus(),
                     pausedSeller.getTotalProductCount(),
                     pausedSeller.getLastCrawledAt(),
@@ -300,7 +300,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     disabledSeller.getIdValue(),
                     disabledSeller.getSellerCode(),
-                    disabledSeller.getSellerName(),
+                    disabledSeller.getSellerNameValue(),
                     disabledSeller.getStatus(),
                     disabledSeller.getTotalProductCount(),
                     disabledSeller.getLastCrawledAt(),
@@ -332,7 +332,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     activeSeller.getIdValue(),
                     activeSeller.getSellerCode(),
-                    activeSeller.getSellerName(),
+                    activeSeller.getSellerNameValue(),
                     activeSeller.getStatus(),
                     activeSeller.getTotalProductCount(),
                     activeSeller.getLastCrawledAt(),
@@ -364,7 +364,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
                     pausedSeller.getSellerCode(),
-                    pausedSeller.getSellerName(),
+                    pausedSeller.getSellerNameValue(),
                     pausedSeller.getStatus(),
                     pausedSeller.getTotalProductCount(),
                     pausedSeller.getLastCrawledAt(),
@@ -400,7 +400,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     activeSeller.getIdValue(),
                     activeSeller.getSellerCode(),
-                    activeSeller.getSellerName(),
+                    activeSeller.getSellerNameValue(),
                     activeSeller.getStatus(),
                     activeSeller.getTotalProductCount(),
                     activeSeller.getLastCrawledAt(),
@@ -432,7 +432,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
                     pausedSeller.getSellerCode(),
-                    pausedSeller.getSellerName(),
+                    pausedSeller.getSellerNameValue(),
                     pausedSeller.getStatus(),
                     pausedSeller.getTotalProductCount(),
                     pausedSeller.getLastCrawledAt(),
@@ -464,7 +464,7 @@ class UpdateSellerStatusServiceTest {
                 SellerQueryDto queryDto = new SellerQueryDto(
                     disabledSeller.getIdValue(),
                     disabledSeller.getSellerCode(),
-                    disabledSeller.getSellerName(),
+                    disabledSeller.getSellerNameValue(),
                     disabledSeller.getStatus(),
                     disabledSeller.getTotalProductCount(),
                     disabledSeller.getLastCrawledAt(),

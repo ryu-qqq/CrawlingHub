@@ -16,7 +16,7 @@ import java.time.ZoneId;
 public class CrawledProductFixture {
 
     private static final Long DEFAULT_ID = 1L;
-    private static final String DEFAULT_MUSTIT_ITEM_NO = "MUSTIT-12345";
+    private static final Long DEFAULT_MUSTIT_ITEM_NO = 12345L;
     private static final Long DEFAULT_SELLER_ID = 100L;
     private static final Clock DEFAULT_CLOCK = Clock.fixed(
         Instant.parse("2025-01-01T00:00:00Z"),
@@ -52,12 +52,12 @@ public class CrawledProductFixture {
     /**
      * 특정 머스트잇 상품 번호로 CrawledProduct 생성
      *
-     * @param mustitItemNo 머스트잇 상품 번호
+     * @param mustItItemNo 머스트잇 상품 번호
      * @return CrawledProduct
      */
-    public static CrawledProduct createWithMustitItemNo(String mustitItemNo) {
+    public static CrawledProduct createWithMustitItemNo(Long mustItItemNo) {
         return CrawledProduct.forNew(
-            mustitItemNo,
+            mustItItemNo,
             MustitSellerId.of(DEFAULT_SELLER_ID)
         );
     }
@@ -123,14 +123,14 @@ public class CrawledProductFixture {
      * DB reconstitute용 CrawledProduct 생성
      *
      * @param id Product ID
-     * @param mustitItemNo 머스트잇 상품 번호
+     * @param mustItItemNo 머스트잇 상품 번호
      * @param sellerId 셀러 ID
      * @param status 완성 상태
      * @return CrawledProduct
      */
     public static CrawledProduct reconstitute(
         Long id,
-        String mustitItemNo,
+        Long mustItItemNo,
         Long sellerId,
         CompletionStatus status
     ) {
@@ -146,7 +146,7 @@ public class CrawledProductFixture {
 
         return CrawledProduct.reconstitute(
             ProductId.of(id),
-            mustitItemNo,
+            mustItItemNo,
             MustitSellerId.of(sellerId),
             miniShopData,
             detailData,
@@ -165,7 +165,7 @@ public class CrawledProductFixture {
      * 완전한 커스텀 CrawledProduct 생성
      *
      * @param id Product ID (null 가능)
-     * @param mustitItemNo 머스트잇 상품 번호
+     * @param mustItItemNo 머스트잇 상품 번호
      * @param sellerId 셀러 ID
      * @param miniShopData 미니샵 데이터
      * @param detailData 상세 데이터
@@ -174,7 +174,7 @@ public class CrawledProductFixture {
      */
     public static CrawledProduct createCustom(
         Long id,
-        String mustitItemNo,
+        Long mustItItemNo,
         Long sellerId,
         ProductData miniShopData,
         ProductData detailData,
@@ -182,11 +182,11 @@ public class CrawledProductFixture {
     ) {
         CrawledProduct product;
         if (id == null) {
-            product = CrawledProduct.forNew(mustitItemNo, MustitSellerId.of(sellerId));
+            product = CrawledProduct.forNew(mustItItemNo, MustitSellerId.of(sellerId));
         } else {
             product = CrawledProduct.of(
                 ProductId.of(id),
-                mustitItemNo,
+                mustItItemNo,
                 MustitSellerId.of(sellerId)
             );
         }

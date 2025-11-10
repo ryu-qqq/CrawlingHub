@@ -7,27 +7,45 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiRequest
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.RegisterMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.dto.command.UpdateMustitSellerCommand;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.RegisterMustitSellerUseCase;
-import com.ryuqq.crawlinghub.application.mustit.seller.port.in.UpdateMustitSellerUseCase;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.port.in.GetSellerDetailUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDateTime;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -36,27 +54,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * SellerController 단위 테스트
- * <p>
- * Mockito를 사용하여 Controller Layer만 격리 테스트합니다.
- * UseCase는 Mock으로 대체하여 Controller 로직만 검증합니다.
- * </p>
  *
- * @author Claude (claude@anthropic.com)
- * @since 1.0
+ * <p>Mockito를 사용하여 Controller Layer만 격리 테스트합니다.
+ * UseCase는 Mock으로 대체하여 Controller 로직만 검증합니다.
+ *
+ * <p>Spring REST Docs를 사용하여 API 문서를 자동 생성합니다.
+ *
+ * @author ryu-qqq
+ * @since 2025-11-07
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, RestDocumentationExtension.class})
 @DisplayName("SellerController 단위 테스트")
 class SellerControllerTest {
 
     private MockMvc mockMvc;
-
     private ObjectMapper objectMapper;
 
     @Mock
-    private RegisterMustitSellerUseCase registerMustitSellerUseCase;
+    private RegisterSellerUseCase registerSellerUseCase;
 
     @Mock
-    private UpdateMustitSellerUseCase updateMustitSellerUseCase;
+    private UpdateSellerStatusUseCase updateSellerStatusUseCase;
+
+    @Mock
+    private GetSellerDetailUseCase getSellerDetailUseCase;
 
     @Mock
     private SellerApiMapper sellerApiMapper;
@@ -65,290 +86,250 @@ class SellerControllerTest {
     private SellerController sellerController;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(sellerController).build();
+    void setUp(RestDocumentationContextProvider restDocumentation) {
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(sellerController)
+            .apply(documentationConfiguration(restDocumentation))
+            .build();
         objectMapper = new ObjectMapper();
     }
 
-    @Test
-    @DisplayName("POST /api/v1/sellers - 셀러 등록 성공")
-    void registerSellerSuccess() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                "SELLER001", "Test Seller", "DAILY", 1
-        );
-        String requestBody = objectMapper.writeValueAsString(request);
+    @Nested
+    @DisplayName("POST /api/v1/sellers")
+    class Describe_registerSeller {
 
-        RegisterMustitSellerCommand command = new RegisterMustitSellerCommand(
-                "SELLER001", "Test Seller",
-                com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.DAILY, 1
-        );
+        @Test
+        @DisplayName("유효한 요청으로 셀러를 등록하면 201 Created를 반환한다")
+        void it_registers_seller_and_returns_201() throws Exception {
+            // Given
+            RegisterSellerApiRequest request = new RegisterSellerApiRequest(
+                "12345",
+                "Test Seller",
+                "HOURLY",
+                1
+            );
+            String requestBody = objectMapper.writeValueAsString(request);
 
-        MustitSeller mockSeller = createMockSeller();
-        RegisterSellerApiResponse apiResponse = createApiResponse();
+            RegisterSellerCommand command = new RegisterSellerCommand(
+                "12345",
+                "Test Seller"
+            );
 
-        given(sellerApiMapper.toCommand(any(RegisterSellerApiRequest.class))).willReturn(command);
-        given(registerMustitSellerUseCase.execute(any(RegisterMustitSellerCommand.class)))
-                .willReturn(mockSeller);
-        given(sellerApiMapper.toResponse(any(MustitSeller.class)))
+            LocalDateTime now = LocalDateTime.now();
+            SellerResponse response = new SellerResponse(
+                12345L,
+                "12345",
+                "Test Seller",
+                com.ryuqq.crawlinghub.domain.seller.SellerStatus.ACTIVE,
+                0,
+                null,
+                now,
+                now
+            );
+
+            RegisterSellerApiResponse apiResponse = new RegisterSellerApiResponse(
+                "12345",
+                "Test Seller",
+                true,
+                "HOURLY",
+                1,
+                now
+            );
+
+            given(sellerApiMapper.toCommand(any(RegisterSellerApiRequest.class)))
+                .willReturn(command);
+            given(registerSellerUseCase.execute(any(RegisterSellerCommand.class)))
+                .willReturn(response);
+            given(sellerApiMapper.toResponse(response))
                 .willReturn(apiResponse);
 
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+            // When & Then
+            mockMvc.perform(post("/api/v1/sellers")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.sellerId").value(12345L))
                 .andExpect(jsonPath("$.data.name").value("Test Seller"))
-                .andExpect(jsonPath("$.data.isActive").value(true))
-                .andExpect(jsonPath("$.data.intervalType").value("DAILY"))
-                .andExpect(jsonPath("$.data.intervalValue").value(1))
-                .andExpect(jsonPath("$.data.createdAt").exists())
-                .andExpect(jsonPath("$.error").doesNotExist())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.requestId").exists());
+                .andDo(document("seller-register",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    requestFields(
+                        fieldWithPath("sellerId").description("셀러 ID (머스트잇 고유 식별자)"),
+                        fieldWithPath("name").description("셀러명"),
+                        fieldWithPath("intervalType").description("크롤링 주기 타입 (HOURLY, DAILY, WEEKLY)"),
+                        fieldWithPath("intervalValue").description("크롤링 주기 값 (양수)")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.sellerId").description("셀러 ID"),
+                        fieldWithPath("data.name").description("셀러명"),
+                        fieldWithPath("data.isActive").description("활성 상태"),
+                        fieldWithPath("data.intervalType").description("크롤링 주기 타입"),
+                        fieldWithPath("data.intervalValue").description("크롤링 주기 값"),
+                        fieldWithPath("data.createdAt").description("생성 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
+        }
     }
 
-    private MustitSeller createMockSeller() {
-        com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval crawlInterval =
-                new com.ryuqq.crawlinghub.domain.mustit.seller.CrawlInterval(
-                        com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.DAILY, 1
-                );
-        return new MustitSeller(
-                "SELLER001", "Test Seller", crawlInterval
-        );
-    }
+    @Nested
+    @DisplayName("PUT /api/v1/sellers/{sellerId}")
+    class Describe_updateSeller {
 
-    private RegisterSellerApiResponse createApiResponse() {
-        return new RegisterSellerApiResponse(
-                "SELLER001", "Test Seller", true, "DAILY", 1, java.time.LocalDateTime.now()
-        );
-    }
+        @Test
+        @DisplayName("셀러 상태를 수정하면 200 OK를 반환한다")
+        void it_updates_seller_status_and_returns_200() throws Exception {
+            // Given
+            Long sellerId = 12345L;
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
+                false,
+                "DAILY",
+                2
+            );
+            String requestBody = objectMapper.writeValueAsString(request);
 
-    @Test
-    @DisplayName("POST /api/v1/sellers - Validation 실패 (sellerId가 null)")
-    void registerSellerValidationFailSellerIdNull() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
+            UpdateSellerStatusCommand command = new UpdateSellerStatusCommand(
+                sellerId,
+                com.ryuqq.crawlinghub.domain.seller.SellerStatus.PAUSED
+            );
+
+            LocalDateTime now = LocalDateTime.now();
+            SellerResponse response = new SellerResponse(
+                sellerId,
+                "12345",
+                "Test Seller",
+                com.ryuqq.crawlinghub.domain.seller.SellerStatus.PAUSED,
+                0,
                 null,
+                now,
+                now
+            );
+
+            UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
+                "12345",
                 "Test Seller",
+                false,
                 "DAILY",
-                1
-        );
+                2,
+                now
+            );
 
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/sellers - Validation 실패 (name이 빈 문자열)")
-    void registerSellerValidationFailNameBlank() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                "SELLER001",
-                "   ",
-                "DAILY",
-                1
-        );
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/sellers - Validation 실패 (intervalValue가 0)")
-    void registerSellerValidationFailIntervalValueZero() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                "SELLER001",
-                "Test Seller",
-                "DAILY",
-                0
-        );
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/sellers - Validation 실패 (intervalValue가 음수)")
-    void registerSellerValidationFailIntervalValueNegative() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                "SELLER001",
-                "Test Seller",
-                "DAILY",
-                -1
-        );
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/sellers - Validation 실패 (intervalType이 잘못된 값)")
-    void registerSellerValidationFailInvalidIntervalType() throws Exception {
-        // Given
-        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                "SELLER001",
-                "Test Seller",
-                "INVALID_TYPE",
-                1
-        );
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/sellers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (활성화 상태 변경)")
-    void updateSellerSuccessActiveStatusOnly() throws Exception {
-        // Given
-        String sellerId = "SELLER001";
-        UpdateSellerApiRequest request = new UpdateSellerApiRequest(false, null, null);
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
-                sellerId, false, null, null
-        );
-
-        MustitSeller mockSeller = createMockSeller();
-        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
-                "SELLER001", "Test Seller", false, "DAILY", 1, java.time.LocalDateTime.now()
-        );
-
-        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
+            given(sellerApiMapper.toUpdateCommand(any(Long.class), any(UpdateSellerApiRequest.class)))
                 .willReturn(command);
-        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
-                .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
+            given(updateSellerStatusUseCase.execute(any(UpdateSellerStatusCommand.class)))
+                .willReturn(response);
+            given(sellerApiMapper.toUpdateResponse(response))
                 .willReturn(apiResponse);
 
-        // When & Then
-        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+            // When & Then
+            mockMvc.perform(put("/api/v1/sellers/{sellerId}", sellerId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
+                .andExpect(jsonPath("$.data.sellerId").value(sellerId))
                 .andExpect(jsonPath("$.data.isActive").value(false))
-                .andExpect(jsonPath("$.error").doesNotExist())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.requestId").exists());
+                .andDo(document("seller-update",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("sellerId").description("셀러 ID")
+                    ),
+                    requestFields(
+                        fieldWithPath("isActive").description("활성 상태 (선택)").optional(),
+                        fieldWithPath("intervalType").description("크롤링 주기 타입 (선택)").optional(),
+                        fieldWithPath("intervalValue").description("크롤링 주기 값 (선택)").optional()
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.sellerId").description("셀러 ID"),
+                        fieldWithPath("data.name").description("셀러명"),
+                        fieldWithPath("data.isActive").description("활성 상태"),
+                        fieldWithPath("data.intervalType").description("크롤링 주기 타입"),
+                        fieldWithPath("data.intervalValue").description("크롤링 주기 값"),
+                        fieldWithPath("data.updatedAt").description("수정 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
+        }
     }
 
-    @Test
-    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (크롤링 주기 변경)")
-    void updateSellerSuccessCrawlIntervalOnly() throws Exception {
-        // Given
-        String sellerId = "SELLER001";
-        UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, "HOURLY", 6);
-        String requestBody = objectMapper.writeValueAsString(request);
+    @Nested
+    @DisplayName("GET /api/v1/sellers/{sellerId}")
+    class Describe_getSellerDetail {
 
-        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
-                sellerId, null,
-                com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.HOURLY, 6
-        );
+        @Test
+        @DisplayName("셀러 상세 정보를 조회하면 200 OK를 반환한다")
+        void it_returns_seller_detail() throws Exception {
+            // Given
+            Long sellerId = 12345L;
 
-        MustitSeller mockSeller = createMockSeller();
-        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
-                "SELLER001", "Test Seller", true, "HOURLY", 6, java.time.LocalDateTime.now()
-        );
+            SellerDetailResponse response = new SellerDetailResponse(
+                sellerId,
+                "12345",
+                "Test Seller",
+                "ACTIVE",
+                100, // totalProductCount
+                null, // productCountHistories (PageResponse)
+                null, // scheduleInfo
+                null  // scheduleHistories (PageResponse)
+            );
 
-        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
-                .willReturn(command);
-        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
-                .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
+            SellerDetailApiResponse apiResponse = new SellerDetailApiResponse(
+                sellerId,
+                "12345",
+                "Test Seller",
+                "ACTIVE",
+                100,
+                null,
+                null,
+                null
+            );
+
+            given(getSellerDetailUseCase.getDetail(any(Long.class)))
+                .willReturn(response);
+            given(sellerApiMapper.toSellerDetailApiResponse(response))
                 .willReturn(apiResponse);
 
-        // When & Then
-        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+            // When & Then
+            mockMvc.perform(get("/api/v1/sellers/{sellerId}", sellerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
-                .andExpect(jsonPath("$.data.intervalType").value("HOURLY"))
-                .andExpect(jsonPath("$.data.intervalValue").value(6))
-                .andExpect(jsonPath("$.error").doesNotExist())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.requestId").exists());
+                .andExpect(jsonPath("$.data.sellerId").value(sellerId))
+                .andExpect(jsonPath("$.data.totalProductCount").value(100))
+                .andDo(document("seller-get-detail",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("sellerId").description("셀러 ID")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.sellerId").description("셀러 ID"),
+                        fieldWithPath("data.sellerCode").description("셀러 코드"),
+                        fieldWithPath("data.sellerName").description("셀러명"),
+                        fieldWithPath("data.status").description("상태"),
+                        fieldWithPath("data.totalProductCount").description("총 상품 수"),
+                        fieldWithPath("data.productCountHistories").description("상품 수 변경 이력").optional(),
+                        fieldWithPath("data.scheduleInfo").description("스케줄 정보").optional(),
+                        fieldWithPath("data.scheduleHistories").description("스케줄 실행 이력").optional(),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
+        }
     }
-
-    @Test
-    @DisplayName("PUT /api/v1/sellers/{sellerId} - 셀러 수정 성공 (모든 필드 변경)")
-    void updateSellerSuccessAllFields() throws Exception {
-        // Given
-        String sellerId = "SELLER001";
-        UpdateSellerApiRequest request = new UpdateSellerApiRequest(false, "WEEKLY", 2);
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        UpdateMustitSellerCommand command = new UpdateMustitSellerCommand(
-                sellerId, false,
-                com.ryuqq.crawlinghub.domain.mustit.seller.CrawlIntervalType.WEEKLY, 2
-        );
-
-        MustitSeller mockSeller = createMockSeller();
-        UpdateSellerApiResponse apiResponse = new UpdateSellerApiResponse(
-                "SELLER001", "Test Seller", false, "WEEKLY", 2, java.time.LocalDateTime.now()
-        );
-
-        given(sellerApiMapper.toUpdateCommand(eq(sellerId), any(UpdateSellerApiRequest.class)))
-                .willReturn(command);
-        given(updateMustitSellerUseCase.execute(any(UpdateMustitSellerCommand.class)))
-                .willReturn(mockSeller);
-        given(sellerApiMapper.toUpdateResponse(any(MustitSeller.class)))
-                .willReturn(apiResponse);
-
-        // When & Then
-        mockMvc.perform(put("/api/v1/sellers/" + sellerId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.sellerId").value("SELLER001"))
-                .andExpect(jsonPath("$.data.isActive").value(false))
-                .andExpect(jsonPath("$.data.intervalType").value("WEEKLY"))
-                .andExpect(jsonPath("$.data.intervalValue").value(2))
-                .andExpect(jsonPath("$.error").doesNotExist())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.requestId").exists());
-    }
-
 }

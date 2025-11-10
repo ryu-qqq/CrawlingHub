@@ -111,8 +111,8 @@ public class GetSellerDetailService implements GetSellerDetailUseCase {
     @Transactional(readOnly = true)
     public SellerDetailResponse getDetail(Long sellerId) {
         // 1. 셀러 기본 정보 조회 (DTO → Domain Model 변환)
-        MustitSellerId mustitSellerId = MustitSellerId.of(sellerId);
-        MustitSeller seller = loadSellerPort.findById(mustitSellerId)
+        MustitSellerId mustItSellerId = MustitSellerId.of(sellerId);
+        MustitSeller seller = loadSellerPort.findById(mustItSellerId)
             .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
@@ -121,7 +121,7 @@ public class GetSellerDetailService implements GetSellerDetailUseCase {
 
         // 3. 상품 수 변경 이력 조회 (PageResponse) ⭐
         PageResponse<ProductCountHistoryResponse> historyPage = getProductCountHistories(
-            mustitSellerId,
+            mustItSellerId,
             0,  // 기본 페이지 0
             10  // 기본 10개
         );

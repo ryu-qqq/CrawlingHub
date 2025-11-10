@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.useragent;
 
+import com.ryuqq.crawlinghub.domain.token.Token;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -87,13 +89,13 @@ public class UserAgentFixture {
      */
     public static UserAgent createActive(int remainingRequests) {
         LocalDateTime now = LocalDateTime.now();  // 시스템 현재 시간 사용 (isTokenExpired 통과를 위해)
+        Token token = Token.of(DEFAULT_TOKEN, now, now.plusHours(24));
         return UserAgent.reconstitute(
             UserAgentId.of(DEFAULT_ID),
             DEFAULT_USER_AGENT,
-            DEFAULT_TOKEN,
+            token,
             TokenStatus.ACTIVE,
             remainingRequests,
-            now,           // tokenIssuedAt - canMakeRequest()를 위해 필요
             null,
             now,
             now
@@ -113,7 +115,6 @@ public class UserAgentFixture {
             null,
             TokenStatus.RATE_LIMITED,
             0,
-            now,
             now.plusHours(1),
             now,
             now
@@ -146,13 +147,13 @@ public class UserAgentFixture {
      */
     public static UserAgent createWithToken(String token) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
+        Token tokenVO = Token.of(token, now, now.plusHours(24));
         return UserAgent.reconstitute(
             UserAgentId.of(DEFAULT_ID),
             DEFAULT_USER_AGENT,
-            token,
+            tokenVO,
             TokenStatus.IDLE,
             80,
-            now,
             null,
             now,
             now
@@ -167,13 +168,13 @@ public class UserAgentFixture {
     public static UserAgent createWithExpiredToken() {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
         LocalDateTime expiredTime = now.minusHours(25); // 24시간 + 1시간
+        Token token = Token.of(DEFAULT_TOKEN, expiredTime, expiredTime.plusHours(24));
         return UserAgent.reconstitute(
             UserAgentId.of(DEFAULT_ID),
             DEFAULT_USER_AGENT,
-            DEFAULT_TOKEN,
+            token,
             TokenStatus.IDLE,
             80,
-            expiredTime,
             null,
             now,
             now
@@ -188,13 +189,13 @@ public class UserAgentFixture {
      */
     public static UserAgent createCanMakeRequest(int remainingRequests) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
+        Token token = Token.of(DEFAULT_TOKEN, now, now.plusHours(24));
         return UserAgent.reconstitute(
             UserAgentId.of(DEFAULT_ID),
             DEFAULT_USER_AGENT,
-            DEFAULT_TOKEN,
+            token,
             TokenStatus.IDLE,
             remainingRequests,
-            now,
             null,
             now,
             now
@@ -208,13 +209,13 @@ public class UserAgentFixture {
      */
     public static UserAgent createCannotMakeRequest() {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
+        Token token = Token.of(DEFAULT_TOKEN, now, now.plusHours(24));
         return UserAgent.reconstitute(
             UserAgentId.of(DEFAULT_ID),
             DEFAULT_USER_AGENT,
-            DEFAULT_TOKEN,
+            token,
             TokenStatus.ACTIVE,
             0,
-            now,
             null,
             now,
             now
@@ -235,7 +236,6 @@ public class UserAgentFixture {
             null,
             TokenStatus.RATE_LIMITED,
             0,
-            now,
             pastResetTime,
             now,
             now
@@ -259,15 +259,17 @@ public class UserAgentFixture {
     ) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
         LocalDateTime tokenIssuedAt = token != null ? now : null;
+        LocalDateTime tokenExpiresAt = token != null ? now.plusHours(24) : null;
         LocalDateTime rateLimitResetAt = status == TokenStatus.RATE_LIMITED ? now.plusHours(1) : null;
+
+        Token tokenVO = token != null ? Token.of(token, tokenIssuedAt, tokenExpiresAt) : null;
 
         return UserAgent.reconstitute(
             UserAgentId.of(id),
             DEFAULT_USER_AGENT,
-            token,
+            tokenVO,
             status,
             remainingRequests,
-            tokenIssuedAt,
             rateLimitResetAt,
             now,
             now
@@ -293,23 +295,26 @@ public class UserAgentFixture {
     ) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
         LocalDateTime tokenIssuedAt = token != null ? now : null;
+        LocalDateTime tokenExpiresAt = token != null ? now.plusHours(24) : null;
         LocalDateTime rateLimitResetAt = status == TokenStatus.RATE_LIMITED ? now.plusHours(1) : null;
 
         if (id == null) {
             UserAgent userAgent = UserAgent.forNew(userAgentString);
             if (token != null) {
-                userAgent.issueNewToken(token);
+                Token tokenVO = Token.of(token, tokenIssuedAt, tokenExpiresAt);
+                userAgent.issueNewToken(tokenVO);
             }
             return userAgent;
         }
 
+        Token tokenVO = token != null ? Token.of(token, tokenIssuedAt, tokenExpiresAt) : null;
+
         return UserAgent.reconstitute(
             UserAgentId.of(id),
             userAgentString,
-            token,
+            tokenVO,
             status,
             remainingRequests,
-            tokenIssuedAt,
             rateLimitResetAt,
             now,
             now

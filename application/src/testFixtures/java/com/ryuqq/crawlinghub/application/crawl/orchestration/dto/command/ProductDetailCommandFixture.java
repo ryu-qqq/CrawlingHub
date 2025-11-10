@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command;
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.ProductDetailCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.ProductDetailCommand;
 
 /**
  * ProductDetailCommand Test Fixture

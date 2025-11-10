@@ -8,9 +8,9 @@ package com.ryuqq.crawlinghub.domain.task;
  */
 public class RequestUrlFixture {
 
-    private static final String DEFAULT_URL = "https://www.mustit.co.kr/product/list";
-    private static final String DETAIL_URL = "https://www.mustit.co.kr/product/detail/12345";
-    private static final String API_URL = "https://api.mustit.co.kr/v1/products";
+    private static final String DEFAULT_URL = "https://www.mustIt.co.kr/product/list";
+    private static final String DETAIL_URL = "https://www.mustIt.co.kr/product/detail/12345";
+    private static final String API_URL = "https://api.mustIt.co.kr/v1/products";
 
     /**
      * 기본 RequestUrl 생성

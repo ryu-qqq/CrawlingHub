@@ -44,7 +44,7 @@ class MustitSellerTest {
             assertThat(seller).isNotNull();
             assertThat(seller.getIdValue()).isNull();
             assertThat(seller.getSellerCode()).isEqualTo(sellerCode);
-            assertThat(seller.getSellerName()).isEqualTo(sellerName);
+            assertThat(seller.getSellerNameValue()).isEqualTo(sellerName);
             assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
             assertThat(seller.getTotalProductCount()).isEqualTo(0);
         }
@@ -65,7 +65,7 @@ class MustitSellerTest {
             assertThat(seller).isNotNull();
             assertThat(seller.getIdValue()).isEqualTo(1L);
             assertThat(seller.getSellerCode()).isEqualTo(sellerCode);
-            assertThat(seller.getSellerName()).isEqualTo(sellerName);
+            assertThat(seller.getSellerNameValue()).isEqualTo(sellerName);
             assertThat(seller.getStatus()).isEqualTo(status);
         }
 
@@ -385,7 +385,7 @@ class MustitSellerTest {
 
             assertThat(seller.getIdValue()).isNotNull();
             assertThat(seller.getSellerCode()).isNotNull();
-            assertThat(seller.getSellerName()).isNotNull();
+            assertThat(seller.getSellerNameValue()).isNotNull();
             assertThat(seller.getStatus()).isNotNull();
             assertThat(seller.getTotalProductCount()).isNotNull();
             assertThat(seller.getCreatedAt()).isNotNull();
@@ -422,6 +422,400 @@ class MustitSellerTest {
             MustitSeller seller2 = MustitSellerFixture.createWithId(1L);
 
             assertThat(seller1.hashCode()).isEqualTo(seller2.hashCode());
+        }
+
+        @Test
+        @DisplayName("ID가 null인 경우 sellerName 기반 equals")
+        void shouldUseSellerNameForEqualsWhenIdIsNull() {
+            // Given
+            MustitSeller seller1 = MustitSeller.forNew("SEL001", "같은이름");
+            MustitSeller seller2 = MustitSeller.forNew("SEL002", "같은이름");
+
+            // Then
+            assertThat(seller1).isEqualTo(seller2);
+        }
+
+        @Test
+        @DisplayName("ID가 null인 경우 sellerName 기반 hashCode")
+        void shouldUseSellerNameForHashCodeWhenIdIsNull() {
+            // Given
+            MustitSeller seller1 = MustitSeller.forNew("SEL001", "같은이름");
+            MustitSeller seller2 = MustitSeller.forNew("SEL002", "같은이름");
+
+            // Then
+            assertThat(seller1.hashCode()).isEqualTo(seller2.hashCode());
+        }
+
+        @Test
+        @DisplayName("자기 자신과는 equals")
+        void shouldBeEqualToItself() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // Then
+            assertThat(seller).isEqualTo(seller);
+        }
+
+        @Test
+        @DisplayName("null과는 not equals")
+        void shouldNotBeEqualToNull() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // Then
+            assertThat(seller).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("다른 타입 객체와는 not equals")
+        void shouldNotBeEqualToDifferentType() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+            Object other = "Not a seller";
+
+            // Then
+            assertThat(seller).isNotEqualTo(other);
+        }
+
+        @Test
+        @DisplayName("ID가 null인 seller와 ID가 있는 seller는 not equals")
+        void shouldNotBeEqualWhenOneHasNullId() {
+            // Given
+            MustitSeller sellerWithoutId = MustitSeller.forNew("SEL001", "셀러A");
+            MustitSeller sellerWithId = MustitSellerFixture.createWithId(1L);
+
+            // Then
+            assertThat(sellerWithoutId).isNotEqualTo(sellerWithId);
+        }
+    }
+
+    @Nested
+    @DisplayName("추가 Factory Method 테스트")
+    class AdditionalFactoryMethodTests {
+
+        @Test
+        @DisplayName("reconstitute() ID가 null이면 예외 발생")
+        void shouldThrowExceptionWhenReconstituteWithNullId() {
+            assertThatThrownBy(() ->
+                MustitSeller.reconstitute(
+                    null,
+                    "SEL001",
+                    "테스트셀러",
+                    SellerStatus.ACTIVE,
+                    100,
+                    java.time.LocalDateTime.now(),
+                    java.time.LocalDateTime.now(),
+                    java.time.LocalDateTime.now()
+                )
+            )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("DB reconstitute는 ID가 필수입니다");
+        }
+
+        @Test
+        @DisplayName("reconstitute() 모든 필드가 정확히 설정됨")
+        void shouldSetAllFieldsCorrectlyWhenReconstitute() {
+            // Given
+            MustitSellerId id = MustitSellerId.of(100L);
+            Integer productCount = 500;
+            java.time.LocalDateTime lastCrawled = java.time.LocalDateTime.now().minusDays(1);
+            java.time.LocalDateTime created = java.time.LocalDateTime.now().minusDays(10);
+            java.time.LocalDateTime updated = java.time.LocalDateTime.now().minusDays(1);
+
+            // When
+            MustitSeller seller = MustitSeller.reconstitute(
+                id,
+                "SEL999",
+                "재구성셀러",
+                SellerStatus.PAUSED,
+                productCount,
+                lastCrawled,
+                created,
+                updated
+            );
+
+            // Then
+            assertThat(seller.getIdValue()).isEqualTo(100L);
+            assertThat(seller.getSellerCode()).isEqualTo("SEL999");
+            assertThat(seller.getSellerNameValue()).isEqualTo("재구성셀러");
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.PAUSED);
+            assertThat(seller.getTotalProductCount()).isEqualTo(productCount);
+            assertThat(seller.getLastCrawledAt()).isEqualTo(lastCrawled);
+            assertThat(seller.getCreatedAt()).isEqualTo(created);
+            assertThat(seller.getUpdatedAt()).isEqualTo(updated);
+        }
+
+        @Test
+        @DisplayName("of() 메서드의 sellerCode가 null이면 예외 발생")
+        void shouldThrowExceptionWhenOfWithNullSellerCode() {
+            assertThatThrownBy(() ->
+                MustitSeller.of(
+                    MustitSellerId.of(1L),
+                    null,
+                    "테스트셀러",
+                    SellerStatus.ACTIVE
+                )
+            )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("셀러 코드는 필수입니다");
+        }
+
+        @Test
+        @DisplayName("of() 메서드의 sellerName이 null이면 예외 발생")
+        void shouldThrowExceptionWhenOfWithNullSellerName() {
+            assertThatThrownBy(() ->
+                MustitSeller.of(
+                    MustitSellerId.of(1L),
+                    "SEL001",
+                    null,
+                    SellerStatus.ACTIVE
+                )
+            )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("셀러 이름은 필수입니다");
+        }
+
+        @Test
+        @DisplayName("of() 메서드의 status가 null이면 예외 발생")
+        void shouldThrowExceptionWhenOfWithNullStatus() {
+            assertThatThrownBy(() ->
+                MustitSeller.of(
+                    MustitSellerId.of(1L),
+                    "SEL001",
+                    "테스트셀러",
+                    null
+                )
+            )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("셀러 상태는 필수입니다");
+        }
+    }
+
+    @Nested
+    @DisplayName("추가 비즈니스 메서드 테스트")
+    class AdditionalBusinessMethodTests {
+
+        @Test
+        @DisplayName("DISABLED 상태에서 validateCanCrawl() 호출 시 예외 발생")
+        void shouldThrowExceptionWhenValidateCrawlForDisabledSeller() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createDisabled();
+
+            // When & Then
+            assertThatThrownBy(seller::validateCanCrawl)
+                .isInstanceOf(com.ryuqq.crawlinghub.domain.seller.exception.InactiveSellerException.class);
+        }
+
+        @Test
+        @DisplayName("ACTIVE 상태에서 validateCanCrawl() 호출 시 예외 없음")
+        void shouldNotThrowExceptionWhenValidateCrawlForActiveSeller() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // When & Then
+            assertThatCode(seller::validateCanCrawl)
+                .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("PAUSED 상태에서 validateCanCrawl() 호출 시 예외 없음 (크롤링 가능)")
+        void shouldNotThrowExceptionWhenValidateCrawlForPausedSeller() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createPaused();
+
+            // When & Then
+            assertThatCode(seller::validateCanCrawl)
+                .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("PAUSED 상태에서 canCrawl()은 true 반환")
+        void shouldReturnTrueForCanCrawlWhenPaused() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createPaused();
+
+            // Then
+            assertThat(seller.canCrawl()).isTrue();
+        }
+
+        @Test
+        @DisplayName("isActive()는 ACTIVE 상태에서만 true 반환")
+        void shouldReturnTrueForIsActiveOnlyWhenActive() {
+            // Given
+            MustitSeller activeSeller = MustitSellerFixture.createActive();
+            MustitSeller pausedSeller = MustitSellerFixture.createPaused();
+            MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
+
+            // Then
+            assertThat(activeSeller.isActive()).isTrue();
+            assertThat(pausedSeller.isActive()).isFalse();
+            assertThat(disabledSeller.isActive()).isFalse();
+        }
+
+        @Test
+        @DisplayName("hasStatus()는 해당 상태일 때만 true 반환")
+        void shouldReturnTrueForHasStatusOnlyWhenMatches() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // Then
+            assertThat(seller.hasStatus(SellerStatus.ACTIVE)).isTrue();
+            assertThat(seller.hasStatus(SellerStatus.PAUSED)).isFalse();
+            assertThat(seller.hasStatus(SellerStatus.DISABLED)).isFalse();
+        }
+
+        @Test
+        @DisplayName("getSellerName()은 SellerName Value Object 반환")
+        void shouldReturnSellerNameValueObject() {
+            // Given
+            MustitSeller seller = MustitSeller.forNew("SEL001", "테스트셀러");
+
+            // When
+            SellerName sellerName = seller.getSellerName();
+
+            // Then
+            assertThat(sellerName).isNotNull();
+            assertThat(sellerName.getValue()).isEqualTo("테스트셀러");
+        }
+
+        @Test
+        @DisplayName("신규 생성 셀러의 lastCrawledAt은 null")
+        void shouldHaveNullLastCrawledAtForNewSeller() {
+            // Given
+            MustitSeller seller = MustitSeller.forNew("SEL001", "신규셀러");
+
+            // Then
+            assertThat(seller.getLastCrawledAt()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("toString() 테스트")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("toString()은 주요 필드 정보를 포함")
+        void shouldIncludeKeyFieldsInToString() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // When
+            String result = seller.toString();
+
+            // Then
+            assertThat(result).contains("MustitSeller");
+            assertThat(result).contains("id=");
+            assertThat(result).contains("sellerCode=");
+            assertThat(result).contains("sellerName=");
+            assertThat(result).contains("status=");
+            assertThat(result).contains("totalProductCount=");
+        }
+
+        @Test
+        @DisplayName("ID가 null인 신규 셀러의 toString()")
+        void shouldHandleNullIdInToString() {
+            // Given
+            MustitSeller seller = MustitSeller.forNew("SEL001", "신규셀러");
+
+            // When
+            String result = seller.toString();
+
+            // Then
+            assertThat(result).contains("id=null");
+        }
+    }
+
+    @Nested
+    @DisplayName("시나리오 테스트")
+    class ScenarioTests {
+
+        @Test
+        @DisplayName("상태 전이 시나리오: ACTIVE → PAUSED → DISABLED → ACTIVE")
+        void shouldTransitionThroughMultipleStates() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+
+            // When & Then
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+
+            seller.pause();
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.PAUSED);
+            assertThat(seller.canCrawl()).isTrue();
+
+            seller.disable();
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.DISABLED);
+            assertThat(seller.canCrawl()).isFalse();
+
+            seller.activate();
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+            assertThat(seller.canCrawl()).isTrue();
+        }
+
+        @Test
+        @DisplayName("크롤링 시나리오: 크롤링 전후 상태 변화")
+        void shouldHandleCrawlingScenario() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+            assertThat(seller.getLastCrawledAt()).isNull();
+            assertThat(seller.getTotalProductCount()).isEqualTo(100);
+
+            // When
+            seller.validateCanCrawl();  // 크롤링 가능 검증
+            seller.updateProductCount(150);  // 크롤링으로 상품 수 업데이트
+            seller.recordCrawlingComplete();  // 크롤링 완료 기록
+
+            // Then
+            assertThat(seller.getLastCrawledAt()).isNotNull();
+            assertThat(seller.getTotalProductCount()).isEqualTo(150);
+        }
+
+        @Test
+        @DisplayName("비활성화된 셀러는 크롤링 불가 시나리오")
+        void shouldPreventCrawlingForDisabledSeller() {
+            // Given
+            MustitSeller seller = MustitSellerFixture.createActive();
+            seller.disable();
+
+            // When & Then
+            assertThat(seller.canCrawl()).isFalse();
+            assertThatThrownBy(seller::validateCanCrawl)
+                .isInstanceOf(com.ryuqq.crawlinghub.domain.seller.exception.InactiveSellerException.class);
+        }
+
+        @Test
+        @DisplayName("전체 라이프사이클 시나리오")
+        void shouldHandleFullLifecycle() {
+            // 1. 신규 셀러 생성
+            MustitSeller seller = MustitSeller.forNew("SEL001", "신규셀러");
+            assertThat(seller.getIdValue()).isNull();
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+            assertThat(seller.getTotalProductCount()).isEqualTo(0);
+
+            // 2. 초기 크롤링
+            seller.updateProductCount(50);
+            seller.recordCrawlingComplete();
+
+            // 3. 일시정지
+            seller.pause();
+            assertThat(seller.canCrawl()).isTrue();  // PAUSED도 크롤링 가능
+
+            // 4. 재활성화
+            seller.activate();
+            assertThat(seller.isActive()).isTrue();
+
+            // 5. 추가 크롤링
+            seller.updateProductCount(100);
+            seller.recordCrawlingComplete();
+
+            // 6. 최종 비활성화
+            seller.disable();
+            assertThat(seller.canCrawl()).isFalse();
+
+            // Then: 상태는 변경되었지만 기본 속성은 유지
+            assertThat(seller.getSellerCode()).isEqualTo("SEL001");
+            assertThat(seller.getSellerNameValue()).isEqualTo("신규셀러");
+            assertThat(seller.getTotalProductCount()).isEqualTo(100);
+            assertThat(seller.getLastCrawledAt()).isNotNull();
         }
     }
 }

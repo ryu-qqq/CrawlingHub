@@ -24,3 +24,5 @@ import org.springframework.stereotype.Repository;
 public interface UserAgentJpaRepository extends JpaRepository<UserAgentEntity, Long> {
 }
 
+
+

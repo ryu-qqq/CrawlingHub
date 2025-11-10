@@ -6,11 +6,15 @@ import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentRespons
 import com.ryuqq.crawlinghub.application.useragent.port.in.IssueTokenUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.out.LoadUserAgentPort;
 import com.ryuqq.crawlinghub.application.useragent.port.out.SaveUserAgentPort;
+import com.ryuqq.crawlinghub.domain.token.Token;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 토큰 발급 UseCase 구현체
@@ -56,10 +60,15 @@ public class IssueTokenService implements IssueTokenUseCase {
         UserAgentId userAgentId = UserAgentId.of(command.userAgentId());
         UserAgent userAgent = loadUserAgentPort.findById(userAgentId)
             .map(assembler::toDomain)
-            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException());
+            .orElseThrow(NoAvailableUserAgentException::new);
 
         // 2. 토큰 발급 (Domain 메서드)
-        userAgent.issueNewToken(command.token());
+        Token token = Token.of(
+            command.token(),
+            LocalDateTime.now(),
+            LocalDateTime.now().plusHours(24)
+        );
+        userAgent.issueNewToken(token);
 
         // 3. 저장
         UserAgent savedUserAgent = saveUserAgentPort.save(userAgent);

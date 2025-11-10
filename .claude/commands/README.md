@@ -24,15 +24,6 @@
 | `/queue-list` | 큐 목록 확인 | `/queue-list` |
 | `/queue-status` | 큐 상태 요약 | `/queue-status` |
 
-### 🌳 Git Worktree 관리
-
-| 커맨드 | 설명 | 사용법 |
-|--------|------|--------|
-| `/worktree-create` | Worktree 생성 및 작업 환경 설정 | `/worktree-create order order-aggregate.md` |
-| `/worktree-remove` | Worktree 제거 및 정리 | `/worktree-remove order` |
-| `/worktree-list` | 활성 Worktree 목록 확인 | `/worktree-list` |
-| `/worktree-status` | Worktree 상태 요약 | `/worktree-status` |
-
 ### 🔍 Jira 통합
 
 | 커맨드 | 설명 | 사용법 |
@@ -72,8 +63,8 @@
 # 2. 설계 분석 및 작업지시서 생성
 /design-analysis Order
 
-# 3. Git Worktree 생성
-/worktree-create order order-aggregate.md
+# 3. Git Worktree 생성 (수동)
+git worktree add ../wt-order feature/order
 
 # 4. Cursor AI로 Boilerplate 생성 (Worktree)
 # → .cursorrules 자동 로드
@@ -347,95 +338,6 @@ gh pr create
 **예시:**
 ```bash
 /queue-status
-```
-
----
-
-### `/worktree-create`
-
-**목적**: Git Worktree 생성 및 작업 환경 설정
-
-**자동 처리:**
-- 워크트리 디렉토리 생성 (`.worktrees/` - 프로젝트 내부)
-- Feature 브랜치 생성 (`feature/{feature-name}`)
-- Worktree 디렉토리 생성 (`.worktrees/wt-{feature-name}`)
-- 작업지시서 자동 복사 (있는 경우)
-- `.cursorrules` 자동 복사
-- **Cursor 워크스페이스 파일 생성** (`{feature-name}.code-workspace`)
-- **Cursor IDE 자동 열기** (선택적)
-
-**기능:**
-- 브랜치 중복 확인 (이미 있으면 재사용)
-- 작업지시서 자동 복사
-- Cursor AI 규칙 복사
-- Cursor IDE 워크스페이스 파일 자동 생성
-- 프롬프트 아래에서 워크스페이스 선택 가능
-
-**예시:**
-```bash
-/worktree-create order order-aggregate.md
-# → .worktrees/wt-order/ 생성 (프로젝트 내부)
-# → order.code-workspace 생성
-# → Cursor IDE 자동 열기 시도
-# → 프롬프트 아래에서 'order.code-workspace' 선택 가능
-
-/worktree-create payment  # 작업지시서 없음
-```
-
-**워크트리 위치:**
-- 프로젝트 내부: `.worktrees/wt-{feature-name}/`
-- `.gitignore`에 자동 제외되어 커밋되지 않음
-
----
-
-### `/worktree-remove`
-
-**목적**: Git Worktree 제거 및 정리
-
-**자동 처리:**
-- 변경사항 확인
-- Worktree 디렉토리 제거
-- 브랜치 유지 (병합 후 수동 삭제)
-
-**주의사항:**
-- 커밋되지 않은 변경사항이 있으면 확인 요청
-- 브랜치는 자동 삭제되지 않음
-
-**예시:**
-```bash
-/worktree-remove order
-```
-
----
-
-### `/worktree-list`
-
-**목적**: 활성 Git Worktree 목록 확인
-
-**표시 정보:**
-- Worktree 경로
-- 브랜치 정보
-- Git Worktree 목록 전체
-
-**예시:**
-```bash
-/worktree-list
-```
-
----
-
-### `/worktree-status`
-
-**목적**: Worktree 상태 요약
-
-**표시 통계:**
-- 활성 Worktree 개수
-- 각 Worktree 경로 및 브랜치
-- 메인 프로젝트 제외
-
-**예시:**
-```bash
-/worktree-status
 ```
 
 ---

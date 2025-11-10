@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.dto.ScheduleOutboxQueryDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleOutboxEntity;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ import static com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QSch
  * @since 2025-11-06
  */
 @Component
-public class ScheduleOutboxQueryAdapter {
+public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

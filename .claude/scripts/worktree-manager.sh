@@ -9,7 +9,7 @@
 set -e
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
-WORKTREE_BASE="${PROJECT_ROOT}/.worktrees"
+WORKTREE_BASE="../"
 WORK_ORDERS_DIR=".claude/work-orders"
 
 # 색상 정의
@@ -77,15 +77,9 @@ create_worktree() {
     fi
     
     local branch_name="feature/${feature_name}"
-    local worktree_path="${WORKTREE_BASE}/wt-${feature_name}"
+    local worktree_path="${WORKTREE_BASE}wt-${feature_name}"
     
     log_info "Worktree 생성 시작: ${feature_name}"
-    
-    # 0. 워크트리 베이스 디렉토리 생성 (없는 경우)
-    if [[ ! -d "${WORKTREE_BASE}" ]]; then
-        log_info "워크트리 디렉토리 생성: ${WORKTREE_BASE}"
-        mkdir -p "${WORKTREE_BASE}"
-    fi
     
     # 1. 브랜치 생성 확인
     if git show-ref --verify --quiet "refs/heads/${branch_name}"; then
@@ -118,46 +112,7 @@ create_worktree() {
         cp "${PROJECT_ROOT}/.cursorrules" "${worktree_path}/"
     fi
     
-    # 5. Cursor IDE 워크스페이스 파일 생성
-    local workspace_file="${worktree_path}/${feature_name}.code-workspace"
-    log_info "Cursor IDE 워크스페이스 파일 생성"
-    cat > "${workspace_file}" << EOF
-{
-    "folders": [
-        {
-            "path": "."
-        }
-    ],
-    "settings": {
-        "files.exclude": {
-            "**/.git": true
-        }
-    }
-}
-EOF
-    log_success "워크스페이스 파일 생성 완료: ${workspace_file}"
-    
-    # 6. Cursor IDE 자동 열기 시도 (선택적)
-    if command -v cursor &> /dev/null; then
-        log_info "Cursor IDE로 워크스페이스 열기 시도..."
-        # 백그라운드에서 열기 (기존 세션 유지)
-        cursor "${workspace_file}" 2>/dev/null || {
-            # cursor 명령어가 없으면 open 명령어 사용 (macOS)
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                open -a Cursor "${workspace_file}" 2>/dev/null || log_warning "Cursor IDE 자동 열기 실패 (수동으로 열어주세요)"
-            else
-                log_warning "Cursor IDE 자동 열기 실패 (수동으로 열어주세요)"
-            fi
-        }
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS에서 cursor 명령어가 없으면 open 사용
-        if [[ -d "/Applications/Cursor.app" ]]; then
-            log_info "Cursor IDE로 워크스페이스 열기 시도..."
-            open -a Cursor "${workspace_file}" 2>/dev/null || log_warning "Cursor IDE 자동 열기 실패 (수동으로 열어주세요)"
-        fi
-    fi
-    
-    # 7. 완료 메시지
+    # 5. 완료 메시지
     log_success "Worktree 생성 완료!"
     echo ""
     echo "📂 Worktree 경로: ${worktree_path}"
@@ -165,18 +120,16 @@ EOF
     if [[ -n "$work_order" ]]; then
         echo "📋 작업지시서: ${work_order}"
     fi
-    echo "🎨 Cursor 워크스페이스: ${workspace_file}"
     echo ""
     echo "📝 다음 단계:"
-    echo "  1. Cursor IDE에서 워크스페이스 열기:"
-    echo "     - 프롬프트 아래에서 '${feature_name}.code-workspace' 선택"
-    echo "     - 또는 더블클릭: ${workspace_file}"
+    echo "  1. cd ${worktree_path}"
     echo "  2. Cursor AI로 Boilerplate 생성"
     if [[ -n "$work_order" ]]; then
         echo "  3. ${work_order} 참조하여 코드 작성"
     fi
     echo "  4. git commit"
-    echo "  5. /validate-cursor-changes (검증)"
+    echo "  5. cd ${PROJECT_ROOT} (복귀)"
+    echo "  6. /validate-cursor-changes (검증)"
 }
 
 # Worktree 제거
@@ -189,7 +142,7 @@ remove_worktree() {
         exit 1
     fi
     
-    local worktree_path="${WORKTREE_BASE}/wt-${feature_name}"
+    local worktree_path="${WORKTREE_BASE}wt-${feature_name}"
     
     log_info "Worktree 제거 시작: ${feature_name}"
     

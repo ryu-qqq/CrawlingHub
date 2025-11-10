@@ -1,13 +1,15 @@
 package com.ryuqq.crawlinghub.domain.schedule;
 
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
+import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
-import org.springframework.data.domain.AbstractAggregateRoot;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,7 +29,7 @@ import java.util.Objects;
  *   <li>✅ Repository save() 호출 시 Spring Data가 이벤트 발행</li>
  * </ul>
  */
-public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
+public class CrawlSchedule  {
 
     private final CrawlScheduleId id;
     private final MustitSellerId sellerId;
@@ -38,6 +40,13 @@ public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
     private final Clock clock;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /**
+     * Domain Events (Pure Java 방식)
+     *
+     * <p>Spring Data AbstractAggregateRoot 대신 직접 이벤트 관리</p>
+     */
+    private final List<ScheduleEvent> domainEvents = new ArrayList<>();
 
     /**
      * Private 전체 생성자 (reconstitute 전용)
@@ -432,5 +441,37 @@ public class CrawlSchedule extends AbstractAggregateRoot<CrawlSchedule> {
             ", status=" + status +
             ", nextExecutionTime=" + nextExecutionTime +
             '}';
+    }
+
+    /**
+     * Domain Event 등록 (Pure Java 방식)
+     *
+     * <p>Spring Data AbstractAggregateRoot.registerEvent() 대체</p>
+     *
+     * @param event 등록할 Domain Event
+     */
+    protected void registerEvent(ScheduleEvent event) {
+        Objects.requireNonNull(event, "event must not be null");
+        this.domainEvents.add(event);
+    }
+
+    /**
+     * Domain Events 조회 (Application Layer에서 사용)
+     *
+     * <p>Application Layer에서 이 메서드를 호출하여 이벤트를 수동으로 발행합니다.</p>
+     *
+     * @return 등록된 Domain Events (Unmodifiable)
+     */
+    public List<ScheduleEvent> getDomainEvents() {
+        return Collections.unmodifiableList(domainEvents);
+    }
+
+    /**
+     * Domain Events 초기화 (이벤트 발행 후 호출)
+     *
+     * <p>Application Layer에서 이벤트 발행 후 초기화합니다.</p>
+     */
+    public void clearDomainEvents() {
+        this.domainEvents.clear();
     }
 }

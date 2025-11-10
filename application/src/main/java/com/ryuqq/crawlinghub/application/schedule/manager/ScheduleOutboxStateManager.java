@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleOutcome;
 import com.ryuqq.crawlinghub.application.schedule.port.out.EventBridgeSchedulerPort;
-import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxCommandPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Schedule Outbox State Manager
@@ -32,6 +34,12 @@ import java.util.List;
  *   <li>✅ 각 Outbox 처리는 독립적인 트랜잭션 (실패 격리)</li>
  * </ul>
  *
+ * <p><strong>CQRS 패턴 적용:</strong></p>
+ * <ul>
+ *   <li>✅ Query Port: Outbox 조회 및 목록 조회</li>
+ *   <li>✅ Command Port: Outbox 생성 및 상태 업데이트</li>
+ * </ul>
+ *
  * <p><strong>컨벤션 준수:</strong></p>
  * <ul>
  *   <li>✅ Pure Java Constructor (Lombok 금지)</li>
@@ -48,18 +56,29 @@ public class ScheduleOutboxStateManager {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduleOutboxStateManager.class);
 
-    private final ScheduleOutboxPort outboxPort;
+    private final ScheduleOutboxQueryPort outboxQueryPort;
+    private final ScheduleOutboxCommandPort outboxCommandPort;
     private final EventBridgeSchedulerPort eventBridgePort;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 생성자
+     *
+     * @param outboxQueryPort   Outbox Query Port (읽기 작업)
+     * @param outboxCommandPort Outbox Command Port (쓰기 작업)
+     * @param eventBridgePort   EventBridge Scheduler Port
+     * @param objectMapper      JSON Mapper
+     */
     public ScheduleOutboxStateManager(
-        ScheduleOutboxPort outboxPort,
+        ScheduleOutboxQueryPort outboxQueryPort,
+        ScheduleOutboxCommandPort outboxCommandPort,
         EventBridgeSchedulerPort eventBridgePort,
         ObjectMapper objectMapper
     ) {
-        this.outboxPort = outboxPort;
-        this.eventBridgePort = eventBridgePort;
-        this.objectMapper = objectMapper;
+        this.outboxQueryPort = Objects.requireNonNull(outboxQueryPort, "outboxQueryPort must not be null");
+        this.outboxCommandPort = Objects.requireNonNull(outboxCommandPort, "outboxCommandPort must not be null");
+        this.eventBridgePort = Objects.requireNonNull(eventBridgePort, "eventBridgePort must not be null");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper must not be null");
     }
 
     /**
@@ -68,7 +87,7 @@ public class ScheduleOutboxStateManager {
      * @param sellerId 셀러 ID
      * @param payload EventBridge Payload (JSON)
      * @param idemKey Idempotency Key
-     * @param eventType 이벤트 타입 (EVENTBRIDGE_REGISTER, EVENTBRIDGE_UPDATE, EVENTBRIDGE_DELETE)
+     * @param eventType 이벤트 타입 (EVENTBRIDGE_REGISTER, EVENTBRIDGE_UPDATE)
      * @return 저장된 Outbox
      */
     @Transactional
@@ -87,13 +106,37 @@ public class ScheduleOutboxStateManager {
             case "EVENTBRIDGE_UPDATE" -> outbox = ScheduleOutbox.forEventBridgeUpdate(
                 sellerId, payload, idemKey
             );
-            case "EVENTBRIDGE_DELETE" -> outbox = ScheduleOutbox.forEventBridgeDelete(
-                sellerId, payload, idemKey
-            );
             default -> throw new IllegalArgumentException("알 수 없는 이벤트 타입: " + eventType);
         }
 
-        return outboxPort.save(outbox);
+        return outboxCommandPort.save(outbox);
+    }
+
+    /**
+     * Outbox 저장
+     *
+     * <p>ScheduleOutboxFinalizer에서 재시도 예약 시 사용합니다.</p>
+     *
+     * @param outbox 저장할 Outbox
+     * @return 저장된 Outbox
+     */
+    @Transactional
+    public ScheduleOutbox saveOutbox(ScheduleOutbox outbox) {
+        Objects.requireNonNull(outbox, "outbox must not be null");
+        return outboxCommandPort.save(outbox);
+    }
+
+    /**
+     * Outbox 삭제
+     *
+     * <p>ScheduleOutboxFinalizer에서 완료된 Outbox 정리 시 사용합니다.</p>
+     *
+     * @param outbox 삭제할 Outbox
+     */
+    @Transactional
+    public void deleteOutbox(ScheduleOutbox outbox) {
+        Objects.requireNonNull(outbox, "outbox must not be null");
+        outboxCommandPort.delete(outbox);
     }
 
     /**
@@ -104,7 +147,7 @@ public class ScheduleOutboxStateManager {
      */
     @Transactional(readOnly = true)
     public ScheduleOutbox findByIdemKey(String idemKey) {
-        return outboxPort.findByIdemKey(idemKey).orElse(null);
+        return outboxQueryPort.findByIdemKey(idemKey).orElse(null);
     }
 
     /**
@@ -115,7 +158,7 @@ public class ScheduleOutboxStateManager {
      */
     @Transactional(readOnly = true)
     public boolean existsByIdemKey(String idemKey) {
-        return outboxPort.existsByIdemKey(idemKey);
+        return outboxQueryPort.existsByIdemKey(idemKey);
     }
 
     /**
@@ -125,7 +168,31 @@ public class ScheduleOutboxStateManager {
      */
     @Transactional(readOnly = true)
     public List<ScheduleOutbox> findPendingOutboxes() {
-        return outboxPort.findByWalStatePending();
+        return outboxQueryPort.findByWalStatePending();
+    }
+
+    /**
+     * FAILED 상태 Outbox 조회 (재시도 대상)
+     *
+     * <p>ScheduleOutboxFinalizer에서 재시도 작업 시 사용합니다.</p>
+     *
+     * @return OPERATION_STATE=FAILED 상태 Outbox 목록
+     */
+    @Transactional(readOnly = true)
+    public List<ScheduleOutbox> findByOperationStateFailed() {
+        return outboxQueryPort.findByOperationStateFailed();
+    }
+
+    /**
+     * COMPLETED 상태 Outbox 조회 (정리 대상)
+     *
+     * <p>ScheduleOutboxFinalizer에서 완료된 Outbox 정리 시 사용합니다.</p>
+     *
+     * @return WAL_STATE=COMPLETED 상태 Outbox 목록
+     */
+    @Transactional(readOnly = true)
+    public List<ScheduleOutbox> findByWalStateCompleted() {
+        return outboxQueryPort.findByWalStateCompleted();
     }
 
     /**
@@ -160,13 +227,13 @@ public class ScheduleOutboxStateManager {
             log.warn("⏱️ Outbox Timeout: ID={}, Timeout={}ms",
                 outbox.getId(), outbox.getTimeoutMillis());
             outbox.markTimeout();
-            outboxPort.save(outbox);
-            return ScheduleOutcome.fail("TIMEOUT", "Outbox 처리 시간 초과", "Timeout");
+            outboxCommandPort.save(outbox);
+            return ScheduleOutcome.failure("TIMEOUT", "Outbox 처리 시간 초과", "Timeout");
         }
 
         // 2. 상태 전이: PENDING → IN_PROGRESS
         outbox.startProcessing();
-        outboxPort.save(outbox);
+        outboxCommandPort.save(outbox);
 
         // 3. EventBridge 호출 (외부 API - 트랜잭션 밖!)
         ScheduleOutcome outcome = executeEventBridgeOperation(outbox);
@@ -181,7 +248,7 @@ public class ScheduleOutboxStateManager {
             outbox.recordFailure(outcome.message());
         }
 
-        outboxPort.save(outbox);
+        outboxCommandPort.save(outbox);
 
         log.info("🏁 Outbox 처리 완료: ID={}, FinalState={}/{}",
             outbox.getId(), outbox.getWalState(), outbox.getOperationState());

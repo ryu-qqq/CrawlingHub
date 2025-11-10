@@ -1,0 +1,1283 @@
+{
+  "tasks": [
+    {
+      "id": "task-2aae9cf4930d",
+      "description": "/cc:load ",
+      "status": "in_progress",
+      "added_at": 1762396901.345147,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-4460146bb67d",
+      "description": "현재 이벤트브릿지로 특정 시간대에 트리거를 받는 코드를 만들어야해 그게 adapter-in/aws-sqs가 될거같은데 보통 이벤트브릿지가 바로 sqs로 메세지를 보낼 수 있지? 그",
+      "status": "in_progress",
+      "added_at": 1762397493.721571,
+      "context_score": 60,
+      "detected_layers": [
+        "adapter-rest",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1a1d7c02028d",
+      "description": "우선 이벤트 브릿지 adapter-in 모듈쪽 부터 처리하고 sqs는 fifo로해 셀러별로 중복을 막을거야 그리고 메세지 형태는 adapter-out/aws-eventbridge를",
+      "status": "in_progress",
+      "added_at": 1762397868.96114,
+      "context_score": 150,
+      "detected_layers": [
+        "adapter-rest",
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-2ec3ca820c1d",
+      "description": "우선 이벤트 브릿지 adapter-in 모듈쪽 부터 처리하고 sqs는 fifo로해 셀러별로 중복을 막을거야 그리고 메세지 형태는 adapter-out/aws-eventbridge를",
+      "status": "in_progress",
+      "added_at": 1762398113.663092,
+      "context_score": 150,
+      "detected_layers": [
+        "adapter-rest",
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-618368a8dbb3",
+      "description": "/cc:load ",
+      "status": "in_progress",
+      "added_at": 1762416328.308419,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-6ddcd9453b48",
+      "description": "야 우선 adapter-in/event를 aws-sqs로 옮길까 인프라랑 기술스택이 명시가 안되어있는데 그냥 냅둘까 어케생각해 ",
+      "status": "in_progress",
+      "added_at": 1762417317.843793,
+      "context_score": 60,
+      "detected_layers": [
+        "adapter-rest",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-c7179eed2156",
+      "description": "알겠어 너가 권장하는대로 할게 그러면 문제는 저 adapter-in/event에 스프링 의존성을 추가할거니? 컴포넌트나 Configuration, SqsListener 이런 어노테",
+      "status": "in_progress",
+      "added_at": 1762417495.897388,
+      "context_score": 60,
+      "detected_layers": [
+        "adapter-rest",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-87de33514c47",
+      "description": "SqsListener는 못가져오는데? ",
+      "status": "in_progress",
+      "added_at": 1762417739.490623,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-d26f002c6ded",
+      "description": "자 그러면 이제 rest-api의 TriggerScheduleController, ScheduleTriggerSqsListener 이렇게 두개의 경로로 직접 트리거 및 자동 트리거",
+      "status": "in_progress",
+      "added_at": 1762418601.7957802,
+      "context_score": 150,
+      "detected_layers": [
+        "application",
+        "adapter-rest",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-042a37507399",
+      "description": "InitiateCrawlingUseCase를 추상화로 두고 아래 구현체인 서비스를 둬 그다음에 docs/guide/mustIt_prd.txt를 읽어봐 그러면 태스크타입이 너가 지금",
+      "status": "in_progress",
+      "added_at": 1762418780.9910111,
+      "context_score": 60,
+      "detected_layers": [
+        "application",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-7d0c26ddd775",
+      "description": "다 좋은데 TaskInputParam 이거 로우값을 get하는게 맘에안들어 그리고 sqs로 넣는거 실패할 수도 있으니 TaskStrategy에 추상클래스를 하나두고 태스크 메세지를",
+      "status": "in_progress",
+      "added_at": 1762419348.762193,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-f9bbc7c0c074",
+      "description": "그래 근데 그전에 TaskId를  CrawlTaskId로 바꿔야할거같고 TaskInputParam도 정의해야할거같아 ",
+      "status": "in_progress",
+      "added_at": 1762419925.128321,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-ba63eec40bb3",
+      "description": "좋아 그런데 이름만 좀 통일하고 가자 크롤태스크로 되어있고 태스크 메세지라 되어있으니까 뭔가 다른거같은데 크롤태스크메세지할래 아니면 크롤 태스크를 태스크로 할래?",
+      "status": "in_progress",
+      "added_at": 1762420416.288277,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-30e3f8960003",
+      "description": "그래 옵션 1로 가자 ",
+      "status": "in_progress",
+      "added_at": 1762420575.588553,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-f81522487b2e",
+      "description": "좋아 그다음에 이제 아까 하기로한 작업들을 마저 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762421086.164686,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-7abb3b5cdf0f",
+      "description": "우선 TaskStrategy 인터페이스를 만들고 각 구현체도 만들자 그다음 프로바이더 그리고 팩토리까지 작업해줘 ",
+      "status": "in_progress",
+      "added_at": 1762421352.657771,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b20caf786679",
+      "description": "좋아 그러면 저 TaskTypeProvider를 의존성으로 갖고있어야하는 놈이 누구일까? ",
+      "status": "in_progress",
+      "added_at": 1762421983.079702,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-ee00a0daf220",
+      "description": "그래 그럼 그렇게하자 프로바이더를 추가하고 저 ProcessTaskCommand도 바꿔야할거같아 그리고 기존에 크롤 태스크 포트 는 지우고 우리가 만든 매니저 를 사용하도록 해보자",
+      "status": "in_progress",
+      "added_at": 1762422257.390817,
+      "context_score": 60,
+      "detected_layers": [
+        "application",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-4edb70b4f602",
+      "description": "우선 AbstractTaskStrategy에 UserAgentPort, TokenManagerPortt, HttpCrawlerPort 로 옮기는게 맞겠지? 저거세개를 묶은 파사드 ",
+      "status": "in_progress",
+      "added_at": 1762423060.7736268,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-16cd3d91dc84",
+      "description": "자 다음 작업을 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762423758.672228,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9cb9bc2e6002",
+      "description": "TaskFactory에 메서드 추가하는것까지만 해봐 ",
+      "status": "in_progress",
+      "added_at": 1762425117.646583,
+      "context_score": 60,
+      "detected_layers": [
+        "domain",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-746ee83c37ce",
+      "description": "야 미니샵에 저 아이템스 내부에 아이템 객체를 만들어야해 필요해 저거 ",
+      "status": "in_progress",
+      "added_at": 1762425903.1477811,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-90dc7f0652bf",
+      "description": "그러면 TaskFactory 말고 그 Task자체에 생성 메서드를 스태틱으로 만들까? 저 MetaTaskStrategy에 미니샵용 태스크를 만들어볼까 https://m.web.mu",
+      "status": "in_progress",
+      "added_at": 1762436195.357196,
+      "context_score": 105,
+      "detected_layers": [
+        "domain",
+        "testing",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-c8c60ea512af",
+      "description": "여기서 머스트잇 아이디 대신 SellerName가 들어가야해 LIKEASTAR 이런식의 아이디가 들어가 ",
+      "status": "in_progress",
+      "added_at": 1762436374.806669,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1514ee4c0e1f",
+      "description": "태스크에 셀러네임을 추가하는게 편하지않을까 ?",
+      "status": "in_progress",
+      "added_at": 1762436458.080048,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-dcb453c8b1a8",
+      "description": "taskMessageManager의 publishTaskMessages가 없는데 실제 태스크 메세지 매니저에 데이터 저장 및 이벤트 발행해서 TaskMessageEventListe",
+      "status": "in_progress",
+      "added_at": 1762436860.037975,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1e3d992dacfd",
+      "description": "publishTaskMessages에 TaskMessageOutbox를 createPending로 만들떄 TaskMessageCreatedEvent 이걸 내부에서 만들도록해야지 저",
+      "status": "in_progress",
+      "added_at": 1762437409.104446,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-ae9f63a2dd37",
+      "description": "아 근데 잠깐 태스크와 태스크메세지 아웃박스가 있잖아 근데 이 두개의 역할에 대해 좀 다시 생각해봐야할거같아 태스크가 sqs로 넣어야하는거고 이 sqs로 넣기위해 스케쥴러 및 리스",
+      "status": "in_progress",
+      "added_at": 1762437970.5824199,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1f5f2f3a432d",
+      "description": "아 근데 우리 아까 CrawlTask를 없앴잖어 그럼 TaskOutboxProcessor: 이게 레거시같어 저걸 그럼 삭제할게 그리고 태스크 저장 -> 태스크메세지 아웃박스 저장 ",
+      "status": "in_progress",
+      "added_at": 1762438436.915361,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-830b7d5372ce",
+      "description": "/cc:load ",
+      "status": "in_progress",
+      "added_at": 1762438459.0822148,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-3de2bdfa77e0",
+      "description": "/sc:analyze docs/guide/mustIt_prd.txt, system_spec.md를 읽고 기존 레거시 legacy-code/application/token 그리고 p",
+      "status": "in_progress",
+      "added_at": 1762438971.501236,
+      "context_score": 90,
+      "detected_layers": [
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-6a4ca9f4277e",
+      "description": "TaskMessageCreatedEvent 이건 도메인으로 옮겨야하고 그리고 이벤트는 이벤트퍼블리셔를 어플리케이션 레이어에 둬야지 뭐하는겨 ",
+      "status": "in_progress",
+      "added_at": 1762439238.6414962,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-2b2addbf1a91",
+      "description": "그렇게해줘 근데 도메인 레이어 의 값들을 어플리케이션 레이어에 사용해야하지 않을까 그리고 토큰 밸류 및 만료시간 을 갖고있는 vo를 도메인 레이어에 추가했으면 좋겟어 이걸 기반으로",
+      "status": "in_progress",
+      "added_at": 1762439462.037981,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-cc7678445510",
+      "description": "1번 방식으로 가자 그리고 adapter-out/aws-sqs도 만들자 아니면 adapter-in/event처럼 이렇게 구성하던가 adapter-out/event처럼 말야 ",
+      "status": "in_progress",
+      "added_at": 1762439523.833706,
+      "context_score": 90,
+      "detected_layers": [
+        "adapter-rest",
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9599655deb01",
+      "description": "그래 그렇게 하자 ",
+      "status": "in_progress",
+      "added_at": 1762440044.42701,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-a1990d2b9338",
+      "description": "PublishTaskMessagePort를 adapter-out/event에 aws sqs구현체를 만들어줄래? 그리고 MetaTaskStrategy에 셀러 상품수 업데이트 하는 로",
+      "status": "in_progress",
+      "added_at": 1762440334.744755,
+      "context_score": 60,
+      "detected_layers": [
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-527343725afc",
+      "description": "아마  persistence-mysql에 userAgent에 어댑터를 먼저한번 살펴볼래? 그리고 persistence-redis도 한번 유저에이전트 관련 코드를 찾아아봐봐 풀매니저",
+      "status": "in_progress",
+      "added_at": 1762441180.208272,
+      "context_score": 120,
+      "detected_layers": [
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-421d9394c616",
+      "description": "아 publishTaskMessages 여기서 TaskMessageCreatedEvent이걸 생성하지말고 아웃박스 내부에서 TaskMessageCreatedEvent이걸 생성한다음",
+      "status": "in_progress",
+      "added_at": 1762441566.421794,
+      "context_score": 90,
+      "detected_layers": [
+        "domain",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-6b2dd5beaae0",
+      "description": "그래 너가 하라는대로 할게 순차적으로 작업해줘 ",
+      "status": "in_progress",
+      "added_at": 1762441686.068186,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-4035318c30ca",
+      "description": "아 그리고 미안한데 Task에 어떤 스케쥴러 또는 수동 자동 으로 트리거가 되었는지를 알 수 있는 필드가 있으면 좋을거같은데 크롤스케쥴아이디 를 추가하고 이게 자동인지 수동인지 그",
+      "status": "in_progress",
+      "added_at": 1762442737.5469,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-0ba6a41fe90e",
+      "description": "그럼 MustitTokenAdapter를 수정해야하는데 우선 docs/guide/mustIt_prd.txt를 읽어볼래? ",
+      "status": "in_progress",
+      "added_at": 1762442839.2821991,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b59afb354a4c",
+      "description": "응 그렇게 진행해 ",
+      "status": "in_progress",
+      "added_at": 1762442872.168536,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-0e7429af6be5",
+      "description": "그래 다음 작업으로 진행해 ",
+      "status": "in_progress",
+      "added_at": 1762443413.644941,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-314cb3e6f8d8",
+      "description": "나머지 작업들도 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762443930.3100789,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-66fd147ee46a",
+      "description": "/sc:brainstorm 야 mustitItemNo이거 다 Long으로 바꿔 그리고 mustitItemNo 처럼 이 mustit으로 되어있는 모든 객체 클래스들을 mustIt으로",
+      "status": "in_progress",
+      "added_at": 1762444028.757111,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-071fb0f2fb05",
+      "description": "그래 ",
+      "status": "in_progress",
+      "added_at": 1762444099.919311,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-5443af05c12e",
+      "description": "너가 아까 제안한 방식대로 진행하고싶어 다만 변경사항만 부분업데이트 한다라고하면 어떻게할거야 상품서버가 부분 업데이트를 지원하지 않는다라고함녀?",
+      "status": "in_progress",
+      "added_at": 1762444329.556865,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-e35ba1f02219",
+      "description": "해당 작업 내용에 대해 claudedocs에 상세히 적어줘 이유는 커서에게 시킬거야 커서가 작업속도가 빠르거든 ",
+      "status": "in_progress",
+      "added_at": 1762444602.454375,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-e3e5ffdbc3ff",
+      "description": "응 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762444889.628118,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-db6401b21369",
+      "description": "지금 작업했거든 커서가 한번 확인해볼래?",
+      "status": "in_progress",
+      "added_at": 1762445595.15215,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-d78061f103b2",
+      "description": "부트 스트랩에 저 아크유닛 테스트의 Spring/JPA 의존성이 필요한가 ? 각 레이어별로 아크유닛을 두는게 아니라 ?",
+      "status": "in_progress",
+      "added_at": 1762445642.6483169,
+      "context_score": 120,
+      "detected_layers": [
+        "application",
+        "adapter-persistence",
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-13ef1d618369",
+      "description": "완저난 해결로 가자 ",
+      "status": "in_progress",
+      "added_at": 1762445790.056577,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-eaed6ee93588",
+      "description": "그래서 지금 궁금한건 저게 현재 ProductOptionTaskStrategy, ProductDetailTaskStrategy, MiniShopTaskStrategy 와 그리고 P",
+      "status": "in_progress",
+      "added_at": 1762446184.4940958,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-66e0d01f8b7f",
+      "description": "그래 그렇게 하자 그릭 프로덕트 스냅샷을 매니저로 관리하는 패턴으로 만들어 그리고 프로덕트 스냅샷에  기존에 우리가 스케쥴러 패키지에 스케쥴러로 두고있거든 프로덕스 싱크 워커대신 ",
+      "status": "in_progress",
+      "added_at": 1762446534.3907719,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b10869e0ebb0",
+      "description": "그럼 지금 너가만든 토큰 획득 방식이 어떻게 작동하는 구조인지 나한테  설명해봐 ",
+      "status": "in_progress",
+      "added_at": 1762446657.428599,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1f4f5f01d50d",
+      "description": "아니 이상해 우선 ProductSnapshotBuilder 여기서 이벤트 발행한다고쳐 그걸 내가 오케스트레이터에서 ExternalSyncEventListener로 이름을 바꿧는데 ",
+      "status": "in_progress",
+      "added_at": 1762447761.055522,
+      "context_score": 90,
+      "detected_layers": [
+        "testing",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1a881b3a6300",
+      "description": "아니 이상한데 아 뭔 개짓을한거야 유저에이전트에 토큰은 그냥 유저에이전트아이디로 찾아야지 그리고 셀러 아이디를 대체 왜쓰는데 시발 뭔 개짓거리야 MustItTokenAdapter ",
+      "status": "in_progress",
+      "added_at": 1762447985.1506429,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-d0929a2b2796",
+      "description": "거기에 리스너까지 달어 스케쥴러가 처리하기전에 리스너가 먼저 처리하고 하는 패턴 있잖아 먼지 모르냐? ",
+      "status": "in_progress",
+      "added_at": 1762448101.691443,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-e401e7cafa53",
+      "description": "그래 수정해 ",
+      "status": "in_progress",
+      "added_at": 1762448143.49014,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9bea9dcd94d5",
+      "description": "아니 그니까 persistence-redis및 persitence-mysql레이어에 유저이에전트 및 토큰을 어떻게 관리하고 있냐고 대체 몇번을 말하냐 너가지금 application",
+      "status": "in_progress",
+      "added_at": 1762448227.245715,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9e1aef2f502a",
+      "description": "이거 테스트가 가능하겠냐? ",
+      "status": "in_progress",
+      "added_at": 1762448517.7054121,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-e94bf49e97c2",
+      "description": "작성해줘 ",
+      "status": "in_progress",
+      "added_at": 1762448667.620148,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b005c3218a3f",
+      "description": "그러면 지금 ExternalSyncEventListener 이 내부에서 ProductSnapshotManager이게 삭제가 된거같은데 지운거 맞냐? 너가? ProductSyncOu",
+      "status": "in_progress",
+      "added_at": 1762448887.706945,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-354aea3403bc",
+      "description": "그럼 실제 저 매니저를 사용해서 CrawlerFacade에 사용하도록 해줘 이상한 기존 레거시 코드는 지워버리고 ",
+      "status": "in_progress",
+      "added_at": 1762448972.446771,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-ed71c9abca11",
+      "description": "그다음에 HttpCrawlerPort 이거 를 만들자 adapter-out/http-client에 만들면 될거같아 ",
+      "status": "in_progress",
+      "added_at": 1762449198.3833358,
+      "context_score": 60,
+      "detected_layers": [
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-f207634025c7",
+      "description": "ExternalSyncEventListener에 onProductSyncOutboxCreated에서 findPendingOutboxes 이러는데 단건조회 메서드를 만들어 그리고 익",
+      "status": "in_progress",
+      "added_at": 1762449342.749038,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-afc29669ddf6",
+      "description": "ProductSyncOutboxStateManager에 ExternalProductApiPort가ㅣ 있음 안되지 ProductSyncOutboxStateManager는 순수히 Pr",
+      "status": "in_progress",
+      "added_at": 1762449651.194605,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-866539c90798",
+      "description": "ExternalSyncEventListener에서 ProductSnapshotManager는 뭐냐 없는데 ",
+      "status": "in_progress",
+      "added_at": 1762450022.780076,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-afd7149b5172",
+      "description": "삭제해 그러면",
+      "status": "in_progress",
+      "added_at": 1762475094.72116,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-0286a8844bf2",
+      "description": "그러면 현재 상품이 어떻게 관리되는지 생성되고 업데이트 되는 구조를 설명해줄래? ",
+      "status": "in_progress",
+      "added_at": 1762476549.665012,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-c5cf396d5290",
+      "description": "야 그러면 이제 ExternalProductApiPort 이거 구현체만 만들면 끝나는건가 이걸 http-client에 SetOfAdapter라고 만들고 그냥 로그만 찍는걸로 일단 ",
+      "status": "in_progress",
+      "added_at": 1762476894.158211,
+      "context_score": 75,
+      "detected_layers": [
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-03f99ebd3391",
+      "description": "그러면 현재 adapter-out/aws-sqs에 TaskMessageSqsAdapter 이거 되어있는거아냐? 그리고 bootstrap-sqs-listener에서 adapter-i",
+      "status": "in_progress",
+      "added_at": 1762477536.6726441,
+      "context_score": 90,
+      "detected_layers": [
+        "adapter-rest",
+        "adapter-persistence",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-c3aeb422d556",
+      "description": "권장구조로 바꿔주고 내가 불안한건 그럴리 없을거같긴한데 api서버가 두대가 된다라고하면 그러니까 만약 요청이 많아져서 태스크를 2대를 띄워놨을때 스케쥴러가 그럼 이중으로 돌거아냐 ",
+      "status": "in_progress",
+      "added_at": 1762477835.3723168,
+      "context_score": 45,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-840a393545b6",
+      "description": "그리고 이제 각 레이어별 모듈마다 의존성이 정말 제대로 구성되어있는지 정말 필요한것만 구성 되어있는지 봐줄래? 그래야 서버 런업타임이 짧아지지 이해가니?",
+      "status": "in_progress",
+      "added_at": 1762478238.138182,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-39fa2222637a",
+      "description": "그렇게 하자 그리고 그 오케스트레이터 내가 만든건데 안사용할거야 다 없애 짓팩도 없애도될듯",
+      "status": "in_progress",
+      "added_at": 1762478411.0350132,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-347c63b61758",
+      "description": "지금 수정해줄래?",
+      "status": "in_progress",
+      "added_at": 1762479064.2773912,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-8067248e270d",
+      "description": "야 지금 모든 컴파일을 다 수정했고 지금 너가 아까 작성한 토큰 관련 테스트들만 실패하고있는거같은데 한번 봐볼래? ",
+      "status": "in_progress",
+      "added_at": 1762481830.66801,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-5bf7503ab283",
+      "description": "현재 모든 프로젝트에 단위테스트 및 controller에 restdocs 그리고 통합 테스트가 이루어져있는지 분석해서 보고해줄럐 자코코로 커버리지를 파악해서도 알려줘  ? ",
+      "status": "in_progress",
+      "added_at": 1762481888.34305,
+      "context_score": 105,
+      "detected_layers": [
+        "adapter-rest",
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-57a9735d3ea2",
+      "description": "클로드 닥스 하위에 이 분석한 내용을 문서로 작성해줘 ",
+      "status": "in_progress",
+      "added_at": 1762482365.1843462,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9d5ab0245f7c",
+      "description": "야 그리고 컴파일 오류가 발생 한다는데 그게 왜그런지 봐줄래?",
+      "status": "in_progress",
+      "added_at": 1762482542.078584,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-6581dc2b8947",
+      "description": "저 오케스트레이터 없애버려 내가 만든 sdk인데 걍 안쓰려고  ",
+      "status": "in_progress",
+      "added_at": 1762484292.043354,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-317c9593ea5b",
+      "description": "오류를 수정하고 넘어가자 ",
+      "status": "in_progress",
+      "added_at": 1762484686.399471,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-db96dc6f6293",
+      "description": "테스트 코드는 어떤게 실패하는지 봐봐 ",
+      "status": "in_progress",
+      "added_at": 1762485404.5185401,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-8998f0813734",
+      "description": "테스트 코드를 수정해 현재 구조에 맞게 ",
+      "status": "in_progress",
+      "added_at": 1762485559.471702,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1ce42405ad5d",
+      "description": "그러면 이제 저 클로드닥스에 테스트커버리지 리포트대로 작업만 하면 되는건가?",
+      "status": "in_progress",
+      "added_at": 1762486352.558423,
+      "context_score": 60,
+      "detected_layers": [
+        "enterprise",
+        "testing"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-a824e293ccae",
+      "description": "@claudedocs/test-coverage-report.md 이 문서를 분석하고 작업을 시작하자 ",
+      "status": "in_progress",
+      "added_at": 1762486506.232873,
+      "context_score": 60,
+      "detected_layers": [
+        "testing",
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-7d5321a8fdc8",
+      "description": "순서대로 작업해줘 ",
+      "status": "in_progress",
+      "added_at": 1762486899.259447,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-8170afb6832d",
+      "description": "계속 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762492058.860254,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-453b4118199f",
+      "description": "옵션 A로 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762493023.3511271,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-062010cd239a",
+      "description": "순서대로 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762493721.788995,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b9a0c1cc4f7a",
+      "description": "나머지 작업을 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762495309.1589901,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-771b96fa06ba",
+      "description": "계속 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762496263.630066,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-467d2c464919",
+      "description": "그냥 순차적으로 진행하면 될거같아 ",
+      "status": "in_progress",
+      "added_at": 1762496276.032487,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-495b96accb6c",
+      "description": "나머지 작업도 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762501988.414329,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-92ba9d16ebc3",
+      "description": "나머지 작업도 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762735127.841546,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-d1dcb589e428",
+      "description": "그래 그렇게 해줘 ",
+      "status": "in_progress",
+      "added_at": 1762735919.972977,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-12f743509358",
+      "description": "다음 단계로 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762736588.896637,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-01a1541ac09d",
+      "description": "그래 다음단계로 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762738031.190579,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-47719bca348a",
+      "description": "작업하던 부분을 이어서 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762740751.621473,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-0aad20e885c1",
+      "description": "응 다음단게를 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762741335.6399,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1cd9777496fd",
+      "description": "순차적으로 진행해줘 ",
+      "status": "in_progress",
+      "added_at": 1762742323.956087,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-9064ca764175",
+      "description": "다음 단계를 진행하자 ",
+      "status": "in_progress",
+      "added_at": 1762744208.224313,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-2328eeee998d",
+      "description": "그럼 현재 이걸 배포하기 위해 다른 프로젝트에서 사용되는 워크플로우를 깃허브 패키지에 가져왔거든 브랜치를 새로 따고 저 빌드앤 디폴로이 및 테라폼 플랜, 어플라이를 우리 프로젝트에",
+      "status": "in_progress",
+      "added_at": 1762746607.9187682,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-ecd376fbe3d2",
+      "description": "리소스에 환경을 붙여야해 prod 그리고 부트스트랩에 있는 모든 러너블 코드들이 다 따로 관리되는거 맞지? ecr로 배포할거야 ",
+      "status": "in_progress",
+      "added_at": 1762751120.519685,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-c74097309896",
+      "description": "응 그런데 뒤에 ecs 서비스 이름중에 prod를 무조건 다 맨끝으로 붙여 ",
+      "status": "in_progress",
+      "added_at": 1762751454.937079,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-1930b690e8f7",
+      "description": "그다음에 현재 이 프로젝트의 인프라에서 rdb하고 redis 및 sqs가  사용되는걸로 알고있는데 프로젝트에 prod 환경으로 제대로 설정되어있니? 또 테라폼도 제대로 구성되어있니",
+      "status": "in_progress",
+      "added_at": 1762751641.999858,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-eeaf1373627f",
+      "description": "야 그러면 terraform 코드를 작성할때 현재 똑같이 작성해야하는 템플릿이 있거든 거기서 실제로 우리가 필요한 내용만 우리 프로젝트에 맞춰서바꾸면되 fileflow 프로젝트의 ",
+      "status": "in_progress",
+      "added_at": 1762755262.83817,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-59a43b4f5d16",
+      "description": "응 저기서 우선 s3를 우선 우리가 안쓰니까 그것만 지우고 작업하면 될거같은데? ",
+      "status": "in_progress",
+      "added_at": 1762756071.88237,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-667431aa3414",
+      "description": "야 그리고 @claudedocs/DB_ACCESS_GUIDE.md에 우리 rdb에 어떻게 연결하는지 나와있으니까 테라폼 설정에 적용해야할거야 한번 문서를 읽어봐 ",
+      "status": "in_progress",
+      "added_at": 1762756597.292407,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-42fad49b286d",
+      "description": "아마 저 문서대로 바꿔야할거야 우리 flyway등 저 문서에 맞춰서 바꿔줄래? 그리고 저 문서대로  실제로 ssm에 저장되어있을걸 확인해볼래? ",
+      "status": "in_progress",
+      "added_at": 1762756755.7593422,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-d01ff61e944f",
+      "description": "ssm 에 아무것도 없다 만들어야할거같아 그리고 /crawler/prod/db-user-password-secret-name 얘 다른애들과 일치시키게 crawler를 crawlin",
+      "status": "in_progress",
+      "added_at": 1762757080.880945,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-b31e3a99846f",
+      "description": "근데 왜 혀재 브랜치에 260개의 언커밋을 냅두는거야? ",
+      "status": "in_progress",
+      "added_at": 1762769672.579828,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    },
+    {
+      "id": "task-132ba24d8934",
+      "description": "걍 다 추가해 시간없어 빨리 ",
+      "status": "in_progress",
+      "added_at": 1762771105.6376052,
+      "context_score": 30,
+      "detected_layers": [
+        "enterprise"
+      ],
+      "started_at": 1762771105.9482932
+    }
+  ]
+}
