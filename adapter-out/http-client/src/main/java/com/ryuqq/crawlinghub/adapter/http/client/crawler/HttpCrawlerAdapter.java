@@ -105,17 +105,11 @@ public class HttpCrawlerAdapter implements HttpCrawlerPort {
             }
 
         } catch (RestClientException e) {
-            // Network 오류, Timeout 등
-            return CrawlResponse.failure(
-                0,
-                "HTTP Request Failed: " + e.getMessage()
-            );
+            // Network 오류, Timeout 등 (상태 코드 없음)
+            return CrawlResponse.failure("HTTP Request Failed: " + e.getMessage());
         } catch (Exception e) {
-            // 기타 예외
-            return CrawlResponse.failure(
-                0,
-                "Unexpected Error: " + e.getMessage()
-            );
+            // 기타 예외 (상태 코드 없음)
+            return CrawlResponse.failure("Unexpected Error: " + e.getMessage());
         }
     }
 
