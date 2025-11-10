@@ -1,0 +1,563 @@
+name: Build and Deploy to ECS (Multi-Bootstrap)
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'terraform/**'
+      - '.github/workflows/terraform-*.yml'
+      - '**.md'
+      - 'docs/**'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: crawlinghub-prod
+  ECS_CLUSTER: crawlinghub-prod
+
+jobs:
+  # ========================================
+  # Step 1: 변경 감지 (어떤 Bootstrap이 변경되었나?)
+  # ========================================
+  detect-changes:
+    name: Detect Changed Bootstraps
+    runs-on: ubuntu-latest
+    outputs:
+      web-api: ${{ steps.filter.outputs.web-api }}
+      scheduler: ${{ steps.filter.outputs.scheduler }}
+      sqs-listener: ${{ steps.filter.outputs.sqs-listener }}
+      any-changed: ${{ steps.filter.outputs.any-changed }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # 이전 커밋과 비교
+
+      - name: Detect changed paths
+        id: filter
+        run: |
+          # 변경된 파일 목록
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+
+          echo "📁 Changed files:"
+          echo "$CHANGED_FILES"
+          echo ""
+
+          # 강제 빌드 플래그 체크 (Commit message에 [build-all] 또는 [rebuild] 포함 시)
+          FORCE_BUILD_ALL=false
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if echo "$COMMIT_MSG" | grep -qE '\[build-all\]|\[rebuild\]'; then
+            FORCE_BUILD_ALL=true
+            echo "🔄 Force build all flag detected in commit message"
+          fi
+
+          # 공통 레이어 변경 체크 (domain, application 등)
+          COMMON_CHANGED=false
+          if echo "$CHANGED_FILES" | grep -qE '^(domain/|application/)'; then
+            COMMON_CHANGED=true
+            echo "🔄 Common layer (domain/application) changed - building all bootstraps"
+          fi
+
+          # Bootstrap별 변경 여부 감지
+          WEB_API=false
+          SCHEDULER=false
+          SQS_LISTENER=false
+
+          # 강제 빌드 또는 공통 레이어 변경 시 모든 bootstrap 빌드
+          if [ "$FORCE_BUILD_ALL" = "true" ] || [ "$COMMON_CHANGED" = "true" ]; then
+            WEB_API=true
+            SCHEDULER=true
+            SQS_LISTENER=true
+            echo "✅ Building all bootstraps (force_build=${FORCE_BUILD_ALL}, common_changed=${COMMON_CHANGED})"
+          else
+            # 개별 Bootstrap 변경 감지 (효율성 유지)
+
+            # Web API 변경 (REST API + EventBridge)
+            if echo "$CHANGED_FILES" | grep -qE '^(adapter-in/rest-api/|adapter-out/(aws-eventbridge)/|bootstrap/bootstrap-web-api/)'; then
+              WEB_API=true
+            fi
+
+            # Scheduler 변경 (EventBridge + HTTP Client 사용)
+            if echo "$CHANGED_FILES" | grep -qE '^(adapter-out/(http-client)/|bootstrap/bootstrap-scheduler/)'; then
+              SCHEDULER=true
+            fi
+
+            # SQS Listener 변경 (SQS + Event Adapter 사용)
+            if echo "$CHANGED_FILES" | grep -qE '^(adapter-in/event/|adapter-out/(aws-sqs)/|bootstrap/bootstrap-sqs-listener/)'; then
+              SQS_LISTENER=true
+            fi
+
+            # 공통 Adapter 변경 (모든 bootstrap 사용)
+            if echo "$CHANGED_FILES" | grep -qE '^(adapter-out/(persistence-mysql|persistence-redis)/)'; then
+              WEB_API=true
+              SCHEDULER=true
+              SQS_LISTENER=true
+              echo "✅ Common adapter changed - building all bootstraps"
+            fi
+          fi
+
+          # 출력
+          echo "web-api=${WEB_API}" >> $GITHUB_OUTPUT
+          echo "scheduler=${SCHEDULER}" >> $GITHUB_OUTPUT
+          echo "sqs-listener=${SQS_LISTENER}" >> $GITHUB_OUTPUT
+
+          # 하나라도 변경되었는지
+          ANY_CHANGED=false
+          if [ "$WEB_API" = "true" ] || [ "$SCHEDULER" = "true" ] || [ "$SQS_LISTENER" = "true" ]; then
+            ANY_CHANGED=true
+          fi
+          echo "any-changed=${ANY_CHANGED}" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "🔍 Final Detection Results:"
+          echo "  - Force Build All: ${FORCE_BUILD_ALL}"
+          echo "  - Common Layer Changed: ${COMMON_CHANGED}"
+          echo "  - Web API: ${WEB_API}"
+          echo "  - Scheduler: ${SCHEDULER}"
+          echo "  - SQS Listener: ${SQS_LISTENER}"
+          echo "  - Any Changed: ${ANY_CHANGED}"
+
+  # ========================================
+  # Step 2: 테스트 실행 (공통)
+  # ========================================
+  test:
+    name: Run Tests
+    needs: detect-changes
+    if: needs.detect-changes.outputs.any-changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests..."
+          ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon --stacktrace
+          echo "✅ Tests completed"
+
+  # ========================================
+  # Step 3: 빌드 및 푸시 (부트스트랩별 독립 작업)
+  # ========================================
+  build-web-api:
+    name: Build Web API
+    needs: [detect-changes, test]
+    if: needs.detect-changes.outputs.web-api == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      image-uri: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-WebAPI-Build
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="web-api-${{ github.run_number }}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "📦 Image tag: ${TAG}"
+
+      - name: Build and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
+        run: |
+          echo "🐳 Building Docker image for web-api..."
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          docker build \
+            --build-arg BOOTSTRAP=web-api \
+            --platform linux/amd64 \
+            -t "${IMAGE_URI}" .
+
+          # Latest 태그도 추가
+          docker tag "${IMAGE_URI}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:web-api-latest"
+
+          echo "📤 Pushing to ECR..."
+          docker push "${IMAGE_URI}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:web-api-latest"
+
+          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "✅ Image pushed: ${IMAGE_URI}"
+
+      - name: Image vulnerability scan
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking ECR scan results..."
+          aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id imageTag="${{ steps.image-tag.outputs.tag }}" \
+            --region "${AWS_REGION}" || echo "⚠️ Scan not yet complete"
+
+  build-scheduler:
+    name: Build Scheduler
+    needs: [detect-changes, test]
+    if: needs.detect-changes.outputs.scheduler == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      image-uri: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-DownloadScheduler-Build
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="scheduler-${{ github.run_number }}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "📦 Image tag: ${TAG}"
+
+      - name: Build and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
+        run: |
+          echo "🐳 Building Docker image for scheduler..."
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          docker build \
+            --build-arg BOOTSTRAP=scheduler \
+            --platform linux/amd64 \
+            -t "${IMAGE_URI}" .
+
+          docker tag "${IMAGE_URI}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:scheduler-latest"
+
+          echo "📤 Pushing to ECR..."
+          docker push "${IMAGE_URI}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:scheduler-latest"
+
+          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "✅ Image pushed: ${IMAGE_URI}"
+
+      - name: Image vulnerability scan
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking ECR scan results..."
+          aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id imageTag="${{ steps.image-tag.outputs.tag }}" \
+            --region "${AWS_REGION}" || echo "⚠️ Scan not yet complete"
+
+  build-sqs-listener:
+    name: Build SQS Listener
+    needs: [detect-changes, test]
+    if: needs.detect-changes.outputs.sqs-listener == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      image-uri: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-PipelineScheduler-Build
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="sqs-listener-${{ github.run_number }}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "📦 Image tag: ${TAG}"
+
+      - name: Build and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
+        run: |
+          echo "🐳 Building Docker image for sqs-listener..."
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          docker build \
+            --build-arg BOOTSTRAP=sqs-listener \
+            --platform linux/amd64 \
+            -t "${IMAGE_URI}" .
+
+          docker tag "${IMAGE_URI}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:sqs-listener-latest"
+
+          echo "📤 Pushing to ECR..."
+          docker push "${IMAGE_URI}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:sqs-listener-latest"
+
+          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "✅ Image pushed: ${IMAGE_URI}"
+
+      - name: Image vulnerability scan
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking ECR scan results..."
+          aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id imageTag="${{ steps.image-tag.outputs.tag }}" \
+            --region "${AWS_REGION}" || echo "⚠️ Scan not yet complete"
+
+  # ========================================
+  # Step 4: ECS 배포 (변경된 Bootstrap만)
+  # ========================================
+  deploy-web-api:
+    name: Deploy Web API
+    needs: [detect-changes, build-web-api]
+    if: needs.detect-changes.outputs.web-api == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-WebAPI-Deploy
+
+      - name: Update ECS service (Web API)
+        run: |
+          echo "🚀 Deploying Web API..."
+
+          # Task Definition ARN 가져오기
+          TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster "${ECS_CLUSTER}" \
+            --services crawlinghub-prod \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          # Task Definition 가져오기
+          aws ecs describe-task-definition \
+            --task-definition "${TASK_DEF_ARN}" \
+            --query 'taskDefinition' > task-definition.json
+
+          # 새 이미지 URI로 업데이트
+          IMAGE_URI="${{ needs.build-web-api.outputs.image-uri }}"
+          cat task-definition.json | \
+            jq --arg IMAGE "$IMAGE_URI" \
+               '.containerDefinitions[0].image = $IMAGE' | \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            > new-task-definition.json
+
+          # 새 Task Definition 등록
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          # ECS 서비스 업데이트
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service crawlinghub-prod \
+            --task-definition "${NEW_TASK_DEF_ARN}" \
+            --force-new-deployment \
+            --no-cli-pager
+
+          echo "⏳ Waiting for service stability..."
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER}" \
+            --services crawlinghub-prod
+
+          echo "✅ Web API deployment completed"
+
+  deploy-scheduler:
+    name: Deploy Scheduler
+    needs: [detect-changes, build-scheduler]
+    if: needs.detect-changes.outputs.scheduler == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-Scheduler-Deploy
+
+      - name: Update ECS service (Scheduler)
+        run: |
+          echo "🚀 Deploying Scheduler..."
+
+          SERVICE_NAME="crawlinghub-scheduler-prod"
+
+          TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${SERVICE_NAME}" \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          aws ecs describe-task-definition \
+            --task-definition "${TASK_DEF_ARN}" \
+            --query 'taskDefinition' > task-definition.json
+
+          IMAGE_URI="${{ needs.build-scheduler.outputs.image-uri }}"
+          cat task-definition.json | \
+            jq --arg IMAGE "$IMAGE_URI" \
+               '.containerDefinitions[0].image = $IMAGE' | \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            > new-task-definition.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service ${SERVICE_NAME} \
+            --task-definition "${NEW_TASK_DEF_ARN}" \
+            --force-new-deployment \
+            --no-cli-pager
+
+          echo "⏳ Waiting for service stability..."
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${SERVICE_NAME}"
+
+          echo "✅ Scheduler deployment completed"
+
+  deploy-sqs-listener:
+    name: Deploy SQS Listener
+    needs: [detect-changes, build-sqs-listener]
+    if: needs.detect-changes.outputs.sqs-listener == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-SqsListener-Deploy
+
+      - name: Update ECS service (SQS Listener)
+        run: |
+          echo "🚀 Deploying SQS Listener..."
+
+          SERVICE_NAME="crawlinghub-sqs-listener-prod"
+
+          TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${SERVICE_NAME}" \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          aws ecs describe-task-definition \
+            --task-definition "${TASK_DEF_ARN}" \
+            --query 'taskDefinition' > task-definition.json
+
+          IMAGE_URI="${{ needs.build-sqs-listener.outputs.image-uri }}"
+          cat task-definition.json | \
+            jq --arg IMAGE "$IMAGE_URI" \
+               '.containerDefinitions[0].image = $IMAGE' | \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            > new-task-definition.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service ${SERVICE_NAME} \
+            --task-definition "${NEW_TASK_DEF_ARN}" \
+            --force-new-deployment \
+            --no-cli-pager
+
+          echo "⏳ Waiting for service stability..."
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${SERVICE_NAME}"
+
+          echo "✅ SQS Listener deployment completed"
+
+  # ========================================
+  # Step 5: 배포 완료 알림
+  # ========================================
+  notify-completion:
+    name: Notify Deployment Completion
+    needs: [detect-changes, build-web-api, build-scheduler, build-sqs-listener, deploy-web-api, deploy-scheduler, deploy-sqs-listener]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Create Deployment Summary
+        run: |
+          echo "## 🚀 CrawlingHub Multi-Bootstrap Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Bootstrap | Changed | Build | Deploy |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|---------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Web API | ${{ needs.detect-changes.outputs.web-api }} | ${{ needs.build-web-api.result }} | ${{ needs.deploy-web-api.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scheduler | ${{ needs.detect-changes.outputs.scheduler }} | ${{ needs.build-scheduler.result }} | ${{ needs.deploy-scheduler.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SQS Listener | ${{ needs.detect-changes.outputs.sqs-listener }} | ${{ needs.build-sqs-listener.result }} | ${{ needs.deploy-sqs-listener.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check CloudWatch logs for application startup" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify health checks" >> $GITHUB_STEP_SUMMARY
+          echo "3. Monitor CloudWatch metrics" >> $GITHUB_STEP_SUMMARY
