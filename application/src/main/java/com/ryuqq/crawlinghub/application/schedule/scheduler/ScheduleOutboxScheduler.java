@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.schedule.orchestrator;
+package com.ryuqq.crawlinghub.application.schedule.scheduler;
 
 import java.util.List;
 
@@ -153,13 +153,13 @@ import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
  * @since 2025-11-05
  */
 @Component
-public class ScheduleOutboxProcessor {
+public class ScheduleOutboxScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(ScheduleOutboxProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(ScheduleOutboxScheduler.class);
 
     private final ScheduleOutboxStateManager outboxStateManager;
 
-    public ScheduleOutboxProcessor(ScheduleOutboxStateManager outboxStateManager) {
+    public ScheduleOutboxScheduler(ScheduleOutboxStateManager outboxStateManager) {
         this.outboxStateManager = outboxStateManager;
     }
 
