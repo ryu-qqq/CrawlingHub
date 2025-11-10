@@ -21,14 +21,19 @@ include("application")
 // ========================================
 // Inbound Adapters (Driving)
 include("adapter-in:rest-api")
+include("adapter-in:event")
 
 // Outbound Adapters (Driven)
 // New Hexagonal Architecture Adapters
 include("adapter-out:persistence-mysql")
 include("adapter-out:persistence-redis")
 include("adapter-out:aws-eventbridge")
+include("adapter-out:aws-sqs")
+include("adapter-out:http-client")
 
 // ========================================
 // Bootstrap Modules (Runnable Applications)
 // ========================================
 include("bootstrap:bootstrap-web-api")
+include("bootstrap:bootstrap-scheduler")
+include("bootstrap:bootstrap-sqs-listener")
