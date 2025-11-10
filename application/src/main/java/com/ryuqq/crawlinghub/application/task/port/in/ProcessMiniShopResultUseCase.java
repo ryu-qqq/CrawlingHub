@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.MiniShopResultCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.MiniShopResultCommand;
 
 /**
  * 미니샵 크롤링 결과 처리 UseCase

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.task.command.ProcessTaskCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.ProcessTaskCommand;
 
 /**
  * 크롤링 태스크 처리 UseCase (SQS Consumer용)

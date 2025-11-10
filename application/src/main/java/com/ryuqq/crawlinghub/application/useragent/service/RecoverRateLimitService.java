@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.application.useragent.port.out.LoadUserAgentPort;
 import com.ryuqq.crawlinghub.application.useragent.port.out.SaveUserAgentPort;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +57,7 @@ public class RecoverRateLimitService implements RecoverRateLimitUseCase {
         UserAgentId userAgentId = UserAgentId.of(command.userAgentId());
         UserAgent userAgent = loadUserAgentPort.findById(userAgentId)
             .map(assembler::toDomain)
-            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException());
+            .orElseThrow(NoAvailableUserAgentException::new);
 
         // 2. Rate Limit 복구 (Domain 메서드)
         userAgent.recoverFromRateLimit();
@@ -68,4 +69,6 @@ public class RecoverRateLimitService implements RecoverRateLimitUseCase {
         return UserAgentAssembler.toResponse(savedUserAgent);
     }
 }
+
+
 

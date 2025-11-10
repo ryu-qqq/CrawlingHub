@@ -56,4 +56,9 @@ dependencies {
     // ========================================
     testImplementation(project(":domain"))
     testImplementation(testFixtures(project(":domain")))
+
+    // ========================================
+    // TestFixtures Dependencies
+    // ========================================
+    testFixturesImplementation(project(":domain"))
 }

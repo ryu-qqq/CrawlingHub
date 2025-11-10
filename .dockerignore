@@ -19,6 +19,11 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# QueryDSL Generated (Q클래스)
+**/generated/
+**/generated-sources/
+**/querydsl/
+
 # Terraform
 infrastructure/terraform/.terraform/
 infrastructure/terraform/*.tfstate

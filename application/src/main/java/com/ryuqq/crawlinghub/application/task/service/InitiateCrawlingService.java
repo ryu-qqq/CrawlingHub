@@ -1,17 +1,16 @@
 package com.ryuqq.crawlinghub.application.task.service;
 
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.InitiateCrawlingCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingCommand;
+import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
+import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
 import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
-import com.ryuqq.crawlinghub.application.task.port.out.IdempotencyKeyGeneratorPort;
-import com.ryuqq.crawlinghub.application.task.port.out.OutboxPort;
-import com.ryuqq.crawlinghub.application.task.port.out.SaveCrawlTaskPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
-import com.ryuqq.crawlinghub.domain.task.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.RequestUrl;
-import com.ryuqq.crawlinghub.domain.task.TaskType;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
+import com.ryuqq.crawlinghub.domain.task.Task;
+import com.ryuqq.crawlinghub.domain.task.TaskId;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +20,16 @@ import java.time.LocalDateTime;
 /**
  * 크롤링 시작 UseCase 구현체
  *
- * <p>초기 미니샵 태스크(page=0, size=1)를 생성하고 Outbox에 저장합니다.
- * Outbox 패턴을 사용하여 트랜잭션 안전성을 보장합니다.
+ * <p>초기 META 태스크를 생성하고 TaskMessage로 발행합니다.
+ *
+ * <p>변경 사항:
+ * - Task static 메서드를 사용한 Task 생성
+ * - TaskManager를 사용한 Task 저장
+ * - TaskMessageManager를 사용한 메시지 발행
  *
  * <p>⚠️ Transaction 경계:
  * <ul>
- *   <li>트랜잭션 내부: DB 작업 (태스크 저장, Outbox 저장)</li>
+ *   <li>트랜잭션 내부: DB 작업 (태스크 저장, TaskMessageOutbox 저장)</li>
  *   <li>트랜잭션 외부: 실제 SQS 발행 (Polling Worker가 담당)</li>
  * </ul>
  *
@@ -37,34 +40,35 @@ import java.time.LocalDateTime;
 public class InitiateCrawlingService implements InitiateCrawlingUseCase {
 
     private final LoadSellerPort loadSellerPort;
-    private final SaveCrawlTaskPort saveCrawlTaskPort;
-    private final IdempotencyKeyGeneratorPort idempotencyKeyGenerator;
-    private final OutboxPort outboxPort;
+    private final TaskManager taskManager;
+    private final TaskMessageOutboxManager taskMessageOutboxManager;
     private final com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler;
 
     public InitiateCrawlingService(
         LoadSellerPort loadSellerPort,
-        SaveCrawlTaskPort saveCrawlTaskPort,
-        IdempotencyKeyGeneratorPort idempotencyKeyGenerator,
-        OutboxPort outboxPort,
+        TaskManager taskManager,
+        TaskMessageOutboxManager taskMessageOutboxManager,
         com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler sellerAssembler
     ) {
-        this.sellerAssembler = sellerAssembler;
         this.loadSellerPort = loadSellerPort;
-        this.saveCrawlTaskPort = saveCrawlTaskPort;
-        this.idempotencyKeyGenerator = idempotencyKeyGenerator;
-        this.outboxPort = outboxPort;
+        this.taskManager = taskManager;
+        this.taskMessageOutboxManager = taskMessageOutboxManager;
+        this.sellerAssembler = sellerAssembler;
     }
 
     /**
-     * 크롤링 시작
+     * 크롤링 시작 (간소화된 파이프라인)
      *
-     * <p>실행 순서:
+     * <p>실행 흐름:
      * 1. 셀러 상태 확인 (ACTIVE만 크롤링 가능)
-     * 2. 초기 미니샵 태스크 생성 (page=0, size=1)
-     * 3. 태스크 저장
-     * 4. Outbox 저장 (트랜잭션 내부)
-     * 5. [트랜잭션 외부] SQS 발행 (Polling Worker가 담당)
+     * 2. META Task 생성 (Task.forMeta())
+     * 3. Task 저장 (TaskManager)
+     * 4. TaskMessage 발행 (TaskMessageManager)
+     *
+     * <p>변경 사항:
+     * - 초기 Task를 MINI_SHOP이 아닌 META로 변경
+     * - META Task가 전체 상품 수 조회 → MINI_SHOP Task들 생성
+     * - Task static 메서드 사용으로 TaskFactory 제거
      *
      * @param command 시작할 셀러 정보
      * @throws IllegalArgumentException 셀러를 찾을 수 없거나 비활성 상태인 경우
@@ -77,9 +81,7 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
         // 1. 셀러 상태 확인
         MustitSeller seller = loadSellerPort.findById(sellerId)
             .map(sellerAssembler::toDomain)
-            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException(
-                command.sellerId()
-            ));
+            .orElseThrow(() -> new SellerNotFoundException(command.sellerId()));
 
         if (!seller.isActive()) {
             throw new IllegalStateException(
@@ -87,69 +89,22 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
             );
         }
 
-        // 2. 초기 미니샵 태스크 생성 (page=0, size=1)
-        // 첫 요청으로 총 상품 수를 파악합니다
-        CrawlTask initialTask = createInitialMiniShopTask(sellerId);
-
-        // 3. 태스크 저장
-        CrawlTask savedTask = saveCrawlTaskPort.save(initialTask);
-
-        // 4. 태스크 발행
-        savedTask.publish();
-        saveCrawlTaskPort.save(savedTask);
-
-        // 5. Outbox 저장 (트랜잭션 내부)
-        // 실제 SQS 발행은 별도 Polling Worker가 처리합니다
-        saveToOutbox(savedTask);
-    }
-
-    /**
-     * 초기 미니샵 태스크 생성
-     */
-    private CrawlTask createInitialMiniShopTask(MustitSellerId sellerId) {
-        // 미니샵 API URL: page=0, size=1 (총 상품 수 확인용)
-        String url = String.format(
-            "https://api.smartstore.naver.com/seller/%d/products?page=0&size=1",
-            sellerId.value()
-        );
-        RequestUrl requestUrl = RequestUrl.of(url);
-
-        // 멱등성 키 생성
-        String idempotencyKey = idempotencyKeyGenerator.generate(
-            sellerId.value(),
-            TaskType.MINI_SHOP,
-            0,
-            null
-        );
-
-        return CrawlTask.forNew(
+        // 2. META Task 생성 (Task static 메서드 - MANUAL 트리거)
+        Task metaTask = Task.forMeta(
             sellerId,
-            TaskType.MINI_SHOP,
-            requestUrl,
-            0,
-            idempotencyKey,
+            seller.getSellerName(),
+            null, // REST API를 통한 수동 실행이므로 crawlScheduleId는 null
+            com.ryuqq.crawlinghub.domain.task.TriggerType.MANUAL, // REST API → MANUAL
             LocalDateTime.now()
         );
-    }
 
-    /**
-     * Outbox에 메시지 저장 (트랜잭션 내부)
-     */
-    private void saveToOutbox(CrawlTask task) {
-        String payload = String.format(
-            "{\"taskId\":%d,\"sellerId\":%d,\"taskType\":\"%s\",\"url\":\"%s\",\"pageNumber\":%d}",
-            task.getIdValue(),
-            task.getSellerIdValue(),
-            task.getTaskType().name(),
-            task.getRequestUrlValue(),
-            task.getPageNumber()
-        );
+        // 3. Task 저장 (TaskManager)
+        Task savedTask = taskManager.saveTask(metaTask);
 
-        outboxPort.saveOutboxMessage(
-            "CrawlTask",
-            task.getIdValue(),
-            "CrawlTaskCreated",
-            payload
+        // 4. TaskMessage 발행 (TaskMessageOutboxManager)
+        taskMessageOutboxManager.createTaskMessage(
+            TaskId.of(savedTask.getIdValue()),
+            savedTask.getTaskType()
         );
     }
 }

@@ -109,7 +109,7 @@ class CrawlScheduleTest {
             CronExpression newExpression = CronExpressionFixture.createDaily();
 
             // When
-            schedule.updateSchedule(newExpression);
+            schedule.updateSchedule(newExpression, "test-idem-key");
 
             // Then
             assertThat(schedule.getCronExpressionValue()).isEqualTo(newExpression.getValue());
@@ -124,7 +124,7 @@ class CrawlScheduleTest {
             CrawlSchedule schedule = CrawlScheduleFixture.createWithNextExecution(nextTime);
 
             // When
-            schedule.updateSchedule(CronExpressionFixture.createHourly());
+            schedule.updateSchedule(CronExpressionFixture.createHourly(), "test-idem-key");
 
             // Then
             assertThat(schedule.getNextExecutionTime()).isNull();
@@ -409,7 +409,7 @@ class CrawlScheduleTest {
             CrawlSchedule schedule = CrawlScheduleFixture.createActive();
 
             // When & Then
-            assertThatThrownBy(() -> schedule.updateSchedule(null))
+            assertThatThrownBy(() -> schedule.updateSchedule(null, "test-idem-key"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cron 표현식은 null일 수 없습니다");
         }
@@ -479,8 +479,8 @@ class CrawlScheduleTest {
             CrawlSchedule schedule = CrawlScheduleFixture.createActive();
 
             // When
-            schedule.updateSchedule(CronExpressionFixture.createDaily());
-            schedule.updateSchedule(CronExpressionFixture.createHourly());
+            schedule.updateSchedule(CronExpressionFixture.createDaily(), "test-idem-key-1");
+            schedule.updateSchedule(CronExpressionFixture.createHourly(), "test-idem-key-2");
 
             // Then
             assertThat(schedule.getSellerIdValue()).isNotNull();

@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.listener;
 
 import com.ryuqq.crawlinghub.application.schedule.orchestrator.ScheduleOutboxProcessor;
-import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,14 +52,14 @@ public class ScheduleEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduleEventListener.class);
 
-    private final ScheduleOutboxPort outboxPort;
+    private final ScheduleOutboxQueryPort outboxQueryPort;
     private final ScheduleOutboxProcessor outboxProcessor;
 
     public ScheduleEventListener(
-        ScheduleOutboxPort outboxPort,
+        ScheduleOutboxQueryPort outboxQueryPort,
         ScheduleOutboxProcessor outboxProcessor
     ) {
-        this.outboxPort = outboxPort;
+        this.outboxQueryPort = outboxQueryPort;
         this.outboxProcessor = outboxProcessor;
     }
 
@@ -97,30 +97,30 @@ public class ScheduleEventListener {
         try {
             // Race Condition 방지: 트랜잭션 내에서 최신 상태로 다시 조회
             // @Scheduled 폴러가 이미 처리했을 수 있으므로 최신 상태 확인
-            Optional<SellerCrawlScheduleOutbox> outboxOpt = outboxPort.findByIdemKey(idemKey);
+            Optional<ScheduleOutbox> outboxOpt = outboxQueryPort.findByIdemKey(idemKey);
 
             if (outboxOpt.isEmpty()) {
                 log.warn("⚠️ Outbox를 찾을 수 없습니다: idemKey={} (이미 처리되었거나 존재하지 않음)", idemKey);
                 return;
             }
 
-            SellerCrawlScheduleOutbox outbox = outboxOpt.get();
+            ScheduleOutbox outbox = outboxOpt.get();
 
             // Outbox가 이미 처리 중이거나 완료된 경우 스킵
             // ✅ 트랜잭션 내에서 최신 상태로 재확인하여 Race Condition 방지
-            if (outbox.getWalState() != SellerCrawlScheduleOutbox.WriteAheadState.PENDING) {
-                log.debug("⏭️ Outbox가 이미 처리되었거나 처리 중입니다: idemKey={}, state={}", 
+            if (outbox.getWalState() != ScheduleOutbox.WriteAheadState.PENDING) {
+                log.debug("⏭️ Outbox가 이미 처리되었거나 처리 중입니다: idemKey={}, state={}",
                     idemKey, outbox.getWalState());
                 return;
             }
 
-            log.info("🚀 Outbox Processor 즉시 호출: idemKey={}", idemKey);
-            // processOne 내부에서 startProcessing()을 통해 상태를 IN_PROGRESS로 변경하므로
-            // 중복 처리 방지됨
-            outboxProcessor.processOne(outbox);
+            log.info("[OUTBOX_READY] Outbox 생성 완료, Scheduled Processor가 처리 예정: idemKey={}", idemKey);
+            // TODO: processOne() 메서드 구현 후 즉시 처리 활성화
+            // outboxProcessor.processOne(outbox);
+            // 현재는 @Scheduled processOutbox()가 주기적으로 처리함
 
         } catch (Exception e) {
-            log.error("❌ Outbox Processor 즉시 호출 실패: idemKey={}, error={}", 
+            log.error("❌ Outbox Processor 즉시 호출 실패: idemKey={}, error={}",
                 idemKey, e.getMessage(), e);
             // ✅ 실패해도 @Scheduled가 Fallback으로 처리하므로 예외를 던지지 않음
         }

@@ -1,5 +1,10 @@
 package com.ryuqq.crawlinghub.application.seller.dto.response;
 
+import com.ryuqq.crawlinghub.application.common.dto.PageResponse;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+
 /**
  * SellerDetailResponse Test Fixture
  *
@@ -8,11 +13,11 @@ package com.ryuqq.crawlinghub.application.seller.dto.response;
  */
 public class SellerDetailResponseFixture {
 
-    private static final Integer DEFAULT_TOTAL_SCHEDULES = 10;
-    private static final Integer DEFAULT_ACTIVE_SCHEDULES = 8;
-    private static final Integer DEFAULT_TOTAL_TASKS = 100;
-    private static final Integer DEFAULT_SUCCESSFUL_TASKS = 95;
-    private static final Integer DEFAULT_FAILED_TASKS = 5;
+    private static final Long DEFAULT_SELLER_ID = 1L;
+    private static final String DEFAULT_SELLER_CODE = "SELLER001";
+    private static final String DEFAULT_SELLER_NAME = "테스트 셀러";
+    private static final String DEFAULT_STATUS = "ACTIVE";
+    private static final Integer DEFAULT_TOTAL_PRODUCT_COUNT = 100;
 
     /**
      * 기본 SellerDetailResponse 생성
@@ -21,122 +26,169 @@ public class SellerDetailResponseFixture {
      */
     public static SellerDetailResponse create() {
         return new SellerDetailResponse(
-            SellerResponseFixture.create(),
-            DEFAULT_TOTAL_SCHEDULES,
-            DEFAULT_ACTIVE_SCHEDULES,
-            DEFAULT_TOTAL_TASKS,
-            DEFAULT_SUCCESSFUL_TASKS,
-            DEFAULT_FAILED_TASKS
+            DEFAULT_SELLER_ID,
+            DEFAULT_SELLER_CODE,
+            DEFAULT_SELLER_NAME,
+            DEFAULT_STATUS,
+            DEFAULT_TOTAL_PRODUCT_COUNT,
+            createEmptyProductCountHistories(),
+            createDefaultScheduleInfo(),
+            createEmptyScheduleHistories()
         );
     }
 
     /**
-     * 특정 SellerResponse로 SellerDetailResponse 생성
+     * 특정 셀러 ID로 SellerDetailResponse 생성
      *
-     * @param sellerResponse 셀러 기본 정보
+     * @param sellerId 셀러 ID
      * @return SellerDetailResponse
      */
-    public static SellerDetailResponse createWithSeller(SellerResponse sellerResponse) {
+    public static SellerDetailResponse createWithSellerId(Long sellerId) {
         return new SellerDetailResponse(
-            sellerResponse,
-            DEFAULT_TOTAL_SCHEDULES,
-            DEFAULT_ACTIVE_SCHEDULES,
-            DEFAULT_TOTAL_TASKS,
-            DEFAULT_SUCCESSFUL_TASKS,
-            DEFAULT_FAILED_TASKS
+            sellerId,
+            DEFAULT_SELLER_CODE,
+            DEFAULT_SELLER_NAME,
+            DEFAULT_STATUS,
+            DEFAULT_TOTAL_PRODUCT_COUNT,
+            createEmptyProductCountHistories(),
+            createDefaultScheduleInfo(),
+            createEmptyScheduleHistories()
         );
     }
 
     /**
-     * 높은 성공률을 가진 SellerDetailResponse 생성 (98%)
+     * 상품 수 이력이 포함된 SellerDetailResponse 생성
      *
+     * @param productCountHistories 상품 수 변경 이력
      * @return SellerDetailResponse
      */
-    public static SellerDetailResponse createHighSuccessRate() {
+    public static SellerDetailResponse createWithProductCountHistories(
+        PageResponse<ProductCountHistoryResponse> productCountHistories
+    ) {
         return new SellerDetailResponse(
-            SellerResponseFixture.create(),
-            DEFAULT_TOTAL_SCHEDULES,
-            DEFAULT_ACTIVE_SCHEDULES,
-            100,
-            98,
-            2
+            DEFAULT_SELLER_ID,
+            DEFAULT_SELLER_CODE,
+            DEFAULT_SELLER_NAME,
+            DEFAULT_STATUS,
+            DEFAULT_TOTAL_PRODUCT_COUNT,
+            productCountHistories,
+            createDefaultScheduleInfo(),
+            createEmptyScheduleHistories()
         );
     }
 
     /**
-     * 낮은 성공률을 가진 SellerDetailResponse 생성 (50%)
+     * 스케줄 정보가 포함된 SellerDetailResponse 생성
      *
+     * @param scheduleInfo 크롤링 스케줄 정보
      * @return SellerDetailResponse
      */
-    public static SellerDetailResponse createLowSuccessRate() {
+    public static SellerDetailResponse createWithScheduleInfo(
+        ScheduleInfoResponse scheduleInfo
+    ) {
         return new SellerDetailResponse(
-            SellerResponseFixture.create(),
-            DEFAULT_TOTAL_SCHEDULES,
-            DEFAULT_ACTIVE_SCHEDULES,
-            100,
-            50,
-            50
+            DEFAULT_SELLER_ID,
+            DEFAULT_SELLER_CODE,
+            DEFAULT_SELLER_NAME,
+            DEFAULT_STATUS,
+            DEFAULT_TOTAL_PRODUCT_COUNT,
+            createEmptyProductCountHistories(),
+            scheduleInfo,
+            createEmptyScheduleHistories()
         );
     }
 
     /**
-     * 태스크가 없는 SellerDetailResponse 생성
+     * 스케줄 이력이 포함된 SellerDetailResponse 생성
      *
+     * @param scheduleHistories 크롤링 실행 이력
      * @return SellerDetailResponse
      */
-    public static SellerDetailResponse createNoTasks() {
+    public static SellerDetailResponse createWithScheduleHistories(
+        PageResponse<ScheduleHistoryResponse> scheduleHistories
+    ) {
         return new SellerDetailResponse(
-            SellerResponseFixture.create(),
-            0,
-            0,
-            0,
-            0,
-            0
-        );
-    }
-
-    /**
-     * 활성 스케줄이 없는 SellerDetailResponse 생성
-     *
-     * @return SellerDetailResponse
-     */
-    public static SellerDetailResponse createNoActiveSchedules() {
-        return new SellerDetailResponse(
-            SellerResponseFixture.create(),
-            5,
-            0,
-            DEFAULT_TOTAL_TASKS,
-            DEFAULT_SUCCESSFUL_TASKS,
-            DEFAULT_FAILED_TASKS
+            DEFAULT_SELLER_ID,
+            DEFAULT_SELLER_CODE,
+            DEFAULT_SELLER_NAME,
+            DEFAULT_STATUS,
+            DEFAULT_TOTAL_PRODUCT_COUNT,
+            createEmptyProductCountHistories(),
+            createDefaultScheduleInfo(),
+            scheduleHistories
         );
     }
 
     /**
      * 완전한 커스텀 SellerDetailResponse 생성
      *
-     * @param sellerResponse    셀러 기본 정보
-     * @param totalSchedules    총 스케줄 수
-     * @param activeSchedules   활성 스케줄 수
-     * @param totalCrawlTasks   총 크롤링 태스크 수
-     * @param successfulTasks   성공한 태스크 수
-     * @param failedTasks       실패한 태스크 수
+     * @param sellerId 셀러 ID
+     * @param sellerCode 셀러 코드
+     * @param sellerName 셀러명
+     * @param status 상태
+     * @param totalProductCount 총 상품 수
+     * @param productCountHistories 상품 수 변경 이력
+     * @param scheduleInfo 크롤링 스케줄 정보
+     * @param scheduleHistories 크롤링 실행 이력
      * @return SellerDetailResponse
      */
     public static SellerDetailResponse createCustom(
-        SellerResponse sellerResponse,
-        Integer totalSchedules,
-        Integer activeSchedules,
-        Integer totalCrawlTasks,
-        Integer successfulTasks,
-        Integer failedTasks
+        Long sellerId,
+        String sellerCode,
+        String sellerName,
+        String status,
+        Integer totalProductCount,
+        PageResponse<ProductCountHistoryResponse> productCountHistories,
+        ScheduleInfoResponse scheduleInfo,
+        PageResponse<ScheduleHistoryResponse> scheduleHistories
     ) {
         return new SellerDetailResponse(
-            sellerResponse,
-            totalSchedules,
-            activeSchedules,
-            totalCrawlTasks,
-            successfulTasks,
-            failedTasks
+            sellerId,
+            sellerCode,
+            sellerName,
+            status,
+            totalProductCount,
+            productCountHistories,
+            scheduleInfo,
+            scheduleHistories
+        );
+    }
+
+    // ========================================
+    // Private Helper Methods
+    // ========================================
+
+    private static PageResponse<ProductCountHistoryResponse> createEmptyProductCountHistories() {
+        return new PageResponse<>(
+            Collections.emptyList(),
+            0,          // page
+            10,         // size
+            0L,         // totalElements
+            0,          // totalPages
+            true,       // first
+            true        // last
+        );
+    }
+
+    private static ScheduleInfoResponse createDefaultScheduleInfo() {
+        return new ScheduleInfoResponse(
+            1L,                           // scheduleId
+            "0 0 * * *",                  // cronExpression
+            "ACTIVE",                     // status
+            LocalDateTime.now().plusHours(1),  // nextExecutionTime
+            LocalDateTime.now()           // createdAt
+        );
+    }
+
+    private static PageResponse<ScheduleHistoryResponse> createEmptyScheduleHistories() {
+        return new PageResponse<>(
+            Collections.emptyList(),
+            0,          // page
+            10,         // size
+            0L,         // totalElements
+            0,          // totalPages
+            true,       // first
+            true        // last
         );
     }
 }

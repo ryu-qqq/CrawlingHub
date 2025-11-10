@@ -22,6 +22,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -29,6 +31,16 @@ import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -43,10 +55,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>Mockito를 사용하여 Controller Layer만 격리 테스트합니다.
  * UseCase는 Mock으로 대체하여 Controller 로직만 검증합니다.
  *
+ * <p>Spring REST Docs를 사용하여 API 문서를 자동 생성합니다.
+ *
  * @author ryu-qqq
  * @since 2025-11-05
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, RestDocumentationExtension.class})
 @DisplayName("UserAgentController 단위 테스트")
 class UserAgentControllerTest {
 
@@ -72,8 +86,11 @@ class UserAgentControllerTest {
     private UserAgentController userAgentController;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userAgentController).build();
+    void setUp(RestDocumentationContextProvider restDocumentation) {
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(userAgentController)
+            .apply(documentationConfiguration(restDocumentation))
+            .build();
         objectMapper = new ObjectMapper();
     }
 
@@ -101,7 +118,29 @@ class UserAgentControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userAgentId").value(userAgentId))
                 .andExpect(jsonPath("$.data.userAgentString").value("Mozilla/5.0"))
-                .andExpect(jsonPath("$.data.tokenStatus").value("IDLE"));
+                .andExpect(jsonPath("$.data.tokenStatus").value("IDLE"))
+                .andDo(document("user-agent-get-detail",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("userAgentId").description("UserAgent ID")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.userAgentId").description("UserAgent ID"),
+                        fieldWithPath("data.userAgentString").description("UserAgent 문자열"),
+                        fieldWithPath("data.tokenStatus").description("토큰 상태 (IDLE, IN_USE, RATE_LIMITED, RECOVERED)"),
+                        fieldWithPath("data.remainingRequests").description("남은 요청 수"),
+                        fieldWithPath("data.tokenIssuedAt").description("토큰 발급 시각"),
+                        fieldWithPath("data.rateLimitResetAt").description("Rate Limit 리셋 시각").optional(),
+                        fieldWithPath("data.createdAt").description("생성 시각"),
+                        fieldWithPath("data.updatedAt").description("수정 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
         }
     }
 
@@ -134,7 +173,32 @@ class UserAgentControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId));
+                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId))
+                .andDo(document("user-agent-issue-token",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("userAgentId").description("UserAgent ID")
+                    ),
+                    requestFields(
+                        fieldWithPath("token").description("발급할 토큰 값")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.userAgentId").description("UserAgent ID"),
+                        fieldWithPath("data.userAgentString").description("UserAgent 문자열"),
+                        fieldWithPath("data.tokenStatus").description("토큰 상태"),
+                        fieldWithPath("data.remainingRequests").description("남은 요청 수"),
+                        fieldWithPath("data.tokenIssuedAt").description("토큰 발급 시각"),
+                        fieldWithPath("data.rateLimitResetAt").description("Rate Limit 리셋 시각").optional(),
+                        fieldWithPath("data.createdAt").description("생성 시각"),
+                        fieldWithPath("data.updatedAt").description("수정 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
         }
 
         @Test
@@ -176,7 +240,29 @@ class UserAgentControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId));
+                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId))
+                .andDo(document("user-agent-recover-rate-limit",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("userAgentId").description("UserAgent ID")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.userAgentId").description("UserAgent ID"),
+                        fieldWithPath("data.userAgentString").description("UserAgent 문자열"),
+                        fieldWithPath("data.tokenStatus").description("토큰 상태 (RECOVERED)"),
+                        fieldWithPath("data.remainingRequests").description("남은 요청 수 (복구 후 초기화)"),
+                        fieldWithPath("data.tokenIssuedAt").description("토큰 발급 시각"),
+                        fieldWithPath("data.rateLimitResetAt").description("Rate Limit 리셋 시각 (null)").optional(),
+                        fieldWithPath("data.createdAt").description("생성 시각"),
+                        fieldWithPath("data.updatedAt").description("수정 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
         }
     }
 
@@ -202,7 +288,29 @@ class UserAgentControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId));
+                .andExpect(jsonPath("$.data.userAgentId").value(userAgentId))
+                .andDo(document("user-agent-disable",
+                    preprocessRequest(prettyPrint()),
+                    preprocessResponse(prettyPrint()),
+                    pathParameters(
+                        parameterWithName("userAgentId").description("UserAgent ID")
+                    ),
+                    responseFields(
+                        fieldWithPath("success").description("성공 여부"),
+                        fieldWithPath("data").description("응답 데이터"),
+                        fieldWithPath("data.userAgentId").description("UserAgent ID"),
+                        fieldWithPath("data.userAgentString").description("UserAgent 문자열"),
+                        fieldWithPath("data.tokenStatus").description("토큰 상태"),
+                        fieldWithPath("data.remainingRequests").description("남은 요청 수"),
+                        fieldWithPath("data.tokenIssuedAt").description("토큰 발급 시각"),
+                        fieldWithPath("data.rateLimitResetAt").description("Rate Limit 리셋 시각").optional(),
+                        fieldWithPath("data.createdAt").description("생성 시각"),
+                        fieldWithPath("data.updatedAt").description("수정 시각"),
+                        fieldWithPath("error").description("에러 정보").optional(),
+                        fieldWithPath("timestamp").description("응답 타임스탬프"),
+                        fieldWithPath("requestId").description("요청 ID")
+                    )
+                ));
         }
     }
 
@@ -235,4 +343,6 @@ class UserAgentControllerTest {
         );
     }
 }
+
+
 

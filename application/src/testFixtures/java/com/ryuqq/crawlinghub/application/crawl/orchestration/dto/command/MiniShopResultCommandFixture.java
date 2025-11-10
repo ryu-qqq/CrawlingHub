@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.crawl.orchestration.dto.command;
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.MiniShopResultCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.MiniShopResultCommand;
 
 /**
  * MiniShopResultCommand Test Fixture

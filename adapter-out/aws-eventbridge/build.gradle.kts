@@ -1,32 +1,22 @@
+// ========================================
+// Adapter-Out: AWS EventBridge
+// ========================================
+// Outbound adapter for AWS EventBridge event publishing
+// Implements EventBridge client ports from application layer
+// NO Lombok allowed
+// NO @Transactional (외부 API 호출은 트랜잭션 밖에서)
+// ========================================
+
 plugins {
-    id("java")
-    `java-test-fixtures`  // TestFixtures 플러그인
-    id("io.spring.dependency-management") version "1.1.5"
-}
-
-group = "com.ryuqq.crawlinghub"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    `java-library`
 }
 
 dependencies {
     // ========================================
-    // Internal Modules
+    // Core Dependencies
     // ========================================
-    // Application Layer (Port 인터페이스 의존)
     implementation(project(":application"))
-
-    // ========================================
-    // Orchestrator SDK (JitPack)
-    // ========================================
-    implementation(rootProject.libs.orchestrator.core)
-    implementation(rootProject.libs.orchestrator.application)
-    implementation(rootProject.libs.orchestrator.runner)
-    testImplementation(rootProject.libs.orchestrator.testkit)
+    implementation(project(":domain"))
 
     // ========================================
     // AWS SDK v2 - EventBridge
@@ -36,48 +26,46 @@ dependencies {
     implementation(rootProject.libs.aws.apache.client)
 
     // ========================================
-    // Resilience4j (Circuit Breaker, Retry)
-    // ========================================
-    implementation(rootProject.libs.resilience4j.spring.boot3)
-    implementation(rootProject.libs.resilience4j.circuitbreaker)
-    implementation(rootProject.libs.resilience4j.retry)
-    implementation(rootProject.libs.resilience4j.timelimiter)
-
-    // ========================================
-    // Spring Boot
+    // Spring Context
     // ========================================
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework:spring-context")
+    implementation(rootProject.libs.spring.context)
+    implementation("org.slf4j:slf4j-api")
 
-    // ========================================
-    // Utilities
-    // ========================================
-    implementation(rootProject.libs.commons.lang3)
-    implementation(rootProject.libs.guava)
+    // JSON Processing
     implementation(rootProject.libs.jackson.databind)
     implementation(rootProject.libs.jackson.datatype.jsr310)
 
     // ========================================
     // Test Dependencies
     // ========================================
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core")
-    testImplementation("org.mockito:mockito-core")
-    testImplementation("org.mockito:mockito-junit-jupiter")
-
-    // LocalStack for AWS Integration Tests
+    testImplementation(rootProject.libs.spring.boot.starter.test)
     testImplementation(rootProject.libs.testcontainers.junit)
     testImplementation(rootProject.libs.testcontainers.localstack)
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.6")
-        mavenBom("org.testcontainers:testcontainers-bom:1.19.7")
+// ========================================
+// Test Coverage (70% for adapters)
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = "CLASS"
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.50".toBigDecimal()
+            }
+            excludes = listOf(
+                "*.config.*",
+                "*.dto.*",
+                "*Response",
+                "*Request"
+            )
+        }
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks.test {
+    finalizedBy(tasks.jacocoTestCoverageVerification)
 }

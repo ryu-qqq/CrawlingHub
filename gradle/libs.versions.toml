@@ -27,11 +27,7 @@ hikaricp = "5.1.0"
 # AWS SDK
 # ========================================
 awsSdk = "2.25.11"
-
-# ========================================
-# Orchestrator SDK (JitPack)
-# ========================================
-orchestrator = "v0.1.1"
+springCloudAws = "3.1.1"
 
 # ========================================
 # Resilience & Fault Tolerance
@@ -123,12 +119,10 @@ aws-eventbridge = { module = "software.amazon.awssdk:eventbridge" }
 aws-apache-client = { module = "software.amazon.awssdk:apache-client" }
 
 # ========================================
-# Orchestrator SDK (JitPack)
+# Spring Cloud AWS
 # ========================================
-orchestrator-core = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-core", version.ref = "orchestrator" }
-orchestrator-application = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-application", version.ref = "orchestrator" }
-orchestrator-runner = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-adapter-runner", version.ref = "orchestrator" }
-orchestrator-testkit = { module = "com.github.ryu-qqq.Orchestrator:orchestrator-testkit", version.ref = "orchestrator" }
+spring-cloud-aws-starter-sqs = { module = "io.awspring.cloud:spring-cloud-aws-starter-sqs", version.ref = "springCloudAws" }
+spring-cloud-aws-sqs = { module = "io.awspring.cloud:spring-cloud-aws-starter-sqs", version.ref = "springCloudAws" }
 
 # ========================================
 # Resilience4j

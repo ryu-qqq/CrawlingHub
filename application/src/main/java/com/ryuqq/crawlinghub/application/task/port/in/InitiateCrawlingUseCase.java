@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.InitiateCrawlingCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingCommand;
 
 /**
  * 크롤링 시작 UseCase

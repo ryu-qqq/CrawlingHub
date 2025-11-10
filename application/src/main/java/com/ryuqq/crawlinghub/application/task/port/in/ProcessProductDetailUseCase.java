@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.port.in;
 
-import com.ryuqq.crawlinghub.application.task.assembler.command.ProductDetailCommand;
+import com.ryuqq.crawlinghub.application.task.dto.command.ProductDetailCommand;
 
 /**
  * 상품 상세 크롤링 결과 처리 UseCase

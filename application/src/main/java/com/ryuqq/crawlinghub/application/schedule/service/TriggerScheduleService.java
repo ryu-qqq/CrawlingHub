@@ -5,12 +5,15 @@ import com.ryuqq.crawlinghub.application.schedule.port.in.TriggerScheduleUseCase
 import com.ryuqq.crawlinghub.application.schedule.port.out.LoadSchedulePort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.SaveSchedulePort;
 import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
+import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingCommand;
+import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
-import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 
 import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 스케줄 트리거 UseCase 구현체 (EventBridge에서 호출)
@@ -33,46 +36,50 @@ public class TriggerScheduleService implements TriggerScheduleUseCase {
     private final LoadSchedulePort loadSchedulePort;
     private final SaveSchedulePort saveSchedulePort;
     private final CronExpressionValidator cronValidator;
+    private final InitiateCrawlingUseCase initiateCrawlingUseCase;
 
     public TriggerScheduleService(
         LoadSchedulePort loadSchedulePort,
         SaveSchedulePort saveSchedulePort,
-        CronExpressionValidator cronValidator
+        CronExpressionValidator cronValidator,
+        InitiateCrawlingUseCase initiateCrawlingUseCase
     ) {
         this.loadSchedulePort = loadSchedulePort;
         this.saveSchedulePort = saveSchedulePort;
         this.cronValidator = cronValidator;
+        this.initiateCrawlingUseCase = initiateCrawlingUseCase;
     }
 
     /**
      * 스케줄 트리거 (크롤링 시작)
+     * <p>
+     * EventBridge에서 sellerId를 받아 해당 셀러의 활성 스케줄을 실행합니다.
+     * </p>
      *
      * <p>실행 순서:
-     * 1. 스케줄 조회
-     * 2. 실행 가능 여부 확인 (활성 상태 + 실행 시간 도래)
-     * 3. CrawlTask 생성 및 Outbox 저장 (TODO: TASK-03에서 구현)
+     * 1. sellerId로 활성 스케줄 조회
+     * 2. 실행 가능 여부 확인 (실행 시간 도래)
+     * 3. CrawlTask 생성 및 Outbox 저장
      * 4. 실행 완료 기록
      * 5. 다음 실행 시간 업데이트
      *
-     * @param command 트리거할 스케줄 ID
-     * @throws IllegalArgumentException 스케줄을 찾을 수 없거나 실행 불가능한 경우
+     * @param command 트리거할 셀러 ID
+     * @throws IllegalArgumentException 활성 스케줄을 찾을 수 없는 경우
+     * @throws IllegalStateException 실행 시간이 도래하지 않은 경우
      */
     @Override
     @Transactional
     public void execute(TriggerScheduleCommand command) {
-        CrawlScheduleId scheduleId = CrawlScheduleId.of(command.scheduleId());
+        // sellerId를 MustitSellerId로 변환 (Domain Value Object)
+        MustitSellerId sellerId = MustitSellerId.of(command.sellerId());
 
-        // 1. 스케줄 조회
-        CrawlSchedule schedule = loadSchedulePort.findById(scheduleId)
+        // 1. sellerId로 활성 스케줄 조회
+        CrawlSchedule schedule = loadSchedulePort.findActiveBySellerId(sellerId)
             .orElseThrow(() -> new IllegalArgumentException(
-                "스케줄을 찾을 수 없습니다: " + command.scheduleId()
+                "활성 스케줄을 찾을 수 없습니다. sellerId: " + command.sellerId()
             ));
 
-        // 2. 실행 가능 여부 확인
-        if (!schedule.isActive()) {
-            throw new IllegalStateException("비활성 스케줄입니다: " + command.scheduleId());
-        }
-
+        // 2. 실행 시간 도래 여부 확인 (활성 상태는 이미 확인됨)
         if (!schedule.isTimeToExecute()) {
             throw new IllegalStateException(
                 "실행 시간이 아직 도래하지 않았습니다. 다음 실행 시간: " + schedule.getNextExecutionTime()
@@ -80,8 +87,9 @@ public class TriggerScheduleService implements TriggerScheduleUseCase {
         }
 
         // 3. CrawlTask 생성 및 Outbox 저장
-        // TODO: TASK-03 InitiateCrawlingUseCase에서 구현 예정
-        // createInitialCrawlTask(schedule.getSellerIdValue());
+        InitiateCrawlingCommand crawlingCommand =
+            new InitiateCrawlingCommand(schedule.getSellerIdValue());
+        initiateCrawlingUseCase.execute(crawlingCommand);
 
         // 4. 실행 완료 기록
         schedule.markExecuted();
@@ -91,6 +99,7 @@ public class TriggerScheduleService implements TriggerScheduleUseCase {
             schedule.getCronExpressionValue(),
             LocalDateTime.now()
         );
+
         schedule.calculateNextExecution(nextExecution);
 
         // 6. 저장

@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.adapter.out.eventbridge.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.converter.CronExpressionConverter;
 import com.ryuqq.crawlinghub.application.schedule.port.out.EventBridgeSchedulerPort;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,6 @@ import software.amazon.awssdk.services.eventbridge.model.Target;
  *   <li>scheduleName 생성: "seller-crawl-schedule-{scheduleId}"</li>
  *   <li>targetArn 내부 관리: @Value로 주입받아 Target 설정</li>
  *   <li>AWS EventBridge SDK 호출: PutRule, PutTargets, DeleteRule 등</li>
- *   <li>Circuit Breaker 적용: EventBridge API 장애 격리</li>
  * </ul>
  *
  * <p>설계 원칙:
@@ -88,7 +86,6 @@ public class EventBridgeSchedulerAdapter implements EventBridgeSchedulerPort {
      * @throws EventBridgeException EventBridge API 호출 실패 시
      */
     @Override
-    @CircuitBreaker(name = "eventbridge")
     public String registerSchedule(Long scheduleId, Long sellerId, String cronExpression) {
         String scheduleName = generateScheduleName(scheduleId);
         String awsCronExpression = cronConverter.toAwsCron(cronExpression);
@@ -140,7 +137,6 @@ public class EventBridgeSchedulerAdapter implements EventBridgeSchedulerPort {
      * @throws EventBridgeException EventBridge API 호출 실패 시
      */
     @Override
-    @CircuitBreaker(name = "eventbridge")
     public void updateSchedule(Long scheduleId, Long sellerId, String cronExpression) {
         String scheduleName = generateScheduleName(scheduleId);
         String awsCronExpression = cronConverter.toAwsCron(cronExpression);
@@ -186,7 +182,6 @@ public class EventBridgeSchedulerAdapter implements EventBridgeSchedulerPort {
      * @throws EventBridgeException EventBridge API 호출 실패 시 (404 제외)
      */
     @Override
-    @CircuitBreaker(name = "eventbridge")
     public void deleteSchedule(Long scheduleId, Long sellerId) {
         String scheduleName = generateScheduleName(scheduleId);
 
