@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentRespons
 import com.ryuqq.crawlinghub.application.useragent.port.in.GetUserAgentDetailUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.out.LoadUserAgentPort;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,7 @@ public class GetUserAgentDetailService implements GetUserAgentDetailUseCase {
         UserAgentId userAgentId = UserAgentId.of(query.userAgentId());
         return loadUserAgentPort.findById(userAgentId)
             .map(UserAgentAssembler::toResponse)
-            .orElseThrow(() -> new com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException());
+            .orElseThrow(NoAvailableUserAgentException::new);
     }
 }
 

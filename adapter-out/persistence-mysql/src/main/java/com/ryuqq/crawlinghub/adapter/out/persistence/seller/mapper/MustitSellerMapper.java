@@ -3,9 +3,6 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.MustitSellerEntity;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.seller.SellerCode;
-import com.ryuqq.crawlinghub.domain.seller.SellerName;
-import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 
 import org.springframework.stereotype.Component;
 
@@ -38,7 +35,7 @@ public class MustitSellerMapper {
             return MustitSellerEntity.reconstitute(
                     seller.getIdValue(),
                     seller.getSellerCode(),
-                    seller.getSellerName(),
+                    seller.getSellerNameValue(),
                     seller.getStatus(),
                     seller.getTotalProductCount(),
                     seller.getLastCrawledAt()
@@ -46,7 +43,7 @@ public class MustitSellerMapper {
         } else {
             return MustitSellerEntity.create(
                     seller.getSellerCode(),
-                    seller.getSellerName(),
+                    seller.getSellerNameValue(),
                     seller.getStatus(),
                     seller.getTotalProductCount(),
                     seller.getLastCrawledAt()

@@ -97,7 +97,7 @@ public class ScheduleMapper {
         return switch (entityStatus) {
             case ACTIVE -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.ACTIVE;
             case SUSPENDED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED;
-            case DELETED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.DELETED;
+            case DELETED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED; // DELETED는 SUSPENDED로 매핑
         };
     }
 
@@ -110,7 +110,6 @@ public class ScheduleMapper {
         return switch (domainStatus) {
             case ACTIVE -> ScheduleEntity.ScheduleStatus.ACTIVE;
             case SUSPENDED -> ScheduleEntity.ScheduleStatus.SUSPENDED;
-            case DELETED -> ScheduleEntity.ScheduleStatus.DELETED;
         };
     }
 }

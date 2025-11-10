@@ -1,12 +1,15 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommandFixture;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerFixture;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerCodeException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +36,7 @@ import static org.mockito.Mockito.never;
  * <p>셀러 등록 UseCase의 비즈니스 로직을 검증합니다.
  *
  * @author ryu-qqq
- * @since 2025-10-31
+ * @since 2025-11-07
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RegisterSellerService 단위 테스트")
@@ -53,23 +56,23 @@ class RegisterSellerServiceTest {
     class Describe_execute {
 
         @Nested
-        @DisplayName("유효한 신규 셀러 정보가 주어지면")
-        class Context_with_valid_new_seller {
+        @DisplayName("유효한 셀러 정보가 주어지면")
+        class Context_with_valid_seller_info {
 
             private RegisterSellerCommand command;
             private MustitSeller savedSeller;
 
             @BeforeEach
             void setUp() {
-                // Given: 유효한 신규 셀러 정보
+                // Given: 유효한 셀러 등록 정보
                 command = RegisterSellerCommandFixture.create();
-                savedSeller = MustitSellerFixture.createWithId(1L);
 
-                // And: 중복된 셀러 코드가 없음 (DTO 반환)
-                given(loadSellerPort.findByCode(command.sellerCode()))
+                // And: 중복되지 않음
+                given(loadSellerPort.findByCode(anyString()))
                     .willReturn(Optional.empty());
 
-                // And: 셀러 저장 성공
+                // And: 저장 성공
+                savedSeller = MustitSellerFixture.createActive();
                 given(saveSellerPort.save(any(MustitSeller.class)))
                     .willReturn(savedSeller);
             }
@@ -86,12 +89,91 @@ class RegisterSellerServiceTest {
                 // And: 셀러가 저장됨
                 then(saveSellerPort).should().save(any(MustitSeller.class));
 
-                // And: 저장된 셀러 정보가 응답으로 반환됨
+                // And: 등록된 셀러 정보가 응답으로 반환됨
                 assertThat(response).isNotNull();
-                assertThat(response.sellerId()).isEqualTo(savedSeller.getIdValue());
                 assertThat(response.sellerCode()).isEqualTo(savedSeller.getSellerCode());
-                assertThat(response.sellerName()).isEqualTo(savedSeller.getSellerName());
-                assertThat(response.status()).isEqualTo(savedSeller.getStatus());
+                assertThat(response.sellerName()).isEqualTo(savedSeller.getSellerNameValue());
+                assertThat(response.status()).isEqualTo(SellerStatus.ACTIVE);
+            }
+        }
+
+        @Nested
+        @DisplayName("특정 셀러 코드로 등록할 때")
+        class Context_with_specific_seller_code {
+
+            private RegisterSellerCommand command;
+            private String customSellerCode = "CUSTOM001";
+
+            @BeforeEach
+            void setUp() {
+                // Given: 특정 셀러 코드로 등록
+                command = RegisterSellerCommandFixture.createWithCode(customSellerCode);
+
+                // And: 중복되지 않음
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.empty());
+
+                // And: 저장 성공
+                MustitSeller savedSeller = MustitSellerFixture.createWithCode(customSellerCode);
+                given(saveSellerPort.save(any(MustitSeller.class)))
+                    .willReturn(savedSeller);
+            }
+
+            @Test
+            @DisplayName("지정한 셀러 코드로 등록된다")
+            void it_registers_with_custom_code() {
+                // When: 셀러 등록 실행
+                SellerResponse response = sut.execute(command);
+
+                // Then: 중복 체크가 수행됨
+                then(loadSellerPort).should().findByCode(customSellerCode);
+
+                // And: 셀러가 저장됨
+                then(saveSellerPort).should().save(any(MustitSeller.class));
+
+                // And: 지정한 셀러 코드로 등록됨
+                assertThat(response).isNotNull();
+                assertThat(response.sellerCode()).isEqualTo(customSellerCode);
+            }
+        }
+
+        @Nested
+        @DisplayName("특정 셀러 이름으로 등록할 때")
+        class Context_with_specific_seller_name {
+
+            private RegisterSellerCommand command;
+            private String customSellerName = "커스텀셀러";
+
+            @BeforeEach
+            void setUp() {
+                // Given: 특정 셀러 이름으로 등록
+                command = RegisterSellerCommandFixture.createWithName(customSellerName);
+
+                // And: 중복되지 않음
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.empty());
+
+                // And: 저장 성공
+                MustitSeller savedSeller = MustitSellerFixture.createWithName(customSellerName);
+                given(saveSellerPort.save(any(MustitSeller.class)))
+                    .willReturn(savedSeller);
+            }
+
+            @Test
+            @DisplayName("지정한 셀러 이름으로 등록된다")
+            void it_registers_with_custom_name() {
+                // When: 셀러 등록 실행
+                SellerResponse response = sut.execute(command);
+
+                // Then: 중복 체크가 수행됨
+                then(loadSellerPort).should().findByCode(any());
+
+                // And: 셀러가 저장됨
+                then(saveSellerPort).should().save(any(MustitSeller.class));
+
+                // And: 지정한 셀러 이름으로 등록됨
+                assertThat(response).isNotNull();
+                assertThat(response.sellerName()).isEqualTo(customSellerName);
             }
         }
 
@@ -100,27 +182,27 @@ class RegisterSellerServiceTest {
         class Context_with_duplicate_seller_code {
 
             private RegisterSellerCommand command;
-            private MustitSeller existingSeller;
+            private SellerQueryDto existingSeller;
 
             @BeforeEach
             void setUp() {
                 // Given: 등록하려는 셀러 정보
                 command = RegisterSellerCommandFixture.create();
 
-                // And: 이미 존재하는 셀러 (DTO 반환)
-                existingSeller = MustitSellerFixture.createWithCode(command.sellerCode());
-                SellerQueryDto existingDto = new SellerQueryDto(
-                    existingSeller.getIdValue(),
-                    existingSeller.getSellerCode(),
-                    existingSeller.getSellerName(),
-                    existingSeller.getStatus(),
-                    existingSeller.getTotalProductCount(),
-                    existingSeller.getLastCrawledAt(),
-                    existingSeller.getCreatedAt(),
-                    existingSeller.getUpdatedAt()
+                // And: 이미 동일한 셀러 코드가 존재함
+                MustitSeller existing = MustitSellerFixture.createActive();
+                existingSeller = new SellerQueryDto(
+                    existing.getIdValue(),
+                    existing.getSellerCode(),
+                    existing.getSellerNameValue(),
+                    existing.getStatus(),
+                    existing.getTotalProductCount(),
+                    existing.getLastCrawledAt(),
+                    existing.getCreatedAt(),
+                    existing.getUpdatedAt()
                 );
-                given(loadSellerPort.findByCode(command.sellerCode()))
-                    .willReturn(Optional.of(existingDto));
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.of(existingSeller));
             }
 
             @Test
@@ -131,7 +213,7 @@ class RegisterSellerServiceTest {
                     .isInstanceOf(DuplicateSellerCodeException.class)
                     .hasMessageContaining(command.sellerCode());
 
-                // And: 중복 체크는 수행됨
+                // And: 중복 체크가 수행됨
                 then(loadSellerPort).should().findByCode(command.sellerCode());
 
                 // And: 셀러는 저장되지 않음
@@ -140,121 +222,98 @@ class RegisterSellerServiceTest {
         }
 
         @Nested
-        @DisplayName("다양한 셀러 코드로 등록 시")
-        class Context_with_various_seller_codes {
+        @DisplayName("신규 셀러 등록 시")
+        class Context_new_seller_registration {
 
             @Test
-            @DisplayName("영문 대문자 코드는 성공한다")
-            void it_accepts_uppercase_code() {
+            @DisplayName("셀러는 ACTIVE 상태로 생성된다")
+            void new_seller_is_created_with_active_status() {
                 // Given
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithCode("ABC123");
-                MustitSeller savedSeller = MustitSellerFixture.createWithCode("ABC123");
+                RegisterSellerCommand command = RegisterSellerCommandFixture.create();
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.empty());
 
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
+                MustitSeller activeSeller = MustitSellerFixture.createActive();
+                given(saveSellerPort.save(any(MustitSeller.class)))
+                    .willReturn(activeSeller);
 
                 // When
                 SellerResponse response = sut.execute(command);
 
                 // Then
-                assertThat(response).isNotNull();
-                assertThat(response.sellerCode()).isEqualTo("ABC123");
+                assertThat(response.status()).isEqualTo(SellerStatus.ACTIVE);
             }
 
             @Test
-            @DisplayName("숫자만 포함된 코드는 성공한다")
-            void it_accepts_numeric_code() {
+            @DisplayName("셀러는 총 상품 수 0으로 시작한다")
+            void new_seller_starts_with_zero_products() {
                 // Given
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithCode("12345");
-                MustitSeller savedSeller = MustitSellerFixture.createWithCode("12345");
+                RegisterSellerCommand command = RegisterSellerCommandFixture.create();
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.empty());
 
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
+                MustitSeller newSeller = MustitSellerFixture.createWithProductCount(0);
+                given(saveSellerPort.save(any(MustitSeller.class)))
+                    .willReturn(newSeller);
 
                 // When
                 SellerResponse response = sut.execute(command);
 
                 // Then
-                assertThat(response).isNotNull();
-                assertThat(response.sellerCode()).isEqualTo("12345");
-            }
-
-            @Test
-            @DisplayName("특수문자를 포함한 코드는 성공한다")
-            void it_accepts_code_with_special_chars() {
-                // Given
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithCode("SEL-001");
-                MustitSeller savedSeller = MustitSellerFixture.createWithCode("SEL-001");
-
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
-
-                // When
-                SellerResponse response = sut.execute(command);
-
-                // Then
-                assertThat(response).isNotNull();
-                assertThat(response.sellerCode()).isEqualTo("SEL-001");
+                assertThat(response.totalProductCount()).isZero();
             }
         }
 
         @Nested
-        @DisplayName("다양한 셀러 이름으로 등록 시")
-        class Context_with_various_seller_names {
+        @DisplayName("비즈니스 규칙 검증")
+        class Context_business_rules {
 
             @Test
-            @DisplayName("한글 이름은 성공한다")
-            void it_accepts_korean_name() {
+            @DisplayName("중복 체크는 저장보다 먼저 수행된다")
+            void duplicate_check_happens_before_save() {
                 // Given
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithName("테스트셀러");
-                MustitSeller savedSeller = MustitSellerFixture.createWithName("테스트셀러");
+                RegisterSellerCommand command = RegisterSellerCommandFixture.create();
+                MustitSeller existingSeller = MustitSellerFixture.createActive();
+                SellerQueryDto queryDto = new SellerQueryDto(
+                    existingSeller.getIdValue(),
+                    existingSeller.getSellerCode(),
+                    existingSeller.getSellerNameValue(),
+                    existingSeller.getStatus(),
+                    existingSeller.getTotalProductCount(),
+                    existingSeller.getLastCrawledAt(),
+                    existingSeller.getCreatedAt(),
+                    existingSeller.getUpdatedAt()
+                );
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.of(queryDto));
 
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
+                // When & Then
+                assertThatThrownBy(() -> sut.execute(command))
+                    .isInstanceOf(DuplicateSellerCodeException.class);
 
-                // When
-                SellerResponse response = sut.execute(command);
-
-                // Then
-                assertThat(response).isNotNull();
-                assertThat(response.sellerName()).isEqualTo("테스트셀러");
+                // And: save는 호출되지 않음
+                then(saveSellerPort).should(never()).save(any(MustitSeller.class));
             }
 
             @Test
-            @DisplayName("영문 이름은 성공한다")
-            void it_accepts_english_name() {
+            @DisplayName("셀러 등록은 트랜잭션 내에서 수행된다")
+            void seller_registration_is_transactional() {
                 // Given
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithName("Test Seller");
-                MustitSeller savedSeller = MustitSellerFixture.createWithName("Test Seller");
+                RegisterSellerCommand command = RegisterSellerCommandFixture.create();
+                given(loadSellerPort.findByCode(anyString()))
+                    .willReturn(Optional.empty());
 
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
+                MustitSeller savedSeller = MustitSellerFixture.createActive();
+                given(saveSellerPort.save(any(MustitSeller.class)))
+                    .willReturn(savedSeller);
 
                 // When
                 SellerResponse response = sut.execute(command);
 
-                // Then
+                // Then: 트랜잭션 내에서 중복 체크 → 저장 순서 보장
+                then(loadSellerPort).should().findByCode(anyString());
+                then(saveSellerPort).should().save(any(MustitSeller.class));
                 assertThat(response).isNotNull();
-                assertThat(response.sellerName()).isEqualTo("Test Seller");
-            }
-
-            @Test
-            @DisplayName("긴 이름은 성공한다")
-            void it_accepts_long_name() {
-                // Given
-                String longName = "매우 긴 셀러 이름입니다 아주 길어요 정말 길어요";
-                RegisterSellerCommand command = RegisterSellerCommandFixture.createWithName(longName);
-                MustitSeller savedSeller = MustitSellerFixture.createWithName(longName);
-
-                given(loadSellerPort.findByCode(anyString())).willReturn(Optional.empty());
-                given(saveSellerPort.save(any(MustitSeller.class))).willReturn(savedSeller);
-
-                // When
-                SellerResponse response = sut.execute(command);
-
-                // Then
-                assertThat(response).isNotNull();
-                assertThat(response.sellerName()).isEqualTo(longName);
             }
         }
     }

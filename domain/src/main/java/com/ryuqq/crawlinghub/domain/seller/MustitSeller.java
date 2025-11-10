@@ -236,8 +236,12 @@ public class MustitSeller {
         return sellerCode.getValue();
     }
 
-    public String getSellerName() {
+    public String getSellerNameValue() {
         return sellerName.getValue();
+    }
+
+    public SellerName getSellerName(){
+        return sellerName;
     }
 
     public SellerStatus getStatus() {

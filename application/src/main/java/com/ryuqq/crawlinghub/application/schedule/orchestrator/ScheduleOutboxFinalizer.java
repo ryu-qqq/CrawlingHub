@@ -1,18 +1,14 @@
 package com.ryuqq.crawlinghub.application.schedule.orchestrator;
 
-import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxPort;
+import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-/**
- *
- */
-
+import java.util.Objects;
 
 /**
  * Schedule Outbox Finalizer (S3 Phase - Finalize)
@@ -21,26 +17,39 @@ import java.util.List;
  * <ul>
  *   <li>S1 (Accept): Facade가 DB + Outbox 저장 완료</li>
  *   <li>S2 (Execute): Processor가 Outbox를 읽고 EventBridge 호출</li>
- *   <li>S3 (Finalize): **이 Finalizer가 재시도 및 정리** ✅</li>
+ *   <li>S3 (Finalize): 이 Finalizer가 재시도 및 정리</li>
  * </ul>
  *
  * <p>핵심 책임:
  * <ul>
- *   <li>✅ 실패한 Outbox 재시도 (maxRetries 미만)</li>
- *   <li>✅ 완료된 Outbox 정리 (일정 시간 경과 후)</li>
- *   <li>✅ 영구 실패 Outbox 로깅 (재시도 초과)</li>
+ *   <li>실패한 Outbox 재시도 (maxRetries 미만)</li>
+ *   <li>완료된 Outbox 정리 (일정 시간 경과 후)</li>
+ *   <li>영구 실패 Outbox 로깅 (재시도 초과)</li>
  * </ul>
  *
  * <p>실행 주기:
  * <ul>
- *   <li>재시도: 10분마다 (`cron = "0 ㅁ/10 * * * *")</li>
- *   <li>정리: 매 시간 (`cron = "0 0 * * * *"`)</li>
+ *   <li>재시도: 10분마다 (cron = 0 ASTERISK-SLASH10 ASTERISK ASTERISK ASTERISK ASTERISK)</li>
+ *   <li>정리: 매 시간 (cron = 0 0 ASTERISK ASTERISK ASTERISK ASTERISK)</li>
  * </ul>
  *
- * @author 개발자
- * @since 2024-01-01
+ * <p><strong>트랜잭션 전략:</strong></p>
+ * <ul>
+ *   <li>Scheduled 메서드에는 Transactional 금지</li>
+ *   <li>StateManager가 트랜잭션 관리 담당</li>
+ *   <li>각 Outbox 처리는 독립 트랜잭션 (실패 격리)</li>
+ * </ul>
+ *
+ * <p><strong>컨벤션 준수:</strong></p>
+ * <ul>
+ *   <li>Pure Java Constructor (Lombok 금지)</li>
+ *   <li>Component (Spring Bean 등록)</li>
+ *   <li>StateManager 위임 (Port 직접 호출 금지)</li>
+ * </ul>
+ *
+ * @author ryu-qqq
+ * @since 2025-11-06
  */
-
 @Component
 public class ScheduleOutboxFinalizer {
 
@@ -52,10 +61,15 @@ public class ScheduleOutboxFinalizer {
      */
     private static final int RETENTION_HOURS = 24;
 
-    private final ScheduleOutboxPort outboxPort;
+    private final ScheduleOutboxStateManager stateManager;
 
-    public ScheduleOutboxFinalizer(ScheduleOutboxPort outboxPort) {
-        this.outboxPort = outboxPort;
+    /**
+     * 생성자
+     *
+     * @param stateManager Outbox 상태 관리자
+     */
+    public ScheduleOutboxFinalizer(ScheduleOutboxStateManager stateManager) {
+        this.stateManager = Objects.requireNonNull(stateManager, "stateManager must not be null");
     }
 
     /**
@@ -69,36 +83,43 @@ public class ScheduleOutboxFinalizer {
      *   <li>재시도 불가: 영구 실패 로깅</li>
      * </ol>
      *
-     * <p>실행 주기: 10분마다 (`cron = "0 ㅁ/10 * * * *"`)
+     * <p>실행 주기: 10분마다 (cron = 0 ASTERISK-SLASH10 ASTERISK ASTERISK ASTERISK ASTERISK)
+     *
+     * <p><strong>트랜잭션 관리:</strong></p>
+     * <ul>
+     *   <li>Scheduled 메서드에는 Transactional 금지</li>
+     *   <li>StateManager 메서드에 Transactional 위임</li>
+     *   <li>각 Outbox는 독립 트랜잭션으로 처리 (실패 격리)</li>
+     * </ul>
      */
     @Scheduled(cron = "0 */10 * * * *")
-    @Transactional
     public void retryFailedOutbox() {
-        List<SellerCrawlScheduleOutbox> failedOutboxes = outboxPort.findByOperationStateFailed();
+        List<ScheduleOutbox> failedOutboxes = stateManager.findByOperationStateFailed();
 
         if (failedOutboxes.isEmpty()) {
             return; // 실패 Outbox 없으면 조용히 종료
         }
 
-        log.info("🔄 실패 Outbox 재시도 시작: {} 건", failedOutboxes.size());
+        log.info("[RETRY] 실패 Outbox 재시도 시작: {} 건", failedOutboxes.size());
 
         int retryCount = 0;
         int permanentFailureCount = 0;
 
-        for (SellerCrawlScheduleOutbox outbox : failedOutboxes) {
+        for (ScheduleOutbox outbox : failedOutboxes) {
             if (outbox.canRetry()) {
                 // 재시도 가능: FAILED → PENDING 전환
+                // StateManager가 트랜잭션 내에서 처리
                 outbox.resetForRetry();
-                outboxPort.save(outbox);
+                stateManager.saveOutbox(outbox);
                 retryCount++;
 
-                log.info("♻️ Outbox 재시도 예약: ID={}, RetryCount={}/{}",
+                log.info("Outbox 재시도 예약: ID={}, RetryCount={}/{}",
                     outbox.getId(), outbox.getRetryCount(), outbox.getMaxRetries());
             } else {
                 // 재시도 불가: 영구 실패 (maxRetries 초과)
                 permanentFailureCount++;
 
-                log.error("💀 Outbox 영구 실패: ID={}, RetryCount={}/{}, Error={}",
+                log.error("[PERMANENT_FAILURE] Outbox 영구 실패: ID={}, RetryCount={}/{}, Error={}",
                     outbox.getId(), outbox.getRetryCount(), outbox.getMaxRetries(),
                     outbox.getErrorMessage());
 
@@ -107,7 +128,7 @@ public class ScheduleOutboxFinalizer {
             }
         }
 
-        log.info("✅ 재시도 완료: 재시도={}, 영구실패={}", retryCount, permanentFailureCount);
+        log.info("[RETRY_COMPLETE] 재시도 완료: 재시도={}, 영구실패={}", retryCount, permanentFailureCount);
     }
 
     /**
@@ -120,7 +141,7 @@ public class ScheduleOutboxFinalizer {
      *   <li>경과: DB에서 삭제 (디스크 공간 확보)</li>
      * </ol>
      *
-     * <p>실행 주기: 매 시간 (`cron = "0 0 * * * *"`)
+     * <p>실행 주기: 매 시간 (cron = 0 0 ASTERISK ASTERISK ASTERISK ASTERISK)
      *
      * <p>왜 정리가 필요한가?
      * <ul>
@@ -128,26 +149,33 @@ public class ScheduleOutboxFinalizer {
      *   <li>완료된 작업은 더 이상 필요 없음 (Idempotency는 24시간이면 충분)</li>
      *   <li>디스크 공간 확보</li>
      * </ul>
+     *
+     * <p><strong>트랜잭션 관리:</strong></p>
+     * <ul>
+     *   <li>Scheduled 메서드에는 Transactional 금지</li>
+     *   <li>StateManager 메서드에 Transactional 위임</li>
+     *   <li>각 Outbox는 독립 트랜잭션으로 삭제 (실패 격리)</li>
+     * </ul>
      */
     @Scheduled(cron = "0 0 * * * *")
-    @Transactional
     public void finalizeCompletedOutbox() {
-        List<SellerCrawlScheduleOutbox> completedOutboxes = outboxPort.findByWalStateCompleted();
+        List<ScheduleOutbox> completedOutboxes = stateManager.findByWalStateCompleted();
 
         if (completedOutboxes.isEmpty()) {
             return; // 완료 Outbox 없으면 조용히 종료
         }
 
-        log.info("🧹 완료 Outbox 정리 시작: 총 {} 건", completedOutboxes.size());
+        log.info("[CLEANUP] 완료 Outbox 정리 시작: 총 {} 건", completedOutboxes.size());
 
         int deletedCount = 0;
 
-        for (SellerCrawlScheduleOutbox outbox : completedOutboxes) {
+        for (ScheduleOutbox outbox : completedOutboxes) {
             if (outbox.isOldEnough(RETENTION_HOURS)) {
-                outboxPort.delete(outbox);
+                // StateManager가 트랜잭션 내에서 삭제
+                stateManager.deleteOutbox(outbox);
                 deletedCount++;
 
-                log.debug("🗑️ Outbox 삭제: ID={}, CompletedAt={}, Age={}시간 경과",
+                log.debug("[DELETE] Outbox 삭제: ID={}, CompletedAt={}, Age={}시간 경과",
                     outbox.getId(),
                     outbox.getCompletedAt(),
                     java.time.Duration.between(outbox.getCompletedAt(), java.time.LocalDateTime.now()).toHours());
@@ -155,9 +183,9 @@ public class ScheduleOutboxFinalizer {
         }
 
         if (deletedCount > 0) {
-            log.info("✅ 정리 완료: {} 건 삭제 (보관 기간: {}시간)", deletedCount, RETENTION_HOURS);
+            log.info("[CLEANUP_COMPLETE] 정리 완료: {} 건 삭제 (보관 기간: {}시간)", deletedCount, RETENTION_HOURS);
         } else {
-            log.debug("ℹ️ 정리 대상 없음 (모두 {}시간 미만)", RETENTION_HOURS);
+            log.debug("[INFO] 정리 대상 없음 (모두 {}시간 미만)", RETENTION_HOURS);
         }
     }
 }

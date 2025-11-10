@@ -101,7 +101,7 @@ public class ScheduleOutbox {
         validateRequiredFields(sellerId, payload, idemKey);
 
         LocalDateTime now = LocalDateTime.now();
-        return new SellerCrawlScheduleOutbox(
+        return new ScheduleOutbox(
             null, // ID는 저장 시 생성
             null, // opId는 초기 null
             sellerId,
@@ -134,7 +134,7 @@ public class ScheduleOutbox {
         validateRequiredFields(sellerId, payload, idemKey);
 
         LocalDateTime now = LocalDateTime.now();
-        return new SellerCrawlScheduleOutbox(
+        return new ScheduleOutbox(
             null,
             null,
             sellerId,
@@ -182,7 +182,7 @@ public class ScheduleOutbox {
         if (id == null) {
             throw new IllegalArgumentException("DB reconstitute는 ID가 필수입니다");
         }
-        return new SellerCrawlScheduleOutbox(
+        return new ScheduleOutbox(
             id, opId, sellerId, idemKey, domain, eventType, bizKey, payload,
             outcomeJson, operationState, walState, errorMessage, retryCount,
             maxRetries, timeoutMillis, completedAt, createdAt, updatedAt
@@ -372,7 +372,7 @@ public class ScheduleOutbox {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        SellerCrawlScheduleOutbox that = (SellerCrawlScheduleOutbox) o;
+        ScheduleOutbox that = (ScheduleOutbox) o;
         return Objects.equals(id, that.id);
     }
 

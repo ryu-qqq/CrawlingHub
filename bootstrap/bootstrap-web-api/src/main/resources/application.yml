@@ -181,6 +181,34 @@ spring:
     fail-on-missing-locations: true
 
 # ===============================================
+# AWS Configuration
+# ===============================================
+aws:
+  # AWS Credentials
+  credentials:
+    access-key: ${AWS_ACCESS_KEY:your-access-key}
+    secret-key: ${AWS_SECRET_KEY:your-secret-key}
+
+  # AWS Region
+  region: ${AWS_REGION:ap-northeast-2}  # 서울 리전
+
+  # SQS FIFO Queue Configuration
+  sqs:
+    # Schedule Trigger Queue (FIFO)
+    # Queue Name은 반드시 .fifo로 끝나야 함
+    schedule-trigger-queue-name: ${AWS_SQS_SCHEDULE_TRIGGER_QUEUE:seller-crawl-schedule-trigger.fifo}
+
+    # EventBridge Target Queue (FIFO) - EventBridge가 메시지를 전송하는 Queue
+    # 동일한 Queue를 사용 (EventBridge Target ARN과 Listener Queue가 같음)
+    target-queue-url: ${AWS_SQS_TARGET_QUEUE_URL:https://sqs.ap-northeast-2.amazonaws.com/123456789012/seller-crawl-schedule-trigger.fifo}
+
+  # EventBridge Configuration (Outbound Adapter용)
+  eventbridge:
+    # EventBridge Target ARN (SQS Queue ARN)
+    target:
+      arn: ${AWS_EVENTBRIDGE_TARGET_ARN:arn:aws:sqs:ap-northeast-2:123456789012:seller-crawl-schedule-trigger.fifo}
+
+# ===============================================
 # Management & Actuator (모니터링)
 # ===============================================
 management:

@@ -198,19 +198,19 @@ public class ScheduleOutboxProcessor {
                 // Outcome 처리
                 if (outcome.isSuccess()) {
                     successCount++;
-                    log.debug("✅ Outbox 처리 성공: ID={}, Message={}", outbox.getId(), outcome.message());
+                    log.debug("Outbox 처리 성공: ID={}, Message={}", outbox.getId(), outcome.message());
                 } else {
                     failCount++;
-                    log.warn("❌ Outbox 처리 실패: ID={}, Error={}", outbox.getId(), outcome.errorCode());
+                    log.warn("Outbox 처리 실패: ID={}, Error={}", outbox.getId(), outcome.errorCode());
                 }
             } catch (Exception e) {
                 failCount++;
-                log.error("❌ Outbox 처리 예외 (ID: {}): {}", outbox.getId(), e.getMessage(), e);
+                log.error("Outbox 처리 예외 (ID: {}): {}", outbox.getId(), e.getMessage(), e);
                 // 개별 실패는 기록하고 계속 진행 (다른 Outbox 처리)
             }
         }
 
-        log.info("✅ Outbox 처리 완료: 성공={}, 실패={}", successCount, failCount);
+        log.info("Outbox 처리 완료: 성공={}, 실패={}", successCount, failCount);
     }
 
 }

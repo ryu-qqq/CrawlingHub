@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.useragent;
 
+import com.ryuqq.crawlinghub.domain.token.Token;
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.RateLimitExceededException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.TokenExpiredException;
@@ -27,10 +28,9 @@ public class UserAgent {
 
     private final UserAgentId id;
     private final String userAgentString;
-    private String currentToken;
+    private Token currentToken;  // ⭐ Token VO 사용
     private TokenStatus tokenStatus;
     private Integer remainingRequests;
-    private LocalDateTime tokenIssuedAt;
     private LocalDateTime rateLimitResetAt;
     private final Clock clock;
     private final LocalDateTime createdAt;
@@ -42,10 +42,9 @@ public class UserAgent {
     private UserAgent(
         UserAgentId id,
         String userAgentString,
-        String currentToken,
+        Token currentToken,
         TokenStatus tokenStatus,
         Integer remainingRequests,
-        LocalDateTime tokenIssuedAt,
         LocalDateTime rateLimitResetAt,
         Clock clock,
         LocalDateTime createdAt,
@@ -56,7 +55,6 @@ public class UserAgent {
         this.currentToken = currentToken;
         this.tokenStatus = tokenStatus;
         this.remainingRequests = remainingRequests;
-        this.tokenIssuedAt = tokenIssuedAt;
         this.rateLimitResetAt = rateLimitResetAt;
         this.clock = clock;
         this.createdAt = createdAt;
@@ -78,7 +76,6 @@ public class UserAgent {
         this.currentToken = null;
         this.tokenStatus = TokenStatus.IDLE;
         this.remainingRequests = MAX_REQUESTS_PER_HOUR;
-        this.tokenIssuedAt = null;
         this.rateLimitResetAt = null;
         this.clock = clock;
         this.createdAt = LocalDateTime.now(clock);
@@ -103,15 +100,14 @@ public class UserAgent {
     }
 
     /**
-     * DB reconstitute (모든 필드 포함)
+     * DB reconstitute (Token VO 사용)
      */
     public static UserAgent reconstitute(
         UserAgentId id,
         String userAgentString,
-        String currentToken,
+        Token currentToken,
         TokenStatus tokenStatus,
         Integer remainingRequests,
-        LocalDateTime tokenIssuedAt,
         LocalDateTime rateLimitResetAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -125,7 +121,6 @@ public class UserAgent {
             currentToken,
             tokenStatus,
             remainingRequests,
-            tokenIssuedAt,
             rateLimitResetAt,
             Clock.systemDefaultZone(),
             createdAt,
@@ -171,16 +166,15 @@ public class UserAgent {
     }
 
     /**
-     * 새 토큰 발급
+     * 새 토큰 발급 (Token VO 사용)
      */
-    public void issueNewToken(String token) {
-        if (token == null || token.isBlank()) {
+    public void issueNewToken(Token token) {
+        if (token == null) {
             throw new IllegalArgumentException("토큰은 필수입니다");
         }
         this.currentToken = token;
         this.tokenStatus = TokenStatus.IDLE;
         this.remainingRequests = MAX_REQUESTS_PER_HOUR;
-        this.tokenIssuedAt = LocalDateTime.now(clock);
         this.rateLimitResetAt = null;
         this.updatedAt = LocalDateTime.now(clock);
     }
@@ -210,14 +204,13 @@ public class UserAgent {
     }
 
     /**
-     * 토큰 만료 여부 확인
+     * 토큰 만료 여부 확인 (Token VO 활용)
      */
     public boolean isTokenExpired() {
-        if (tokenIssuedAt == null) {
+        if (currentToken == null) {
             return true;
         }
-        LocalDateTime expiryTime = tokenIssuedAt.plusHours(TOKEN_VALIDITY_HOURS);
-        return LocalDateTime.now(clock).isAfter(expiryTime);
+        return currentToken.isExpired(LocalDateTime.now(clock));
     }
 
     /**
@@ -256,7 +249,7 @@ public class UserAgent {
         return userAgentString;
     }
 
-    public String getCurrentToken() {
+    public Token getCurrentToken() {
         return currentToken;
     }
 
@@ -266,10 +259,6 @@ public class UserAgent {
 
     public Integer getRemainingRequests() {
         return remainingRequests;
-    }
-
-    public LocalDateTime getTokenIssuedAt() {
-        return tokenIssuedAt;
     }
 
     public LocalDateTime getRateLimitResetAt() {

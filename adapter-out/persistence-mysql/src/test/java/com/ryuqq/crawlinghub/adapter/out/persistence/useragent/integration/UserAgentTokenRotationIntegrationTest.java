@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository.UserAg
 import com.ryuqq.crawlinghub.application.useragent.assembler.UserAgentAssembler;
 import com.ryuqq.crawlinghub.application.useragent.port.out.LoadUserAgentPort;
 import com.ryuqq.crawlinghub.application.useragent.port.out.SaveUserAgentPort;
+import com.ryuqq.crawlinghub.domain.token.Token;
 import com.ryuqq.crawlinghub.domain.useragent.TokenStatus;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgentFixture;
@@ -20,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,7 +74,7 @@ class UserAgentTokenRotationIntegrationTest {
         void it_saves_user_agent_with_token() {
             // Given
             UserAgent userAgent = UserAgentFixture.create();
-            String token = "test-token-12345";
+            Token token = Token.of("test-token-12345", LocalDateTime.now(), LocalDateTime.now().plusHours(24));
 
             // When: 토큰 발급 및 저장
             userAgent.issueNewToken(token);
@@ -97,8 +99,9 @@ class UserAgentTokenRotationIntegrationTest {
             // Given
             UserAgent userAgent1 = UserAgentFixture.createChrome();
             UserAgent userAgent2 = UserAgentFixture.createFirefox();
-            String token1 = "token-chrome-123";
-            String token2 = "token-firefox-456";
+            LocalDateTime now = LocalDateTime.now();
+            Token token1 = Token.of("token-chrome-123", now, now.plusHours(24));
+            Token token2 = Token.of("token-firefox-456", now, now.plusHours(24));
 
             // When
             userAgent1.issueNewToken(token1);
@@ -126,9 +129,10 @@ class UserAgentTokenRotationIntegrationTest {
             UserAgent userAgent2 = UserAgentFixture.createCanMakeRequest(80); // 남은 요청 80 (가장 많음)
             UserAgent userAgent3 = UserAgentFixture.createCanMakeRequest(50); // 남은 요청 50
 
-            userAgent1.issueNewToken("token-1");
-            userAgent2.issueNewToken("token-2");
-            userAgent3.issueNewToken("token-3");
+            LocalDateTime now = LocalDateTime.now();
+            userAgent1.issueNewToken(Token.of("token-1", now, now.plusHours(24)));
+            userAgent2.issueNewToken(Token.of("token-2", now, now.plusHours(24)));
+            userAgent3.issueNewToken(Token.of("token-3", now, now.plusHours(24)));
 
             saveUserAgentPort.save(userAgent1);
             UserAgent saved2 = saveUserAgentPort.save(userAgent2);
@@ -149,7 +153,8 @@ class UserAgentTokenRotationIntegrationTest {
         void it_selects_user_agent_after_consuming_requests() {
             // Given: UserAgent 생성 및 저장
             UserAgent userAgent = UserAgentFixture.createCanMakeRequest(80);
-            userAgent.issueNewToken("token-123");
+            LocalDateTime now = LocalDateTime.now();
+            userAgent.issueNewToken(Token.of("token-123", now, now.plusHours(24)));
             UserAgent saved = saveUserAgentPort.save(userAgent);
 
             // When: 요청 소비
@@ -180,7 +185,8 @@ class UserAgentTokenRotationIntegrationTest {
         void it_recovers_from_rate_limit_and_becomes_available() {
             // Given: UserAgent 생성 및 Rate Limit 발생
             UserAgent userAgent = UserAgentFixture.createCanMakeRequest(80);
-            userAgent.issueNewToken("token-123");
+            LocalDateTime now = LocalDateTime.now();
+            userAgent.issueNewToken(Token.of("token-123", now, now.plusHours(24)));
             UserAgent saved = saveUserAgentPort.save(userAgent);
 
             // And: Rate Limit 발생
@@ -221,9 +227,10 @@ class UserAgentTokenRotationIntegrationTest {
             UserAgent userAgent2 = UserAgentFixture.createFirefox();
             UserAgent userAgent3 = UserAgentFixture.create();
 
-            userAgent1.issueNewToken("token-chrome");
-            userAgent2.issueNewToken("token-firefox");
-            userAgent3.issueNewToken("token-default");
+            LocalDateTime now = LocalDateTime.now();
+            userAgent1.issueNewToken(Token.of("token-chrome", now, now.plusHours(24)));
+            userAgent2.issueNewToken(Token.of("token-firefox", now, now.plusHours(24)));
+            userAgent3.issueNewToken(Token.of("token-default", now, now.plusHours(24)));
 
             saveUserAgentPort.save(userAgent1);
             saveUserAgentPort.save(userAgent2);

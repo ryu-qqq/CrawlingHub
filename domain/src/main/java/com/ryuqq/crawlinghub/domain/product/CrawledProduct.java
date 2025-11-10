@@ -19,7 +19,7 @@ import java.util.Objects;
 public class CrawledProduct {
 
     private final ProductId id;
-    private final String mustitItemNo;
+    private final Long mustItItemNo;
     private final MustitSellerId sellerId;
     private ProductData miniShopData;
     private ProductData detailData;
@@ -38,7 +38,7 @@ public class CrawledProduct {
      */
     private CrawledProduct(
         ProductId id,
-        String mustitItemNo,
+        Long mustItItemNo,
         MustitSellerId sellerId,
         ProductData miniShopData,
         ProductData detailData,
@@ -53,7 +53,7 @@ public class CrawledProduct {
         LocalDateTime updatedAt
     ) {
         this.id = id;
-        this.mustitItemNo = mustitItemNo;
+        this.mustItItemNo = mustItItemNo;
         this.sellerId = sellerId;
         this.miniShopData = miniShopData;
         this.detailData = detailData;
@@ -73,15 +73,15 @@ public class CrawledProduct {
      */
     CrawledProduct(
         ProductId id,
-        String mustitItemNo,
+        Long mustItItemNo,
         MustitSellerId sellerId,
         Clock clock
     ) {
-        validateRequiredFields(mustitItemNo, sellerId);
+        validateRequiredFields(mustItItemNo, sellerId);
 
         LocalDateTime now = LocalDateTime.now(clock);
         this.id = id;
-        this.mustitItemNo = mustitItemNo;
+        this.mustItItemNo = mustItItemNo;
         this.sellerId = sellerId;
         this.miniShopData = null;
         this.detailData = null;
@@ -99,18 +99,18 @@ public class CrawledProduct {
     /**
      * 신규 상품 생성 (ID 없음)
      */
-    public static CrawledProduct forNew(String mustitItemNo, MustitSellerId sellerId) {
-        return new CrawledProduct(null, mustitItemNo, sellerId, Clock.systemDefaultZone());
+    public static CrawledProduct forNew(Long mustItItemNo, MustitSellerId sellerId) {
+        return new CrawledProduct(null, mustItItemNo, sellerId, Clock.systemDefaultZone());
     }
 
     /**
      * 기존 상품 생성 (ID 있음)
      */
-    public static CrawledProduct of(ProductId id, String mustitItemNo, MustitSellerId sellerId) {
+    public static CrawledProduct of(ProductId id, Long mustItItemNo, MustitSellerId sellerId) {
         if (id == null) {
             throw new IllegalArgumentException("Product ID는 필수입니다");
         }
-        return new CrawledProduct(id, mustitItemNo, sellerId, Clock.systemDefaultZone());
+        return new CrawledProduct(id, mustItItemNo, sellerId, Clock.systemDefaultZone());
     }
 
     /**
@@ -118,7 +118,7 @@ public class CrawledProduct {
      */
     public static CrawledProduct reconstitute(
         ProductId id,
-        String mustitItemNo,
+        Long mustItItemNo,
         MustitSellerId sellerId,
         ProductData miniShopData,
         ProductData detailData,
@@ -136,7 +136,7 @@ public class CrawledProduct {
         }
         return new CrawledProduct(
             id,
-            mustitItemNo,
+            mustItItemNo,
             sellerId,
             miniShopData,
             detailData,
@@ -152,8 +152,8 @@ public class CrawledProduct {
         );
     }
 
-    private static void validateRequiredFields(String mustitItemNo, MustitSellerId sellerId) {
-        if (mustitItemNo == null || mustitItemNo.isBlank()) {
+    private static void validateRequiredFields(Long mustItItemNo, MustitSellerId sellerId) {
+        if (mustItItemNo == null ) {
             throw new IllegalArgumentException("머스트잇 상품 번호는 필수입니다");
         }
         if (sellerId == null) {
@@ -262,8 +262,8 @@ public class CrawledProduct {
         return id != null ? id.value() : null;
     }
 
-    public String getMustitItemNo() {
-        return mustitItemNo;
+    public Long getMustitItemNo() {
+        return mustItItemNo;
     }
 
     public Long getSellerIdValue() {
@@ -331,7 +331,7 @@ public class CrawledProduct {
     public String toString() {
         return "CrawledProduct{" +
             "id=" + id +
-            ", mustitItemNo='" + mustitItemNo + '\'' +
+            ", mustItItemNo='" + mustItItemNo + '\'' +
             ", sellerId=" + sellerId +
             ", version=" + version +
             ", status=" + status +

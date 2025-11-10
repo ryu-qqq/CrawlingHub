@@ -194,7 +194,7 @@ public class ScheduleQueryAdapter implements LoadSchedulePort {
         return switch (entityStatus) {
             case ACTIVE -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.ACTIVE;
             case SUSPENDED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED;
-            case DELETED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.DELETED;
+            case DELETED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED; // DELETED는 SUSPENDED로 매핑
         };
     }
 }

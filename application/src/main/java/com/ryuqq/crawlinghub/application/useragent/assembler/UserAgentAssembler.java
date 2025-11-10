@@ -2,10 +2,13 @@ package com.ryuqq.crawlinghub.application.useragent.assembler;
 
 import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentQueryDto;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentResponse;
+import com.ryuqq.crawlinghub.domain.token.Token;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgentId;
 
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 /**
  * UserAgent Assembler
@@ -36,7 +39,7 @@ public class UserAgentAssembler {
             userAgent.getUserAgentString(),
             userAgent.getTokenStatus(),
             userAgent.getRemainingRequests(),
-            userAgent.getTokenIssuedAt(),
+            userAgent.getCurrentToken() != null ? userAgent.getCurrentToken().getIssuedAt() : null,
             userAgent.getRateLimitResetAt(),
             userAgent.getCreatedAt(),
             userAgent.getUpdatedAt()
@@ -58,13 +61,18 @@ public class UserAgentAssembler {
             throw new IllegalArgumentException("dto must not be null");
         }
 
+        Token token = null;
+        if (dto.currentToken() != null && dto.tokenIssuedAt() != null) {
+            LocalDateTime expiresAt = dto.tokenIssuedAt().plusHours(24);
+            token = Token.of(dto.currentToken(), dto.tokenIssuedAt(), expiresAt);
+        }
+
         return UserAgent.reconstitute(
             UserAgentId.of(dto.id()),
             dto.userAgentString(),
-            dto.currentToken(),
+            token,
             dto.tokenStatus(),
             dto.remainingRequests(),
-            dto.tokenIssuedAt(),
             dto.rateLimitResetAt(),
             dto.createdAt(),
             dto.updatedAt()

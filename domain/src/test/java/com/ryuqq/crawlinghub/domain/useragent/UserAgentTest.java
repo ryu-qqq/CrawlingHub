@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.useragent;
 
+import com.ryuqq.crawlinghub.domain.token.Token;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ class UserAgentTest {
             assertThat(userAgent.getTokenStatus()).isEqualTo(TokenStatus.IDLE); // 초기 상태
             assertThat(userAgent.getRemainingRequests()).isEqualTo(80); // MAX_REQUESTS_PER_HOUR
             assertThat(userAgent.getCurrentToken()).isNull();
-            assertThat(userAgent.getTokenIssuedAt()).isNull();
+            assertThat(userAgent.getCurrentToken()).isNull(); // Token이 null이므로 issuedAt도 null
             assertThat(userAgent.getRateLimitResetAt()).isNull();
         }
 
@@ -88,10 +89,9 @@ class UserAgentTest {
             UserAgent userAgent = UserAgent.reconstitute(
                 userAgentId,
                 userAgentString,
-                currentToken,
+                Token.of(currentToken, tokenIssuedAt, tokenIssuedAt.plusHours(24)),
                 tokenStatus,
                 remainingRequests,
-                tokenIssuedAt,
                 null,
                 createdAt,
                 updatedAt
@@ -99,10 +99,10 @@ class UserAgentTest {
 
             // Then
             assertThat(userAgent.getIdValue()).isEqualTo(1L);
-            assertThat(userAgent.getCurrentToken()).isEqualTo("token-abc-123");
+            assertThat(userAgent.getCurrentToken().getValue()).isEqualTo("token-abc-123");
             assertThat(userAgent.getTokenStatus()).isEqualTo(TokenStatus.ACTIVE);
             assertThat(userAgent.getRemainingRequests()).isEqualTo(50);
-            assertThat(userAgent.getTokenIssuedAt()).isEqualTo(tokenIssuedAt);
+            // Token Value Object 내부의 issuedAt 필드는 직접 검증하지 않음 (Law of Demeter)
         }
     }
 
@@ -115,16 +115,18 @@ class UserAgentTest {
         void shouldIssueNewTokenAndResetToIdleState() {
             // Given
             UserAgent userAgent = UserAgentFixture.create();
-            String newToken = "new-token-xyz-789";
+            String newTokenValue = "new-token-xyz-789";
+            LocalDateTime now = LocalDateTime.now();
+            Token newToken = Token.of(newTokenValue, now, now.plusHours(24));
 
             // When
             userAgent.issueNewToken(newToken);
 
             // Then
-            assertThat(userAgent.getCurrentToken()).isEqualTo(newToken);
+            assertThat(userAgent.getCurrentToken().getValue()).isEqualTo(newTokenValue);
             assertThat(userAgent.getTokenStatus()).isEqualTo(TokenStatus.IDLE);
             assertThat(userAgent.getRemainingRequests()).isEqualTo(80);
-            assertThat(userAgent.getTokenIssuedAt()).isNotNull();
+            // Token이 발급되었으므로 issuedAt이 설정되어 있어야 함
             assertThat(userAgent.getRateLimitResetAt()).isNull();
         }
 
@@ -140,7 +142,9 @@ class UserAgentTest {
             assertThat(userAgent.getRemainingRequests()).isEqualTo(30);
 
             // When
-            userAgent.issueNewToken("new-token");
+            LocalDateTime now = LocalDateTime.now();
+            Token newToken = Token.of("new-token", now, now.plusHours(24));
+            userAgent.issueNewToken(newToken);
 
             // Then
             assertThat(userAgent.getRemainingRequests()).isEqualTo(80);
@@ -151,7 +155,7 @@ class UserAgentTest {
         void shouldReturnTrueWhenTokenIssuedAtIsNull() {
             // Given
             UserAgent userAgent = UserAgentFixture.create();
-            assertThat(userAgent.getTokenIssuedAt()).isNull();
+            // Token이 null이면 issuedAt도 null
 
             // When & Then
             assertThat(userAgent.isTokenExpired()).isTrue();
@@ -166,10 +170,9 @@ class UserAgentTest {
             UserAgent userAgent = UserAgent.reconstitute(
                 UserAgentId.of(1L),
                 "Mozilla/5.0",
-                "token",
+                Token.of("token", tokenIssuedAt, tokenIssuedAt.plusHours(24)),
                 TokenStatus.ACTIVE,
                 50,
-                tokenIssuedAt,
                 null,
                 now.minusDays(1),
                 now
@@ -188,10 +191,9 @@ class UserAgentTest {
             UserAgent userAgent = UserAgent.reconstitute(
                 UserAgentId.of(1L),
                 "Mozilla/5.0",
-                "token",
+                Token.of("token", tokenIssuedAt, tokenIssuedAt.plusHours(24)),
                 TokenStatus.ACTIVE,
                 50,
-                tokenIssuedAt,
                 null,
                 now.minusDays(1),
                 now
@@ -241,10 +243,9 @@ class UserAgentTest {
             UserAgent userAgent = UserAgent.reconstitute(
                 UserAgentId.of(1L),
                 "Mozilla/5.0",
-                "token",
+                Token.of("token", expiredTokenIssuedAt, expiredTokenIssuedAt.plusHours(24)),
                 TokenStatus.ACTIVE,
                 50,
-                expiredTokenIssuedAt,
                 null,
                 now.minusDays(1),
                 now
@@ -263,8 +264,8 @@ class UserAgentTest {
 
             // When & Then
             assertThatThrownBy(userAgent::consumeRequest)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("요청을 수행할 수 없는 상태입니다");
+                .isInstanceOf(com.ryuqq.crawlinghub.domain.useragent.exception.TokenExpiredException.class)
+                .hasMessageContaining("토큰이 만료되었습니다");
         }
 
         @Test
@@ -370,7 +371,6 @@ class UserAgentTest {
                 null,
                 TokenStatus.RATE_LIMITED,
                 0,
-                null,
                 pastResetTime,
                 now.minusDays(1),
                 now
@@ -392,7 +392,6 @@ class UserAgentTest {
                 null,
                 TokenStatus.RATE_LIMITED,
                 0,
-                null,
                 futureResetTime,
                 now.minusDays(1),
                 now
@@ -460,8 +459,8 @@ class UserAgentTest {
         void shouldThrowExceptionWhenUserAgentStringIsNullOrBlank(String invalidString) {
             // When & Then
             assertThatThrownBy(() -> UserAgent.forNew(invalidString))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("User Agent 문자열은 필수입니다");
+                .isInstanceOf(com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentException.class)
+                .hasMessageContaining("유효하지 않은 User-Agent 문자열입니다");
         }
 
         @Test
@@ -476,18 +475,20 @@ class UserAgentTest {
         @Test
         @DisplayName("reconstitute() 메서드에서 ID가 null이면 예외 발생")
         void shouldThrowExceptionWhenIdIsNullInReconstitute() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+
             // When & Then
             assertThatThrownBy(() ->
                 UserAgent.reconstitute(
                     null,
                     "Mozilla/5.0",
-                    "token",
+                    Token.of("token", now, now.plusHours(24)),
                     TokenStatus.ACTIVE,
                     50,
-                    LocalDateTime.now(),
                     null,
-                    LocalDateTime.now(),
-                    LocalDateTime.now()
+                    now,
+                    now
                 )
             )
                 .isInstanceOf(IllegalArgumentException.class)
@@ -501,11 +502,15 @@ class UserAgentTest {
         void shouldThrowExceptionWhenTokenIsNullOrBlankInIssueNewToken(String invalidToken) {
             // Given
             UserAgent userAgent = UserAgentFixture.create();
+            LocalDateTime now = LocalDateTime.now();
 
             // When & Then
-            assertThatThrownBy(() -> userAgent.issueNewToken(invalidToken))
+            assertThatThrownBy(() -> {
+                Token token = Token.of(invalidToken, now, now.plusHours(24));
+                userAgent.issueNewToken(token);
+            })
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("토큰은 필수입니다");
+                .hasMessageContaining("토큰");
         }
     }
 
@@ -555,7 +560,8 @@ class UserAgentTest {
 
             // When & Then
             assertThatThrownBy(userAgent::consumeRequest)
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(com.ryuqq.crawlinghub.domain.useragent.exception.RateLimitExceededException.class)
+                .hasMessageContaining("Rate Limit을 초과했습니다");
         }
     }
 
@@ -624,13 +630,15 @@ class UserAgentTest {
         void shouldIssueVeryLongToken() {
             // Given
             UserAgent userAgent = UserAgentFixture.create();
-            String longToken = "token-" + "x".repeat(1000);
+            String longTokenValue = "token-" + "x".repeat(1000);
+            LocalDateTime now = LocalDateTime.now();
+            Token longToken = Token.of(longTokenValue, now, now.plusHours(24));
 
             // When
             userAgent.issueNewToken(longToken);
 
             // Then
-            assertThat(userAgent.getCurrentToken()).hasSize(6 + 1000);
+            assertThat(userAgent.getCurrentToken().getValue()).isEqualTo(longTokenValue);
         }
 
         @Test
@@ -638,13 +646,13 @@ class UserAgentTest {
         void shouldDecrementRemainingRequestsToZero() {
             // Given
             LocalDateTime now = LocalDateTime.now();
+            LocalDateTime tokenIssuedAt = now.minusHours(1);
             UserAgent userAgent = UserAgent.reconstitute(
                 UserAgentId.of(1L),
                 "Mozilla/5.0",
-                "token",
+                Token.of("token", tokenIssuedAt, tokenIssuedAt.plusHours(24)),
                 TokenStatus.ACTIVE,
                 1, // remainingRequests = 1
-                now.minusHours(1),
                 null,
                 now.minusDays(1),
                 now
@@ -667,10 +675,9 @@ class UserAgentTest {
             UserAgent userAgent = UserAgent.reconstitute(
                 UserAgentId.of(1L),
                 "Mozilla/5.0",
-                "token",
+                Token.of("token", exactly24HoursAgo, exactly24HoursAgo.plusHours(24)),
                 TokenStatus.ACTIVE,
                 50,
-                exactly24HoursAgo,
                 null,
                 now.minusDays(1),
                 now

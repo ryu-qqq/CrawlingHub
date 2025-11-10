@@ -12,9 +12,6 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerStatsPort;
 import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.seller.SellerCode;
-import com.ryuqq.crawlinghub.domain.seller.SellerName;
-import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
 /**
@@ -44,7 +41,7 @@ public class SellerAssembler {
         return new SellerResponse(
             seller.getIdValue(),
             seller.getSellerCode(),
-            seller.getSellerName(),
+            seller.getSellerNameValue(),
             seller.getStatus(),
             seller.getTotalProductCount(),
             seller.getLastCrawledAt(),
@@ -76,7 +73,7 @@ public class SellerAssembler {
         return new SellerDetailResponse(
             seller.getIdValue(),
             seller.getSellerCode(),
-            seller.getSellerName(),
+            seller.getSellerNameValue(),
             seller.getStatus().name(),
             seller.getTotalProductCount(),
             PageResponse.empty(0, 10), // 기본값
@@ -105,7 +102,7 @@ public class SellerAssembler {
         return new SellerDetailResponse(
             seller.getIdValue(),
             seller.getSellerCode(),
-            seller.getSellerName(),
+            seller.getSellerNameValue(),
             seller.getStatus().name(),
             totalProductCount,
             productCountHistories,

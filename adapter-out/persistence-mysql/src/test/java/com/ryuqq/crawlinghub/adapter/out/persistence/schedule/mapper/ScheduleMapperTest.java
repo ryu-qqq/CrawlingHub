@@ -222,7 +222,7 @@ class ScheduleMapperTest {
                 CrawlSchedule schedule = sut.toDomain(entity);
 
                 // Then
-                assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.DELETED);
+                assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.SUSPENDED);
             }
         }
     }
