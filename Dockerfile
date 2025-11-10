@@ -1,8 +1,13 @@
 # ============================================================================
-# Multi-Stage Dockerfile for CrawlingHub API Server
+# Multi-Stage Dockerfile for CrawlingHub Applications
 # ============================================================================
 # Stage 1: Build
 # Stage 2: Runtime
+# ============================================================================
+# Usage:
+#   docker build --build-arg BOOTSTRAP=web-api -t crawlinghub:web-api .
+#   docker build --build-arg BOOTSTRAP=scheduler -t crawlinghub:scheduler .
+#   docker build --build-arg BOOTSTRAP=sqs-listener -t crawlinghub:sqs-listener .
 # ============================================================================
 
 # ============================================================================
@@ -13,6 +18,9 @@ FROM --platform=linux/amd64 gradle:8.5-jdk21-alpine AS builder
 
 LABEL maintainer="CrawlingHub Platform Team"
 LABEL stage="builder"
+
+# Bootstrap 애플리케이션 선택 (기본값: web-api)
+ARG BOOTSTRAP=web-api
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -27,15 +35,14 @@ COPY build.gradle.kts .
 # 모듈별 build.gradle.kts 파일 복사
 COPY domain/build.gradle.kts domain/
 COPY application/build.gradle.kts application/
-COPY adapter/adapter-in-admin-web/build.gradle.kts adapter/adapter-in-admin-web/
-COPY adapter/adapter-in-event/build.gradle.kts adapter/adapter-in-event/
-COPY adapter/adapter-out-persistence-jpa/build.gradle.kts adapter/adapter-out-persistence-jpa/
-COPY adapter/adapter-out-aws-s3/build.gradle.kts adapter/adapter-out-aws-s3/
-COPY adapter/adapter-out-aws-sqs/build.gradle.kts adapter/adapter-out-aws-sqs/
-COPY adapter/adapter-out-aws-eventbridge/build.gradle.kts adapter/adapter-out-aws-eventbridge/
-COPY adapter/adapter-out-redis/build.gradle.kts adapter/adapter-out-redis/
-COPY adapter/adapter-out-mustit-api/build.gradle.kts adapter/adapter-out-mustit-api/
+COPY adapter-in/rest-api/build.gradle.kts adapter-in/rest-api/
+COPY adapter-out/persistence-mysql/build.gradle.kts adapter-out/persistence-mysql/
+COPY adapter-out/persistence-redis/build.gradle.kts adapter-out/persistence-redis/
+COPY adapter-out/aws-eventbridge/build.gradle.kts adapter-out/aws-eventbridge/
+COPY adapter-out/http-client/build.gradle.kts adapter-out/http-client/
 COPY bootstrap/bootstrap-web-api/build.gradle.kts bootstrap/bootstrap-web-api/
+COPY bootstrap/bootstrap-scheduler/build.gradle.kts bootstrap/bootstrap-scheduler/
+COPY bootstrap/bootstrap-sqs-listener/build.gradle.kts bootstrap/bootstrap-sqs-listener/
 
 # 의존성 다운로드 (캐시 레이어)
 RUN gradle dependencies --no-daemon || true
@@ -43,11 +50,12 @@ RUN gradle dependencies --no-daemon || true
 # 전체 소스 코드 복사
 COPY . .
 
-# Gradle 빌드 실행 (테스트 제외)
-RUN gradle :bootstrap:bootstrap-web-api:bootJar --no-daemon -x test
+# Gradle 빌드 실행 (clean 후 테스트 제외)
+# clean: QueryDSL Q클래스 충돌 방지
+RUN gradle clean :bootstrap:bootstrap-${BOOTSTRAP}:bootJar --no-daemon -x test
 
 # JAR 파일 위치 확인 및 이름 변경
-RUN mv bootstrap/bootstrap-web-api/build/libs/*.jar app.jar
+RUN mv bootstrap/bootstrap-${BOOTSTRAP}/build/libs/*.jar app.jar
 
 # ============================================================================
 # Stage 2: Runtime Stage
@@ -55,8 +63,11 @@ RUN mv bootstrap/bootstrap-web-api/build/libs/*.jar app.jar
 FROM --platform=linux/amd64 eclipse-temurin:21-jre-alpine
 
 LABEL maintainer="CrawlingHub Platform Team"
-LABEL service="api-server"
-LABEL version="1.0.0"
+LABEL service="crawlinghub"
+
+# Bootstrap 애플리케이션 선택 (기본값: web-api)
+ARG BOOTSTRAP=web-api
+ENV APP_NAME=${BOOTSTRAP}
 
 # 보안 및 운영을 위한 사용자 생성
 RUN addgroup -g 1001 -S appgroup && \
@@ -83,15 +94,16 @@ RUN chown -R appuser:appgroup /app
 # 애플리케이션 사용자로 전환
 USER appuser
 
-# 포트 노출
-EXPOSE 8080
+# 포트 노출 (web-api: 8080, scheduler: 9091, sqs-listener: 9092)
+EXPOSE 8080 9091 9092
 
 # JVM 메모리 설정 (환경변수로 오버라이드 가능)
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # 헬스체크 설정 (Spring Boot Actuator)
+# web-api: 8080, scheduler/sqs-listener: ACTUATOR_PORT 환경변수 사용
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:${ACTUATOR_PORT:-8080}/actuator/health || exit 1
 
 # 애플리케이션 실행
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

@@ -58,3 +58,5 @@ public interface LoadUserAgentPort {
     List<UserAgentQueryDto> findByStatus(TokenStatus status);
 }
 
+
+

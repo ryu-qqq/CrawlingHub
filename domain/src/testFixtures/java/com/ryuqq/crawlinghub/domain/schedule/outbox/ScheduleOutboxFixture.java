@@ -44,16 +44,10 @@ public class ScheduleOutboxFixture {
      * @return ScheduleOutbox
      */
     public static ScheduleOutbox create() {
-        return ScheduleOutbox.forNew(
-            null,  // opId는 나중에 설정
+        return ScheduleOutbox.forEventBridgeRegistration(
             DEFAULT_SELLER_ID,
-            DEFAULT_IDEM_KEY,
-            DEFAULT_DOMAIN,
-            DEFAULT_EVENT_TYPE,
-            DEFAULT_BIZ_KEY,
             DEFAULT_PAYLOAD,
-            DEFAULT_MAX_RETRIES,
-            DEFAULT_TIMEOUT_MILLIS
+            DEFAULT_IDEM_KEY
         );
     }
 
@@ -94,16 +88,10 @@ public class ScheduleOutboxFixture {
      * @return ScheduleOutbox
      */
     public static ScheduleOutbox createWithIdemKey(String idemKey) {
-        return ScheduleOutbox.forNew(
-            null,
+        return ScheduleOutbox.forEventBridgeRegistration(
             DEFAULT_SELLER_ID,
-            idemKey,
-            DEFAULT_DOMAIN,
-            DEFAULT_EVENT_TYPE,
-            DEFAULT_BIZ_KEY,
             DEFAULT_PAYLOAD,
-            DEFAULT_MAX_RETRIES,
-            DEFAULT_TIMEOUT_MILLIS
+            idemKey
         );
     }
 
@@ -259,16 +247,10 @@ public class ScheduleOutboxFixture {
      * @return ScheduleOutbox
      */
     public static ScheduleOutbox createWithSellerId(Long sellerId) {
-        return ScheduleOutbox.forNew(
-            null,
+        return ScheduleOutbox.forEventBridgeRegistration(
             sellerId,
-            DEFAULT_IDEM_KEY,
-            DEFAULT_DOMAIN,
-            DEFAULT_EVENT_TYPE,
-            DEFAULT_BIZ_KEY,
             DEFAULT_PAYLOAD,
-            DEFAULT_MAX_RETRIES,
-            DEFAULT_TIMEOUT_MILLIS
+            DEFAULT_IDEM_KEY
         );
     }
 
@@ -358,16 +340,10 @@ public class ScheduleOutboxFixture {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
 
         if (id == null) {
-            return ScheduleOutbox.forNew(
-                null,
+            return ScheduleOutbox.forEventBridgeRegistration(
                 sellerId,
-                idemKey,
-                DEFAULT_DOMAIN,
-                DEFAULT_EVENT_TYPE,
-                DEFAULT_BIZ_KEY,
                 DEFAULT_PAYLOAD,
-                DEFAULT_MAX_RETRIES,
-                DEFAULT_TIMEOUT_MILLIS
+                idemKey
             );
         }
 

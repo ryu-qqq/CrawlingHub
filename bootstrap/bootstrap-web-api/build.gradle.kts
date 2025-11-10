@@ -25,13 +25,14 @@ dependencies {
     // ========================================
     // Adapters
     // ========================================
-    // Inbound
+    // Inbound (REST API만)
     implementation(project(":adapter-in:rest-api"))
 
     // Outbound
     implementation(project(":adapter-out:persistence-mysql"))
     implementation(project(":adapter-out:persistence-redis"))
     implementation(project(":adapter-out:aws-eventbridge"))
+    implementation(project(":adapter-out:http-client"))
 
 
     // ========================================

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.seller.dto.command;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 
 /**
  * UpdateSellerStatusCommand Test Fixture

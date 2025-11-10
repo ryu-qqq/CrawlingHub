@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.crawl.schedule.dto.response;
 
 import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleResponse;
-import com.ryuqq.crawlinghub.domain.crawl.schedule.ScheduleStatus;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
 
 import java.time.LocalDateTime;
 

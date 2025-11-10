@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.seller.dto.response;
 
-import com.ryuqq.crawlinghub.domain.mustit.seller.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 
 import java.time.LocalDateTime;
 

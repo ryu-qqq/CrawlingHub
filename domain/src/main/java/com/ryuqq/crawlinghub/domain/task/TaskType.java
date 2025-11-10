@@ -4,6 +4,7 @@ package com.ryuqq.crawlinghub.domain.task;
  * 크롤링 작업 유형
  */
 public enum TaskType {
+    META(0, "메타"),
     MINI_SHOP(1, "미니샵"),
     PRODUCT_DETAIL(2, "상품 상세"),
     PRODUCT_OPTION(3, "상품 옵션");
