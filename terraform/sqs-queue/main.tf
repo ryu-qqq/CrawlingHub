@@ -39,7 +39,9 @@ locals {
     ManagedBy   = "terraform"
   }
 
-  queue_name = "${var.service_name}-schedule-trigger-${var.environment}.fifo"
+  queue_base_name = "${var.service_name}-schedule-trigger-${var.environment}"
+  queue_name      = "${local.queue_base_name}.fifo"
+  dlq_name        = "${local.queue_base_name}-dlq.fifo"
 }
 
 # ============================================================================
@@ -81,14 +83,14 @@ resource "aws_sqs_queue" "schedule_trigger" {
 # ============================================================================
 
 resource "aws_sqs_queue" "schedule_trigger_dlq" {
-  name                      = "${local.queue_name}-dlq"
+  name                      = local.dlq_name
   fifo_queue                = true
   message_retention_seconds = 1209600  # 14 days
 
   tags = merge(
     local.required_tags,
     {
-      Name      = "${local.queue_name}-dlq"
+      Name      = local.dlq_name
       Component = "sqs-fifo-dlq"
       Purpose   = "schedule-trigger-dlq"
     }
