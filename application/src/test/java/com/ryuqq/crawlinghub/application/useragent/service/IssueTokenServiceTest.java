@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -100,12 +102,14 @@ class IssueTokenServiceTest {
                 // And: DTO → Domain 변환이 수행됨
                 then(assembler).should().toDomain(queryDto);
 
-                // And: 토큰 발급이 수행됨 (Domain 메서드 호출)
-                assertThat(userAgent.getCurrentToken()).isEqualTo(command.token());
-                assertThat(userAgent.getTokenStatus().name()).isEqualTo("IDLE");
-
                 // And: UserAgent가 저장됨
-                then(saveUserAgentPort).should().save(userAgent);
+                ArgumentCaptor<UserAgent> captor = forClass(UserAgent.class);
+                then(saveUserAgentPort).should().save(captor.capture());
+
+                // And: 저장된 UserAgent는 토큰 발급이 완료된 상태
+                UserAgent savedAgent = captor.getValue();
+                assertThat(savedAgent.getCurrentToken().getValue()).isEqualTo(command.token());
+                assertThat(savedAgent.getTokenStatus().name()).isEqualTo("IDLE");
 
                 // And: 응답이 반환됨
                 assertThat(response).isNotNull();
