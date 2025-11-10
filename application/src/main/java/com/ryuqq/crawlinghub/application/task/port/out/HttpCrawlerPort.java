@@ -67,10 +67,17 @@ public interface HttpCrawlerPort {
         }
 
         /**
-         * 실패 응답 생성
+         * 실패 응답 생성 (HTTP 상태 코드 있음)
          */
         public static CrawlResponse failure(int statusCode, String error) {
             return new CrawlResponse(false, statusCode, null, error);
+        }
+
+        /**
+         * 실패 응답 생성 (HTTP 상태 코드 없음 - Network/Timeout 오류)
+         */
+        public static CrawlResponse failure(String error) {
+            return new CrawlResponse(false, null, null, error);
         }
     }
 }
