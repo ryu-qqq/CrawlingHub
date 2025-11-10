@@ -66,13 +66,47 @@ data "aws_iam_role" "github_actions" {
 }
 
 # ============================================================================
-# IAM Policies for GitHub Actions (Already attached - no changes needed)
+# IAM Policy for GitHub Actions - Read-Only IAM Access
 # ============================================================================
-# Note: The following policies are already attached to the IAM Role:
-# - ECRAccess: Docker push/pull permissions
-# - ECSAccess: Task definition and service update permissions
-# - TerraformAccess: S3 backend, DynamoDB lock, and describe permissions
-#
-# These were created during the initial terraform apply via GitHub Actions.
-# Atlantis does not need to manage these resources.
+# Purpose: Allow GitHub Actions to read IAM resources for terraform plan/apply
+# This policy is needed for managing infrastructure via GitHub Actions workflows
 # ============================================================================
+
+resource "aws_iam_policy" "github_actions_iam_read" {
+  name        = "${var.service_name}-${var.environment}-github-actions-iam-read"
+  description = "IAM read-only access for GitHub Actions Terraform workflows"
+  path        = "/"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "IAMReadOnly"
+        Effect = "Allow"
+        Action = [
+          "iam:GetOpenIDConnectProvider",
+          "iam:GetRole",
+          "iam:ListAttachedRolePolicies",
+          "iam:GetRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = merge(
+    local.required_tags,
+    {
+      Name      = "${var.service_name}-${var.environment}-github-actions-iam-read"
+      Component = "iam-policy"
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_iam_read" {
+  role       = data.aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_iam_read.arn
+}
