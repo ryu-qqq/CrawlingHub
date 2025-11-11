@@ -34,6 +34,7 @@ include("adapter-out:http-client")
 // ========================================
 // Bootstrap Modules (Runnable Applications)
 // ========================================
+include("bootstrap")  // ArchUnit Architecture Tests
 include("bootstrap:bootstrap-web-api")
 include("bootstrap:bootstrap-scheduler")
 include("bootstrap:bootstrap-sqs-listener")

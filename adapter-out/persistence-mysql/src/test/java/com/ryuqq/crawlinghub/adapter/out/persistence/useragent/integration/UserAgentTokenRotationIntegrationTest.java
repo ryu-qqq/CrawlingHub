@@ -44,9 +44,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({UserAgentCommandAdapter.class, UserAgentQueryAdapter.class, UserAgentAssembler.class})
+@Import({
+        UserAgentCommandAdapter.class,
+        UserAgentQueryAdapter.class,
+        com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper.UserAgentMapper.class,
+        UserAgentAssembler.class,
+        UserAgentTokenRotationIntegrationTest.TestConfig.class
+})
 @DisplayName("UserAgent 토큰 획득 및 로테이션 통합 테스트")
 class UserAgentTokenRotationIntegrationTest {
+
+    @org.springframework.boot.test.context.TestConfiguration
+    static class TestConfig {
+        @org.springframework.context.annotation.Bean
+        public com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory(jakarta.persistence.EntityManager entityManager) {
+            return new com.querydsl.jpa.impl.JPAQueryFactory(entityManager);
+        }
+    }
 
     @Autowired
     private UserAgentJpaRepository jpaRepository;
@@ -72,36 +86,54 @@ class UserAgentTokenRotationIntegrationTest {
         @Test
         @DisplayName("UserAgent를 생성하고 토큰을 발급하면 DB에 저장된다")
         void it_saves_user_agent_with_token() {
-            // Given
+            // Given: issuedAt를 먼저 고정하여 일관된 Token 생성
+            LocalDateTime issuedAt = LocalDateTime.now();
+            LocalDateTime expiresAt = issuedAt.plusHours(24);
+
             UserAgent userAgent = UserAgentFixture.create();
-            Token token = Token.of("test-token-12345", LocalDateTime.now(), LocalDateTime.now().plusHours(24));
+            Token token = Token.of("test-token-12345", issuedAt, expiresAt);
 
             // When: 토큰 발급 및 저장
             userAgent.issueNewToken(token);
             UserAgent saved = saveUserAgentPort.save(userAgent);
 
-            // Then
+            // Then: 저장된 UserAgent 검증
             assertThat(saved.getIdValue()).isNotNull();
-            assertThat(saved.getCurrentToken()).isEqualTo(token);
             assertThat(saved.getTokenStatus()).isEqualTo(TokenStatus.IDLE);
             assertThat(saved.getRemainingRequests()).isEqualTo(80);
+
+            // Token 필드 개별 검증 (Mapper가 expiresAt를 재계산하므로)
+            assertThat(saved.getCurrentToken()).isNotNull();
+            assertThat(saved.getCurrentToken().getValue()).isEqualTo("test-token-12345");
+            assertThat(saved.getCurrentToken().getIssuedAt()).isEqualTo(issuedAt);
+            assertThat(saved.getCurrentToken().getExpiresAt()).isEqualTo(expiresAt);
 
             // And: DB에서 조회 가능
             Optional<UserAgent> found = loadUserAgentPort.findById(UserAgentId.of(saved.getIdValue()))
                 .map(assembler::toDomain);
             assertThat(found).isPresent();
-            assertThat(found.get().getCurrentToken()).isEqualTo(token);
+
+            Token foundToken = found.get().getCurrentToken();
+            assertThat(foundToken).isNotNull();
+            assertThat(foundToken.getValue()).isEqualTo("test-token-12345");
+            assertThat(foundToken.getIssuedAt()).isEqualTo(issuedAt);
+            assertThat(foundToken.getExpiresAt()).isEqualTo(expiresAt);
         }
 
         @Test
         @DisplayName("여러 UserAgent에 토큰을 발급하고 모두 저장된다")
         void it_saves_multiple_user_agents_with_tokens() {
-            // Given
+            // Given: issuedAt를 먼저 고정하여 일관된 Token 생성
             UserAgent userAgent1 = UserAgentFixture.createChrome();
             UserAgent userAgent2 = UserAgentFixture.createFirefox();
-            LocalDateTime now = LocalDateTime.now();
-            Token token1 = Token.of("token-chrome-123", now, now.plusHours(24));
-            Token token2 = Token.of("token-firefox-456", now, now.plusHours(24));
+
+            LocalDateTime issuedAt1 = LocalDateTime.now();
+            LocalDateTime expiresAt1 = issuedAt1.plusHours(24);
+            Token token1 = Token.of("token-chrome-123", issuedAt1, expiresAt1);
+
+            LocalDateTime issuedAt2 = LocalDateTime.now();
+            LocalDateTime expiresAt2 = issuedAt2.plusHours(24);
+            Token token2 = Token.of("token-firefox-456", issuedAt2, expiresAt2);
 
             // When
             userAgent1.issueNewToken(token1);
@@ -112,8 +144,17 @@ class UserAgentTokenRotationIntegrationTest {
             // Then
             assertThat(saved1.getIdValue()).isNotNull();
             assertThat(saved2.getIdValue()).isNotNull();
-            assertThat(saved1.getCurrentToken()).isEqualTo(token1);
-            assertThat(saved2.getCurrentToken()).isEqualTo(token2);
+
+            // Token 필드 개별 검증 (Mapper가 expiresAt를 재계산하므로)
+            assertThat(saved1.getCurrentToken()).isNotNull();
+            assertThat(saved1.getCurrentToken().getValue()).isEqualTo("token-chrome-123");
+            assertThat(saved1.getCurrentToken().getIssuedAt()).isEqualTo(issuedAt1);
+            assertThat(saved1.getCurrentToken().getExpiresAt()).isEqualTo(expiresAt1);
+
+            assertThat(saved2.getCurrentToken()).isNotNull();
+            assertThat(saved2.getCurrentToken().getValue()).isEqualTo("token-firefox-456");
+            assertThat(saved2.getCurrentToken().getIssuedAt()).isEqualTo(issuedAt2);
+            assertThat(saved2.getCurrentToken().getExpiresAt()).isEqualTo(expiresAt2);
         }
     }
 

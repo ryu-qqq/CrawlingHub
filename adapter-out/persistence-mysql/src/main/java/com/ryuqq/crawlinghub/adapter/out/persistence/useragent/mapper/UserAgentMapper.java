@@ -53,7 +53,9 @@ public class UserAgentMapper {
                     userAgent.getTokenStatus(),
                     userAgent.getRemainingRequests(),
                     tokenIssuedAt,
-                    userAgent.getRateLimitResetAt()
+                    userAgent.getRateLimitResetAt(),
+                    userAgent.getCreatedAt(),  // ⭐ Audit 필드 전달
+                    userAgent.getUpdatedAt()   // ⭐ Audit 필드 전달
             );
         } else {
             return UserAgentEntity.create(

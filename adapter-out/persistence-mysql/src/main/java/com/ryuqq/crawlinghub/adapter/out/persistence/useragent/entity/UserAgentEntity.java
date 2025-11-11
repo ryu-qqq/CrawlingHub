@@ -80,6 +80,8 @@ public class UserAgentEntity extends BaseAuditEntity {
      * @param remainingRequests   남은 요청 수
      * @param tokenIssuedAt       토큰 발급 시간
      * @param rateLimitResetAt    Rate Limit 리셋 시간
+     * @param createdAt           생성 시간 (reconstitute 전용)
+     * @param updatedAt           수정 시간 (reconstitute 전용)
      */
     private UserAgentEntity(
             Long id,
@@ -88,9 +90,12 @@ public class UserAgentEntity extends BaseAuditEntity {
             TokenStatus tokenStatus,
             Integer remainingRequests,
             LocalDateTime tokenIssuedAt,
-            LocalDateTime rateLimitResetAt
+            LocalDateTime rateLimitResetAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
     ) {
-        super();
+        // ⭐ BaseAuditEntity의 protected 생성자 호출 (reconstitute 전용)
+        super(createdAt, updatedAt);
         this.id = id;
         this.userAgentString = userAgentString;
         this.currentToken = currentToken;
@@ -128,15 +133,19 @@ public class UserAgentEntity extends BaseAuditEntity {
         validateTokenStatus(tokenStatus);
         validateRemainingRequests(remainingRequests);
 
-        return new UserAgentEntity(
+        UserAgentEntity entity = new UserAgentEntity(
                 null,
                 userAgentString,
                 currentToken,
                 tokenStatus,
                 remainingRequests,
                 tokenIssuedAt,
-                rateLimitResetAt
+                rateLimitResetAt,
+                null,  // createdAt - initializeAuditFields()로 설정
+                null   // updatedAt - initializeAuditFields()로 설정
         );
+        entity.initializeAuditFields();
+        return entity;
     }
 
     /**
@@ -152,6 +161,8 @@ public class UserAgentEntity extends BaseAuditEntity {
      * @param remainingRequests   남은 요청 수
      * @param tokenIssuedAt       토큰 발급 시간
      * @param rateLimitResetAt    Rate Limit 리셋 시간
+     * @param createdAt           생성 시간
+     * @param updatedAt           수정 시간
      * @return 재구성된 Entity
      */
     public static UserAgentEntity reconstitute(
@@ -161,7 +172,9 @@ public class UserAgentEntity extends BaseAuditEntity {
             TokenStatus tokenStatus,
             Integer remainingRequests,
             LocalDateTime tokenIssuedAt,
-            LocalDateTime rateLimitResetAt
+            LocalDateTime rateLimitResetAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
     ) {
         return new UserAgentEntity(
                 id,
@@ -170,7 +183,9 @@ public class UserAgentEntity extends BaseAuditEntity {
                 tokenStatus,
                 remainingRequests,
                 tokenIssuedAt,
-                rateLimitResetAt
+                rateLimitResetAt,
+                createdAt,
+                updatedAt
         );
     }
 
