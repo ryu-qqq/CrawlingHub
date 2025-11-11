@@ -12,7 +12,7 @@
 # ============================================================================
 
 resource "aws_ecs_cluster" "crawlinghub" {
-  name = "${local.name_prefix}-cluster"
+  name = local.name_prefix
 
   setting {
     name  = "containerInsights"
@@ -22,7 +22,7 @@ resource "aws_ecs_cluster" "crawlinghub" {
   tags = merge(
     local.required_tags,
     {
-      Name      = "${local.name_prefix}-cluster"
+      Name      = local.name_prefix
       Component = "ecs"
     }
   )
