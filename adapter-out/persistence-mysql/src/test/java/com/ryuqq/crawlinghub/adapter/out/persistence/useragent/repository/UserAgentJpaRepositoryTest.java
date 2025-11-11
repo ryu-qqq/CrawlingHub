@@ -81,7 +81,9 @@ class UserAgentJpaRepositoryTest {
                 TokenStatus.ACTIVE,
                 50,
                 LocalDateTime.now(),
-                null
+                null,
+                saved.getCreatedAt(),  // ⭐ Audit 필드 전달
+                saved.getUpdatedAt()   // ⭐ Audit 필드 전달
             );
             UserAgentEntity updated = jpaRepository.save(reconstituted);
 

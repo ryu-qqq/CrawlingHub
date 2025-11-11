@@ -32,9 +32,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({UserAgentQueryAdapter.class}) // QueryAdapter만 로드
+@Import({UserAgentQueryAdapter.class, UserAgentQueryAdapterTest.TestConfig.class})
 @DisplayName("UserAgentQueryAdapter 통합 테스트")
 class UserAgentQueryAdapterTest {
+
+    @org.springframework.boot.test.context.TestConfiguration
+    static class TestConfig {
+        @org.springframework.context.annotation.Bean
+        public com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory(jakarta.persistence.EntityManager entityManager) {
+            return new com.querydsl.jpa.impl.JPAQueryFactory(entityManager);
+        }
+    }
 
     @Autowired
     private UserAgentJpaRepository jpaRepository;

@@ -46,8 +46,8 @@ out/
 
 # LangFuse telemetry (contains credentials)
 .langfuse.telemetry
-scripts/langfuse/__pycache__/
-scripts/langfuse/tests/__pycache__/
+langfuse/__pycache__/
+langfuse/tests/__pycache__/
 
 # Terraform
 .terraform/
