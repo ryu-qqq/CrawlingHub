@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 /**
  * ProductCountHistoryTest - ProductCountHistory 도메인 객체 단위 테스트
@@ -25,7 +25,7 @@ class ProductCountHistoryTest {
     @DisplayName("정상 케이스: 상품 수 이력 생성 성공")
     void record_success() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         Integer productCount = 100;
         LocalDateTime executedDate = LocalDateTime.now();
 
@@ -43,7 +43,7 @@ class ProductCountHistoryTest {
     @DisplayName("예외 케이스: 상품 수 null 시 예외 발생")
     void record_fail_whenProductCountIsNull() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         Integer productCount = null;
         LocalDateTime executedDate = LocalDateTime.now();
 
@@ -57,7 +57,7 @@ class ProductCountHistoryTest {
     @DisplayName("예외 케이스: 상품 수 음수 시 예외 발생")
     void record_fail_whenProductCountIsNegative() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         Integer productCount = -1;
         LocalDateTime executedDate = LocalDateTime.now();
 
@@ -71,7 +71,7 @@ class ProductCountHistoryTest {
     @DisplayName("예외 케이스: 실행 날짜 null 시 예외 발생")
     void record_fail_whenExecutedDateIsNull() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         Integer productCount = 100;
         LocalDateTime executedDate = null;
 
@@ -85,7 +85,7 @@ class ProductCountHistoryTest {
     @DisplayName("정상 케이스: 동일 날짜 체크 성공")
     void isSameDate_success() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         LocalDateTime date1 = LocalDateTime.of(2025, 11, 5, 10, 0);
         LocalDateTime date2 = LocalDateTime.of(2025, 11, 5, 15, 0);
         ProductCountHistory history = ProductCountHistory.record(sellerId, 100, date1);
@@ -101,7 +101,7 @@ class ProductCountHistoryTest {
     @DisplayName("정상 케이스: 다른 날짜 체크 성공")
     void isSameDate_fail_whenDifferentDate() {
         // Given
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         LocalDateTime date1 = LocalDateTime.of(2025, 11, 5, 10, 0);
         LocalDateTime date2 = LocalDateTime.of(2025, 11, 6, 10, 0);
         ProductCountHistory history = ProductCountHistory.record(sellerId, 100, date1);
@@ -118,7 +118,7 @@ class ProductCountHistoryTest {
     void reconstitute_success() {
         // Given
         ProductCountHistoryId id = ProductCountHistoryId.of(1L);
-        MustitSellerId sellerId = MustitSellerId.of(1L);
+        MustItSellerId sellerId = MustItSellerId.of(1L);
         Integer productCount = 100;
         LocalDateTime executedDate = LocalDateTime.now();
 

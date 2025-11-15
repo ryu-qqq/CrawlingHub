@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.seller.port.out;
 
 import java.util.List;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
 /**
@@ -23,7 +23,7 @@ public interface LoadProductCountHistoryPort {
      * @param size 페이지 크기
      * @return ProductCountHistory 리스트
      */
-    List<ProductCountHistory> loadHistories(MustitSellerId sellerId, int page, int size);
+    List<ProductCountHistory> loadHistories(MustItSellerId sellerId, int page, int size);
 
     /**
      * 전체 이력 개수 조회
@@ -31,6 +31,6 @@ public interface LoadProductCountHistoryPort {
      * @param sellerId 셀러 ID
      * @return 전체 개수
      */
-    long countHistories(MustitSellerId sellerId);
+    long countHistories(MustItSellerId sellerId);
 }
 

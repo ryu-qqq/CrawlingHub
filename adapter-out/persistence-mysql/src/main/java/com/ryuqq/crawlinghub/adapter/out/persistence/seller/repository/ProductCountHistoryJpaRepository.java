@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProductCountHistoryJpaRepository extends JpaRepository<ProductCountHistoryEntity, Long> {
-    // Command 작업만 수행 (save, delete 등)
-    // 조회 메서드는 없음 ⭐
+
 }
 

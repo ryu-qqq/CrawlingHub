@@ -9,9 +9,8 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleHistoryResp
 import com.ryuqq.crawlinghub.application.seller.dto.response.ScheduleInfoResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerStatsPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
 /**
@@ -33,7 +32,7 @@ public class SellerAssembler {
      * @return SellerResponse
      * @throws IllegalArgumentException seller가 null인 경우
      */
-    public static SellerResponse toResponse(MustitSeller seller) {
+    public static SellerResponse toResponse(MustItSeller seller) {
         if (seller == null) {
             throw new IllegalArgumentException("seller must not be null");
         }
@@ -51,38 +50,6 @@ public class SellerAssembler {
     }
 
     /**
-     * Domain + Stats → DetailResponse DTO 변환 (Static 메서드 - 기존 호환성 유지)
-     *
-     * @param seller 도메인 셀러 객체 (null 불가)
-     * @param stats  셀러 통계 정보 (null 불가)
-     * @return SellerDetailResponse
-     * @throws IllegalArgumentException seller 또는 stats가 null인 경우
-     */
-    public static SellerDetailResponse toDetailResponse(
-        MustitSeller seller,
-        LoadSellerStatsPort.SellerStats stats
-    ) {
-        if (seller == null) {
-            throw new IllegalArgumentException("seller must not be null");
-        }
-        if (stats == null) {
-            throw new IllegalArgumentException("stats must not be null");
-        }
-
-        // 기존 SellerDetailResponse 구조는 변경되었으므로, 새로운 구조로 변환
-        return new SellerDetailResponse(
-            seller.getIdValue(),
-            seller.getSellerCode(),
-            seller.getSellerNameValue(),
-            seller.getStatus().name(),
-            seller.getTotalProductCount(),
-            PageResponse.empty(0, 10), // 기본값
-            null, // scheduleInfo
-            PageResponse.empty(0, 10) // 기본값
-        );
-    }
-
-    /**
      * SellerDetailResponse 생성 (확장된 버전) ⭐
      *
      * @param seller 셀러 Domain 객체
@@ -93,7 +60,7 @@ public class SellerAssembler {
      * @return SellerDetailResponse
      */
     public SellerDetailResponse toSellerDetailResponse(
-        MustitSeller seller,
+        MustItSeller seller,
         Integer totalProductCount,
         PageResponse<ProductCountHistoryResponse> productCountHistories,
         ScheduleInfoResponse scheduleInfo,
@@ -121,13 +88,13 @@ public class SellerAssembler {
      * @return MustitSeller Domain Model
      * @throws IllegalArgumentException dto가 null인 경우
      */
-    public MustitSeller toDomain(SellerQueryDto dto) {
+    public MustItSeller toDomain(SellerQueryDto dto) {
         if (dto == null) {
             throw new IllegalArgumentException("dto must not be null");
         }
 
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(dto.id()),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(dto.id()),
             dto.sellerCode(),
             dto.sellerName(),
             dto.status(),

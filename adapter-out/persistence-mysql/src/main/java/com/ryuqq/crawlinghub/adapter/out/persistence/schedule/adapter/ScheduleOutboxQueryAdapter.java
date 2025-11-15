@@ -1,44 +1,31 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.adapter;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.dto.ScheduleOutboxQueryDto;
-import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleOutboxEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.ScheduleOutboxQueryDslRepository;
 import com.ryuqq.crawlinghub.application.schedule.port.out.ScheduleOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QScheduleOutboxEntity.scheduleOutboxEntity;
-
 /**
- * ScheduleOutbox Query Adapter (CQRS - Query, QueryDSL)
+ * ScheduleOutbox Query Adapter - CQRS Query Adapter (읽기 전용)
  *
- * <p><strong>책임:</strong></p>
+ * <p><strong>CQRS 패턴 적용 - Query 작업만 수행 ⭐</strong></p>
  * <ul>
- *   <li>✅ R (Read) 작업 전담</li>
- *   <li>✅ QueryDSL Projections.constructor() 사용</li>
- *   <li>✅ DTO 직접 반환 후 Domain 변환</li>
+ *   <li>✅ Read 작업 전용 (Orchestration 패턴 지원)</li>
+ *   <li>✅ QueryDSL DTO Projection으로 직접 조회 → Domain 변환</li>
+ *   <li>✅ N+1 문제 방지</li>
+ *   <li>✅ ScheduleOutboxQueryDslRepository 사용</li>
  * </ul>
  *
- * <p><strong>CQRS 패턴:</strong></p>
+ * <p><strong>주의사항:</strong></p>
  * <ul>
- *   <li>✅ Query (읽기) 전용 Adapter</li>
- *   <li>✅ Command (쓰기)는 ScheduleOutboxCommandAdapter에 위임</li>
- *   <li>✅ JPAQueryFactory 사용</li>
- * </ul>
- *
- * <p><strong>컨벤션 준수:</strong></p>
- * <ul>
- *   <li>✅ Lombok 금지 - Pure Java Constructor</li>
- *   <li>✅ @Component (Spring Bean 등록)</li>
- *   <li>✅ Objects.requireNonNull() 검증</li>
- *   <li>✅ QueryDSL Projections.constructor() 사용</li>
- *   <li>✅ DTO Record 패턴</li>
+ *   <li>❌ Write 작업은 ScheduleOutboxCommandAdapter에서 처리</li>
+ *   <li>❌ Command 작업은 이 Adapter에서 금지</li>
+ *   <li>✅ DTO → Domain 변환은 Adapter에서 처리</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -47,15 +34,15 @@ import static com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QSch
 @Component
 public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
 
-    private final JPAQueryFactory queryFactory;
+    private final ScheduleOutboxQueryDslRepository queryDslRepository;
 
     /**
-     * 생성자
+     * Adapter 생성자
      *
-     * @param queryFactory JPAQueryFactory
+     * @param queryDslRepository QueryDSL Repository
      */
-    public ScheduleOutboxQueryAdapter(JPAQueryFactory queryFactory) {
-        this.queryFactory = Objects.requireNonNull(queryFactory, "queryFactory must not be null");
+    public ScheduleOutboxQueryAdapter(ScheduleOutboxQueryDslRepository queryDslRepository) {
+        this.queryDslRepository = Objects.requireNonNull(queryDslRepository, "queryDslRepository must not be null");
     }
 
     /**
@@ -63,7 +50,7 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
      *
      * <p><strong>처리 흐름:</strong></p>
      * <ol>
-     *   <li>QueryDSL로 DTO 조회</li>
+     *   <li>ScheduleOutboxQueryDslRepository로 DTO 조회</li>
      *   <li>DTO → Domain 변환</li>
      * </ol>
      *
@@ -73,33 +60,8 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
     public Optional<ScheduleOutbox> findByIdemKey(String idemKey) {
         Objects.requireNonNull(idemKey, "idemKey must not be null");
 
-        ScheduleOutboxQueryDto dto = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.idemKey.eq(idemKey))
-            .fetchOne();
-
-        return Optional.ofNullable(dto).map(this::toDomain);
+        return queryDslRepository.findByIdemKey(idemKey)
+            .map(this::toDomain);
     }
 
     /**
@@ -111,13 +73,7 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
     public boolean existsByIdemKey(String idemKey) {
         Objects.requireNonNull(idemKey, "idemKey must not be null");
 
-        Integer count = queryFactory
-            .selectOne()
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.idemKey.eq(idemKey))
-            .fetchFirst();
-
-        return count != null;
+        return queryDslRepository.existsByIdemKey(idemKey);
     }
 
     /**
@@ -128,34 +84,8 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
      * @return PENDING 상태의 Outbox 목록
      */
     public List<ScheduleOutbox> findByWalStatePending() {
-        List<ScheduleOutboxQueryDto> dtos = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.walState.eq(ScheduleOutbox.WriteAheadState.PENDING))
-            .orderBy(scheduleOutboxEntity.createdAt.asc())
-            .fetch();
-
-        return dtos.stream()
+        return queryDslRepository.findByWalStatePending()
+            .stream()
             .map(this::toDomain)
             .toList();
     }
@@ -168,37 +98,8 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
      * @return FAILED 상태의 Outbox 목록
      */
     public List<ScheduleOutbox> findByOperationStateFailed() {
-        List<ScheduleOutboxQueryDto> dtos = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(
-                scheduleOutboxEntity.operationState.eq(ScheduleOutbox.OperationState.FAILED),
-                scheduleOutboxEntity.retryCount.lt(scheduleOutboxEntity.maxRetries)
-            )
-            .orderBy(scheduleOutboxEntity.createdAt.asc())
-            .fetch();
-
-        return dtos.stream()
+        return queryDslRepository.findByOperationStateFailed()
+            .stream()
             .map(this::toDomain)
             .toList();
     }
@@ -211,34 +112,8 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
      * @return COMPLETED 상태의 Outbox 목록
      */
     public List<ScheduleOutbox> findByWalStateCompleted() {
-        List<ScheduleOutboxQueryDto> dtos = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.walState.eq(ScheduleOutbox.WriteAheadState.COMPLETED))
-            .orderBy(scheduleOutboxEntity.createdAt.asc())
-            .fetch();
-
-        return dtos.stream()
+        return queryDslRepository.findByWalStateCompleted()
+            .stream()
             .map(this::toDomain)
             .toList();
     }
@@ -252,33 +127,9 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
     public ScheduleOutbox findByOpId(String opId) {
         Objects.requireNonNull(opId, "opId must not be null");
 
-        ScheduleOutboxQueryDto dto = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.opId.eq(opId))
-            .fetchOne();
-
-        return dto != null ? toDomain(dto) : null;
+        return queryDslRepository.findByOpId(opId)
+            .map(this::toDomain)
+            .orElse(null);
     }
 
     /**
@@ -290,34 +141,9 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
     public ScheduleOutbox findLatestBySellerId(Long sellerId) {
         Objects.requireNonNull(sellerId, "sellerId must not be null");
 
-        ScheduleOutboxQueryDto dto = queryFactory
-            .select(Projections.constructor(
-                ScheduleOutboxQueryDto.class,
-                scheduleOutboxEntity.id,
-                scheduleOutboxEntity.opId,
-                scheduleOutboxEntity.sellerId,
-                scheduleOutboxEntity.idemKey,
-                scheduleOutboxEntity.domain,
-                scheduleOutboxEntity.eventType,
-                scheduleOutboxEntity.bizKey,
-                scheduleOutboxEntity.payload,
-                scheduleOutboxEntity.outcomeJson,
-                scheduleOutboxEntity.operationState,
-                scheduleOutboxEntity.walState,
-                scheduleOutboxEntity.errorMessage,
-                scheduleOutboxEntity.retryCount,
-                scheduleOutboxEntity.maxRetries,
-                scheduleOutboxEntity.timeoutMillis,
-                scheduleOutboxEntity.completedAt,
-                scheduleOutboxEntity.createdAt,
-                scheduleOutboxEntity.updatedAt
-            ))
-            .from(scheduleOutboxEntity)
-            .where(scheduleOutboxEntity.sellerId.eq(sellerId))
-            .orderBy(scheduleOutboxEntity.createdAt.desc())
-            .fetchFirst();
-
-        return dto != null ? toDomain(dto) : null;
+        return queryDslRepository.findLatestBySellerId(sellerId)
+            .map(this::toDomain)
+            .orElse(null);
     }
 
     /**
@@ -329,22 +155,26 @@ public class ScheduleOutboxQueryAdapter implements ScheduleOutboxQueryPort {
     private ScheduleOutbox toDomain(ScheduleOutboxQueryDto dto) {
         Objects.requireNonNull(dto, "dto must not be null");
 
+        // RetryPolicy VO 생성
+        com.ryuqq.crawlinghub.domain.schedule.outbox.RetryPolicy retryPolicy =
+            new com.ryuqq.crawlinghub.domain.schedule.outbox.RetryPolicy(
+                dto.maxRetries(),
+                dto.retryCount(),
+                dto.timeoutMillis()
+            );
+
         return ScheduleOutbox.reconstitute(
             dto.id(),
             dto.opId(),
             dto.sellerId(),
             dto.idemKey(),
-            dto.domain(),
-            dto.eventType(),
-            dto.bizKey(),
+            dto.eventType(),  // EventType enum (이미 올바른 타입)
             dto.payload(),
             dto.outcomeJson(),
             dto.operationState(),
             dto.walState(),
             dto.errorMessage(),
-            dto.retryCount(),
-            dto.maxRetries(),
-            dto.timeoutMillis(),
+            retryPolicy,  // RetryPolicy VO
             dto.completedAt(),
             dto.createdAt(),
             dto.updatedAt()

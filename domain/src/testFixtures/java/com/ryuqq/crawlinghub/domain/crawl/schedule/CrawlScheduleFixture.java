@@ -4,7 +4,7 @@ import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -33,7 +33,7 @@ public class CrawlScheduleFixture {
      */
     public static CrawlSchedule create() {
         return CrawlSchedule.forNew(
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.create()
         );
     }
@@ -47,7 +47,7 @@ public class CrawlScheduleFixture {
     public static CrawlSchedule createWithId(Long id) {
         return CrawlSchedule.of(
             CrawlScheduleId.of(id),
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.create(),
             ScheduleStatus.ACTIVE
         );
@@ -61,7 +61,7 @@ public class CrawlScheduleFixture {
      */
     public static CrawlSchedule createWithSellerId(Long sellerId) {
         return CrawlSchedule.forNew(
-            MustitSellerId.of(sellerId),
+            MustItSellerId.of(sellerId),
             CronExpressionFixture.create()
         );
     }
@@ -74,7 +74,7 @@ public class CrawlScheduleFixture {
      */
     public static CrawlSchedule createWithCron(CronExpression cronExpression) {
         return CrawlSchedule.forNew(
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             cronExpression
         );
     }
@@ -87,7 +87,7 @@ public class CrawlScheduleFixture {
     public static CrawlSchedule createActive() {
         return CrawlSchedule.of(
             CrawlScheduleId.of(DEFAULT_ID),
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.create(),
             ScheduleStatus.ACTIVE
         );
@@ -101,7 +101,7 @@ public class CrawlScheduleFixture {
     public static CrawlSchedule createSuspended() {
         return CrawlSchedule.of(
             CrawlScheduleId.of(DEFAULT_ID),
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.create(),
             ScheduleStatus.SUSPENDED
         );
@@ -114,7 +114,7 @@ public class CrawlScheduleFixture {
      */
     public static CrawlSchedule createHourlySchedule() {
         return CrawlSchedule.forNew(
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.createHourly()
         );
     }
@@ -126,7 +126,7 @@ public class CrawlScheduleFixture {
      */
     public static CrawlSchedule createDailySchedule() {
         return CrawlSchedule.forNew(
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.createDaily()
         );
     }
@@ -147,7 +147,7 @@ public class CrawlScheduleFixture {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
         return CrawlSchedule.reconstitute(
             CrawlScheduleId.of(id),
-            MustitSellerId.of(sellerId),
+            MustItSellerId.of(sellerId),
             CronExpressionFixture.create(),
             status,
             now.plusHours(1),
@@ -167,7 +167,7 @@ public class CrawlScheduleFixture {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
         return CrawlSchedule.reconstitute(
             CrawlScheduleId.of(DEFAULT_ID),
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             CronExpressionFixture.create(),
             ScheduleStatus.ACTIVE,
             nextExecutionTime,
@@ -194,13 +194,13 @@ public class CrawlScheduleFixture {
     ) {
         if (id == null) {
             return CrawlSchedule.forNew(
-                MustitSellerId.of(sellerId),
+                MustItSellerId.of(sellerId),
                 cronExpression
             );
         }
         return CrawlSchedule.of(
             CrawlScheduleId.of(id),
-            MustitSellerId.of(sellerId),
+            MustItSellerId.of(sellerId),
             cronExpression,
             status
         );

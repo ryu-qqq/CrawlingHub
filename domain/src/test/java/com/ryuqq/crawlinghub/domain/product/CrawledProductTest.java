@@ -1,12 +1,9 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +37,7 @@ class CrawledProductTest {
         void shouldCreateNewProductWithValidInputs() {
             // Given
             Long mustItItemNo = 12345L;
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
 
             // When
             CrawledProduct product = CrawledProduct.forNew(mustItItemNo, sellerId);
@@ -64,7 +61,7 @@ class CrawledProductTest {
             // Given
             ProductId productId = ProductId.of(1L);
             Long mustItItemNo = 12345L;
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
 
             // When
             CrawledProduct product = CrawledProduct.of(productId, mustItItemNo, sellerId);
@@ -417,7 +414,7 @@ class CrawledProductTest {
         void shouldThrowExceptionWhenMustitItemNoIsNull() {
             // When & Then
             assertThatThrownBy(() ->
-                CrawledProduct.forNew(null, MustitSellerId.of(100L))
+                CrawledProduct.forNew(null, MustItSellerId.of(100L))
             )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("머스트잇 상품 번호는 필수입니다");
@@ -437,7 +434,7 @@ class CrawledProductTest {
         void shouldThrowExceptionWhenIdIsNullInOf() {
             // When & Then
             assertThatThrownBy(() ->
-                CrawledProduct.of(null, 12345L, MustitSellerId.of(100L))
+                CrawledProduct.of(null, 12345L, MustItSellerId.of(100L))
             )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Product ID는 필수입니다");
@@ -451,7 +448,7 @@ class CrawledProductTest {
                 CrawledProduct.reconstitute(
                     null,
                     12345L,
-                    MustitSellerId.of(100L),
+                    MustItSellerId.of(100L),
                     null,
                     null,
                     null,
@@ -611,7 +608,7 @@ class CrawledProductTest {
             Long largeItemNo = Long.MAX_VALUE;
 
             // When
-            CrawledProduct product = CrawledProduct.forNew(largeItemNo, MustitSellerId.of(100L));
+            CrawledProduct product = CrawledProduct.forNew(largeItemNo, MustItSellerId.of(100L));
 
             // Then
             assertThat(product.getMustitItemNo()).isEqualTo(largeItemNo);
@@ -624,7 +621,7 @@ class CrawledProductTest {
             CrawledProduct product = CrawledProduct.reconstitute(
                 ProductId.of(1L),
                 12345L,
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 null,
                 null,
                 null,

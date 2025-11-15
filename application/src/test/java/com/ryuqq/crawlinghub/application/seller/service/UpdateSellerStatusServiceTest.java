@@ -7,9 +7,9 @@ import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerFixture;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,8 +63,8 @@ class UpdateSellerStatusServiceTest {
         class Context_activate_seller {
 
             private UpdateSellerStatusCommand command;
-            private MustitSeller seller;
-            private MustitSeller activatedSeller;
+            private MustItSeller seller;
+            private MustItSeller activatedSeller;
 
             @BeforeEach
             void setUp() {
@@ -87,11 +87,11 @@ class UpdateSellerStatusServiceTest {
                     seller.getUpdatedAt()
                 );
 
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(seller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(activatedSeller);
             }
 
@@ -102,10 +102,10 @@ class UpdateSellerStatusServiceTest {
                 SellerResponse response = sut.execute(command);
 
                 // Then: 셀러 조회가 수행됨
-                then(loadSellerPort).should().findById(any(MustitSellerId.class));
+                then(loadSellerPort).should().findById(any(MustItSellerId.class));
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 활성화된 셀러 정보가 응답으로 반환됨
                 assertThat(response).isNotNull();
@@ -118,8 +118,8 @@ class UpdateSellerStatusServiceTest {
         class Context_pause_seller {
 
             private UpdateSellerStatusCommand command;
-            private MustitSeller seller;
-            private MustitSeller pausedSeller;
+            private MustItSeller seller;
+            private MustItSeller pausedSeller;
 
             @BeforeEach
             void setUp() {
@@ -141,11 +141,11 @@ class UpdateSellerStatusServiceTest {
                     seller.getCreatedAt(),
                     seller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(seller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(pausedSeller);
             }
 
@@ -156,10 +156,10 @@ class UpdateSellerStatusServiceTest {
                 SellerResponse response = sut.execute(command);
 
                 // Then: 셀러 조회가 수행됨
-                then(loadSellerPort).should().findById(any(MustitSellerId.class));
+                then(loadSellerPort).should().findById(any(MustItSellerId.class));
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 일시중지된 셀러 정보가 응답으로 반환됨
                 assertThat(response).isNotNull();
@@ -172,8 +172,8 @@ class UpdateSellerStatusServiceTest {
         class Context_disable_seller {
 
             private UpdateSellerStatusCommand command;
-            private MustitSeller seller;
-            private MustitSeller disabledSeller;
+            private MustItSeller seller;
+            private MustItSeller disabledSeller;
 
             @BeforeEach
             void setUp() {
@@ -195,11 +195,11 @@ class UpdateSellerStatusServiceTest {
                     seller.getCreatedAt(),
                     seller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(seller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(disabledSeller);
             }
 
@@ -210,10 +210,10 @@ class UpdateSellerStatusServiceTest {
                 SellerResponse response = sut.execute(command);
 
                 // Then: 셀러 조회가 수행됨
-                then(loadSellerPort).should().findById(any(MustitSellerId.class));
+                then(loadSellerPort).should().findById(any(MustItSellerId.class));
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 비활성화된 셀러 정보가 응답으로 반환됨
                 assertThat(response).isNotNull();
@@ -233,7 +233,7 @@ class UpdateSellerStatusServiceTest {
                 command = UpdateSellerStatusCommandFixture.createWithId(999L);
 
                 // And: 셀러를 찾을 수 없음
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.empty());
             }
 
@@ -246,10 +246,10 @@ class UpdateSellerStatusServiceTest {
                     .hasMessageContaining(command.sellerId().toString());
 
                 // And: 셀러 조회는 수행됨
-                then(loadSellerPort).should().findById(any(MustitSellerId.class));
+                then(loadSellerPort).should().findById(any(MustItSellerId.class));
 
                 // And: 셀러는 저장되지 않음
-                then(saveSellerPort).should(never()).save(any(MustitSeller.class));
+                then(saveSellerPort).should(never()).save(any(MustItSeller.class));
             }
         }
 
@@ -262,8 +262,8 @@ class UpdateSellerStatusServiceTest {
             void paused_to_active_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createActive();
-                MustitSeller pausedSeller = MustitSellerFixture.createPaused();
-                MustitSeller activeSeller = MustitSellerFixture.createActive();
+                MustItSeller pausedSeller = MustitSellerFixture.createPaused();
+                MustItSeller activeSeller = MustitSellerFixture.createActive();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
@@ -275,11 +275,11 @@ class UpdateSellerStatusServiceTest {
                     pausedSeller.getCreatedAt(),
                     pausedSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(pausedSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(activeSeller);
 
                 // When
@@ -294,8 +294,8 @@ class UpdateSellerStatusServiceTest {
             void disabled_to_active_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createActive();
-                MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
-                MustitSeller activeSeller = MustitSellerFixture.createActive();
+                MustItSeller disabledSeller = MustitSellerFixture.createDisabled();
+                MustItSeller activeSeller = MustitSellerFixture.createActive();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     disabledSeller.getIdValue(),
@@ -307,11 +307,11 @@ class UpdateSellerStatusServiceTest {
                     disabledSeller.getCreatedAt(),
                     disabledSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(disabledSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(activeSeller);
 
                 // When
@@ -326,8 +326,8 @@ class UpdateSellerStatusServiceTest {
             void active_to_disabled_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createDisabled();
-                MustitSeller activeSeller = MustitSellerFixture.createActive();
-                MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
+                MustItSeller activeSeller = MustitSellerFixture.createActive();
+                MustItSeller disabledSeller = MustitSellerFixture.createDisabled();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     activeSeller.getIdValue(),
@@ -339,11 +339,11 @@ class UpdateSellerStatusServiceTest {
                     activeSeller.getCreatedAt(),
                     activeSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(activeSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(disabledSeller);
 
                 // When
@@ -358,8 +358,8 @@ class UpdateSellerStatusServiceTest {
             void paused_to_disabled_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createDisabled();
-                MustitSeller pausedSeller = MustitSellerFixture.createPaused();
-                MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
+                MustItSeller pausedSeller = MustitSellerFixture.createPaused();
+                MustItSeller disabledSeller = MustitSellerFixture.createDisabled();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
@@ -371,11 +371,11 @@ class UpdateSellerStatusServiceTest {
                     pausedSeller.getCreatedAt(),
                     pausedSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(pausedSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(disabledSeller);
 
                 // When
@@ -395,7 +395,7 @@ class UpdateSellerStatusServiceTest {
             void active_to_active_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createActive();
-                MustitSeller activeSeller = MustitSellerFixture.createActive();
+                MustItSeller activeSeller = MustitSellerFixture.createActive();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     activeSeller.getIdValue(),
@@ -407,11 +407,11 @@ class UpdateSellerStatusServiceTest {
                     activeSeller.getCreatedAt(),
                     activeSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(activeSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(activeSeller);
 
                 // When
@@ -419,7 +419,7 @@ class UpdateSellerStatusServiceTest {
 
                 // Then
                 assertThat(response.status()).isEqualTo(SellerStatus.ACTIVE);
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
             }
 
             @Test
@@ -427,7 +427,7 @@ class UpdateSellerStatusServiceTest {
             void paused_to_paused_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createPaused();
-                MustitSeller pausedSeller = MustitSellerFixture.createPaused();
+                MustItSeller pausedSeller = MustitSellerFixture.createPaused();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     pausedSeller.getIdValue(),
@@ -439,11 +439,11 @@ class UpdateSellerStatusServiceTest {
                     pausedSeller.getCreatedAt(),
                     pausedSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(pausedSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(pausedSeller);
 
                 // When
@@ -451,7 +451,7 @@ class UpdateSellerStatusServiceTest {
 
                 // Then
                 assertThat(response.status()).isEqualTo(SellerStatus.PAUSED);
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
             }
 
             @Test
@@ -459,7 +459,7 @@ class UpdateSellerStatusServiceTest {
             void disabled_to_disabled_succeeds() {
                 // Given
                 UpdateSellerStatusCommand command = UpdateSellerStatusCommandFixture.createDisabled();
-                MustitSeller disabledSeller = MustitSellerFixture.createDisabled();
+                MustItSeller disabledSeller = MustitSellerFixture.createDisabled();
 
                 SellerQueryDto queryDto = new SellerQueryDto(
                     disabledSeller.getIdValue(),
@@ -471,11 +471,11 @@ class UpdateSellerStatusServiceTest {
                     disabledSeller.getCreatedAt(),
                     disabledSeller.getUpdatedAt()
                 );
-                given(loadSellerPort.findById(any(MustitSellerId.class)))
+                given(loadSellerPort.findById(any(MustItSellerId.class)))
                     .willReturn(Optional.of(queryDto));
                 given(sellerAssembler.toDomain(any(SellerQueryDto.class)))
                     .willReturn(disabledSeller);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(disabledSeller);
 
                 // When
@@ -483,7 +483,7 @@ class UpdateSellerStatusServiceTest {
 
                 // Then
                 assertThat(response.status()).isEqualTo(SellerStatus.DISABLED);
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
             }
         }
     }

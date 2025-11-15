@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawl.result;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
 import com.ryuqq.crawlinghub.domain.task.TaskType;
 
@@ -35,7 +35,7 @@ public class CrawlResult {
     private final CrawlResultId id;
     private final TaskId taskId;
     private final TaskType taskType;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
     private final String rawData;
     private final LocalDateTime crawledAt;
     private final LocalDateTime createdAt;
@@ -47,7 +47,7 @@ public class CrawlResult {
         CrawlResultId id,
         TaskId taskId,
         TaskType taskType,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String rawData,
         LocalDateTime crawledAt,
         LocalDateTime createdAt
@@ -74,7 +74,7 @@ public class CrawlResult {
     public static CrawlResult create(
         TaskId taskId,
         TaskType taskType,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String rawData,
         LocalDateTime crawledAt
     ) {
@@ -98,7 +98,7 @@ public class CrawlResult {
         CrawlResultId id,
         TaskId taskId,
         TaskType taskType,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String rawData,
         LocalDateTime crawledAt,
         LocalDateTime createdAt
@@ -120,7 +120,7 @@ public class CrawlResult {
     private static void validateRequiredFields(
         TaskId taskId,
         TaskType taskType,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String rawData,
         LocalDateTime crawledAt
     ) {
@@ -162,7 +162,7 @@ public class CrawlResult {
         return sellerId != null ? sellerId.value() : null;
     }
 
-    public MustitSellerId getSellerId() {
+    public MustItSellerId getSellerId() {
         return sellerId;
     }
 

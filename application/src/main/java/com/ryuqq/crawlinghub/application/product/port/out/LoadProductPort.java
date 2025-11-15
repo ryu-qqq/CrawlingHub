@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.product.port.out;
 
 import com.ryuqq.crawlinghub.domain.product.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.ProductId;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.util.Optional;
 
@@ -26,10 +26,10 @@ public interface LoadProductPort {
      *
      * <p>최초 크롤링 판단용
      */
-    Optional<CrawledProduct> findByMustitItemNoAndSellerId(Long mustItItemNo, MustitSellerId sellerId);
+    Optional<CrawledProduct> findByMustitItemNoAndSellerId(Long mustItItemNo, MustItSellerId sellerId);
 
     /**
      * 최초 크롤링 여부 확인
      */
-    boolean existsByMustitItemNoAndSellerId(Long mustItItemNo, MustitSellerId sellerId);
+    boolean existsByMustitItemNoAndSellerId(Long mustItItemNo, MustItSellerId sellerId);
 }

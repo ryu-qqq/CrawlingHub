@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class ProductSnapshot {
 
     private final ProductSnapshotId id;
     private final Long mustItItemNo;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
 
     // 미니샵 데이터
     private String productName;
@@ -55,7 +55,7 @@ public class ProductSnapshot {
     private ProductSnapshot(
         ProductSnapshotId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String productName,
         Long price,
         String mainImageUrl,
@@ -94,7 +94,7 @@ public class ProductSnapshot {
     ProductSnapshot(
         ProductSnapshotId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         Clock clock
     ) {
         validateRequiredFields(mustItItemNo, sellerId);
@@ -121,14 +121,14 @@ public class ProductSnapshot {
     /**
      * 신규 Snapshot 생성 (ID 없음)
      */
-    public static ProductSnapshot forNew(Long mustItItemNo, MustitSellerId sellerId) {
+    public static ProductSnapshot forNew(Long mustItItemNo, MustItSellerId sellerId) {
         return new ProductSnapshot(null, mustItItemNo, sellerId, Clock.systemDefaultZone());
     }
 
     /**
      * 기존 Snapshot 생성 (ID 있음)
      */
-    public static ProductSnapshot of(ProductSnapshotId id, Long mustItItemNo, MustitSellerId sellerId) {
+    public static ProductSnapshot of(ProductSnapshotId id, Long mustItItemNo, MustItSellerId sellerId) {
         if (id == null) {
             throw new IllegalArgumentException("ProductSnapshot ID는 필수입니다");
         }
@@ -141,7 +141,7 @@ public class ProductSnapshot {
     public static ProductSnapshot reconstitute(
         ProductSnapshotId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         String productName,
         Long price,
         String mainImageUrl,
@@ -169,7 +169,7 @@ public class ProductSnapshot {
         );
     }
 
-    private static void validateRequiredFields(Long mustItItemNo, MustitSellerId sellerId) {
+    private static void validateRequiredFields(Long mustItItemNo, MustItSellerId sellerId) {
         if (mustItItemNo == null) {
             throw new IllegalArgumentException("머스트잇 상품 번호는 필수입니다");
         }

@@ -4,14 +4,14 @@ import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.CreateSchedu
 import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.UpdateScheduleCommandFixture;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.CreateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateScheduleCommand;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleStateManager;
 import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleFixture;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -79,7 +79,7 @@ class ScheduleCommandFacadeEventTest {
 
             // Mock 설정: ScheduleStateManager.createSchedule() 호출 결과
             given(scheduleStateManager.createSchedule(
-                any(MustitSellerId.class),
+                any(MustItSellerId.class),
                 any(CronExpression.class),
                 any(LocalDateTime.class),
                 anyString()
@@ -94,7 +94,7 @@ class ScheduleCommandFacadeEventTest {
 
             // Then: ScheduleStateManager.createSchedule() 호출
             then(scheduleStateManager).should(times(1)).createSchedule(
-                any(MustitSellerId.class),
+                any(MustItSellerId.class),
                 any(CronExpression.class),
                 any(LocalDateTime.class),
                 anyString()

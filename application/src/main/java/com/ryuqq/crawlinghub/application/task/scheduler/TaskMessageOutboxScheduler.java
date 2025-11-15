@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.scheduler;
 
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
 import com.ryuqq.crawlinghub.application.task.port.out.PublishTaskMessagePort;
 import com.ryuqq.crawlinghub.domain.task.outbox.TaskMessageOutbox;
 import org.slf4j.Logger;

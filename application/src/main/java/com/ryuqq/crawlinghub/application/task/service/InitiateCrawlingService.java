@@ -2,12 +2,12 @@ package com.ryuqq.crawlinghub.application.task.service;
 
 
 import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingCommand;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
 import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
@@ -76,10 +76,10 @@ public class InitiateCrawlingService implements InitiateCrawlingUseCase {
     @Override
     @Transactional
     public void execute(InitiateCrawlingCommand command) {
-        MustitSellerId sellerId = MustitSellerId.of(command.sellerId());
+        MustItSellerId sellerId = MustItSellerId.of(command.sellerId());
 
         // 1. 셀러 상태 확인
-        MustitSeller seller = loadSellerPort.findById(sellerId)
+        MustItSeller seller = loadSellerPort.findById(sellerId)
             .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(command.sellerId()));
 

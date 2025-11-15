@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.ProductSnapshotEntity;
 import com.ryuqq.crawlinghub.domain.product.*;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -93,7 +93,7 @@ public class ProductSnapshotMapper {
         return ProductSnapshot.reconstitute(
             ProductSnapshotId.of(entity.getId()),
             entity.getMustItItemNo(),
-            MustitSellerId.of(entity.getSellerId()),
+            MustItSellerId.of(entity.getSellerId()),
             entity.getProductName(),
             entity.getPrice(),
             entity.getMainImageUrl(),

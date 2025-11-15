@@ -15,8 +15,8 @@ public class MustitSellerIdFixture {
      *
      * @return MustitSellerId
      */
-    public static MustitSellerId create() {
-        return MustitSellerId.of(DEFAULT_ID);
+    public static MustItSellerId create() {
+        return MustItSellerId.of(DEFAULT_ID);
     }
 
     /**
@@ -25,8 +25,8 @@ public class MustitSellerIdFixture {
      * @param id ID 값
      * @return MustitSellerId
      */
-    public static MustitSellerId createWithId(Long id) {
-        return MustitSellerId.of(id);
+    public static MustItSellerId createWithId(Long id) {
+        return MustItSellerId.of(id);
     }
 
     /**
@@ -34,7 +34,7 @@ public class MustitSellerIdFixture {
      *
      * @return null
      */
-    public static MustitSellerId createNull() {
+    public static MustItSellerId createNull() {
         return null;
     }
 }

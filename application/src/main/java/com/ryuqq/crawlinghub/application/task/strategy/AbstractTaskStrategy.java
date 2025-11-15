@@ -2,12 +2,12 @@ package com.ryuqq.crawlinghub.application.task.strategy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.crawlinghub.application.crawl.result.manager.CrawlResultManager;
+import com.ryuqq.crawlinghub.application.crawl.result.component.CrawlResultManager;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlResult;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlerFacade;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
 import org.slf4j.Logger;
@@ -132,7 +132,7 @@ public abstract class AbstractTaskStrategy<OUTPUT> implements TaskStrategy {
             Long crawlResultId = crawlResultManager.saveCrawlResult(
                 TaskId.of(task.getIdValue()),
                 task.getTaskType(),
-                MustitSellerId.of(task.getSellerIdValue()),
+                MustItSellerId.of(task.getSellerIdValue()),
                 rawData
             );
 

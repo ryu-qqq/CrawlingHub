@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingComman
 import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleFixture;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -76,7 +76,7 @@ class TriggerScheduleServiceTest {
                 // Mock: 실행 시간이 도래한 스케줄 (nextExecutionTime이 과거)
                 LocalDateTime pastExecutionTime = LocalDateTime.now().minusMinutes(5);
                 schedule = CrawlScheduleFixture.createWithNextExecution(pastExecutionTime);
-                given(loadSchedulePort.findActiveBySellerId(any(MustitSellerId.class)))
+                given(loadSchedulePort.findActiveBySellerId(any(MustItSellerId.class)))
                     .willReturn(Optional.of(schedule));
 
                 // Mock: 다음 실행 시간 계산
@@ -128,7 +128,7 @@ class TriggerScheduleServiceTest {
                 command = TriggerScheduleCommandFixture.create();
 
                 // And: 활성 스케줄을 찾을 수 없음
-                given(loadSchedulePort.findActiveBySellerId(any(MustitSellerId.class)))
+                given(loadSchedulePort.findActiveBySellerId(any(MustItSellerId.class)))
                     .willReturn(Optional.empty());
             }
 
@@ -141,7 +141,7 @@ class TriggerScheduleServiceTest {
                     .hasMessageContaining("활성 스케줄을 찾을 수 없습니다");
 
                 // And: 스케줄 조회는 수행됨
-                then(loadSchedulePort).should().findActiveBySellerId(any(MustitSellerId.class));
+                then(loadSchedulePort).should().findActiveBySellerId(any(MustItSellerId.class));
 
                 // And: 크롤링 Task는 생성되지 않음
                 then(initiateCrawlingUseCase).should(never()).execute(any(InitiateCrawlingCommand.class));
@@ -160,7 +160,7 @@ class TriggerScheduleServiceTest {
                 LocalDateTime pastExecutionTime = LocalDateTime.now().minusMinutes(5);
                 CrawlSchedule schedule = CrawlScheduleFixture.createWithNextExecution(pastExecutionTime);
 
-                given(loadSchedulePort.findActiveBySellerId(any(MustitSellerId.class)))
+                given(loadSchedulePort.findActiveBySellerId(any(MustItSellerId.class)))
                     .willReturn(Optional.of(schedule));
                 given(cronValidator.calculateNextExecution(anyString(), any(LocalDateTime.class)))
                     .willReturn(LocalDateTime.now().plusHours(24));
@@ -175,7 +175,7 @@ class TriggerScheduleServiceTest {
                     cronValidator,
                     saveSchedulePort
                 );
-                inOrder.verify(loadSchedulePort).findActiveBySellerId(any(MustitSellerId.class));
+                inOrder.verify(loadSchedulePort).findActiveBySellerId(any(MustItSellerId.class));
                 inOrder.verify(initiateCrawlingUseCase).execute(any(InitiateCrawlingCommand.class));
                 inOrder.verify(cronValidator).calculateNextExecution(anyString(), any(LocalDateTime.class));
                 inOrder.verify(saveSchedulePort).save(any(CrawlSchedule.class));
@@ -189,7 +189,7 @@ class TriggerScheduleServiceTest {
                 LocalDateTime pastExecutionTime = LocalDateTime.now().minusMinutes(5);
                 CrawlSchedule schedule = CrawlScheduleFixture.createWithNextExecution(pastExecutionTime);
 
-                given(loadSchedulePort.findActiveBySellerId(any(MustitSellerId.class)))
+                given(loadSchedulePort.findActiveBySellerId(any(MustItSellerId.class)))
                     .willReturn(Optional.of(schedule));
                 given(cronValidator.calculateNextExecution(anyString(), any(LocalDateTime.class)))
                     .willReturn(LocalDateTime.now().plusHours(24));
@@ -198,7 +198,7 @@ class TriggerScheduleServiceTest {
                 sut.execute(command);
 
                 // Then: 트랜잭션 내에서 조회 → Task 생성 → 저장 순서 보장
-                then(loadSchedulePort).should().findActiveBySellerId(any(MustitSellerId.class));
+                then(loadSchedulePort).should().findActiveBySellerId(any(MustItSellerId.class));
                 then(initiateCrawlingUseCase).should().execute(any(InitiateCrawlingCommand.class));
                 then(saveSchedulePort).should().save(any(CrawlSchedule.class));
             }

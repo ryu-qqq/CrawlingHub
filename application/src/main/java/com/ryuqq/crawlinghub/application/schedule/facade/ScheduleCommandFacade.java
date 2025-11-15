@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.CreateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleResponse;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleStateManager;
 import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,7 +104,7 @@ public class ScheduleCommandFacade {
 
         // 4. ScheduleStateManager를 통한 Schedule 생성 (Domain Event 자동 발행)
         CrawlSchedule savedSchedule = scheduleStateManager.createSchedule(
-            MustitSellerId.of(command.sellerId()),
+            MustItSellerId.of(command.sellerId()),
             CronExpression.of(command.cronExpression()),
             nextExecution,
             idemKey

@@ -5,10 +5,10 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.crawl.result.mapper.CrawlRe
 import com.ryuqq.crawlinghub.adapter.out.persistence.crawl.result.repository.CrawlResultJpaRepository;
 import com.ryuqq.crawlinghub.application.crawl.result.port.out.SaveCrawlResultPort;
 import com.ryuqq.crawlinghub.domain.crawl.result.CrawlResult;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+
+import org.springframework.stereotype.Component;
 
 /**
  * CrawlResult Command Adapter - CQRS Command Adapter (쓰기 전용)
@@ -60,7 +60,6 @@ public class CrawlResultCommandAdapter implements SaveCrawlResultPort {
      * @throws NullPointerException crawlResult가 null인 경우
      */
     @Override
-    @Transactional
     public CrawlResult save(CrawlResult crawlResult) {
         Objects.requireNonNull(crawlResult, "CrawlResult must not be null");
 

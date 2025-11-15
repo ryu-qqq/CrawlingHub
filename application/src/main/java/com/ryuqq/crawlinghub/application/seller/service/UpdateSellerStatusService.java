@@ -6,8 +6,8 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 
 import org.springframework.stereotype.Service;
@@ -54,8 +54,8 @@ public class UpdateSellerStatusService implements UpdateSellerStatusUseCase {
     @Transactional
     public SellerResponse execute(UpdateSellerStatusCommand command) {
         // 1. 셀러 조회 (DTO → Domain Model 변환)
-        MustitSellerId sellerId = MustitSellerId.of(command.sellerId());
-        MustitSeller seller = loadSellerPort.findById(sellerId)
+        MustItSellerId sellerId = MustItSellerId.of(command.sellerId());
+        MustItSeller seller = loadSellerPort.findById(sellerId)
             .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(command.sellerId()));
 
@@ -67,7 +67,7 @@ public class UpdateSellerStatusService implements UpdateSellerStatusUseCase {
         }
 
         // 3. 저장
-        MustitSeller updatedSeller = saveSellerPort.save(seller);
+        MustItSeller updatedSeller = saveSellerPort.save(seller);
 
         // 4. 응답 변환
         return SellerAssembler.toResponse(updatedSeller);

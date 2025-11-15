@@ -1,49 +1,60 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.crawl.result.entity;
 
+import com.ryuqq.crawlinghub.adapter.out.persistence.common.entity.BaseAuditEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
  * 크롤링 결과 Entity (Persistence Layer)
  *
+ * <p><strong>컨벤션 준수:</strong></p>
+ * <ul>
+ *   <li>✅ BaseAuditEntity 상속 - createdAt, updatedAt 자동 관리</li>
+ *   <li>✅ Lombok 금지 - Pure Java</li>
+ *   <li>✅ Long FK 전략 - taskId, sellerId는 Long 타입</li>
+ * </ul>
+ *
  * @author ryu-qqq
  * @since 2025-11-07
  */
 @Entity
-@Table(name = "CRAWL_RESULT")
-public class CrawlResultEntity {
+@Table(name = "crawl_result")
+public class CrawlResultEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "TASK_ID", nullable = false)
+    @Column(name = "task_id", nullable = false)
     private Long taskId;
 
-    @Column(name = "TASK_TYPE", nullable = false, length = 50)
+    @Column(name = "task_type", nullable = false, length = 50)
     private String taskType;
 
-    @Column(name = "SELLER_ID", nullable = false)
+    @Column(name = "seller_id", nullable = false)
     private Long sellerId;
 
-    @Column(name = "RAW_DATA", nullable = false, columnDefinition = "JSON")
+    @Column(name = "raw_data", nullable = false, columnDefinition = "JSON")
     private String rawData;
-
-    @Column(name = "CRAWLED_AT", nullable = false)
-    private LocalDateTime crawledAt;
-
-    @Column(name = "CREATED_AT", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     /**
      * JPA 전용 기본 생성자
      */
     protected CrawlResultEntity() {
+        super();
     }
 
     /**
      * 전체 생성자 (Reconstitute 전용)
+     *
+     * @param id ID
+     * @param taskId 작업 ID
+     * @param taskType 작업 타입
+     * @param sellerId 셀러 ID
+     * @param rawData 원본 데이터 (JSON)
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
      */
     public CrawlResultEntity(
         Long id,
@@ -51,37 +62,37 @@ public class CrawlResultEntity {
         String taskType,
         Long sellerId,
         String rawData,
-        LocalDateTime crawledAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
+        super(createdAt, updatedAt);
         this.id = id;
         this.taskId = taskId;
         this.taskType = taskType;
         this.sellerId = sellerId;
         this.rawData = rawData;
-        this.crawledAt = crawledAt;
-        this.createdAt = createdAt;
     }
 
     /**
      * 신규 생성용 생성자 (ID 없음)
+     *
+     * @param taskId 작업 ID
+     * @param taskType 작업 타입
+     * @param sellerId 셀러 ID
+     * @param rawData 원본 데이터 (JSON)
      */
     public CrawlResultEntity(
         Long taskId,
         String taskType,
         Long sellerId,
-        String rawData,
-        LocalDateTime crawledAt,
-        LocalDateTime createdAt
+        String rawData
     ) {
-        this(null, taskId, taskType, sellerId, rawData, crawledAt, createdAt);
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+        super();
+        this.taskId = taskId;
+        this.taskType = taskType;
+        this.sellerId = sellerId;
+        this.rawData = rawData;
+        initializeAuditFields();
     }
 
     // Getters
@@ -103,13 +114,5 @@ public class CrawlResultEntity {
 
     public String getRawData() {
         return rawData;
-    }
-
-    public LocalDateTime getCrawledAt() {
-        return crawledAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 }

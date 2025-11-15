@@ -3,13 +3,13 @@ package com.ryuqq.crawlinghub.application.task.strategy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.ryuqq.crawlinghub.application.crawl.result.manager.CrawlResultManager;
-import com.ryuqq.crawlinghub.application.product.manager.ProductManager;
+import com.ryuqq.crawlinghub.application.crawl.result.component.CrawlResultManager;
+import com.ryuqq.crawlinghub.application.product.component.ProductManager;
 import com.ryuqq.crawlinghub.application.task.dto.output.MiniShopOutput;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlerFacade;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerName;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import com.ryuqq.crawlinghub.domain.task.TriggerType;
@@ -79,7 +79,7 @@ public class MiniShopTaskStrategy extends AbstractTaskStrategy<MiniShopOutput> {
         log.info("상품 {}개 처리 시작", items.size());
 
         // 2. 셀러 정보 추출
-        MustitSellerId sellerId = MustitSellerId.of(task.getSellerIdValue());
+        MustItSellerId sellerId = MustItSellerId.of(task.getSellerIdValue());
         SellerName sellerName = task.getSellerName();
         LocalDateTime now = LocalDateTime.now();
 

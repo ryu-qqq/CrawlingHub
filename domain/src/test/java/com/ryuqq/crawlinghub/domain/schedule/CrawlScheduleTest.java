@@ -2,14 +2,13 @@ package com.ryuqq.crawlinghub.domain.schedule;
 
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -38,7 +37,7 @@ class CrawlScheduleTest {
         @DisplayName("유효한 값으로 새 CrawlSchedule 생성")
         void shouldCreateNewSchedule() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
 
             // When
@@ -68,7 +67,7 @@ class CrawlScheduleTest {
         @DisplayName("cronExpression이 null이면 IllegalArgumentException 발생")
         void shouldThrowExceptionForNullCronExpression() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
 
             // When & Then
             assertThatThrownBy(() -> CrawlSchedule.forNew(sellerId, null))
@@ -86,7 +85,7 @@ class CrawlScheduleTest {
         void shouldCreateExistingSchedule() {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
             ScheduleStatus status = ScheduleStatus.ACTIVE;
 
@@ -105,7 +104,7 @@ class CrawlScheduleTest {
         @DisplayName("id가 null이면 IllegalArgumentException 발생")
         void shouldThrowExceptionForNullId() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
             ScheduleStatus status = ScheduleStatus.ACTIVE;
 
@@ -134,7 +133,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionForNullCronExpression() {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             ScheduleStatus status = ScheduleStatus.ACTIVE;
 
             // When & Then
@@ -148,7 +147,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionForNullStatus() {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
 
             // When & Then
@@ -167,7 +166,7 @@ class CrawlScheduleTest {
         void shouldReconstituteSchedule() {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
             ScheduleStatus status = ScheduleStatus.ACTIVE;
             LocalDateTime nextExecutionTime = fixedNow.plusHours(1);
@@ -195,7 +194,7 @@ class CrawlScheduleTest {
         @DisplayName("reconstitute는 ID 필수")
         void shouldRequireIdForReconstitute() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
             ScheduleStatus status = ScheduleStatus.ACTIVE;
 
@@ -217,7 +216,7 @@ class CrawlScheduleTest {
         void shouldReturnEmptyEventsInitially() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
 
@@ -234,7 +233,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -258,7 +257,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -283,7 +282,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionWhenPublishingWithoutId() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
 
@@ -304,7 +303,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -333,7 +332,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -349,7 +348,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionWhenUpdatingWithoutId() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
             CronExpression newExpression = CronExpression.of("0 */5 * * * ?");
@@ -371,7 +370,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -390,7 +389,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -412,7 +411,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -435,7 +434,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -455,7 +454,7 @@ class CrawlScheduleTest {
             LocalDateTime futureTime = LocalDateTime.now().plusYears(1);
             CrawlSchedule schedule = CrawlSchedule.reconstitute(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE,
                 futureTime,  // 1년 후
@@ -477,7 +476,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -500,7 +499,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.SUSPENDED
             );
@@ -519,7 +518,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -543,7 +542,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -561,7 +560,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.SUSPENDED
             );
@@ -579,7 +578,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -597,7 +596,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -620,7 +619,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(123L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -637,7 +636,7 @@ class CrawlScheduleTest {
         void shouldReturnNullWhenIdIsNull() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
 
@@ -654,7 +653,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(999L),
+                MustItSellerId.of(999L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -673,7 +672,7 @@ class CrawlScheduleTest {
             String expression = "0 0 12 * * ?";
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of(expression),
                 ScheduleStatus.ACTIVE
             );
@@ -696,7 +695,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -716,7 +715,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionWhenCreatingPayloadWithoutId() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
 
@@ -794,7 +793,7 @@ class CrawlScheduleTest {
             LocalDateTime lastExecuted = fixedNow.minusHours(1);
             CrawlSchedule schedule = CrawlSchedule.reconstitute(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE,
                 nextExecution,
@@ -821,7 +820,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionWhenCreatingResponseWithoutId() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.forNew(
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *")
             );
 
@@ -842,10 +841,10 @@ class CrawlScheduleTest {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
             CrawlSchedule schedule1 = CrawlSchedule.of(
-                id, MustitSellerId.of(100L), CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
+                id, MustItSellerId.of(100L), CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
             CrawlSchedule schedule2 = CrawlSchedule.of(
-                id, MustitSellerId.of(200L), CronExpression.of("0 */5 * * * ?"), ScheduleStatus.SUSPENDED
+                id, MustItSellerId.of(200L), CronExpression.of("0 */5 * * * ?"), ScheduleStatus.SUSPENDED
             );
 
             // Then
@@ -858,11 +857,11 @@ class CrawlScheduleTest {
         void shouldNotBeEqualForDifferentId() {
             // Given
             CrawlSchedule schedule1 = CrawlSchedule.of(
-                CrawlScheduleId.of(1L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(1L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
             CrawlSchedule schedule2 = CrawlSchedule.of(
-                CrawlScheduleId.of(2L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(2L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
 
@@ -875,10 +874,10 @@ class CrawlScheduleTest {
         void shouldBeEqualWhenIdIsNull() {
             // Given
             CrawlSchedule schedule1 = CrawlSchedule.forNew(
-                MustitSellerId.of(100L), CronExpression.of("0 0 * * * *")
+                MustItSellerId.of(100L), CronExpression.of("0 0 * * * *")
             );
             CrawlSchedule schedule2 = CrawlSchedule.forNew(
-                MustitSellerId.of(100L), CronExpression.of("0 0 * * * *")
+                MustItSellerId.of(100L), CronExpression.of("0 0 * * * *")
             );
 
             // Then - Objects.equals(null, null) = true
@@ -890,7 +889,7 @@ class CrawlScheduleTest {
         void shouldNotBeEqualToNull() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
-                CrawlScheduleId.of(1L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(1L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
 
@@ -908,7 +907,7 @@ class CrawlScheduleTest {
         void shouldHaveNonNullToString() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
-                CrawlScheduleId.of(1L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(1L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
 
@@ -924,7 +923,7 @@ class CrawlScheduleTest {
         void shouldHaveNonEmptyToString() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
-                CrawlScheduleId.of(1L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(1L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
 
@@ -940,7 +939,7 @@ class CrawlScheduleTest {
         void shouldContainClassNameInToString() {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
-                CrawlScheduleId.of(1L), MustitSellerId.of(100L),
+                CrawlScheduleId.of(1L), MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"), ScheduleStatus.ACTIVE
             );
 
@@ -960,7 +959,7 @@ class CrawlScheduleTest {
         @DisplayName("새 스케줄 생성 → 이벤트 발행 → 실행 시간 계산 시나리오")
         void shouldHandleNewScheduleCreationScenario() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpression.of("0 0 * * * *");
 
             // When
@@ -990,7 +989,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -1015,7 +1014,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );
@@ -1037,7 +1036,7 @@ class CrawlScheduleTest {
             // Given
             CrawlSchedule schedule = CrawlSchedule.of(
                 CrawlScheduleId.of(1L),
-                MustitSellerId.of(100L),
+                MustItSellerId.of(100L),
                 CronExpression.of("0 0 * * * *"),
                 ScheduleStatus.ACTIVE
             );

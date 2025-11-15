@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.dto.ScheduleQueryDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleEntity;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -42,14 +44,14 @@ public class ScheduleMapper {
         Long id = schedule.getIdValue();
         Long sellerId = schedule.getSellerIdValue();
         String cronExpression = schedule.getCronExpressionValue();
-        ScheduleEntity.ScheduleStatus entityStatus = toEntityStatus(schedule.getStatus());
+        ScheduleStatus status = schedule.getStatus(); // Entity와 Domain이 같은 enum 사용
 
         if (id == null) {
             // 신규 생성 Entity (protected constructor 사용)
             return ScheduleEntity.create(
                 sellerId,
                 cronExpression,
-                entityStatus,
+                status,
                 schedule.getNextExecutionTime()
             );
         } else {
@@ -58,7 +60,7 @@ public class ScheduleMapper {
                 id,
                 sellerId,
                 cronExpression,
-                entityStatus,
+                status,
                 schedule.getNextExecutionTime(),
                 schedule.getLastExecutedAt(),
                 schedule.getCreatedAt(),
@@ -78,9 +80,9 @@ public class ScheduleMapper {
 
         return CrawlSchedule.reconstitute(
             CrawlScheduleId.of(entity.getId()),
-            MustitSellerId.of(entity.getSellerId()),
+            MustItSellerId.of(entity.getSellerId()),
             CronExpression.of(entity.getCronExpression()),
-            toDomainStatus(entity.getStatus()),
+            entity.getStatus(), // Entity와 Domain이 같은 enum 사용
             entity.getNextExecutionTime(),
             entity.getLastExecutedAt(),
             entity.getCreatedAt(),
@@ -89,27 +91,24 @@ public class ScheduleMapper {
     }
 
     /**
-     * Entity ScheduleStatus → Domain ScheduleStatus
+     * DTO → Domain 변환
+     *
+     * @param dto ScheduleQueryDto
+     * @return CrawlSchedule
      */
-    private com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus toDomainStatus(ScheduleEntity.ScheduleStatus entityStatus) {
-        Objects.requireNonNull(entityStatus, "entityStatus must not be null");
+    public CrawlSchedule toDomain(ScheduleQueryDto dto) {
+        Objects.requireNonNull(dto, "dto must not be null");
 
-        return switch (entityStatus) {
-            case ACTIVE -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.ACTIVE;
-            case SUSPENDED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED;
-            case DELETED -> com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus.SUSPENDED; // DELETED는 SUSPENDED로 매핑
-        };
+        return CrawlSchedule.reconstitute(
+            CrawlScheduleId.of(dto.id()),
+            MustItSellerId.of(dto.sellerId()),
+            com.ryuqq.crawlinghub.domain.schedule.CronExpression.of(dto.cronExpression()),
+            dto.status(),
+            dto.nextExecutionTime(),
+            dto.lastExecutedAt(),
+            dto.createdAt(),
+            dto.updatedAt()
+        );
     }
 
-    /**
-     * Domain ScheduleStatus → Entity ScheduleStatus
-     */
-    private ScheduleEntity.ScheduleStatus toEntityStatus(com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus domainStatus) {
-        Objects.requireNonNull(domainStatus, "domainStatus must not be null");
-
-        return switch (domainStatus) {
-            case ACTIVE -> ScheduleEntity.ScheduleStatus.ACTIVE;
-            case SUSPENDED -> ScheduleEntity.ScheduleStatus.SUSPENDED;
-        };
-    }
 }

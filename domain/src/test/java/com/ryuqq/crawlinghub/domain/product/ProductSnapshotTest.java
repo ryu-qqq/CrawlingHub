@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ProductSnapshotTest {
 
     private static final Long MUST_IT_ITEM_NO = 12345L;
-    private static final MustitSellerId SELLER_ID = new MustitSellerId(67890L);
+    private static final MustItSellerId SELLER_ID = new MustItSellerId(67890L);
     private static final ProductSnapshotId ID = new ProductSnapshotId(1L);
     private static final Clock FIXED_CLOCK = Clock.fixed(
         Instant.parse("2025-11-07T10:00:00Z"),
@@ -149,7 +149,7 @@ class ProductSnapshotTest {
         @ParameterizedTest
         @NullSource
         @DisplayName("필수 필드 sellerId가 null이면 예외 발생")
-        void shouldThrowExceptionWhenSellerIdIsNull(MustitSellerId nullSellerId) {
+        void shouldThrowExceptionWhenSellerIdIsNull(MustItSellerId nullSellerId) {
             // When & Then
             assertThatThrownBy(() -> ProductSnapshot.forNew(MUST_IT_ITEM_NO, nullSellerId))
                 .isInstanceOf(IllegalArgumentException.class)

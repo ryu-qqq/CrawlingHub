@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.schedule.port.out;
 
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,7 @@ public interface LoadSchedulePort {
      * @param sellerId 셀러 ID
      * @return 활성 스케줄 (없으면 Optional.empty())
      */
-    Optional<CrawlSchedule> findActiveBySellerId(MustitSellerId sellerId);
+    Optional<CrawlSchedule> findActiveBySellerId(MustItSellerId sellerId);
 
     /**
      * 셀러의 모든 스케줄 조회
@@ -39,5 +39,5 @@ public interface LoadSchedulePort {
      * @param sellerId 셀러 ID
      * @return 스케줄 목록
      */
-    List<CrawlSchedule> findAllBySellerId(MustitSellerId sellerId);
+    List<CrawlSchedule> findAllBySellerId(MustItSellerId sellerId);
 }

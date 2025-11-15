@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.port.out;
 
 import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public interface LoadSellerPort {
      * @return 셀러 Query DTO (없으면 Optional.empty())
      * @throws IllegalArgumentException id가 null인 경우
      */
-    Optional<SellerQueryDto> findById(MustitSellerId id);
+    Optional<SellerQueryDto> findById(MustItSellerId id);
 
     /**
      * 셀러 코드로 셀러 조회

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public class CrawledProduct {
 
     private final ProductId id;
     private final Long mustItItemNo;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
     private ProductData miniShopData;
     private ProductData detailData;
     private ProductData optionData;
@@ -39,7 +39,7 @@ public class CrawledProduct {
     private CrawledProduct(
         ProductId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         ProductData miniShopData,
         ProductData detailData,
         ProductData optionData,
@@ -74,7 +74,7 @@ public class CrawledProduct {
     CrawledProduct(
         ProductId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         Clock clock
     ) {
         validateRequiredFields(mustItItemNo, sellerId);
@@ -99,14 +99,14 @@ public class CrawledProduct {
     /**
      * 신규 상품 생성 (ID 없음)
      */
-    public static CrawledProduct forNew(Long mustItItemNo, MustitSellerId sellerId) {
+    public static CrawledProduct forNew(Long mustItItemNo, MustItSellerId sellerId) {
         return new CrawledProduct(null, mustItItemNo, sellerId, Clock.systemDefaultZone());
     }
 
     /**
      * 기존 상품 생성 (ID 있음)
      */
-    public static CrawledProduct of(ProductId id, Long mustItItemNo, MustitSellerId sellerId) {
+    public static CrawledProduct of(ProductId id, Long mustItItemNo, MustItSellerId sellerId) {
         if (id == null) {
             throw new IllegalArgumentException("Product ID는 필수입니다");
         }
@@ -119,7 +119,7 @@ public class CrawledProduct {
     public static CrawledProduct reconstitute(
         ProductId id,
         Long mustItItemNo,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         ProductData miniShopData,
         ProductData detailData,
         ProductData optionData,
@@ -152,7 +152,7 @@ public class CrawledProduct {
         );
     }
 
-    private static void validateRequiredFields(Long mustItItemNo, MustitSellerId sellerId) {
+    private static void validateRequiredFields(Long mustItItemNo, MustItSellerId sellerId) {
         if (mustItItemNo == null ) {
             throw new IllegalArgumentException("머스트잇 상품 번호는 필수입니다");
         }

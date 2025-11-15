@@ -2,10 +2,19 @@ package com.ryuqq.crawlinghub.domain.schedule;
 
 /**
  * 스케줄 상태
+ *
+ * @author windsurf
+ * @since 1.0.0
  */
 public enum ScheduleStatus {
+    /** 활성 상태 */
     ACTIVE(1, "활성"),
-    SUSPENDED(2, "일시정지");
+
+    /** 일시정지 상태 */
+    SUSPENDED(2, "일시정지"),
+
+    /** 삭제 상태 (소프트 삭제) */
+    DELETED(3, "삭제");
 
     private final int priority;
     private final String description;
@@ -23,10 +32,31 @@ public enum ScheduleStatus {
         return description;
     }
 
+    /**
+     * 활성 상태 여부 확인
+     *
+     * @return 활성 상태이면 true
+     */
     public boolean isActive() {
         return this == ACTIVE;
     }
 
+    /**
+     * 삭제 상태 여부 확인
+     *
+     * @return 삭제 상태이면 true
+     */
+    public boolean isDeleted() {
+        return this == DELETED;
+    }
+
+    /**
+     * 문자열로부터 ScheduleStatus 생성
+     *
+     * @param statusStr 상태 문자열
+     * @return ScheduleStatus
+     * @throws IllegalArgumentException 유효하지 않은 상태인 경우
+     */
     public static ScheduleStatus fromString(String statusStr) {
         if (statusStr == null || statusStr.isBlank()) {
             throw new IllegalArgumentException("ScheduleStatus는 필수입니다");
