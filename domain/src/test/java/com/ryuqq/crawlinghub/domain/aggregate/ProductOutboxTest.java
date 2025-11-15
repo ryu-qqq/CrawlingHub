@@ -7,6 +7,11 @@ import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -18,10 +23,57 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - Cycle 24: ProductOutbox 상태 전환 (send, complete, fail) 테스트
  * - Cycle 25: ProductOutbox 재시도 로직 (canRetry - Tell Don't Ask) 테스트
  * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
+ * - 리팩토링: Clock 의존성 테스트 (테스트 가능성)
  */
 class ProductOutboxTest {
 
-    // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
+    // ========== Clock 고정 (테스트 재현성) ==========
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2024-01-01T00:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
+
+    // ========== 리팩토링: Clock 의존성 테스트 ==========
+
+    @Test
+    void shouldCreateProductOutboxWithFixedClock() {
+        // Given
+        ProductId productId = ProductFixture.defaultProduct().getProductId();
+        OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
+        String payload = "{\"itemNo\":123456,\"name\":\"상품명\"}";
+        LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
+
+        // When
+        ProductOutbox outbox = ProductOutbox.forNew(productId, eventType, payload, FIXED_CLOCK);
+
+        // Then
+        assertThat(outbox.getCreatedAt()).isEqualTo(expectedTime);
+        assertThat(outbox.getUpdatedAt()).isEqualTo(expectedTime);
+    }
+
+    @Test
+    void shouldUpdateTimestampWhenStateChangesWithClock() {
+        // Given
+        Clock clock1 = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+        Clock clock2 = Clock.fixed(Instant.parse("2024-01-02T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+
+        ProductId productId = ProductFixture.defaultProduct().getProductId();
+        OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
+        String payload = "{\"itemNo\":123456,\"name\":\"상품명\"}";
+
+        ProductOutbox outbox = ProductOutbox.forNew(productId, eventType, payload, clock1);
+        LocalDateTime createdTime = outbox.getCreatedAt();
+
+        // When - Clock 변경 후 상태 전이
+        outbox.send();
+
+        // Then - updatedAt은 새로운 시간으로 갱신되어야 함
+        assertThat(outbox.getCreatedAt()).isEqualTo(createdTime); // createdAt은 불변
+        assertThat(outbox.getUpdatedAt()).isAfter(createdTime); // updatedAt은 변경됨
+    }
+
+    // ========== 리팩토리: 정적 팩토리 메서드 패턴 테스트 ==========
 
     @Test
     void shouldCreateProductOutboxUsingForNew() {
