@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * TDD Phase: Red → Green
  * - Cycle 23: ProductOutbox 생성 (create) 테스트
  * - Cycle 24: ProductOutbox 상태 전환 (send, complete, fail) 테스트
+ * - Cycle 25: ProductOutbox 재시도 로직 (canRetry - Tell Don't Ask) 테스트
  */
 class ProductOutboxTest {
 
@@ -76,5 +77,29 @@ class ProductOutboxTest {
         // Then
         assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.FAILED);
         assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+    }
+
+    @Test
+    void shouldAllowRetryWhenCountLessThan5() {
+        // Given
+        ProductOutbox outbox = ProductOutboxFixture.failedOutboxWithRetryCount(3);
+
+        // When
+        boolean canRetry = outbox.canRetry();
+
+        // Then
+        assertThat(canRetry).isTrue();
+    }
+
+    @Test
+    void shouldNotAllowRetryWhenCountExceeds5() {
+        // Given
+        ProductOutbox outbox = ProductOutboxFixture.failedOutboxWithRetryCount(5);
+
+        // When
+        boolean canRetry = outbox.canRetry();
+
+        // Then
+        assertThat(canRetry).isFalse();
     }
 }
