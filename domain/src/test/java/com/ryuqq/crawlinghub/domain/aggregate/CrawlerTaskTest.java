@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - URL 검증 테스트
  * - 상태 전환 (publish, start) 테스트
  * - 완료/실패 (complete, fail) 테스트
+ * - 재시도 로직 (retry) 테스트
  */
 class CrawlerTaskTest {
 
@@ -141,5 +142,76 @@ class CrawlerTaskTest {
         // Then
         assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.FAILED);
         assertThat(task.getErrorMessage()).isEqualTo(errorMessage);
+    }
+
+    @Test
+    void shouldRetryWhenRetryCountLessThan2() {
+        // Given - FAILED 상태의 task (retryCount = 0)
+        SellerId sellerId = new SellerId("seller_008");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish();
+        task.start();
+        task.fail("Network error");
+
+        // When
+        task.retry();
+
+        // Then
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.RETRY);
+        assertThat(task.getRetryCount()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldNotRetryWhenRetryCountExceeds2() {
+        // Given - retryCount = 2인 FAILED task
+        // 수동으로 retryCount를 2로 설정해야 함 (현재 TestFixture 없음)
+        SellerId sellerId = new SellerId("seller_009");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish();
+        task.start();
+        // 첫 번째 재시도
+        task.fail("Network error");
+        task.retry(); // retryCount = 1
+        // 두 번째 재시도
+        task.start(); // RETRY → IN_PROGRESS (필요 시 구현)
+        task.fail("Network error");
+        task.retry(); // retryCount = 2
+
+        // 세 번째 재시도 시도
+        task.start();
+        task.fail("Network error");
+
+        // When & Then
+        assertThatThrownBy(() -> task.retry())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("재시도 횟수를 초과했습니다 (최대 2회)");
+    }
+
+    @Test
+    void shouldResetErrorMessageOnRetry() {
+        // Given - FAILED 상태의 task
+        SellerId sellerId = new SellerId("seller_010");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish();
+        task.start();
+        task.fail("Network error");
+
+        // When
+        task.retry();
+
+        // Then
+        assertThat(task.getErrorMessage()).isNull();
     }
 }
