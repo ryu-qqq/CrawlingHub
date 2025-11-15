@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * TDD Phase: Red → Green
  * - UserAgent 생성 (create) 테스트
+ * - UserAgent 토큰 발급 (issueToken) 테스트
  */
 class UserAgentTest {
 
@@ -36,5 +37,30 @@ class UserAgentTest {
         assertThatThrownBy(() -> UserAgent.create(""))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("UserAgent 문자열은 비어있을 수 없습니다");
+    }
+
+    @Test
+    void shouldIssueToken() {
+        // Given
+        UserAgent userAgent = UserAgent.create("Mozilla/5.0 (Windows NT 10.0; Win64; x64)...");
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+
+        // When
+        userAgent.issueToken(token);
+
+        // Then
+        assertThat(userAgent.getToken()).isEqualTo(token);
+        assertThat(userAgent.getTokenIssuedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTokenIsBlank() {
+        // Given
+        UserAgent userAgent = UserAgent.create("Mozilla/5.0 (Windows NT 10.0; Win64; x64)...");
+
+        // When & Then
+        assertThatThrownBy(() -> userAgent.issueToken(""))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("토큰은 비어있을 수 없습니다");
     }
 }
