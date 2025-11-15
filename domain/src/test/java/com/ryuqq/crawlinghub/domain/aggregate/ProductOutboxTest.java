@@ -1,18 +1,21 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.fixture.ProductFixture;
+import com.ryuqq.crawlinghub.domain.fixture.ProductOutboxFixture;
 import com.ryuqq.crawlinghub.domain.vo.OutboxEventType;
 import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * ProductOutbox Aggregate Root 테스트
  *
  * TDD Phase: Red → Green
- * - ProductOutbox 생성 (create) 테스트
+ * - Cycle 23: ProductOutbox 생성 (create) 테스트
+ * - Cycle 24: ProductOutbox 상태 전환 (send, complete, fail) 테스트
  */
 class ProductOutboxTest {
 
@@ -33,5 +36,45 @@ class ProductOutboxTest {
         assertThat(outbox.getPayload()).isEqualTo(payload);
         assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.WAITING);
         assertThat(outbox.getRetryCount()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldSendOutbox() {
+        // Given
+        ProductOutbox outbox = ProductOutboxFixture.waitingOutbox();
+
+        // When
+        outbox.send();
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.SENDING);
+    }
+
+    @Test
+    void shouldCompleteOutbox() {
+        // Given
+        ProductOutbox outbox = ProductOutboxFixture.waitingOutbox();
+        outbox.send();
+
+        // When
+        outbox.complete();
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.COMPLETED);
+    }
+
+    @Test
+    void shouldFailOutbox() {
+        // Given
+        ProductOutbox outbox = ProductOutboxFixture.waitingOutbox();
+        outbox.send();
+        String errorMessage = "HTTP 500 Internal Server Error";
+
+        // When
+        outbox.fail(errorMessage);
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.FAILED);
+        assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
     }
 }
