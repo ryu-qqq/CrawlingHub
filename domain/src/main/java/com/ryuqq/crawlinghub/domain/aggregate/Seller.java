@@ -90,6 +90,34 @@ public class Seller {
     }
 
     /**
+     * Seller 활성화
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>상태를 ACTIVE로 변경</li>
+     *   <li>변경 시 updatedAt 갱신</li>
+     * </ul>
+     */
+    public void activate() {
+        this.status = SellerStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Seller 비활성화
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>상태를 INACTIVE로 변경</li>
+     *   <li>변경 시 updatedAt 갱신</li>
+     * </ul>
+     */
+    public void deactivate() {
+        this.status = SellerStatus.INACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 크롤링 주기 일수 조회
      *
      * <p>Law of Demeter 준수:</p>
