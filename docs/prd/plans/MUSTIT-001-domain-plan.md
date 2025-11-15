@@ -693,7 +693,7 @@ public String getErrorMessage() {
 
 ---
 
-### 1️⃣4️⃣ Cycle 14: CrawlerTask 재시도 로직 (15분)
+### 1️⃣4️⃣ Cycle 14: CrawlerTask 재시도 로직 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -728,18 +728,16 @@ void shouldResetErrorMessageOnRetry() {
     assertThat(task.getErrorMessage()).isNull();
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: CrawlerTask 재시도 로직 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: CrawlerTask 재시도 로직 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
-private static final int MAX_RETRY_COUNT = 2;
-
 public void retry() {
     if (status != CrawlerTaskStatus.FAILED) {
         throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
     }
-    if (retryCount >= MAX_RETRY_COUNT) {
+    if (retryCount >= 2) {
         throw new IllegalStateException("재시도 횟수를 초과했습니다 (최대 2회)");
     }
     this.status = CrawlerTaskStatus.RETRY;
@@ -747,9 +745,19 @@ public void retry() {
     this.errorMessage = null;
     this.updatedAt = LocalDateTime.now();
 }
+
+// start() 메서드도 RETRY 상태 허용하도록 수정
+public void start() {
+    if (status != CrawlerTaskStatus.PUBLISHED && status != CrawlerTaskStatus.RETRY) {
+        throw new IllegalStateException("PUBLISHED 또는 RETRY 상태에서만 시작할 수 있습니다");
+    }
+    this.status = CrawlerTaskStatus.IN_PROGRESS;
+    this.updatedAt = LocalDateTime.now();
+}
 ```
-- [ ] retry 메서드 구현
-- [ ] 커밋: `feat: CrawlerTask 재시도 로직 구현 (최대 2회)`
+- [x] retry 메서드 구현
+- [x] start 메서드 수정 (RETRY → IN_PROGRESS 허용)
+- [x] 커밋: `feat: CrawlerTask 재시도 로직 구현 (최대 2회)`
 
 ---
 
@@ -1527,12 +1535,12 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 3: CrawlerTask Aggregate (3/5) 🔄 **진행 중**
+- [ ] Phase 3: CrawlerTask Aggregate (4/5) 🔄 **진행 중**
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 13/25 Cycles (52%)
+**전체 진행률**: 14/25 Cycles (56%)
 
 ---
 
