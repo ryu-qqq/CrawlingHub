@@ -588,7 +588,7 @@ public class CrawlerTask {
 
 ---
 
-### 1️⃣2️⃣ Cycle 12: CrawlerTask 상태 전환 (Publish, Start) (15분)
+### 1️⃣2️⃣ Cycle 12: CrawlerTask 상태 전환 (Publish, Start) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -614,8 +614,8 @@ void shouldThrowExceptionWhenPublishNonWaitingTask() {
         .hasMessage("WAITING 상태에서만 발행할 수 있습니다");
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: CrawlerTask 상태 전환 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: CrawlerTask 상태 전환 테스트 추가 (publish, start)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -635,8 +635,8 @@ public void start() {
     this.updatedAt = LocalDateTime.now();
 }
 ```
-- [ ] 메서드 구현
-- [ ] 커밋: `feat: CrawlerTask 상태 전환 구현 (publish, start)`
+- [x] 메서드 구현
+- [x] 커밋: `feat: CrawlerTask 상태 전환 구현 (publish, start)`
 
 ---
 
@@ -1527,12 +1527,12 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 3: CrawlerTask Aggregate (1/5) 🔄 **진행 중**
+- [ ] Phase 3: CrawlerTask Aggregate (2/5) 🔄 **진행 중**
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 11/25 Cycles (44%)
+**전체 진행률**: 12/25 Cycles (48%)
 
 ---
 
