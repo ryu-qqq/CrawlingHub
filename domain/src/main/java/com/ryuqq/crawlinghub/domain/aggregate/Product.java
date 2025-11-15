@@ -4,6 +4,9 @@ import com.ryuqq.crawlinghub.domain.vo.ItemNo;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 
 /**
@@ -70,6 +73,88 @@ public class Product {
     }
 
     /**
+     * 미니샵 데이터 업데이트 및 해시 계산
+     *
+     * <p>변경 감지:</p>
+     * <ul>
+     *   <li>새 데이터의 MD5 해시와 기존 해시 비교</li>
+     *   <li>변경 시 hasChanged = true, 동일 시 false</li>
+     *   <li>업데이트 후 완료 상태 자동 갱신</li>
+     * </ul>
+     *
+     * @param rawJson 미니샵 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateMinishopData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(minishopDataHash);
+        this.minishopDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now();
+        return hasChanged;
+    }
+
+    /**
+     * 상세 데이터 업데이트 및 해시 계산
+     *
+     * @param rawJson 상세 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateDetailData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(detailDataHash);
+        this.detailDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now();
+        return hasChanged;
+    }
+
+    /**
+     * 옵션 데이터 업데이트 및 해시 계산
+     *
+     * @param rawJson 옵션 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateOptionData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(optionDataHash);
+        this.optionDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now();
+        return hasChanged;
+    }
+
+    /**
+     * 완료 상태 업데이트
+     *
+     * <p>모든 데이터 해시가 존재하면 isComplete = true로 설정</p>
+     */
+    private void updateCompleteStatus() {
+        this.isComplete = (minishopDataHash != null && detailDataHash != null && optionDataHash != null);
+    }
+
+    /**
+     * MD5 해시 계산
+     *
+     * @param data 해시 계산할 데이터
+     * @return MD5 해시 문자열 (32자 hex)
+     * @throws RuntimeException MD5 알고리즘을 사용할 수 없는 경우
+     */
+    private String calculateMD5Hash(String data) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("MD5 알고리즘을 사용할 수 없습니다", e);
+        }
+    }
+
+    /**
      * 상품 데이터 완료 여부 확인 (Tell Don't Ask 패턴)
      *
      * <p>모든 데이터 해시가 존재할 때 true 반환:</p>
@@ -96,5 +181,9 @@ public class Product {
 
     public SellerId getSellerId() {
         return sellerId;
+    }
+
+    public String getMinishopDataHash() {
+        return minishopDataHash;
     }
 }
