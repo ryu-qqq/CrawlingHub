@@ -118,6 +118,22 @@ public class Seller {
     }
 
     /**
+     * 총 상품 수 업데이트
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>크롤링 완료 후 상품 수 갱신</li>
+     *   <li>변경 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @param count 총 상품 수
+     */
+    public void updateTotalProductCount(Integer count) {
+        this.totalProductCount = count;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 크롤링 주기 일수 조회
      *
      * <p>Law of Demeter 준수:</p>
@@ -143,5 +159,9 @@ public class Seller {
 
     public SellerStatus getStatus() {
         return status;
+    }
+
+    public Integer getTotalProductCount() {
+        return totalProductCount;
     }
 }
