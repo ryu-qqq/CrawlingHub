@@ -75,6 +75,68 @@ public class ProductOutbox {
         return new ProductOutbox(productId, eventType, payload);
     }
 
+    /**
+     * Outbox를 전송 상태로 전환
+     *
+     * <p>상태 전환 규칙:</p>
+     * <ul>
+     *   <li>WAITING → SENDING</li>
+     *   <li>WAITING 상태가 아닌 경우 IllegalStateException 발생</li>
+     * </ul>
+     *
+     * @throws IllegalStateException WAITING 상태가 아닌 경우
+     */
+    public void send() {
+        if (status != OutboxStatus.WAITING) {
+            throw new IllegalStateException("WAITING 상태에서만 전송할 수 있습니다");
+        }
+        this.status = OutboxStatus.SENDING;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Outbox를 완료 상태로 전환
+     *
+     * <p>상태 전환 규칙:</p>
+     * <ul>
+     *   <li>SENDING → COMPLETED</li>
+     *   <li>SENDING 상태가 아닌 경우 IllegalStateException 발생</li>
+     * </ul>
+     *
+     * @throws IllegalStateException SENDING 상태가 아닌 경우
+     */
+    public void complete() {
+        if (status != OutboxStatus.SENDING) {
+            throw new IllegalStateException("SENDING 상태에서만 완료할 수 있습니다");
+        }
+        this.status = OutboxStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Outbox를 실패 상태로 전환
+     *
+     * <p>상태 전환 규칙:</p>
+     * <ul>
+     *   <li>SENDING → FAILED</li>
+     *   <li>SENDING 상태가 아닌 경우 IllegalStateException 발생</li>
+     *   <li>에러 메시지 저장</li>
+     *   <li>재시도 횟수 증가</li>
+     * </ul>
+     *
+     * @param errorMessage 실패 원인
+     * @throws IllegalStateException SENDING 상태가 아닌 경우
+     */
+    public void fail(String errorMessage) {
+        if (status != OutboxStatus.SENDING) {
+            throw new IllegalStateException("SENDING 상태에서만 실패할 수 있습니다");
+        }
+        this.status = OutboxStatus.FAILED;
+        this.errorMessage = errorMessage;
+        this.retryCount++;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters (필요한 것만)
     public OutboxId getOutboxId() {
         return outboxId;
