@@ -881,7 +881,7 @@ public class UserAgent {
 
 ---
 
-### 1️⃣7️⃣ Cycle 17: UserAgent 토큰 발급 (15분)
+### 1️⃣7️⃣ Cycle 17: UserAgent 토큰 발급 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -904,8 +904,8 @@ void shouldThrowExceptionWhenTokenIsBlank() {
         .isInstanceOf(IllegalArgumentException.class);
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: UserAgent 토큰 발급 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: UserAgent 토큰 발급 테스트 추가`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -922,8 +922,8 @@ public LocalDateTime getTokenIssuedAt() {
     return tokenIssuedAt;
 }
 ```
-- [ ] issueToken 메서드 구현
-- [ ] 커밋: `feat: UserAgent 토큰 발급 구현`
+- [x] issueToken 메서드 구현
+- [x] 커밋: `feat: UserAgent 토큰 발급 구현 (issueToken)`
 
 ---
 
@@ -1488,8 +1488,8 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [ ] CrawlerTaskFixture 정리 (Cycle 15)
 
 ### Phase 4: UserAgent Aggregate (4 Cycles)
-- [ ] UserAgent 생성 (Cycle 16)
-- [ ] UserAgent 토큰 발급 (Cycle 17)
+- [x] UserAgent 생성 (Cycle 16)
+- [x] UserAgent 토큰 발급 (Cycle 17)
 - [ ] UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (Cycle 18)
 - [ ] UserAgent 상태 전환 (Cycle 19)
 
@@ -1538,11 +1538,11 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
-- [ ] Phase 4: UserAgent Aggregate (1/4) 🔄 **진행 중**
+- [ ] Phase 4: UserAgent Aggregate (2/4) 🔄 **진행 중**
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 16/25 Cycles (64%)
+**전체 진행률**: 17/25 Cycles (68%)
 
 ---
 
