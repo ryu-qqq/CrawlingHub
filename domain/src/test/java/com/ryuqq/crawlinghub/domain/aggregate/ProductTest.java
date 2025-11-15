@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * TDD Phase: Red → Green
  * - Product 생성 (create) 테스트
  * - Product 데이터 업데이트 및 해시 계산 테스트
+ * - Product 변경 감지 (Tell Don't Ask) 테스트
  */
 class ProductTest {
 
@@ -74,5 +75,30 @@ class ProductTest {
 
         // Then
         assertThat(product.isComplete()).isTrue();
+    }
+
+    @Test
+    void shouldDetectChange() {
+        // Given
+        String oldHash = "abc123";
+        String newHash = "def456";
+
+        // When
+        boolean hasChanged = Product.hasChanged(oldHash, newHash);
+
+        // Then
+        assertThat(hasChanged).isTrue();
+    }
+
+    @Test
+    void shouldDetectNoChange() {
+        // Given
+        String sameHash = "abc123";
+
+        // When
+        boolean hasChanged = Product.hasChanged(sameHash, sameHash);
+
+        // Then
+        assertThat(hasChanged).isFalse();
     }
 }
