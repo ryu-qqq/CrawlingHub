@@ -640,7 +640,7 @@ public void start() {
 
 ---
 
-### 1️⃣3️⃣ Cycle 13: CrawlerTask 완료/실패 (15분)
+### 1️⃣3️⃣ Cycle 13: CrawlerTask 완료/실패 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -662,8 +662,8 @@ void shouldFailTaskWithErrorMessage() {
     assertThat(task.getErrorMessage()).isEqualTo(errorMessage);
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: CrawlerTask 완료/실패 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: CrawlerTask 완료/실패 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -676,8 +676,8 @@ public void complete() {
 }
 
 public void fail(String errorMessage) {
-    if (status != CrawlerTaskStatus.IN_PROGRESS && status != CrawlerTaskStatus.RETRY) {
-        throw new IllegalStateException("IN_PROGRESS 또는 RETRY 상태에서만 실패할 수 있습니다");
+    if (status != CrawlerTaskStatus.IN_PROGRESS) {
+        throw new IllegalStateException("IN_PROGRESS 상태에서만 실패 처리할 수 있습니다");
     }
     this.status = CrawlerTaskStatus.FAILED;
     this.errorMessage = errorMessage;
@@ -688,8 +688,8 @@ public String getErrorMessage() {
     return errorMessage;
 }
 ```
-- [ ] 메서드 구현
-- [ ] 커밋: `feat: CrawlerTask 완료/실패 구현`
+- [x] 메서드 구현
+- [x] 커밋: `feat: CrawlerTask 완료/실패 구현`
 
 ---
 
@@ -1527,12 +1527,12 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 3: CrawlerTask Aggregate (2/5) 🔄 **진행 중**
+- [ ] Phase 3: CrawlerTask Aggregate (3/5) 🔄 **진행 중**
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 12/25 Cycles (48%)
+**전체 진행률**: 13/25 Cycles (52%)
 
 ---
 
