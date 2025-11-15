@@ -124,19 +124,19 @@ public class CrawlerTask {
     }
 
     /**
-     * Task 시작 (PUBLISHED → IN_PROGRESS)
+     * Task 시작 (PUBLISHED → IN_PROGRESS 또는 RETRY → IN_PROGRESS)
      *
      * <p>비즈니스 규칙:</p>
      * <ul>
-     *   <li>PUBLISHED 상태에서만 시작 가능</li>
+     *   <li>PUBLISHED 또는 RETRY 상태에서만 시작 가능</li>
      *   <li>시작 시 updatedAt 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException PUBLISHED 상태가 아닌 경우
+     * @throws IllegalStateException PUBLISHED 또는 RETRY 상태가 아닌 경우
      */
     public void start() {
-        if (status != CrawlerTaskStatus.PUBLISHED) {
-            throw new IllegalStateException("PUBLISHED 상태에서만 시작할 수 있습니다");
+        if (status != CrawlerTaskStatus.PUBLISHED && status != CrawlerTaskStatus.RETRY) {
+            throw new IllegalStateException("PUBLISHED 또는 RETRY 상태에서만 시작할 수 있습니다");
         }
         this.status = CrawlerTaskStatus.IN_PROGRESS;
         this.updatedAt = LocalDateTime.now();
@@ -180,6 +180,33 @@ public class CrawlerTask {
         }
         this.status = CrawlerTaskStatus.FAILED;
         this.errorMessage = errorMessage;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Task 재시도 (FAILED → RETRY)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>FAILED 상태에서만 재시도 가능</li>
+     *   <li>최대 재시도 횟수는 2회</li>
+     *   <li>재시도 시 retryCount 증가</li>
+     *   <li>재시도 시 errorMessage 초기화</li>
+     *   <li>재시도 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException FAILED 상태가 아니거나 재시도 횟수 초과 시
+     */
+    public void retry() {
+        if (status != CrawlerTaskStatus.FAILED) {
+            throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
+        }
+        if (retryCount >= 2) {
+            throw new IllegalStateException("재시도 횟수를 초과했습니다 (최대 2회)");
+        }
+        this.status = CrawlerTaskStatus.RETRY;
+        this.retryCount++;
+        this.errorMessage = null;
         this.updatedAt = LocalDateTime.now();
     }
 
