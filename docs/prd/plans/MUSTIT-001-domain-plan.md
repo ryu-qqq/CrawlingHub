@@ -1417,7 +1417,7 @@ public String getErrorMessage() { return errorMessage; }
 
 ---
 
-### 2️⃣5️⃣ Cycle 25: ProductOutbox 재시도 로직 (Tell Don't Ask) (15분)
+### 2️⃣5️⃣ Cycle 25: ProductOutbox 재시도 로직 (Tell Don't Ask) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1439,8 +1439,8 @@ void shouldNotAllowRetryWhenCountExceeds5() {
     assertThat(canRetry).isFalse();
 }
 ```
-- [ ] 테스트 추가 (Tell Don't Ask)
-- [ ] 커밋: `test: ProductOutbox 재시도 로직 테스트 추가 (Red)`
+- [x] 테스트 추가 (Tell Don't Ask)
+- [x] 커밋: `test: ProductOutbox 재시도 로직 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현 (Tell Don't Ask)
 ```java
@@ -1451,8 +1451,8 @@ public boolean canRetry() {
     return retryCount < MAX_RETRY_COUNT;
 }
 ```
-- [ ] canRetry 메서드 구현
-- [ ] 커밋: `feat: ProductOutbox 재시도 로직 구현 (최대 5회)`
+- [x] canRetry 메서드 구현
+- [x] 커밋: `feat: ProductOutbox 재시도 로직 구현 (canRetry, FAILED→SENDING)`
 
 #### ♻️ Refactor: ArchUnit 테스트 추가
 ```java
@@ -1543,9 +1543,9 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
 - [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 6: ProductOutbox Aggregate (2/3)
+- [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
 
-**전체 진행률**: 24/25 Cycles (96%)
+**전체 진행률**: 25/25 Cycles (100%) 🎉 **ALL COMPLETE!**
 
 ---
 
