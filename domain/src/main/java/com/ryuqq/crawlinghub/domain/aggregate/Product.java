@@ -155,6 +155,33 @@ public class Product {
     }
 
     /**
+     * 해시 값 변경 감지 (Tell Don't Ask 패턴)
+     *
+     * <p>정적 유틸리티 메서드로 해시 비교 로직을 캡슐화합니다.</p>
+     *
+     * <p>변경 감지 규칙:</p>
+     * <ul>
+     *   <li>둘 다 null → 변경 없음 (false)</li>
+     *   <li>하나만 null → 변경 있음 (true)</li>
+     *   <li>값이 다름 → 변경 있음 (true)</li>
+     *   <li>값이 같음 → 변경 없음 (false)</li>
+     * </ul>
+     *
+     * @param oldHash 이전 해시 값
+     * @param newHash 새 해시 값
+     * @return 변경 시 true, 동일 시 false
+     */
+    public static boolean hasChanged(String oldHash, String newHash) {
+        if (oldHash == null && newHash == null) {
+            return false;
+        }
+        if (oldHash == null || newHash == null) {
+            return true;
+        }
+        return !oldHash.equals(newHash);
+    }
+
+    /**
      * 상품 데이터 완료 여부 확인 (Tell Don't Ask 패턴)
      *
      * <p>모든 데이터 해시가 존재할 때 true 반환:</p>
