@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.common.entity.BaseAuditEntity;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.EventType;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,9 +29,18 @@ import java.time.LocalDateTime;
  *   <li>opId: Orchestrator OpId (UUID) - 초기 저장 시 null, Orchestrator.submit() 후 업데이트</li>
  *   <li>sellerId: Long FK - Seller Entity의 PK</li>
  *   <li>idemKey: Idempotency Key - 중복 실행 방지 (sellerId + eventType)</li>
+ *   <li>eventType: EventBridge 이벤트 타입 Enum (REGISTER, UPDATE, DELETE)</li>
  *   <li>payload: EventBridge Schedule 생성/수정을 위한 JSON 페이로드</li>
  *   <li>operationState: 작업 상태 (PENDING, IN_PROGRESS, COMPLETED, FAILED)</li>
  *   <li>walState: WAL 상태 (PENDING, COMPLETED)</li>
+ *   <li>retryPolicy: 재시도 정책 (retryCount, maxRetries, timeoutMillis)</li>
+ * </ul>
+ * </p>
+ * <p>
+ * 제거된 필드:
+ * <ul>
+ *   <li>domain: Domain 모델에서 상수로 관리 ("SELLER_CRAWL_SCHEDULE")</li>
+ *   <li>bizKey: 동적 생성으로 변경 (Domain 모델의 getBizKey() 메서드)</li>
  * </ul>
  * </p>
  *
@@ -67,14 +77,9 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
     @Column(name = "idem_key", nullable = false, unique = true, length = 100)
     private String idemKey;
 
-    @Column(name = "domain", nullable = false, length = 50)
-    private String domain;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false, length = 50)
-    private String eventType;
-
-    @Column(name = "biz_key", nullable = false, length = 100)
-    private String bizKey;
+    private EventType eventType;
 
     @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
     private String payload;
@@ -119,9 +124,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
      * @param opId           Orchestrator OpId
      * @param sellerId       셀러 ID (Long FK)
      * @param idemKey        멱등성 키
-     * @param domain         도메인
-     * @param eventType      이벤트 타입
-     * @param bizKey         비즈니스 키
+     * @param eventType      이벤트 타입 Enum
      * @param payload        페이로드 JSON
      * @param outcomeJson    결과 JSON
      * @param operationState 작업 상태
@@ -137,9 +140,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
             String opId,
             Long sellerId,
             String idemKey,
-            String domain,
-            String eventType,
-            String bizKey,
+            EventType eventType,
             String payload,
             String outcomeJson,
             ScheduleOutbox.OperationState operationState,
@@ -155,9 +156,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
         this.opId = opId;
         this.sellerId = sellerId;
         this.idemKey = idemKey;
-        this.domain = domain;
         this.eventType = eventType;
-        this.bizKey = bizKey;
         this.payload = payload;
         this.outcomeJson = outcomeJson;
         this.operationState = operationState;
@@ -175,9 +174,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
      * @param opId           Orchestrator OpId
      * @param sellerId       셀러 ID (Long FK)
      * @param idemKey        멱등성 키
-     * @param domain         도메인
-     * @param eventType      이벤트 타입
-     * @param bizKey         비즈니스 키
+     * @param eventType      이벤트 타입 Enum
      * @param payload        페이로드 JSON
      * @param outcomeJson    결과 JSON
      * @param operationState 작업 상태
@@ -192,9 +189,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
             String opId,
             Long sellerId,
             String idemKey,
-            String domain,
-            String eventType,
-            String bizKey,
+            EventType eventType,
             String payload,
             String outcomeJson,
             ScheduleOutbox.OperationState operationState,
@@ -209,9 +204,7 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
         this.opId = opId;
         this.sellerId = sellerId;
         this.idemKey = idemKey;
-        this.domain = domain;
         this.eventType = eventType;
-        this.bizKey = bizKey;
         this.payload = payload;
         this.outcomeJson = outcomeJson;
         this.operationState = operationState;
@@ -239,16 +232,8 @@ public class ScheduleOutboxEntity extends BaseAuditEntity {
         return idemKey;
     }
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public String getEventType() {
+    public EventType getEventType() {
         return eventType;
-    }
-
-    public String getBizKey() {
-        return bizKey;
     }
 
     public String getPayload() {

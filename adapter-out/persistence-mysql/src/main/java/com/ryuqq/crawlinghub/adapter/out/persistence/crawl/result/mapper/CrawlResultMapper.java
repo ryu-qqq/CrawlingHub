@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.crawl.result.mapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.crawl.result.entity.CrawlResultEntity;
 import com.ryuqq.crawlinghub.domain.crawl.result.CrawlResult;
 import com.ryuqq.crawlinghub.domain.crawl.result.CrawlResultId;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
 import com.ryuqq.crawlinghub.domain.task.TaskType;
 import org.springframework.stereotype.Component;
@@ -60,10 +60,10 @@ public class CrawlResultMapper {
             CrawlResultId.of(entity.getId()),
             TaskId.of(entity.getTaskId()),
             TaskType.valueOf(entity.getTaskType()),
-            MustitSellerId.of(entity.getSellerId()),
+            MustItSellerId.of(entity.getSellerId()),
             entity.getRawData(),
-            entity.getCrawledAt(),
-            entity.getCreatedAt()
+            entity.getCreatedAt(),
+            entity.getUpdatedAt()
         );
     }
 }

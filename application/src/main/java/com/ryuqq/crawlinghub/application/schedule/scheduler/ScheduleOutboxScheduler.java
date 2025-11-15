@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleOutcome;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 
 /**

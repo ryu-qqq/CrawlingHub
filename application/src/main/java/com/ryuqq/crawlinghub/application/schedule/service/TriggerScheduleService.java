@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValida
 import com.ryuqq.crawlinghub.application.task.dto.command.InitiateCrawlingCommand;
 import com.ryuqq.crawlinghub.application.task.port.in.InitiateCrawlingUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.time.LocalDateTime;
 
@@ -71,7 +71,7 @@ public class TriggerScheduleService implements TriggerScheduleUseCase {
     @Transactional
     public void execute(TriggerScheduleCommand command) {
         // sellerId를 MustitSellerId로 변환 (Domain Value Object)
-        MustitSellerId sellerId = MustitSellerId.of(command.sellerId());
+        MustItSellerId sellerId = MustItSellerId.of(command.sellerId());
 
         // 1. sellerId로 활성 스케줄 조회
         CrawlSchedule schedule = loadSchedulePort.findActiveBySellerId(sellerId)

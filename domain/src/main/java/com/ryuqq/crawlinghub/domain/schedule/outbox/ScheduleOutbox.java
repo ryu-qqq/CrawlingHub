@@ -14,30 +14,31 @@ import java.util.UUID;
  * <ul>
  *   <li>EventBridge 작업 페이로드 저장</li>
  *   <li>멱등성(Idempotency) 보장</li>
- *   <li>재시도 로직 관리</li>
+ *   <li>재시도 로직 관리 (RetryPolicy VO 사용)</li>
  *   <li>WAL 상태 관리</li>
  * </ul>
  *
- * @author 개발자
- * @since 2024-01-01
+ * @author windsurf
+ * @since 1.0.0
  */
 public class ScheduleOutbox {
+
+    /**
+     * 도메인 상수 (모든 ScheduleOutbox는 동일한 도메인)
+     */
+    private static final String DOMAIN = "SELLER_CRAWL_SCHEDULE";
 
     private final Long id;
     private String opId;
     private final Long sellerId;
     private final String idemKey;
-    private final String domain;
-    private final String eventType;
-    private final String bizKey;
+    private final EventType eventType;
     private final String payload;
     private String outcomeJson;
     private OperationState operationState;
     private WriteAheadState walState;
     private String errorMessage;
-    private Integer retryCount;
-    private final Integer maxRetries;
-    private final Long timeoutMillis;
+    private RetryPolicy retryPolicy;
     private LocalDateTime completedAt;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -50,17 +51,13 @@ public class ScheduleOutbox {
         String opId,
         Long sellerId,
         String idemKey,
-        String domain,
-        String eventType,
-        String bizKey,
+        EventType eventType,
         String payload,
         String outcomeJson,
         OperationState operationState,
         WriteAheadState walState,
         String errorMessage,
-        Integer retryCount,
-        Integer maxRetries,
-        Long timeoutMillis,
+        RetryPolicy retryPolicy,
         LocalDateTime completedAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -69,17 +66,13 @@ public class ScheduleOutbox {
         this.opId = opId;
         this.sellerId = sellerId;
         this.idemKey = idemKey;
-        this.domain = domain;
         this.eventType = eventType;
-        this.bizKey = bizKey;
         this.payload = payload;
         this.outcomeJson = outcomeJson;
         this.operationState = operationState;
         this.walState = walState;
         this.errorMessage = errorMessage;
-        this.retryCount = retryCount;
-        this.maxRetries = maxRetries;
-        this.timeoutMillis = timeoutMillis;
+        this.retryPolicy = retryPolicy;
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -106,17 +99,13 @@ public class ScheduleOutbox {
             null, // opId는 초기 null
             sellerId,
             idemKey,
-            "SELLER_CRAWL_SCHEDULE",
-            "EVENTBRIDGE_REGISTER",
-            "schedule-" + sellerId,
+            EventType.EVENTBRIDGE_REGISTER,
             payload,
             null, // outcome는 처리 후 저장
             OperationState.PENDING,
             WriteAheadState.PENDING,
             null,
-            0, // 초기 재시도 횟수
-            3, // 최대 재시도 3회
-            60000L, // 타임아웃 60초
+            RetryPolicy.createDefault(),
             null,
             now,
             now
@@ -139,17 +128,13 @@ public class ScheduleOutbox {
             null,
             sellerId,
             idemKey,
-            "SELLER_CRAWL_SCHEDULE",
-            "EVENTBRIDGE_UPDATE",
-            "schedule-" + sellerId,
+            EventType.EVENTBRIDGE_UPDATE,
             payload,
             null,
             OperationState.PENDING,
             WriteAheadState.PENDING,
             null,
-            0,
-            3,
-            60000L,
+            RetryPolicy.createDefault(),
             null,
             now,
             now
@@ -164,17 +149,13 @@ public class ScheduleOutbox {
         String opId,
         Long sellerId,
         String idemKey,
-        String domain,
-        String eventType,
-        String bizKey,
+        EventType eventType,
         String payload,
         String outcomeJson,
         OperationState operationState,
         WriteAheadState walState,
         String errorMessage,
-        Integer retryCount,
-        Integer maxRetries,
-        Long timeoutMillis,
+        RetryPolicy retryPolicy,
         LocalDateTime completedAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -183,9 +164,9 @@ public class ScheduleOutbox {
             throw new IllegalArgumentException("DB reconstitute는 ID가 필수입니다");
         }
         return new ScheduleOutbox(
-            id, opId, sellerId, idemKey, domain, eventType, bizKey, payload,
-            outcomeJson, operationState, walState, errorMessage, retryCount,
-            maxRetries, timeoutMillis, completedAt, createdAt, updatedAt
+            id, opId, sellerId, idemKey, eventType, payload,
+            outcomeJson, operationState, walState, errorMessage, retryPolicy,
+            completedAt, createdAt, updatedAt
         );
     }
 
@@ -231,7 +212,7 @@ public class ScheduleOutbox {
     public void recordFailure(String errorMessage) {
         this.operationState = OperationState.FAILED;
         this.errorMessage = errorMessage;
-        this.retryCount++;
+        this.retryPolicy = retryPolicy.incrementRetry();
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -239,11 +220,7 @@ public class ScheduleOutbox {
      * 타임아웃 확인
      */
     public boolean isTimeout() {
-        if (this.createdAt == null || this.timeoutMillis == null) {
-            return false;
-        }
-        LocalDateTime timeoutDeadline = this.createdAt.plusSeconds(this.timeoutMillis / 1000);
-        return LocalDateTime.now().isAfter(timeoutDeadline);
+        return retryPolicy.isTimeout(this.createdAt);
     }
 
     /**
@@ -251,7 +228,7 @@ public class ScheduleOutbox {
      */
     public void markTimeout() {
         this.operationState = OperationState.FAILED;
-        this.errorMessage = "타임아웃: " + timeoutMillis + "ms 초과";
+        this.errorMessage = "타임아웃: " + retryPolicy.timeoutMillis() + "ms 초과";
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -260,7 +237,7 @@ public class ScheduleOutbox {
      */
     public boolean canRetry() {
         return this.operationState == OperationState.FAILED
-            && this.retryCount < this.maxRetries;
+            && retryPolicy.canRetry();
     }
 
     /**
@@ -269,7 +246,8 @@ public class ScheduleOutbox {
     public void resetForRetry() {
         if (!canRetry()) {
             throw new IllegalStateException(
-                "재시도 불가: retryCount=" + retryCount + ", maxRetries=" + maxRetries
+                "재시도 불가: retryCount=" + retryPolicy.retryCount()
+                + ", maxRetries=" + retryPolicy.maxRetries()
             );
         }
         this.operationState = OperationState.PENDING;
@@ -291,6 +269,24 @@ public class ScheduleOutbox {
         return this.completedAt.isBefore(threshold);
     }
 
+    /**
+     * 비즈니스 키 동적 생성
+     *
+     * @return 비즈니스 키
+     */
+    public String getBizKey() {
+        return "schedule-" + sellerId;
+    }
+
+    /**
+     * 도메인 상수 반환
+     *
+     * @return 도메인
+     */
+    public String getDomain() {
+        return DOMAIN;
+    }
+
     // Getters (Law of Demeter 준수)
     public Long getId() {
         return id;
@@ -308,16 +304,8 @@ public class ScheduleOutbox {
         return idemKey;
     }
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public String getEventType() {
+    public EventType getEventType() {
         return eventType;
-    }
-
-    public String getBizKey() {
-        return bizKey;
     }
 
     public String getPayload() {
@@ -340,16 +328,29 @@ public class ScheduleOutbox {
         return errorMessage;
     }
 
-    public Integer getRetryCount() {
-        return retryCount;
+    public RetryPolicy getRetryPolicy() {
+        return retryPolicy;
     }
 
-    public Integer getMaxRetries() {
-        return maxRetries;
+    /**
+     * 현재 재시도 횟수 반환 (Law of Demeter 준수)
+     */
+    public int getRetryCount() {
+        return retryPolicy.retryCount();
     }
 
-    public Long getTimeoutMillis() {
-        return timeoutMillis;
+    /**
+     * 최대 재시도 횟수 반환 (Law of Demeter 준수)
+     */
+    public int getMaxRetries() {
+        return retryPolicy.maxRetries();
+    }
+
+    /**
+     * 타임아웃 시간(ms) 반환 (Law of Demeter 준수)
+     */
+    public long getTimeoutMillis() {
+        return retryPolicy.timeoutMillis();
     }
 
     public LocalDateTime getCompletedAt() {
@@ -383,13 +384,14 @@ public class ScheduleOutbox {
 
     @Override
     public String toString() {
-        return "SellerCrawlScheduleOutbox{" +
+        return "ScheduleOutbox{" +
             "id=" + id +
             ", sellerId=" + sellerId +
             ", idemKey='" + idemKey + '\'' +
+            ", eventType=" + eventType +
             ", operationState=" + operationState +
             ", walState=" + walState +
-            ", retryCount=" + retryCount +
+            ", retryPolicy=" + retryPolicy +
             '}';
     }
 

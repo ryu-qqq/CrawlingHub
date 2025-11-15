@@ -4,13 +4,12 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.ProductCountH
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper.ProductCountHistoryMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.ProductCountHistoryQueryRepository;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadProductCountHistoryPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+
+import org.springframework.stereotype.Component;
 
 /**
  * ProductCountHistoryQueryAdapter - Query Adapter (읽기 전용)
@@ -40,8 +39,7 @@ public class ProductCountHistoryQueryAdapter implements LoadProductCountHistoryP
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ProductCountHistory> loadHistories(MustitSellerId sellerId, int page, int size) {
+    public List<ProductCountHistory> loadHistories(MustItSellerId sellerId, int page, int size) {
         int offset = page * size;
         List<ProductCountHistoryEntity> entities = queryRepository.findHistoriesBySellerId(
             sellerId.value(),
@@ -54,8 +52,7 @@ public class ProductCountHistoryQueryAdapter implements LoadProductCountHistoryP
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public long countHistories(MustitSellerId sellerId) {
+    public long countHistories(MustItSellerId sellerId) {
         return queryRepository.countHistoriesBySellerId(sellerId.value());
     }
 }

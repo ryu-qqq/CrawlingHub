@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.task;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerName;
 
 import java.time.Clock;
@@ -23,7 +23,7 @@ public class Task {
     private static final int MAX_RETRY_COUNT = 3;
 
     private final TaskId id;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
     private final SellerName sellerName;
     private final TaskType taskType;
     private TaskStatus status;
@@ -45,7 +45,7 @@ public class Task {
      */
     private Task(
         TaskId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         TaskStatus status,
@@ -86,7 +86,7 @@ public class Task {
      */
     Task(
         TaskId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         RequestUrl requestUrl,
@@ -122,7 +122,7 @@ public class Task {
      * 신규 작업 생성 (ID 없음)
      */
     public static Task forNew(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         RequestUrl requestUrl,
@@ -152,7 +152,7 @@ public class Task {
      */
     public static Task of(
         TaskId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         RequestUrl requestUrl,
@@ -191,7 +191,7 @@ public class Task {
      * @return META Task 인스턴스
      */
     public static Task forMeta(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         Long crawlScheduleId,
         TriggerType triggerType,
@@ -232,7 +232,7 @@ public class Task {
      * @return MINI_SHOP Task 인스턴스
      */
     public static Task forMiniShop(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         int pageNo,
         int pageSize,
@@ -277,7 +277,7 @@ public class Task {
      * @return PRODUCT_DETAIL Task 인스턴스
      */
     public static Task forProductDetail(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         Long itemNo,
         Long crawlScheduleId,
@@ -319,7 +319,7 @@ public class Task {
      * @return PRODUCT_OPTION Task 인스턴스
      */
     public static Task forProductOption(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         Long itemNo,
         Long crawlScheduleId,
@@ -352,7 +352,7 @@ public class Task {
      */
     public static Task reconstitute(
         TaskId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         TaskStatus status,
@@ -393,7 +393,7 @@ public class Task {
     }
 
     private static void validateRequiredFields(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         SellerName sellerName,
         TaskType taskType,
         RequestUrl requestUrl,

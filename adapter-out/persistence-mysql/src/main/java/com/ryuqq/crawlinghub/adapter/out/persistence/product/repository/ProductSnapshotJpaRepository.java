@@ -8,11 +8,10 @@ import java.util.Optional;
 /**
  * ProductSnapshot JPA Repository
  *
- * <p><strong>컨벤션 준수:</strong></p>
+ * <p><strong>CQRS 패턴 적용</strong></p>
  * <ul>
- *   <li>✅ Spring Data JPA 사용</li>
- *   <li>✅ Query 메서드 네이밍 규칙 준수</li>
- *   <li>✅ Optional 반환 (findBy...)</li>
+ *   <li>✅ Command: save(), delete()</li>
+ *   <li>✅ Query: findById(), findByMustitItemNoAndSellerId() (간단한 조회만 허용)</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -23,10 +22,10 @@ public interface ProductSnapshotJpaRepository extends JpaRepository<ProductSnaps
     /**
      * Mustit 상품 번호 + Seller ID로 조회
      *
-     * @param mustItItemNo 머스트잇 상품 번호
-     * @param sellerId 셀러 ID (Long FK)
-     * @return ProductSnapshot (Optional)
+     * @param mustitItemNo Mustit 상품 번호
+     * @param sellerId Seller ID
+     * @return ProductSnapshot Entity
      */
-    Optional<ProductSnapshotEntity> findByMustItItemNoAndSellerId(Long mustItItemNo, Long sellerId);
+    Optional<ProductSnapshotEntity> findByMustitItemNoAndSellerId(Long mustitItemNo, Long sellerId);
 }
 

@@ -26,8 +26,8 @@ public class MustitSellerFixture {
      *
      * @return MustitSeller
      */
-    public static MustitSeller create() {
-        return MustitSeller.forNew(
+    public static MustItSeller create() {
+        return MustItSeller.forNew(
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME
         );
@@ -39,9 +39,9 @@ public class MustitSellerFixture {
      * @param id MustitSeller ID
      * @return MustitSeller
      */
-    public static MustitSeller createWithId(Long id) {
-        return MustitSeller.of(
-            MustitSellerId.of(id),
+    public static MustItSeller createWithId(Long id) {
+        return MustItSeller.of(
+            MustItSellerId.of(id),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             SellerStatus.ACTIVE
@@ -54,8 +54,8 @@ public class MustitSellerFixture {
      * @param sellerCode 셀러 코드
      * @return MustitSeller
      */
-    public static MustitSeller createWithCode(String sellerCode) {
-        return MustitSeller.forNew(
+    public static MustItSeller createWithCode(String sellerCode) {
+        return MustItSeller.forNew(
             sellerCode,
             DEFAULT_SELLER_NAME
         );
@@ -67,8 +67,8 @@ public class MustitSellerFixture {
      * @param sellerName 셀러 이름
      * @return MustitSeller
      */
-    public static MustitSeller createWithName(String sellerName) {
-        return MustitSeller.forNew(
+    public static MustItSeller createWithName(String sellerName) {
+        return MustItSeller.forNew(
             DEFAULT_SELLER_CODE,
             sellerName
         );
@@ -79,10 +79,10 @@ public class MustitSellerFixture {
      *
      * @return MustitSeller
      */
-    public static MustitSeller createActive() {
+    public static MustItSeller createActive() {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(DEFAULT_ID),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(DEFAULT_ID),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             SellerStatus.ACTIVE,
@@ -98,10 +98,10 @@ public class MustitSellerFixture {
      *
      * @return MustitSeller
      */
-    public static MustitSeller createPaused() {
+    public static MustItSeller createPaused() {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(DEFAULT_ID),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(DEFAULT_ID),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             SellerStatus.PAUSED,
@@ -117,10 +117,10 @@ public class MustitSellerFixture {
      *
      * @return MustitSeller
      */
-    public static MustitSeller createDisabled() {
+    public static MustItSeller createDisabled() {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(DEFAULT_ID),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(DEFAULT_ID),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             SellerStatus.DISABLED,
@@ -137,10 +137,10 @@ public class MustitSellerFixture {
      * @param productCount 상품 수
      * @return MustitSeller
      */
-    public static MustitSeller createWithProductCount(Integer productCount) {
+    public static MustItSeller createWithProductCount(Integer productCount) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(DEFAULT_ID),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(DEFAULT_ID),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             SellerStatus.ACTIVE,
@@ -159,14 +159,14 @@ public class MustitSellerFixture {
      * @param productCount 상품 수
      * @return MustitSeller
      */
-    public static MustitSeller reconstitute(
+    public static MustItSeller reconstitute(
         Long id,
         SellerStatus status,
         Integer productCount
     ) {
         LocalDateTime now = LocalDateTime.now(DEFAULT_CLOCK);
-        return MustitSeller.reconstitute(
-            MustitSellerId.of(id),
+        return MustItSeller.reconstitute(
+            MustItSellerId.of(id),
             DEFAULT_SELLER_CODE,
             DEFAULT_SELLER_NAME,
             status,
@@ -186,17 +186,17 @@ public class MustitSellerFixture {
      * @param status 셀러 상태
      * @return MustitSeller
      */
-    public static MustitSeller createCustom(
+    public static MustItSeller createCustom(
         Long id,
         String sellerCode,
         String sellerName,
         SellerStatus status
     ) {
         if (id == null) {
-            return MustitSeller.forNew(sellerCode, sellerName);
+            return MustItSeller.forNew(sellerCode, sellerName);
         }
-        return MustitSeller.of(
-            MustitSellerId.of(id),
+        return MustItSeller.of(
+            MustItSellerId.of(id),
             sellerCode,
             sellerName,
             status

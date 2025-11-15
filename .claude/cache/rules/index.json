@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "buildDate": "2025-11-10T16:21:36.386414Z",
-  "totalRules": 259,
+  "buildDate": "2025-11-11T10:41:13.314372Z",
+  "totalRules": 261,
   "keywordIndex": {
     "rest": [
       "adapter-rest-api-layer-00_rest-api-creation-guide",
@@ -27,12 +27,14 @@
     "creation": [
       "adapter-rest-api-layer-00_rest-api-creation-guide",
       "domain-layer-00_domain-object-creation-guide",
+      "domain-layer-aggregate-design-00_domain-object-creation-guide",
       "coding_convention-adapter-rest-api-layer-00_rest-api-creation-guide",
       "coding_convention-domain-layer-aggregate-design-00_domain-object-creation-guide"
     ],
     "guide": [
       "adapter-rest-api-layer-00_rest-api-creation-guide",
       "domain-layer-00_domain-object-creation-guide",
+      "domain-layer-aggregate-design-00_domain-object-creation-guide",
       "application-layer-facade-01_facade-usage-guide",
       "orchestration-patterns-05_quick-start-guide",
       "orchestration-patterns-06_security-guide",
@@ -76,6 +78,7 @@
     "pattern": [
       "adapter-rest-api-layer-controller-design-02_constructor-injection-pattern",
       "domain-layer-law-of-demeter-02_tell-dont-ask-pattern",
+      "domain-layer-testing-03_test-fixture-pattern",
       "application-layer-usecase-design-03_orchestration-pattern",
       "persistence-layer-jpa-entity-design-04_constructor-and-factory-pattern",
       "persistence-layer-jpa-entity-design-05_audit-entity-pattern",
@@ -276,6 +279,7 @@
     "test": [
       "adapter-rest-api-layer-testing-01_controller-unit-test",
       "adapter-rest-api-layer-testing-02_integration-test",
+      "domain-layer-testing-03_test-fixture-pattern",
       "persistence-layer-testing-03_test-tags-strategy",
       "testing-02_test-fixture-pattern",
       "testing-integration-testing-04_test-data-management",
@@ -326,6 +330,7 @@
     ],
     "domain": [
       "domain-layer-00_domain-object-creation-guide",
+      "domain-layer-aggregate-design-00_domain-object-creation-guide",
       "domain-layer-law-of-demeter-03_domain-encapsulation",
       "domain-layer-testing-05_domain-event-testing",
       "java21-patterns-sealed-classes-01_domain-modeling",
@@ -340,6 +345,7 @@
     ],
     "object": [
       "domain-layer-00_domain-object-creation-guide",
+      "domain-layer-aggregate-design-00_domain-object-creation-guide",
       "domain-layer-testing-02_value-object-testing",
       "java21-patterns-record-patterns-05_entity-vs-value-object",
       "coding_convention-domain-layer-aggregate-design-00_domain-object-creation-guide",
@@ -446,6 +452,13 @@
       "coding_convention-domain-layer-testing-02_value-object-testing",
       "coding_convention-java21-patterns-record-patterns-02_value-objects-with-records",
       "coding_convention-java21-patterns-record-patterns-05_entity-vs-value-object"
+    ],
+    "fixture": [
+      "domain-layer-testing-03_test-fixture-pattern",
+      "testing-02_test-fixture-pattern",
+      "coding_convention-domain-layer-testing-03_test-fixture-pattern",
+      "coding_convention-application-layer-testing-03_test-fixture-pattern",
+      "coding_convention-testing-02_test-fixture-pattern"
     ],
     "factory": [
       "domain-layer-testing-04_factory-testing",
@@ -658,12 +671,6 @@
       "coding_convention-persistence-layer-testing-03_test-tags-strategy",
       "coding_convention-persistence-layer-testing-04_test-tags-strategy",
       "coding_convention-testing-multi-module-testing-04_test-tags-and-execution"
-    ],
-    "fixture": [
-      "testing-02_test-fixture-pattern",
-      "coding_convention-domain-layer-testing-03_test-fixture-pattern",
-      "coding_convention-application-layer-testing-03_test-fixture-pattern",
-      "coding_convention-testing-02_test-fixture-pattern"
     ],
     "layer": [
       "testing-archunit-rules-01_layer-dependency-rules",
@@ -1043,6 +1050,7 @@
   "layerIndex": {
     "domain": [
       "domain-layer-00_domain-object-creation-guide",
+      "domain-layer-aggregate-design-00_domain-object-creation-guide",
       "domain-layer-aggregate-design-01_aggregate-boundaries",
       "domain-layer-aggregate-design-02_aggregate-root-design",
       "domain-layer-aggregate-design-03_consistency-boundaries",
@@ -1053,6 +1061,7 @@
       "domain-layer-testing-00_testing-support-toolkit",
       "domain-layer-testing-01_aggregate-testing",
       "domain-layer-testing-02_value-object-testing",
+      "domain-layer-testing-03_test-fixture-pattern",
       "domain-layer-testing-04_factory-testing",
       "domain-layer-testing-05_domain-event-testing",
       "domain-layer-testing-06_policy-testing",

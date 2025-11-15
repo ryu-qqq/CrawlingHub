@@ -1,15 +1,15 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.seller.integration;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.seller.adapter.SellerCommandAdapter;
-import com.ryuqq.crawlinghub.adapter.out.persistence.seller.adapter.SellerQueryAdapter;
-import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.MustitSellerJpaRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.adapter.MustItSellerCommandAdapter;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.adapter.MustItSellerQueryAdapter;
+import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.MustItSellerJpaRepository;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerFixture;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({SellerCommandAdapter.class, SellerQueryAdapter.class, SellerAssembler.class})
+@Import({MustItSellerCommandAdapter.class, MustItSellerQueryAdapter.class, SellerAssembler.class})
 @DisplayName("Seller Persistence Layer 통합 테스트")
 class SellerPersistenceIntegrationTest {
 
     @Autowired
-    private MustitSellerJpaRepository jpaRepository;
+    private MustItSellerJpaRepository jpaRepository;
 
     @Autowired
     private SaveSellerPort saveSellerPort;
@@ -72,10 +72,10 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("Seller를 생성하고 저장하면 DB에 저장된다")
         void it_saves_seller_successfully() {
             // Given
-            MustitSeller seller = MustitSellerFixture.createActive();
+            MustItSeller seller = MustitSellerFixture.createActive();
 
             // When
-            MustitSeller saved = saveSellerPort.save(seller);
+            MustItSeller saved = saveSellerPort.save(seller);
 
             // Then
             assertThat(saved.getIdValue()).isNotNull();
@@ -84,7 +84,7 @@ class SellerPersistenceIntegrationTest {
             assertThat(saved.getTotalProductCount()).isZero();
 
             // And: DB에서 조회 가능
-            Optional<SellerQueryDto> found = loadSellerPort.findById(MustitSellerId.of(saved.getIdValue()));
+            Optional<SellerQueryDto> found = loadSellerPort.findById(MustItSellerId.of(saved.getIdValue()));
             assertThat(found).isPresent();
             assertThat(found.get().id()).isEqualTo(saved.getIdValue());
             assertThat(found.get().sellerCode()).isEqualTo(saved.getSellerCode());
@@ -94,12 +94,12 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("여러 Seller를 생성하고 모두 저장된다")
         void it_saves_multiple_sellers_successfully() {
             // Given
-            MustitSeller seller1 = MustitSellerFixture.createActive();
-            MustitSeller seller2 = MustitSellerFixture.createPaused();
+            MustItSeller seller1 = MustitSellerFixture.createActive();
+            MustItSeller seller2 = MustitSellerFixture.createPaused();
 
             // When
-            MustitSeller saved1 = saveSellerPort.save(seller1);
-            MustitSeller saved2 = saveSellerPort.save(seller2);
+            MustItSeller saved1 = saveSellerPort.save(seller1);
+            MustItSeller saved2 = saveSellerPort.save(seller2);
 
             // Then
             assertThat(saved1.getIdValue()).isNotNull();
@@ -121,11 +121,11 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("ID로 Seller를 조회할 수 있다")
         void it_finds_seller_by_id() {
             // Given: Seller 저장
-            MustitSeller seller = MustitSellerFixture.createActive();
-            MustitSeller saved = saveSellerPort.save(seller);
+            MustItSeller seller = MustitSellerFixture.createActive();
+            MustItSeller saved = saveSellerPort.save(seller);
 
             // When: ID로 조회
-            Optional<SellerQueryDto> found = loadSellerPort.findById(MustitSellerId.of(saved.getIdValue()));
+            Optional<SellerQueryDto> found = loadSellerPort.findById(MustItSellerId.of(saved.getIdValue()));
 
             // Then
             assertThat(found).isPresent();
@@ -138,7 +138,7 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("존재하지 않는 ID로 조회하면 빈 Optional을 반환한다")
         void it_returns_empty_for_non_existent_id() {
             // When: 존재하지 않는 ID로 조회
-            Optional<SellerQueryDto> found = loadSellerPort.findById(MustitSellerId.of(999L));
+            Optional<SellerQueryDto> found = loadSellerPort.findById(MustItSellerId.of(999L));
 
             // Then
             assertThat(found).isEmpty();
@@ -153,21 +153,21 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("ACTIVE 상태의 Seller를 PAUSED로 변경할 수 있다")
         void it_pauses_active_seller() {
             // Given: ACTIVE 상태의 Seller
-            MustitSeller seller = MustitSellerFixture.createActive();
-            MustitSeller saved = saveSellerPort.save(seller);
+            MustItSeller seller = MustitSellerFixture.createActive();
+            MustItSeller saved = saveSellerPort.save(seller);
 
             // When: PAUSED로 변경
-            MustitSeller found = loadSellerPort.findById(MustitSellerId.of(saved.getIdValue()))
+            MustItSeller found = loadSellerPort.findById(MustItSellerId.of(saved.getIdValue()))
                 .map(assembler::toDomain)
                 .orElseThrow();
             found.pause();
-            MustitSeller paused = saveSellerPort.save(found);
+            MustItSeller paused = saveSellerPort.save(found);
 
             // Then
             assertThat(paused.getStatus()).isEqualTo(SellerStatus.PAUSED);
 
             // And: DB에서 조회 시 PAUSED 상태
-            Optional<SellerQueryDto> reloaded = loadSellerPort.findById(MustitSellerId.of(paused.getIdValue()));
+            Optional<SellerQueryDto> reloaded = loadSellerPort.findById(MustItSellerId.of(paused.getIdValue()));
             assertThat(reloaded).isPresent();
             assertThat(reloaded.get().status()).isEqualTo(SellerStatus.PAUSED);
         }
@@ -176,21 +176,21 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("PAUSED 상태의 Seller를 ACTIVE로 변경할 수 있다")
         void it_activates_paused_seller() {
             // Given: PAUSED 상태의 Seller
-            MustitSeller seller = MustitSellerFixture.createPaused();
-            MustitSeller saved = saveSellerPort.save(seller);
+            MustItSeller seller = MustitSellerFixture.createPaused();
+            MustItSeller saved = saveSellerPort.save(seller);
 
             // When: ACTIVE로 변경
-            MustitSeller found = loadSellerPort.findById(MustitSellerId.of(saved.getIdValue()))
+            MustItSeller found = loadSellerPort.findById(MustItSellerId.of(saved.getIdValue()))
                 .map(assembler::toDomain)
                 .orElseThrow();
             found.activate();
-            MustitSeller activated = saveSellerPort.save(found);
+            MustItSeller activated = saveSellerPort.save(found);
 
             // Then
             assertThat(activated.getStatus()).isEqualTo(SellerStatus.ACTIVE);
 
             // And: DB에서 조회 시 ACTIVE 상태
-            Optional<SellerQueryDto> reloaded = loadSellerPort.findById(MustitSellerId.of(activated.getIdValue()));
+            Optional<SellerQueryDto> reloaded = loadSellerPort.findById(MustItSellerId.of(activated.getIdValue()));
             assertThat(reloaded).isPresent();
             assertThat(reloaded.get().status()).isEqualTo(SellerStatus.ACTIVE);
         }
@@ -204,32 +204,32 @@ class SellerPersistenceIntegrationTest {
         @DisplayName("Seller를 생성하고 상태를 변경한 후 다시 조회한다")
         void it_creates_changes_status_and_queries_seller() {
             // Given: Seller 생성 및 저장
-            MustitSeller seller = MustitSellerFixture.createActive();
-            MustitSeller saved = saveSellerPort.save(seller);
+            MustItSeller seller = MustitSellerFixture.createActive();
+            MustItSeller saved = saveSellerPort.save(seller);
             assertThat(saved.getStatus()).isEqualTo(SellerStatus.ACTIVE);
 
             // When: PAUSED로 변경
-            MustitSeller found = loadSellerPort.findById(MustitSellerId.of(saved.getIdValue()))
+            MustItSeller found = loadSellerPort.findById(MustItSellerId.of(saved.getIdValue()))
                 .map(assembler::toDomain)
                 .orElseThrow();
             found.pause();
-            MustitSeller paused = saveSellerPort.save(found);
+            MustItSeller paused = saveSellerPort.save(found);
 
             // Then: PAUSED 상태 확인
             assertThat(paused.getStatus()).isEqualTo(SellerStatus.PAUSED);
 
             // And: ACTIVE로 다시 변경
-            MustitSeller foundAgain = loadSellerPort.findById(MustitSellerId.of(paused.getIdValue()))
+            MustItSeller foundAgain = loadSellerPort.findById(MustItSellerId.of(paused.getIdValue()))
                 .map(assembler::toDomain)
                 .orElseThrow();
             foundAgain.activate();
-            MustitSeller activated = saveSellerPort.save(foundAgain);
+            MustItSeller activated = saveSellerPort.save(foundAgain);
 
             // Then: ACTIVE 상태 확인
             assertThat(activated.getStatus()).isEqualTo(SellerStatus.ACTIVE);
 
             // And: 최종 조회 시 ACTIVE 상태
-            Optional<SellerQueryDto> final_check = loadSellerPort.findById(MustitSellerId.of(activated.getIdValue()));
+            Optional<SellerQueryDto> final_check = loadSellerPort.findById(MustItSellerId.of(activated.getIdValue()));
             assertThat(final_check).isPresent();
             assertThat(final_check.get().status()).isEqualTo(SellerStatus.ACTIVE);
         }

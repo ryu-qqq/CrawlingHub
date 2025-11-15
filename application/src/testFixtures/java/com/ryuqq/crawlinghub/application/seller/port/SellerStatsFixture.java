@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.application.seller.port;
 
-import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerStatsPort.SellerStats;
-
 /**
  * SellerStats Test Fixture
  *

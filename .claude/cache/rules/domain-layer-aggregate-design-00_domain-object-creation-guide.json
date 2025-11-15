@@ -1,6 +1,6 @@
 {
   "id": "domain-layer-aggregate-design-00_domain-object-creation-guide",
-  "sourceFile": "/Users/sangwon-ryu/claude-spring-standards/docs/coding_convention/02-domain-layer/aggregate-design/00_domain-object-creation-guide.md",
+  "sourceFile": "/Users/sangwon-ryu/crawlinghub/docs/coding_convention/02-domain-layer/aggregate-design/00_domain-object-creation-guide.md",
   "metadata": {
     "keywords": {
       "primary": [
@@ -19,7 +19,7 @@
     },
     "layer": "domain",
     "priority": "critical",
-    "tokenEstimate": 1969
+    "tokenEstimate": 2024
   },
   "rules": {
     "prohibited": [],

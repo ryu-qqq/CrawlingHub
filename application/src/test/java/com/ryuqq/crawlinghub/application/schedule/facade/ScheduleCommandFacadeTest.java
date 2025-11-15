@@ -5,14 +5,14 @@ import com.ryuqq.crawlinghub.application.crawl.schedule.dto.command.UpdateSchedu
 import com.ryuqq.crawlinghub.application.schedule.dto.command.CreateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateScheduleCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.ScheduleResponse;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleStateManager;
 import com.ryuqq.crawlinghub.application.schedule.validator.CronExpressionValidator;
 import com.ryuqq.crawlinghub.domain.crawl.schedule.CrawlScheduleFixture;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 
 /**
  * ScheduleCommandFacade 단위 테스트
@@ -85,7 +84,7 @@ class ScheduleCommandFacadeTest {
 
                 // Mock: ScheduleStateManager.createSchedule() 호출 결과
                 given(scheduleStateManager.createSchedule(
-                    any(MustitSellerId.class),
+                    any(MustItSellerId.class),
                     any(CronExpression.class),
                     any(LocalDateTime.class),
                     anyString()
@@ -103,7 +102,7 @@ class ScheduleCommandFacadeTest {
 
                 // And: ScheduleStateManager가 호출됨
                 then(scheduleStateManager).should().createSchedule(
-                    any(MustitSellerId.class),
+                    any(MustItSellerId.class),
                     any(CronExpression.class),
                     any(LocalDateTime.class),
                     anyString()
@@ -156,7 +155,7 @@ class ScheduleCommandFacadeTest {
 
                 // And: ScheduleStateManager는 호출되지 않음
                 then(scheduleStateManager).should(never()).createSchedule(
-                    any(MustitSellerId.class),
+                    any(MustItSellerId.class),
                     any(CronExpression.class),
                     any(LocalDateTime.class),
                     anyString()
@@ -197,7 +196,7 @@ class ScheduleCommandFacadeTest {
 
                 // And: ScheduleStateManager.createSchedule()는 호출되지 않음
                 then(scheduleStateManager).should(never()).createSchedule(
-                    any(MustitSellerId.class),
+                    any(MustItSellerId.class),
                     any(CronExpression.class),
                     any(LocalDateTime.class),
                     anyString()
@@ -233,7 +232,7 @@ class ScheduleCommandFacadeTest {
 
                 // And: ScheduleStateManager.createSchedule()는 호출되지 않음
                 then(scheduleStateManager).should(never()).createSchedule(
-                    any(MustitSellerId.class),
+                    any(MustItSellerId.class),
                     any(CronExpression.class),
                     any(LocalDateTime.class),
                     anyString()

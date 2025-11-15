@@ -7,7 +7,6 @@ import com.ryuqq.crawlinghub.application.seller.port.out.SaveProductCountHistory
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * ProductCountHistoryCommandAdapter - Command Adapter (쓰기 전용)
@@ -32,7 +31,6 @@ public class ProductCountHistoryCommandAdapter implements SaveProductCountHistor
     }
 
     @Override
-    @Transactional
     public ProductCountHistory saveHistory(ProductCountHistory history) {
         ProductCountHistoryEntity entity = mapper.toEntity(history);
         ProductCountHistoryEntity savedEntity = jpaRepository.save(entity);

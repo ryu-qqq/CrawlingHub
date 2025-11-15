@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -31,7 +31,7 @@ public class CrawledProductFixture {
     public static CrawledProduct create() {
         return CrawledProduct.forNew(
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
     }
 
@@ -45,7 +45,7 @@ public class CrawledProductFixture {
         return CrawledProduct.of(
             ProductId.of(id),
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
     }
 
@@ -58,7 +58,7 @@ public class CrawledProductFixture {
     public static CrawledProduct createWithMustitItemNo(Long mustItItemNo) {
         return CrawledProduct.forNew(
             mustItItemNo,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
     }
 
@@ -71,7 +71,7 @@ public class CrawledProductFixture {
     public static CrawledProduct createWithSellerId(Long sellerId) {
         return CrawledProduct.forNew(
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(sellerId)
+            MustItSellerId.of(sellerId)
         );
     }
 
@@ -83,7 +83,7 @@ public class CrawledProductFixture {
     public static CrawledProduct createIncomplete() {
         return CrawledProduct.forNew(
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
     }
 
@@ -96,7 +96,7 @@ public class CrawledProductFixture {
         CrawledProduct product = CrawledProduct.of(
             ProductId.of(DEFAULT_ID),
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
         product.updateMiniShopData(ProductDataFixture.createMiniShopData());
         product.updateDetailData(ProductDataFixture.createDetailData());
@@ -113,7 +113,7 @@ public class CrawledProductFixture {
         CrawledProduct product = CrawledProduct.of(
             ProductId.of(DEFAULT_ID),
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID)
+            MustItSellerId.of(DEFAULT_SELLER_ID)
         );
         product.updateMiniShopData(ProductDataFixture.createMiniShopData());
         return product;
@@ -147,7 +147,7 @@ public class CrawledProductFixture {
         return CrawledProduct.reconstitute(
             ProductId.of(id),
             mustItItemNo,
-            MustitSellerId.of(sellerId),
+            MustItSellerId.of(sellerId),
             miniShopData,
             detailData,
             optionData,
@@ -182,12 +182,12 @@ public class CrawledProductFixture {
     ) {
         CrawledProduct product;
         if (id == null) {
-            product = CrawledProduct.forNew(mustItItemNo, MustitSellerId.of(sellerId));
+            product = CrawledProduct.forNew(mustItItemNo, MustItSellerId.of(sellerId));
         } else {
             product = CrawledProduct.of(
                 ProductId.of(id),
                 mustItItemNo,
-                MustitSellerId.of(sellerId)
+                MustItSellerId.of(sellerId)
             );
         }
 
@@ -227,7 +227,7 @@ public class CrawledProductFixture {
         return CrawledProduct.reconstitute(
             ProductId.of(DEFAULT_ID),
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             ProductDataFixture.createMiniShopData(),
             ProductDataFixture.createDetailData(),
             ProductDataFixture.createOptionData(),
@@ -252,7 +252,7 @@ public class CrawledProductFixture {
         return CrawledProduct.reconstitute(
             ProductId.of(DEFAULT_ID),
             DEFAULT_MUSTIT_ITEM_NO,
-            MustitSellerId.of(DEFAULT_SELLER_ID),
+            MustItSellerId.of(DEFAULT_SELLER_ID),
             ProductDataFixture.createMiniShopData(),
             ProductDataFixture.createDetailData(),
             ProductDataFixture.createOptionData(),

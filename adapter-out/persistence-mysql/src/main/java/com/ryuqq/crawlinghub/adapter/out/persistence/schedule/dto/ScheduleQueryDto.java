@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.dto;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleEntity;
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
 
 import java.time.LocalDateTime;
 
@@ -37,7 +38,7 @@ public record ScheduleQueryDto(
     Long id,
     Long sellerId,
     String cronExpression,
-    ScheduleEntity.ScheduleStatus status,
+    ScheduleStatus status,
     LocalDateTime nextExecutionTime,
     LocalDateTime lastExecutedAt,
     LocalDateTime createdAt,

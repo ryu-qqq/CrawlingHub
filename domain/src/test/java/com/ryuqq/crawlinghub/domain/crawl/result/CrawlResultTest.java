@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawl.result;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.task.TaskId;
 import com.ryuqq.crawlinghub.domain.task.TaskType;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ class CrawlResultTest {
 
     private static final TaskId TASK_ID = TaskId.of(100L);
     private static final TaskType TASK_TYPE = TaskType.MINI_SHOP;
-    private static final MustitSellerId SELLER_ID = MustitSellerId.of(200L);
+    private static final MustItSellerId SELLER_ID = MustItSellerId.of(200L);
     private static final String RAW_DATA = "{\"products\":[{\"id\":1,\"name\":\"상품A\"}]}";
     private static final LocalDateTime CRAWLED_AT = LocalDateTime.of(2025, 11, 10, 14, 30, 0);
 
@@ -106,7 +106,7 @@ class CrawlResultTest {
         @ParameterizedTest
         @NullSource
         @DisplayName("Seller ID가 null이면 예외 발생")
-        void shouldThrowExceptionWhenSellerIdIsNull(MustitSellerId nullSellerId) {
+        void shouldThrowExceptionWhenSellerIdIsNull(MustItSellerId nullSellerId) {
             // When & Then
             assertThatThrownBy(() -> CrawlResult.create(
                 TASK_ID, TASK_TYPE, nullSellerId, RAW_DATA, CRAWLED_AT

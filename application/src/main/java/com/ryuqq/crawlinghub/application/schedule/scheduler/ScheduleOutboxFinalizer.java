@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.scheduler;
 
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

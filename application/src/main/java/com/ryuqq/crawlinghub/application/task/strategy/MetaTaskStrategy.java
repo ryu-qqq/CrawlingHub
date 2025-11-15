@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.application.task.strategy;
 
-import com.ryuqq.crawlinghub.application.crawl.result.manager.CrawlResultManager;
+import com.ryuqq.crawlinghub.application.crawl.result.component.CrawlResultManager;
 import com.ryuqq.crawlinghub.application.seller.component.SellerManager;
 import com.ryuqq.crawlinghub.application.task.dto.output.MiniShopOutput;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlerFacade;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerName;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import org.springframework.stereotype.Component;
@@ -65,12 +65,12 @@ public class MetaTaskStrategy extends AbstractTaskStrategy<MiniShopOutput> {
         log.info("META Task 실행. taskId={}, totalCount={}",
             task.getIdValue(), output.getTotalCount());
 
-        MustitSellerId sellerId = MustitSellerId.of(task.getSellerIdValue());
+        MustItSellerId sellerId = MustItSellerId.of(task.getSellerIdValue());
         Integer totalCount = output.getTotalCount();
 
         // 1. 셀러 상품 수 업데이트 (SellerManager)
         try {
-            MustitSeller seller = sellerManager.loadSeller(sellerId.value());
+            MustItSeller seller = sellerManager.loadSeller(sellerId.value());
             sellerManager.updateProductCountWithHistory(seller, totalCount);
             log.info("셀러 상품 수 업데이트 완료. sellerId={}, totalCount={}", sellerId.value(), totalCount);
         } catch (Exception e) {

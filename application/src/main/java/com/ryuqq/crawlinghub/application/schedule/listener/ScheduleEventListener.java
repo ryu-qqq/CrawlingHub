@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.listener;
 
-import com.ryuqq.crawlinghub.application.schedule.manager.ScheduleOutboxStateManager;
+import com.ryuqq.crawlinghub.application.schedule.component.ScheduleOutboxStateManager;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 

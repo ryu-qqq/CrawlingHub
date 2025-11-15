@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.scheduler;
 
-import com.ryuqq.crawlinghub.application.product.manager.ProductSyncOutboxStateManager;
+import com.ryuqq.crawlinghub.application.product.component.ProductSyncOutboxStateManager;
 import com.ryuqq.crawlinghub.application.product.port.out.ExternalProductApiPort;
 import com.ryuqq.crawlinghub.domain.product.ProductSyncOutbox;
 import org.slf4j.Logger;

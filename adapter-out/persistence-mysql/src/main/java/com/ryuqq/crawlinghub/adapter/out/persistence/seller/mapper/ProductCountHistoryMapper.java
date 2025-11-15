@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.ProductCountHistoryEntity;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistoryId;
 import org.springframework.stereotype.Component;
@@ -59,7 +59,7 @@ public class ProductCountHistoryMapper {
 
         return ProductCountHistory.reconstitute(
             entity.getId() != null ? ProductCountHistoryId.of(entity.getId()) : null,
-            MustitSellerId.of(entity.getSellerId()),
+            MustItSellerId.of(entity.getSellerId()),
             entity.getProductCount(),
             entity.getExecutedDate()
         );

@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.application.task.facade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlResult;
 import com.ryuqq.crawlinghub.application.task.port.out.HttpCrawlerPort;
-import com.ryuqq.crawlinghub.application.token.manager.TokenAcquisitionManager;
+import com.ryuqq.crawlinghub.application.token.component.TokenAcquisitionManager;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import com.ryuqq.crawlinghub.domain.token.exception.TokenAcquisitionException;
 import com.ryuqq.crawlinghub.domain.useragent.UserAgent;

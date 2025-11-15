@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.domain.seller.history;
 
 import java.time.LocalDateTime;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 /**
  * ProductCountHistory - 상품 수 변경 이력
@@ -22,14 +22,14 @@ import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
 public class ProductCountHistory {
 
     private final ProductCountHistoryId id;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
     private final Integer productCount;         // 카운트 된 수 ⭐
     private final LocalDateTime executedDate;   // 실행 날짜 ⭐
 
     // Private Constructor (Factory Method 강제)
     private ProductCountHistory(
         ProductCountHistoryId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         Integer productCount,
         LocalDateTime executedDate
     ) {
@@ -48,7 +48,7 @@ public class ProductCountHistory {
      * @return ProductCountHistory
      */
     public static ProductCountHistory record(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         Integer productCount,
         LocalDateTime executedDate
     ) {
@@ -73,7 +73,7 @@ public class ProductCountHistory {
      */
     public static ProductCountHistory reconstitute(
         ProductCountHistoryId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         Integer productCount,
         LocalDateTime executedDate
     ) {
@@ -109,7 +109,7 @@ public class ProductCountHistory {
         return id;
     }
 
-    public MustitSellerId getSellerId() {
+    public MustItSellerId getSellerId() {
         return sellerId;
     }
 

@@ -13,7 +13,6 @@ import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerComman
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.port.in.GetSellerDetailUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
 
@@ -75,9 +74,6 @@ class SellerControllerTest {
 
     @Mock
     private UpdateSellerStatusUseCase updateSellerStatusUseCase;
-
-    @Mock
-    private GetSellerDetailUseCase getSellerDetailUseCase;
 
     @Mock
     private SellerApiMapper sellerApiMapper;
@@ -264,72 +260,4 @@ class SellerControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("GET /api/v1/sellers/{sellerId}")
-    class Describe_getSellerDetail {
-
-        @Test
-        @DisplayName("셀러 상세 정보를 조회하면 200 OK를 반환한다")
-        void it_returns_seller_detail() throws Exception {
-            // Given
-            Long sellerId = 12345L;
-
-            SellerDetailResponse response = new SellerDetailResponse(
-                sellerId,
-                "12345",
-                "Test Seller",
-                "ACTIVE",
-                100, // totalProductCount
-                null, // productCountHistories (PageResponse)
-                null, // scheduleInfo
-                null  // scheduleHistories (PageResponse)
-            );
-
-            SellerDetailApiResponse apiResponse = new SellerDetailApiResponse(
-                sellerId,
-                "12345",
-                "Test Seller",
-                "ACTIVE",
-                100,
-                null,
-                null,
-                null
-            );
-
-            given(getSellerDetailUseCase.getDetail(any(Long.class)))
-                .willReturn(response);
-            given(sellerApiMapper.toSellerDetailApiResponse(response))
-                .willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(get("/api/v1/sellers/{sellerId}", sellerId))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.sellerId").value(sellerId))
-                .andExpect(jsonPath("$.data.totalProductCount").value(100))
-                .andDo(document("seller-get-detail",
-                    preprocessRequest(prettyPrint()),
-                    preprocessResponse(prettyPrint()),
-                    pathParameters(
-                        parameterWithName("sellerId").description("셀러 ID")
-                    ),
-                    responseFields(
-                        fieldWithPath("success").description("성공 여부"),
-                        fieldWithPath("data").description("응답 데이터"),
-                        fieldWithPath("data.sellerId").description("셀러 ID"),
-                        fieldWithPath("data.sellerCode").description("셀러 코드"),
-                        fieldWithPath("data.sellerName").description("셀러명"),
-                        fieldWithPath("data.status").description("상태"),
-                        fieldWithPath("data.totalProductCount").description("총 상품 수"),
-                        fieldWithPath("data.productCountHistories").description("상품 수 변경 이력").optional(),
-                        fieldWithPath("data.scheduleInfo").description("스케줄 정보").optional(),
-                        fieldWithPath("data.scheduleHistories").description("스케줄 실행 이력").optional(),
-                        fieldWithPath("error").description("에러 정보").optional(),
-                        fieldWithPath("timestamp").description("응답 타임스탬프"),
-                        fieldWithPath("requestId").description("요청 ID")
-                    )
-                ));
-        }
-    }
 }

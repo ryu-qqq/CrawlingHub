@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity;
 
+import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -26,52 +27,29 @@ public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private final Long id;
+    private Long id;
 
     @Column(name = "seller_id", nullable = false)
-    private final Long sellerId;
+    private Long sellerId;
 
     @Column(name = "cron_expression", nullable = false, length = 100)
-    private final String cronExpression;
+    private String cronExpression;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private final ScheduleStatus status;
+    private ScheduleStatus status;
 
     @Column(name = "next_execution_time")
-    private final LocalDateTime nextExecutionTime;
+    private LocalDateTime nextExecutionTime;
 
     @Column(name = "last_executed_at")
-    private final LocalDateTime lastExecutedAt;
+    private LocalDateTime lastExecutedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private final LocalDateTime updatedAt;
-
-    /**
-     * 스케줄 상태 Enum
-     */
-    public enum ScheduleStatus {
-        ACTIVE("활성"),
-        SUSPENDED("일시정지"),
-        DELETED("삭제");
-
-        private final String description;
-
-        ScheduleStatus(String description) {
-            this.description = description;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public boolean isActive() {
-            return this == ACTIVE;
-        }
-    }
+    private LocalDateTime updatedAt;
 
     /**
      * No-args 생성자 (JPA 필수)

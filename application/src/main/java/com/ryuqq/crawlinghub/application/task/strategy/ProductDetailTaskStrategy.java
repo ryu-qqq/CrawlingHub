@@ -3,13 +3,13 @@ package com.ryuqq.crawlinghub.application.task.strategy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.ryuqq.crawlinghub.application.crawl.result.manager.CrawlResultManager;
-import com.ryuqq.crawlinghub.application.product.manager.ProductManager;
+import com.ryuqq.crawlinghub.application.crawl.result.component.CrawlResultManager;
+import com.ryuqq.crawlinghub.application.product.component.ProductManager;
 import com.ryuqq.crawlinghub.application.task.dto.output.ProductDetailOutput;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlerFacade;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.task.Task;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +67,7 @@ public class ProductDetailTaskStrategy extends AbstractTaskStrategy<ProductDetai
         log.info("이미지 수: {}", images.size());
 
         // 3. 셀러 정보 추출
-        MustitSellerId sellerId = MustitSellerId.of(task.getSellerIdValue());
+        MustItSellerId sellerId = MustItSellerId.of(task.getSellerIdValue());
 
         try {
             // 4. Product Detail 데이터 저장

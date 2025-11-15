@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.task;
 
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.SellerName;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,7 +42,7 @@ class TaskTest {
     );
 
     // 공통 테스트 데이터
-    private static final MustitSellerId SELLER_ID = MustitSellerId.of(12345L);
+    private static final MustItSellerId SELLER_ID = MustItSellerId.of(12345L);
     private static final SellerName SELLER_NAME = SellerName.of("LIKEASTAR");
     private static final LocalDateTime SCHEDULED_AT = LocalDateTime.now(FIXED_CLOCK);
 
@@ -300,7 +300,7 @@ class TaskTest {
         @ParameterizedTest
         @NullSource
         @DisplayName("null sellerId로 Task 생성 시 예외 발생")
-        void shouldThrowExceptionWhenSellerIdIsNull(MustitSellerId nullSellerId) {
+        void shouldThrowExceptionWhenSellerIdIsNull(MustItSellerId nullSellerId) {
             // When & Then
             assertThatThrownBy(() -> Task.forNew(
                 nullSellerId,

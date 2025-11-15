@@ -1,35 +1,29 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.RegisterSellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.UpdateSellerApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerApiMapper;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerStatusCommand;
-import com.ryuqq.crawlinghub.application.seller.port.in.GetSellerDetailUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-import jakarta.validation.Valid;
+import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Objects;
 
 /**
  * SellerController - 셀러 REST API 컨트롤러
@@ -49,7 +43,6 @@ public class SellerController {
 
     private final RegisterSellerUseCase registerSellerUseCase;
     private final UpdateSellerStatusUseCase updateSellerStatusUseCase;
-    private final GetSellerDetailUseCase getSellerDetailUseCase;
     private final SellerApiMapper sellerApiMapper;
 
     /**
@@ -57,18 +50,15 @@ public class SellerController {
      *
      * @param registerSellerUseCase 셀러 등록 UseCase
      * @param updateSellerStatusUseCase   셀러 상태 변경 UseCase
-     * @param getSellerDetailUseCase      셀러 상세 조회 UseCase
      * @param sellerApiMapper             API Mapper
      */
     public SellerController(
             RegisterSellerUseCase registerSellerUseCase,
             UpdateSellerStatusUseCase updateSellerStatusUseCase,
-            GetSellerDetailUseCase getSellerDetailUseCase,
             SellerApiMapper sellerApiMapper
     ) {
         this.registerSellerUseCase = registerSellerUseCase;
         this.updateSellerStatusUseCase = updateSellerStatusUseCase;
-        this.getSellerDetailUseCase = getSellerDetailUseCase;
         this.sellerApiMapper = sellerApiMapper;
     }
 
@@ -142,35 +132,5 @@ public class SellerController {
         ApiResponse<UpdateSellerApiResponse> wrappedResponse = ApiResponse.ofSuccess(apiResponse);
 
         return ResponseEntity.ok(wrappedResponse);
-    }
-
-    /**
-     * 셀러 상세 조회 (확장됨) ⭐
-     *
-     * <p>반환 정보:
-     * <ul>
-     *   <li>기본 셀러 정보</li>
-     *   <li>총 상품 수</li>
-     *   <li>🆕 상품 수 변경 이력 (PageApiResponse)</li>
-     *   <li>🆕 크롤링 스케줄 정보</li>
-     *   <li>🆕 크롤링 실행 이력 (PageApiResponse)</li>
-     * </ul>
-     *
-     * @param sellerId 셀러 ID
-     * @return 셀러 상세 정보 (확장된 정보 포함)
-     */
-    @GetMapping("/{sellerId}")
-    @Operation(summary = "셀러 상세 조회", description = "셀러 상세 정보 + 이력 조회")
-    public ResponseEntity<ApiResponse<SellerDetailApiResponse>> getSellerDetail(
-            @PathVariable("sellerId") Long sellerId
-    ) {
-        // 1. UseCase 실행 (확장된 getDetail 메서드 사용)
-        SellerDetailResponse response =
-            getSellerDetailUseCase.getDetail(sellerId);
-
-        // 2. Application Response → API Response 변환
-        SellerDetailApiResponse apiResponse = sellerApiMapper.toSellerDetailApiResponse(response);
-
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

@@ -9,8 +9,8 @@ import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveProductCountHistoryPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.history.ProductCountHistory;
 
@@ -61,14 +61,14 @@ public class SellerManager {
      * @param newCount 새로운 상품 수
      */
     @Transactional
-    public void updateProductCountWithHistory(MustitSeller seller, Integer newCount) {
+    public void updateProductCountWithHistory(MustItSeller seller, Integer newCount) {
         // 1. Seller 업데이트
         seller.updateProductCount(newCount);
         saveSellerPort.save(seller);
 
         // 2. 이력 자동 저장
         ProductCountHistory history = ProductCountHistory.record(
-            MustitSellerId.of(seller.getIdValue()),
+            MustItSellerId.of(seller.getIdValue()),
             newCount,
             LocalDateTime.now()
         );
@@ -82,7 +82,7 @@ public class SellerManager {
      * @return 저장된 MustitSeller
      */
     @Transactional
-    public MustitSeller registerSeller(MustitSeller seller) {
+    public MustItSeller registerSeller(MustItSeller seller) {
         return saveSellerPort.save(seller);
     }
 
@@ -93,8 +93,8 @@ public class SellerManager {
      * @return 조회된 MustitSeller
      * @throws SellerNotFoundException 셀러를 찾을 수 없는 경우
      */
-    public MustitSeller loadSeller(Long sellerId) {
-        return loadSellerPort.findById(MustitSellerId.of(sellerId))
+    public MustItSeller loadSeller(Long sellerId) {
+        return loadSellerPort.findById(MustItSellerId.of(sellerId))
             .map(sellerAssembler::toDomain)
             .orElseThrow(() -> new SellerNotFoundException(sellerId));
     }

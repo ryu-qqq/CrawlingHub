@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.task.service;
 
 
 import com.ryuqq.crawlinghub.application.task.dto.command.ProcessTaskCommand;
-import com.ryuqq.crawlinghub.application.task.manager.TaskManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskManager;
 import com.ryuqq.crawlinghub.application.task.port.in.ProcessCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.application.task.provider.TaskTypeProvider;
 import com.ryuqq.crawlinghub.application.task.strategy.TaskStrategy;

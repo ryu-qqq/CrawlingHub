@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.ScheduleJpaRepository;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -152,7 +152,7 @@ class ScheduleQueryAdapterTest {
             @DisplayName("ACTIVE 상태의 Schedule만 반환한다")
             void it_returns_only_active_schedule() {
                 // When
-                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustitSellerId.of(100L));
+                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustItSellerId.of(100L));
 
                 // Then
                 assertThat(result).isPresent();
@@ -184,7 +184,7 @@ class ScheduleQueryAdapterTest {
             @DisplayName("빈 Optional을 반환한다")
             void it_returns_empty_optional() {
                 // When
-                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustitSellerId.of(100L));
+                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustItSellerId.of(100L));
 
                 // Then
                 assertThat(result).isEmpty();
@@ -233,7 +233,7 @@ class ScheduleQueryAdapterTest {
             @DisplayName("해당 Seller의 모든 Schedule을 반환한다")
             void it_returns_all_schedules_for_seller() {
                 // When
-                List<CrawlSchedule> results = sut.findAllBySellerId(MustitSellerId.of(100L));
+                List<CrawlSchedule> results = sut.findAllBySellerId(MustItSellerId.of(100L));
 
                 // Then
                 assertThat(results).hasSize(2);
@@ -251,7 +251,7 @@ class ScheduleQueryAdapterTest {
             @DisplayName("빈 리스트를 반환한다")
             void it_returns_empty_list() {
                 // When
-                List<CrawlSchedule> results = sut.findAllBySellerId(MustitSellerId.of(999L));
+                List<CrawlSchedule> results = sut.findAllBySellerId(MustItSellerId.of(999L));
 
                 // Then
                 assertThat(results).isEmpty();
@@ -283,7 +283,7 @@ class ScheduleQueryAdapterTest {
             @DisplayName("DTO로 직접 프로젝션하여 조회한다")
             void it_projects_directly_to_dto() {
                 // When
-                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustitSellerId.of(100L));
+                Optional<CrawlSchedule> result = sut.findActiveBySellerId(MustItSellerId.of(100L));
 
                 // Then
                 // QueryDSL Projections.constructor()를 통해 직접 DTO 조회 성공

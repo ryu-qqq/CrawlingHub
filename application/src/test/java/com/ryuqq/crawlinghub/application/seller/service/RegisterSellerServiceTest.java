@@ -1,13 +1,12 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
-import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommandFixture;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SellerQueryDto;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 import com.ryuqq.crawlinghub.domain.seller.MustitSellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.SellerStatus;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerCodeException;
@@ -60,7 +59,7 @@ class RegisterSellerServiceTest {
         class Context_with_valid_seller_info {
 
             private RegisterSellerCommand command;
-            private MustitSeller savedSeller;
+            private MustItSeller savedSeller;
 
             @BeforeEach
             void setUp() {
@@ -73,7 +72,7 @@ class RegisterSellerServiceTest {
 
                 // And: 저장 성공
                 savedSeller = MustitSellerFixture.createActive();
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(savedSeller);
             }
 
@@ -87,7 +86,7 @@ class RegisterSellerServiceTest {
                 then(loadSellerPort).should().findByCode(command.sellerCode());
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 등록된 셀러 정보가 응답으로 반환됨
                 assertThat(response).isNotNull();
@@ -114,8 +113,8 @@ class RegisterSellerServiceTest {
                     .willReturn(Optional.empty());
 
                 // And: 저장 성공
-                MustitSeller savedSeller = MustitSellerFixture.createWithCode(customSellerCode);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                MustItSeller savedSeller = MustitSellerFixture.createWithCode(customSellerCode);
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(savedSeller);
             }
 
@@ -129,7 +128,7 @@ class RegisterSellerServiceTest {
                 then(loadSellerPort).should().findByCode(customSellerCode);
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 지정한 셀러 코드로 등록됨
                 assertThat(response).isNotNull();
@@ -154,8 +153,8 @@ class RegisterSellerServiceTest {
                     .willReturn(Optional.empty());
 
                 // And: 저장 성공
-                MustitSeller savedSeller = MustitSellerFixture.createWithName(customSellerName);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                MustItSeller savedSeller = MustitSellerFixture.createWithName(customSellerName);
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(savedSeller);
             }
 
@@ -169,7 +168,7 @@ class RegisterSellerServiceTest {
                 then(loadSellerPort).should().findByCode(any());
 
                 // And: 셀러가 저장됨
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
 
                 // And: 지정한 셀러 이름으로 등록됨
                 assertThat(response).isNotNull();
@@ -190,7 +189,7 @@ class RegisterSellerServiceTest {
                 command = RegisterSellerCommandFixture.create();
 
                 // And: 이미 동일한 셀러 코드가 존재함
-                MustitSeller existing = MustitSellerFixture.createActive();
+                MustItSeller existing = MustitSellerFixture.createActive();
                 existingSeller = new SellerQueryDto(
                     existing.getIdValue(),
                     existing.getSellerCode(),
@@ -217,7 +216,7 @@ class RegisterSellerServiceTest {
                 then(loadSellerPort).should().findByCode(command.sellerCode());
 
                 // And: 셀러는 저장되지 않음
-                then(saveSellerPort).should(never()).save(any(MustitSeller.class));
+                then(saveSellerPort).should(never()).save(any(MustItSeller.class));
             }
         }
 
@@ -233,8 +232,8 @@ class RegisterSellerServiceTest {
                 given(loadSellerPort.findByCode(anyString()))
                     .willReturn(Optional.empty());
 
-                MustitSeller activeSeller = MustitSellerFixture.createActive();
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                MustItSeller activeSeller = MustitSellerFixture.createActive();
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(activeSeller);
 
                 // When
@@ -252,8 +251,8 @@ class RegisterSellerServiceTest {
                 given(loadSellerPort.findByCode(anyString()))
                     .willReturn(Optional.empty());
 
-                MustitSeller newSeller = MustitSellerFixture.createWithProductCount(0);
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                MustItSeller newSeller = MustitSellerFixture.createWithProductCount(0);
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(newSeller);
 
                 // When
@@ -273,7 +272,7 @@ class RegisterSellerServiceTest {
             void duplicate_check_happens_before_save() {
                 // Given
                 RegisterSellerCommand command = RegisterSellerCommandFixture.create();
-                MustitSeller existingSeller = MustitSellerFixture.createActive();
+                MustItSeller existingSeller = MustitSellerFixture.createActive();
                 SellerQueryDto queryDto = new SellerQueryDto(
                     existingSeller.getIdValue(),
                     existingSeller.getSellerCode(),
@@ -292,7 +291,7 @@ class RegisterSellerServiceTest {
                     .isInstanceOf(DuplicateSellerCodeException.class);
 
                 // And: save는 호출되지 않음
-                then(saveSellerPort).should(never()).save(any(MustitSeller.class));
+                then(saveSellerPort).should(never()).save(any(MustItSeller.class));
             }
 
             @Test
@@ -303,8 +302,8 @@ class RegisterSellerServiceTest {
                 given(loadSellerPort.findByCode(anyString()))
                     .willReturn(Optional.empty());
 
-                MustitSeller savedSeller = MustitSellerFixture.createActive();
-                given(saveSellerPort.save(any(MustitSeller.class)))
+                MustItSeller savedSeller = MustitSellerFixture.createActive();
+                given(saveSellerPort.save(any(MustItSeller.class)))
                     .willReturn(savedSeller);
 
                 // When
@@ -312,7 +311,7 @@ class RegisterSellerServiceTest {
 
                 // Then: 트랜잭션 내에서 중복 체크 → 저장 순서 보장
                 then(loadSellerPort).should().findByCode(anyString());
-                then(saveSellerPort).should().save(any(MustitSeller.class));
+                then(saveSellerPort).should().save(any(MustItSeller.class));
                 assertThat(response).isNotNull();
             }
         }

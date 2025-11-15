@@ -4,7 +4,7 @@ import com.ryuqq.crawlinghub.domain.schedule.CrawlSchedule;
 import com.ryuqq.crawlinghub.domain.schedule.CrawlScheduleId;
 import com.ryuqq.crawlinghub.domain.schedule.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.ScheduleStatus;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class CrawlScheduleTest {
         @DisplayName("유효한 입력으로 신규 CrawlSchedule 생성 성공")
         void shouldCreateNewScheduleWithValidInputs() {
             // Given
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpressionFixture.create();
 
             // When
@@ -61,7 +61,7 @@ class CrawlScheduleTest {
         void shouldCreateExistingScheduleWithValidInputs() {
             // Given
             CrawlScheduleId id = CrawlScheduleId.of(1L);
-            MustitSellerId sellerId = MustitSellerId.of(100L);
+            MustItSellerId sellerId = MustItSellerId.of(100L);
             CronExpression cronExpression = CronExpressionFixture.create();
             ScheduleStatus status = ScheduleStatus.ACTIVE;
 
@@ -355,7 +355,7 @@ class CrawlScheduleTest {
             assertThatThrownBy(() ->
                 CrawlSchedule.of(
                     null,
-                    MustitSellerId.of(100L),
+                    MustItSellerId.of(100L),
                     CronExpressionFixture.create(),
                     ScheduleStatus.ACTIVE
                 )
@@ -380,7 +380,7 @@ class CrawlScheduleTest {
         void shouldThrowExceptionWhenCronExpressionIsNull() {
             // When & Then
             assertThatThrownBy(() ->
-                CrawlSchedule.forNew(MustitSellerId.of(100L), null)
+                CrawlSchedule.forNew(MustItSellerId.of(100L), null)
             )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cron 표현식은 필수입니다");
@@ -393,7 +393,7 @@ class CrawlScheduleTest {
             assertThatThrownBy(() ->
                 CrawlSchedule.of(
                     CrawlScheduleId.of(1L),
-                    MustitSellerId.of(100L),
+                    MustItSellerId.of(100L),
                     CronExpressionFixture.create(),
                     null
                 )
@@ -433,7 +433,7 @@ class CrawlScheduleTest {
             assertThatThrownBy(() ->
                 CrawlSchedule.reconstitute(
                     null,
-                    MustitSellerId.of(100L),
+                    MustItSellerId.of(100L),
                     CronExpressionFixture.create(),
                     ScheduleStatus.ACTIVE,
                     null,

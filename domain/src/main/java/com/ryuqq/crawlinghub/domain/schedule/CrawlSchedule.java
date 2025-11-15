@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.schedule;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleCreatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.ScheduleUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.seller.MustitSellerId;
+import com.ryuqq.crawlinghub.domain.seller.MustItSellerId;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -32,7 +32,7 @@ import java.util.Objects;
 public class CrawlSchedule  {
 
     private final CrawlScheduleId id;
-    private final MustitSellerId sellerId;
+    private final MustItSellerId sellerId;
     private CronExpression cronExpression;
     private ScheduleStatus status;
     private LocalDateTime nextExecutionTime;
@@ -53,7 +53,7 @@ public class CrawlSchedule  {
      */
     private CrawlSchedule(
         CrawlScheduleId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         CronExpression cronExpression,
         ScheduleStatus status,
         LocalDateTime nextExecutionTime,
@@ -78,7 +78,7 @@ public class CrawlSchedule  {
      */
     CrawlSchedule(
         CrawlScheduleId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         CronExpression cronExpression,
         ScheduleStatus status,
         Clock clock
@@ -105,7 +105,7 @@ public class CrawlSchedule  {
      *   <li>✅ Application Layer에서 save() 후 publishCreatedEvent() 호출 필요</li>
      * </ul>
      */
-    public static CrawlSchedule forNew(MustitSellerId sellerId, CronExpression cronExpression) {
+    public static CrawlSchedule forNew(MustItSellerId sellerId, CronExpression cronExpression) {
         return new CrawlSchedule(
             null,
             sellerId,
@@ -147,7 +147,7 @@ public class CrawlSchedule  {
      */
     public static CrawlSchedule of(
         CrawlScheduleId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         CronExpression cronExpression,
         ScheduleStatus status
     ) {
@@ -162,7 +162,7 @@ public class CrawlSchedule  {
      */
     public static CrawlSchedule reconstitute(
         CrawlScheduleId id,
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         CronExpression cronExpression,
         ScheduleStatus status,
         LocalDateTime nextExecutionTime,
@@ -187,7 +187,7 @@ public class CrawlSchedule  {
     }
 
     private static void validateRequiredFields(
-        MustitSellerId sellerId,
+        MustItSellerId sellerId,
         CronExpression cronExpression,
         ScheduleStatus status
     ) {

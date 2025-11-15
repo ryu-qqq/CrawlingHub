@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.event.task;
 
 import com.ryuqq.crawlinghub.domain.task.event.TaskMessageCreatedEvent;
-import com.ryuqq.crawlinghub.application.task.manager.TaskMessageOutboxManager;
+import com.ryuqq.crawlinghub.application.task.component.TaskMessageOutboxManager;
 import com.ryuqq.crawlinghub.application.task.port.out.LoadTaskMessageOutboxPort;
 import com.ryuqq.crawlinghub.application.task.port.out.PublishTaskMessagePort;
 import com.ryuqq.crawlinghub.domain.task.outbox.TaskMessageOutbox;

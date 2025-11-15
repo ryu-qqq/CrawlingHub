@@ -6,7 +6,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.out.LoadSellerPort;
 import com.ryuqq.crawlinghub.application.seller.port.out.SaveSellerPort;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerCodeException;
 
 import org.springframework.stereotype.Service;
@@ -56,13 +56,13 @@ public class RegisterSellerService implements RegisterSellerUseCase {
             });
 
         // 2. 도메인 객체 생성 (Factory 메서드)
-        MustitSeller seller = MustitSeller.forNew(
+        MustItSeller seller = MustItSeller.forNew(
             command.sellerCode(),
             command.sellerName()
         );
 
         // 3. 저장
-        MustitSeller savedSeller = saveSellerPort.save(seller);
+        MustItSeller savedSeller = saveSellerPort.save(seller);
 
         // 4. 응답 변환
         return SellerAssembler.toResponse(savedSeller);

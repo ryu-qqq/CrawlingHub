@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.ScheduleOutboxEntity;
+import com.ryuqq.crawlinghub.domain.schedule.outbox.RetryPolicy;
 import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +17,15 @@ import java.util.Objects;
  * <ul>
  *   <li>Domain → Entity: toEntity()</li>
  *   <li>Entity → Domain: toDomain()</li>
- *   <li>Enum 매핑: OperationState, WriteAheadState</li>
- *   <li>CommandInfo 매핑: Record ↔ Entity fields</li>
+ *   <li>Enum 매핑: EventType, OperationState, WriteAheadState</li>
+ *   <li>RetryPolicy VO ↔ 3개 Entity 필드 변환</li>
+ * </ul>
+ * </p>
+ * <p>
+ * 제거된 매핑:
+ * <ul>
+ *   <li>domain: Domain 모델에서 상수로 관리 ("SELLER_CRAWL_SCHEDULE")</li>
+ *   <li>bizKey: 동적 생성으로 변경 (Domain 모델의 getBizKey() 메서드)</li>
  * </ul>
  * </p>
  *
@@ -36,6 +44,8 @@ public class ScheduleOutboxMapper {
     public ScheduleOutboxEntity toEntity(ScheduleOutbox domain) {
         Objects.requireNonNull(domain, "domain must not be null");
 
+        RetryPolicy retryPolicy = domain.getRetryPolicy();
+
         // 새로운 Entity 생성 (저장 전)
         // 참고: 이 메서드는 Domain → Entity 변환 시 새로운 Entity를 생성할 때만 사용됩니다.
         // 기존 Entity 업데이트는 JPA의 변경 감지(Dirty Checking)를 사용합니다.
@@ -43,17 +53,15 @@ public class ScheduleOutboxMapper {
                 domain.getOpId(),
                 domain.getSellerId(),
                 domain.getIdemKey(),
-                domain.getDomain(),
                 domain.getEventType(),
-                domain.getBizKey(),
                 domain.getPayload(),
                 domain.getOutcomeJson(),
                 mapOperationState(domain.getOperationState()),
                 mapWriteAheadState(domain.getWalState()),
                 domain.getErrorMessage(),
-                domain.getRetryCount(),
-                domain.getMaxRetries(),
-                domain.getTimeoutMillis(),
+                retryPolicy.retryCount(),
+                retryPolicy.maxRetries(),
+                retryPolicy.timeoutMillis(),
                 domain.getCompletedAt()
         );
     }
@@ -67,23 +75,26 @@ public class ScheduleOutboxMapper {
     public ScheduleOutbox toDomain(ScheduleOutboxEntity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
 
+        // RetryPolicy VO 생성
+        RetryPolicy retryPolicy = new RetryPolicy(
+                entity.getMaxRetries(),
+                entity.getRetryCount(),
+                entity.getTimeoutMillis()
+        );
+
         // Domain 모델 생성 (reconstitute 팩토리 메서드 사용)
         return ScheduleOutbox.reconstitute(
                 entity.getId(),
                 entity.getOpId(),
                 entity.getSellerId(),
                 entity.getIdemKey(),
-                entity.getDomain(),
                 entity.getEventType(),
-                entity.getBizKey(),
                 entity.getPayload(),
                 entity.getOutcomeJson(),
                 mapToDomainOperationState(entity.getOperationState()),
                 mapToDomainWriteAheadState(entity.getWalState()),
                 entity.getErrorMessage(),
-                entity.getRetryCount(),
-                entity.getMaxRetries(),
-                entity.getTimeoutMillis(),
+                retryPolicy,
                 entity.getCompletedAt(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()

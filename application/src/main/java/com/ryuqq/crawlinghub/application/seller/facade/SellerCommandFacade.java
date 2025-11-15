@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerComman
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
-import com.ryuqq.crawlinghub.domain.seller.MustitSeller;
+import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
 
 /**
  * SellerCommandFacade - Seller Command 작업 조율
@@ -58,7 +58,7 @@ public class SellerCommandFacade {
         SellerResponse response = registerSellerUseCase.execute(command);
 
         // 2. Manager를 통한 초기 이력 생성
-        MustitSeller seller = sellerManager.loadSeller(response.sellerId());
+        MustItSeller seller = sellerManager.loadSeller(response.sellerId());
         sellerManager.updateProductCountWithHistory(seller, 0);
 
         return response;

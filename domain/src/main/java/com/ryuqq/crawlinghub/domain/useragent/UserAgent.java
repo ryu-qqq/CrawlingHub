@@ -23,7 +23,6 @@ import java.util.Objects;
 public class UserAgent {
 
     private static final int MAX_REQUESTS_PER_HOUR = 80;
-    private static final int TOKEN_VALIDITY_HOURS = 24;
     private static final int RECOVERY_HOURS = 1;
 
     private final UserAgentId id;

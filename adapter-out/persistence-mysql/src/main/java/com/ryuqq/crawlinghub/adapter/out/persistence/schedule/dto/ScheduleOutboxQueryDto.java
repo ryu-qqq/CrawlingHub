@@ -5,7 +5,14 @@ import com.ryuqq.crawlinghub.domain.schedule.outbox.ScheduleOutbox;
 import java.time.LocalDateTime;
 
 /**
- * ScheduleOutbox Query DTO (QueryDSL Projections용)
+ * ScheduleOutbox Query DTO (QueryDSL Projections용) - V4 Updated
+ *
+ * <p><strong>V4 변경사항:</strong></p>
+ * <ul>
+ *   <li>✅ domain 제거 (Domain 모델에서 상수로 관리)</li>
+ *   <li>✅ bizKey 제거 (Domain 모델의 getBizKey() 메서드로 동적 생성)</li>
+ *   <li>✅ eventType을 EventType enum으로 변경</li>
+ * </ul>
  *
  * <p><strong>역할:</strong></p>
  * <ul>
@@ -14,21 +21,11 @@ import java.time.LocalDateTime;
  *   <li>✅ Record 패턴 (불변성 보장)</li>
  * </ul>
  *
- * <p><strong>컨벤션 준수:</strong></p>
- * <ul>
- *   <li>✅ Record 패턴 사용</li>
- *   <li>✅ QueryDSL Projections와 호환</li>
- *   <li>✅ Null 허용 필드 명시</li>
- *   <li>✅ Domain Enum 직접 사용 (Entity 내부 Enum 금지)</li>
- * </ul>
- *
  * @param id PK ID
  * @param opId Orchestrator OpId (Nullable - 초기 저장 시 null)
  * @param sellerId 셀러 ID (Long FK)
  * @param idemKey 멱등성 키
- * @param domain 도메인
- * @param eventType 이벤트 타입
- * @param bizKey 비즈니스 키
+ * @param eventType 이벤트 타입 (Enum)
  * @param payload 페이로드 JSON
  * @param outcomeJson 결과 JSON (Nullable)
  * @param operationState 작업 상태
@@ -49,9 +46,7 @@ public record ScheduleOutboxQueryDto(
     String opId,
     Long sellerId,
     String idemKey,
-    String domain,
-    String eventType,
-    String bizKey,
+    com.ryuqq.crawlinghub.domain.schedule.outbox.EventType eventType,
     String payload,
     String outcomeJson,
     ScheduleOutbox.OperationState operationState,
@@ -78,14 +73,8 @@ public record ScheduleOutboxQueryDto(
         if (idemKey == null || idemKey.isBlank()) {
             throw new IllegalArgumentException("idemKey must not be null or blank");
         }
-        if (domain == null || domain.isBlank()) {
-            throw new IllegalArgumentException("domain must not be null or blank");
-        }
-        if (eventType == null || eventType.isBlank()) {
-            throw new IllegalArgumentException("eventType must not be null or blank");
-        }
-        if (bizKey == null || bizKey.isBlank()) {
-            throw new IllegalArgumentException("bizKey must not be null or blank");
+        if (eventType == null) {
+            throw new IllegalArgumentException("eventType must not be null");
         }
         if (payload == null || payload.isBlank()) {
             throw new IllegalArgumentException("payload must not be null or blank");
