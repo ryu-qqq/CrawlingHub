@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.config;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -13,36 +12,55 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 /**
- * JPA Configuration (Persistence Layer)
+ * JpaConfig - JPA 및 QueryDSL 설정
  *
- * <p><strong>역할</strong>: JPA Entity 스캔 및 Repository 활성화</p>
- * <p><strong>위치</strong>: adapter-out/persistence-mysql/config/</p>
+ * <p>Spring Data JPA와 QueryDSL을 위한 설정을 제공합니다.</p>
  *
- * <h3>설정 내용</h3>
+ * <p><strong>주요 기능:</strong></p>
  * <ul>
- *   <li>✅ Entity 스캔 경로 지정: {@code com.ryuqq.fileflow.adapter.out.persistence.mysql}</li>
- *   <li>✅ JPA Repository 활성화</li>
- *   <li>✅ Transaction Management 활성화</li>
+ *   <li>JPAQueryFactory 빈 등록 (QueryDSL 사용)</li>
+ *   <li>JPA Repository 스캔 경로 설정</li>
+ *   <li>JPA Auditing 활성화 (생성/수정 일시 자동 관리)</li>
+ *   <li>트랜잭션 관리 활성화</li>
  * </ul>
  *
- * <p><strong>주의사항</strong>:
+ * <p><strong>QueryDSL 사용 이유:</strong></p>
  * <ul>
- *   <li>Entity 패키지는 {@code adapter.out.persistence.mysql.*.entity} 구조</li>
- *   <li>Repository 패키지는 {@code adapter.out.persistence.mysql.*.repository} 구조</li>
- *   <li>{@code @Transactional}은 Application Layer에서 사용 (UseCase)</li>
+ *   <li>타입 안전한 쿼리 작성</li>
+ *   <li>컴파일 타임 오류 검증</li>
+ *   <li>복잡한 동적 쿼리 작성 용이</li>
+ *   <li>IDE 자동완성 지원</li>
+ *   <li>리팩토링 안전성</li>
  * </ul>
- * </p>
  *
+ * <p><strong>JPA Auditing:</strong></p>
+ * <ul>
+ *   <li>@CreatedDate: 엔티티 생성 일시 자동 설정</li>
+ *   <li>@LastModifiedDate: 엔티티 수정 일시 자동 설정</li>
+ *   <li>@CreatedBy: 생성자 자동 설정 (AuditorAware 필요)</li>
+ *   <li>@LastModifiedBy: 수정자 자동 설정 (AuditorAware 필요)</li>
+ * </ul>
+ *
+ * <p><strong>트랜잭션 관리:</strong></p>
+ * <ul>
+ *   <li>Application Layer에서 @Transactional 사용</li>
+ *   <li>Persistence Layer는 트랜잭션 경계 없음</li>
+ *   <li>읽기 전용 트랜잭션 최적화 (@Transactional(readOnly = true))</li>
+ * </ul>
+ *
+ * @author windsurf
  * @since 1.0.0
+ * @see JPAQueryFactory
+ * @see EnableJpaRepositories
+ * @see EnableJpaAuditing
  */
 @Configuration
-@EnableJpaRepositories(basePackages = "com.ryuqq.fileflow.adapter.out.persistence.mysql")
-@EntityScan(basePackages = "com.ryuqq.fileflow.adapter.out.persistence.mysql")
+@EnableJpaRepositories(
+    basePackages = "com.ryuqq.adapter.out.persistence"  // 전체 persistence 패키지
+)
 @EnableJpaAuditing
 @EnableTransactionManagement
 public class JpaConfig {
-    // JPA 설정은 application.yml에서 관리
-    // 필요 시 EntityManagerFactory, DataSource 커스터마이징 가능
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -141,4 +159,50 @@ public class JpaConfig {
         return new JPAQueryFactory(entityManager);
     }
 
+    /**
+     * AuditorAware 빈 등록 (선택 사항)
+     *
+     * <p>생성자/수정자 정보를 자동으로 설정하려면 AuditorAware를 구현해야 합니다.</p>
+     *
+     * <p><strong>사용 예시:</strong></p>
+     * <pre>{@code
+     * @Bean
+     * public AuditorAware<String> auditorProvider() {
+     *     return () -> {
+     *         // Spring Security에서 현재 사용자 정보 가져오기
+     *         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+     *
+     *         if (authentication == null || !authentication.isAuthenticated()) {
+     *             return Optional.of("SYSTEM");
+     *         }
+     *
+     *         return Optional.of(authentication.getName());
+     *     };
+     * }
+     * }</pre>
+     *
+     * <p><strong>Entity 적용:</strong></p>
+     * <pre>{@code
+     * @Entity
+     * @EntityListeners(AuditingEntityListener.class)
+     * public class ExampleJpaEntity {
+     *     @CreatedBy
+     *     private String createdBy;
+     *
+     *     @LastModifiedBy
+     *     private String lastModifiedBy;
+     *
+     *     @CreatedDate
+     *     private LocalDateTime createdAt;
+     *
+     *     @LastModifiedDate
+     *     private LocalDateTime updatedAt;
+     * }
+     * }</pre>
+     */
+    // 필요 시 AuditorAware 구현
+    // @Bean
+    // public AuditorAware<String> auditorProvider() {
+    //     return () -> Optional.of("SYSTEM");
+    // }
 }

@@ -22,7 +22,7 @@ bin/
 *.iws
 *.iml
 *.ipr
-out/
+/out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
@@ -36,24 +36,27 @@ out/
 ### VS Code ###
 .vscode/
 
+### Cursor IDE ###
+.cursor/
+
 # Claude Code settings (local overrides)
 .claude/settings.local.json
+.claude/hooks/logs/
 .serena/
 
-# QueryDSL generated sources (should not be committed)
-**/src/main/generated/
-.env
+# Claude Code documentation and specs (auto-generated)
+claudedocs/
+spec-stories/
 
 # LangFuse telemetry (contains credentials)
 .langfuse.telemetry
 langfuse/__pycache__/
 langfuse/tests/__pycache__/
 
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
+# Windsurf IDE settings (personal configuration)
+.windsurfrules
 
-# Git Worktrees
-.worktrees/
+# Pipeline metrics and reports (auto-generated)
+.pipeline-metrics/metrics.jsonl
+.pipeline-metrics/report.md
+.env

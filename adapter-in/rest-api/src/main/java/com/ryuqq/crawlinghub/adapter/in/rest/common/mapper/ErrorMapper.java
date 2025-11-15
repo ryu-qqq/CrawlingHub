@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.mapper;
 
-import com.ryuqq.crawlinghub.domain.common.DomainException;
+import com.ryuqq.domain.common.DomainException;
 
 import java.net.URI;
 import java.util.Locale;
