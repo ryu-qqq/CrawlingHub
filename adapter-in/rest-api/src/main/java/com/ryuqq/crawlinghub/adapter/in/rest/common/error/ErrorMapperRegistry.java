@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.error;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper;
-import com.ryuqq.crawlinghub.domain.common.DomainException;
+import com.ryuqq.adapter.in.rest.common.mapper.ErrorMapper;
+import com.ryuqq.domain.common.DomainException;
 
 import java.net.URI;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ErrorMapperRegistry {
         return new ErrorMapper.MappedError(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
-            ex.message() != null ? ex.message() : "Invalid request",
+            ex.getMessage() != null ? ex.getMessage() : "Invalid request",
             URI.create("about:blank")
         );
     }

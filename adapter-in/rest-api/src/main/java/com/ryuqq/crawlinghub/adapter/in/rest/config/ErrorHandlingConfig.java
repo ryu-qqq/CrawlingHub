@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.config;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.common.error.ErrorMapperRegistry;
-import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper;
+import com.ryuqq.adapter.in.rest.common.error.ErrorMapperRegistry;
+import com.ryuqq.adapter.in.rest.common.mapper.ErrorMapper;
 
 import java.util.List;
 
