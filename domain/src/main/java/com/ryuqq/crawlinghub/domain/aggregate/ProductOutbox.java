@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.domain.vo.OutboxId;
 import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -39,6 +40,7 @@ public class ProductOutbox {
     private String errorMessage;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private final Clock clock;
 
     /**
      * Private constructor - 정적 팩토리 메서드를 통해서만 생성
@@ -46,16 +48,18 @@ public class ProductOutbox {
      * @param productId 상품 ID
      * @param eventType 이벤트 타입
      * @param payload 이벤트 페이로드 (JSON)
+     * @param clock 시간 제어 (테스트 가능성)
      */
-    private ProductOutbox(ProductId productId, OutboxEventType eventType, String payload) {
+    private ProductOutbox(ProductId productId, OutboxEventType eventType, String payload, Clock clock) {
         this.outboxId = OutboxId.generate();
         this.productId = productId;
         this.eventType = eventType;
         this.payload = payload;
         this.status = OutboxStatus.WAITING;
         this.retryCount = 0;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -76,7 +80,22 @@ public class ProductOutbox {
      * @return 새로 생성된 ProductOutbox
      */
     public static ProductOutbox forNew(ProductId productId, OutboxEventType eventType, String payload) {
-        return new ProductOutbox(productId, eventType, payload);
+        return forNew(productId, eventType, payload, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 ProductOutbox 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: 신규 엔티티 생성 + Clock 주입</p>
+     *
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입
+     * @param payload 이벤트 페이로드 JSON
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 ProductOutbox
+     */
+    public static ProductOutbox forNew(ProductId productId, OutboxEventType eventType, String payload, Clock clock) {
+        return new ProductOutbox(productId, eventType, payload, clock);
     }
 
     /**
@@ -94,7 +113,22 @@ public class ProductOutbox {
      * @return 재구성된 ProductOutbox
      */
     public static ProductOutbox of(ProductId productId, OutboxEventType eventType, String payload) {
-        return new ProductOutbox(productId, eventType, payload);
+        return of(productId, eventType, payload, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 ProductOutbox 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: 테스트용 간편 생성 + Clock 주입</p>
+     *
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param clock 시간 제어
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox of(ProductId productId, OutboxEventType eventType, String payload, Clock clock) {
+        return new ProductOutbox(productId, eventType, payload, clock);
     }
 
     /**
@@ -113,8 +147,28 @@ public class ProductOutbox {
      */
     public static ProductOutbox reconstitute(ProductId productId, OutboxEventType eventType, String payload,
                                               OutboxStatus status, Integer retryCount, String errorMessage) {
-        // TODO: 모든 필드를 받는 private 생성자 추가 필요 (Clock 추가 시 함께 구현)
-        ProductOutbox outbox = new ProductOutbox(productId, eventType, payload);
+        return reconstitute(productId, eventType, payload, status, retryCount, errorMessage, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 ProductOutbox 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: DB에서 조회한 엔티티 재구성 + Clock 주입</p>
+     * <p>⚠️ 주의: 현재 구현은 임시입니다. 모든 필드를 받는 private 생성자가 필요합니다.</p>
+     *
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param status 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox reconstitute(ProductId productId, OutboxEventType eventType, String payload,
+                                              OutboxStatus status, Integer retryCount, String errorMessage, Clock clock) {
+        // TODO: 모든 필드를 받는 private 생성자 추가 필요
+        ProductOutbox outbox = new ProductOutbox(productId, eventType, payload, clock);
 
         // 임시 구현: Reflection이나 상태 조작으로 필드 설정
         // Green Phase에서는 최소 구현으로 테스트 통과
@@ -169,7 +223,7 @@ public class ProductOutbox {
             throw new IllegalStateException("WAITING 또는 FAILED 상태에서만 전송할 수 있습니다");
         }
         this.status = OutboxStatus.SENDING;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -188,7 +242,7 @@ public class ProductOutbox {
             throw new IllegalStateException("SENDING 상태에서만 완료할 수 있습니다");
         }
         this.status = OutboxStatus.COMPLETED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -212,7 +266,7 @@ public class ProductOutbox {
         this.status = OutboxStatus.FAILED;
         this.errorMessage = errorMessage;
         this.retryCount++;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -257,5 +311,13 @@ public class ProductOutbox {
 
     public String getErrorMessage() {
         return errorMessage;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
