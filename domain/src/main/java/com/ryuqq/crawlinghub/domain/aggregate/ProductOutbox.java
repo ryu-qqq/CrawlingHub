@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
  */
 public class ProductOutbox {
 
+    private static final int MAX_RETRY_COUNT = 5;
+
     private final OutboxId outboxId;
     private final ProductId productId;
     private final OutboxEventType eventType;
@@ -81,14 +83,15 @@ public class ProductOutbox {
      * <p>상태 전환 규칙:</p>
      * <ul>
      *   <li>WAITING → SENDING</li>
-     *   <li>WAITING 상태가 아닌 경우 IllegalStateException 발생</li>
+     *   <li>FAILED → SENDING (재시도)</li>
+     *   <li>그 외 상태에서는 IllegalStateException 발생</li>
      * </ul>
      *
-     * @throws IllegalStateException WAITING 상태가 아닌 경우
+     * @throws IllegalStateException WAITING 또는 FAILED 상태가 아닌 경우
      */
     public void send() {
-        if (status != OutboxStatus.WAITING) {
-            throw new IllegalStateException("WAITING 상태에서만 전송할 수 있습니다");
+        if (status != OutboxStatus.WAITING && status != OutboxStatus.FAILED) {
+            throw new IllegalStateException("WAITING 또는 FAILED 상태에서만 전송할 수 있습니다");
         }
         this.status = OutboxStatus.SENDING;
         this.updatedAt = LocalDateTime.now();
@@ -135,6 +138,21 @@ public class ProductOutbox {
         this.errorMessage = errorMessage;
         this.retryCount++;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 재시도 가능 여부 확인 (Tell Don't Ask)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>retryCount < MAX_RETRY_COUNT (5회) 일 때만 재시도 가능</li>
+     *   <li>외부에서 getRetryCount()로 판단하지 않고 객체가 스스로 판단</li>
+     * </ul>
+     *
+     * @return 재시도 가능 여부
+     */
+    public boolean canRetry() {
+        return retryCount < MAX_RETRY_COUNT;
     }
 
     // Getters (필요한 것만)
