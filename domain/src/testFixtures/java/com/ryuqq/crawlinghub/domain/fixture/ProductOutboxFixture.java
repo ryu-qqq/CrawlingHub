@@ -11,18 +11,87 @@ import com.ryuqq.crawlinghub.domain.vo.ProductId;
  *
  * <p>ProductOutbox와 관련된 Value Object, Enum, Aggregate의 기본값을 제공합니다.</p>
  *
- * <p>제공 메서드:</p>
+ * <p>표준 패턴 준수:</p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 ProductOutbox 생성 (ID 자동 생성)</li>
+ *   <li>{@link #of(OutboxId, ProductId, OutboxEventType, String)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(OutboxId, ProductId, OutboxEventType, String, OutboxStatus, Integer, String)} - 완전한 재구성</li>
+ * </ul>
+ *
+ * <p>레거시 호환 메서드:</p>
  * <ul>
  *   <li>{@link #defaultOutboxId()} - 새로운 OutboxId 생성</li>
  *   <li>{@link #defaultOutboxEventType()} - 기본 이벤트 타입 (PRODUCT_CREATED)</li>
  *   <li>{@link #defaultOutboxStatus()} - 기본 상태 (WAITING)</li>
- *   <li>{@link #waitingOutbox()} - WAITING 상태의 ProductOutbox</li>
- *   <li>{@link #failedOutboxWithRetryCount(int)} - FAILED 상태의 ProductOutbox (지정된 재시도 횟수)</li>
+ *   <li>{@link #waitingOutbox()} - WAITING 상태의 ProductOutbox (레거시)</li>
+ *   <li>{@link #failedOutboxWithRetryCount(int)} - FAILED 상태의 ProductOutbox (레거시)</li>
  * </ul>
  */
 public class ProductOutboxFixture {
 
     private static final String DEFAULT_PAYLOAD = "{\"itemNo\":123456,\"name\":\"상품명\"}";
+
+    /**
+     * 새로운 ProductOutbox 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: ID 자동 생성, WAITING 상태, retryCount=0</p>
+     *
+     * @return 새로 생성된 ProductOutbox
+     */
+    public static ProductOutbox forNew() {
+        ProductId productId = ProductFixture.defaultProductId();
+        OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
+        return ProductOutbox.create(productId, eventType, DEFAULT_PAYLOAD);
+    }
+
+    /**
+     * 불변 속성으로 ProductOutbox 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: ID 포함, 테스트용 간편 생성</p>
+     *
+     * @param outboxId Outbox ID
+     * @param productId Product ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox of(OutboxId outboxId, ProductId productId, OutboxEventType eventType, String payload) {
+        // 현재는 create() 사용, 추후 ProductOutbox.of() 구현 시 변경 예정
+        return ProductOutbox.create(productId, eventType, payload);
+    }
+
+    /**
+     * 완전한 ProductOutbox 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: 모든 필드 포함, DB 조회 시뮬레이션</p>
+     *
+     * @param outboxId Outbox ID
+     * @param productId Product ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param status 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox reconstitute(OutboxId outboxId, ProductId productId, OutboxEventType eventType,
+                                              String payload, OutboxStatus status, Integer retryCount, String errorMessage) {
+        // 현재는 create() 후 상태 조작, 추후 ProductOutbox.reconstitute() 구현 시 변경 예정
+        ProductOutbox outbox = ProductOutbox.create(productId, eventType, payload);
+
+        // 상태 재현 (임시 구현)
+        if (status == OutboxStatus.SENDING) {
+            outbox.send();
+        } else if (status == OutboxStatus.COMPLETED) {
+            outbox.send();
+            outbox.complete();
+        } else if (status == OutboxStatus.FAILED) {
+            outbox.send();
+            outbox.fail(errorMessage != null ? errorMessage : "Test error");
+        }
+
+        return outbox;
+    }
 
     /**
      * 기본 OutboxId 생성
@@ -52,14 +121,14 @@ public class ProductOutboxFixture {
     }
 
     /**
-     * OutboxStatus.WAITING 상태의 ProductOutbox 생성
+     * OutboxStatus.WAITING 상태의 ProductOutbox 생성 (레거시)
      *
+     * @deprecated Use {@link #forNew()} instead
      * @return WAITING 상태의 ProductOutbox
      */
+    @Deprecated
     public static ProductOutbox waitingOutbox() {
-        ProductId productId = ProductFixture.defaultProductId();
-        OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
-        return ProductOutbox.create(productId, eventType, DEFAULT_PAYLOAD);
+        return forNew();
     }
 
     /**
