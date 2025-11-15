@@ -129,6 +129,26 @@ public class UserAgent {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * UserAgent 일시 정지
+     *
+     * <p>429 Too Many Requests 응답 등으로 인해 UserAgent를 일시 정지합니다.</p>
+     */
+    public void suspend() {
+        this.status = UserAgentStatus.SUSPENDED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * UserAgent 활성화
+     *
+     * <p>일시 정지된 UserAgent를 다시 활성화합니다.</p>
+     */
+    public void activate() {
+        this.status = UserAgentStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters (필요한 것만)
     public UserAgentId getUserAgentId() {
         return userAgentId;
