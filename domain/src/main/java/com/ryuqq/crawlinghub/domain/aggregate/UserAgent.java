@@ -22,9 +22,12 @@ import java.time.LocalDateTime;
  *   <li>생성 시 상태는 항상 ACTIVE</li>
  *   <li>생성 시 requestCount는 0</li>
  *   <li>token은 생성 시점에는 null (별도 발급 필요)</li>
+ *   <li>시간당 최대 80회 요청 제한 (Token Bucket Rate Limiter)</li>
  * </ul>
  */
 public class UserAgent {
+
+    private static final int MAX_REQUESTS_PER_HOUR = 80;
 
     private final UserAgentId userAgentId;
     private final String userAgentString;
@@ -85,6 +88,44 @@ public class UserAgent {
         }
         this.token = token;
         this.tokenIssuedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 요청 가능 여부 확인 (Tell Don't Ask 패턴)
+     *
+     * <p>Token Bucket Rate Limiter 알고리즘:</p>
+     * <ul>
+     *   <li>토큰이 없으면 요청 불가</li>
+     *   <li>시간당 최대 80회 요청 제한</li>
+     *   <li>1시간 경과 시 requestCount 자동 리셋</li>
+     * </ul>
+     *
+     * @return 요청 가능 시 true, 불가능 시 false
+     */
+    public boolean canMakeRequest() {
+        if (token == null) {
+            return false;
+        }
+
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+
+        // 1시간 경과 시 requestCount 리셋
+        if (lastRequestAt != null && lastRequestAt.isBefore(oneHourAgo)) {
+            this.requestCount = 0;
+        }
+
+        return requestCount < MAX_REQUESTS_PER_HOUR;
+    }
+
+    /**
+     * 요청 횟수 증가
+     *
+     * <p>API 요청을 실행할 때마다 호출하여 요청 횟수를 증가시킵니다.</p>
+     */
+    public void incrementRequestCount() {
+        this.requestCount++;
+        this.lastRequestAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
