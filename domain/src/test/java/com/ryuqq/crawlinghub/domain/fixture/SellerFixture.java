@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
+import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 
 /**
@@ -23,6 +24,15 @@ public class SellerFixture {
      */
     public static SellerId defaultSellerId() {
         return new SellerId("seller_123");
+    }
+
+    /**
+     * 기본 CrawlingInterval 생성
+     *
+     * @return 기본 CrawlingInterval (7일)
+     */
+    public static CrawlingInterval defaultCrawlingInterval() {
+        return new CrawlingInterval(7);
     }
 
     private SellerFixture() {
