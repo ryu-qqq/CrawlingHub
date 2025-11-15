@@ -188,8 +188,8 @@ void shouldHaveAllRequiredStatuses() {
     assertThat(CrawlerTaskStatus.values()).hasSize(6);
 }
 ```
-- [ ] 3개 테스트 파일 생성
-- [ ] 커밋: `test: TaskId, CrawlerTaskType, CrawlerTaskStatus 테스트 추가 (Red)`
+- [x] 3개 테스트 파일 생성
+- [x] 커밋: `test: TaskId, CrawlerTaskType, CrawlerTaskStatus 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -207,12 +207,12 @@ public enum CrawlerTaskStatus {
     WAITING, PUBLISHED, IN_PROGRESS, COMPLETED, FAILED, RETRY
 }
 ```
-- [ ] 3개 클래스 구현
-- [ ] 커밋: `feat: TaskId, CrawlerTaskType, CrawlerTaskStatus 구현`
+- [x] 3개 클래스 구현
+- [x] 커밋: `feat: TaskId, CrawlerTaskType, CrawlerTaskStatus 구현`
 
 #### 🧹 Tidy: TestFixture 추가
-- [ ] CrawlerTaskFixture 클래스 생성
-- [ ] 커밋: `struct: CrawlerTask TestFixture 추가`
+- [x] CrawlerTaskFixture 클래스 생성
+- [x] 커밋: `struct: CrawlerTaskFixture 추가`
 
 ---
 
@@ -1464,7 +1464,7 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] SellerId VO (Cycle 1) ✅ 2025-11-15
 - [x] CrawlingInterval VO (Cycle 2) ✅ 2025-11-15
 - [x] SellerStatus Enum (Cycle 3) ✅ 2025-11-15
-- [ ] TaskId, CrawlerTaskType, CrawlerTaskStatus (Cycle 4)
+- [x] TaskId, CrawlerTaskType, CrawlerTaskStatus (Cycle 4) ✅ 2025-11-15
 - [ ] UserAgentId, UserAgentStatus (Cycle 5)
 - [ ] ProductId, ItemNo, OutboxId, OutboxEventType, OutboxStatus (Cycle 6)
 
@@ -1529,14 +1529,14 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 **목표 완료일**: ___________
 
 ### Phase 진행률
-- [ ] Phase 1: Value Objects & Enums (3/6) 🔄
+- [ ] Phase 1: Value Objects & Enums (4/6) 🔄
 - [ ] Phase 2: Seller Aggregate (0/4)
 - [ ] Phase 3: CrawlerTask Aggregate (0/5)
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 3/25 Cycles (12%)
+**전체 진행률**: 4/25 Cycles (16%)
 
 ---
 
