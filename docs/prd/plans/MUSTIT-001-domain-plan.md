@@ -419,7 +419,7 @@ public void updateInterval(Integer newIntervalDays) {
 
 ---
 
-### 9️⃣ Cycle 9: Seller 활성화/비활성화 (15분)
+### 9️⃣ Cycle 9: Seller 활성화/비활성화 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -437,8 +437,8 @@ void shouldDeactivateSeller() {
     assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: Seller 활성화/비활성화 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: Seller 활성화/비활성화 테스트 추가`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -452,8 +452,8 @@ public void deactivate() {
     this.updatedAt = LocalDateTime.now();
 }
 ```
-- [ ] 메서드 구현
-- [ ] 커밋: `feat: Seller 활성화/비활성화 구현`
+- [x] 메서드 구현
+- [x] 커밋: `feat: Seller 활성화/비활성화 구현 (activate/deactivate)`
 
 ---
 
@@ -1530,13 +1530,13 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
-- [ ] Phase 2: Seller Aggregate (2/4) 🔄 **진행 중**
+- [ ] Phase 2: Seller Aggregate (3/4) 🔄 **진행 중**
 - [ ] Phase 3: CrawlerTask Aggregate (0/5)
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 8/25 Cycles (32%)
+**전체 진행률**: 9/25 Cycles (36%)
 
 ---
 
