@@ -5,6 +5,8 @@ import com.ryuqq.crawlinghub.domain.vo.ItemNo;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 
+import java.time.Clock;
+
 /**
  * Product 관련 테스트 데이터 생성 Fixture
  *
@@ -36,7 +38,20 @@ public class ProductFixture {
      * @return 새로 생성된 Product
      */
     public static Product forNew() {
+        return forNew(Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 Product 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: ID 자동 생성, INCOMPLETE 상태, Clock 주입</p>
+     *
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 Product
+     */
+    public static Product forNew(Clock clock) {
         SellerId sellerId = SellerFixture.defaultSellerId();
+        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
         return Product.forNew(DEFAULT_ITEM_NO, sellerId);
     }
 
@@ -51,6 +66,22 @@ public class ProductFixture {
      * @return 재구성된 Product
      */
     public static Product of(ProductId productId, ItemNo itemNo, SellerId sellerId) {
+        return of(productId, itemNo, sellerId, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: ID 포함, 테스트용 간편 생성, Clock 주입</p>
+     *
+     * @param productId Product ID
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product of(ProductId productId, ItemNo itemNo, SellerId sellerId, Clock clock) {
+        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
         return Product.of(itemNo, sellerId);
     }
 
@@ -70,6 +101,27 @@ public class ProductFixture {
      */
     public static Product reconstitute(ProductId productId, ItemNo itemNo, SellerId sellerId,
                                         String minishopDataHash, String detailDataHash, String optionDataHash, Boolean isComplete) {
+        return reconstitute(productId, itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: 모든 필드 포함, DB 조회 시뮬레이션, Clock 주입</p>
+     *
+     * @param productId Product ID
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ProductId productId, ItemNo itemNo, SellerId sellerId,
+                                        String minishopDataHash, String detailDataHash, String optionDataHash, Boolean isComplete, Clock clock) {
+        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
         return Product.reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
     }
 
