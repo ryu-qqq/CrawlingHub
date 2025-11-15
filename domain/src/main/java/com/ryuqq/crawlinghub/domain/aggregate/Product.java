@@ -1,0 +1,100 @@
+package com.ryuqq.crawlinghub.domain.aggregate;
+
+import com.ryuqq.crawlinghub.domain.vo.ItemNo;
+import com.ryuqq.crawlinghub.domain.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.vo.SellerId;
+
+import java.time.LocalDateTime;
+
+/**
+ * Product Aggregate Root
+ *
+ * <p>머스트잇에서 크롤링한 상품을 관리하는 Aggregate Root입니다.</p>
+ *
+ * <p>Zero-Tolerance Rules 준수:</p>
+ * <ul>
+ *   <li>Lombok 금지 - Plain Java 사용</li>
+ *   <li>Tell, Don't Ask - 비즈니스 로직은 Product 내부에 캡슐화</li>
+ *   <li>Long FK 전략 - JPA 관계 어노테이션 없음</li>
+ * </ul>
+ *
+ * <p>비즈니스 규칙:</p>
+ * <ul>
+ *   <li>생성 시 isComplete는 항상 false (INCOMPLETE)</li>
+ *   <li>데이터 해시는 생성 시점에는 null (별도 업데이트 필요)</li>
+ *   <li>isComplete()는 모든 해시 값이 존재할 때 true 반환</li>
+ * </ul>
+ */
+public class Product {
+
+    private final ProductId productId;
+    private final ItemNo itemNo;
+    private final SellerId sellerId;
+    private String minishopDataHash;
+    private String detailDataHash;
+    private String optionDataHash;
+    private Boolean isComplete;
+    private final LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    /**
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     */
+    private Product(ItemNo itemNo, SellerId sellerId) {
+        this.productId = ProductId.generate();
+        this.itemNo = itemNo;
+        this.sellerId = sellerId;
+        this.isComplete = false;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 새로운 Product 생성
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>초기 상태: INCOMPLETE (isComplete = false)</li>
+     *   <li>데이터 해시: 모두 null (별도 업데이트 필요)</li>
+     * </ul>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 새로 생성된 Product
+     */
+    public static Product create(ItemNo itemNo, SellerId sellerId) {
+        return new Product(itemNo, sellerId);
+    }
+
+    /**
+     * 상품 데이터 완료 여부 확인 (Tell Don't Ask 패턴)
+     *
+     * <p>모든 데이터 해시가 존재할 때 true 반환:</p>
+     * <ul>
+     *   <li>minishopDataHash</li>
+     *   <li>detailDataHash</li>
+     *   <li>optionDataHash</li>
+     * </ul>
+     *
+     * @return 완료 시 true, 불완전 시 false
+     */
+    public boolean isComplete() {
+        return Boolean.TRUE.equals(isComplete);
+    }
+
+    // Getters (필요한 것만)
+    public ProductId getProductId() {
+        return productId;
+    }
+
+    public ItemNo getItemNo() {
+        return itemNo;
+    }
+
+    public SellerId getSellerId() {
+        return sellerId;
+    }
+}
