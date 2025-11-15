@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.vo.OutboxId;
 import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
 import com.ryuqq.crawlinghub.domain.vo.ProductId;
 
+import java.time.Clock;
+
 /**
  * ProductOutbox 관련 테스트 데이터 생성 Fixture
  *
@@ -39,9 +41,23 @@ public class ProductOutboxFixture {
      * @return 새로 생성된 ProductOutbox
      */
     public static ProductOutbox forNew() {
+        return forNew(Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 ProductOutbox 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: ID 자동 생성, WAITING 상태, retryCount=0, Clock 주입</p>
+     * <p>⚠️ Tidy First: Clock 파라미터는 준비되었지만, ProductOutbox가 Clock을 지원할 때까지 무시됩니다.</p>
+     *
+     * @param clock 시간 제어 (테스트 가능성) - 현재는 무시됨
+     * @return 새로 생성된 ProductOutbox
+     */
+    public static ProductOutbox forNew(Clock clock) {
         ProductId productId = ProductFixture.defaultProductId();
         OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
-        return ProductOutbox.create(productId, eventType, DEFAULT_PAYLOAD);
+        // TODO: ProductOutbox가 Clock을 지원하면 clock 파라미터 전달
+        return ProductOutbox.forNew(productId, eventType, DEFAULT_PAYLOAD);
     }
 
     /**
@@ -56,8 +72,25 @@ public class ProductOutboxFixture {
      * @return 재구성된 ProductOutbox
      */
     public static ProductOutbox of(OutboxId outboxId, ProductId productId, OutboxEventType eventType, String payload) {
-        // 현재는 create() 사용, 추후 ProductOutbox.of() 구현 시 변경 예정
-        return ProductOutbox.create(productId, eventType, payload);
+        return of(outboxId, productId, eventType, payload, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 ProductOutbox 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: ID 포함, 테스트용 간편 생성, Clock 주입</p>
+     * <p>⚠️ Tidy First: Clock 파라미터는 준비되었지만, ProductOutbox가 Clock을 지원할 때까지 무시됩니다.</p>
+     *
+     * @param outboxId Outbox ID
+     * @param productId Product ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param clock 시간 제어 - 현재는 무시됨
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox of(OutboxId outboxId, ProductId productId, OutboxEventType eventType, String payload, Clock clock) {
+        // TODO: ProductOutbox가 Clock을 지원하면 clock 파라미터 전달
+        return ProductOutbox.of(productId, eventType, payload);
     }
 
     /**
@@ -76,21 +109,29 @@ public class ProductOutboxFixture {
      */
     public static ProductOutbox reconstitute(OutboxId outboxId, ProductId productId, OutboxEventType eventType,
                                               String payload, OutboxStatus status, Integer retryCount, String errorMessage) {
-        // 현재는 create() 후 상태 조작, 추후 ProductOutbox.reconstitute() 구현 시 변경 예정
-        ProductOutbox outbox = ProductOutbox.create(productId, eventType, payload);
+        return reconstitute(outboxId, productId, eventType, payload, status, retryCount, errorMessage, Clock.systemDefaultZone());
+    }
 
-        // 상태 재현 (임시 구현)
-        if (status == OutboxStatus.SENDING) {
-            outbox.send();
-        } else if (status == OutboxStatus.COMPLETED) {
-            outbox.send();
-            outbox.complete();
-        } else if (status == OutboxStatus.FAILED) {
-            outbox.send();
-            outbox.fail(errorMessage != null ? errorMessage : "Test error");
-        }
-
-        return outbox;
+    /**
+     * 완전한 ProductOutbox 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: 모든 필드 포함, DB 조회 시뮬레이션, Clock 주입</p>
+     * <p>⚠️ Tidy First: Clock 파라미터는 준비되었지만, ProductOutbox가 Clock을 지원할 때까지 무시됩니다.</p>
+     *
+     * @param outboxId Outbox ID
+     * @param productId Product ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param status 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어 - 현재는 무시됨
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox reconstitute(OutboxId outboxId, ProductId productId, OutboxEventType eventType,
+                                              String payload, OutboxStatus status, Integer retryCount, String errorMessage, Clock clock) {
+        // TODO: ProductOutbox가 Clock을 지원하면 clock 파라미터 전달
+        return ProductOutbox.reconstitute(productId, eventType, payload, status, retryCount, errorMessage);
     }
 
     /**
