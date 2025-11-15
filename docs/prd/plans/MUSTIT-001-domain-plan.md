@@ -1234,7 +1234,7 @@ public String getMinishopDataHash() { return minishopDataHash; }
 
 ---
 
-### 2️⃣2️⃣ Cycle 22: Product 변경 감지 (Tell Don't Ask) (10분)
+### 2️⃣2️⃣ Cycle 22: Product 변경 감지 (Tell Don't Ask) (10분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1257,8 +1257,8 @@ void shouldDetectNoChange() {
     assertThat(hasChanged).isFalse();
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: Product 변경 감지 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: Product 변경 감지 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -1272,8 +1272,8 @@ public static boolean hasChanged(String oldHash, String newHash) {
     return !oldHash.equals(newHash);
 }
 ```
-- [ ] hasChanged 정적 메서드 구현
-- [ ] 커밋: `feat: Product 변경 감지 구현 (hasChanged)`
+- [x] hasChanged 정적 메서드 구현
+- [x] 커밋: `feat: Product 변경 감지 구현 (hasChanged)`
 
 ---
 
@@ -1542,10 +1542,10 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 5: Product Aggregate (2/3)
+- [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 21/25 Cycles (84%)
+**전체 진행률**: 22/25 Cycles (88%)
 
 ---
 
