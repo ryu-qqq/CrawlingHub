@@ -41,7 +41,7 @@ public class Product {
     private LocalDateTime updatedAt;
 
     /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param itemNo 상품 번호
      * @param sellerId 판매자 ID
@@ -56,20 +56,92 @@ public class Product {
     }
 
     /**
-     * 새로운 Product 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
      *
-     * <p>비즈니스 규칙:</p>
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     */
+    private Product(ItemNo itemNo, SellerId sellerId, String minishopDataHash, String detailDataHash,
+                    String optionDataHash, Boolean isComplete) {
+        this.productId = ProductId.generate();
+        this.itemNo = itemNo;
+        this.sellerId = sellerId;
+        this.minishopDataHash = minishopDataHash;
+        this.detailDataHash = detailDataHash;
+        this.optionDataHash = optionDataHash;
+        this.isComplete = isComplete;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 새로운 Product 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
-     *   <li>초기 상태: INCOMPLETE (isComplete = false)</li>
-     *   <li>데이터 해시: 모두 null (별도 업데이트 필요)</li>
+     *   <li>ID 자동 생성 (ProductId.generate())</li>
+     *   <li>초기 상태: INCOMPLETE</li>
+     *   <li>데이터 해시: 모두 null</li>
      * </ul>
      *
      * @param itemNo 상품 번호
      * @param sellerId 판매자 ID
      * @return 새로 생성된 Product
      */
-    public static Product create(ItemNo itemNo, SellerId sellerId) {
+    public static Product forNew(ItemNo itemNo, SellerId sellerId) {
         return new Product(itemNo, sellerId);
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>ID 자동 생성</li>
+     *   <li>초기 상태: INCOMPLETE</li>
+     * </ul>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 재구성된 Product
+     */
+    public static Product of(ItemNo itemNo, SellerId sellerId) {
+        return new Product(itemNo, sellerId);
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ItemNo itemNo, SellerId sellerId, String minishopDataHash,
+                                        String detailDataHash, String optionDataHash, Boolean isComplete) {
+        return new Product(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
+    }
+
+    /**
+     * 새로운 Product 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew(ItemNo, SellerId)} instead
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 새로 생성된 Product
+     */
+    @Deprecated
+    public static Product create(ItemNo itemNo, SellerId sellerId) {
+        return forNew(itemNo, sellerId);
     }
 
     /**
