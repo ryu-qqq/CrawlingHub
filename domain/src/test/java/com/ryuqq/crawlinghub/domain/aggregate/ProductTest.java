@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
+import com.ryuqq.crawlinghub.domain.fixture.ProductFixture;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.vo.ItemNo;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
@@ -12,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * TDD Phase: Red → Green
  * - Product 생성 (create) 테스트
+ * - Product 데이터 업데이트 및 해시 계산 테스트
  */
 class ProductTest {
 
@@ -29,5 +31,48 @@ class ProductTest {
         assertThat(product.getItemNo()).isEqualTo(itemNo);
         assertThat(product.getSellerId()).isEqualTo(sellerId);
         assertThat(product.isComplete()).isFalse();
+    }
+
+    @Test
+    void shouldUpdateMinishopDataWithHash() {
+        // Given
+        Product product = ProductFixture.defaultProduct();
+        String rawJson = "{\"itemNo\":123456,\"name\":\"상품명\"}";
+
+        // When
+        boolean hasChanged = product.updateMinishopData(rawJson);
+
+        // Then
+        assertThat(product.getMinishopDataHash()).isNotNull();
+        assertThat(hasChanged).isTrue();
+    }
+
+    @Test
+    void shouldDetectNoChangeWhenSameData() {
+        // Given
+        Product product = ProductFixture.defaultProduct();
+        String rawJson = "{\"itemNo\":123456}";
+        product.updateMinishopData(rawJson);
+        String sameJson = "{\"itemNo\":123456}";
+
+        // When
+        boolean hasChanged = product.updateMinishopData(sameJson);
+
+        // Then
+        assertThat(hasChanged).isFalse();
+    }
+
+    @Test
+    void shouldMarkCompleteWhenAllDataUpdated() {
+        // Given
+        Product product = ProductFixture.defaultProduct();
+
+        // When
+        product.updateMinishopData("{\"data\":\"minishop\"}");
+        product.updateDetailData("{\"data\":\"detail\"}");
+        product.updateOptionData("{\"data\":\"option\"}");
+
+        // Then
+        assertThat(product.isComplete()).isTrue();
     }
 }
