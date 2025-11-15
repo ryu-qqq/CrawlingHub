@@ -104,6 +104,44 @@ public class CrawlerTask {
         }
     }
 
+    /**
+     * Task 발행 (WAITING → PUBLISHED)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>WAITING 상태에서만 발행 가능</li>
+     *   <li>발행 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException WAITING 상태가 아닌 경우
+     */
+    public void publish() {
+        if (status != CrawlerTaskStatus.WAITING) {
+            throw new IllegalStateException("WAITING 상태에서만 발행할 수 있습니다");
+        }
+        this.status = CrawlerTaskStatus.PUBLISHED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Task 시작 (PUBLISHED → IN_PROGRESS)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>PUBLISHED 상태에서만 시작 가능</li>
+     *   <li>시작 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException PUBLISHED 상태가 아닌 경우
+     */
+    public void start() {
+        if (status != CrawlerTaskStatus.PUBLISHED) {
+            throw new IllegalStateException("PUBLISHED 상태에서만 시작할 수 있습니다");
+        }
+        this.status = CrawlerTaskStatus.IN_PROGRESS;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters (필요한 것만)
     public TaskId getTaskId() {
         return taskId;
