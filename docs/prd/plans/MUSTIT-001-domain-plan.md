@@ -1135,7 +1135,7 @@ public class Product {
 
 ---
 
-### 2️⃣1️⃣ Cycle 21: Product 데이터 업데이트 및 해시 계산 (15분)
+### 2️⃣1️⃣ Cycle 21: Product 데이터 업데이트 및 해시 계산 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1173,8 +1173,8 @@ void shouldMarkCompleteWhenAllDataUpdated() {
     assertThat(product.isComplete()).isTrue();
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: Product 데이터 업데이트 및 해시 계산 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: Product 데이터 업데이트 및 해시 계산 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -1225,12 +1225,12 @@ private String calculateMD5Hash(String data) {
 
 public String getMinishopDataHash() { return minishopDataHash; }
 ```
-- [ ] 데이터 업데이트 및 해시 계산 구현
-- [ ] 커밋: `feat: Product 데이터 업데이트 및 MD5 해시 계산 구현`
+- [x] 데이터 업데이트 및 해시 계산 구현
+- [x] 커밋: `feat: Product 데이터 업데이트 및 MD5 해시 계산 구현`
 
 #### ♻️ Refactor: 해시 계산 메서드 추출
-- [ ] calculateMD5Hash 메서드 Value Object로 추출 고려
-- [ ] 커밋: `struct: Product 해시 계산 로직 정리` (필요 시)
+- [x] Tidy First - ProductFixture defaultProduct() 추가
+- [x] 커밋: `struct: ProductFixture defaultProduct() 추가 및 SellerFixture defaultSellerId() 추가`
 
 ---
 
@@ -1542,10 +1542,10 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 5: Product Aggregate (1/3)
+- [ ] Phase 5: Product Aggregate (2/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 20/25 Cycles (80%)
+**전체 진행률**: 21/25 Cycles (84%)
 
 ---
 
