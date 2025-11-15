@@ -17,6 +17,7 @@ import com.ryuqq.crawlinghub.domain.vo.ProductId;
  *   <li>{@link #defaultOutboxEventType()} - 기본 이벤트 타입 (PRODUCT_CREATED)</li>
  *   <li>{@link #defaultOutboxStatus()} - 기본 상태 (WAITING)</li>
  *   <li>{@link #waitingOutbox()} - WAITING 상태의 ProductOutbox</li>
+ *   <li>{@link #failedOutboxWithRetryCount(int)} - FAILED 상태의 ProductOutbox (지정된 재시도 횟수)</li>
  * </ul>
  */
 public class ProductOutboxFixture {
@@ -59,5 +60,30 @@ public class ProductOutboxFixture {
         ProductId productId = ProductFixture.defaultProductId();
         OutboxEventType eventType = OutboxEventType.PRODUCT_CREATED;
         return ProductOutbox.create(productId, eventType, DEFAULT_PAYLOAD);
+    }
+
+    /**
+     * OutboxStatus.FAILED 상태의 ProductOutbox 생성 (지정된 재시도 횟수)
+     *
+     * <p>재시도 로직 테스트를 위해 사용됩니다.</p>
+     * <p>실제 fail() 메서드를 호출하여 retryCount를 설정합니다.</p>
+     *
+     * @param retryCount 재시도 횟수
+     * @return FAILED 상태의 ProductOutbox (지정된 retryCount)
+     */
+    public static ProductOutbox failedOutboxWithRetryCount(int retryCount) {
+        ProductOutbox outbox = waitingOutbox();
+        outbox.send();
+
+        // fail() 메서드를 retryCount번 호출하여 retryCount 설정
+        for (int i = 0; i < retryCount; i++) {
+            outbox.fail("테스트 에러 메시지 " + (i + 1));
+            if (i < retryCount - 1) {
+                // 마지막 반복이 아니면 다시 SENDING 상태로 전환
+                outbox.send();
+            }
+        }
+
+        return outbox;
     }
 }
