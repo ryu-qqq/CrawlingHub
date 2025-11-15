@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
+import com.ryuqq.crawlinghub.domain.fixture.UserAgentFixture;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - UserAgent 생성 (create) 테스트
  * - UserAgent 토큰 발급 (issueToken) 테스트
  * - UserAgent 토큰 버킷 리미터 (canMakeRequest) 테스트 - Tell Don't Ask 패턴
+ * - UserAgent 상태 전환 (suspend, activate) 테스트
  */
 class UserAgentTest {
 
@@ -102,5 +104,30 @@ class UserAgentTest {
 
         // When & Then
         assertThat(userAgent.canMakeRequest()).isFalse();
+    }
+
+    @Test
+    void shouldSuspendUserAgentOn429Response() {
+        // Given - 토큰이 발급된 ACTIVE 상태의 UserAgent
+        UserAgent userAgent = UserAgentFixture.userAgentWithToken();
+
+        // When - 429 Too Many Requests 응답으로 일시 정지
+        userAgent.suspend();
+
+        // Then
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.SUSPENDED);
+    }
+
+    @Test
+    void shouldActivateUserAgent() {
+        // Given - SUSPENDED 상태의 UserAgent
+        UserAgent userAgent = UserAgentFixture.userAgentWithToken();
+        userAgent.suspend();
+
+        // When - 다시 활성화
+        userAgent.activate();
+
+        // Then
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.ACTIVE);
     }
 }
