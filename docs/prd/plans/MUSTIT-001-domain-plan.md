@@ -84,7 +84,7 @@ public class SellerFixture {
 
 ---
 
-### 2️⃣ Cycle 2: CrawlingInterval VO (15분)
+### 2️⃣ Cycle 2: CrawlingInterval VO (15분) 🔄 IN PROGRESS
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -103,8 +103,8 @@ void shouldThrowExceptionWhenDaysOutOfRange(int invalidDays) {
         .hasMessage("크롤링 주기는 1-30일 사이여야 합니다");
 }
 ```
-- [ ] 테스트 파일 생성
-- [ ] 커밋: `test: CrawlingInterval VO 범위 검증 테스트 추가 (Red)`
+- [x] 테스트 파일 생성
+- [x] 커밋: `test: CrawlingInterval VO 범위 검증 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -120,13 +120,13 @@ public record CrawlingInterval(Integer days) {
     }
 }
 ```
-- [ ] CrawlingInterval record 구현
-- [ ] 테스트 통과 확인
-- [ ] 커밋: `feat: CrawlingInterval VO 구현 (1-30일 검증)`
+- [x] CrawlingInterval record 구현
+- [x] 테스트 통과 확인 (4/4 passed)
+- [x] 커밋: `feat: CrawlingInterval VO 구현 (1-30일 검증)`
 
 #### 🧹 Tidy: TestFixture 추가
-- [ ] SellerFixture에 `defaultCrawlingInterval()` 추가
-- [ ] 커밋: `struct: CrawlingInterval TestFixture 추가`
+- [x] SellerFixture에 `defaultCrawlingInterval()` 추가
+- [x] 커밋: `struct: CrawlingInterval TestFixture 추가`
 
 ---
 
@@ -1462,7 +1462,7 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 
 ### Phase 1: Value Objects & Enums (6 Cycles)
 - [x] SellerId VO (Cycle 1) ✅ 2025-11-15
-- [ ] CrawlingInterval VO (Cycle 2)
+- [x] CrawlingInterval VO (Cycle 2) ✅ 2025-11-15
 - [ ] SellerStatus Enum (Cycle 3)
 - [ ] TaskId, CrawlerTaskType, CrawlerTaskStatus (Cycle 4)
 - [ ] UserAgentId, UserAgentStatus (Cycle 5)
@@ -1529,14 +1529,14 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 **목표 완료일**: ___________
 
 ### Phase 진행률
-- [ ] Phase 1: Value Objects & Enums (1/6) 🔄
+- [ ] Phase 1: Value Objects & Enums (2/6) 🔄
 - [ ] Phase 2: Seller Aggregate (0/4)
 - [ ] Phase 3: CrawlerTask Aggregate (0/5)
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 1/25 Cycles (4%)
+**전체 진행률**: 2/25 Cycles (8%)
 
 ---
 
