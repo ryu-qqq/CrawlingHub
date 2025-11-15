@@ -71,6 +71,23 @@ public class UserAgent {
         return new UserAgent(userAgentString);
     }
 
+    /**
+     * 토큰 발급
+     *
+     * <p>머스트잇 API 인증 토큰을 발급받아 저장합니다.</p>
+     *
+     * @param token 발급받은 토큰
+     * @throws IllegalArgumentException token이 null 또는 blank인 경우
+     */
+    public void issueToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("토큰은 비어있을 수 없습니다");
+        }
+        this.token = token;
+        this.tokenIssuedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters (필요한 것만)
     public UserAgentId getUserAgentId() {
         return userAgentId;
@@ -90,5 +107,9 @@ public class UserAgent {
 
     public Integer getRequestCount() {
         return requestCount;
+    }
+
+    public LocalDateTime getTokenIssuedAt() {
+        return tokenIssuedAt;
     }
 }
