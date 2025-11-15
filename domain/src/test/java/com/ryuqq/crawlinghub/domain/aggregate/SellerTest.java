@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - Seller 생성 (register) 테스트
  * - Seller 주기 변경 (updateInterval) 테스트
  * - Seller 활성화/비활성화 (activate/deactivate) 테스트
+ * - Seller 상품 수 업데이트 (updateTotalProductCount) 테스트
  */
 class SellerTest {
 
@@ -82,5 +83,18 @@ class SellerTest {
 
         // Then
         assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
+    }
+
+    @Test
+    void shouldUpdateTotalProductCount() {
+        // Given
+        SellerId sellerId = new SellerId("seller_005");
+        Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
+
+        // When
+        seller.updateTotalProductCount(100);
+
+        // Then
+        assertThat(seller.getTotalProductCount()).isEqualTo(100);
     }
 }
