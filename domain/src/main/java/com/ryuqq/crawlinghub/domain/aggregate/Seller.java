@@ -73,6 +73,23 @@ public class Seller {
     }
 
     /**
+     * 크롤링 주기 변경
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>크롤링 주기는 1-30일 범위 (CrawlingInterval VO가 검증)</li>
+     *   <li>변경 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @param newIntervalDays 새로운 크롤링 주기 (일수)
+     * @throws IllegalArgumentException intervalDays가 1-30 범위를 벗어나는 경우
+     */
+    public void updateInterval(Integer newIntervalDays) {
+        this.crawlingInterval = new CrawlingInterval(newIntervalDays);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 크롤링 주기 일수 조회
      *
      * <p>Law of Demeter 준수:</p>

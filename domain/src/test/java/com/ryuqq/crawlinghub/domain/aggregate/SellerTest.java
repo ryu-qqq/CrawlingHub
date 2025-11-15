@@ -53,6 +53,6 @@ class SellerTest {
         // When & Then
         assertThatThrownBy(() -> seller.updateInterval(31))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("크롤링 주기는 1일에서 30일 사이여야 합니다");
+            .hasMessage("크롤링 주기는 1-30일 사이여야 합니다");
     }
 }
