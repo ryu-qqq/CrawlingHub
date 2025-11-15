@@ -15,8 +15,65 @@ import static org.assertj.core.api.Assertions.assertThat;
  * - Product 생성 (create) 테스트
  * - Product 데이터 업데이트 및 해시 계산 테스트
  * - Product 변경 감지 (Tell Don't Ask) 테스트
+ * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
  */
 class ProductTest {
+
+    // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
+
+    @Test
+    void shouldCreateProductUsingForNew() {
+        // Given
+        ItemNo itemNo = new ItemNo(123456L);
+        SellerId sellerId = SellerFixture.defaultSellerId();
+
+        // When
+        Product product = Product.forNew(itemNo, sellerId);
+
+        // Then
+        assertThat(product.getProductId()).isNotNull();
+        assertThat(product.getItemNo()).isEqualTo(itemNo);
+        assertThat(product.getSellerId()).isEqualTo(sellerId);
+        assertThat(product.isComplete()).isFalse();
+    }
+
+    @Test
+    void shouldCreateProductUsingOf() {
+        // Given
+        ItemNo itemNo = new ItemNo(123456L);
+        SellerId sellerId = SellerFixture.defaultSellerId();
+
+        // When
+        Product product = Product.of(itemNo, sellerId);
+
+        // Then
+        assertThat(product.getProductId()).isNotNull();
+        assertThat(product.getItemNo()).isEqualTo(itemNo);
+        assertThat(product.getSellerId()).isEqualTo(sellerId);
+        assertThat(product.isComplete()).isFalse();
+    }
+
+    @Test
+    void shouldReconstituteProductWithAllFields() {
+        // Given
+        ItemNo itemNo = new ItemNo(123456L);
+        SellerId sellerId = SellerFixture.defaultSellerId();
+        String minishopDataHash = "abc123";
+        String detailDataHash = "def456";
+        String optionDataHash = "ghi789";
+        Boolean isComplete = true;
+
+        // When
+        Product product = Product.reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
+
+        // Then
+        assertThat(product.getItemNo()).isEqualTo(itemNo);
+        assertThat(product.getSellerId()).isEqualTo(sellerId);
+        assertThat(product.getMinishopDataHash()).isEqualTo(minishopDataHash);
+        assertThat(product.isComplete()).isTrue();
+    }
+
+    // ========== 기존 테스트 (레거시, 유지보수용) ==========
 
     @Test
     void shouldCreateProductWithIncompleteStatus() {
