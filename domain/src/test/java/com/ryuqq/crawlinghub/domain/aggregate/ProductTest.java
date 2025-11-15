@@ -6,6 +6,11 @@ import com.ryuqq.crawlinghub.domain.vo.ItemNo;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -16,8 +21,50 @@ import static org.assertj.core.api.Assertions.assertThat;
  * - Product 데이터 업데이트 및 해시 계산 테스트
  * - Product 변경 감지 (Tell Don't Ask) 테스트
  * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
+ * - 리팩토링: Clock 의존성 테스트 (테스트 가능성)
  */
 class ProductTest {
+
+    // ========== Clock 고정 (테스트 재현성) ==========
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2024-01-01T00:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
+
+    // ========== 리팩토링: Clock 의존성 테스트 ==========
+
+    @Test
+    void shouldCreateProductWithFixedClock() {
+        // Given
+        ItemNo itemNo = new ItemNo(123456L);
+        SellerId sellerId = SellerFixture.defaultSellerId();
+        LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
+
+        // When
+        Product product = Product.forNew(itemNo, sellerId, FIXED_CLOCK);
+
+        // Then
+        assertThat(product.getCreatedAt()).isEqualTo(expectedTime);
+        assertThat(product.getUpdatedAt()).isEqualTo(expectedTime);
+    }
+
+    @Test
+    void shouldPreserveCreatedAtWhenDataChanges() {
+        // Given
+        ItemNo itemNo = new ItemNo(123456L);
+        SellerId sellerId = SellerFixture.defaultSellerId();
+
+        Product product = Product.forNew(itemNo, sellerId, FIXED_CLOCK);
+        LocalDateTime createdTime = product.getCreatedAt();
+
+        // When - 데이터 업데이트
+        product.updateMinishopData("{\"data\":\"test\"}");
+
+        // Then - createdAt은 불변, updatedAt은 갱신됨
+        assertThat(product.getCreatedAt()).isEqualTo(createdTime);
+        assertThat(product.getUpdatedAt()).isNotNull();
+    }
 
     // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
 
