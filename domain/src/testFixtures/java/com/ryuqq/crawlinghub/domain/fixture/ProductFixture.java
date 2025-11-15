@@ -37,8 +37,7 @@ public class ProductFixture {
      */
     public static Product forNew() {
         SellerId sellerId = SellerFixture.defaultSellerId();
-        // TODO: Product가 forNew()를 지원하면 변경
-        return Product.create(DEFAULT_ITEM_NO, sellerId);
+        return Product.forNew(DEFAULT_ITEM_NO, sellerId);
     }
 
     /**
@@ -52,8 +51,7 @@ public class ProductFixture {
      * @return 재구성된 Product
      */
     public static Product of(ProductId productId, ItemNo itemNo, SellerId sellerId) {
-        // TODO: Product가 of()를 지원하면 변경
-        return Product.create(itemNo, sellerId);
+        return Product.of(itemNo, sellerId);
     }
 
     /**
@@ -72,8 +70,7 @@ public class ProductFixture {
      */
     public static Product reconstitute(ProductId productId, ItemNo itemNo, SellerId sellerId,
                                         String minishopDataHash, String detailDataHash, String optionDataHash, Boolean isComplete) {
-        // TODO: Product가 reconstitute()를 지원하면 변경
-        return Product.create(itemNo, sellerId);
+        return Product.reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
     }
 
     /**
