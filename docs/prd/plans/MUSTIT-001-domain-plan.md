@@ -927,7 +927,7 @@ public LocalDateTime getTokenIssuedAt() {
 
 ---
 
-### 1️⃣8️⃣ Cycle 18: UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (15분)
+### 1️⃣8️⃣ Cycle 18: UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -974,8 +974,8 @@ void shouldNotAllowRequestWhenTokenIsNull() {
     assertThat(canRequest).isFalse();
 }
 ```
-- [ ] 테스트 추가 (Tell Don't Ask 패턴)
-- [ ] 커밋: `test: UserAgent 토큰 버킷 리미터 테스트 추가 (Red)`
+- [x] 테스트 추가 (Tell Don't Ask 패턴)
+- [x] 커밋: `test: UserAgent 토큰 버킷 리미터 테스트 추가 (Tell Don't Ask)`
 
 #### 🟢 Green: 최소 구현 (Tell Don't Ask)
 ```java
@@ -1008,10 +1008,10 @@ public void resetRequestCount() {
     this.updatedAt = LocalDateTime.now();
 }
 ```
-- [ ] canMakeRequest 메서드 구현 (Tell Don't Ask)
-- [ ] 커밋: `feat: UserAgent 토큰 버킷 리미터 구현 (80 req/hour)`
+- [x] canMakeRequest 메서드 구현 (Tell Don't Ask)
+- [x] 커밋: `feat: UserAgent 토큰 버킷 리미터 구현 (80 req/hour, Tell Don't Ask)`
 
-#### ♻️ Refactor: ArchUnit 테스트 추가
+#### ♻️ Refactor: ArchUnit 테스트 추가 (Optional - Application Layer 구현 후)
 ```java
 // Tell Don't Ask 위반 검증 (외부에서 getRequestCount() < 80 판단 금지)
 @ArchTest
@@ -1020,7 +1020,7 @@ static final ArchRule tell_dont_ask_rule = methods()
     .should().notCallMethod(UserAgent.class, "getRequestCount")
     .because("Tell Don't Ask: canMakeRequest()를 사용해야 합니다");
 ```
-- [ ] ArchUnit 테스트 추가
+- [ ] ArchUnit 테스트 추가 (Application Layer 구현 후)
 - [ ] 커밋: `struct: UserAgent Tell Don't Ask ArchUnit 테스트 추가`
 
 ---
@@ -1490,8 +1490,8 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 ### Phase 4: UserAgent Aggregate (4 Cycles)
 - [x] UserAgent 생성 (Cycle 16)
 - [x] UserAgent 토큰 발급 (Cycle 17)
-- [ ] UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (Cycle 18)
-- [ ] UserAgent 상태 전환 (Cycle 19)
+- [x] UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (Cycle 18)
+- [ ] UserAgent Fixture 정리 (Cycle 19)
 
 ### Phase 5: Product Aggregate (3 Cycles)
 - [ ] Product 생성 (Cycle 20)
@@ -1538,11 +1538,11 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
-- [ ] Phase 4: UserAgent Aggregate (2/4) 🔄 **진행 중**
+- [ ] Phase 4: UserAgent Aggregate (3/4) 🔄 **진행 중**
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 17/25 Cycles (68%)
+**전체 진행률**: 18/25 Cycles (72%)
 
 ---
 
