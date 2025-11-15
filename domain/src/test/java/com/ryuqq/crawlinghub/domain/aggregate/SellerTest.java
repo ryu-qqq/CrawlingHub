@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * TDD Phase: Red → Green
  * - Seller 생성 (register) 테스트
  * - Seller 주기 변경 (updateInterval) 테스트
+ * - Seller 활성화/비활성화 (activate/deactivate) 테스트
  */
 class SellerTest {
 
@@ -54,5 +55,32 @@ class SellerTest {
         assertThatThrownBy(() -> seller.updateInterval(31))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("크롤링 주기는 1-30일 사이여야 합니다");
+    }
+
+    @Test
+    void shouldActivateSeller() {
+        // Given - INACTIVE 상태의 Seller 생성
+        SellerId sellerId = new SellerId("seller_003");
+        Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
+        seller.deactivate(); // 먼저 비활성화
+
+        // When
+        seller.activate();
+
+        // Then
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+    }
+
+    @Test
+    void shouldDeactivateSeller() {
+        // Given - ACTIVE 상태의 Seller (register 시 기본값)
+        SellerId sellerId = new SellerId("seller_004");
+        Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
+
+        // When
+        seller.deactivate();
+
+        // Then
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
     }
 }
