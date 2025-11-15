@@ -10,9 +10,16 @@ import com.ryuqq.crawlinghub.domain.vo.SellerId;
  *
  * <p>Product Aggregate와 관련된 Value Object의 기본값을 제공합니다.</p>
  *
- * <p>제공 메서드:</p>
+ * <p>표준 패턴 준수:</p>
  * <ul>
- *   <li>{@link #defaultProduct()} - 기본 Product (INCOMPLETE 상태)</li>
+ *   <li>{@link #forNew()} - 새 Product 생성 (ID 자동 생성)</li>
+ *   <li>{@link #of(ProductId, ItemNo, SellerId)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(ProductId, ItemNo, SellerId, String, String, String, Boolean)} - 완전한 재구성</li>
+ * </ul>
+ *
+ * <p>레거시 호환 메서드:</p>
+ * <ul>
+ *   <li>{@link #defaultProduct()} - 기본 Product (레거시)</li>
  *   <li>{@link #defaultProductId()} - 새로운 ProductId 생성</li>
  *   <li>{@link #defaultItemNo()} - 기본 상품 번호 (123456L)</li>
  * </ul>
@@ -22,13 +29,62 @@ public class ProductFixture {
     private static final ItemNo DEFAULT_ITEM_NO = new ItemNo(123456L);
 
     /**
-     * 기본 Product 생성 (INCOMPLETE 상태)
+     * 새로운 Product 생성 (표준 패턴)
      *
+     * <p>forNew() 패턴: ID 자동 생성, INCOMPLETE 상태</p>
+     *
+     * @return 새로 생성된 Product
+     */
+    public static Product forNew() {
+        SellerId sellerId = SellerFixture.defaultSellerId();
+        // TODO: Product가 forNew()를 지원하면 변경
+        return Product.create(DEFAULT_ITEM_NO, sellerId);
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: ID 포함, 테스트용 간편 생성</p>
+     *
+     * @param productId Product ID
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 재구성된 Product
+     */
+    public static Product of(ProductId productId, ItemNo itemNo, SellerId sellerId) {
+        // TODO: Product가 of()를 지원하면 변경
+        return Product.create(itemNo, sellerId);
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: 모든 필드 포함, DB 조회 시뮬레이션</p>
+     *
+     * @param productId Product ID
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ProductId productId, ItemNo itemNo, SellerId sellerId,
+                                        String minishopDataHash, String detailDataHash, String optionDataHash, Boolean isComplete) {
+        // TODO: Product가 reconstitute()를 지원하면 변경
+        return Product.create(itemNo, sellerId);
+    }
+
+    /**
+     * 기본 Product 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew()} instead
      * @return 데이터 해시가 없는 INCOMPLETE 상태의 Product
      */
+    @Deprecated
     public static Product defaultProduct() {
-        SellerId sellerId = SellerFixture.defaultSellerId();
-        return Product.create(DEFAULT_ITEM_NO, sellerId);
+        return forNew();
     }
 
     /**
