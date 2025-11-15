@@ -810,7 +810,7 @@ public class CrawlerTaskFixture {
 
 ## 🎯 Phase 4: UserAgent Aggregate (4 Cycles)
 
-### 1️⃣6️⃣ Cycle 16: UserAgent 생성 (15분)
+### 1️⃣6️⃣ Cycle 16: UserAgent 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -835,21 +835,21 @@ void shouldThrowExceptionWhenUserAgentStringIsBlank() {
         .hasMessage("UserAgent 문자열은 비어있을 수 없습니다");
 }
 ```
-- [ ] 테스트 파일 생성
-- [ ] 커밋: `test: UserAgent 생성 테스트 추가 (Red)`
+- [x] 테스트 파일 생성
+- [x] 커밋: `test: UserAgent 생성 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
 // domain/src/main/java/.../aggregate/UserAgent.java
 public class UserAgent {
-    private UserAgentId userAgentId;
-    private String userAgentString;
+    private final UserAgentId userAgentId;
+    private final String userAgentString;
     private String token;
     private UserAgentStatus status;
     private Integer requestCount;
     private LocalDateTime lastRequestAt;
     private LocalDateTime tokenIssuedAt;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private UserAgent(String userAgentString) {
@@ -876,8 +876,8 @@ public class UserAgent {
     public Integer getRequestCount() { return requestCount; }
 }
 ```
-- [ ] UserAgent 클래스 구현
-- [ ] 커밋: `feat: UserAgent Aggregate Root 구현 (create)`
+- [x] UserAgent 클래스 구현
+- [x] 커밋: `feat: UserAgent Aggregate Root 구현 (create)`
 
 ---
 
@@ -1538,11 +1538,11 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
-- [ ] Phase 4: UserAgent Aggregate (0/4)
+- [ ] Phase 4: UserAgent Aggregate (1/4) 🔄 **진행 중**
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 15/25 Cycles (60%)
+**전체 진행률**: 16/25 Cycles (64%)
 
 ---
 
