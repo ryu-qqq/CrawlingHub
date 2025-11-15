@@ -142,6 +142,47 @@ public class CrawlerTask {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * Task 완료 (IN_PROGRESS → COMPLETED)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>IN_PROGRESS 상태에서만 완료 가능</li>
+     *   <li>완료 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException IN_PROGRESS 상태가 아닌 경우
+     */
+    public void complete() {
+        if (status != CrawlerTaskStatus.IN_PROGRESS) {
+            throw new IllegalStateException("IN_PROGRESS 상태에서만 완료할 수 있습니다");
+        }
+        this.status = CrawlerTaskStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Task 실패 (IN_PROGRESS → FAILED)
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>IN_PROGRESS 상태에서만 실패 처리 가능</li>
+     *   <li>에러 메시지 기록</li>
+     *   <li>실패 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @param errorMessage 실패 사유
+     * @throws IllegalStateException IN_PROGRESS 상태가 아닌 경우
+     */
+    public void fail(String errorMessage) {
+        if (status != CrawlerTaskStatus.IN_PROGRESS) {
+            throw new IllegalStateException("IN_PROGRESS 상태에서만 실패 처리할 수 있습니다");
+        }
+        this.status = CrawlerTaskStatus.FAILED;
+        this.errorMessage = errorMessage;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters (필요한 것만)
     public TaskId getTaskId() {
         return taskId;
@@ -165,5 +206,9 @@ public class CrawlerTask {
 
     public Integer getRetryCount() {
         return retryCount;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }
