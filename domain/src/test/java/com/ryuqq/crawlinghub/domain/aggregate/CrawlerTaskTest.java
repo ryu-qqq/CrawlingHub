@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - CrawlerTask 생성 (create) 테스트
  * - URL 검증 테스트
  * - 상태 전환 (publish, start) 테스트
+ * - 완료/실패 (complete, fail) 테스트
  */
 class CrawlerTaskTest {
 
@@ -100,5 +101,45 @@ class CrawlerTaskTest {
         assertThatThrownBy(() -> task.publish())
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("WAITING 상태에서만 발행할 수 있습니다");
+    }
+
+    @Test
+    void shouldCompleteTaskFromInProgress() {
+        // Given - IN_PROGRESS 상태의 task (WAITING → PUBLISHED → IN_PROGRESS)
+        SellerId sellerId = new SellerId("seller_006");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish(); // WAITING → PUBLISHED
+        task.start();   // PUBLISHED → IN_PROGRESS
+
+        // When
+        task.complete();
+
+        // Then
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.COMPLETED);
+    }
+
+    @Test
+    void shouldFailTaskWithErrorMessage() {
+        // Given - IN_PROGRESS 상태의 task
+        SellerId sellerId = new SellerId("seller_007");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish();
+        task.start();
+        String errorMessage = "429 Too Many Requests";
+
+        // When
+        task.fail(errorMessage);
+
+        // Then
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.FAILED);
+        assertThat(task.getErrorMessage()).isEqualTo(errorMessage);
     }
 }
