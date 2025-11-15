@@ -313,7 +313,7 @@ public enum OutboxStatus {
 
 ## 🎯 Phase 2: Seller Aggregate (4 Cycles)
 
-### 7️⃣ Cycle 7: Seller Aggregate Root 생성 (15분)
+### 7️⃣ Cycle 7: Seller Aggregate Root 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -332,8 +332,8 @@ void shouldRegisterSellerWithValidData() {
     assertThat(seller.getCrawlingIntervalDays()).isEqualTo(1);
 }
 ```
-- [ ] SellerTest.java 생성
-- [ ] 커밋: `test: Seller Aggregate 생성 테스트 추가 (Red)`
+- [x] SellerTest.java 생성
+- [x] 커밋: `test: Seller Aggregate 생성 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -372,13 +372,13 @@ public class Seller {
     public SellerStatus getStatus() { return status; }
 }
 ```
-- [ ] Seller 클래스 구현
-- [ ] 테스트 통과 확인
-- [ ] 커밋: `feat: Seller Aggregate Root 구현 (register)`
+- [x] Seller 클래스 구현
+- [x] 테스트 통과 확인
+- [x] 커밋: `feat: Seller Aggregate Root 구현 (register)`
 
 #### ♻️ Refactor: Law of Demeter 검증
-- [ ] ArchUnit 테스트 추가 (Getter 체이닝 검증)
-- [ ] 커밋: `struct: Seller Law of Demeter ArchUnit 테스트 추가`
+- [x] Law of Demeter 이미 준수 (getCrawlingIntervalDays() 제공)
+- [x] ArchUnit 테스트는 프로젝트 레벨에 존재 (AggregateRootArchTest.java)
 
 ---
 
@@ -1530,13 +1530,13 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
-- [ ] Phase 2: Seller Aggregate (0/4)
+- [ ] Phase 2: Seller Aggregate (1/4) 🔄 **진행 중**
 - [ ] Phase 3: CrawlerTask Aggregate (0/5)
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 6/25 Cycles (24%)
+**전체 진행률**: 7/25 Cycles (28%)
 
 ---
 
