@@ -59,13 +59,15 @@ public class ProductOutbox {
     }
 
     /**
-     * 새로운 ProductOutbox 생성
+     * 새로운 ProductOutbox 생성 (표준 패턴)
      *
-     * <p>비즈니스 규칙:</p>
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
+     *   <li>ID 자동 생성 (OutboxId.generate())</li>
      *   <li>초기 상태: WAITING</li>
      *   <li>초기 retryCount: 0</li>
      *   <li>errorMessage: null</li>
+     *   <li>createdAt/updatedAt: 현재 시각</li>
      * </ul>
      *
      * @param productId 상품 ID
@@ -73,8 +75,81 @@ public class ProductOutbox {
      * @param payload 이벤트 페이로드 JSON
      * @return 새로 생성된 ProductOutbox
      */
-    public static ProductOutbox create(ProductId productId, OutboxEventType eventType, String payload) {
+    public static ProductOutbox forNew(ProductId productId, OutboxEventType eventType, String payload) {
         return new ProductOutbox(productId, eventType, payload);
+    }
+
+    /**
+     * 불변 속성으로 ProductOutbox 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>ID 자동 생성</li>
+     *   <li>초기 상태: WAITING</li>
+     * </ul>
+     *
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox of(ProductId productId, OutboxEventType eventType, String payload) {
+        return new ProductOutbox(productId, eventType, payload);
+    }
+
+    /**
+     * 완전한 ProductOutbox 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     * <p>⚠️ 주의: 현재 구현은 임시입니다. 모든 필드를 받는 private 생성자가 필요합니다.</p>
+     *
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입
+     * @param payload 페이로드
+     * @param status 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @return 재구성된 ProductOutbox
+     */
+    public static ProductOutbox reconstitute(ProductId productId, OutboxEventType eventType, String payload,
+                                              OutboxStatus status, Integer retryCount, String errorMessage) {
+        // TODO: 모든 필드를 받는 private 생성자 추가 필요 (Clock 추가 시 함께 구현)
+        ProductOutbox outbox = new ProductOutbox(productId, eventType, payload);
+
+        // 임시 구현: Reflection이나 상태 조작으로 필드 설정
+        // Green Phase에서는 최소 구현으로 테스트 통과
+        if (status == OutboxStatus.SENDING) {
+            outbox.send();
+        } else if (status == OutboxStatus.COMPLETED) {
+            outbox.send();
+            outbox.complete();
+        } else if (status == OutboxStatus.FAILED) {
+            outbox.send();
+            // retryCount만큼 fail() 호출하여 retryCount 재현
+            for (int i = 0; i < retryCount; i++) {
+                outbox.fail(errorMessage != null ? errorMessage : "");
+                if (i < retryCount - 1) {
+                    // 마지막 반복이 아니면 다시 SENDING 상태로 전환
+                    outbox.send();
+                }
+            }
+        }
+
+        return outbox;
+    }
+
+    /**
+     * 새로운 ProductOutbox 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew(ProductId, OutboxEventType, String)} instead
+     * @param productId 상품 ID
+     * @param eventType 이벤트 타입 (PRODUCT_CREATED, PRODUCT_UPDATED 등)
+     * @param payload 이벤트 페이로드 JSON
+     * @return 새로 생성된 ProductOutbox
+     */
+    @Deprecated
+    public static ProductOutbox create(ProductId productId, OutboxEventType eventType, String payload) {
+        return forNew(productId, eventType, payload);
     }
 
     /**
