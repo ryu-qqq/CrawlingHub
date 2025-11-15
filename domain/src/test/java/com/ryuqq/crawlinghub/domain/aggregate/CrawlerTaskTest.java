@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * TDD Phase: Red → Green
  * - CrawlerTask 생성 (create) 테스트
  * - URL 검증 테스트
+ * - 상태 전환 (publish, start) 테스트
  */
 class CrawlerTaskTest {
 
@@ -47,5 +48,57 @@ class CrawlerTaskTest {
         assertThatThrownBy(() -> CrawlerTask.create(sellerId, taskType, invalidUrl))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("MINISHOP URL 형식이 올바르지 않습니다");
+    }
+
+    @Test
+    void shouldPublishTaskFromWaiting() {
+        // Given - WAITING 상태의 task
+        SellerId sellerId = new SellerId("seller_003");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+
+        // When
+        task.publish();
+
+        // Then
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.PUBLISHED);
+    }
+
+    @Test
+    void shouldStartTaskFromPublished() {
+        // Given - PUBLISHED 상태의 task (WAITING → PUBLISHED)
+        SellerId sellerId = new SellerId("seller_004");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish(); // WAITING → PUBLISHED
+
+        // When
+        task.start();
+
+        // Then
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPublishNonWaitingTask() {
+        // Given - PUBLISHED 상태의 task
+        SellerId sellerId = new SellerId("seller_005");
+        CrawlerTask task = CrawlerTask.create(
+            sellerId,
+            CrawlerTaskType.MINISHOP,
+            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+        );
+        task.publish(); // WAITING → PUBLISHED
+
+        // When & Then
+        assertThatThrownBy(() -> task.publish())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("WAITING 상태에서만 발행할 수 있습니다");
     }
 }
