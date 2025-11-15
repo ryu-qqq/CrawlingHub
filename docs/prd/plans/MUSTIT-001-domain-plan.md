@@ -761,17 +761,17 @@ public void start() {
 
 ---
 
-### 1️⃣5️⃣ Cycle 15: CrawlerTask Fixture 정리 (10분)
+### 1️⃣5️⃣ Cycle 15: CrawlerTask Fixture 정리 (10분) ✅ COMPLETE
 
 #### 🧹 Tidy: CrawlerTaskFixture 완성
 ```java
-// domain/src/test/java/.../fixture/CrawlerTaskFixture.java
+// domain/src/testFixtures/java/.../fixture/CrawlerTaskFixture.java
 public class CrawlerTaskFixture {
     public static CrawlerTask waitingTask() {
         return CrawlerTask.create(
-            SellerFixture.defaultSellerId(),
+            new SellerId("seller_test_001"),
             CrawlerTaskType.MINISHOP,
-            "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123"
+            DEFAULT_REQUEST_URL
         );
     }
 
@@ -791,18 +791,20 @@ public class CrawlerTaskFixture {
         CrawlerTask task = inProgressTask();
         for (int i = 0; i < retryCount; i++) {
             task.fail("Test error");
-            if (i < MAX_RETRY_COUNT) {
+            if (i < 2) { // MAX_RETRY_COUNT = 2
                 task.retry();
-                task.publish();
                 task.start();
             }
+        }
+        if (retryCount < 2) {
+            task.fail("Test error");
         }
         return task;
     }
 }
 ```
-- [ ] CrawlerTaskFixture 완성
-- [ ] 커밋: `struct: CrawlerTaskFixture 완성 (모든 상태 생성 메서드)`
+- [x] CrawlerTaskFixture 완성
+- [x] 커밋: `struct: CrawlerTaskFixture 완성 (모든 상태 생성 메서드)`
 
 ---
 
@@ -1535,12 +1537,12 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 ### Phase 진행률
 - [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
-- [ ] Phase 3: CrawlerTask Aggregate (4/5) 🔄 **진행 중**
+- [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [ ] Phase 4: UserAgent Aggregate (0/4)
 - [ ] Phase 5: Product Aggregate (0/3)
 - [ ] Phase 6: ProductOutbox Aggregate (0/3)
 
-**전체 진행률**: 14/25 Cycles (56%)
+**전체 진행률**: 15/25 Cycles (60%)
 
 ---
 
