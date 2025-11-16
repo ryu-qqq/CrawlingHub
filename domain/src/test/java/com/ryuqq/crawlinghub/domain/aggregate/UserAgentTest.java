@@ -15,8 +15,64 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - UserAgent 토큰 발급 (issueToken) 테스트
  * - UserAgent 토큰 버킷 리미터 (canMakeRequest) 테스트 - Tell Don't Ask 패턴
  * - UserAgent 상태 전환 (suspend, activate) 테스트
+ * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
  */
 class UserAgentTest {
+
+    // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
+
+    @Test
+    void shouldCreateUserAgentUsingForNew() {
+        // Given
+        String userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)";
+
+        // When
+        UserAgent userAgent = UserAgent.forNew(userAgentString);
+
+        // Then
+        assertThat(userAgent.getUserAgentId()).isNotNull();
+        assertThat(userAgent.getUserAgentString()).isEqualTo(userAgentString);
+        assertThat(userAgent.getToken()).isNull();
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.ACTIVE);
+        assertThat(userAgent.getRequestCount()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldCreateUserAgentUsingOf() {
+        // Given
+        String userAgentString = "Mozilla/5.0 (Linux; Android 10)";
+
+        // When
+        UserAgent userAgent = UserAgent.of(userAgentString);
+
+        // Then
+        assertThat(userAgent.getUserAgentId()).isNotNull();
+        assertThat(userAgent.getUserAgentString()).isEqualTo(userAgentString);
+        assertThat(userAgent.getToken()).isNull();
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.ACTIVE);
+    }
+
+    @Test
+    void shouldReconstituteUserAgentWithAllFields() {
+        // Given
+        UserAgentId userAgentId = UserAgentId.generate();
+        String userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)";
+        String token = "test_token_reconstitute";
+        UserAgentStatus status = UserAgentStatus.SUSPENDED;
+        Integer requestCount = 50;
+
+        // When
+        UserAgent userAgent = UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount);
+
+        // Then
+        assertThat(userAgent.getUserAgentId()).isEqualTo(userAgentId);
+        assertThat(userAgent.getUserAgentString()).isEqualTo(userAgentString);
+        assertThat(userAgent.getToken()).isEqualTo(token);
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.SUSPENDED);
+        assertThat(userAgent.getRequestCount()).isEqualTo(50);
+    }
+
+    // ========== 기존 테스트 (레거시, 유지보수용) ==========
 
     @Test
     void shouldCreateUserAgentWithActiveStatus() {
