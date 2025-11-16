@@ -39,7 +39,7 @@ public class CrawlerTask {
     private LocalDateTime updatedAt;
 
     /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param sellerId 셀러 식별자
      * @param taskType 크롤링 작업 타입
@@ -58,13 +58,37 @@ public class CrawlerTask {
     }
 
     /**
-     * 새로운 CrawlerTask 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
      *
-     * <p>비즈니스 규칙:</p>
+     * @param taskId Task 식별자
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param status 작업 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     */
+    private CrawlerTask(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType, String requestUrl,
+                         CrawlerTaskStatus status, Integer retryCount, String errorMessage) {
+        validateRequestUrl(taskType, requestUrl);
+        this.taskId = taskId;
+        this.sellerId = sellerId;
+        this.taskType = taskType;
+        this.requestUrl = requestUrl;
+        this.status = status;
+        this.retryCount = retryCount;
+        this.errorMessage = errorMessage;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 새로운 CrawlerTask 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
      *   <li>초기 상태: WAITING</li>
      *   <li>초기 재시도 횟수: 0</li>
-     *   <li>requestUrl 형식은 taskType에 따라 검증</li>
      * </ul>
      *
      * @param sellerId 셀러 식별자
@@ -73,8 +97,63 @@ public class CrawlerTask {
      * @return 새로 생성된 CrawlerTask
      * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
      */
-    public static CrawlerTask create(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+    public static CrawlerTask forNew(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
         return new CrawlerTask(sellerId, taskType, requestUrl);
+    }
+
+    /**
+     * 불변 속성으로 CrawlerTask 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>초기 상태: WAITING</li>
+     *   <li>초기 재시도 횟수: 0</li>
+     * </ul>
+     *
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @return 재구성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+        return new CrawlerTask(sellerId, taskType, requestUrl);
+    }
+
+    /**
+     * 완전한 CrawlerTask 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param taskId Task 식별자
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param status 작업 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @return 재구성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
+                                             String requestUrl, CrawlerTaskStatus status,
+                                             Integer retryCount, String errorMessage) {
+        return new CrawlerTask(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage);
+    }
+
+    /**
+     * 새로운 CrawlerTask 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew(SellerId, CrawlerTaskType, String)} instead
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @return 새로 생성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    @Deprecated
+    public static CrawlerTask create(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+        return forNew(sellerId, taskType, requestUrl);
     }
 
     /**
