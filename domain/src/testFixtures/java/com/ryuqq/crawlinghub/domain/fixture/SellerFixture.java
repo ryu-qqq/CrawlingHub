@@ -38,8 +38,7 @@ public class SellerFixture {
      */
     public static Seller forNew() {
         SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
-        // TODO: Seller가 forNew()를 지원하면 호출
-        return Seller.register(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL.days());
+        return Seller.forNew(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL);
     }
 
     /**
@@ -53,8 +52,7 @@ public class SellerFixture {
      * @return 재구성된 Seller
      */
     public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        // TODO: Seller가 of()를 지원하면 호출
-        return Seller.register(sellerId, name, crawlingInterval.days());
+        return Seller.of(sellerId, name, crawlingInterval);
     }
 
     /**
@@ -71,8 +69,7 @@ public class SellerFixture {
      */
     public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
                                        SellerStatus status, Integer totalProductCount) {
-        // TODO: Seller가 reconstitute()를 지원하면 호출
-        return Seller.register(sellerId, name, crawlingInterval.days());
+        return Seller.reconstitute(sellerId, name, crawlingInterval, status, totalProductCount);
     }
 
     /**
