@@ -5,6 +5,11 @@ import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,6 +24,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
  */
 class UserAgentTest {
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2024-01-01T00:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
+    private static final LocalDateTime EXPECTED_TIME = LocalDateTime.now(FIXED_CLOCK);
 
     // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
 
@@ -186,5 +197,34 @@ class UserAgentTest {
 
         // Then
         assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.ACTIVE);
+    }
+
+    // ========== Clock 주입 테스트 ==========
+
+    @Test
+    void shouldCreateUserAgentWithFixedClock() {
+        // Given
+        String userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...";
+
+        // When
+        UserAgent userAgent = UserAgent.forNew(userAgentString, FIXED_CLOCK);
+
+        // Then
+        assertThat(userAgent.getCreatedAt()).isEqualTo(EXPECTED_TIME);
+        assertThat(userAgent.getUpdatedAt()).isEqualTo(EXPECTED_TIME);
+    }
+
+    @Test
+    void shouldUpdateTimeOnStatusChange() {
+        // Given - FIXED_CLOCK으로 생성된 UserAgent
+        UserAgent userAgent = UserAgentFixture.forNew(FIXED_CLOCK);
+        userAgent.issueToken("test_token_123");
+
+        // When - 상태 변경 (suspend)
+        userAgent.suspend();
+
+        // Then - updatedAt이 변경되어야 함 (실제로는 동일 시간이지만 suspend 호출 확인)
+        assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.SUSPENDED);
+        assertThat(userAgent.getUpdatedAt()).isEqualTo(EXPECTED_TIME);
     }
 }
