@@ -5,6 +5,8 @@ import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
 
+import java.time.Clock;
+
 /**
  * Seller Aggregate 테스트 데이터 생성 Fixture
  *
@@ -37,7 +39,20 @@ public class SellerFixture {
      * @return 새로 생성된 Seller
      */
     public static Seller forNew() {
+        return forNew(Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 Seller 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: ID 자동 생성, ACTIVE 상태, Clock 주입</p>
+     *
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 Seller
+     */
+    public static Seller forNew(Clock clock) {
         SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
+        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
         return Seller.forNew(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL);
     }
 
@@ -52,6 +67,22 @@ public class SellerFixture {
      * @return 재구성된 Seller
      */
     public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
+        return of(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 Seller 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: ID 포함, 테스트용 간편 생성, Clock 주입</p>
+     *
+     * @param sellerId Seller ID
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @param clock 시간 제어
+     * @return 재구성된 Seller
+     */
+    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
+        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
         return Seller.of(sellerId, name, crawlingInterval);
     }
 
@@ -69,6 +100,25 @@ public class SellerFixture {
      */
     public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
                                        SellerStatus status, Integer totalProductCount) {
+        return reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 Seller 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: 모든 필드 포함, DB 조회 시뮬레이션, Clock 주입</p>
+     *
+     * @param sellerId Seller ID
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @param status 상태
+     * @param totalProductCount 총 상품 수
+     * @param clock 시간 제어
+     * @return 재구성된 Seller
+     */
+    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
+                                       SellerStatus status, Integer totalProductCount, Clock clock) {
+        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
         return Seller.reconstitute(sellerId, name, crawlingInterval, status, totalProductCount);
     }
 
