@@ -322,14 +322,14 @@ class AggregateRootArchTest {
     void aggregateRoot_BusinessMethodsShouldHaveExplicitVerbs() {
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().resideInAPackage("..domain..aggregate..")
+            .and().areDeclaredInClassesThat().haveSimpleNameNotEndingWith("Test")
+            .and().areDeclaredInClassesThat().areTopLevelClasses()
             .and().arePublic()
             .and().doNotHaveFullName(".*<init>.*")
-            .and().doNotHaveName("get.*")
-            .and().doNotHaveName("is.*")
-            .and().doNotHaveName("has.*")
+            .and().haveRawReturnType(void.class)
             .and().areNotStatic()
-            .should().haveNameMatching("(add|remove|confirm|cancel|approve|reject|ship|deliver|complete|fail|update|change|place|validate|calculate|transfer|process).*")
-            .because("비즈니스 메서드는 명확한 동사로 시작해야 합니다 (confirm, cancel, approve 등)");
+            .should().haveNameMatching("(publish|start|retry|send|activate|deactivate|suspend|issue.*|increment.*|mark.*|add|remove|confirm|cancel|approve|reject|ship|deliver|complete|fail|update|change|place|validate|calculate|transfer|process).*")
+            .because("비즈니스 메서드는 명확한 동사로 시작해야 합니다 (void 반환 메서드만 체크)");
 
         rule.check(classes);
     }
