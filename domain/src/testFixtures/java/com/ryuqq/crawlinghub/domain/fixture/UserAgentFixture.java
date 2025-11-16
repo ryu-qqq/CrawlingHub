@@ -4,6 +4,8 @@ import com.ryuqq.crawlinghub.domain.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
 
+import java.time.Clock;
+
 /**
  * UserAgent 관련 테스트 데이터 생성 Fixture
  *
@@ -46,6 +48,17 @@ public class UserAgentFixture {
     }
 
     /**
+     * 새로운 UserAgent 생성 (Clock 주입 - 테스트용)
+     *
+     * @param clock 시간 제어를 위한 Clock
+     * @return 새로 생성된 UserAgent
+     */
+    public static UserAgent forNew(Clock clock) {
+        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
+        return UserAgent.forNew(DEFAULT_USER_AGENT_STRING);
+    }
+
+    /**
      * 불변 속성으로 UserAgent 재구성 (표준 패턴)
      *
      * <p>of() 패턴: 테스트용 간편 생성</p>
@@ -63,6 +76,18 @@ public class UserAgentFixture {
     }
 
     /**
+     * 불변 속성으로 UserAgent 재구성 (Clock 주입 - 테스트용)
+     *
+     * @param userAgentString User Agent 문자열
+     * @param clock 시간 제어를 위한 Clock
+     * @return 재구성된 UserAgent
+     */
+    public static UserAgent of(String userAgentString, Clock clock) {
+        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
+        return UserAgent.of(userAgentString);
+    }
+
+    /**
      * 완전한 UserAgent 재구성 (표준 패턴)
      *
      * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
@@ -76,6 +101,23 @@ public class UserAgentFixture {
      */
     public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString,
                                           String token, UserAgentStatus status, Integer requestCount) {
+        return UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount);
+    }
+
+    /**
+     * 완전한 UserAgent 재구성 (Clock 주입 - 테스트용)
+     *
+     * @param userAgentId UserAgent ID
+     * @param userAgentString User Agent 문자열
+     * @param token 토큰 (nullable)
+     * @param status 상태
+     * @param requestCount 요청 횟수
+     * @param clock 시간 제어를 위한 Clock
+     * @return 재구성된 UserAgent
+     */
+    public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString,
+                                          String token, UserAgentStatus status, Integer requestCount, Clock clock) {
+        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
         return UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount);
     }
 
