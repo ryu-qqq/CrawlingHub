@@ -51,8 +51,7 @@ public class ProductFixture {
      */
     public static Product forNew(Clock clock) {
         SellerId sellerId = SellerFixture.defaultSellerId();
-        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
-        return Product.forNew(DEFAULT_ITEM_NO, sellerId);
+        return Product.forNew(DEFAULT_ITEM_NO, sellerId, clock);
     }
 
     /**
@@ -81,8 +80,7 @@ public class ProductFixture {
      * @return 재구성된 Product
      */
     public static Product of(ProductId productId, ItemNo itemNo, SellerId sellerId, Clock clock) {
-        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
-        return Product.of(itemNo, sellerId);
+        return Product.of(itemNo, sellerId, clock);
     }
 
     /**
@@ -121,8 +119,7 @@ public class ProductFixture {
      */
     public static Product reconstitute(ProductId productId, ItemNo itemNo, SellerId sellerId,
                                         String minishopDataHash, String detailDataHash, String optionDataHash, Boolean isComplete, Clock clock) {
-        // TODO: Product가 Clock을 지원하면 clock 파라미터 전달
-        return Product.reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
+        return Product.reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, clock);
     }
 
     /**
