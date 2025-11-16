@@ -40,7 +40,7 @@ public class UserAgent {
     private LocalDateTime updatedAt;
 
     /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param userAgentString User Agent 문자열
      */
@@ -57,9 +57,32 @@ public class UserAgent {
     }
 
     /**
-     * 새로운 UserAgent 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
      *
-     * <p>비즈니스 규칙:</p>
+     * @param userAgentId UserAgent ID
+     * @param userAgentString User Agent 문자열
+     * @param token 토큰 (nullable)
+     * @param status 상태
+     * @param requestCount 요청 횟수
+     */
+    private UserAgent(UserAgentId userAgentId, String userAgentString, String token,
+                       UserAgentStatus status, Integer requestCount) {
+        if (userAgentString == null || userAgentString.isBlank()) {
+            throw new IllegalArgumentException("UserAgent 문자열은 비어있을 수 없습니다");
+        }
+        this.userAgentId = userAgentId;
+        this.userAgentString = userAgentString;
+        this.token = token;
+        this.status = status;
+        this.requestCount = requestCount;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 새로운 UserAgent 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
      *   <li>초기 상태: ACTIVE</li>
      *   <li>초기 requestCount: 0</li>
@@ -70,8 +93,57 @@ public class UserAgent {
      * @return 새로 생성된 UserAgent
      * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
      */
-    public static UserAgent create(String userAgentString) {
+    public static UserAgent forNew(String userAgentString) {
         return new UserAgent(userAgentString);
+    }
+
+    /**
+     * 불변 속성으로 UserAgent 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>초기 상태: ACTIVE</li>
+     *   <li>초기 requestCount: 0</li>
+     *   <li>token은 null (별도 발급 필요)</li>
+     * </ul>
+     *
+     * @param userAgentString User Agent 문자열
+     * @return 재구성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    public static UserAgent of(String userAgentString) {
+        return new UserAgent(userAgentString);
+    }
+
+    /**
+     * 완전한 UserAgent 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param userAgentId UserAgent ID
+     * @param userAgentString User Agent 문자열
+     * @param token 토큰 (nullable)
+     * @param status 상태
+     * @param requestCount 요청 횟수
+     * @return 재구성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString, String token,
+                                          UserAgentStatus status, Integer requestCount) {
+        return new UserAgent(userAgentId, userAgentString, token, status, requestCount);
+    }
+
+    /**
+     * 새로운 UserAgent 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew(String)} instead
+     * @param userAgentString User Agent 문자열
+     * @return 새로 생성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    @Deprecated
+    public static UserAgent create(String userAgentString) {
+        return forNew(userAgentString);
     }
 
     /**

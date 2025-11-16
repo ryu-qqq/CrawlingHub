@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.fixture.UserAgentFixture;
+import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
 import org.junit.jupiter.api.Test;
 
