@@ -5,6 +5,11 @@ import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -17,8 +22,52 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - Seller 활성화/비활성화 (activate/deactivate) 테스트
  * - Seller 상품 수 업데이트 (updateTotalProductCount) 테스트
  * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
+ * - 리팩토링: Clock 의존성 테스트 (테스트 가능성)
  */
 class SellerTest {
+
+    // ========== Clock 고정 (테스트 재현성) ==========
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2024-01-01T00:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
+
+    // ========== 리팩토링: Clock 의존성 테스트 ==========
+
+    @Test
+    void shouldCreateSellerWithFixedClock() {
+        // Given
+        SellerId sellerId = new SellerId("seller_clock_001");
+        String name = "시계 테스트 셀러";
+        CrawlingInterval crawlingInterval = new CrawlingInterval(1);
+        LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
+
+        // When
+        Seller seller = Seller.forNew(sellerId, name, crawlingInterval, FIXED_CLOCK);
+
+        // Then
+        assertThat(seller.getCreatedAt()).isEqualTo(expectedTime);
+        assertThat(seller.getUpdatedAt()).isEqualTo(expectedTime);
+    }
+
+    @Test
+    void shouldPreserveCreatedAtWhenStateChanges() {
+        // Given
+        SellerId sellerId = new SellerId("seller_clock_002");
+        String name = "불변 테스트 셀러";
+        CrawlingInterval crawlingInterval = new CrawlingInterval(1);
+
+        Seller seller = Seller.forNew(sellerId, name, crawlingInterval, FIXED_CLOCK);
+        LocalDateTime createdTime = seller.getCreatedAt();
+
+        // When - 상태 변경
+        seller.updateInterval(7);
+
+        // Then - createdAt은 불변, updatedAt은 갱신됨
+        assertThat(seller.getCreatedAt()).isEqualTo(createdTime);
+        assertThat(seller.getUpdatedAt()).isNotNull();
+    }
 
     // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
 
