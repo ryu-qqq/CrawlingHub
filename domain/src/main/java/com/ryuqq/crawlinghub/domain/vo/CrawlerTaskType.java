@@ -30,5 +30,19 @@ public enum CrawlerTaskType {
      * 상품 옵션 정보 크롤링
      * API: /mustit-api/legacy-api/v1/auction_products/{item_no}/options
      */
-    PRODUCT_OPTION
+    PRODUCT_OPTION;
+
+    /**
+     * String 값으로부터 CrawlerTaskType 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return CrawlerTaskType enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static CrawlerTaskType of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("CrawlerTaskType cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }

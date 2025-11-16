@@ -32,5 +32,19 @@ public enum UserAgentStatus {
     /**
      * 영구 차단 - 더 이상 사용 불가
      */
-    BLOCKED
+    BLOCKED;
+
+    /**
+     * String 값으로부터 UserAgentStatus 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return UserAgentStatus enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static UserAgentStatus of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("UserAgentStatus cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }

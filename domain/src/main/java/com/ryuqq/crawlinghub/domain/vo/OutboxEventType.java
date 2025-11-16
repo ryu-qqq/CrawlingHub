@@ -21,5 +21,19 @@ public enum OutboxEventType {
     /**
      * 상품 업데이트 이벤트
      */
-    PRODUCT_UPDATED
+    PRODUCT_UPDATED;
+
+    /**
+     * String 값으로부터 OutboxEventType 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return OutboxEventType enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static OutboxEventType of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("OutboxEventType cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }
