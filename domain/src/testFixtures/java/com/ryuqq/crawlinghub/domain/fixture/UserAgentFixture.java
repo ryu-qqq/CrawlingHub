@@ -42,8 +42,7 @@ public class UserAgentFixture {
      * @return 새로 생성된 UserAgent
      */
     public static UserAgent forNew() {
-        // TODO: UserAgent가 forNew를 지원하면 호출
-        return UserAgent.create(DEFAULT_USER_AGENT_STRING);
+        return UserAgent.forNew(DEFAULT_USER_AGENT_STRING);
     }
 
     /**
@@ -60,8 +59,7 @@ public class UserAgentFixture {
      * @return 재구성된 UserAgent
      */
     public static UserAgent of(String userAgentString) {
-        // TODO: UserAgent가 of를 지원하면 호출
-        return UserAgent.create(userAgentString);
+        return UserAgent.of(userAgentString);
     }
 
     /**
@@ -78,12 +76,7 @@ public class UserAgentFixture {
      */
     public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString,
                                           String token, UserAgentStatus status, Integer requestCount) {
-        // TODO: UserAgent가 reconstitute를 지원하면 호출
-        UserAgent userAgent = UserAgent.create(userAgentString);
-        if (token != null) {
-            userAgent.issueToken(token);
-        }
-        return userAgent;
+        return UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount);
     }
 
     /**
