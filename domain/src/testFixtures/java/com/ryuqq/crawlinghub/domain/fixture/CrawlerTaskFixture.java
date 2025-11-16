@@ -11,7 +11,14 @@ import com.ryuqq.crawlinghub.domain.vo.TaskId;
  *
  * <p>CrawlerTask Aggregate와 관련 Value Object의 테스트 데이터를 제공합니다.</p>
  *
- * <p>제공 메서드:</p>
+ * <p>표준 패턴 준수:</p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 CrawlerTask 생성 (ID 자동 생성)</li>
+ *   <li>{@link #of(SellerId, CrawlerTaskType, String)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(TaskId, SellerId, CrawlerTaskType, String, CrawlerTaskStatus, Integer, String)} - 완전한 재구성</li>
+ * </ul>
+ *
+ * <p>레거시 호환 메서드:</p>
  * <ul>
  *   <li>{@link #defaultTaskId()} - 새로운 TaskId 생성</li>
  *   <li>{@link #defaultCrawlerTaskType()} - 기본 작업 타입 (MINISHOP)</li>
@@ -24,6 +31,8 @@ import com.ryuqq.crawlinghub.domain.vo.TaskId;
  */
 public class CrawlerTaskFixture {
 
+    private static final SellerId DEFAULT_SELLER_ID = new SellerId("seller_test_001");
+    private static final CrawlerTaskType DEFAULT_TASK_TYPE = CrawlerTaskType.MINISHOP;
     private static final String DEFAULT_REQUEST_URL = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
 
     /**
@@ -54,16 +63,70 @@ public class CrawlerTaskFixture {
     }
 
     /**
-     * WAITING 상태의 CrawlerTask 생성
+     * 새로운 CrawlerTask 생성 (표준 패턴)
      *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
+     * <ul>
+     *   <li>초기 상태: WAITING</li>
+     *   <li>초기 재시도 횟수: 0</li>
+     * </ul>
+     *
+     * @return 새로 생성된 CrawlerTask
+     */
+    public static CrawlerTask forNew() {
+        // TODO: CrawlerTask가 forNew()를 지원하면 활성화
+        return CrawlerTask.create(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL);
+    }
+
+    /**
+     * 불변 속성으로 CrawlerTask 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>초기 상태: WAITING</li>
+     *   <li>초기 재시도 횟수: 0</li>
+     * </ul>
+     *
+     * @param sellerId Seller ID
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @return 재구성된 CrawlerTask
+     */
+    public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+        // TODO: CrawlerTask가 of()를 지원하면 활성화
+        return CrawlerTask.create(sellerId, taskType, requestUrl);
+    }
+
+    /**
+     * 완전한 CrawlerTask 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param taskId Task ID
+     * @param sellerId Seller ID
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param status 작업 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @return 재구성된 CrawlerTask
+     */
+    public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
+                                            String requestUrl, CrawlerTaskStatus status,
+                                            Integer retryCount, String errorMessage) {
+        // TODO: CrawlerTask가 reconstitute()를 지원하면 활성화
+        return CrawlerTask.create(sellerId, taskType, requestUrl);
+    }
+
+    /**
+     * WAITING 상태의 CrawlerTask 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew()} instead
      * @return 새로 생성된 WAITING 상태의 CrawlerTask
      */
+    @Deprecated
     public static CrawlerTask waitingTask() {
-        return CrawlerTask.create(
-            new SellerId("seller_test_001"),
-            CrawlerTaskType.MINISHOP,
-            DEFAULT_REQUEST_URL
-        );
+        return forNew();
     }
 
     /**
