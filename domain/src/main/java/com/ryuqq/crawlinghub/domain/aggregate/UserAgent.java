@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.domain.aggregate;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
 import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -31,6 +32,7 @@ public class UserAgent {
 
     private final UserAgentId userAgentId;
     private final String userAgentString;
+    private final Clock clock;
     private String token;
     private UserAgentStatus status;
     private Integer requestCount;
@@ -43,17 +45,19 @@ public class UserAgent {
      * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param userAgentString User Agent 문자열
+     * @param clock 시간 제어를 위한 Clock
      */
-    private UserAgent(String userAgentString) {
+    private UserAgent(String userAgentString, Clock clock) {
         if (userAgentString == null || userAgentString.isBlank()) {
             throw new IllegalArgumentException("UserAgent 문자열은 비어있을 수 없습니다");
         }
         this.userAgentId = UserAgentId.generate();
         this.userAgentString = userAgentString;
+        this.clock = clock;
         this.status = UserAgentStatus.ACTIVE;
         this.requestCount = 0;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -64,19 +68,21 @@ public class UserAgent {
      * @param token 토큰 (nullable)
      * @param status 상태
      * @param requestCount 요청 횟수
+     * @param clock 시간 제어를 위한 Clock
      */
     private UserAgent(UserAgentId userAgentId, String userAgentString, String token,
-                       UserAgentStatus status, Integer requestCount) {
+                       UserAgentStatus status, Integer requestCount, Clock clock) {
         if (userAgentString == null || userAgentString.isBlank()) {
             throw new IllegalArgumentException("UserAgent 문자열은 비어있을 수 없습니다");
         }
         this.userAgentId = userAgentId;
         this.userAgentString = userAgentString;
+        this.clock = clock;
         this.token = token;
         this.status = status;
         this.requestCount = requestCount;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -94,7 +100,19 @@ public class UserAgent {
      * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
      */
     public static UserAgent forNew(String userAgentString) {
-        return new UserAgent(userAgentString);
+        return forNew(userAgentString, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 UserAgent 생성 (Clock 주입)
+     *
+     * @param userAgentString User Agent 문자열
+     * @param clock 시간 제어를 위한 Clock
+     * @return 새로 생성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    public static UserAgent forNew(String userAgentString, Clock clock) {
+        return new UserAgent(userAgentString, clock);
     }
 
     /**
@@ -112,7 +130,19 @@ public class UserAgent {
      * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
      */
     public static UserAgent of(String userAgentString) {
-        return new UserAgent(userAgentString);
+        return of(userAgentString, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 UserAgent 재구성 (Clock 주입)
+     *
+     * @param userAgentString User Agent 문자열
+     * @param clock 시간 제어를 위한 Clock
+     * @return 재구성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    public static UserAgent of(String userAgentString, Clock clock) {
+        return new UserAgent(userAgentString, clock);
     }
 
     /**
@@ -130,7 +160,24 @@ public class UserAgent {
      */
     public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString, String token,
                                           UserAgentStatus status, Integer requestCount) {
-        return new UserAgent(userAgentId, userAgentString, token, status, requestCount);
+        return reconstitute(userAgentId, userAgentString, token, status, requestCount, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 UserAgent 재구성 (Clock 주입)
+     *
+     * @param userAgentId UserAgent ID
+     * @param userAgentString User Agent 문자열
+     * @param token 토큰 (nullable)
+     * @param status 상태
+     * @param requestCount 요청 횟수
+     * @param clock 시간 제어를 위한 Clock
+     * @return 재구성된 UserAgent
+     * @throws IllegalArgumentException userAgentString이 null 또는 blank인 경우
+     */
+    public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString, String token,
+                                          UserAgentStatus status, Integer requestCount, Clock clock) {
+        return new UserAgent(userAgentId, userAgentString, token, status, requestCount, clock);
     }
 
     /**
@@ -159,8 +206,8 @@ public class UserAgent {
             throw new IllegalArgumentException("토큰은 비어있을 수 없습니다");
         }
         this.token = token;
-        this.tokenIssuedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.tokenIssuedAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -180,7 +227,7 @@ public class UserAgent {
             return false;
         }
 
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        LocalDateTime oneHourAgo = LocalDateTime.now(clock).minusHours(1);
 
         // 1시간 경과 시 requestCount 리셋
         if (lastRequestAt != null && lastRequestAt.isBefore(oneHourAgo)) {
@@ -197,8 +244,8 @@ public class UserAgent {
      */
     public void incrementRequestCount() {
         this.requestCount++;
-        this.lastRequestAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.lastRequestAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -208,7 +255,7 @@ public class UserAgent {
      */
     public void suspend() {
         this.status = UserAgentStatus.SUSPENDED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -218,7 +265,7 @@ public class UserAgent {
      */
     public void activate() {
         this.status = UserAgentStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     // Getters (필요한 것만)
@@ -244,5 +291,13 @@ public class UserAgent {
 
     public LocalDateTime getTokenIssuedAt() {
         return tokenIssuedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
