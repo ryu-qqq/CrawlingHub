@@ -52,8 +52,7 @@ public class SellerFixture {
      */
     public static Seller forNew(Clock clock) {
         SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
-        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
-        return Seller.forNew(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL);
+        return Seller.forNew(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL, clock);
     }
 
     /**
@@ -82,8 +81,7 @@ public class SellerFixture {
      * @return 재구성된 Seller
      */
     public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
-        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
-        return Seller.of(sellerId, name, crawlingInterval);
+        return Seller.of(sellerId, name, crawlingInterval, clock);
     }
 
     /**
@@ -118,8 +116,7 @@ public class SellerFixture {
      */
     public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
                                        SellerStatus status, Integer totalProductCount, Clock clock) {
-        // TODO: Seller가 Clock을 지원하면 clock 파라미터 전달
-        return Seller.reconstitute(sellerId, name, crawlingInterval, status, totalProductCount);
+        return Seller.reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, clock);
     }
 
     /**
