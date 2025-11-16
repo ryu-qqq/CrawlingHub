@@ -16,19 +16,19 @@ public enum CrawlerTaskType {
 
     /**
      * 셀러 상품 목록 크롤링
-     * API: /mustit-api/facade-api/v1/searchmini-shop-search
+     * API: /mustit-api/facade-api/v1/searchmini-shop-search"?sellerId={seller_id}&pageNo={page}&pageSize={page_size}&order=LATEST
      */
     MINISHOP,
 
     /**
      * 상품 상세 정보 크롤링
-     * API: /item/{itemNo}/detail/top
+     * API: /mustit-api/facade-api/v1/item/{item_no}/detail/top
      */
     PRODUCT_DETAIL,
 
     /**
      * 상품 옵션 정보 크롤링
-     * API: /auction_products/{itemNo}/options
+     * API: /mustit-api/legacy-api/v1/auction_products/{item_no}/options
      */
     PRODUCT_OPTION
 }
