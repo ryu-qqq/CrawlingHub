@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -35,6 +36,7 @@ public class Seller {
     private Integer totalProductCount;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private final Clock clock;
 
     /**
      * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
@@ -42,15 +44,17 @@ public class Seller {
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
      * @param crawlingInterval 크롤링 주기
+     * @param clock 시간 제어 (테스트 가능성)
      */
-    private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
+    private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
         this.sellerId = sellerId;
         this.name = name;
         this.crawlingInterval = crawlingInterval;
         this.status = SellerStatus.ACTIVE;
         this.totalProductCount = 0;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -61,16 +65,18 @@ public class Seller {
      * @param crawlingInterval 크롤링 주기
      * @param status 상태
      * @param totalProductCount 총 상품 수
+     * @param clock 시간 제어 (테스트 가능성)
      */
     private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                   SellerStatus status, Integer totalProductCount) {
+                   SellerStatus status, Integer totalProductCount, Clock clock) {
         this.sellerId = sellerId;
         this.name = name;
         this.crawlingInterval = crawlingInterval;
         this.status = status;
         this.totalProductCount = totalProductCount;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -88,7 +94,11 @@ public class Seller {
      * @return 새로 생성된 Seller
      */
     public static Seller forNew(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        return new Seller(sellerId, name, crawlingInterval);
+        return forNew(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    }
+
+    public static Seller forNew(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
+        return new Seller(sellerId, name, crawlingInterval, clock);
     }
 
     /**
@@ -106,7 +116,11 @@ public class Seller {
      * @return 재구성된 Seller
      */
     public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        return new Seller(sellerId, name, crawlingInterval);
+        return of(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    }
+
+    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
+        return new Seller(sellerId, name, crawlingInterval, clock);
     }
 
     /**
@@ -123,7 +137,12 @@ public class Seller {
      */
     public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
                                        SellerStatus status, Integer totalProductCount) {
-        return new Seller(sellerId, name, crawlingInterval, status, totalProductCount);
+        return reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, Clock.systemDefaultZone());
+    }
+
+    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
+                                       SellerStatus status, Integer totalProductCount, Clock clock) {
+        return new Seller(sellerId, name, crawlingInterval, status, totalProductCount, clock);
     }
 
     /**
@@ -155,7 +174,7 @@ public class Seller {
      */
     public void updateInterval(Integer newIntervalDays) {
         this.crawlingInterval = new CrawlingInterval(newIntervalDays);
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -169,7 +188,7 @@ public class Seller {
      */
     public void activate() {
         this.status = SellerStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -183,7 +202,7 @@ public class Seller {
      */
     public void deactivate() {
         this.status = SellerStatus.INACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -199,7 +218,7 @@ public class Seller {
      */
     public void updateTotalProductCount(Integer count) {
         this.totalProductCount = count;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -232,5 +251,13 @@ public class Seller {
 
     public Integer getTotalProductCount() {
         return totalProductCount;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
