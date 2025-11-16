@@ -1,14 +1,23 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
 import com.ryuqq.crawlinghub.domain.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
 
 /**
  * Seller Aggregate 테스트 데이터 생성 Fixture
  *
  * <p>Seller와 관련된 테스트 데이터의 기본값을 제공합니다.</p>
  *
- * <p>제공 메서드:</p>
+ * <p>표준 패턴 준수:</p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 Seller 생성 (ID 자동 생성)</li>
+ *   <li>{@link #of(SellerId, String, CrawlingInterval)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(SellerId, String, CrawlingInterval, SellerStatus, Integer)} - 완전한 재구성</li>
+ * </ul>
+ *
+ * <p>레거시 호환 메서드:</p>
  * <ul>
  *   <li>{@link #defaultSeller()} - 기본 설정의 Seller (ACTIVE 상태, 1일 주기)</li>
  *   <li>{@link #defaultSellerId()} - 기본 SellerId ("seller_test_001")</li>
@@ -17,27 +26,64 @@ import com.ryuqq.crawlinghub.domain.vo.SellerId;
 public class SellerFixture {
 
     private static final String DEFAULT_SELLER_ID = "seller_test_001";
+    private static final String DEFAULT_NAME = "테스트 셀러";
+    private static final CrawlingInterval DEFAULT_INTERVAL = new CrawlingInterval(1);
 
     /**
-     * 기본 Seller 생성
+     * 새로운 Seller 생성 (표준 패턴)
      *
-     * <p>기본값:</p>
-     * <ul>
-     *   <li>SellerId: "seller_test_001"</li>
-     *   <li>Name: "테스트 셀러"</li>
-     *   <li>CrawlingInterval: 1일</li>
-     *   <li>Status: ACTIVE</li>
-     *   <li>TotalProductCount: 0</li>
-     * </ul>
+     * <p>forNew() 패턴: ID 자동 생성, ACTIVE 상태</p>
      *
+     * @return 새로 생성된 Seller
+     */
+    public static Seller forNew() {
+        SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
+        // TODO: Seller가 forNew()를 지원하면 호출
+        return Seller.register(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL.days());
+    }
+
+    /**
+     * 불변 속성으로 Seller 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: ID 포함, 테스트용 간편 생성</p>
+     *
+     * @param sellerId Seller ID
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @return 재구성된 Seller
+     */
+    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
+        // TODO: Seller가 of()를 지원하면 호출
+        return Seller.register(sellerId, name, crawlingInterval.days());
+    }
+
+    /**
+     * 완전한 Seller 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: 모든 필드 포함, DB 조회 시뮬레이션</p>
+     *
+     * @param sellerId Seller ID
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @param status 상태
+     * @param totalProductCount 총 상품 수
+     * @return 재구성된 Seller
+     */
+    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
+                                       SellerStatus status, Integer totalProductCount) {
+        // TODO: Seller가 reconstitute()를 지원하면 호출
+        return Seller.register(sellerId, name, crawlingInterval.days());
+    }
+
+    /**
+     * 기본 Seller 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew()} instead
      * @return 기본 설정의 Seller Aggregate
      */
+    @Deprecated
     public static Seller defaultSeller() {
-        SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
-        String name = "테스트 셀러";
-        Integer intervalDays = 1;
-
-        return Seller.register(sellerId, name, intervalDays);
+        return forNew();
     }
 
     /**
