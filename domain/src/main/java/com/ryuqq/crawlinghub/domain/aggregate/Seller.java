@@ -37,7 +37,7 @@ public class Seller {
     private LocalDateTime updatedAt;
 
     /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
@@ -54,9 +54,29 @@ public class Seller {
     }
 
     /**
-     * 새로운 Seller 등록
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
      *
-     * <p>비즈니스 규칙:</p>
+     * @param sellerId 셀러 식별자
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @param status 상태
+     * @param totalProductCount 총 상품 수
+     */
+    private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
+                   SellerStatus status, Integer totalProductCount) {
+        this.sellerId = sellerId;
+        this.name = name;
+        this.crawlingInterval = crawlingInterval;
+        this.status = status;
+        this.totalProductCount = totalProductCount;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 새로운 Seller 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
      *   <li>초기 상태: ACTIVE</li>
      *   <li>초기 상품 수: 0</li>
@@ -64,12 +84,61 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @return 새로 생성된 Seller
+     */
+    public static Seller forNew(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
+        return new Seller(sellerId, name, crawlingInterval);
+    }
+
+    /**
+     * 불변 속성으로 Seller 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>초기 상태: ACTIVE</li>
+     *   <li>초기 상품 수: 0</li>
+     * </ul>
+     *
+     * @param sellerId 셀러 식별자
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @return 재구성된 Seller
+     */
+    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
+        return new Seller(sellerId, name, crawlingInterval);
+    }
+
+    /**
+     * 완전한 Seller 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param sellerId 셀러 식별자
+     * @param name 셀러 이름
+     * @param crawlingInterval 크롤링 주기
+     * @param status 상태
+     * @param totalProductCount 총 상품 수
+     * @return 재구성된 Seller
+     */
+    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
+                                       SellerStatus status, Integer totalProductCount) {
+        return new Seller(sellerId, name, crawlingInterval, status, totalProductCount);
+    }
+
+    /**
+     * 새로운 Seller 등록 (레거시)
+     *
+     * @deprecated Use {@link #forNew(SellerId, String, CrawlingInterval)} instead
+     * @param sellerId 셀러 식별자
+     * @param name 셀러 이름
      * @param intervalDays 크롤링 주기 (1-30일)
      * @return 새로 생성된 Seller
      * @throws IllegalArgumentException intervalDays가 1-30 범위를 벗어나는 경우
      */
+    @Deprecated
     public static Seller register(SellerId sellerId, String name, Integer intervalDays) {
-        return new Seller(sellerId, name, new CrawlingInterval(intervalDays));
+        return forNew(sellerId, name, new CrawlingInterval(intervalDays));
     }
 
     /**
