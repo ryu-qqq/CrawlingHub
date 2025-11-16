@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.TaskId;
 
+import java.time.Clock;
+
 /**
  * 크롤러 작업 관련 테스트 데이터 생성 Fixture
  *
@@ -74,6 +76,19 @@ public class CrawlerTaskFixture {
      * @return 새로 생성된 CrawlerTask
      */
     public static CrawlerTask forNew() {
+        return forNew(Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 CrawlerTask 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: ID 자동 생성, WAITING 상태, Clock 주입</p>
+     *
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 CrawlerTask
+     */
+    public static CrawlerTask forNew(Clock clock) {
+        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
         return CrawlerTask.forNew(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL);
     }
 
@@ -92,6 +107,22 @@ public class CrawlerTaskFixture {
      * @return 재구성된 CrawlerTask
      */
     public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+        return of(sellerId, taskType, requestUrl, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 CrawlerTask 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: 테스트용 간편 생성, Clock 주입</p>
+     *
+     * @param sellerId Seller ID
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param clock 시간 제어
+     * @return 재구성된 CrawlerTask
+     */
+    public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
+        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
         return CrawlerTask.of(sellerId, taskType, requestUrl);
     }
 
@@ -112,6 +143,28 @@ public class CrawlerTaskFixture {
     public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
                                             String requestUrl, CrawlerTaskStatus status,
                                             Integer retryCount, String errorMessage) {
+        return reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 CrawlerTask 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: 모든 필드 포함, DB 조회 시뮬레이션, Clock 주입</p>
+     *
+     * @param taskId Task ID
+     * @param sellerId Seller ID
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param status 작업 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
+     * @return 재구성된 CrawlerTask
+     */
+    public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
+                                            String requestUrl, CrawlerTaskStatus status,
+                                            Integer retryCount, String errorMessage, Clock clock) {
+        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
         return CrawlerTask.reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage);
     }
 
