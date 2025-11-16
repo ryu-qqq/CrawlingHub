@@ -6,6 +6,11 @@ import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.TaskId;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,8 +24,52 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - 완료/실패 (complete, fail) 테스트
  * - 재시도 로직 (retry) 테스트
  * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
+ * - 리팩토링: Clock 의존성 테스트 (테스트 가능성)
  */
 class CrawlerTaskTest {
+
+    // ========== Clock 고정 (테스트 재현성) ==========
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2024-01-01T00:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
+
+    // ========== 리팩토링: Clock 의존성 테스트 ==========
+
+    @Test
+    void shouldCreateCrawlerTaskWithFixedClock() {
+        // Given
+        SellerId sellerId = new SellerId("seller_clock_001");
+        CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
+        String requestUrl = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
+        LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
+
+        // When
+        CrawlerTask task = CrawlerTask.forNew(sellerId, taskType, requestUrl, FIXED_CLOCK);
+
+        // Then
+        assertThat(task.getCreatedAt()).isEqualTo(expectedTime);
+        assertThat(task.getUpdatedAt()).isEqualTo(expectedTime);
+    }
+
+    @Test
+    void shouldPreserveCreatedAtWhenStateChanges() {
+        // Given
+        SellerId sellerId = new SellerId("seller_clock_002");
+        CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_DETAIL;
+        String requestUrl = "/mustit-api/facade-api/v1/item/12345/detail/top";
+
+        CrawlerTask task = CrawlerTask.forNew(sellerId, taskType, requestUrl, FIXED_CLOCK);
+        LocalDateTime createdTime = task.getCreatedAt();
+
+        // When - 상태 변경
+        task.publish();
+
+        // Then - createdAt은 불변, updatedAt은 갱신됨
+        assertThat(task.getCreatedAt()).isEqualTo(createdTime);
+        assertThat(task.getUpdatedAt()).isNotNull();
+    }
 
     // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
 
