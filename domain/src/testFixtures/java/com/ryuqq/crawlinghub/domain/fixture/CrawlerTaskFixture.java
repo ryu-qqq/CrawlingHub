@@ -88,8 +88,7 @@ public class CrawlerTaskFixture {
      * @return 새로 생성된 CrawlerTask
      */
     public static CrawlerTask forNew(Clock clock) {
-        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
-        return CrawlerTask.forNew(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL);
+        return CrawlerTask.forNew(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL, clock);
     }
 
     /**
@@ -122,8 +121,7 @@ public class CrawlerTaskFixture {
      * @return 재구성된 CrawlerTask
      */
     public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
-        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
-        return CrawlerTask.of(sellerId, taskType, requestUrl);
+        return CrawlerTask.of(sellerId, taskType, requestUrl, clock);
     }
 
     /**
@@ -164,8 +162,7 @@ public class CrawlerTaskFixture {
     public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
                                             String requestUrl, CrawlerTaskStatus status,
                                             Integer retryCount, String errorMessage, Clock clock) {
-        // TODO: CrawlerTask가 Clock을 지원하면 clock 파라미터 전달
-        return CrawlerTask.reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage);
+        return CrawlerTask.reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage, clock);
     }
 
     /**
