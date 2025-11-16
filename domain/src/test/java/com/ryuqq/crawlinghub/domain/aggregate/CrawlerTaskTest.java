@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.domain.aggregate;
 import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskStatus;
 import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.vo.TaskId;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,8 +18,77 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - 상태 전환 (publish, start) 테스트
  * - 완료/실패 (complete, fail) 테스트
  * - 재시도 로직 (retry) 테스트
+ * - 리팩토링: 정적 팩토리 메서드 패턴 (forNew/of/reconstitute) 테스트
  */
 class CrawlerTaskTest {
+
+    // ========== 리팩토링: 정적 팩토리 메서드 패턴 테스트 ==========
+
+    @Test
+    void shouldCreateCrawlerTaskUsingForNew() {
+        // Given
+        SellerId sellerId = new SellerId("seller_new_001");
+        CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
+        String requestUrl = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
+
+        // When
+        CrawlerTask task = CrawlerTask.forNew(sellerId, taskType, requestUrl);
+
+        // Then
+        assertThat(task.getTaskId()).isNotNull();
+        assertThat(task.getSellerId()).isEqualTo(sellerId);
+        assertThat(task.getTaskType()).isEqualTo(taskType);
+        assertThat(task.getRequestUrl()).isEqualTo(requestUrl);
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.WAITING);
+        assertThat(task.getRetryCount()).isEqualTo(0);
+        assertThat(task.getErrorMessage()).isNull();
+    }
+
+    @Test
+    void shouldCreateCrawlerTaskUsingOf() {
+        // Given
+        SellerId sellerId = new SellerId("seller_of_001");
+        CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_DETAIL;
+        String requestUrl = "/mustit-api/facade-api/v1/item/12345/detail/top";
+
+        // When
+        CrawlerTask task = CrawlerTask.of(sellerId, taskType, requestUrl);
+
+        // Then
+        assertThat(task.getTaskId()).isNotNull();
+        assertThat(task.getSellerId()).isEqualTo(sellerId);
+        assertThat(task.getTaskType()).isEqualTo(taskType);
+        assertThat(task.getRequestUrl()).isEqualTo(requestUrl);
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.WAITING);
+    }
+
+    @Test
+    void shouldReconstituteCrawlerTaskWithAllFields() {
+        // Given
+        TaskId taskId = TaskId.generate();
+        SellerId sellerId = new SellerId("seller_recon_001");
+        CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_OPTION;
+        String requestUrl = "/mustit-api/facade-api/v1/auction_products/67890/options";
+        CrawlerTaskStatus status = CrawlerTaskStatus.FAILED;
+        Integer retryCount = 1;
+        String errorMessage = "Network timeout";
+
+        // When
+        CrawlerTask task = CrawlerTask.reconstitute(taskId, sellerId, taskType, requestUrl,
+                                                      status, retryCount, errorMessage);
+
+        // Then
+        assertThat(task.getTaskId()).isEqualTo(taskId);
+        assertThat(task.getSellerId()).isEqualTo(sellerId);
+        assertThat(task.getTaskType()).isEqualTo(taskType);
+        assertThat(task.getRequestUrl()).isEqualTo(requestUrl);
+        assertThat(task.getStatus()).isEqualTo(CrawlerTaskStatus.FAILED);
+        assertThat(task.getRetryCount()).isEqualTo(1);
+        assertThat(task.getErrorMessage()).isEqualTo("Network timeout");
+    }
+
+    // ========== 기존 테스트 (레거시, 유지보수용) ==========
+
 
     @Test
     void shouldCreateCrawlerTaskWithWaitingStatus() {
