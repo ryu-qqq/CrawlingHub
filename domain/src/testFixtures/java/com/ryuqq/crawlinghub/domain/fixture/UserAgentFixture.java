@@ -54,8 +54,7 @@ public class UserAgentFixture {
      * @return 새로 생성된 UserAgent
      */
     public static UserAgent forNew(Clock clock) {
-        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
-        return UserAgent.forNew(DEFAULT_USER_AGENT_STRING);
+        return UserAgent.forNew(DEFAULT_USER_AGENT_STRING, clock);
     }
 
     /**
@@ -83,8 +82,7 @@ public class UserAgentFixture {
      * @return 재구성된 UserAgent
      */
     public static UserAgent of(String userAgentString, Clock clock) {
-        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
-        return UserAgent.of(userAgentString);
+        return UserAgent.of(userAgentString, clock);
     }
 
     /**
@@ -117,8 +115,7 @@ public class UserAgentFixture {
      */
     public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString,
                                           String token, UserAgentStatus status, Integer requestCount, Clock clock) {
-        // TODO: UserAgent가 Clock 파라미터를 지원하면 호출
-        return UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount);
+        return UserAgent.reconstitute(userAgentId, userAgentString, token, status, requestCount, clock);
     }
 
     /**
