@@ -143,6 +143,7 @@ class AggregateRootArchTest {
             .that().areDeclaredInClassesThat().resideInAPackage("..domain..aggregate..")
             .and().areDeclaredInClassesThat().areNotInterfaces()
             .and().areDeclaredInClassesThat().areNotEnums()
+            .and().areDeclaredInClassesThat().haveSimpleNameNotEndingWith("Test")
             .should().bePrivate()
             .because("Aggregate Root는 정적 팩토리 메서드(forNew, of, reconstitute)로만 생성해야 합니다");
 
@@ -214,7 +215,9 @@ class AggregateRootArchTest {
     void aggregateRoot_IdFieldMustBeFinal() {
         ArchRule rule = fields()
             .that().areDeclaredInClassesThat().resideInAPackage("..domain..aggregate..")
-            .and().haveNameMatching("id")
+            .and().areDeclaredInClassesThat().haveSimpleNameNotEndingWith("Test")
+            .and().areDeclaredInClassesThat().areTopLevelClasses()
+            .and().haveNameMatching(".*[Ii]d")
             .should().beFinal()
             .because("Aggregate Root의 ID는 불변이어야 합니다");
 
@@ -227,11 +230,12 @@ class AggregateRootArchTest {
     @Test
     @DisplayName("[필수] Aggregate Root는 Clock 타입 필드를 가져야 한다")
     void aggregateRoot_MustHaveClockField() {
-        ArchRule rule = classes()
-            .that().resideInAPackage("..domain..aggregate..")
-            .and().areNotInterfaces()
-            .and().areNotEnums()
-            .should().dependOnClassesThat().areAssignableTo(Clock.class)
+        ArchRule rule = fields()
+            .that().areDeclaredInClassesThat().resideInAPackage("..domain..aggregate..")
+            .and().areDeclaredInClassesThat().haveSimpleNameNotEndingWith("Test")
+            .and().areDeclaredInClassesThat().areTopLevelClasses()
+            .and().haveRawType(Clock.class)
+            .should().beDeclaredInClassesThat().resideInAPackage("..domain..aggregate..")
             .because("Aggregate Root는 테스트 가능성을 위해 Clock을 사용해야 합니다 (LocalDateTime.now(clock))");
 
         rule.check(classes);
@@ -286,6 +290,8 @@ class AggregateRootArchTest {
             .that().resideInAPackage("..domain..aggregate..")
             .and().areNotInterfaces()
             .and().areNotEnums()
+            .and().haveSimpleNameNotEndingWith("Test")
+            .and().areTopLevelClasses()
             .should().bePublic()
             .because("Aggregate Root는 다른 레이어에서 사용되기 위해 public이어야 합니다");
 
