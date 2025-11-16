@@ -7,6 +7,7 @@ import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -39,20 +40,23 @@ public class Product {
     private Boolean isComplete;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private final Clock clock;
 
     /**
      * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
      *
      * @param itemNo 상품 번호
      * @param sellerId 판매자 ID
+     * @param clock 시간 제어 (테스트 가능성)
      */
-    private Product(ItemNo itemNo, SellerId sellerId) {
+    private Product(ItemNo itemNo, SellerId sellerId, Clock clock) {
         this.productId = ProductId.generate();
         this.itemNo = itemNo;
         this.sellerId = sellerId;
         this.isComplete = false;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -64,9 +68,10 @@ public class Product {
      * @param detailDataHash 상세 데이터 해시
      * @param optionDataHash 옵션 데이터 해시
      * @param isComplete 완료 상태
+     * @param clock 시간 제어
      */
     private Product(ItemNo itemNo, SellerId sellerId, String minishopDataHash, String detailDataHash,
-                    String optionDataHash, Boolean isComplete) {
+                    String optionDataHash, Boolean isComplete, Clock clock) {
         this.productId = ProductId.generate();
         this.itemNo = itemNo;
         this.sellerId = sellerId;
@@ -74,8 +79,9 @@ public class Product {
         this.detailDataHash = detailDataHash;
         this.optionDataHash = optionDataHash;
         this.isComplete = isComplete;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -93,7 +99,21 @@ public class Product {
      * @return 새로 생성된 Product
      */
     public static Product forNew(ItemNo itemNo, SellerId sellerId) {
-        return new Product(itemNo, sellerId);
+        return forNew(itemNo, sellerId, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 Product 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: 신규 엔티티 생성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 Product
+     */
+    public static Product forNew(ItemNo itemNo, SellerId sellerId, Clock clock) {
+        return new Product(itemNo, sellerId, clock);
     }
 
     /**
@@ -110,7 +130,21 @@ public class Product {
      * @return 재구성된 Product
      */
     public static Product of(ItemNo itemNo, SellerId sellerId) {
-        return new Product(itemNo, sellerId);
+        return of(itemNo, sellerId, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: 테스트용 간편 생성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product of(ItemNo itemNo, SellerId sellerId, Clock clock) {
+        return new Product(itemNo, sellerId, clock);
     }
 
     /**
@@ -128,7 +162,26 @@ public class Product {
      */
     public static Product reconstitute(ItemNo itemNo, SellerId sellerId, String minishopDataHash,
                                         String detailDataHash, String optionDataHash, Boolean isComplete) {
-        return new Product(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete);
+        return reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: DB에서 조회한 엔티티 재구성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ItemNo itemNo, SellerId sellerId, String minishopDataHash,
+                                        String detailDataHash, String optionDataHash, Boolean isComplete, Clock clock) {
+        return new Product(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, clock);
     }
 
     /**
@@ -162,7 +215,7 @@ public class Product {
         boolean hasChanged = !newHash.equals(minishopDataHash);
         this.minishopDataHash = newHash;
         updateCompleteStatus();
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
         return hasChanged;
     }
 
@@ -177,7 +230,7 @@ public class Product {
         boolean hasChanged = !newHash.equals(detailDataHash);
         this.detailDataHash = newHash;
         updateCompleteStatus();
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
         return hasChanged;
     }
 
@@ -192,7 +245,7 @@ public class Product {
         boolean hasChanged = !newHash.equals(optionDataHash);
         this.optionDataHash = newHash;
         updateCompleteStatus();
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
         return hasChanged;
     }
 
@@ -284,5 +337,13 @@ public class Product {
 
     public String getMinishopDataHash() {
         return minishopDataHash;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
