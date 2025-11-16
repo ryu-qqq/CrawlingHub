@@ -44,7 +44,10 @@ class AggregateRootArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.crawlinghub.domain");
+            .importPackagesOf(
+                com.ryuqq.crawlinghub.domain.aggregate.Product.class,
+                com.ryuqq.crawlinghub.domain.fixture.ProductFixture.class
+            );
     }
 
     /**

@@ -233,21 +233,21 @@ public class CrawlerTask {
      */
     private void validateRequestUrl(CrawlerTaskType taskType, String requestUrl) {
         switch (taskType) {
-            case MINISHOP -> {
+            case MINISHOP:
                 if (!requestUrl.contains("/searchmini-shop-search")) {
                     throw new IllegalArgumentException("MINISHOP URL 형식이 올바르지 않습니다");
                 }
-            }
-            case PRODUCT_DETAIL -> {
+                break;
+            case PRODUCT_DETAIL:
                 if (!requestUrl.matches(".*/item/\\d+/detail/top")) {
                     throw new IllegalArgumentException("PRODUCT_DETAIL URL 형식이 올바르지 않습니다");
                 }
-            }
-            case PRODUCT_OPTION -> {
+                break;
+            case PRODUCT_OPTION:
                 if (!requestUrl.matches(".*/auction_products/\\d+/options")) {
                     throw new IllegalArgumentException("PRODUCT_OPTION URL 형식이 올바르지 않습니다");
                 }
-            }
+                break;
         }
     }
 
