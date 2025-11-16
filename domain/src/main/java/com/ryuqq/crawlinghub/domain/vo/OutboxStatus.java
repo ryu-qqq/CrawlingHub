@@ -40,5 +40,19 @@ public enum OutboxStatus {
     /**
      * 실패 - 전송 실패, 재시도 가능
      */
-    FAILED
+    FAILED;
+
+    /**
+     * String 값으로부터 OutboxStatus 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return OutboxStatus enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static OutboxStatus of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("OutboxStatus cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }

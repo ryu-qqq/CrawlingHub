@@ -52,5 +52,19 @@ public enum CrawlerTaskStatus {
     /**
      * 재시도 대기 중
      */
-    RETRY
+    RETRY;
+
+    /**
+     * String 값으로부터 CrawlerTaskStatus 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return CrawlerTaskStatus enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static CrawlerTaskStatus of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("CrawlerTaskStatus cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }

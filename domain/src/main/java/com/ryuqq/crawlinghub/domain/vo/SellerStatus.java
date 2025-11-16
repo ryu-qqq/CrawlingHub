@@ -21,5 +21,19 @@ public enum SellerStatus {
     /**
      * 비활성화 상태 - 크롤링 제외
      */
-    INACTIVE
+    INACTIVE;
+
+    /**
+     * String 값으로부터 SellerStatus 생성 (표준 패턴)
+     *
+     * @param value 문자열 값
+     * @return SellerStatus enum
+     * @throws IllegalArgumentException value가 null이거나 유효하지 않은 경우
+     */
+    public static SellerStatus of(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("SellerStatus cannot be null");
+        }
+        return valueOf(value.toUpperCase());
+    }
 }
