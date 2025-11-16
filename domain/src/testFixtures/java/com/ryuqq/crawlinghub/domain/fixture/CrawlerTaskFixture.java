@@ -74,8 +74,7 @@ public class CrawlerTaskFixture {
      * @return 새로 생성된 CrawlerTask
      */
     public static CrawlerTask forNew() {
-        // TODO: CrawlerTask가 forNew()를 지원하면 활성화
-        return CrawlerTask.create(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL);
+        return CrawlerTask.forNew(DEFAULT_SELLER_ID, DEFAULT_TASK_TYPE, DEFAULT_REQUEST_URL);
     }
 
     /**
@@ -93,8 +92,7 @@ public class CrawlerTaskFixture {
      * @return 재구성된 CrawlerTask
      */
     public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
-        // TODO: CrawlerTask가 of()를 지원하면 활성화
-        return CrawlerTask.create(sellerId, taskType, requestUrl);
+        return CrawlerTask.of(sellerId, taskType, requestUrl);
     }
 
     /**
@@ -114,8 +112,7 @@ public class CrawlerTaskFixture {
     public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
                                             String requestUrl, CrawlerTaskStatus status,
                                             Integer retryCount, String errorMessage) {
-        // TODO: CrawlerTask가 reconstitute()를 지원하면 활성화
-        return CrawlerTask.create(sellerId, taskType, requestUrl);
+        return CrawlerTask.reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage);
     }
 
     /**
