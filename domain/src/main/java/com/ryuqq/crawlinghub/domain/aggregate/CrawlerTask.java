@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
 import com.ryuqq.crawlinghub.domain.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.vo.TaskId;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -37,6 +38,7 @@ public class CrawlerTask {
     private String errorMessage;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private final Clock clock;
 
     /**
      * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
@@ -44,8 +46,9 @@ public class CrawlerTask {
      * @param sellerId 셀러 식별자
      * @param taskType 크롤링 작업 타입
      * @param requestUrl 요청 URL
+     * @param clock 시간 제어
      */
-    private CrawlerTask(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
+    private CrawlerTask(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
         validateRequestUrl(taskType, requestUrl);
         this.taskId = TaskId.generate();
         this.sellerId = sellerId;
@@ -53,8 +56,9 @@ public class CrawlerTask {
         this.requestUrl = requestUrl;
         this.status = CrawlerTaskStatus.WAITING;
         this.retryCount = 0;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -67,9 +71,10 @@ public class CrawlerTask {
      * @param status 작업 상태
      * @param retryCount 재시도 횟수
      * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
      */
     private CrawlerTask(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType, String requestUrl,
-                         CrawlerTaskStatus status, Integer retryCount, String errorMessage) {
+                         CrawlerTaskStatus status, Integer retryCount, String errorMessage, Clock clock) {
         validateRequestUrl(taskType, requestUrl);
         this.taskId = taskId;
         this.sellerId = sellerId;
@@ -78,8 +83,9 @@ public class CrawlerTask {
         this.status = status;
         this.retryCount = retryCount;
         this.errorMessage = errorMessage;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -98,7 +104,27 @@ public class CrawlerTask {
      * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
      */
     public static CrawlerTask forNew(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
-        return new CrawlerTask(sellerId, taskType, requestUrl);
+        return forNew(sellerId, taskType, requestUrl, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 CrawlerTask 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: 신규 엔티티 생성, Clock 주입</p>
+     * <ul>
+     *   <li>초기 상태: WAITING</li>
+     *   <li>초기 재시도 횟수: 0</li>
+     * </ul>
+     *
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param clock 시간 제어
+     * @return 새로 생성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    public static CrawlerTask forNew(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
+        return new CrawlerTask(sellerId, taskType, requestUrl, clock);
     }
 
     /**
@@ -117,7 +143,27 @@ public class CrawlerTask {
      * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
      */
     public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl) {
-        return new CrawlerTask(sellerId, taskType, requestUrl);
+        return of(sellerId, taskType, requestUrl, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 CrawlerTask 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: 테스트용 간편 생성, Clock 주입</p>
+     * <ul>
+     *   <li>초기 상태: WAITING</li>
+     *   <li>초기 재시도 횟수: 0</li>
+     * </ul>
+     *
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param clock 시간 제어
+     * @return 재구성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    public static CrawlerTask of(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
+        return new CrawlerTask(sellerId, taskType, requestUrl, clock);
     }
 
     /**
@@ -138,7 +184,29 @@ public class CrawlerTask {
     public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
                                              String requestUrl, CrawlerTaskStatus status,
                                              Integer retryCount, String errorMessage) {
-        return new CrawlerTask(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage);
+        return reconstitute(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 CrawlerTask 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: DB에서 조회한 엔티티 재구성, Clock 주입</p>
+     *
+     * @param taskId Task 식별자
+     * @param sellerId 셀러 식별자
+     * @param taskType 크롤링 작업 타입
+     * @param requestUrl 요청 URL
+     * @param status 작업 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
+     * @return 재구성된 CrawlerTask
+     * @throws IllegalArgumentException requestUrl 형식이 올바르지 않은 경우
+     */
+    public static CrawlerTask reconstitute(TaskId taskId, SellerId sellerId, CrawlerTaskType taskType,
+                                             String requestUrl, CrawlerTaskStatus status,
+                                             Integer retryCount, String errorMessage, Clock clock) {
+        return new CrawlerTask(taskId, sellerId, taskType, requestUrl, status, retryCount, errorMessage, clock);
     }
 
     /**
@@ -199,7 +267,7 @@ public class CrawlerTask {
             throw new IllegalStateException("WAITING 상태에서만 발행할 수 있습니다");
         }
         this.status = CrawlerTaskStatus.PUBLISHED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -218,7 +286,7 @@ public class CrawlerTask {
             throw new IllegalStateException("PUBLISHED 또는 RETRY 상태에서만 시작할 수 있습니다");
         }
         this.status = CrawlerTaskStatus.IN_PROGRESS;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -237,7 +305,7 @@ public class CrawlerTask {
             throw new IllegalStateException("IN_PROGRESS 상태에서만 완료할 수 있습니다");
         }
         this.status = CrawlerTaskStatus.COMPLETED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -259,7 +327,7 @@ public class CrawlerTask {
         }
         this.status = CrawlerTaskStatus.FAILED;
         this.errorMessage = errorMessage;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     /**
@@ -286,7 +354,7 @@ public class CrawlerTask {
         this.status = CrawlerTaskStatus.RETRY;
         this.retryCount++;
         this.errorMessage = null;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(clock);
     }
 
     // Getters (필요한 것만)
@@ -316,5 +384,13 @@ public class CrawlerTask {
 
     public String getErrorMessage() {
         return errorMessage;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
