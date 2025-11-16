@@ -9,7 +9,14 @@ import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
  *
  * <p>UserAgent Aggregate와 관련된 Value Object, Enum의 기본값을 제공합니다.</p>
  *
- * <p>제공 메서드:</p>
+ * <p>표준 패턴 준수:</p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 UserAgent 생성 (ID 자동 생성)</li>
+ *   <li>{@link #of(String)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(UserAgentId, String, String, UserAgentStatus, Integer)} - 완전한 재구성</li>
+ * </ul>
+ *
+ * <p>레거시 호환 메서드:</p>
  * <ul>
  *   <li>{@link #defaultUserAgent()} - 기본 UserAgent (토큰 없음, ACTIVE)</li>
  *   <li>{@link #userAgentWithToken()} - 토큰이 발급된 UserAgent (ACTIVE)</li>
@@ -21,6 +28,63 @@ public class UserAgentFixture {
 
     private static final String DEFAULT_USER_AGENT_STRING = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     private static final String DEFAULT_TOKEN = "test_token_" + System.currentTimeMillis();
+
+    /**
+     * 새로운 UserAgent 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
+     * <ul>
+     *   <li>초기 상태: ACTIVE</li>
+     *   <li>초기 requestCount: 0</li>
+     *   <li>token: null</li>
+     * </ul>
+     *
+     * @return 새로 생성된 UserAgent
+     */
+    public static UserAgent forNew() {
+        // TODO: UserAgent가 forNew를 지원하면 호출
+        return UserAgent.create(DEFAULT_USER_AGENT_STRING);
+    }
+
+    /**
+     * 불변 속성으로 UserAgent 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>초기 상태: ACTIVE</li>
+     *   <li>초기 requestCount: 0</li>
+     *   <li>token: null</li>
+     * </ul>
+     *
+     * @param userAgentString User Agent 문자열
+     * @return 재구성된 UserAgent
+     */
+    public static UserAgent of(String userAgentString) {
+        // TODO: UserAgent가 of를 지원하면 호출
+        return UserAgent.create(userAgentString);
+    }
+
+    /**
+     * 완전한 UserAgent 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param userAgentId UserAgent ID
+     * @param userAgentString User Agent 문자열
+     * @param token 토큰 (nullable)
+     * @param status 상태
+     * @param requestCount 요청 횟수
+     * @return 재구성된 UserAgent
+     */
+    public static UserAgent reconstitute(UserAgentId userAgentId, String userAgentString,
+                                          String token, UserAgentStatus status, Integer requestCount) {
+        // TODO: UserAgent가 reconstitute를 지원하면 호출
+        UserAgent userAgent = UserAgent.create(userAgentString);
+        if (token != null) {
+            userAgent.issueToken(token);
+        }
+        return userAgent;
+    }
 
     /**
      * 기본 UserAgent 생성 (토큰 없음, ACTIVE 상태)
