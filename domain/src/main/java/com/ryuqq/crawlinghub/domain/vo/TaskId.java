@@ -21,4 +21,25 @@ public record TaskId(UUID value) {
     public static TaskId generate() {
         return new TaskId(UUID.randomUUID());
     }
+
+    /**
+     * 새로운 TaskId 생성 (표준 패턴)
+     *
+     * @return 새로 생성된 TaskId
+     */
+    public static TaskId forNew() {
+        return generate();
+    }
+
+    /**
+     * 새로운 ID인지 확인 (표준 패턴)
+     *
+     * <p>UUID 기반 ID는 생성 시점에서만 의미가 있으므로 항상 true를 반환합니다.</p>
+     * <p>실제 영속성 상태는 Aggregate Root에서 관리됩니다.</p>
+     *
+     * @return 항상 true
+     */
+    public boolean isNew() {
+        return true;
+    }
 }
