@@ -217,7 +217,8 @@ class UserAgentTest {
     @Test
     void shouldUpdateTimeOnStatusChange() {
         // Given - FIXED_CLOCK으로 생성된 UserAgent
-        UserAgent userAgent = UserAgentFixture.forNew(FIXED_CLOCK);
+        String userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...";
+        UserAgent userAgent = UserAgent.forNew(userAgentString, FIXED_CLOCK);
         userAgent.issueToken("test_token_123");
 
         // When - 상태 변경 (suspend)
