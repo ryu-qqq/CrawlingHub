@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  *
  * <p><strong>핵심 책임:</strong></p>
  * <ul>
- *   <li>✅ 스케줄러 이벤트 전송 관리 (WAITING → SENT/FAILED)</li>
+ *   <li>✅ 스케줄러 이벤트 전송 관리 (WAITING → SENDING → COMPLETED/FAILED)</li>
  *   <li>✅ Payload JSON 형식 검증</li>
  *   <li>✅ 재시도 카운트 추적 (retryCount)</li>
  * </ul>
@@ -22,12 +22,12 @@ import java.time.LocalDateTime;
  * <p><strong>상태 전환:</strong></p>
  * <pre>
  * WAITING (생성 직후)
- *    ↓ markAsSent()
- * SENT (전송 성공)
- *
- * WAITING (생성 직후)
- *    ↓ markAsFailed()
- * FAILED (전송 실패, 재시도 가능)
+ *    ↓ send()
+ * SENDING (전송 중)
+ *    ↓ complete() / fail()
+ * COMPLETED (성공) 또는 FAILED (실패)
+ *    ↓ retry() (FAILED인 경우)
+ * WAITING (재시도)
  * </pre>
  *
  * <p><strong>Zero-Tolerance 규칙 준수:</strong></p>
@@ -110,6 +110,79 @@ public class SchedulerOutbox {
         if (payload == null || !payload.trim().startsWith("{") || !payload.trim().endsWith("}")) {
             throw new IllegalArgumentException("Payload는 유효한 JSON 형식이어야 합니다");
         }
+    }
+
+    // ===== Business Methods =====
+
+    /**
+     * 전송 시작 (WAITING → SENDING)
+     *
+     * <p><strong>전환 조건:</strong></p>
+     * <ul>
+     *   <li>✅ WAITING 상태에서만 전송 가능</li>
+     *   <li>✅ SENDING 상태로 전환</li>
+     *   <li>✅ updatedAt 타임스탬프 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException WAITING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void send() {
+        if (status != SchedulerOutboxStatus.WAITING) {
+            throw new IllegalStateException("WAITING 상태에서만 전송할 수 있습니다");
+        }
+        this.status = SchedulerOutboxStatus.SENDING;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 전송 완료 (SENDING → COMPLETED)
+     *
+     * <p><strong>완료 조건:</strong></p>
+     * <ul>
+     *   <li>✅ SENDING 상태에서만 완료 가능</li>
+     *   <li>✅ COMPLETED 상태로 전환</li>
+     *   <li>✅ updatedAt 타임스탬프 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException SENDING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void complete() {
+        if (status != SchedulerOutboxStatus.SENDING) {
+            throw new IllegalStateException("SENDING 상태에서만 완료할 수 있습니다");
+        }
+        this.status = SchedulerOutboxStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 전송 실패 (SENDING → FAILED)
+     *
+     * <p><strong>실패 처리:</strong></p>
+     * <ul>
+     *   <li>✅ SENDING 상태에서만 실패 가능</li>
+     *   <li>✅ FAILED 상태로 전환</li>
+     *   <li>✅ errorMessage 저장</li>
+     *   <li>✅ retryCount 증가</li>
+     *   <li>✅ updatedAt 타임스탬프 갱신</li>
+     * </ul>
+     *
+     * @param errorMessage 에러 메시지
+     * @throws IllegalStateException SENDING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void fail(String errorMessage) {
+        if (status != SchedulerOutboxStatus.SENDING) {
+            throw new IllegalStateException("SENDING 상태에서만 실패할 수 있습니다");
+        }
+        this.status = SchedulerOutboxStatus.FAILED;
+        this.errorMessage = errorMessage;
+        this.retryCount++;
+        this.updatedAt = LocalDateTime.now();
     }
 
     // ===== Getters =====

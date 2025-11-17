@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
  * <p><strong>제공 메서드:</strong></p>
  * <ul>
  *   <li>{@link #waitingOutbox()} - WAITING 상태의 SchedulerOutbox</li>
+ *   <li>{@link #sendingOutbox()} - SENDING 상태의 SchedulerOutbox</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -37,5 +38,26 @@ public class SchedulerOutboxFixture {
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"mustit-crawler-seller_12345\",\"scheduleExpression\":\"rate(1 day)\"}";
         return SchedulerOutbox.create(scheduleId, eventType, payload);
+    }
+
+    /**
+     * SENDING 상태의 SchedulerOutbox 생성
+     *
+     * <p><strong>설정:</strong></p>
+     * <ul>
+     *   <li>EventType: SCHEDULE_REGISTERED</li>
+     *   <li>Status: SENDING</li>
+     *   <li>RetryCount: 0</li>
+     *   <li>Payload: mustit-crawler-seller_12345 스케줄 등록 요청</li>
+     * </ul>
+     *
+     * @return SENDING 상태의 SchedulerOutbox
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static SchedulerOutbox sendingOutbox() {
+        SchedulerOutbox outbox = waitingOutbox();
+        outbox.send();
+        return outbox;
     }
 }
