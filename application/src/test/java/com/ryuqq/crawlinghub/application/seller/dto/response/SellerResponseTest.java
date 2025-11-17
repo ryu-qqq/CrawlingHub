@@ -1,5 +1,6 @@
-package com.ryuqq.crawlinghub.application.dto.response;
+package com.ryuqq.crawlinghub.application.seller.dto.response;
 
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.port.out.command;
+package com.ryuqq.crawlinghub.application.seller.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;

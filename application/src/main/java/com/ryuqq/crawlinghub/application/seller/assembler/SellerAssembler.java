@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.application.assembler;
+package com.ryuqq.crawlinghub.application.seller.assembler;
 
-import com.ryuqq.crawlinghub.application.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import org.springframework.stereotype.Component;
 
