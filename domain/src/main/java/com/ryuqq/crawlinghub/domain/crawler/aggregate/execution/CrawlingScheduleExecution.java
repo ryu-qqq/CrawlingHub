@@ -86,6 +86,110 @@ public class CrawlingScheduleExecution {
         return new CrawlingScheduleExecution(scheduleId, sellerId);
     }
 
+    // ===== Business Methods =====
+
+    /**
+     * 스케줄 실행 시작
+     *
+     * <p><strong>시작 조건:</strong></p>
+     * <ul>
+     *   <li>✅ PENDING 상태에서만 시작 가능</li>
+     *   <li>✅ totalTasksCreated 설정</li>
+     *   <li>✅ RUNNING 상태로 전환</li>
+     * </ul>
+     *
+     * @param totalTasksCreated 생성할 총 작업 수
+     * @throws IllegalStateException PENDING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void start(int totalTasksCreated) {
+        if (status != ExecutionStatus.PENDING) {
+            throw new IllegalStateException("PENDING 상태에서만 시작할 수 있습니다");
+        }
+        this.totalTasksCreated = totalTasksCreated;
+        this.status = ExecutionStatus.RUNNING;
+        this.startedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 작업 완료 처리
+     *
+     * <p>completedTasks를 1 증가시킵니다.</p>
+     *
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void completeTask() {
+        this.completedTasks++;
+    }
+
+    /**
+     * 작업 실패 처리
+     *
+     * <p>failedTasks를 1 증가시킵니다.</p>
+     *
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void failTask() {
+        this.failedTasks++;
+    }
+
+    /**
+     * 진행률 계산 (Tell Don't Ask)
+     *
+     * <p><strong>계산 방식:</strong></p>
+     * <ul>
+     *   <li>✅ (completedTasks + failedTasks) / totalTasksCreated * 100</li>
+     *   <li>✅ totalTasksCreated가 0이면 0.0 반환</li>
+     * </ul>
+     *
+     * <p><strong>Tell Don't Ask 원칙:</strong></p>
+     * <ul>
+     *   <li>❌ 외부: getTotalTasksCreated(), getCompletedTasks() 가져와서 계산</li>
+     *   <li>✅ 내부: getProgressRate()로 객체가 스스로 계산</li>
+     * </ul>
+     *
+     * @return 진행률 (0.0 ~ 100.0)
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public double getProgressRate() {
+        if (totalTasksCreated == 0) {
+            return 0.0;
+        }
+        int processed = completedTasks + failedTasks;
+        return (double) processed / totalTasksCreated * 100;
+    }
+
+    /**
+     * 성공률 계산 (Tell Don't Ask)
+     *
+     * <p><strong>계산 방식:</strong></p>
+     * <ul>
+     *   <li>✅ completedTasks / (completedTasks + failedTasks) * 100</li>
+     *   <li>✅ 처리된 작업이 0이면 0.0 반환</li>
+     * </ul>
+     *
+     * <p><strong>Tell Don't Ask 원칙:</strong></p>
+     * <ul>
+     *   <li>❌ 외부: getCompletedTasks(), getFailedTasks() 가져와서 계산</li>
+     *   <li>✅ 내부: getSuccessRate()로 객체가 스스로 계산</li>
+     * </ul>
+     *
+     * @return 성공률 (0.0 ~ 100.0)
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public double getSuccessRate() {
+        int processed = completedTasks + failedTasks;
+        if (processed == 0) {
+            return 0.0;
+        }
+        return (double) completedTasks / processed * 100;
+    }
+
     // ===== Getters =====
 
     public ExecutionId getExecutionId() {
