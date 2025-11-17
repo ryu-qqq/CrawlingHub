@@ -193,30 +193,35 @@
 
 ---
 
-### 7️⃣ RegisterSellerUseCase 인터페이스 정의 (Cycle 7)
+### 7️⃣ RegisterSellerUseCase 인터페이스 정의 (Cycle 7) ✅
 
-#### 🔴 Red: 테스트 작성
-- [ ] `RegisterSellerUseCaseTest.java` 생성 (Mock 테스트)
-- [ ] Use Case 메서드 시그니처 테스트
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: RegisterSellerUseCase 인터페이스 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `RegisterSellerUseCaseTest.java` 생성 (Mock 테스트)
+- [x] Use Case 메서드 시그니처 테스트
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: RegisterSellerUseCase 인터페이스 테스트 추가 (Red)` (f9cce2a)
 
-#### 🟢 Green: 최소 구현
-- [ ] `RegisterSellerUseCase.java` 인터페이스 생성
-- [ ] `registerSeller(RegisterSellerCommand command)` 메서드 정의
-- [ ] 반환 타입: `SellerResponse`
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: RegisterSellerUseCase 인터페이스 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `RegisterSellerUseCase.java` 인터페이스 생성
+- [x] `execute(RegisterSellerCommand command)` 메서드 정의
+- [x] 반환 타입: `SellerResponse`
+- [x] JavaDoc 작성 (Zero-Tolerance 규칙 명시)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: RegisterSellerUseCase 인터페이스 구현 (Green)` (280e6cc)
 
-#### ♻️ Refactor: 리팩토링
-- [ ] JavaDoc 추가 (비즈니스 로직 설명)
-- [ ] ArchUnit 테스트 추가 (Input Port 규칙)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: RegisterSellerUseCase 개선 (Refactor)`
+#### ♻️ Refactor: 리팩토링 ✅
+- [x] JavaDoc 이미 충분히 작성됨 (Green Phase에서 완료)
+- [x] InputPortArchTest 추가 (Input Port 규칙 검증)
+  - Input Port는 인터페이스여야 함
+  - UseCase 네이밍 (동사 + UseCase 접미사)
+  - @Transactional 금지 (구현체에서만)
+  - Output Port 직접 의존 금지
+  - Domain 객체 반환 금지
+- [x] 테스트 여전히 통과 확인 (7 tests)
+- [x] 커밋: `refactor: InputPortArchTest 추가 - Input Port 규칙 검증 (Refactor)` (e7920f0)
 
-#### 🧹 Tidy: TestFixture 정리
-- [ ] Mock UseCase Fixture 생성
-- [ ] 커밋: `test: RegisterSellerUseCase 테스트 정리 (Tidy)`
+#### 🧹 Tidy: TestFixture 정리 ✅
+- [x] Mock UseCase Fixture 불필요 (Port 인터페이스는 mock() 사용이 표준)
 
 ---
 
