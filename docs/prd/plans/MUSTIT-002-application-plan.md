@@ -150,31 +150,32 @@
 
 ---
 
-### 6️⃣ EventBridgePort 인터페이스 정의 (Cycle 6)
+### 6️⃣ EventBridgePort 인터페이스 정의 (Cycle 6) ✅
 
-#### 🔴 Red: 테스트 작성
-- [ ] `EventBridgePortTest.java` 생성
-- [ ] `createRule()` 메서드 시그니처 테스트
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: EventBridgePort 인터페이스 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `EventBridgePortTest.java` 생성
+- [x] `createRule()` 메서드 시그니처 테스트
+- [x] `updateRule()` 메서드 시그니처 테스트
+- [x] `deleteRule()` 메서드 시그니처 테스트
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `struct: SellerAssembler Long to String 변환 추가 (컴파일 에러 수정)` (9dd9678)
 
-#### 🟢 Green: 최소 구현
-- [ ] `EventBridgePort.java` 인터페이스 생성
-- [ ] `createRule(String sellerId, int intervalDays)` 메서드 정의
-- [ ] `updateRule(String sellerId, int newIntervalDays)` 메서드 정의
-- [ ] `deleteRule(String sellerId)` 메서드 정의
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: EventBridgePort 인터페이스 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `EventBridgePort.java` 인터페이스 생성
+- [x] `createRule(String sellerId, int intervalDays)` 메서드 정의
+- [x] `updateRule(String sellerId, int newIntervalDays)` 메서드 정의
+- [x] `deleteRule(String sellerId)` 메서드 정의
+- [x] JavaDoc 작성 (Zero-Tolerance 규칙 포함)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `struct: SellerId 타입 불일치 수정 (Long → String 변환)` (ff56b5d)
 
-#### ♻️ Refactor: 리팩토링
-- [ ] JavaDoc 추가
-- [ ] ArchUnit 테스트 추가
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: EventBridgePort 개선 (Refactor)`
+#### ♻️ Refactor: 리팩토링 ✅
+- [x] JavaDoc 이미 충분히 작성됨 (Green Phase에서 완료)
+- [x] External Service Port이므로 별도 ArchUnit 테스트 불필요
+- [x] 테스트 여전히 통과 확인
 
-#### 🧹 Tidy: TestFixture 정리
-- [ ] Mock Port Fixture 정리
-- [ ] 커밋: `test: EventBridgePort 테스트 정리 (Tidy)`
+#### 🧹 Tidy: TestFixture 정리 ✅
+- [x] Mock Port Fixture 불필요 (Port 인터페이스는 mock() 사용이 표준)
 
 ---
 
