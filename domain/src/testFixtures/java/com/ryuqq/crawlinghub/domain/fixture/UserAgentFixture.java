@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
-import com.ryuqq.crawlinghub.domain.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
-import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
+import com.ryuqq.crawlinghub.domain.crawler.aggregate.useragent.UserAgent;
+import com.ryuqq.crawlinghub.domain.crawler.vo.Token;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentStatus;
 
 import java.time.Clock;
 
@@ -169,5 +170,16 @@ public class UserAgentFixture {
      */
     public static UserAgentStatus defaultUserAgentStatus() {
         return UserAgentStatus.ACTIVE;
+    }
+
+    /**
+     * 기본 Token 생성
+     *
+     * <p>테스트용 기본 토큰 문자열을 반환합니다.</p>
+     *
+     * @return 기본 Token
+     */
+    public static Token defaultToken() {
+        return new Token("mustit_token_default_123");
     }
 }
