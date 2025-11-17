@@ -67,30 +67,31 @@
 
 ---
 
-### 3️⃣ SellerAssembler 구현 (Cycle 3) 🔄
+### 3️⃣ SellerAssembler 구현 (Cycle 3) ✅
 
 #### 🔴 Red: 테스트 작성
-- [ ] `SellerAssemblerTest.java` 생성
-- [ ] `shouldConvertDomainToResponse()` 작성
-- [ ] Mock 없이 실제 Seller Aggregate 사용
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: SellerAssembler 테스트 추가 (Red)`
+- [x] `SellerAssemblerTest.java` 생성
+- [x] `shouldConvertDomainToResponse()` 작성
+- [x] Mock 없이 실제 Seller Aggregate 사용
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: SellerAssembler 테스트 추가 (Red)` (0289443)
 
 #### 🟢 Green: 최소 구현
-- [ ] `SellerAssembler.java` 생성
-- [ ] `toResponse(Seller)` 메서드 구현
-- [ ] Seller → SellerResponse 변환 로직
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: SellerAssembler 구현 (Green)`
+- [x] `SellerAssembler.java` 생성 (@Component)
+- [x] `toResponse(Seller)` 메서드 구현 (인스턴스 메서드)
+- [x] Seller → SellerResponse 변환 로직
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: SellerAssembler 구현 (Green)` (946f1ad)
 
 #### ♻️ Refactor: 리팩토링
-- [ ] ArchUnit 테스트 추가 (Assembler 규칙)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: SellerAssembler 개선 (Refactor)`
+- [x] ArchUnit 테스트 실행 (Assembler 규칙)
+- [x] AssemblerArchTest 패키지 경로 수정
+- [x] static 메서드 → 인스턴스 메서드 변경
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `refactor: SellerAssembler ArchUnit 검증 통과 (Refactor)` (30cece5)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] 테스트 코드 정리 (Fixture 사용)
-- [ ] 커밋: `test: SellerAssembler 테스트 정리 (Tidy)`
+- [x] 테스트 코드 이미 Fixture 사용 중 (생략)
 
 ---
 
