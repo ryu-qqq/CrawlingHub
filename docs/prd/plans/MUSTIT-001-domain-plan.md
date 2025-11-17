@@ -2249,7 +2249,7 @@ public class SchedulerOutboxFixture {
 
 ---
 
-### 3️⃣5️⃣ Cycle 35: SchedulerOutbox 전송 상태 전환 (15분)
+### 3️⃣5️⃣ Cycle 35: SchedulerOutbox 전송 상태 전환 (15분) ✅
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -2283,8 +2283,8 @@ void shouldFailOutbox() {
     assertThat(outbox.getRetryCount()).isEqualTo(1);
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: SchedulerOutbox 상태 전환 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: SchedulerOutbox 상태 전환 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -2316,8 +2316,8 @@ public void fail(String errorMessage) {
 
 public String getErrorMessage() { return errorMessage; }
 ```
-- [ ] 상태 전환 메서드 구현
-- [ ] 커밋: `feat: SchedulerOutbox 상태 전환 구현 (send, complete, fail)`
+- [x] 상태 전환 메서드 구현
+- [x] 커밋: `feat: SchedulerOutbox 상태 전환 구현 (send, complete, fail)`
 
 #### ♻️ Tidy: TestFixture 확장
 ```java
@@ -2327,8 +2327,8 @@ public static SchedulerOutbox sendingOutbox() {
     return outbox;
 }
 ```
-- [ ] sendingOutbox Fixture 추가
-- [ ] 커밋: `struct: SchedulerOutboxFixture 확장 (sendingOutbox)`
+- [x] sendingOutbox Fixture 추가 (Green Phase에 포함됨)
+- [x] 커밋: `feat: SchedulerOutbox 상태 전환 구현` (Fixture 포함)
 
 ---
 
@@ -2519,9 +2519,9 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
 - [x] Phase 7: CrawlingSchedule Aggregate (3/3) ✅ **완료!**
 - [x] Phase 8: CrawlingScheduleExecution Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 9: SchedulerOutbox Aggregate (1/3)
+- [ ] Phase 9: SchedulerOutbox Aggregate (2/3)
 
-**전체 진행률**: 34/36 Cycles (94%) 🔄 **진행 중**
+**전체 진행률**: 35/36 Cycles (97%) 🔄 **진행 중**
 
 ---
 
