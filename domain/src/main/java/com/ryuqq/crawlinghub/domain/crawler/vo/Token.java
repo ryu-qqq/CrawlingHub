@@ -37,4 +37,16 @@ public record Token(String value) {
             throw new IllegalArgumentException("Token은 비어있을 수 없습니다");
         }
     }
+
+    /**
+     * 정적 팩토리 메서드 - Token 생성
+     *
+     * @param value 토큰 값
+     * @return Token 인스턴스
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static Token of(String value) {
+        return new Token(value);
+    }
 }

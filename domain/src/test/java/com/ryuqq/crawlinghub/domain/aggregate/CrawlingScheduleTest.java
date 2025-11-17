@@ -36,7 +36,7 @@ class CrawlingScheduleTest {
     @Test
     void shouldCreateCrawlingScheduleWithActiveStatus() {
         // Given
-        SellerId sellerId = new SellerId("seller_12345");
+        SellerId sellerId = new SellerId(1L);
         CrawlingInterval interval = new CrawlingInterval(1, ChronoUnit.DAYS);
 
         // When
@@ -46,7 +46,7 @@ class CrawlingScheduleTest {
         assertThat(schedule.getScheduleId()).isNotNull();
         assertThat(schedule.getSellerId()).isEqualTo(sellerId);
         assertThat(schedule.getCrawlingInterval()).isEqualTo(interval);
-        assertThat(schedule.getScheduleRule()).isEqualTo("mustit-crawler-seller_12345");
+        assertThat(schedule.getScheduleRule()).isEqualTo("mustit-crawler-1");
         assertThat(schedule.getScheduleExpression()).isEqualTo("rate(1 day)");
         assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.ACTIVE);
     }
@@ -54,7 +54,7 @@ class CrawlingScheduleTest {
     @Test
     void shouldGenerateCorrectScheduleExpressionForHourInterval() {
         // Given
-        SellerId sellerId = new SellerId("seller_67890");
+        SellerId sellerId = new SellerId(1L);
         CrawlingInterval interval = new CrawlingInterval(6, ChronoUnit.HOURS);
 
         // When

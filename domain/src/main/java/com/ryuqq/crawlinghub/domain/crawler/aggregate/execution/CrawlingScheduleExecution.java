@@ -61,7 +61,7 @@ public class CrawlingScheduleExecution {
      * @since 2025-11-17
      */
     private CrawlingScheduleExecution(ScheduleId scheduleId, SellerId sellerId) {
-        this.executionId = ExecutionId.generate();
+        this.executionId = ExecutionId.forNew();
         this.scheduleId = scheduleId;
         this.sellerId = sellerId;
         this.status = ExecutionStatus.PENDING;

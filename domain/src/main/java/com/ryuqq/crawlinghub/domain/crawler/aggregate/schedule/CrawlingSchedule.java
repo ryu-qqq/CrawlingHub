@@ -59,7 +59,7 @@ public class CrawlingSchedule {
      * @since 2025-11-17
      */
     private CrawlingSchedule(SellerId sellerId, CrawlingInterval crawlingInterval) {
-        this.scheduleId = ScheduleId.generate();
+        this.scheduleId = ScheduleId.forNew();
         this.sellerId = sellerId;
         this.crawlingInterval = crawlingInterval;
         this.scheduleRule = generateScheduleRule(sellerId);

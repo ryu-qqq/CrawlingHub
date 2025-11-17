@@ -9,31 +9,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ExecutionId VO 테스트
  *
  * TDD Phase: Red → Green
- * - UUID 고유성 검증
+ * - Long 기반 auto-increment ID
  * - forNew() 정적 팩토리 메서드 검증
  * - isNew() 메서드 검증
  */
 class ExecutionIdTest {
 
     @Test
-    void shouldGenerateUniqueExecutionId() {
-        ExecutionId id1 = ExecutionId.generate();
-        ExecutionId id2 = ExecutionId.generate();
-        assertThat(id1).isNotEqualTo(id2);
-    }
-
-    @Test
-    void shouldCreateIdUsingForNew() {
+    void shouldCreateNewIdWithNullValue() {
         // When
         ExecutionId id = ExecutionId.forNew();
 
         // Then
         assertThat(id).isNotNull();
-        assertThat(id.value()).isNotNull();
+        assertThat(id.value()).isNull();
     }
 
     @Test
-    void shouldReturnTrueForIsNew() {
+    void shouldReturnTrueForIsNewWhenValueIsNull() {
         // Given
         ExecutionId id = ExecutionId.forNew();
 
@@ -45,23 +38,45 @@ class ExecutionIdTest {
     }
 
     @Test
-    void shouldCreateIdFromExistingValue() {
+    void shouldReturnFalseForIsNewWhenValueIsNotNull() {
         // Given
-        ExecutionId originalId = ExecutionId.generate();
+        ExecutionId id = new ExecutionId(1L);
 
         // When
-        ExecutionId reconstructedId = new ExecutionId(originalId.value());
+        boolean result = id.isNew();
 
         // Then
-        assertThat(reconstructedId).isEqualTo(originalId);
-        assertThat(reconstructedId.value()).isEqualTo(originalId.value());
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void shouldCreateIdWithSpecificValue() {
+        // When
+        ExecutionId id = new ExecutionId(123L);
+
+        // Then
+        assertThat(id.value()).isEqualTo(123L);
+        assertThat(id.isNew()).isFalse();
+    }
+
+    @Test
+    void shouldCreateIdFromExistingValue() {
+        // Given
+        Long value = 456L;
+
+        // When
+        ExecutionId id = new ExecutionId(value);
+
+        // Then
+        assertThat(id.value()).isEqualTo(value);
+        assertThat(id.isNew()).isFalse();
     }
 
     @Test
     void shouldBeEqualWhenSameValue() {
         // Given
-        ExecutionId id1 = ExecutionId.generate();
-        ExecutionId id2 = new ExecutionId(id1.value());
+        ExecutionId id1 = new ExecutionId(789L);
+        ExecutionId id2 = new ExecutionId(789L);
 
         // When & Then
         assertThat(id1).isEqualTo(id2);

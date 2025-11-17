@@ -51,7 +51,7 @@ public class UserAgent {
         if (userAgentString == null || userAgentString.isBlank()) {
             throw new IllegalArgumentException("UserAgent 문자열은 비어있을 수 없습니다");
         }
-        this.userAgentId = UserAgentId.generate();
+        this.userAgentId = UserAgentId.forNew();
         this.userAgentString = userAgentString;
         this.clock = clock;
         this.status = UserAgentStatus.ACTIVE;

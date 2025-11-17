@@ -9,31 +9,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  * SchedulerOutboxId VO 테스트
  *
  * TDD Phase: Red → Green
- * - UUID 고유성 검증
+ * - Long 기반 auto-increment ID
  * - forNew() 정적 팩토리 메서드 검증
  * - isNew() 메서드 검증
  */
 class SchedulerOutboxIdTest {
 
     @Test
-    void shouldGenerateUniqueSchedulerOutboxId() {
-        SchedulerOutboxId id1 = SchedulerOutboxId.generate();
-        SchedulerOutboxId id2 = SchedulerOutboxId.generate();
-        assertThat(id1).isNotEqualTo(id2);
-    }
-
-    @Test
-    void shouldCreateIdUsingForNew() {
+    void shouldCreateNewIdWithNullValue() {
         // When
         SchedulerOutboxId id = SchedulerOutboxId.forNew();
 
         // Then
         assertThat(id).isNotNull();
-        assertThat(id.value()).isNotNull();
+        assertThat(id.value()).isNull();
     }
 
     @Test
-    void shouldReturnTrueForIsNew() {
+    void shouldReturnTrueForIsNewWhenValueIsNull() {
         // Given
         SchedulerOutboxId id = SchedulerOutboxId.forNew();
 
@@ -45,23 +38,45 @@ class SchedulerOutboxIdTest {
     }
 
     @Test
-    void shouldCreateIdFromExistingValue() {
+    void shouldReturnFalseForIsNewWhenValueIsNotNull() {
         // Given
-        SchedulerOutboxId originalId = SchedulerOutboxId.generate();
+        SchedulerOutboxId id = new SchedulerOutboxId(1L);
 
         // When
-        SchedulerOutboxId reconstructedId = new SchedulerOutboxId(originalId.value());
+        boolean result = id.isNew();
 
         // Then
-        assertThat(reconstructedId).isEqualTo(originalId);
-        assertThat(reconstructedId.value()).isEqualTo(originalId.value());
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void shouldCreateIdWithSpecificValue() {
+        // When
+        SchedulerOutboxId id = new SchedulerOutboxId(123L);
+
+        // Then
+        assertThat(id.value()).isEqualTo(123L);
+        assertThat(id.isNew()).isFalse();
+    }
+
+    @Test
+    void shouldCreateIdFromExistingValue() {
+        // Given
+        Long value = 456L;
+
+        // When
+        SchedulerOutboxId id = new SchedulerOutboxId(value);
+
+        // Then
+        assertThat(id.value()).isEqualTo(value);
+        assertThat(id.isNew()).isFalse();
     }
 
     @Test
     void shouldBeEqualWhenSameValue() {
         // Given
-        SchedulerOutboxId id1 = SchedulerOutboxId.generate();
-        SchedulerOutboxId id2 = new SchedulerOutboxId(id1.value());
+        SchedulerOutboxId id1 = new SchedulerOutboxId(789L);
+        SchedulerOutboxId id2 = new SchedulerOutboxId(789L);
 
         // When & Then
         assertThat(id1).isEqualTo(id2);

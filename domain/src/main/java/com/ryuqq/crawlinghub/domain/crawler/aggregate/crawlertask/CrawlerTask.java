@@ -51,7 +51,7 @@ public class CrawlerTask {
      */
     private CrawlerTask(SellerId sellerId, CrawlerTaskType taskType, String requestUrl, Clock clock) {
         validateRequestUrl(taskType, requestUrl);
-        this.taskId = TaskId.generate();
+        this.taskId = TaskId.forNew();
         this.sellerId = sellerId;
         this.taskType = taskType;
         this.requestUrl = requestUrl;

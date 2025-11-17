@@ -44,7 +44,7 @@ class CrawlerTaskTest {
     @Test
     void shouldCreateCrawlerTaskWithFixedClock() {
         // Given
-        SellerId sellerId = new SellerId("seller_clock_001");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
         String requestUrl = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
         LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
@@ -60,7 +60,7 @@ class CrawlerTaskTest {
     @Test
     void shouldPreserveCreatedAtWhenStateChanges() {
         // Given
-        SellerId sellerId = new SellerId("seller_clock_002");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_DETAIL;
         String requestUrl = "/mustit-api/facade-api/v1/item/12345/detail/top";
 
@@ -80,7 +80,7 @@ class CrawlerTaskTest {
     @Test
     void shouldCreateCrawlerTaskUsingForNew() {
         // Given
-        SellerId sellerId = new SellerId("seller_new_001");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
         String requestUrl = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
 
@@ -100,7 +100,7 @@ class CrawlerTaskTest {
     @Test
     void shouldCreateCrawlerTaskUsingOf() {
         // Given
-        SellerId sellerId = new SellerId("seller_of_001");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_DETAIL;
         String requestUrl = "/mustit-api/facade-api/v1/item/12345/detail/top";
 
@@ -118,8 +118,8 @@ class CrawlerTaskTest {
     @Test
     void shouldReconstituteCrawlerTaskWithAllFields() {
         // Given
-        TaskId taskId = TaskId.generate();
-        SellerId sellerId = new SellerId("seller_recon_001");
+        TaskId taskId = TaskId.forNew();
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.PRODUCT_OPTION;
         String requestUrl = "/mustit-api/facade-api/v1/auction_products/67890/options";
         CrawlerTaskStatus status = CrawlerTaskStatus.FAILED;
@@ -146,7 +146,7 @@ class CrawlerTaskTest {
     @Test
     void shouldCreateCrawlerTaskWithWaitingStatus() {
         // Given
-        SellerId sellerId = new SellerId("seller_001");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
         String requestUrl = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
 
@@ -165,7 +165,7 @@ class CrawlerTaskTest {
     @Test
     void shouldValidateMinishopUrlFormat() {
         // Given
-        SellerId sellerId = new SellerId("seller_002");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
         String invalidUrl = "/invalid-url";
 
@@ -178,7 +178,7 @@ class CrawlerTaskTest {
     @Test
     void shouldPublishTaskFromWaiting() {
         // Given - WAITING 상태의 task
-        SellerId sellerId = new SellerId("seller_003");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -195,7 +195,7 @@ class CrawlerTaskTest {
     @Test
     void shouldStartTaskFromPublished() {
         // Given - PUBLISHED 상태의 task (WAITING → PUBLISHED)
-        SellerId sellerId = new SellerId("seller_004");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -213,7 +213,7 @@ class CrawlerTaskTest {
     @Test
     void shouldThrowExceptionWhenPublishNonWaitingTask() {
         // Given - PUBLISHED 상태의 task
-        SellerId sellerId = new SellerId("seller_005");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -231,7 +231,7 @@ class CrawlerTaskTest {
     @Test
     void shouldCompleteTaskFromInProgress() {
         // Given - IN_PROGRESS 상태의 task (WAITING → PUBLISHED → IN_PROGRESS)
-        SellerId sellerId = new SellerId("seller_006");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -250,7 +250,7 @@ class CrawlerTaskTest {
     @Test
     void shouldFailTaskWithErrorMessage() {
         // Given - IN_PROGRESS 상태의 task
-        SellerId sellerId = new SellerId("seller_007");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -271,7 +271,7 @@ class CrawlerTaskTest {
     @Test
     void shouldRetryWhenRetryCountLessThan2() {
         // Given - FAILED 상태의 task (retryCount = 0)
-        SellerId sellerId = new SellerId("seller_008");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -293,7 +293,7 @@ class CrawlerTaskTest {
     void shouldNotRetryWhenRetryCountExceeds2() {
         // Given - retryCount = 2인 FAILED task
         // 수동으로 retryCount를 2로 설정해야 함 (현재 TestFixture 없음)
-        SellerId sellerId = new SellerId("seller_009");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,
@@ -323,7 +323,7 @@ class CrawlerTaskTest {
     @Test
     void shouldResetErrorMessageOnRetry() {
         // Given - FAILED 상태의 task
-        SellerId sellerId = new SellerId("seller_010");
+        SellerId sellerId = new SellerId(1L);
         CrawlerTask task = CrawlerTask.create(
             sellerId,
             CrawlerTaskType.MINISHOP,

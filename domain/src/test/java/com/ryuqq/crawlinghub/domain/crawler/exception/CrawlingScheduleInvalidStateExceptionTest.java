@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.crawler.exception;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +20,7 @@ class CrawlingScheduleInvalidStateExceptionTest {
     @DisplayName("UUID 기반 생성자로 예외 생성")
     void shouldCreateExceptionWithUuidConstructor() {
         // given
-        UUID scheduleId = UUID.randomUUID();
+        Long scheduleId = 1L;
         String currentStatus = "INACTIVE";
         String action = "updateInterval";
         String reason = "Schedule must be in ACTIVE status to update interval";

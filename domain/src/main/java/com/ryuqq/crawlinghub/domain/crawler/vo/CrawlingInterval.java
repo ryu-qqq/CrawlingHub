@@ -48,4 +48,17 @@ public record CrawlingInterval(long amount, ChronoUnit unit) {
             throw new IllegalArgumentException("크롤링 주기는 HOURS 또는 DAYS만 지원합니다");
         }
     }
+
+    /**
+     * 정적 팩토리 메서드 - CrawlingInterval 생성
+     *
+     * @param amount 크롤링 주기 수량
+     * @param unit 크롤링 주기 단위 (HOURS 또는 DAYS)
+     * @return CrawlingInterval 인스턴스
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingInterval of(long amount, ChronoUnit unit) {
+        return new CrawlingInterval(amount, unit);
+    }
 }

@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.domain.crawler.exception;
 import com.ryuqq.crawlinghub.domain.common.DomainException;
 
 import java.util.Map;
-import java.util.UUID;
+
 
 /**
  * CrawlingScheduleExecutionInvalidStateException - CrawlingScheduleExecution 상태 전환 불가 시 발생하는 예외
@@ -30,16 +30,16 @@ import java.util.UUID;
 public class CrawlingScheduleExecutionInvalidStateException extends DomainException {
 
     /**
-     * Constructor - 상태 전환 불가 예외 생성 (UUID 기반)
+     * Constructor - 상태 전환 불가 예외 생성 (Long 기반)
      *
-     * @param executionId Execution ID (UUID)
+     * @param executionId Execution ID (Long)
      * @param currentStatus 현재 상태
      * @param action 시도한 액션
      * @param reason 불가 사유
      * @author ryu-qqq
      * @since 2025-11-17
      */
-    public CrawlingScheduleExecutionInvalidStateException(UUID executionId, String currentStatus,
+    public CrawlingScheduleExecutionInvalidStateException(Long executionId, String currentStatus,
                                                             String action, String reason) {
         super(String.format("Cannot %s execution %s. Current status: %s. Reason: %s",
                 action, executionId, currentStatus, reason));

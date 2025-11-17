@@ -27,4 +27,14 @@ public record CrawlingInterval(Integer days) {
             throw new IllegalArgumentException("크롤링 주기는 1-30일 사이여야 합니다");
         }
     }
+
+    /**
+     * 정적 팩토리 메서드 - CrawlingInterval 생성
+     *
+     * @param days 크롤링 주기 (1-30일)
+     * @return CrawlingInterval 인스턴스
+     */
+    public static CrawlingInterval of(Integer days) {
+        return new CrawlingInterval(days);
+    }
 }

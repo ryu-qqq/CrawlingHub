@@ -34,7 +34,7 @@ import java.time.Clock;
  */
 public class CrawlerTaskFixture {
 
-    private static final SellerId DEFAULT_SELLER_ID = new SellerId("seller_test_001");
+    private static final SellerId DEFAULT_SELLER_ID = new SellerId(1L);
     private static final CrawlerTaskType DEFAULT_TASK_TYPE = CrawlerTaskType.MINISHOP;
     private static final String DEFAULT_REQUEST_URL = "/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
 
@@ -44,7 +44,7 @@ public class CrawlerTaskFixture {
      * @return 새로운 UUID 기반 TaskId
      */
     public static TaskId defaultTaskId() {
-        return TaskId.generate();
+        return TaskId.forNew();
     }
 
     /**

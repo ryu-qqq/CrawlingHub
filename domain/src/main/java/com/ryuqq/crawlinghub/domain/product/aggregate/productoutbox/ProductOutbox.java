@@ -51,7 +51,7 @@ public class ProductOutbox {
      * @param clock 시간 제어 (테스트 가능성)
      */
     private ProductOutbox(ProductId productId, OutboxEventType eventType, String payload, Clock clock) {
-        this.outboxId = OutboxId.generate();
+        this.outboxId = OutboxId.forNew();
         this.productId = productId;
         this.eventType = eventType;
         this.payload = payload;
@@ -67,7 +67,7 @@ public class ProductOutbox {
      *
      * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
-     *   <li>ID 자동 생성 (OutboxId.generate())</li>
+     *   <li>ID 자동 생성 (OutboxId.forNew())</li>
      *   <li>초기 상태: WAITING</li>
      *   <li>초기 retryCount: 0</li>
      *   <li>errorMessage: null</li>

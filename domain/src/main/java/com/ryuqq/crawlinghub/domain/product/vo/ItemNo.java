@@ -25,4 +25,14 @@ public record ItemNo(Long value) {
             throw new IllegalArgumentException("ItemNo는 양수여야 합니다");
         }
     }
+
+    /**
+     * 정적 팩토리 메서드 - ItemNo 생성
+     *
+     * @param value 상품 번호 (양수)
+     * @return ItemNo 인스턴스
+     */
+    public static ItemNo of(Long value) {
+        return new ItemNo(value);
+    }
 }

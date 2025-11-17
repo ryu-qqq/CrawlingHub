@@ -134,7 +134,7 @@ public class ProductOutboxFixture {
      * @return 새로운 UUID 기반 OutboxId
      */
     public static OutboxId defaultOutboxId() {
-        return OutboxId.generate();
+        return OutboxId.forNew();
     }
 
     /**

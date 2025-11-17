@@ -139,7 +139,7 @@ public class ProductFixture {
      * @return 새로운 UUID 기반 ProductId
      */
     public static ProductId defaultProductId() {
-        return ProductId.generate();
+        return ProductId.forNew();
     }
 
     /**
