@@ -3,7 +3,7 @@
 **Task**: Integration Test 구현
 **Layer**: Integration Test
 **브랜치**: feature/MUSTIT-005-integration
-**예상 소요 시간**: 600분 (40 사이클 × 15분)
+**예상 소요 시간**: 735분 (49 사이클 × 15분)
 
 ---
 
@@ -1022,18 +1022,338 @@
 
 ---
 
+### 4️⃣1️⃣ E2E Scenario 4 - Part 1: CrawlingSchedule 등록 (Cycle 41)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `E2ESchedulerIntegrationTest.java` 생성
+- [ ] `shouldRegisterCrawlingScheduleSuccessfully()` 작성
+- [ ] POST /api/v1/admin/schedules 호출
+- [ ] RegisterCrawlingScheduleRequest DTO 사용
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E CrawlingSchedule 등록 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] TestRestTemplate 주입
+- [ ] RegisterCrawlingScheduleRequest 생성
+  - sellerId: "seller_test_001"
+  - scheduleExpression: "rate(1 day)"
+- [ ] HTTP 201 Created 응답 검증
+- [ ] CrawlingScheduleResponse 검증
+  - scheduleId 생성됨
+  - status: ACTIVE
+  - nextRunAt 계산됨
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E CrawlingSchedule 등록 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 테스트 가독성 개선 (Given-When-Then)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E CrawlingSchedule 등록 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] RegisterCrawlingScheduleRequest Fixture 사용
+- [ ] 커밋: `test: E2E CrawlingSchedule 등록 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣2️⃣ E2E Scenario 4 - Part 2: SchedulerOutbox 생성 확인 (Cycle 42)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldCreateSchedulerOutboxOnScheduleRegistration()` 작성
+- [ ] CrawlingSchedule 등록 → SchedulerOutbox 생성 확인
+- [ ] SchedulerOutboxRepository 주입
+- [ ] eventType: SCHEDULE_REGISTERED 검증
+- [ ] status: WAITING 검증
+- [ ] payload JSON 검증
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E SchedulerOutbox 생성 확인 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] SchedulerOutbox 조회 로직 추가
+- [ ] findByScheduleId() 호출
+- [ ] eventType 검증: SCHEDULE_REGISTERED
+- [ ] status 검증: WAITING
+- [ ] payload 파싱 및 검증
+  - ruleName: "mustit-crawler-seller_seller_test_001"
+  - scheduleExpression: "rate(1 day)"
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E SchedulerOutbox 생성 확인 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Assertion 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E SchedulerOutbox 생성 확인 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] SchedulerOutbox 검증 Fixture 생성
+- [ ] 커밋: `test: E2E SchedulerOutbox 생성 확인 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣3️⃣ E2E Scenario 4 - Part 3: ProcessSchedulerOutbox - SENDING 상태 전환 (Cycle 43)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldProcessSchedulerOutboxToSending()` 작성
+- [ ] ProcessSchedulerOutboxUseCase 주입
+- [ ] Outbox 상태: WAITING → SENDING 검증
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E ProcessSchedulerOutbox SENDING 전환 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] ProcessSchedulerOutboxCommand 생성 (scheduleId)
+- [ ] UseCase 실행
+- [ ] SchedulerOutbox 상태 변경 검증: SENDING
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E ProcessSchedulerOutbox SENDING 전환 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Outbox 처리 로직 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E ProcessSchedulerOutbox SENDING 전환 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] ProcessSchedulerOutboxCommand Fixture 사용
+- [ ] 커밋: `test: E2E ProcessSchedulerOutbox SENDING 전환 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣4️⃣ E2E Scenario 4 - Part 4: EventBridge Rule 생성 확인 (Cycle 44)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldCreateEventBridgeRuleInLocalstack()` 작성
+- [ ] ProcessSchedulerOutbox 실행 → EventBridge Rule 생성
+- [ ] Localstack EventBridgeClient 주입
+- [ ] ListRulesRequest로 Rule 조회
+- [ ] Rule Name 검증: "mustit-crawler-seller_seller_test_001"
+- [ ] Schedule Expression 검증: "rate(1 day)"
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E EventBridge Rule 생성 확인 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] EventBridgeClient 주입 (Localstack Endpoint)
+- [ ] ListRulesRequest 생성
+- [ ] Rule 조회 및 검증
+  - Name: "mustit-crawler-seller_seller_test_001"
+  - ScheduleExpression: "rate(1 day)"
+  - State: ENABLED
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E EventBridge Rule 생성 확인 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] EventBridge Helper 메서드 추출
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E EventBridge Rule 생성 확인 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] EventBridge Rule Fixture 생성
+- [ ] 커밋: `test: E2E EventBridge Rule 생성 확인 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣5️⃣ E2E Scenario 4 - Part 5: SchedulerOutbox 완료 (SENDING → COMPLETED) (Cycle 45)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldCompleteSchedulerOutboxAfterEventBridge()` 작성
+- [ ] EventBridge Rule 생성 성공 → Outbox COMPLETED
+- [ ] status: COMPLETED 검증
+- [ ] retryCount: 0 유지
+- [ ] errorMessage: null
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E SchedulerOutbox 완료 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] SchedulerOutbox.complete() 호출
+- [ ] 상태 변경 검증: COMPLETED
+- [ ] retryCount 검증: 0
+- [ ] errorMessage 검증: null
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E SchedulerOutbox 완료 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Outbox 완료 로직 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E SchedulerOutbox 완료 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Outbox Completion Fixture 생성
+- [ ] 커밋: `test: E2E SchedulerOutbox 완료 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣6️⃣ E2E Scenario 4 - Part 6: CrawlingScheduleExecution 생성 (Cycle 46)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldCreateScheduleExecutionOnTrigger()` 작성
+- [ ] POST /api/internal/schedules/{scheduleId}/execute 호출 (내부 API)
+- [ ] CreateScheduleExecutionRequest DTO 사용
+- [ ] CrawlingScheduleExecution 생성 확인
+- [ ] status: PENDING → RUNNING 검증
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E CrawlingScheduleExecution 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] CreateScheduleExecutionRequest 생성
+- [ ] POST /api/internal/schedules/{scheduleId}/execute 호출
+- [ ] HTTP 201 Created 응답 검증
+- [ ] ScheduleExecutionResponse 검증
+  - executionId 생성됨
+  - status: PENDING
+  - totalTasksCreated: 0 (초기값)
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E CrawlingScheduleExecution 생성 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 테스트 가독성 개선
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E CrawlingScheduleExecution 생성 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] CreateScheduleExecutionRequest Fixture 사용
+- [ ] 커밋: `test: E2E CrawlingScheduleExecution 생성 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣7️⃣ E2E Scenario 4 - Part 7: ScheduleExecution 진행률 추적 (Cycle 47)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldTrackExecutionProgress()` 작성
+- [ ] start(totalTasks: 100) 호출
+- [ ] completeTask() 3회 호출
+- [ ] failTask() 2회 호출
+- [ ] getProgressRate() → 5.0% 검증
+- [ ] getSuccessRate() → 60.0% 검증 (3/5)
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E ScheduleExecution 진행률 추적 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] UpdateScheduleExecutionProgressUseCase 주입
+- [ ] UpdateProgressCommand 생성
+  - executionId
+  - completedTasks: +3
+  - failedTasks: +2
+- [ ] UseCase 실행
+- [ ] GET /api/v1/admin/schedules/{scheduleId}/executions/{executionId} 호출
+- [ ] progressRate 검증: 5.0
+- [ ] successRate 검증: 60.0
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E ScheduleExecution 진행률 추적 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 진행률 계산 로직 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E ScheduleExecution 진행률 추적 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] UpdateProgressCommand Fixture 사용
+- [ ] 커밋: `test: E2E ScheduleExecution 진행률 추적 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣8️⃣ E2E Scenario 4 - Part 8: Schedule 업데이트 → Outbox UPDATED (Cycle 48)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldUpdateScheduleAndCreateUpdatedOutbox()` 작성
+- [ ] PUT /api/v1/admin/schedules/{scheduleId} 호출
+- [ ] UpdateCrawlingScheduleRequest DTO 사용
+  - scheduleExpression: "rate(2 days)" (변경)
+- [ ] SchedulerOutbox 생성 확인
+  - eventType: SCHEDULE_UPDATED
+  - status: WAITING
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E Schedule 업데이트 Outbox 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] UpdateCrawlingScheduleRequest 생성
+- [ ] PUT /api/v1/admin/schedules/{scheduleId} 호출
+- [ ] HTTP 200 OK 응답 검증
+- [ ] SchedulerOutbox 조회
+  - eventType: SCHEDULE_UPDATED
+  - status: WAITING
+  - payload: {"ruleName":"...", "scheduleExpression":"rate(2 days)"}
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E Schedule 업데이트 Outbox 생성 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 업데이트 로직 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E Schedule 업데이트 Outbox 생성 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] UpdateCrawlingScheduleRequest Fixture 사용
+- [ ] 커밋: `test: E2E Schedule 업데이트 Outbox 생성 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣9️⃣ E2E Scenario 4 - Part 9: 전체 스케줄러 워크플로우 통합 테스트 (Cycle 49)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `e2e_complete_scheduler_workflow()` 작성
+- [ ] 전체 플로우 테스트
+  1. CrawlingSchedule 등록 → SchedulerOutbox WAITING
+  2. ProcessSchedulerOutbox → EventBridge Rule 생성 → Outbox COMPLETED
+  3. Schedule Trigger → CrawlingScheduleExecution 생성
+  4. Execution 진행률 추적 (start, completeTask, failTask)
+  5. Execution 완료 (complete)
+  6. Schedule 업데이트 → Outbox UPDATED → EventBridge Rule 업데이트
+  7. Schedule 비활성화 → Outbox DEACTIVATED → EventBridge Rule 삭제
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: E2E 전체 스케줄러 워크플로우 통합 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] Cycle 41-48 통합
+- [ ] 전체 플로우 실행
+- [ ] 각 단계 검증
+  - Schedule 등록 → Outbox WAITING
+  - Outbox 처리 → EventBridge Rule 생성 → Outbox COMPLETED
+  - Execution 생성 → 진행률 추적 → 완료
+  - Schedule 업데이트 → EventBridge Rule 업데이트
+  - Schedule 비활성화 → EventBridge Rule 삭제
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: E2E 전체 스케줄러 워크플로우 통합 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 플로우 가독성 개선
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: E2E 전체 스케줄러 워크플로우 통합 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] E2E Scenario 4 Fixture 정리
+- [ ] 커밋: `test: E2E 전체 스케줄러 워크플로우 통합 테스트 정리 (Tidy)`
+
+---
+
 ## ✅ 완료 조건
 
-- [ ] 40개 TDD 사이클 모두 완료 (160개 체크박스 모두 ✅)
-- [ ] 3개 E2E 시나리오 테스트 작성 완료
+- [ ] 49개 TDD 사이클 모두 완료 (196개 체크박스 모두 ✅)
+- [ ] 4개 E2E 시나리오 테스트 작성 완료
+  - [ ] Scenario 1: 셀러 등록 → 크롤링 → 상품 저장
+  - [ ] Scenario 2: 상품 변경 감지 → Outbox 처리
+  - [ ] Scenario 3: UserAgent 할당 → 429 응답 → 복구
+  - [ ] **Scenario 4: 스케줄러 등록 → EventBridge Rule → Execution 추적**
 - [ ] EventBridge 통합 테스트 통과 (Localstack)
+  - [ ] Rule 생성/업데이트/삭제
+  - [ ] **CrawlingSchedule → EventBridge 연동**
 - [ ] SQS 통합 테스트 통과 (Localstack)
+  - [ ] 메시지 발행/폴링
+  - [ ] Dead Letter Queue (DLQ)
+- [ ] **SchedulerOutbox 통합 테스트 통과**
+  - [ ] **WAITING → SENDING → COMPLETED 상태 전환**
+  - [ ] **EventType: SCHEDULE_REGISTERED/UPDATED/DEACTIVATED**
+  - [ ] **재시도 로직 (maxRetryCount: 5)**
+- [ ] **CrawlingScheduleExecution 통합 테스트 통과**
+  - [ ] **PENDING → RUNNING → COMPLETED/FAILED**
+  - [ ] **진행률 추적 (getProgressRate, getSuccessRate)**
 - [ ] UserAgent 할당 동시성 테스트 통과
 - [ ] 크롤링 태스크 동시 처리 테스트 통과
 - [ ] Bulk Insert 성능 테스트 통과 (< 5초)
 - [ ] 메트릭 집계 쿼리 성능 테스트 통과 (< 1초)
 - [ ] WireMock으로 외부 API Mock 완료
+  - [ ] 머스트잇 API
+  - [ ] 외부 상품 서버 API
+  - [ ] 429 응답 시뮬레이션
 - [ ] TestContainers 환경 구성 완료
+  - [ ] MySQL
+  - [ ] Localstack (EventBridge, SQS)
 - [ ] @Sql 테스트 데이터 준비 완료
 - [ ] 모든 테스트 통과 (성공률 100%)
 - [ ] Zero-Tolerance 규칙 준수
@@ -1217,5 +1537,148 @@ void bulk_insert_1000_tasks_performance() {
 
     List<CrawlerTask> tasks = crawlerTaskRepository.findBySellerId(sellerId);
     assertThat(tasks).hasSize(1000);
+}
+```
+
+### 스케줄러 E2E 시나리오 예시 (Scenario 4)
+
+```java
+@Test
+void e2e_complete_scheduler_workflow() {
+    // Given: 셀러 등록
+    String sellerId = "seller_test_001";
+
+    // Step 1: CrawlingSchedule 등록
+    RegisterCrawlingScheduleRequest registerRequest = new RegisterCrawlingScheduleRequest(
+        sellerId,
+        "rate(1 day)"
+    );
+
+    ResponseEntity<CrawlingScheduleResponse> registerResponse = restTemplate.postForEntity(
+        "/api/v1/admin/schedules",
+        registerRequest,
+        CrawlingScheduleResponse.class
+    );
+
+    assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    UUID scheduleId = registerResponse.getBody().scheduleId();
+
+    // Step 2: SchedulerOutbox 생성 확인 (WAITING)
+    List<SchedulerOutbox> outboxes = schedulerOutboxRepository.findByScheduleId(scheduleId);
+    assertThat(outboxes).hasSize(1);
+    assertThat(outboxes.get(0).getEventType()).isEqualTo(SchedulerOutboxEventType.SCHEDULE_REGISTERED);
+    assertThat(outboxes.get(0).getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
+
+    // Step 3: ProcessSchedulerOutbox → EventBridge Rule 생성
+    processSchedulerOutboxUseCase.execute(new ProcessSchedulerOutboxCommand(scheduleId));
+
+    // Step 4: EventBridge Rule 확인 (Localstack)
+    EventBridgeClient eventBridgeClient = EventBridgeClient.builder()
+        .endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.EVENTBRIDGE))
+        .build();
+
+    ListRulesResponse rulesResponse = eventBridgeClient.listRules(
+        ListRulesRequest.builder()
+            .namePrefix("mustit-crawler-seller_" + sellerId)
+            .build()
+    );
+
+    assertThat(rulesResponse.rules()).hasSize(1);
+    Rule rule = rulesResponse.rules().get(0);
+    assertThat(rule.name()).isEqualTo("mustit-crawler-seller_" + sellerId);
+    assertThat(rule.scheduleExpression()).isEqualTo("rate(1 day)");
+    assertThat(rule.state()).isEqualTo(RuleState.ENABLED);
+
+    // Step 5: SchedulerOutbox COMPLETED 확인
+    SchedulerOutbox completedOutbox = schedulerOutboxRepository.findByScheduleId(scheduleId).get(0);
+    assertThat(completedOutbox.getStatus()).isEqualTo(SchedulerOutboxStatus.COMPLETED);
+    assertThat(completedOutbox.getRetryCount()).isEqualTo(0);
+
+    // Step 6: CrawlingScheduleExecution 생성
+    CreateScheduleExecutionRequest executionRequest = new CreateScheduleExecutionRequest(scheduleId);
+
+    ResponseEntity<ScheduleExecutionResponse> executionResponse = restTemplate.postForEntity(
+        "/api/internal/schedules/" + scheduleId + "/execute",
+        executionRequest,
+        ScheduleExecutionResponse.class
+    );
+
+    assertThat(executionResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    UUID executionId = executionResponse.getBody().executionId();
+
+    // Step 7: Execution 진행률 추적
+    UpdateScheduleExecutionProgressCommand progressCommand = new UpdateScheduleExecutionProgressCommand(
+        executionId,
+        100,  // totalTasks
+        30,   // completedTasks
+        5     // failedTasks
+    );
+
+    updateScheduleExecutionProgressUseCase.execute(progressCommand);
+
+    // Step 8: 진행률 확인
+    ResponseEntity<ScheduleExecutionResponse> progressResponse = restTemplate.getForEntity(
+        "/api/v1/admin/schedules/" + scheduleId + "/executions/" + executionId,
+        ScheduleExecutionResponse.class
+    );
+
+    ScheduleExecutionResponse progressData = progressResponse.getBody();
+    assertThat(progressData.progressRate()).isEqualTo(35.0);  // (30 + 5) / 100 * 100
+    assertThat(progressData.successRate()).isCloseTo(85.7, within(0.1));  // 30 / 35 * 100
+
+    // Step 9: Execution 완료
+    completeScheduleExecutionUseCase.execute(new CompleteScheduleExecutionCommand(executionId));
+
+    CrawlingScheduleExecution completedExecution = scheduleExecutionRepository.findById(executionId).get();
+    assertThat(completedExecution.getStatus()).isEqualTo(ExecutionStatus.COMPLETED);
+
+    // Step 10: Schedule 업데이트 → Outbox UPDATED
+    UpdateCrawlingScheduleRequest updateRequest = new UpdateCrawlingScheduleRequest(
+        "rate(2 days)"
+    );
+
+    restTemplate.put("/api/v1/admin/schedules/" + scheduleId, updateRequest);
+
+    List<SchedulerOutbox> updatedOutboxes = schedulerOutboxRepository.findByScheduleId(scheduleId);
+    SchedulerOutbox updatedOutbox = updatedOutboxes.stream()
+        .filter(o -> o.getEventType() == SchedulerOutboxEventType.SCHEDULE_UPDATED)
+        .findFirst()
+        .get();
+
+    assertThat(updatedOutbox.getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
+
+    // Step 11: ProcessSchedulerOutbox → EventBridge Rule 업데이트
+    processSchedulerOutboxUseCase.execute(new ProcessSchedulerOutboxCommand(scheduleId));
+
+    ListRulesResponse updatedRulesResponse = eventBridgeClient.listRules(
+        ListRulesRequest.builder()
+            .namePrefix("mustit-crawler-seller_" + sellerId)
+            .build()
+    );
+
+    Rule updatedRule = updatedRulesResponse.rules().get(0);
+    assertThat(updatedRule.scheduleExpression()).isEqualTo("rate(2 days)");
+
+    // Step 12: Schedule 비활성화 → EventBridge Rule 삭제
+    deactivateCrawlingScheduleUseCase.execute(new DeactivateCrawlingScheduleCommand(scheduleId));
+
+    List<SchedulerOutbox> deactivatedOutboxes = schedulerOutboxRepository.findByScheduleId(scheduleId);
+    SchedulerOutbox deactivatedOutbox = deactivatedOutboxes.stream()
+        .filter(o -> o.getEventType() == SchedulerOutboxEventType.SCHEDULE_DEACTIVATED)
+        .findFirst()
+        .get();
+
+    assertThat(deactivatedOutbox.getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
+
+    processSchedulerOutboxUseCase.execute(new ProcessSchedulerOutboxCommand(scheduleId));
+
+    // EventBridge Rule 삭제 확인
+    ListRulesResponse finalRulesResponse = eventBridgeClient.listRules(
+        ListRulesRequest.builder()
+            .namePrefix("mustit-crawler-seller_" + sellerId)
+            .build()
+    );
+
+    assertThat(finalRulesResponse.rules()).isEmpty();
 }
 ```

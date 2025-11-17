@@ -1,11 +1,15 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.crawler.aggregate.outbox.SchedulerOutbox;
+import com.ryuqq.crawlinghub.domain.crawler.exception.SchedulerOutboxInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
+import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxStatus;
 import com.ryuqq.crawlinghub.domain.fixture.SchedulerOutboxFixture;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -133,5 +137,244 @@ class SchedulerOutboxTest {
 
         // Then
         assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
+    }
+
+    // ===== reconstitute() 메서드 테스트 =====
+
+    @Test
+    void shouldReconstituteWaitingOutbox() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
+        String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.WAITING,
+            0,
+            null,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(outbox.getEventType()).isEqualTo(eventType);
+        assertThat(outbox.getPayload()).isEqualTo(payload);
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
+        assertThat(outbox.getRetryCount()).isEqualTo(0);
+        assertThat(outbox.getErrorMessage()).isNull();
+    }
+
+    @Test
+    void shouldReconstituteSendingOutbox() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_UPDATED;
+        String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(2 days)\"}";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.SENDING,
+            0,
+            null,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.SENDING);
+        assertThat(outbox.getRetryCount()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldReconstituteCompletedOutbox() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_DEACTIVATED;
+        String payload = "{\"ruleName\":\"test-rule\"}";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.COMPLETED,
+            0,
+            null,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.COMPLETED);
+        assertThat(outbox.getRetryCount()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldReconstituteFailedOutboxWithRetryCount1() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
+        String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
+        String errorMessage = "EventBridge API call failed: InvalidRuleName";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.FAILED,
+            1,
+            errorMessage,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.FAILED);
+        assertThat(outbox.getRetryCount()).isEqualTo(1);
+        assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(outbox.canRetry()).isTrue();
+    }
+
+    @Test
+    void shouldReconstituteFailedOutboxWithRetryCount3() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
+        String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
+        String errorMessage = "EventBridge API call failed: ThrottlingException";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.FAILED,
+            3,
+            errorMessage,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.FAILED);
+        assertThat(outbox.getRetryCount()).isEqualTo(3);
+        assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(outbox.canRetry()).isTrue();
+    }
+
+    @Test
+    void shouldReconstituteFailedOutboxWithMaxRetryCount() {
+        // Given
+        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
+        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
+        String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
+        String errorMessage = "EventBridge API call failed: ServiceUnavailable";
+        LocalDateTime now = LocalDateTime.now();
+
+        // When
+        SchedulerOutbox outbox = SchedulerOutbox.reconstitute(
+            outboxId,
+            scheduleId,
+            eventType,
+            payload,
+            SchedulerOutboxStatus.FAILED,
+            5,
+            errorMessage,
+            now,
+            now
+        );
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.FAILED);
+        assertThat(outbox.getRetryCount()).isEqualTo(5);
+        assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(outbox.canRetry()).isFalse();
+    }
+
+    // ===== 예외 케이스 테스트 =====
+
+    @Test
+    void shouldThrowExceptionWhenSendingNonWaitingOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.sendingOutbox();
+
+        // When & Then
+        assertThatThrownBy(() -> outbox.send())
+            .isInstanceOf(SchedulerOutboxInvalidStateException.class)
+            .hasMessageContaining("Cannot send outbox")
+            .hasMessageContaining("SENDING");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCompletingNonSendingOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.waitingOutbox();
+
+        // When & Then
+        assertThatThrownBy(() -> outbox.complete())
+            .isInstanceOf(SchedulerOutboxInvalidStateException.class)
+            .hasMessageContaining("Cannot complete outbox")
+            .hasMessageContaining("WAITING");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFailingNonSendingOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.waitingOutbox();
+        String errorMessage = "Test error";
+
+        // When & Then
+        assertThatThrownBy(() -> outbox.fail(errorMessage))
+            .isInstanceOf(SchedulerOutboxInvalidStateException.class)
+            .hasMessageContaining("Cannot fail outbox")
+            .hasMessageContaining("WAITING");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRetryingNonFailedOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.waitingOutbox();
+
+        // When & Then
+        assertThatThrownBy(() -> outbox.retry())
+            .isInstanceOf(SchedulerOutboxInvalidStateException.class)
+            .hasMessageContaining("Cannot retry outbox")
+            .hasMessageContaining("WAITING");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRetryingWithMaxRetryCountExceeded() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(5);
+
+        // When & Then
+        assertThatThrownBy(() -> outbox.retry())
+            .isInstanceOf(SchedulerOutboxInvalidStateException.class)
+            .hasMessageContaining("Maximum retry count exceeded");
     }
 }

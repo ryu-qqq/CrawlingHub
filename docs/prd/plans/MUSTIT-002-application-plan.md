@@ -1259,9 +1259,817 @@ public void blockUserAgent(String userAgentId) {
 
 ---
 
+## 📅 스케줄러 관련 UseCases (Cycle 41-68)
+
+### 4️⃣1️⃣ RegisterCrawlingScheduleCommand DTO 구현 (Cycle 41)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `RegisterCrawlingScheduleCommandTest.java` 생성
+- [ ] `shouldCreateCommandWithValidData()` 작성
+- [ ] `shouldRejectInvalidSellerId()` 작성
+- [ ] `shouldRejectInvalidScheduleExpression()` 작성
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: RegisterCrawlingScheduleCommand DTO 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `RegisterCrawlingScheduleCommand.java` 생성 (Record)
+- [ ] 필드: sellerId, scheduleExpression (Cron 표현식)
+- [ ] 검증 로직 추가 (sellerId 빈 값 체크, scheduleExpression 형식 검증)
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: RegisterCrawlingScheduleCommand DTO 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Validation 메시지 명확화
+- [ ] ArchUnit 테스트 추가 (Command DTO 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: RegisterCrawlingScheduleCommand DTO 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] `RegisterCrawlingScheduleCommandFixture.java` 생성
+- [ ] `aRegisterCrawlingScheduleCommand()` 메서드 작성
+- [ ] 테스트 → Fixture 사용으로 리팩토링
+- [ ] 커밋: `test: RegisterCrawlingScheduleCommandFixture 정리 (Tidy)`
+
+---
+
+### 4️⃣2️⃣ CrawlingScheduleResponse DTO 구현 (Cycle 42)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleResponseTest.java` 생성
+- [ ] `shouldCreateResponseFromDomain()` 작성
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: CrawlingScheduleResponse DTO 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CrawlingScheduleResponse.java` 생성 (Record)
+- [ ] 필드: scheduleId, sellerId, scheduleRule, scheduleExpression, status, createdAt, updatedAt
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: CrawlingScheduleResponse DTO 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ArchUnit 테스트 추가 (Response DTO 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: CrawlingScheduleResponse DTO 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] `CrawlingScheduleResponseFixture.java` 생성
+- [ ] `aCrawlingScheduleResponse()` 메서드 작성
+- [ ] 테스트 → Fixture 사용
+- [ ] 커밋: `test: CrawlingScheduleResponseFixture 정리 (Tidy)`
+
+---
+
+### 4️⃣3️⃣ CrawlingScheduleAssembler 구현 (Cycle 43)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleAssemblerTest.java` 생성
+- [ ] `shouldConvertDomainToResponse()` 작성
+- [ ] Mock 없이 실제 CrawlingSchedule Aggregate 사용
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: CrawlingScheduleAssembler 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CrawlingScheduleAssembler.java` 생성
+- [ ] `toResponse(CrawlingSchedule)` 메서드 구현
+- [ ] CrawlingSchedule → CrawlingScheduleResponse 변환 로직
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: CrawlingScheduleAssembler 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ArchUnit 테스트 추가 (Assembler 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: CrawlingScheduleAssembler 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] 테스트 코드 정리 (Fixture 사용)
+- [ ] 커밋: `test: CrawlingScheduleAssembler 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣4️⃣ CrawlingScheduleCommandPort 인터페이스 정의 (Cycle 44)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleCommandPortTest.java` 생성 (Mock 테스트)
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: CrawlingScheduleCommandPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CrawlingScheduleCommandPort.java` 인터페이스 생성
+- [ ] `save(CrawlingSchedule schedule)` 메서드 정의
+- [ ] `delete(UUID scheduleId)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: CrawlingScheduleCommandPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가 (Port 명명 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: CrawlingScheduleCommandPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 생성 (필요 시)
+- [ ] 커밋: `test: CrawlingScheduleCommandPort 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣5️⃣ CrawlingScheduleQueryPort 인터페이스 정의 (Cycle 45)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleQueryPortTest.java` 생성
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: CrawlingScheduleQueryPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CrawlingScheduleQueryPort.java` 인터페이스 생성
+- [ ] `findById(UUID scheduleId)` 메서드 정의
+- [ ] `findBySellerId(String sellerId)` 메서드 정의
+- [ ] `findByStatus(ScheduleStatus status, Pageable pageable)` 메서드 정의
+- [ ] `existsBySellerId(String sellerId)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: CrawlingScheduleQueryPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: CrawlingScheduleQueryPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 정리
+- [ ] 커밋: `test: CrawlingScheduleQueryPort 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣6️⃣ RegisterCrawlingScheduleUseCase 인터페이스 정의 (Cycle 46)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `RegisterCrawlingScheduleUseCaseTest.java` 생성 (Mock 테스트)
+- [ ] Use Case 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: RegisterCrawlingScheduleUseCase 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `RegisterCrawlingScheduleUseCase.java` 인터페이스 생성
+- [ ] `registerSchedule(RegisterCrawlingScheduleCommand command)` 메서드 정의
+- [ ] 반환 타입: `CrawlingScheduleResponse`
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: RegisterCrawlingScheduleUseCase 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가 (비즈니스 로직 설명)
+- [ ] ArchUnit 테스트 추가 (Input Port 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: RegisterCrawlingScheduleUseCase 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock UseCase Fixture 생성
+- [ ] 커밋: `test: RegisterCrawlingScheduleUseCase 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣7️⃣ RegisterCrawlingScheduleUseCaseImpl 구현 - Part 1 (중복 체크) (Cycle 47)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `RegisterCrawlingScheduleUseCaseImplTest.java` 생성
+- [ ] Mock Port 준비 (CrawlingScheduleQueryPort, CrawlingScheduleCommandPort, SchedulerOutboxCommandPort)
+- [ ] `shouldThrowExceptionWhenDuplicateSellerId()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 중복 스케줄 검증 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `RegisterCrawlingScheduleUseCaseImpl.java` 생성
+- [ ] `@Service` 어노테이션 추가
+- [ ] Port 의존성 주입 (생성자)
+- [ ] 중복 체크 로직만 구현 (existsBySellerId)
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 중복 스케줄 검증 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 예외 메시지 명확화
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 중복 검증 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 사용
+- [ ] 커밋: `test: 중복 검증 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣8️⃣ RegisterCrawlingScheduleUseCaseImpl 구현 - Part 2 (스케줄 생성 및 저장) (Cycle 48)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldRegisterScheduleSuccessfully()` 작성
+- [ ] Mock 동작 정의 (save)
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 등록 성공 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] CrawlingSchedule.create() 호출
+- [ ] scheduleCommandPort.save() 호출
+- [ ] CrawlingScheduleAssembler.toResponse() 호출
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 등록 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 코드 가독성 개선
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 등록 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] 테스트 → Fixture 사용
+- [ ] 커밋: `test: 스케줄 등록 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣9️⃣ RegisterCrawlingScheduleUseCaseImpl 구현 - Part 3 (SchedulerOutbox 생성) (Cycle 49)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldCreateSchedulerOutboxWhenScheduleRegistered()` 작성
+- [ ] SchedulerOutbox 생성 및 저장 검증
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutbox 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] SchedulerOutbox.create() 호출
+- [ ] EventType: SCHEDULE_REGISTERED
+- [ ] Payload: JSON 형식 (scheduleId, sellerId, scheduleExpression)
+- [ ] schedulerOutboxCommandPort.save() 호출
+- [ ] 트랜잭션 내에서 실행
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutbox 생성 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Outbox 패턴 적용 확인
+- [ ] JSON Payload 형식 검증
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutbox 생성 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] 테스트 → Fixture 사용
+- [ ] 커밋: `test: SchedulerOutbox 생성 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣0️⃣ UpdateCrawlingScheduleCommand DTO 및 UseCase 구현 (Cycle 50)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `UpdateCrawlingScheduleCommandTest.java` 생성
+- [ ] `UpdateCrawlingScheduleUseCaseImplTest.java` 생성
+- [ ] `shouldUpdateScheduleSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 업데이트 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `UpdateCrawlingScheduleCommand.java` 생성 (Record)
+- [ ] 필드: scheduleId, newScheduleExpression
+- [ ] `UpdateCrawlingScheduleUseCaseImpl.java` 생성
+- [ ] CrawlingSchedule 조회 → updateScheduleExpression() 호출 → 저장
+- [ ] SchedulerOutbox 생성 (EventType: SCHEDULE_UPDATED)
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 업데이트 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 업데이트 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 스케줄 업데이트 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣1️⃣ DeactivateCrawlingScheduleCommand DTO 및 UseCase 구현 (Cycle 51)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `DeactivateCrawlingScheduleCommandTest.java` 생성
+- [ ] `DeactivateCrawlingScheduleUseCaseImplTest.java` 생성
+- [ ] `shouldDeactivateScheduleSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 비활성화 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `DeactivateCrawlingScheduleCommand.java` 생성 (Record)
+- [ ] 필드: scheduleId
+- [ ] `DeactivateCrawlingScheduleUseCaseImpl.java` 생성
+- [ ] CrawlingSchedule 조회 → deactivate() 호출 → 저장
+- [ ] SchedulerOutbox 생성 (EventType: SCHEDULE_DEACTIVATED)
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 비활성화 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 비활성화 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 스케줄 비활성화 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣2️⃣ GetCrawlingScheduleQuery DTO 및 UseCase 구현 (Cycle 52)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `GetCrawlingScheduleQueryTest.java` 생성
+- [ ] `GetCrawlingScheduleUseCaseImplTest.java` 생성
+- [ ] `shouldGetScheduleSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 조회 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `GetCrawlingScheduleQuery.java` 생성 (Record)
+- [ ] 필드: scheduleId 또는 sellerId
+- [ ] `GetCrawlingScheduleUseCaseImpl.java` 생성
+- [ ] CrawlingSchedule 조회 → CrawlingScheduleAssembler.toResponse()
+- [ ] `@Transactional(readOnly = true)` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 조회 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ReadOnly Transaction 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 조회 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 스케줄 조회 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣3️⃣ CreateScheduleExecutionCommand DTO 구현 (Cycle 53)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CreateScheduleExecutionCommandTest.java` 생성
+- [ ] `shouldCreateCommandWithValidData()` 작성
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: CreateScheduleExecutionCommand DTO 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CreateScheduleExecutionCommand.java` 생성 (Record)
+- [ ] 필드: scheduleId, sellerId
+- [ ] 검증 로직 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: CreateScheduleExecutionCommand DTO 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ArchUnit 테스트 추가 (Command DTO 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: CreateScheduleExecutionCommand DTO 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] `CreateScheduleExecutionCommandFixture.java` 생성
+- [ ] 커밋: `test: CreateScheduleExecutionCommandFixture 정리 (Tidy)`
+
+---
+
+### 5️⃣4️⃣ ScheduleExecutionResponse DTO 구현 (Cycle 54)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `ScheduleExecutionResponseTest.java` 생성
+- [ ] `shouldCreateResponseFromDomain()` 작성
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: ScheduleExecutionResponse DTO 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `ScheduleExecutionResponse.java` 생성 (Record)
+- [ ] 필드: executionId, scheduleId, sellerId, status, totalTasksCreated, completedTasks, failedTasks, progressRate, successRate, startedAt, completedAt
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: ScheduleExecutionResponse DTO 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ArchUnit 테스트 추가 (Response DTO 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: ScheduleExecutionResponse DTO 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] `ScheduleExecutionResponseFixture.java` 생성
+- [ ] 커밋: `test: ScheduleExecutionResponseFixture 정리 (Tidy)`
+
+---
+
+### 5️⃣5️⃣ ScheduleExecutionAssembler 구현 (Cycle 55)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `ScheduleExecutionAssemblerTest.java` 생성
+- [ ] `shouldConvertDomainToResponse()` 작성
+- [ ] Mock 없이 실제 CrawlingScheduleExecution Aggregate 사용
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: ScheduleExecutionAssembler 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `ScheduleExecutionAssembler.java` 생성
+- [ ] `toResponse(CrawlingScheduleExecution)` 메서드 구현
+- [ ] CrawlingScheduleExecution → ScheduleExecutionResponse 변환 로직
+- [ ] Tell Don't Ask 원칙: getProgressRate(), getSuccessRate() 활용
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: ScheduleExecutionAssembler 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ArchUnit 테스트 추가 (Assembler 규칙)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: ScheduleExecutionAssembler 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] 테스트 코드 정리 (Fixture 사용)
+- [ ] 커밋: `test: ScheduleExecutionAssembler 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣6️⃣ ScheduleExecutionCommandPort 인터페이스 정의 (Cycle 56)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `ScheduleExecutionCommandPortTest.java` 생성
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: ScheduleExecutionCommandPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `ScheduleExecutionCommandPort.java` 인터페이스 생성
+- [ ] `save(CrawlingScheduleExecution execution)` 메서드 정의
+- [ ] `delete(UUID executionId)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: ScheduleExecutionCommandPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: ScheduleExecutionCommandPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 생성
+- [ ] 커밋: `test: ScheduleExecutionCommandPort 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣7️⃣ ScheduleExecutionQueryPort 인터페이스 정의 (Cycle 57)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `ScheduleExecutionQueryPortTest.java` 생성
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: ScheduleExecutionQueryPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `ScheduleExecutionQueryPort.java` 인터페이스 생성
+- [ ] `findById(UUID executionId)` 메서드 정의
+- [ ] `findByScheduleId(UUID scheduleId, Pageable pageable)` 메서드 정의
+- [ ] `findByStatus(ExecutionStatus status, Pageable pageable)` 메서드 정의
+- [ ] `countByStatus(ExecutionStatus status)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: ScheduleExecutionQueryPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: ScheduleExecutionQueryPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 정리
+- [ ] 커밋: `test: ScheduleExecutionQueryPort 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣8️⃣ CreateScheduleExecutionUseCaseImpl 구현 (Cycle 58)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CreateScheduleExecutionUseCaseImplTest.java` 생성
+- [ ] `shouldCreateExecutionSuccessfully()` 작성
+- [ ] Mock Port 준비
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 실행 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CreateScheduleExecutionUseCaseImpl.java` 생성
+- [ ] CrawlingScheduleExecution.create() 호출
+- [ ] scheduleExecutionCommandPort.save() 호출
+- [ ] ScheduleExecutionAssembler.toResponse() 호출
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 실행 생성 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 실행 생성 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 사용
+- [ ] 커밋: `test: 스케줄 실행 생성 테스트 정리 (Tidy)`
+
+---
+
+### 5️⃣9️⃣ UpdateExecutionProgressCommand DTO 및 UseCase 구현 (Cycle 59)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `UpdateExecutionProgressCommandTest.java` 생성
+- [ ] `UpdateExecutionProgressUseCaseImplTest.java` 생성
+- [ ] `shouldUpdateProgressSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 실행 진행률 업데이트 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `UpdateExecutionProgressCommand.java` 생성 (Record)
+- [ ] 필드: executionId, taskCompleted (Boolean)
+- [ ] `UpdateExecutionProgressUseCaseImpl.java` 생성
+- [ ] CrawlingScheduleExecution 조회
+- [ ] taskCompleted ? completeTask() : failTask() 호출
+- [ ] scheduleExecutionCommandPort.save() 호출
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 실행 진행률 업데이트 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 실행 진행률 업데이트 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 실행 진행률 업데이트 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣0️⃣ CompleteScheduleExecutionCommand DTO 및 UseCase 구현 (Cycle 60)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CompleteScheduleExecutionCommandTest.java` 생성
+- [ ] `CompleteScheduleExecutionUseCaseImplTest.java` 생성
+- [ ] `shouldCompleteExecutionSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 스케줄 실행 완료 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CompleteScheduleExecutionCommand.java` 생성 (Record)
+- [ ] 필드: executionId
+- [ ] `CompleteScheduleExecutionUseCaseImpl.java` 생성
+- [ ] CrawlingScheduleExecution 조회 → complete() 호출 → 저장
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 스케줄 실행 완료 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 스케줄 실행 완료 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 스케줄 실행 완료 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣1️⃣ SchedulerOutboxCommandPort 인터페이스 정의 (Cycle 61)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `SchedulerOutboxCommandPortTest.java` 생성
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: SchedulerOutboxCommandPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `SchedulerOutboxCommandPort.java` 인터페이스 생성
+- [ ] `save(SchedulerOutbox outbox)` 메서드 정의
+- [ ] `saveAll(List<SchedulerOutbox> outboxes)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutboxCommandPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutboxCommandPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 생성
+- [ ] 커밋: `test: SchedulerOutboxCommandPort 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣2️⃣ SchedulerOutboxQueryPort 인터페이스 정의 (Cycle 62)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `SchedulerOutboxQueryPortTest.java` 생성
+- [ ] Port 메서드 시그니처 테스트
+- [ ] 테스트 실행 → 컴파일 에러 확인
+- [ ] 커밋: `test: SchedulerOutboxQueryPort 인터페이스 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `SchedulerOutboxQueryPort.java` 인터페이스 생성
+- [ ] `findById(UUID outboxId)` 메서드 정의
+- [ ] `findByStatus(SchedulerOutboxStatus status, Pageable pageable)` 메서드 정의
+- [ ] `findWaitingOutboxes(int limit)` 메서드 정의
+- [ ] `countByStatus(SchedulerOutboxStatus status)` 메서드 정의
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutboxQueryPort 인터페이스 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] JavaDoc 추가
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutboxQueryPort 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Mock Port Fixture 정리
+- [ ] 커밋: `test: SchedulerOutboxQueryPort 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣3️⃣ ProcessSchedulerOutboxUseCaseImpl 구현 - Part 1 (상태 업데이트) (Cycle 63)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `ProcessSchedulerOutboxUseCaseImplTest.java` 생성
+- [ ] `shouldUpdateOutboxStatusToSending()` 작성
+- [ ] Mock Port 준비
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutbox 상태 업데이트 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `ProcessSchedulerOutboxUseCaseImpl.java` 생성
+- [ ] WAITING 상태 Outbox 조회 (최대 100개)
+- [ ] SENDING 상태로 변경 → 저장
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutbox 상태 업데이트 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증 (첫 번째 트랜잭션)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutbox 상태 업데이트 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 사용
+- [ ] 커밋: `test: SchedulerOutbox 상태 업데이트 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣4️⃣ ProcessSchedulerOutboxUseCaseImpl 구현 - Part 2 (EventBridge 전송) (Cycle 64)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldSendToEventBridgeSuccessfully()` 작성
+- [ ] Mock 동작 정의 (EventBridgePort)
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: EventBridge 전송 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] EventBridge 호출 (트랜잭션 밖)
+- [ ] EventType에 따라 분기
+  - SCHEDULE_REGISTERED: eventBridgePort.createRule()
+  - SCHEDULE_UPDATED: eventBridgePort.updateRule()
+  - SCHEDULE_DEACTIVATED: eventBridgePort.deleteRule()
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: EventBridge 전송 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증 (트랜잭션 밖 호출)
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: EventBridge 전송 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 사용
+- [ ] 커밋: `test: EventBridge 전송 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣5️⃣ ProcessSchedulerOutboxUseCaseImpl 구현 - Part 3 (결과 처리 및 재시도) (Cycle 65)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `shouldRetryWhenEventBridgeFails()` 작성
+- [ ] `shouldMarkFailedAfterMaxRetries()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutbox 재시도 로직 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] 결과에 따라 상태 변경
+  - 성공: complete()
+  - 실패 (retryCount < 5): fail(errorMessage), WAITING으로 복구
+  - 실패 (retryCount >= 5): fail(errorMessage), FAILED 유지
+- [ ] 두 번째 `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutbox 재시도 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 2단계 Transaction 경계 검증
+- [ ] 재시도 로직 정확성 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutbox 재시도 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 사용
+- [ ] 커밋: `test: SchedulerOutbox 재시도 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣6️⃣ GetSchedulerOutboxStatusQuery 및 UseCase 구현 (Cycle 66)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `GetSchedulerOutboxStatusQueryTest.java` 생성
+- [ ] `GetSchedulerOutboxStatusUseCaseImplTest.java` 생성
+- [ ] `shouldGetOutboxStatusSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutbox 상태 조회 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `GetSchedulerOutboxStatusQuery.java` 생성 (Record)
+- [ ] `SchedulerOutboxStatusResponse.java` 생성 (Record)
+- [ ] 필드: waitingCount, sendingCount, completedCount, failedCount
+- [ ] `GetSchedulerOutboxStatusUseCaseImpl.java` 생성
+- [ ] 상태별 개수 조회 → Response 생성
+- [ ] `@Transactional(readOnly = true)` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: SchedulerOutbox 상태 조회 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] ReadOnly Transaction 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: SchedulerOutbox 상태 조회 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: SchedulerOutbox 상태 조회 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣7️⃣ RetryFailedOutboxCommand DTO 및 UseCase 구현 (Cycle 67)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `RetryFailedOutboxCommandTest.java` 생성
+- [ ] `RetryFailedOutboxUseCaseImplTest.java` 생성
+- [ ] `shouldRetryFailedOutboxSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 실패 Outbox 재시도 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `RetryFailedOutboxCommand.java` 생성 (Record)
+- [ ] 필드: outboxId
+- [ ] `RetryFailedOutboxUseCaseImpl.java` 생성
+- [ ] SchedulerOutbox 조회 → canRetry() 검증 → retry() 호출 → 저장
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 실패 Outbox 재시도 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 실패 Outbox 재시도 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 실패 Outbox 재시도 테스트 정리 (Tidy)`
+
+---
+
+### 6️⃣8️⃣ CleanupCompletedOutboxCommand DTO 및 UseCase 구현 (Cycle 68)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CleanupCompletedOutboxCommandTest.java` 생성
+- [ ] `CleanupCompletedOutboxUseCaseImplTest.java` 생성
+- [ ] `shouldCleanupCompletedOutboxSuccessfully()` 작성
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: 완료 Outbox 정리 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+- [ ] `CleanupCompletedOutboxCommand.java` 생성 (Record)
+- [ ] 필드: olderThanDays (기본값: 7일)
+- [ ] `CleanupCompletedOutboxUseCaseImpl.java` 생성
+- [ ] COMPLETED 상태 + 7일 이전 Outbox 조회 → 삭제
+- [ ] `@Transactional` 추가
+- [ ] 테스트 실행 → 통과 확인
+- [ ] 커밋: `impl: 완료 Outbox 정리 로직 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Transaction 경계 검증
+- [ ] Batch Delete 최적화
+- [ ] ArchUnit 테스트 추가
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `refactor: 완료 Outbox 정리 로직 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] Fixture 생성
+- [ ] 커밋: `test: 완료 Outbox 정리 테스트 정리 (Tidy)`
+
+---
+
 ## ✅ 완료 조건
 
-- [ ] 40개 TDD 사이클 모두 완료 (160개 체크박스 모두 ✅)
+- [ ] 68개 TDD 사이클 모두 완료 (272개 체크박스 모두 ✅)
 - [ ] 모든 테스트 통과
 - [ ] ArchUnit 테스트 통과 (Command/Query 분리, Transaction 경계)
 - [ ] Zero-Tolerance 규칙 준수
@@ -1269,6 +2077,8 @@ public void blockUserAgent(String userAgentId) {
   - [ ] Transaction 경계 엄격 관리
   - [ ] Assembler 패턴 사용
   - [ ] Spring 프록시 제약사항 준수
+  - [ ] EventBridge Port 추상화 완료
+  - [ ] SchedulerOutbox 패턴 구현 완료
 - [ ] TestFixture 모두 정리 (Object Mother 패턴)
 - [ ] 코드 커버리지 > 80%
 
