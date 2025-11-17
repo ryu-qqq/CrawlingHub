@@ -54,16 +54,16 @@
   - taskId (TaskId VO, UUID)
   - sellerId (SellerId VO)
   - taskType (CrawlerTaskType Enum)
-  - requestUrl (String)
+  - requestUrl (RequestUrl VO) ⬅️ **변경: String → VO**
   - status (CrawlerTaskStatus Enum)
   - retryCount (Integer, 최대 2회)
 
 - [ ] **비즈니스 규칙**
   - 태스크 생성 시 상태 WAITING
-  - taskType별 requestUrl 형식 검증
-    - MINISHOP: `/mustit-api/facade-api/v1/searchmini-shop-search?...`
-    - PRODUCT_DETAIL: `/mustit-api/facade-api/v1/item/{item_no}/detail/top`
-    - PRODUCT_OPTION: `/mustit-api/legacy-api/v1/auction_products/{item_no}/options`
+  - RequestUrl VO가 taskType에 따라 자동 검증
+    - MINISHOP: `/searchmini-shop-search` 패턴 포함 확인
+    - PRODUCT_DETAIL: `/item/{숫자}/detail/top` 정규식 검증
+    - PRODUCT_OPTION: `/auction_products/{숫자}/options` 정규식 검증
 
 - [ ] **상태 전환 로직**
   - WAITING → PUBLISHED → IN_PROGRESS → COMPLETED/FAILED/RETRY
@@ -72,6 +72,7 @@
 
 - [ ] **Value Objects**
   - TaskId: UUID
+  - RequestUrl: String (taskType 기반 URL 형식 검증) ⬅️ **신규 추가**
   - CrawlerTaskType: Enum (MINISHOP, PRODUCT_DETAIL, PRODUCT_OPTION)
   - CrawlerTaskStatus: Enum (WAITING, PUBLISHED, IN_PROGRESS, COMPLETED, FAILED, RETRY)
 
@@ -88,35 +89,37 @@
 - [ ] **UserAgent Aggregate 구현**
   - userAgentId (UserAgentId VO, UUID)
   - userAgentString (String)
-  - token (String, Nullable)
+  - token (Token VO, Nullable) ⬅️ **변경: String → VO**
   - status (UserAgentStatus Enum)
-  - requestCount (Integer)
-  - lastRequestAt (LocalDateTime)
-  - tokenIssuedAt (LocalDateTime)
+  - ~~requestCount~~ ⬅️ **삭제: Redis로 이동**
+  - ~~lastRequestAt~~ ⬅️ **삭제: Redis로 이동**
+  - tokenIssuedAt (LocalDateTime, Nullable)
 
 - [ ] **비즈니스 규칙**
   - 50개 미리 정의된 UserAgent 문자열 사용
   - 생성 시 token null, status ACTIVE
-  - 시간당 80회 토큰 버킷 리미터
-  - 429 응답 시 즉시 SUSPENDED 상태 전환
+  - 429 응답 시 즉시 SUSPENDED 상태 전환 + token null 처리
 
-- [ ] **토큰 버킷 리미터 로직**
-  - 1시간 기준 (10:00-11:00)
-  - requestCount < 80 && lastRequestAt 1시간 이내 → 허용
-  - 1시간 경과 시 requestCount 리셋
+- [ ] **토큰 버킷 리미터 로직** ⬅️ **변경: Infrastructure Layer (Redis)로 위임**
+  - ~~Domain Layer에서 제거~~ (`canMakeRequest()`, `incrementRequestCount()`)
+  - **Redis Sliding Window 방식** (Lua 스크립트)
+  - 시간당 80회 제한 (과거 1시간 기준 실시간 리필)
+  - Application Layer (UserAgentPoolManager)에서 호출
 
 - [ ] **Value Objects**
   - UserAgentId: UUID
+  - Token: String (머스트잇 비회원 토큰, null/blank 검증) ⬅️ **신규 추가**
   - UserAgentStatus: Enum (ACTIVE, SUSPENDED, BLOCKED)
 
 - [ ] **Domain 메서드**
   - `create(userAgentString)`: UserAgent 생성
-  - `issueToken(token)`: 토큰 발급
-  - `canMakeRequest()`: 요청 가능 여부 확인 (토큰 버킷)
-  - `incrementRequestCount()`: 요청 수 증가
-  - `resetRequestCount()`: 1시간 경과 시 리셋
-  - `suspend()`: 429 응답 시 일시 중지
+  - `issueToken(Token)`: 토큰 발급 (VO 주입) ⬅️ **변경: String → Token VO**
+  - ~~`canMakeRequest()`~~: ⬅️ **삭제: Redis로 이동**
+  - ~~`incrementRequestCount()`~~: ⬅️ **삭제: Redis로 이동**
+  - ~~`resetRequestCount()`~~: ⬅️ **삭제: Redis로 이동**
+  - `suspend()`: 429 응답 시 일시 중지 (token null 처리)
   - `activate()`: 재활성화
+  - `block()`: 관리자 수동 차단 ⬅️ **신규 추가**
 
 ### 4. Aggregate: Product (상품)
 
@@ -183,6 +186,120 @@
   - `fail(errorMessage)`: 전송 실패
   - `canRetry()`: 재시도 가능 여부 확인 (retryCount < 5)
 
+### 6. Aggregate: CrawlingSchedule (크롤링 스케줄) ⬅️ **신규 추가**
+
+- [ ] **CrawlingSchedule Aggregate 구현**
+  - scheduleId (ScheduleId VO, UUID)
+  - sellerId (SellerId VO)
+  - crawlingInterval (CrawlingInterval VO)
+  - scheduleRule (String, EventBridge Rule Name)
+  - scheduleExpression (String, Cron 표현식)
+  - status (ScheduleStatus Enum)
+
+- [ ] **비즈니스 규칙**
+  - Seller 등록 시 자동 생성 (1:1 관계)
+  - 초기 상태 ACTIVE
+  - scheduleRule: `mustit-crawler-{sellerId}` 형식
+  - scheduleExpression: `rate({intervalDays} days)` 형식
+  - Seller 주기 변경 시 자동 업데이트
+
+- [ ] **Value Objects**
+  - ScheduleId: UUID
+  - ScheduleStatus: Enum (ACTIVE, INACTIVE, FAILED)
+
+- [ ] **Domain Event 발행**
+  - ScheduleRegistered: 스케줄 생성 시
+  - ScheduleUpdated: 주기 변경 시
+  - ScheduleDeactivated: 비활성화 시
+
+- [ ] **Domain 메서드**
+  - `create(sellerId, crawlingInterval)`: 스케줄 생성
+  - `updateInterval(newInterval)`: 주기 변경 (ScheduleUpdated 이벤트)
+  - `deactivate()`: 비활성화 (ScheduleDeactivated 이벤트)
+  - `activate()`: 재활성화
+
+### 7. Aggregate: CrawlingScheduleExecution (크롤링 스케줄 실행) ⬅️ **신규 추가**
+
+- [ ] **CrawlingScheduleExecution Aggregate 구현**
+  - executionId (ExecutionId VO, UUID)
+  - scheduleId (ScheduleId VO)
+  - sellerId (SellerId VO)
+  - status (ExecutionStatus Enum)
+  - totalTasksCreated (Integer)
+  - completedTasks (Integer)
+  - failedTasks (Integer)
+  - progressRate (Double, 계산 필드)
+  - successRate (Double, 계산 필드)
+  - startedAt (LocalDateTime)
+  - completedAt (LocalDateTime, Nullable)
+  - errorMessage (String, Nullable)
+
+- [ ] **비즈니스 규칙**
+  - EventBridge 트리거 시 자동 생성
+  - 초기 상태 STARTED
+  - 진행률 = completedTasks / totalTasksCreated * 100
+  - 성공률 = (completedTasks - failedTasks) / completedTasks * 100
+
+- [ ] **상태 전환 로직**
+  - STARTED → IN_PROGRESS → COMPLETED/FAILED
+  - 모든 태스크 완료 시 COMPLETED
+  - 크롤링 중 에러 시 FAILED
+
+- [ ] **Value Objects**
+  - ExecutionId: UUID
+  - ExecutionStatus: Enum (STARTED, IN_PROGRESS, COMPLETED, FAILED)
+
+- [ ] **Domain 메서드** (Tell Don't Ask)
+  - `start()`: 실행 시작 (STARTED)
+  - `markInProgress(totalTasksCreated)`: 진행 중 전환
+  - `updateProgress(completedCount, failedCount)`: 진행 상황 업데이트
+  - `complete()`: 실행 완료 (COMPLETED)
+  - `fail(errorMessage)`: 실행 실패 (FAILED)
+  - `calculateProgressRate()`: 진행률 계산 (내부 메서드)
+  - `calculateSuccessRate()`: 성공률 계산 (내부 메서드)
+
+### 8. Aggregate: SchedulerOutbox (스케줄러 외부 전송) ⬅️ **신규 추가**
+
+- [ ] **SchedulerOutbox Aggregate 구현**
+  - outboxId (OutboxId VO, UUID)
+  - scheduleId (ScheduleId VO)
+  - eventType (SchedulerEventType Enum)
+  - payload (String, JSON)
+  - status (OutboxStatus Enum)
+  - retryCount (Integer)
+  - errorMessage (String, Nullable)
+  - sentAt (LocalDateTime, Nullable)
+
+- [ ] **비즈니스 규칙**
+  - CrawlingSchedule Domain Event 발행 시 자동 생성
+  - 초기 상태 WAITING
+  - EventBridge API 호출은 트랜잭션 밖
+  - 재시도 최대 5회 (Exponential Backoff)
+
+- [ ] **상태 전환 로직**
+  - WAITING → SENDING → COMPLETED/FAILED
+  - 재시도 5회 초과 시 FAILED
+
+- [ ] **Value Objects**
+  - SchedulerEventType: Enum (SCHEDULE_CREATED, SCHEDULE_UPDATED, SCHEDULE_DELETED)
+
+- [ ] **Payload 예시** (JSON)
+  ```json
+  {
+    "ruleName": "mustit-crawler-seller_12345",
+    "scheduleExpression": "rate(1 day)",
+    "targetArn": "arn:aws:execute-api:...",
+    "input": "{\"sellerId\":\"seller_12345\"}"
+  }
+  ```
+
+- [ ] **Domain 메서드**
+  - `create(scheduleId, eventType, payload)`: Outbox 생성
+  - `send()`: 전송 중 상태로 전환
+  - `complete()`: 전송 완료
+  - `fail(errorMessage)`: 전송 실패
+  - `canRetry()`: 재시도 가능 여부 확인 (retryCount < 5)
+
 ---
 
 ## ⚠️ 제약사항
@@ -224,10 +341,25 @@
 
 ## ✅ 완료 조건
 
-- [ ] 5개 Aggregate 구현 완료 (Seller, CrawlerTask, UserAgent, Product, ProductOutbox)
-- [ ] 모든 Value Object 구현 완료
+- [ ] **8개 Aggregate 구현 완료** ⬅️ **변경: 5개 → 8개**
+  - Seller
+  - CrawlerTask (RequestUrl VO 적용)
+  - UserAgent (Token VO 적용, Redis 위임)
+  - Product
+  - ProductOutbox
+  - CrawlingSchedule (신규)
+  - CrawlingScheduleExecution (신규)
+  - SchedulerOutbox (신규)
+- [ ] **모든 Value Object 구현 완료**
+  - RequestUrl (신규)
+  - Token (신규)
+  - 기존 VO 포함
 - [ ] 모든 Enum 구현 완료
 - [ ] 모든 Domain 메서드 구현 완료
+- [ ] **Domain Event 구현 완료** (신규)
+  - ScheduleRegistered
+  - ScheduleUpdated
+  - ScheduleDeactivated
 - [ ] Unit Test 작성 완료 (커버리지 > 80%)
 - [ ] ArchUnit 테스트 통과
 - [ ] TestFixture 패턴 적용
@@ -261,19 +393,34 @@
 - **대상**: 전체 JSON 응답 (raw data)
 - **구현**: `MessageDigest.getInstance("MD5")`
 
-### 토큰 버킷 리미터 구현
+### 토큰 버킷 리미터 (Redis Sliding Window)
 
-```java
-public boolean canMakeRequest() {
-    if (token == null) return false;
+**Domain Layer → Infrastructure Layer 위임**:
+- Domain에서 `canMakeRequest()`, `incrementRequestCount()` 제거
+- Redis Lua 스크립트로 구현 (Atomic 보장)
 
-    LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+**Lua 스크립트 예시**:
+```lua
+local key = KEYS[1]
+local now = tonumber(ARGV[1])
+local window = 3600  -- 1시간
+local limit = 80
 
-    // 1시간 경과 시 requestCount 리셋
-    if (lastRequestAt != null && lastRequestAt.isBefore(oneHourAgo)) {
-        this.requestCount = 0;
-    }
+-- 1시간 이전 요청 제거 (실시간 리필)
+redis.call('ZREMRANGEBYSCORE', key, 0, now - window)
 
-    return requestCount < 80;
-}
+-- 현재 요청 수 확인
+local count = redis.call('ZCARD', key)
+
+if count < limit then
+    redis.call('ZADD', key, now, now)
+    redis.call('EXPIRE', key, window)
+    return 1  -- 허용
+else
+    return 0  -- 차단
+end
 ```
+
+**Application Layer에서 호출**:
+- UserAgentPoolManager가 Redis에 요청
+- Sliding Window 방식으로 Burst Attack 방지

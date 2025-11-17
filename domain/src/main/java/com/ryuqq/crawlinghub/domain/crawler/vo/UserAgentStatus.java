@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.crawler.vo;
 
 /**
  * UserAgent 상태 Enum

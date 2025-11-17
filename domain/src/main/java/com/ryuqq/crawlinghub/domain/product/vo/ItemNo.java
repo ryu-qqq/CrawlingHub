@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.product.vo;
 
 /**
  * 상품 번호 Value Object

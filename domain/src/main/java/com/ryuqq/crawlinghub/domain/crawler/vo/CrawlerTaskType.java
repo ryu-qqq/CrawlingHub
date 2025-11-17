@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.crawler.vo;
 
 /**
  * 크롤러 작업 타입 Enum

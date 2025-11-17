@@ -1,8 +1,10 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
+import com.ryuqq.crawlinghub.domain.crawler.aggregate.useragent.UserAgent;
+import com.ryuqq.crawlinghub.domain.crawler.vo.*;
 import com.ryuqq.crawlinghub.domain.fixture.UserAgentFixture;
-import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
-import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;

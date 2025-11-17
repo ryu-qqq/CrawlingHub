@@ -1,9 +1,9 @@
-package com.ryuqq.crawlinghub.domain.aggregate;
+package com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask;
 
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskStatus;
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
-import com.ryuqq.crawlinghub.domain.vo.TaskId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskStatus;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskType;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.TaskId;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

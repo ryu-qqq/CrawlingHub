@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
-import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 
 /**
  * Seller 관련 테스트 데이터 생성 Fixture

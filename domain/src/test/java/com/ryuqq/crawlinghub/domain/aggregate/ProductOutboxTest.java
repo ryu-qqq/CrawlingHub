@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
+import com.ryuqq.crawlinghub.domain.product.aggregate.productoutbox.ProductOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.*;
 import com.ryuqq.crawlinghub.domain.fixture.ProductFixture;
 import com.ryuqq.crawlinghub.domain.fixture.ProductOutboxFixture;
-import com.ryuqq.crawlinghub.domain.vo.OutboxEventType;
-import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
-import com.ryuqq.crawlinghub.domain.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.product.vo.OutboxEventType;
+import com.ryuqq.crawlinghub.domain.product.vo.OutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductId;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;

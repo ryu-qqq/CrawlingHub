@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
+import com.ryuqq.crawlinghub.domain.product.aggregate.product.Product;
+import com.ryuqq.crawlinghub.domain.product.vo.*;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.fixture.ProductFixture;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
-import com.ryuqq.crawlinghub.domain.vo.ItemNo;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.product.vo.ItemNo;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;

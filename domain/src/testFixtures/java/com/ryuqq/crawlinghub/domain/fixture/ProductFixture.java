@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
-import com.ryuqq.crawlinghub.domain.aggregate.Product;
-import com.ryuqq.crawlinghub.domain.vo.ItemNo;
-import com.ryuqq.crawlinghub.domain.vo.ProductId;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.product.aggregate.product.Product;
+import com.ryuqq.crawlinghub.domain.product.vo.ItemNo;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 
 import java.time.Clock;
 

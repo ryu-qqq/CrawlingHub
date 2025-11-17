@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.vo;
 
+import com.ryuqq.crawlinghub.domain.product.vo.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

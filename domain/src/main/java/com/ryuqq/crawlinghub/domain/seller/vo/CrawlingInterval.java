@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.seller.vo;
 
 /**
  * 크롤링 주기 Value Object
