@@ -33,8 +33,8 @@ import java.time.temporal.ChronoUnit;
  */
 public class CrawlingScheduleFixture {
 
-    private static final SellerId DEFAULT_SELLER_ID = new SellerId("seller_12345");
-    private static final SellerId HOURLY_SELLER_ID = new SellerId("seller_67890");
+    private static final SellerId DEFAULT_SELLER_ID = new SellerId(1L);
+    private static final SellerId HOURLY_SELLER_ID = new SellerId(2L);
 
     /**
      * 새로운 CrawlingSchedule 생성 (표준 패턴)
@@ -160,7 +160,7 @@ public class CrawlingScheduleFixture {
      * @since 2025-11-17
      */
     public static CrawlingSchedule inactiveSchedule() {
-        ScheduleId scheduleId = ScheduleId.generate();
+        ScheduleId scheduleId = ScheduleId.forNew();
         CrawlingInterval interval = new CrawlingInterval(1, ChronoUnit.DAYS);
         LocalDateTime now = LocalDateTime.now();
 

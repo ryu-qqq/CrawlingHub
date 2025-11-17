@@ -40,7 +40,7 @@ public class SellerAssembler {
      */
     public SellerResponse toResponse(Seller seller) {
         return new SellerResponse(
-            seller.getSellerId().value(),
+            String.valueOf(seller.getSellerId().value()),
             seller.getName(),
             seller.getStatus(),
             seller.getCrawlingIntervalDays(),

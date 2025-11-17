@@ -35,8 +35,8 @@ class CrawlingScheduleExecutionTest {
     @Test
     void shouldCreateExecutionWithPendingStatus() {
         // Given
-        ScheduleId scheduleId = ScheduleId.generate();
-        SellerId sellerId = new SellerId("seller_12345");
+        ScheduleId scheduleId = ScheduleId.forNew();
+        SellerId sellerId = new SellerId(1L);
 
         // When
         CrawlingScheduleExecution execution = CrawlingScheduleExecution.create(scheduleId, sellerId);
@@ -138,9 +138,9 @@ class CrawlingScheduleExecutionTest {
     @Test
     void shouldReconstitutePendingExecution() {
         // Given
-        ExecutionId executionId = ExecutionId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
-        SellerId sellerId = new SellerId("seller_12345");
+        ExecutionId executionId = ExecutionId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
+        SellerId sellerId = new SellerId(1L);
         LocalDateTime now = LocalDateTime.now();
 
         // When
@@ -171,9 +171,9 @@ class CrawlingScheduleExecutionTest {
     @Test
     void shouldReconstituteRunningExecution() {
         // Given
-        ExecutionId executionId = ExecutionId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
-        SellerId sellerId = new SellerId("seller_12345");
+        ExecutionId executionId = ExecutionId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
+        SellerId sellerId = new SellerId(1L);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startedAt = now.minusMinutes(10);
 
@@ -205,9 +205,9 @@ class CrawlingScheduleExecutionTest {
     @Test
     void shouldReconstituteCompletedExecution() {
         // Given
-        ExecutionId executionId = ExecutionId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
-        SellerId sellerId = new SellerId("seller_12345");
+        ExecutionId executionId = ExecutionId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
+        SellerId sellerId = new SellerId(1L);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startedAt = now.minusMinutes(30);
         LocalDateTime completedAt = now.minusMinutes(5);
@@ -240,9 +240,9 @@ class CrawlingScheduleExecutionTest {
     @Test
     void shouldReconstituteFailedExecution() {
         // Given
-        ExecutionId executionId = ExecutionId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
-        SellerId sellerId = new SellerId("seller_12345");
+        ExecutionId executionId = ExecutionId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
+        SellerId sellerId = new SellerId(1L);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startedAt = now.minusMinutes(30);
         LocalDateTime completedAt = now.minusMinutes(5);

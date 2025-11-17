@@ -50,7 +50,7 @@ public class Product {
      * @param clock 시간 제어 (테스트 가능성)
      */
     private Product(ItemNo itemNo, SellerId sellerId, Clock clock) {
-        this.productId = ProductId.generate();
+        this.productId = ProductId.forNew();
         this.itemNo = itemNo;
         this.sellerId = sellerId;
         this.isComplete = false;
@@ -72,7 +72,7 @@ public class Product {
      */
     private Product(ItemNo itemNo, SellerId sellerId, String minishopDataHash, String detailDataHash,
                     String optionDataHash, Boolean isComplete, Clock clock) {
-        this.productId = ProductId.generate();
+        this.productId = ProductId.forNew();
         this.itemNo = itemNo;
         this.sellerId = sellerId;
         this.minishopDataHash = minishopDataHash;
@@ -89,7 +89,7 @@ public class Product {
      *
      * <p>forNew() 패턴: 신규 엔티티 생성</p>
      * <ul>
-     *   <li>ID 자동 생성 (ProductId.generate())</li>
+     *   <li>ID 자동 생성 (ProductId.forNew())</li>
      *   <li>초기 상태: INCOMPLETE</li>
      *   <li>데이터 해시: 모두 null</li>
      * </ul>

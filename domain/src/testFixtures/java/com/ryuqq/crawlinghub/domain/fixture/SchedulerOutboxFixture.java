@@ -110,7 +110,7 @@ public class SchedulerOutboxFixture {
      * @since 2025-11-17
      */
     public static SchedulerOutbox waitingOutbox() {
-        ScheduleId scheduleId = ScheduleId.generate();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"mustit-crawler-seller_12345\",\"scheduleExpression\":\"rate(1 day)\"}";
         return SchedulerOutbox.create(scheduleId, eventType, payload);

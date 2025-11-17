@@ -83,4 +83,17 @@ public record RequestUrl(String value, CrawlerTaskType taskType) {
             }
         }
     }
+
+    /**
+     * 정적 팩토리 메서드 - RequestUrl 생성
+     *
+     * @param value URL 값
+     * @param taskType CrawlerTaskType
+     * @return RequestUrl 인스턴스
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static RequestUrl of(String value, CrawlerTaskType taskType) {
+        return new RequestUrl(value, taskType);
+    }
 }
