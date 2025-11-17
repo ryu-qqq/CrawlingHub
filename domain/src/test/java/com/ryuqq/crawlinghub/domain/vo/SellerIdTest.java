@@ -9,23 +9,54 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * SellerId Value Object 테스트
  *
- * TDD Phase: Red
- * - SellerId VO 생성 검증
- * - null/blank 검증
+ * TDD Phase: Red → Green
+ * - Long 기반 auto-increment ID
+ * - forNew() 정적 팩토리 메서드 검증
+ * - isNew() 메서드 검증
  */
 class SellerIdTest {
 
     @Test
-    void shouldCreateSellerIdWithValidValue() {
-        String validSellerId = "seller_123";
-        SellerId sellerId = new SellerId(validSellerId);
-        assertThat(sellerId.value()).isEqualTo(validSellerId);
+    void shouldCreateNewIdWithNullValue() {
+        // When
+        SellerId id = SellerId.forNew();
+
+        // Then
+        assertThat(id).isNotNull();
+        assertThat(id.value()).isNull();
     }
 
     @Test
-    void shouldThrowExceptionWhenSellerIdIsBlank() {
-        assertThatThrownBy(() -> new SellerId(""))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("SellerId는 비어있을 수 없습니다");
+    void shouldReturnTrueForIsNewWhenValueIsNull() {
+        // Given
+        SellerId id = SellerId.forNew();
+
+        // When
+        boolean result = id.isNew();
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseForIsNewWhenValueIsNotNull() {
+        // Given
+        SellerId id = new SellerId(1L);
+
+        // When
+        boolean result = id.isNew();
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void shouldCreateIdWithSpecificValue() {
+        // When
+        SellerId id = new SellerId(123L);
+
+        // Then
+        assertThat(id.value()).isEqualTo(123L);
+        assertThat(id.isNew()).isFalse();
     }
 }

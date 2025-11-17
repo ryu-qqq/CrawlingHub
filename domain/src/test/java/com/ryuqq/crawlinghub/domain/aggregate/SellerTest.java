@@ -40,7 +40,7 @@ class SellerTest {
     @Test
     void shouldCreateSellerWithFixedClock() {
         // Given
-        SellerId sellerId = new SellerId("seller_clock_001");
+        SellerId sellerId = new SellerId(1L);
         String name = "시계 테스트 셀러";
         CrawlingInterval crawlingInterval = new CrawlingInterval(1);
         LocalDateTime expectedTime = LocalDateTime.now(FIXED_CLOCK);
@@ -56,7 +56,7 @@ class SellerTest {
     @Test
     void shouldPreserveCreatedAtWhenStateChanges() {
         // Given
-        SellerId sellerId = new SellerId("seller_clock_002");
+        SellerId sellerId = new SellerId(1L);
         String name = "불변 테스트 셀러";
         CrawlingInterval crawlingInterval = new CrawlingInterval(1);
 
@@ -76,7 +76,7 @@ class SellerTest {
     @Test
     void shouldCreateSellerUsingForNew() {
         // Given
-        SellerId sellerId = new SellerId("seller_new_001");
+        SellerId sellerId = new SellerId(1L);
         String name = "새 셀러";
         CrawlingInterval crawlingInterval = new CrawlingInterval(7);
 
@@ -94,7 +94,7 @@ class SellerTest {
     @Test
     void shouldCreateSellerUsingOf() {
         // Given
-        SellerId sellerId = new SellerId("seller_of_001");
+        SellerId sellerId = new SellerId(1L);
         String name = "테스트 셀러";
         CrawlingInterval crawlingInterval = new CrawlingInterval(3);
 
@@ -111,7 +111,7 @@ class SellerTest {
     @Test
     void shouldReconstituteSellerWithAllFields() {
         // Given
-        SellerId sellerId = new SellerId("seller_recon_001");
+        SellerId sellerId = new SellerId(1L);
         String name = "재구성 셀러";
         CrawlingInterval crawlingInterval = new CrawlingInterval(5);
         SellerStatus status = SellerStatus.INACTIVE;
@@ -133,7 +133,7 @@ class SellerTest {
 
     @Test
     void shouldRegisterSellerWithValidData() {
-        SellerId sellerId = new SellerId("seller_123");
+        SellerId sellerId = new SellerId(1L);
         String name = "테스트 셀러";
         Integer intervalDays = 1;
 
@@ -148,7 +148,7 @@ class SellerTest {
     @Test
     void shouldUpdateCrawlingInterval() {
         // Given
-        SellerId sellerId = new SellerId("seller_001");
+        SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
         Integer newIntervalDays = 7;
 
@@ -162,7 +162,7 @@ class SellerTest {
     @Test
     void shouldThrowExceptionWhenUpdateIntervalWithInvalidDays() {
         // Given
-        SellerId sellerId = new SellerId("seller_002");
+        SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
 
         // When & Then
@@ -174,7 +174,7 @@ class SellerTest {
     @Test
     void shouldActivateSeller() {
         // Given - INACTIVE 상태의 Seller 생성
-        SellerId sellerId = new SellerId("seller_003");
+        SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
         seller.deactivate(); // 먼저 비활성화
 
@@ -188,7 +188,7 @@ class SellerTest {
     @Test
     void shouldDeactivateSeller() {
         // Given - ACTIVE 상태의 Seller (register 시 기본값)
-        SellerId sellerId = new SellerId("seller_004");
+        SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
 
         // When
@@ -201,7 +201,7 @@ class SellerTest {
     @Test
     void shouldUpdateTotalProductCount() {
         // Given
-        SellerId sellerId = new SellerId("seller_005");
+        SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.register(sellerId, "테스트 셀러", 1);
 
         // When

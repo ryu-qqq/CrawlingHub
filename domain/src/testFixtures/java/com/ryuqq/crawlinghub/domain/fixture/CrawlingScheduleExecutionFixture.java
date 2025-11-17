@@ -27,7 +27,7 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
  */
 public class CrawlingScheduleExecutionFixture {
 
-    private static final SellerId DEFAULT_SELLER_ID = new SellerId("seller_12345");
+    private static final SellerId DEFAULT_SELLER_ID = new SellerId(1L);
 
     /**
      * 새로운 CrawlingScheduleExecution 생성 (표준 패턴)
@@ -113,7 +113,7 @@ public class CrawlingScheduleExecutionFixture {
      * @since 2025-11-17
      */
     public static CrawlingScheduleExecution pendingExecution() {
-        ScheduleId scheduleId = ScheduleId.generate();
+        ScheduleId scheduleId = ScheduleId.forNew();
         return CrawlingScheduleExecution.create(scheduleId, DEFAULT_SELLER_ID);
     }
 

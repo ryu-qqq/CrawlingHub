@@ -69,7 +69,7 @@ class UserAgentTest {
     @Test
     void shouldReconstituteUserAgentWithAllFields() {
         // Given
-        UserAgentId userAgentId = UserAgentId.generate();
+        UserAgentId userAgentId = UserAgentId.forNew();
         String userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)";
         String token = "test_token_reconstitute";
         UserAgentStatus status = UserAgentStatus.SUSPENDED;

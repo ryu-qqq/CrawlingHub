@@ -27,7 +27,7 @@ import java.time.Clock;
  */
 public class SellerFixture {
 
-    private static final String DEFAULT_SELLER_ID = "seller_test_001";
+    private static final Long DEFAULT_SELLER_ID = 1L;
     private static final String DEFAULT_NAME = "테스트 셀러";
     private static final CrawlingInterval DEFAULT_INTERVAL = new CrawlingInterval(1);
 

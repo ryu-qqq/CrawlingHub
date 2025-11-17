@@ -1,70 +1,39 @@
 package com.ryuqq.crawlinghub.domain.crawler.vo;
 
-import java.util.UUID;
-
 /**
  * SchedulerOutbox ID Value Object
  *
- * <p>SchedulerOutbox Aggregate의 고유 식별자입니다.</p>
+ * <p>Auto-increment Long 기반 SchedulerOutbox 고유 식별자</p>
  *
- * <p><strong>특징:</strong></p>
- * <ul>
- *   <li>✅ UUID 기반 고유 식별자</li>
- *   <li>✅ Record 패턴 (Immutable)</li>
- *   <li>✅ Lombok 금지 (Zero-Tolerance)</li>
- * </ul>
- *
- * @param value UUID 값
- * @author ryu-qqq
- * @since 2025-11-17
+ * @param value SchedulerOutbox ID (null이면 새로운 엔티티)
  */
-public record SchedulerOutboxId(UUID value) {
+public record SchedulerOutboxId(Long value) {
 
     /**
-     * 새로운 SchedulerOutboxId 생성 (UUID 기반)
+     * 새로운 SchedulerOutbox ID 생성 (null)
      *
-     * @return 생성된 SchedulerOutboxId
-     * @author ryu-qqq
-     * @since 2025-11-17
+     * @return null을 가진 SchedulerOutboxId (새 엔티티 표시)
      */
-    public static SchedulerOutboxId generate() {
-        return new SchedulerOutboxId(UUID.randomUUID());
+    public static SchedulerOutboxId forNew() {
+        return new SchedulerOutboxId(null);
     }
-
     /**
-     * 기존 UUID로부터 SchedulerOutboxId 재구성
+     * 기존 ID 값으로 SchedulerOutboxId 생성 (정적 팩토리 메서드)
      *
-     * @param value UUID 값
-     * @return 재구성된 SchedulerOutboxId
-     * @author ryu-qqq
-     * @since 2025-11-17
+     * @param value ID 값
+     * @return SchedulerOutboxId 인스턴스
      */
-    public static SchedulerOutboxId of(UUID value) {
+    public static SchedulerOutboxId of(Long value) {
         return new SchedulerOutboxId(value);
     }
 
-    /**
-     * 새로운 SchedulerOutboxId 생성 (표준 패턴)
-     *
-     * @return 새로 생성된 SchedulerOutboxId
-     * @author ryu-qqq
-     * @since 2025-11-17
-     */
-    public static SchedulerOutboxId forNew() {
-        return generate();
-    }
 
     /**
-     * 새로운 ID인지 확인 (표준 패턴)
+     * 새로운 엔티티인지 확인
      *
-     * <p>UUID 기반 ID는 생성 시점에서만 의미가 있으므로 항상 true를 반환합니다.</p>
-     * <p>실제 영속성 상태는 Aggregate Root에서 관리됩니다.</p>
-     *
-     * @return 항상 true
-     * @author ryu-qqq
-     * @since 2025-11-17
+     * @return value가 null이면 true (아직 DB에 저장되지 않음)
      */
     public boolean isNew() {
-        return true;
+        return value == null;
     }
 }

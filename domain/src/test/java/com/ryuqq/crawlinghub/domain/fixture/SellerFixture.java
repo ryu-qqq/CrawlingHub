@@ -20,10 +20,10 @@ public class SellerFixture {
     /**
      * 기본 SellerId 생성
      *
-     * @return 기본 SellerId ("seller_123")
+     * @return 기본 SellerId (1L)
      */
     public static SellerId defaultSellerId() {
-        return new SellerId("seller_123");
+        return new SellerId(1L);
     }
 
     /**

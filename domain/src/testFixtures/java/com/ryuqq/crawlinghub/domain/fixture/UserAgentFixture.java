@@ -160,7 +160,7 @@ public class UserAgentFixture {
      * @return 새로운 UUID 기반 UserAgentId
      */
     public static UserAgentId defaultUserAgentId() {
-        return UserAgentId.generate();
+        return UserAgentId.forNew();
     }
 
     /**

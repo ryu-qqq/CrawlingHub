@@ -66,7 +66,7 @@ public class SchedulerOutbox {
      */
     private SchedulerOutbox(ScheduleId scheduleId, SchedulerOutboxEventType eventType, String payload) {
         validatePayload(payload);
-        this.outboxId = SchedulerOutboxId.generate();
+        this.outboxId = SchedulerOutboxId.forNew();
         this.scheduleId = scheduleId;
         this.eventType = eventType;
         this.payload = payload;

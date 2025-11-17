@@ -1,45 +1,39 @@
 package com.ryuqq.crawlinghub.domain.product.vo;
 
-import java.util.UUID;
-
 /**
  * Product 식별자 Value Object
  *
- * <p>Product의 고유 식별자를 표현합니다.</p>
+ * <p>Auto-increment Long 기반 Product 고유 식별자</p>
  *
- * <p>UUID 기반으로 생성되어 고유성을 보장합니다.</p>
- *
- * @param value UUID 값
+ * @param value Product ID (null이면 새로운 엔티티)
  */
-public record ProductId(UUID value) {
+public record ProductId(Long value) {
 
     /**
-     * 새로운 ProductId 생성
+     * 새로운 Product ID 생성 (null)
      *
-     * @return 고유한 ProductId
-     */
-    public static ProductId generate() {
-        return new ProductId(UUID.randomUUID());
-    }
-
-    /**
-     * 새로운 ProductId 생성 (표준 패턴)
-     *
-     * @return 새로 생성된 ProductId
+     * @return null을 가진 ProductId (새 엔티티 표시)
      */
     public static ProductId forNew() {
-        return generate();
+        return new ProductId(null);
     }
 
     /**
-     * 새로운 ID인지 확인 (표준 패턴)
+     * 기존 ID 값으로 ProductId 생성 (정적 팩토리 메서드)
      *
-     * <p>UUID 기반 ID는 생성 시점에서만 의미가 있으므로 항상 true를 반환합니다.</p>
-     * <p>실제 영속성 상태는 Aggregate Root에서 관리됩니다.</p>
+     * @param value Product ID 값
+     * @return ProductId 인스턴스
+     */
+    public static ProductId of(Long value) {
+        return new ProductId(value);
+    }
+
+    /**
+     * 새로운 엔티티인지 확인
      *
-     * @return 항상 true
+     * @return value가 null이면 true (아직 DB에 저장되지 않음)
      */
     public boolean isNew() {
-        return true;
+        return value == null;
     }
 }

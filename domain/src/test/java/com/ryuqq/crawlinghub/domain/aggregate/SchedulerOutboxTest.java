@@ -36,7 +36,7 @@ class SchedulerOutboxTest {
     @Test
     void shouldCreateSchedulerOutboxWithWaitingStatus() {
         // Given
-        ScheduleId scheduleId = ScheduleId.generate();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"mustit-crawler-seller_12345\",\"scheduleExpression\":\"rate(1 day)\"}";
 
@@ -55,7 +55,7 @@ class SchedulerOutboxTest {
     @Test
     void shouldValidatePayloadFormat() {
         // Given
-        ScheduleId scheduleId = ScheduleId.generate();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
 
         // When & Then
@@ -144,8 +144,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteWaitingOutbox() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
         LocalDateTime now = LocalDateTime.now();
@@ -175,8 +175,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteSendingOutbox() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_UPDATED;
         String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(2 days)\"}";
         LocalDateTime now = LocalDateTime.now();
@@ -202,8 +202,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteCompletedOutbox() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_DEACTIVATED;
         String payload = "{\"ruleName\":\"test-rule\"}";
         LocalDateTime now = LocalDateTime.now();
@@ -229,8 +229,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteFailedOutboxWithRetryCount1() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
         String errorMessage = "EventBridge API call failed: InvalidRuleName";
@@ -259,8 +259,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteFailedOutboxWithRetryCount3() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
         String errorMessage = "EventBridge API call failed: ThrottlingException";
@@ -289,8 +289,8 @@ class SchedulerOutboxTest {
     @Test
     void shouldReconstituteFailedOutboxWithMaxRetryCount() {
         // Given
-        SchedulerOutboxId outboxId = SchedulerOutboxId.generate();
-        ScheduleId scheduleId = ScheduleId.generate();
+        SchedulerOutboxId outboxId = SchedulerOutboxId.forNew();
+        ScheduleId scheduleId = ScheduleId.forNew();
         SchedulerOutboxEventType eventType = SchedulerOutboxEventType.SCHEDULE_REGISTERED;
         String payload = "{\"ruleName\":\"test-rule\",\"scheduleExpression\":\"rate(1 day)\"}";
         String errorMessage = "EventBridge API call failed: ServiceUnavailable";
