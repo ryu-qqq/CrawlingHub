@@ -414,7 +414,7 @@ public class CrawlerTaskFixture {
 
 ---
 
-### 8️⃣ Cycle 8: Token VO (10분) ⬅️ **신규 추가**
+### 8️⃣ Cycle 8: Token VO (10분) ✅ **완료 (2025-11-17)**
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -436,8 +436,8 @@ void shouldThrowExceptionWhenTokenIsBlank(String invalidToken) {
         .hasMessageContaining("Token은 비어있을 수 없습니다");
 }
 ```
-- [ ] TokenTest.java 생성
-- [ ] 커밋: `test: Token VO 검증 테스트 추가 (Red)`
+- [x] TokenTest.java 생성
+- [x] 커밋: `test: Token VO 검증 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -450,8 +450,8 @@ public record Token(String value) {
     }
 }
 ```
-- [ ] Token record 구현
-- [ ] 커밋: `feat: Token VO 구현 (null/blank 검증)`
+- [x] Token record 구현
+- [x] 커밋: `feat: Token VO 구현 (null/blank 검증)`
 
 #### 🧹 Tidy
 ```java
@@ -462,8 +462,8 @@ public class UserAgentFixture {
     }
 }
 ```
-- [ ] UserAgentFixture에 Token factory 추가
-- [ ] 커밋: `struct: Token TestFixture 추가`
+- [x] UserAgentFixture에 Token factory 추가
+- [x] 커밋: `struct: Token TestFixture 추가`
 
 ---
 
@@ -2430,7 +2430,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] UserAgentId, UserAgentStatus (Cycle 5) ✅ 2025-11-15
 - [x] ProductId, ItemNo, OutboxId, OutboxEventType, OutboxStatus (Cycle 6) ✅ 2025-11-15
 - [x] RequestUrl VO (Cycle 7) ✅ 2025-11-17
-- [ ] Token VO (Cycle 8)
+- [x] Token VO (Cycle 8) ✅ 2025-11-17
 
 ### Phase 2: Seller Aggregate (4 Cycles)
 - [ ] Seller 생성 (Cycle 9)
@@ -2511,7 +2511,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 **목표 완료일**: ___________
 
 ### Phase 진행률
-- [x] Phase 1: Value Objects & Enums (7/8) ⚠️ **부분 완료** (Token VO 추가 필요)
+- [x] Phase 1: Value Objects & Enums (8/8) ✅ **완료!**
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
@@ -2521,7 +2521,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [ ] Phase 8: CrawlingScheduleExecution Aggregate (0/3)
 - [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 26/36 Cycles (72%) 🔄 **진행 중**
+**전체 진행률**: 27/36 Cycles (75%) 🔄 **진행 중**
 
 ---
 
