@@ -77,7 +77,7 @@ class SellerQueryPortTest {
     void shouldHaveFindByCriteriaMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerSearchCriteria criteria = SellerSearchCriteria.onlyActive();
+        SellerSearchCriteria criteria = SellerSearchCriteria.of(null, null, true, null, null);
         List<Seller> sellers = List.of(SellerFixture.forNew());
 
         given(port.findByCriteria(any(SellerSearchCriteria.class))).willReturn(sellers);
@@ -95,7 +95,7 @@ class SellerQueryPortTest {
     void shouldHaveCountByCriteriaMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerSearchCriteria criteria = SellerSearchCriteria.onlyActive();
+        SellerSearchCriteria criteria = SellerSearchCriteria.of(null, null, true, null, null);
 
         given(port.countByCriteria(any(SellerSearchCriteria.class))).willReturn(10L);
 
@@ -141,7 +141,7 @@ class SellerQueryPortTest {
     void shouldReturnEmptyListWhenNoCriteriaMatch() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerSearchCriteria criteria = SellerSearchCriteria.bySellerId("nonexistent");
+        SellerSearchCriteria criteria = SellerSearchCriteria.of("nonexistent", null, null, null, null);
 
         given(port.findByCriteria(any(SellerSearchCriteria.class))).willReturn(List.of());
 
@@ -156,7 +156,7 @@ class SellerQueryPortTest {
     void shouldReturnZeroWhenNoCriteriaMatch() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerSearchCriteria criteria = SellerSearchCriteria.bySellerId("nonexistent");
+        SellerSearchCriteria criteria = SellerSearchCriteria.of("nonexistent", null, null, null, null);
 
         given(port.countByCriteria(any(SellerSearchCriteria.class))).willReturn(0L);
 
