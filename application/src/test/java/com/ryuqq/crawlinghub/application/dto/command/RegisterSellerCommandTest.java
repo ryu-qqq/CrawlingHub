@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.dto.command;
 
+import com.ryuqq.crawlinghub.application.fixture.RegisterSellerCommandFixture;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,18 +23,13 @@ class RegisterSellerCommandTest {
 
     @Test
     void shouldCreateCommandWithValidData() {
-        // Given
-        String sellerId = "seller_12345";
-        String name = "무신사";
-        Integer crawlingIntervalDays = 1;
-
         // When
-        RegisterSellerCommand command = new RegisterSellerCommand(sellerId, name, crawlingIntervalDays);
+        RegisterSellerCommand command = RegisterSellerCommandFixture.aRegisterSellerCommand();
 
         // Then
-        assertThat(command.sellerId()).isEqualTo(sellerId);
-        assertThat(command.name()).isEqualTo(name);
-        assertThat(command.crawlingIntervalDays()).isEqualTo(crawlingIntervalDays);
+        assertThat(command.sellerId()).isEqualTo("seller_12345");
+        assertThat(command.name()).isEqualTo("무신사");
+        assertThat(command.crawlingIntervalDays()).isEqualTo(1);
     }
 
     @Test
