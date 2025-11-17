@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li>✅ 초기 retryCount = 0</li>
  *   <li>✅ 상태 전환 (WAITING → SENDING → COMPLETED/FAILED)</li>
  *   <li>✅ 실패 시 errorMessage, retryCount 증가</li>
+ *   <li>✅ 재시도 로직 (Tell Don't Ask: canRetry, retry)</li>
+ *   <li>✅ 최대 재시도 횟수 제한 (MAX_RETRY_COUNT = 5)</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -95,5 +97,41 @@ class SchedulerOutboxTest {
         assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.FAILED);
         assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
         assertThat(outbox.getRetryCount()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldAllowRetryWhenCountLessThan5() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(3);
+
+        // When
+        boolean canRetry = outbox.canRetry();
+
+        // Then
+        assertThat(canRetry).isTrue();
+    }
+
+    @Test
+    void shouldNotAllowRetryWhenCountExceeds5() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(5);
+
+        // When
+        boolean canRetry = outbox.canRetry();
+
+        // Then
+        assertThat(canRetry).isFalse();
+    }
+
+    @Test
+    void shouldRetryFailedOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(2);
+
+        // When
+        outbox.retry();
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.WAITING);
     }
 }
