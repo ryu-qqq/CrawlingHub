@@ -30,7 +30,7 @@ class SellerResponseTest {
 
         // When
         SellerResponse response = new SellerResponse(
-            seller.getSellerId().value(),
+            String.valueOf(seller.getSellerId().value()),
             seller.getName(),
             seller.getStatus(),
             seller.getCrawlingIntervalDays(),
@@ -40,7 +40,7 @@ class SellerResponseTest {
         );
 
         // Then
-        assertThat(response.sellerId()).isEqualTo(seller.getSellerId().value());
+        assertThat(response.sellerId()).isEqualTo(String.valueOf(seller.getSellerId().value()));
         assertThat(response.name()).isEqualTo(seller.getName());
         assertThat(response.status()).isEqualTo(seller.getStatus());
         assertThat(response.crawlingIntervalDays()).isEqualTo(seller.getCrawlingIntervalDays());
@@ -56,7 +56,7 @@ class SellerResponseTest {
 
         // When
         SellerResponse response = new SellerResponse(
-            seller.getSellerId().value(),
+            String.valueOf(seller.getSellerId().value()),
             seller.getName(),
             seller.getStatus(),
             seller.getCrawlingIntervalDays(),
@@ -76,7 +76,7 @@ class SellerResponseTest {
 
         // When
         SellerResponse response = new SellerResponse(
-            seller.getSellerId().value(),
+            String.valueOf(seller.getSellerId().value()),
             seller.getName(),
             seller.getStatus(),
             seller.getCrawlingIntervalDays(),
@@ -97,7 +97,7 @@ class SellerResponseTest {
 
         // When
         SellerResponse response = new SellerResponse(
-            seller.getSellerId().value(),
+            String.valueOf(seller.getSellerId().value()),
             seller.getName(),
             seller.getStatus(),
             seller.getCrawlingIntervalDays(),
