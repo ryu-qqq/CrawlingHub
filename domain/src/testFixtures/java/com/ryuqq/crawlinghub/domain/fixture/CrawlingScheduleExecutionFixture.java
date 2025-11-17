@@ -41,4 +41,26 @@ public class CrawlingScheduleExecutionFixture {
         ScheduleId scheduleId = ScheduleId.generate();
         return CrawlingScheduleExecution.create(scheduleId, DEFAULT_SELLER_ID);
     }
+
+    /**
+     * RUNNING 상태의 CrawlingScheduleExecution 생성
+     *
+     * <p><strong>설정:</strong></p>
+     * <ul>
+     *   <li>SellerId: seller_12345</li>
+     *   <li>Status: RUNNING</li>
+     *   <li>TotalTasksCreated: 100</li>
+     *   <li>CompletedTasks: 0</li>
+     *   <li>FailedTasks: 0</li>
+     * </ul>
+     *
+     * @return RUNNING 상태의 CrawlingScheduleExecution
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingScheduleExecution runningExecution() {
+        CrawlingScheduleExecution execution = pendingExecution();
+        execution.start(100);
+        return execution;
+    }
 }
