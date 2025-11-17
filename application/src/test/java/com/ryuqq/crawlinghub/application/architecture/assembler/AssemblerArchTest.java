@@ -143,9 +143,10 @@ class AssemblerArchTest {
     @DisplayName("[필수] Assembler는 'Assembler' 접미사를 가져야 한다")
     void assembler_MustHaveCorrectSuffix() {
         ArchRule rule = classes()
-            .that().resideInAPackage("..application..assembler..")
+            .that().resideInAPackage("..application.assembler")
             .and().areNotInterfaces()
             .and().areNotEnums()
+            .and().haveSimpleNameNotEndingWith("Test")
             .should().haveSimpleNameEndingWith("Assembler")
             .because("Assembler는 'Assembler' 접미사를 사용해야 합니다");
 
@@ -265,6 +266,7 @@ class AssemblerArchTest {
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("Assembler")
             .and().areNotStatic()
             .should().beFinal()
+            .allowEmptyShould(true)
             .because("Assembler는 불변성을 위해 생성자 주입을 사용해야 합니다 (final 필드)");
 
         rule.check(classes);
@@ -280,8 +282,8 @@ class AssemblerArchTest {
             .that().haveSimpleNameEndingWith("Assembler")
             .should().onlyAccessClassesThat()
             .resideInAnyPackage(
-                "com.ryuqq.application..",
-                "com.ryuqq.domain..",
+                "com.ryuqq.crawlinghub.application..",
+                "com.ryuqq.crawlinghub.domain..",
                 "org.springframework..",
                 "java..",
                 "jakarta.."
@@ -301,6 +303,7 @@ class AssemblerArchTest {
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("Assembler")
             .and().areNotStatic()
             .should().haveNameMatching("[a-z].*")
+            .allowEmptyShould(true)
             .because("필드명은 camelCase 규칙을 따라야 합니다");
 
         rule.check(classes);

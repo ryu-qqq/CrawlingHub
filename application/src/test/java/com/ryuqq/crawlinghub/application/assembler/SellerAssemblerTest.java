@@ -23,13 +23,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SellerAssemblerTest {
 
+    private final SellerAssembler sellerAssembler = new SellerAssembler();
+
     @Test
     void shouldConvertDomainToResponse() {
         // Given
         Seller seller = SellerFixture.forNew();
 
         // When
-        SellerResponse response = SellerAssembler.toResponse(seller);
+        SellerResponse response = sellerAssembler.toResponse(seller);
 
         // Then
         assertThat(response).isNotNull();
@@ -48,7 +50,7 @@ class SellerAssemblerTest {
         Seller seller = SellerFixture.forNew();
 
         // When
-        SellerResponse response = SellerAssembler.toResponse(seller);
+        SellerResponse response = sellerAssembler.toResponse(seller);
 
         // Then
         assertThat(response.status()).isEqualTo(SellerStatus.ACTIVE);
@@ -60,7 +62,7 @@ class SellerAssemblerTest {
         Seller seller = SellerFixture.forNew();
 
         // When
-        SellerResponse response = SellerAssembler.toResponse(seller);
+        SellerResponse response = sellerAssembler.toResponse(seller);
 
         // Then
         assertThat(response.createdAt()).isNotNull();
