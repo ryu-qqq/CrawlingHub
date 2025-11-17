@@ -225,22 +225,22 @@
 
 ---
 
-### 8️⃣ RegisterSellerUseCaseImpl 구현 - Part 1 (중복 체크) (Cycle 8)
+### 8️⃣ RegisterSellerService 구현 - Part 1 (중복 체크) (Cycle 8)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `RegisterSellerUseCaseImplTest.java` 생성
-- [ ] Mock Port 준비 (SellerQueryPort, SellerCommandPort, EventBridgePort)
+- [ ] `RegisterSellerServiceTest.java` 생성 (service 패키지)
+- [ ] Mock Port 준비 (SellerQueryPort, SellerPersistencePort, EventBridgePort)
 - [ ] `shouldThrowExceptionWhenDuplicateSellerId()` 작성
 - [ ] 테스트 실행 → 실패 확인
 - [ ] 커밋: `test: 중복 셀러 ID 검증 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `RegisterSellerUseCaseImpl.java` 생성
-- [ ] `@Service` 어노테이션 추가
+- [ ] `RegisterSellerService.java` 생성 (service 패키지)
+- [ ] `@Service` 어노테이션 + `RegisterSellerUseCase` 구현
 - [ ] Port 의존성 주입 (생성자)
 - [ ] 중복 체크 로직만 구현
 - [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: 중복 셀러 ID 검증 구현 (Green)`
+- [ ] 커밋: `feat: 중복 셀러 ID 검증 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] 예외 메시지 명확화
@@ -253,20 +253,20 @@
 
 ---
 
-### 9️⃣ RegisterSellerUseCaseImpl 구현 - Part 2 (Seller 생성 및 저장) (Cycle 9)
+### 9️⃣ RegisterSellerService 구현 - Part 2 (Seller 생성 및 저장) (Cycle 9)
 
 #### 🔴 Red: 테스트 작성
 - [ ] `shouldRegisterSellerSuccessfully()` 작성
-- [ ] Mock 동작 정의 (save, createRule)
+- [ ] Mock 동작 정의 (persist, createRule)
 - [ ] 테스트 실행 → 실패 확인
 - [ ] 커밋: `test: 셀러 등록 성공 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 - [ ] Seller.register() 호출
-- [ ] sellerCommandPort.save() 호출
+- [ ] sellerPersistencePort.persist() 호출
 - [ ] SellerAssembler.toResponse() 호출
 - [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: 셀러 등록 로직 구현 (Green)`
+- [ ] 커밋: `feat: 셀러 등록 로직 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] 코드 가독성 개선
@@ -279,7 +279,7 @@
 
 ---
 
-### 🔟 RegisterSellerUseCaseImpl 구현 - Part 3 (Transaction 경계 검증) (Cycle 10)
+### 🔟 RegisterSellerService 구현 - Part 3 (Transaction 경계 검증) (Cycle 10)
 
 #### 🔴 Red: 테스트 작성
 - [ ] `shouldCallEventBridgeAfterTransactionCommit()` 작성
@@ -291,7 +291,7 @@
 - [ ] `@Transactional` 어노테이션 추가
 - [ ] EventBridge 호출을 트랜잭션 밖으로 이동
 - [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: Transaction 경계 구현 (Green)`
+- [ ] 커밋: `feat: Transaction 경계 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] Transaction 경계 주석 추가
