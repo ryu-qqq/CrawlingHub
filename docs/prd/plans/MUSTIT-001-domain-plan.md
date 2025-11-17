@@ -1963,7 +1963,7 @@ public class CrawlingScheduleExecutionFixture {
 
 ---
 
-### 3️⃣2️⃣ Cycle 32: CrawlingScheduleExecution 진행률 계산 (Tell Don't Ask) (15분)
+### 3️⃣2️⃣ Cycle 32: CrawlingScheduleExecution 진행률 계산 (Tell Don't Ask) (15분) ✅ **완료 (2025-11-17)**
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -2003,8 +2003,8 @@ void shouldReturnZeroWhenNoTasksCompleted() {
     assertThat(execution.getSuccessRate()).isEqualTo(0.0);
 }
 ```
-- [ ] 테스트 추가 (Tell Don't Ask)
-- [ ] 커밋: `test: CrawlingScheduleExecution 진행률 계산 테스트 추가 (Red)`
+- [x] 테스트 추가 (Tell Don't Ask)
+- [x] 커밋: `test: CrawlingScheduleExecution 진행률 계산 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현 (Tell Don't Ask)
 ```java
@@ -2042,9 +2042,9 @@ public double getSuccessRate() {
     return (double) completedTasks / processed * 100;
 }
 ```
-- [ ] start, completeTask, failTask 메서드 구현
-- [ ] getProgressRate, getSuccessRate 구현 (Tell Don't Ask)
-- [ ] 커밋: `feat: CrawlingScheduleExecution 진행률 계산 구현 (Tell Don't Ask)`
+- [x] start, completeTask, failTask 메서드 구현
+- [x] getProgressRate, getSuccessRate 구현 (Tell Don't Ask)
+- [x] 커밋: `feat: CrawlingScheduleExecution 진행률 계산 구현 (Tell Don't Ask)`
 
 #### ♻️ Refactor: ArchUnit 테스트 추가
 ```java
@@ -2055,8 +2055,8 @@ static final ArchRule tell_dont_ask_execution_rule = methods()
     .andShould().notCallMethod(CrawlingScheduleExecution.class, "getTotalTasksCreated")
     .because("Tell Don't Ask: getProgressRate()를 사용해야 합니다");
 ```
-- [ ] ArchUnit 테스트 추가
-- [ ] 커밋: `struct: CrawlingScheduleExecution Tell Don't Ask ArchUnit 테스트 추가`
+- [x] ArchUnit 테스트 추가
+- [x] 커밋: `struct: CrawlingScheduleExecution Tell Don't Ask ArchUnit 테스트 추가`
 
 ---
 
@@ -2518,10 +2518,10 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
 - [x] Phase 7: CrawlingSchedule Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 8: CrawlingScheduleExecution Aggregate (1/3)
+- [ ] Phase 8: CrawlingScheduleExecution Aggregate (2/3)
 - [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 31/36 Cycles (86%) 🔄 **진행 중**
+**전체 진행률**: 32/36 Cycles (89%) 🔄 **진행 중**
 
 ---
 
