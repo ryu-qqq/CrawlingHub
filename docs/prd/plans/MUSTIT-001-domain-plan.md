@@ -1748,7 +1748,7 @@ public class CrawlingScheduleFixture {
 
 ---
 
-### 2️⃣9️⃣ Cycle 29: CrawlingSchedule 주기 변경 (15분)
+### 2️⃣9️⃣ Cycle 29: CrawlingSchedule 주기 변경 (15분) ✅ **완료 (2025-11-17)**
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1773,8 +1773,8 @@ void shouldThrowExceptionWhenUpdatingInactiveSchedule() {
         .hasMessageContaining("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: CrawlingSchedule 주기 변경 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: CrawlingSchedule 주기 변경 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -1787,8 +1787,8 @@ public void updateInterval(CrawlingInterval newInterval) {
     this.updatedAt = LocalDateTime.now();
 }
 ```
-- [ ] updateInterval 메서드 구현
-- [ ] 커밋: `feat: CrawlingSchedule 주기 변경 구현 (updateInterval)`
+- [x] updateInterval 메서드 구현
+- [x] 커밋: `feat: CrawlingSchedule 주기 변경 구현 (updateInterval)`
 
 #### ♻️ Tidy: TestFixture 확장
 ```java
@@ -1798,8 +1798,8 @@ public static CrawlingSchedule inactiveSchedule() {
     return schedule;
 }
 ```
-- [ ] inactiveSchedule Fixture 추가
-- [ ] 커밋: `struct: CrawlingScheduleFixture 확장 (inactiveSchedule)`
+- [x] inactiveSchedule Fixture 추가
+- [x] 커밋: `struct: CrawlingScheduleFixture 확장 (inactiveSchedule)`
 
 ---
 
@@ -2463,7 +2463,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 
 ### Phase 7: CrawlingSchedule Aggregate (3 Cycles)
 - [x] CrawlingSchedule 생성 (Cycle 28) ✅ 2025-11-17
-- [ ] CrawlingSchedule 주기 변경 (Cycle 29)
+- [x] CrawlingSchedule 주기 변경 (Cycle 29) ✅ 2025-11-17
 - [ ] CrawlingSchedule 활성화/비활성화 (Cycle 30)
 
 ### Phase 8: CrawlingScheduleExecution Aggregate (3 Cycles)
@@ -2521,7 +2521,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [ ] Phase 8: CrawlingScheduleExecution Aggregate (0/3)
 - [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 28/36 Cycles (78%) 🔄 **진행 중**
+**전체 진행률**: 29/36 Cycles (81%) 🔄 **진행 중**
 
 ---
 
