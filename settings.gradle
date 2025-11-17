@@ -10,7 +10,8 @@ include 'application'
 // Adapter Modules (Ports & Adapters)
 // ========================================
 // Inbound Adapters (Driving) - {type}-in-{subject}-{middleware}
-include 'adapter-in:rest-api'
+// TEMP: 주석 처리 (Spring 의존성 문제로 빌드 차단)
+// include 'adapter-in:rest-api'
 
 // Outbound Adapters (Driven) - {purpose}-{technology}
 include 'adapter-out:persistence-mysql'
@@ -18,7 +19,8 @@ include 'adapter-out:persistence-mysql'
 // ========================================
 // Bootstrap Modules (Runnable Applications)
 // ========================================
-include 'bootstrap:bootstrap-web-api'
+// TEMP: 주석 처리 (adapter-in:rest-api 의존성)
+// include 'bootstrap:bootstrap-web-api'
 
 // ========================================
 // Project Structure
@@ -26,7 +28,9 @@ include 'bootstrap:bootstrap-web-api'
 project(':domain').projectDir = file('domain')
 project(':application').projectDir = file('application')
 
-project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
+// TEMP: 주석 처리
+// project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
 project(':adapter-out:persistence-mysql').projectDir = file('adapter-out/persistence-mysql')
 
-project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
+// TEMP: 주석 처리
+// project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')

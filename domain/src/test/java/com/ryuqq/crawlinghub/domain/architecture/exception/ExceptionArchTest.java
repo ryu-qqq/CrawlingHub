@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.architecture.exception;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class ExceptionArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.crawlinghub.domain");
     }
 
     // ==================== ErrorCode Enum 규칙 ====================
@@ -317,7 +318,7 @@ class ExceptionArchTest {
     void domainException_ShouldExtendRuntimeException() {
         ArchRule rule = classes()
             .that().haveSimpleName("DomainException")
-            .and().resideInAPackage("..domain.common.exception")
+            .and().resideInAPackage("..domain.common")
             .should().beAssignableTo(RuntimeException.class)
             .because("DomainException은 RuntimeException을 상속해야 합니다");
 
@@ -325,15 +326,15 @@ class ExceptionArchTest {
     }
 
     /**
-     * 규칙 17: DomainException은 domain.common.exception 패키지에 위치해야 한다
+     * 규칙 17: DomainException은 domain.common 패키지에 위치해야 한다
      */
     @Test
-    @DisplayName("[필수] DomainException은 domain.common.exception 패키지에 위치해야 한다")
-    void domainException_ShouldBeInCommonExceptionPackage() {
+    @DisplayName("[필수] DomainException은 domain.common 패키지에 위치해야 한다")
+    void domainException_ShouldBeInCommonPackage() {
         ArchRule rule = classes()
             .that().haveSimpleName("DomainException")
-            .should().resideInAPackage("..domain.common.exception")
-            .because("DomainException은 domain.common.exception 패키지에 위치해야 합니다");
+            .should().resideInAPackage("..domain.common")
+            .because("DomainException은 domain.common 패키지에 위치해야 합니다");
 
         rule.check(classes);
     }

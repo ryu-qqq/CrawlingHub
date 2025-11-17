@@ -1,0 +1,349 @@
+package com.ryuqq.crawlinghub.domain.product.aggregate.product;
+
+import com.ryuqq.crawlinghub.domain.product.vo.ItemNo;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
+import java.time.LocalDateTime;
+
+/**
+ * Product Aggregate Root
+ *
+ * <p>머스트잇에서 크롤링한 상품을 관리하는 Aggregate Root입니다.</p>
+ *
+ * <p>Zero-Tolerance Rules 준수:</p>
+ * <ul>
+ *   <li>Lombok 금지 - Plain Java 사용</li>
+ *   <li>Tell, Don't Ask - 비즈니스 로직은 Product 내부에 캡슐화</li>
+ *   <li>Long FK 전략 - JPA 관계 어노테이션 없음</li>
+ * </ul>
+ *
+ * <p>비즈니스 규칙:</p>
+ * <ul>
+ *   <li>생성 시 isComplete는 항상 false (INCOMPLETE)</li>
+ *   <li>데이터 해시는 생성 시점에는 null (별도 업데이트 필요)</li>
+ *   <li>isComplete()는 모든 해시 값이 존재할 때 true 반환</li>
+ * </ul>
+ */
+public class Product {
+
+    private final ProductId productId;
+    private final ItemNo itemNo;
+    private final SellerId sellerId;
+    private String minishopDataHash;
+    private String detailDataHash;
+    private String optionDataHash;
+    private Boolean isComplete;
+    private final LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private final Clock clock;
+
+    /**
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어 (테스트 가능성)
+     */
+    private Product(ItemNo itemNo, SellerId sellerId, Clock clock) {
+        this.productId = ProductId.generate();
+        this.itemNo = itemNo;
+        this.sellerId = sellerId;
+        this.isComplete = false;
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
+    }
+
+    /**
+     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @param clock 시간 제어
+     */
+    private Product(ItemNo itemNo, SellerId sellerId, String minishopDataHash, String detailDataHash,
+                    String optionDataHash, Boolean isComplete, Clock clock) {
+        this.productId = ProductId.generate();
+        this.itemNo = itemNo;
+        this.sellerId = sellerId;
+        this.minishopDataHash = minishopDataHash;
+        this.detailDataHash = detailDataHash;
+        this.optionDataHash = optionDataHash;
+        this.isComplete = isComplete;
+        this.clock = clock;
+        this.createdAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.now(clock);
+    }
+
+    /**
+     * 새로운 Product 생성 (표준 패턴)
+     *
+     * <p>forNew() 패턴: 신규 엔티티 생성</p>
+     * <ul>
+     *   <li>ID 자동 생성 (ProductId.generate())</li>
+     *   <li>초기 상태: INCOMPLETE</li>
+     *   <li>데이터 해시: 모두 null</li>
+     * </ul>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 새로 생성된 Product
+     */
+    public static Product forNew(ItemNo itemNo, SellerId sellerId) {
+        return forNew(itemNo, sellerId, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 새로운 Product 생성 (표준 패턴 + Clock 주입)
+     *
+     * <p>forNew(Clock) 패턴: 신규 엔티티 생성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어 (테스트 가능성)
+     * @return 새로 생성된 Product
+     */
+    public static Product forNew(ItemNo itemNo, SellerId sellerId, Clock clock) {
+        return new Product(itemNo, sellerId, clock);
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴)
+     *
+     * <p>of() 패턴: 테스트용 간편 생성</p>
+     * <ul>
+     *   <li>ID 자동 생성</li>
+     *   <li>초기 상태: INCOMPLETE</li>
+     * </ul>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 재구성된 Product
+     */
+    public static Product of(ItemNo itemNo, SellerId sellerId) {
+        return of(itemNo, sellerId, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 불변 속성으로 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>of(Clock) 패턴: 테스트용 간편 생성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product of(ItemNo itemNo, SellerId sellerId, Clock clock) {
+        return new Product(itemNo, sellerId, clock);
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ItemNo itemNo, SellerId sellerId, String minishopDataHash,
+                                        String detailDataHash, String optionDataHash, Boolean isComplete) {
+        return reconstitute(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, Clock.systemDefaultZone());
+    }
+
+    /**
+     * 완전한 Product 재구성 (표준 패턴 + Clock 주입)
+     *
+     * <p>reconstitute(Clock) 패턴: DB에서 조회한 엔티티 재구성 + Clock 주입</p>
+     *
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @param minishopDataHash 미니샵 데이터 해시
+     * @param detailDataHash 상세 데이터 해시
+     * @param optionDataHash 옵션 데이터 해시
+     * @param isComplete 완료 상태
+     * @param clock 시간 제어
+     * @return 재구성된 Product
+     */
+    public static Product reconstitute(ItemNo itemNo, SellerId sellerId, String minishopDataHash,
+                                        String detailDataHash, String optionDataHash, Boolean isComplete, Clock clock) {
+        return new Product(itemNo, sellerId, minishopDataHash, detailDataHash, optionDataHash, isComplete, clock);
+    }
+
+    /**
+     * 새로운 Product 생성 (레거시)
+     *
+     * @deprecated Use {@link #forNew(ItemNo, SellerId)} instead
+     * @param itemNo 상품 번호
+     * @param sellerId 판매자 ID
+     * @return 새로 생성된 Product
+     */
+    @Deprecated
+    public static Product create(ItemNo itemNo, SellerId sellerId) {
+        return forNew(itemNo, sellerId);
+    }
+
+    /**
+     * 미니샵 데이터 업데이트 및 해시 계산
+     *
+     * <p>변경 감지:</p>
+     * <ul>
+     *   <li>새 데이터의 MD5 해시와 기존 해시 비교</li>
+     *   <li>변경 시 hasChanged = true, 동일 시 false</li>
+     *   <li>업데이트 후 완료 상태 자동 갱신</li>
+     * </ul>
+     *
+     * @param rawJson 미니샵 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateMinishopData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(minishopDataHash);
+        this.minishopDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now(clock);
+        return hasChanged;
+    }
+
+    /**
+     * 상세 데이터 업데이트 및 해시 계산
+     *
+     * @param rawJson 상세 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateDetailData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(detailDataHash);
+        this.detailDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now(clock);
+        return hasChanged;
+    }
+
+    /**
+     * 옵션 데이터 업데이트 및 해시 계산
+     *
+     * @param rawJson 옵션 Raw JSON 데이터
+     * @return 데이터 변경 시 true, 동일 시 false
+     */
+    public boolean updateOptionData(String rawJson) {
+        String newHash = calculateMD5Hash(rawJson);
+        boolean hasChanged = !newHash.equals(optionDataHash);
+        this.optionDataHash = newHash;
+        updateCompleteStatus();
+        this.updatedAt = LocalDateTime.now(clock);
+        return hasChanged;
+    }
+
+    /**
+     * 완료 상태 업데이트
+     *
+     * <p>모든 데이터 해시가 존재하면 isComplete = true로 설정</p>
+     */
+    private void updateCompleteStatus() {
+        this.isComplete = (minishopDataHash != null && detailDataHash != null && optionDataHash != null);
+    }
+
+    /**
+     * MD5 해시 계산
+     *
+     * @param data 해시 계산할 데이터
+     * @return MD5 해시 문자열 (32자 hex)
+     * @throws RuntimeException MD5 알고리즘을 사용할 수 없는 경우
+     */
+    private String calculateMD5Hash(String data) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md.digest(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("MD5 알고리즘을 사용할 수 없습니다", e);
+        }
+    }
+
+    /**
+     * 해시 값 변경 감지 (Tell Don't Ask 패턴)
+     *
+     * <p>정적 유틸리티 메서드로 해시 비교 로직을 캡슐화합니다.</p>
+     *
+     * <p>변경 감지 규칙:</p>
+     * <ul>
+     *   <li>둘 다 null → 변경 없음 (false)</li>
+     *   <li>하나만 null → 변경 있음 (true)</li>
+     *   <li>값이 다름 → 변경 있음 (true)</li>
+     *   <li>값이 같음 → 변경 없음 (false)</li>
+     * </ul>
+     *
+     * @param oldHash 이전 해시 값
+     * @param newHash 새 해시 값
+     * @return 변경 시 true, 동일 시 false
+     */
+    public static boolean hasChanged(String oldHash, String newHash) {
+        if (oldHash == null && newHash == null) {
+            return false;
+        }
+        if (oldHash == null || newHash == null) {
+            return true;
+        }
+        return !oldHash.equals(newHash);
+    }
+
+    /**
+     * 상품 데이터 완료 여부 확인 (Tell Don't Ask 패턴)
+     *
+     * <p>모든 데이터 해시가 존재할 때 true 반환:</p>
+     * <ul>
+     *   <li>minishopDataHash</li>
+     *   <li>detailDataHash</li>
+     *   <li>optionDataHash</li>
+     * </ul>
+     *
+     * @return 완료 시 true, 불완전 시 false
+     */
+    public boolean isComplete() {
+        return Boolean.TRUE.equals(isComplete);
+    }
+
+    // Getters (필요한 것만)
+    public ProductId getProductId() {
+        return productId;
+    }
+
+    public ItemNo getItemNo() {
+        return itemNo;
+    }
+
+    public SellerId getSellerId() {
+        return sellerId;
+    }
+
+    public String getMinishopDataHash() {
+        return minishopDataHash;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+}
