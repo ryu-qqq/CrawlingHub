@@ -8,16 +8,19 @@ package com.ryuqq.crawlinghub.domain.crawler.vo;
  * <p><strong>상태 전환 흐름:</strong></p>
  * <pre>
  * WAITING (대기)
- *    ↓
- * SENT (전송 성공) 또는 FAILED (전송 실패)
- *    ↓ (FAILED인 경우 재시도)
- * SENT (최종 성공)
+ *    ↓ send()
+ * SENDING (전송 중)
+ *    ↓ complete() / fail()
+ * COMPLETED (성공) 또는 FAILED (실패)
+ *    ↓ retry() (FAILED인 경우)
+ * WAITING (재시도)
  * </pre>
  *
  * <p><strong>각 상태의 의미:</strong></p>
  * <ul>
- *   <li>✅ WAITING: 전송 대기 중 (생성 직후)</li>
- *   <li>✅ SENT: 전송 성공 (EventBridge에 전달 완료)</li>
+ *   <li>✅ WAITING: 전송 대기 중 (생성 직후 또는 재시도 대기)</li>
+ *   <li>✅ SENDING: 전송 중 (EventBridge API 호출 중)</li>
+ *   <li>✅ COMPLETED: 전송 성공 (EventBridge에 전달 완료)</li>
  *   <li>✅ FAILED: 전송 실패 (재시도 필요)</li>
  * </ul>
  *
@@ -27,14 +30,19 @@ package com.ryuqq.crawlinghub.domain.crawler.vo;
 public enum SchedulerOutboxStatus {
 
     /**
-     * 전송 대기 중 (생성 직후)
+     * 전송 대기 중 (생성 직후 또는 재시도 대기)
      */
     WAITING,
 
     /**
+     * 전송 중 (EventBridge API 호출 중)
+     */
+    SENDING,
+
+    /**
      * 전송 성공 (EventBridge에 전달 완료)
      */
-    SENT,
+    COMPLETED,
 
     /**
      * 전송 실패 (재시도 필요)
