@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.port.out.command;
+package com.ryuqq.crawlinghub.application.port.out.external;
 
 /**
  * AWS EventBridge Rule 관리 Outbound Port

@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.port.out.command;
+package com.ryuqq.crawlinghub.application.port.out.external;
 
 import org.junit.jupiter.api.Test;
 
