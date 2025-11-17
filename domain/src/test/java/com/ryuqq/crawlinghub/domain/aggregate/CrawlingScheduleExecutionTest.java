@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * CrawlingScheduleExecution Aggregate Root 테스트
@@ -18,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>✅ 초기 작업 카운터 (totalTasksCreated, completedTasks, failedTasks)</li>
  *   <li>✅ 진행률 계산 (getProgressRate - Tell Don't Ask)</li>
  *   <li>✅ 성공률 계산 (getSuccessRate - Tell Don't Ask)</li>
+ *   <li>✅ 실행 완료 (RUNNING → COMPLETED)</li>
+ *   <li>✅ 실행 실패 (RUNNING → FAILED)</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -86,5 +89,42 @@ class CrawlingScheduleExecutionTest {
         // When & Then
         assertThat(execution.getProgressRate()).isEqualTo(0.0);
         assertThat(execution.getSuccessRate()).isEqualTo(0.0);
+    }
+
+    @Test
+    void shouldCompleteExecution() {
+        // Given
+        CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.runningExecution();
+
+        // When
+        execution.complete();
+
+        // Then
+        assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.COMPLETED);
+        assertThat(execution.getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldFailExecution() {
+        // Given
+        CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.runningExecution();
+
+        // When
+        execution.fail();
+
+        // Then
+        assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.FAILED);
+        assertThat(execution.getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCompletingNonRunningExecution() {
+        // Given
+        CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.pendingExecution();
+
+        // When & Then
+        assertThatThrownBy(() -> execution.complete())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("RUNNING 상태에서만 완료할 수 있습니다");
     }
 }
