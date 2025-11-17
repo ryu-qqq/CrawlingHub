@@ -2,13 +2,15 @@ package com.ryuqq.crawlinghub.application.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -20,13 +22,15 @@ import static org.mockito.Mockito.verify;
  * <ul>
  *   <li>✅ Port 메서드 시그니처 존재 확인</li>
  *   <li>✅ findById() 메서드 계약 검증</li>
- *   <li>✅ findByStatus() 메서드 계약 검증</li>
- *   <li>✅ existsBySellerId() 메서드 계약 검증</li>
+ *   <li>✅ existsById() 메서드 계약 검증</li>
+ *   <li>✅ findByCriteria() 메서드 계약 검증</li>
+ *   <li>✅ countByCriteria() 메서드 계약 검증</li>
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong></p>
  * <ul>
- *   <li>✅ Query Port 명명 규칙: Find*, Load*, Exists*</li>
+ *   <li>✅ Query Port 명명 규칙: Find*, Exists*, Count*</li>
+ *   <li>✅ 필수 메서드: findById, existsById, findByCriteria, countByCriteria</li>
  *   <li>✅ Infrastructure Layer 의존 금지</li>
  * </ul>
  *
@@ -39,8 +43,8 @@ class SellerQueryPortTest {
     void shouldHaveFindByIdMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        String sellerId = "seller_12345";
         Seller seller = SellerFixture.forNew();
+        SellerId sellerId = seller.getSellerId();
 
         given(port.findById(sellerId)).willReturn(Optional.of(seller));
 
@@ -49,49 +53,65 @@ class SellerQueryPortTest {
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get().getSellerId().value()).isEqualTo(sellerId);
+        assertThat(result.get().getSellerId()).isEqualTo(sellerId);
         verify(port).findById(sellerId);
     }
 
     @Test
-    void shouldHaveFindByStatusMethod() {
+    void shouldHaveExistsByIdMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerStatus status = SellerStatus.ACTIVE;
-        List<Seller> sellers = List.of(SellerFixture.forNew());
+        SellerId sellerId = new SellerId("seller_12345");
 
-        given(port.findByStatus(status)).willReturn(sellers);
+        given(port.existsById(sellerId)).willReturn(true);
 
         // When
-        List<Seller> result = port.findByStatus(status);
+        boolean exists = port.existsById(sellerId);
+
+        // Then
+        assertThat(exists).isTrue();
+        verify(port).existsById(sellerId);
+    }
+
+    @Test
+    void shouldHaveFindByCriteriaMethod() {
+        // Given
+        SellerQueryPort port = mock(SellerQueryPort.class);
+        Object criteria = new Object(); // Placeholder for SellerSearchCriteria
+        List<Seller> sellers = List.of(SellerFixture.forNew());
+
+        given(port.findByCriteria(any())).willReturn(sellers);
+
+        // When
+        List<Seller> result = port.findByCriteria(criteria);
 
         // Then
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
-        verify(port).findByStatus(status);
+        verify(port).findByCriteria(criteria);
     }
 
     @Test
-    void shouldHaveExistsBySellerIdMethod() {
+    void shouldHaveCountByCriteriaMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        String sellerId = "seller_12345";
+        Object criteria = new Object(); // Placeholder for SellerSearchCriteria
 
-        given(port.existsBySellerId(sellerId)).willReturn(true);
+        given(port.countByCriteria(any())).willReturn(10L);
 
         // When
-        boolean exists = port.existsBySellerId(sellerId);
+        long count = port.countByCriteria(criteria);
 
         // Then
-        assertThat(exists).isTrue();
-        verify(port).existsBySellerId(sellerId);
+        assertThat(count).isEqualTo(10L);
+        verify(port).countByCriteria(criteria);
     }
 
     @Test
     void shouldReturnEmptyWhenSellerNotFound() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        String sellerId = "nonexistent_seller";
+        SellerId sellerId = new SellerId("nonexistent_seller");
 
         given(port.findById(sellerId)).willReturn(Optional.empty());
 
@@ -106,14 +126,44 @@ class SellerQueryPortTest {
     void shouldReturnFalseWhenSellerDoesNotExist() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        String sellerId = "nonexistent_seller";
+        SellerId sellerId = new SellerId("nonexistent_seller");
 
-        given(port.existsBySellerId(sellerId)).willReturn(false);
+        given(port.existsById(sellerId)).willReturn(false);
 
         // When
-        boolean exists = port.existsBySellerId(sellerId);
+        boolean exists = port.existsById(sellerId);
 
         // Then
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoCriteriaMatch() {
+        // Given
+        SellerQueryPort port = mock(SellerQueryPort.class);
+        Object criteria = new Object();
+
+        given(port.findByCriteria(any())).willReturn(List.of());
+
+        // When
+        List<Seller> result = port.findByCriteria(criteria);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void shouldReturnZeroWhenNoCriteriaMatch() {
+        // Given
+        SellerQueryPort port = mock(SellerQueryPort.class);
+        Object criteria = new Object();
+
+        given(port.countByCriteria(any())).willReturn(0L);
+
+        // When
+        long count = port.countByCriteria(criteria);
+
+        // Then
+        assertThat(count).isZero();
     }
 }
