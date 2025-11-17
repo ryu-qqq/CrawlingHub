@@ -1625,7 +1625,7 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 
 ## 🎯 Phase 7: CrawlingSchedule Aggregate (3 Cycles)
 
-### 2️⃣8️⃣ Cycle 28: CrawlingSchedule 생성 (15분)
+### 2️⃣8️⃣ Cycle 28: CrawlingSchedule 생성 (15분) ✅ **완료 (2025-11-17)**
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1655,9 +1655,9 @@ void shouldGenerateCorrectScheduleExpressionForHourInterval() {
     assertThat(schedule.getScheduleExpression()).isEqualTo("rate(6 hours)");
 }
 ```
-- [ ] 테스트 파일 생성
-- [ ] ScheduleId VO, ScheduleStatus Enum 생성
-- [ ] 커밋: `test: CrawlingSchedule 생성 테스트 추가 (Red)`
+- [x] 테스트 파일 생성
+- [x] ScheduleId VO, ScheduleStatus Enum 생성
+- [x] 커밋: `test: CrawlingSchedule 생성 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -1721,10 +1721,10 @@ public enum ScheduleStatus {
     FAILED
 }
 ```
-- [ ] CrawlingSchedule 클래스 구현
-- [ ] ScheduleId VO 구현
-- [ ] ScheduleStatus Enum 구현
-- [ ] 커밋: `feat: CrawlingSchedule Aggregate Root 구현 (create)`
+- [x] CrawlingSchedule 클래스 구현
+- [x] ScheduleId VO 구현
+- [x] ScheduleStatus Enum 구현
+- [x] 커밋: `feat: CrawlingSchedule Aggregate Root 구현 (create)`
 
 #### ♻️ Tidy: TestFixture 추가
 ```java
@@ -1743,8 +1743,8 @@ public class CrawlingScheduleFixture {
     }
 }
 ```
-- [ ] CrawlingScheduleFixture 추가
-- [ ] 커밋: `struct: CrawlingScheduleFixture 추가`
+- [x] CrawlingScheduleFixture 추가
+- [x] 커밋: `struct: CrawlingScheduleFixture 추가`
 
 ---
 
@@ -2462,7 +2462,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [ ] ProductOutbox 재시도 로직 (Tell Don't Ask) (Cycle 27)
 
 ### Phase 7: CrawlingSchedule Aggregate (3 Cycles)
-- [ ] CrawlingSchedule 생성 (Cycle 28)
+- [x] CrawlingSchedule 생성 (Cycle 28) ✅ 2025-11-17
 - [ ] CrawlingSchedule 주기 변경 (Cycle 29)
 - [ ] CrawlingSchedule 활성화/비활성화 (Cycle 30)
 
@@ -2517,11 +2517,11 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
 - [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 7: CrawlingSchedule Aggregate (0/3)
+- [ ] Phase 7: CrawlingSchedule Aggregate (1/3)
 - [ ] Phase 8: CrawlingScheduleExecution Aggregate (0/3)
 - [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 27/36 Cycles (75%) 🔄 **진행 중**
+**전체 진행률**: 28/36 Cycles (78%) 🔄 **진행 중**
 
 ---
 
