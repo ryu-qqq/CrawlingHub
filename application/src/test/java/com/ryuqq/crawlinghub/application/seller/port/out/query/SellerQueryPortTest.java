@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.seller.port.out.query;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -22,8 +23,8 @@ import static org.mockito.Mockito.verify;
  *   <li>✅ Port 메서드 시그니처 존재 확인</li>
  *   <li>✅ findById() 메서드 계약 검증</li>
  *   <li>✅ existsById() 메서드 계약 검증</li>
- *   <li>✅ findByCriteria() 메서드 계약 검증</li>
- *   <li>✅ countByCriteria() 메서드 계약 검증</li>
+ *   <li>✅ findByCriteria() 메서드 계약 검증 (SellerSearchCriteria VO)</li>
+ *   <li>✅ countByCriteria() 메서드 계약 검증 (SellerSearchCriteria VO)</li>
  * </ul>
  *
  * <p><strong>Zero-Tolerance 규칙:</strong></p>
@@ -76,10 +77,10 @@ class SellerQueryPortTest {
     void shouldHaveFindByCriteriaMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        Object criteria = new Object(); // Placeholder for SellerSearchCriteria
+        SellerSearchCriteria criteria = SellerSearchCriteria.onlyActive();
         List<Seller> sellers = List.of(SellerFixture.forNew());
 
-        given(port.findByCriteria(any())).willReturn(sellers);
+        given(port.findByCriteria(any(SellerSearchCriteria.class))).willReturn(sellers);
 
         // When
         List<Seller> result = port.findByCriteria(criteria);
@@ -94,9 +95,9 @@ class SellerQueryPortTest {
     void shouldHaveCountByCriteriaMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        Object criteria = new Object(); // Placeholder for SellerSearchCriteria
+        SellerSearchCriteria criteria = SellerSearchCriteria.onlyActive();
 
-        given(port.countByCriteria(any())).willReturn(10L);
+        given(port.countByCriteria(any(SellerSearchCriteria.class))).willReturn(10L);
 
         // When
         long count = port.countByCriteria(criteria);
@@ -140,9 +141,9 @@ class SellerQueryPortTest {
     void shouldReturnEmptyListWhenNoCriteriaMatch() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        Object criteria = new Object();
+        SellerSearchCriteria criteria = SellerSearchCriteria.bySellerId("nonexistent");
 
-        given(port.findByCriteria(any())).willReturn(List.of());
+        given(port.findByCriteria(any(SellerSearchCriteria.class))).willReturn(List.of());
 
         // When
         List<Seller> result = port.findByCriteria(criteria);
@@ -155,9 +156,9 @@ class SellerQueryPortTest {
     void shouldReturnZeroWhenNoCriteriaMatch() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        Object criteria = new Object();
+        SellerSearchCriteria criteria = SellerSearchCriteria.bySellerId("nonexistent");
 
-        given(port.countByCriteria(any())).willReturn(0L);
+        given(port.countByCriteria(any(SellerSearchCriteria.class))).willReturn(0L);
 
         // When
         long count = port.countByCriteria(criteria);
