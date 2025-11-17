@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.domain.crawler.aggregate.outbox.SchedulerOutbox;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxStatus;
+import com.ryuqq.crawlinghub.domain.fixture.SchedulerOutboxFixture;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li>✅ SchedulerOutbox 생성 (WAITING 상태)</li>
  *   <li>✅ Payload JSON 형식 검증</li>
  *   <li>✅ 초기 retryCount = 0</li>
+ *   <li>✅ 상태 전환 (WAITING → SENDING → COMPLETED/FAILED)</li>
+ *   <li>✅ 실패 시 errorMessage, retryCount 증가</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -53,5 +56,44 @@ class SchedulerOutboxTest {
         assertThatThrownBy(() -> SchedulerOutbox.create(scheduleId, eventType, "invalid-json"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Payload는 유효한 JSON 형식이어야 합니다");
+    }
+
+    @Test
+    void shouldSendOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.waitingOutbox();
+
+        // When
+        outbox.send();
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.SENDING);
+    }
+
+    @Test
+    void shouldCompleteOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.sendingOutbox();
+
+        // When
+        outbox.complete();
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.COMPLETED);
+    }
+
+    @Test
+    void shouldFailOutbox() {
+        // Given
+        SchedulerOutbox outbox = SchedulerOutboxFixture.sendingOutbox();
+        String errorMessage = "EventBridge API call failed: InvalidRuleName";
+
+        // When
+        outbox.fail(errorMessage);
+
+        // Then
+        assertThat(outbox.getStatus()).isEqualTo(SchedulerOutboxStatus.FAILED);
+        assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(outbox.getRetryCount()).isEqualTo(1);
     }
 }
