@@ -33,7 +33,8 @@ dependencies {
     testImplementation libs.archunit.junit5
 
     // Bootstrap testFixtures (ArchUnit 유틸리티 사용)
-    testImplementation testFixtures(project(':bootstrap:bootstrap-web-api'))
+    // TEMP: 주석 처리 (bootstrap 모듈 비활성화)
+    // testImplementation testFixtures(project(':bootstrap:bootstrap-web-api'))
 
     // ========================================
     // Test Fixtures Dependencies
