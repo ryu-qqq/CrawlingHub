@@ -1803,7 +1803,7 @@ public static CrawlingSchedule inactiveSchedule() {
 
 ---
 
-### 3️⃣0️⃣ Cycle 30: CrawlingSchedule 활성화/비활성화 (15분)
+### 3️⃣0️⃣ Cycle 30: CrawlingSchedule 활성화/비활성화 (15분) ✅ **완료 (2025-11-17)**
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1834,8 +1834,8 @@ void shouldThrowExceptionWhenActivatingActiveSchedule() {
         .hasMessageContaining("이미 ACTIVE 상태입니다");
 }
 ```
-- [ ] 테스트 추가
-- [ ] 커밋: `test: CrawlingSchedule 활성화/비활성화 테스트 추가 (Red)`
+- [x] 테스트 추가
+- [x] 커밋: `test: CrawlingSchedule 활성화/비활성화 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -1855,8 +1855,8 @@ public void deactivate() {
     this.updatedAt = LocalDateTime.now();
 }
 ```
-- [ ] activate, deactivate 메서드 구현
-- [ ] 커밋: `feat: CrawlingSchedule 활성화/비활성화 구현 (activate, deactivate)`
+- [x] activate, deactivate 메서드 구현
+- [x] 커밋: `feat: CrawlingSchedule 활성화/비활성화 구현 (activate, deactivate)`
 
 ---
 
@@ -2464,7 +2464,7 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 ### Phase 7: CrawlingSchedule Aggregate (3 Cycles)
 - [x] CrawlingSchedule 생성 (Cycle 28) ✅ 2025-11-17
 - [x] CrawlingSchedule 주기 변경 (Cycle 29) ✅ 2025-11-17
-- [ ] CrawlingSchedule 활성화/비활성화 (Cycle 30)
+- [x] CrawlingSchedule 활성화/비활성화 (Cycle 30) ✅ 2025-11-17
 
 ### Phase 8: CrawlingScheduleExecution Aggregate (3 Cycles)
 - [ ] CrawlingScheduleExecution 생성 (Cycle 31)
@@ -2517,11 +2517,11 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
 - [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 7: CrawlingSchedule Aggregate (1/3)
+- [x] Phase 7: CrawlingSchedule Aggregate (3/3) ✅ **완료!**
 - [ ] Phase 8: CrawlingScheduleExecution Aggregate (0/3)
 - [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 29/36 Cycles (81%) 🔄 **진행 중**
+**전체 진행률**: 30/36 Cycles (83%) 🔄 **진행 중**
 
 ---
 
