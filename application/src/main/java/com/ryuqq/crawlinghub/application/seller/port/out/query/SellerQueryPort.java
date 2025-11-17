@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.seller.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,22 +49,22 @@ public interface SellerQueryPort {
      *
      * <p>다양한 조건 조합 조회 지원:</p>
      * <ul>
-     *   <li>상태별 조회 (status)</li>
-     *   <li>이름 검색 (name like)</li>
-     *   <li>생성일 범위 (createdAt between)</li>
+     *   <li>상태별 조회 (active)</li>
+     *   <li>이름 검색 (sellerName like)</li>
+     *   <li>생성일 범위 (createdAtFrom ~ createdAtTo)</li>
      *   <li>복합 조건 조합</li>
      * </ul>
      *
-     * @param criteria 조회 조건 (향후 SellerSearchCriteria VO로 대체 예정)
+     * @param criteria 조회 조건 (SellerSearchCriteria VO)
      * @return 조건에 맞는 Seller 목록
      */
-    List<Seller> findByCriteria(Object criteria);
+    List<Seller> findByCriteria(SellerSearchCriteria criteria);
 
     /**
      * 조회 조건으로 Seller 개수 카운트
      *
-     * @param criteria 조회 조건 (향후 SellerSearchCriteria VO로 대체 예정)
+     * @param criteria 조회 조건 (SellerSearchCriteria VO)
      * @return 조건에 맞는 Seller 개수
      */
-    long countByCriteria(Object criteria);
+    long countByCriteria(SellerSearchCriteria criteria);
 }
