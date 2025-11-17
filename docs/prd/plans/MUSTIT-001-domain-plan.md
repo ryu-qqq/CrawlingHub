@@ -2134,7 +2134,7 @@ public static CrawlingScheduleExecution runningExecution() {
 
 ## 🎯 Phase 9: SchedulerOutbox Aggregate (3 Cycles)
 
-### 3️⃣4️⃣ Cycle 34: SchedulerOutbox 생성 (15분)
+### 3️⃣4️⃣ Cycle 34: SchedulerOutbox 생성 (15분) ✅
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -2165,9 +2165,9 @@ void shouldValidatePayloadFormat() {
         .hasMessageContaining("Payload는 유효한 JSON 형식이어야 합니다");
 }
 ```
-- [ ] 테스트 파일 생성
-- [ ] OutboxEventType에 SCHEDULE_REGISTERED, SCHEDULE_UPDATED, SCHEDULE_DEACTIVATED 추가
-- [ ] 커밋: `test: SchedulerOutbox 생성 테스트 추가 (Red)`
+- [x] 테스트 파일 생성
+- [x] SchedulerOutboxEventType Enum 생성 (Product와 분리)
+- [x] 커밋: `test: SchedulerOutbox 생성 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
 ```java
@@ -2228,9 +2228,9 @@ public enum OutboxEventType {
     SCHEDULE_DEACTIVATED
 }
 ```
-- [ ] SchedulerOutbox 클래스 구현
-- [ ] OutboxEventType에 스케줄러 이벤트 추가
-- [ ] 커밋: `feat: SchedulerOutbox Aggregate Root 구현 (create)`
+- [x] SchedulerOutbox 클래스 구현
+- [x] SchedulerOutboxEventType 사용 (별도 Enum)
+- [x] 커밋: `feat: SchedulerOutbox Aggregate Root 구현 (create)`
 
 #### ♻️ Tidy: TestFixture 추가
 ```java
@@ -2244,8 +2244,8 @@ public class SchedulerOutboxFixture {
     }
 }
 ```
-- [ ] SchedulerOutboxFixture 추가
-- [ ] 커밋: `struct: SchedulerOutboxFixture 추가`
+- [x] SchedulerOutboxFixture 추가
+- [x] 커밋: `struct: SchedulerOutboxFixture 추가`
 
 ---
 
@@ -2519,9 +2519,9 @@ public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
 - [x] Phase 7: CrawlingSchedule Aggregate (3/3) ✅ **완료!**
 - [x] Phase 8: CrawlingScheduleExecution Aggregate (3/3) ✅ **완료!**
-- [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
+- [ ] Phase 9: SchedulerOutbox Aggregate (1/3)
 
-**전체 진행률**: 33/36 Cycles (92%) 🔄 **진행 중**
+**전체 진행률**: 34/36 Cycles (94%) 🔄 **진행 중**
 
 ---
 
