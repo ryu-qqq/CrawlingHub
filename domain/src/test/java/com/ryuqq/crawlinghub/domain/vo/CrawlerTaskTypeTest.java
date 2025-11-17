@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.vo;
 
+import com.ryuqq.crawlinghub.domain.crawler.vo.*;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

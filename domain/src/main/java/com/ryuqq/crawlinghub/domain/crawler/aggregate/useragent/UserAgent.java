@@ -1,7 +1,7 @@
-package com.ryuqq.crawlinghub.domain.aggregate;
+package com.ryuqq.crawlinghub.domain.crawler.aggregate.useragent;
 
-import com.ryuqq.crawlinghub.domain.vo.UserAgentId;
-import com.ryuqq.crawlinghub.domain.vo.UserAgentStatus;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.UserAgentStatus;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

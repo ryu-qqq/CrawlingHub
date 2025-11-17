@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
-import com.ryuqq.crawlinghub.domain.aggregate.ProductOutbox;
-import com.ryuqq.crawlinghub.domain.vo.OutboxEventType;
-import com.ryuqq.crawlinghub.domain.vo.OutboxId;
-import com.ryuqq.crawlinghub.domain.vo.OutboxStatus;
-import com.ryuqq.crawlinghub.domain.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.product.aggregate.productoutbox.ProductOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.OutboxEventType;
+import com.ryuqq.crawlinghub.domain.product.vo.OutboxId;
+import com.ryuqq.crawlinghub.domain.product.vo.OutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductId;
 
 import java.time.Clock;
 

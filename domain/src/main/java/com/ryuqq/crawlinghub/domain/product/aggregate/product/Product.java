@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.domain.aggregate;
+package com.ryuqq.crawlinghub.domain.product.aggregate.product;
 
-import com.ryuqq.crawlinghub.domain.vo.ItemNo;
-import com.ryuqq.crawlinghub.domain.vo.ProductId;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.product.vo.ItemNo;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

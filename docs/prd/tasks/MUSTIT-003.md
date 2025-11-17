@@ -138,6 +138,73 @@
   - `idx_outbox_id` (outbox_id) - Unique
   - `idx_status_created_at` (status, created_at ASC) - 배치 처리 (오래된 순)
 
+#### CrawlingScheduleJpaEntity ⬅️ **신규 추가**
+
+- [ ] **테이블 및 필드**
+  - 테이블: `crawling_schedules`
+  - 필드:
+    - id: Long (PK, Auto Increment)
+    - schedule_id: String (UUID, Unique, Not Null, Index)
+    - seller_id: String (FK, Not Null, Index)
+    - schedule_rule: String (Not Null, EventBridge Rule Name)
+    - schedule_expression: String (Not Null, Cron 표현식)
+    - status: String (Not Null, Index, ACTIVE/INACTIVE/FAILED)
+    - created_at, updated_at: LocalDateTime
+
+- [ ] **인덱스**
+  - `idx_schedule_id` (schedule_id) - Unique
+  - `idx_seller_id` (seller_id) - Unique (1 Seller = 1 Schedule)
+  - `idx_status` (status)
+
+#### CrawlingScheduleExecutionJpaEntity ⬅️ **신규 추가**
+
+- [ ] **테이블 및 필드**
+  - 테이블: `crawling_schedule_executions`
+  - 필드:
+    - id: Long (PK, Auto Increment)
+    - execution_id: String (UUID, Unique, Not Null, Index)
+    - schedule_id: String (FK, Not Null, Index)
+    - seller_id: String (FK, Not Null, Index)
+    - status: String (Not Null, Index, STARTED/IN_PROGRESS/COMPLETED/FAILED)
+    - total_tasks_created: Integer (Default 0)
+    - completed_tasks: Integer (Default 0)
+    - failed_tasks: Integer (Default 0)
+    - progress_rate: Double (진행률 %, Nullable)
+    - success_rate: Double (성공률 %, Nullable)
+    - started_at: LocalDateTime (Not Null, Index)
+    - completed_at: LocalDateTime (Nullable)
+    - error_message: String (Nullable, TEXT)
+
+- [ ] **인덱스**
+  - `idx_execution_id` (execution_id) - Unique
+  - `idx_schedule_id_started_at` (schedule_id, started_at DESC) - 스케줄별 히스토리
+  - `idx_seller_id_started_at` (seller_id, started_at DESC) - 셀러별 히스토리
+  - `idx_status` (status)
+
+- [ ] **파티셔닝 전략**
+  - `started_at` 기준 월별 파티셔닝 (PARTITION BY RANGE)
+  - 히스토리 데이터 증가 시 적용
+
+#### SchedulerOutboxJpaEntity ⬅️ **신규 추가**
+
+- [ ] **테이블 및 필드**
+  - 테이블: `scheduler_outbox`
+  - 필드:
+    - id: Long (PK, Auto Increment)
+    - outbox_id: String (UUID, Unique, Not Null, Index)
+    - schedule_id: String (FK, Not Null, Index)
+    - event_type: String (Not Null, SCHEDULE_CREATED/SCHEDULE_UPDATED/SCHEDULE_DELETED)
+    - payload: String (TEXT, Not Null, EventBridge API JSON)
+    - status: String (Not Null, Index, WAITING/SENDING/COMPLETED/FAILED)
+    - retry_count: Integer (Default 0)
+    - error_message: String (Nullable, TEXT)
+    - created_at: LocalDateTime (Not Null, Index)
+    - sent_at: LocalDateTime (Nullable)
+
+- [ ] **인덱스**
+  - `idx_outbox_id` (outbox_id) - Unique
+  - `idx_status_created_at` (status, created_at ASC) - 배치 처리 (오래된 순)
+
 ---
 
 ### 2. Repository 구현
@@ -184,6 +251,33 @@
   ```java
   public interface ProductOutboxJpaRepository extends JpaRepository<ProductOutboxJpaEntity, Long> {
       List<ProductOutboxJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+  }
+  ```
+
+- [ ] **CrawlingScheduleJpaRepository** ⬅️ **신규 추가**
+  ```java
+  public interface CrawlingScheduleJpaRepository extends JpaRepository<CrawlingScheduleJpaEntity, Long> {
+      Optional<CrawlingScheduleJpaEntity> findByScheduleId(String scheduleId);
+      Optional<CrawlingScheduleJpaEntity> findBySellerId(String sellerId);
+      List<CrawlingScheduleJpaEntity> findByStatus(String status);
+  }
+  ```
+
+- [ ] **CrawlingScheduleExecutionJpaRepository** ⬅️ **신규 추가**
+  ```java
+  public interface CrawlingScheduleExecutionJpaRepository extends JpaRepository<CrawlingScheduleExecutionJpaEntity, Long> {
+      Optional<CrawlingScheduleExecutionJpaEntity> findByExecutionId(String executionId);
+      List<CrawlingScheduleExecutionJpaEntity> findByScheduleIdOrderByStartedAtDesc(String scheduleId, Pageable pageable);
+      List<CrawlingScheduleExecutionJpaEntity> findBySellerIdOrderByStartedAtDesc(String sellerId, Pageable pageable);
+      List<CrawlingScheduleExecutionJpaEntity> findByStatus(String status);
+  }
+  ```
+
+- [ ] **SchedulerOutboxJpaRepository** ⬅️ **신규 추가**
+  ```java
+  public interface SchedulerOutboxJpaRepository extends JpaRepository<SchedulerOutboxJpaEntity, Long> {
+      List<SchedulerOutboxJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+      Optional<SchedulerOutboxJpaEntity> findByOutboxId(String outboxId);
   }
   ```
 

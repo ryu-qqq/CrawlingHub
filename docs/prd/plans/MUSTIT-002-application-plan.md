@@ -587,60 +587,204 @@
 
 ---
 
-### 2️⃣2️⃣ UserAgentPoolManager 구현 - Part 1 (assignUserAgent) (Cycle 22)
+### 2️⃣2️⃣ UserAgentPoolManager 구현 - Part 1 (assignUserAgent with Health-based Selection) (Cycle 22)
 
 #### 🔴 Red: 테스트 작성
+```java
+// application/src/test/java/.../manager/UserAgentPoolManagerTest.java
+@Test
+void shouldAssignUserAgentWithTokenAndNoRateLimit() {
+    // 1순위: ACTIVE + Token 보유 + Redis 제한 미초과
+    UserAgent userAgent = UserAgentFixture.activeWithToken();
+    when(userAgentQueryPort.findFirstActiveWithToken()).thenReturn(Optional.of(userAgent));
+    when(redisTokenBucketPort.canMakeRequest(any())).thenReturn(true);
+
+    UserAgent assigned = userAgentPoolManager.assignUserAgent();
+
+    assertThat(assigned).isEqualTo(userAgent);
+}
+
+@Test
+void shouldAssignUserAgentWithoutTokenAndIssueToken() {
+    // 2순위: ACTIVE + Token 없음 → 자동 발급 시도
+    UserAgent userAgent = UserAgentFixture.activeWithoutToken();
+    when(userAgentQueryPort.findFirstActiveWithToken()).thenReturn(Optional.empty());
+    when(userAgentQueryPort.findFirstActiveWithoutToken()).thenReturn(Optional.of(userAgent));
+    when(mustitApiPort.issueToken(any())).thenReturn("new-token-123");
+
+    UserAgent assigned = userAgentPoolManager.assignUserAgent();
+
+    assertThat(assigned.getToken()).isNotNull();
+    verify(userAgentCommandPort).save(userAgent);
+}
+
+@Test
+void shouldBlockUserAgentAfter3FailedTokenIssues() {
+    // 토큰 발급 3회 실패 → block()
+    UserAgent userAgent = UserAgentFixture.activeWithoutToken();
+    when(userAgentQueryPort.findFirstActiveWithoutToken()).thenReturn(Optional.of(userAgent));
+    when(mustitApiPort.issueToken(any())).thenThrow(new TokenIssueException("Failed"));
+
+    assertThatThrownBy(() -> userAgentPoolManager.assignUserAgent())
+        .isInstanceOf(CircuitOpenException.class);
+
+    verify(userAgent, times(3)).block();  // 3회 시도 후 차단
+}
+
+@Test
+void shouldThrowCircuitOpenWhenAvailableRateBelow20Percent() {
+    // Available Rate < 20% → CircuitOpenException
+    when(userAgentQueryPort.countByStatusIn(ACTIVE)).thenReturn(10);
+    when(userAgentQueryPort.count()).thenReturn(100);  // 10% available
+
+    assertThatThrownBy(() -> userAgentPoolManager.assignUserAgent())
+        .isInstanceOf(CircuitOpenException.class)
+        .hasMessageContaining("UserAgent 풀 가용률이 20% 미만입니다");
+}
+```
 - [ ] `UserAgentPoolManagerTest.java` 생성
-- [ ] `shouldAssignUserAgentSuccessfully()` 작성
-- [ ] Mock Port 준비 (UserAgentQueryPort, UserAgentCommandPort)
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: UserAgent 할당 테스트 추가 (Red)`
+- [ ] Health 기반 선택 알고리즘 테스트 추가
+- [ ] 토큰 자동 발급 테스트 추가
+- [ ] 서킷 브레이커 테스트 추가
+- [ ] 커밋: `test: UserAgent Health 기반 할당 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `UserAgentPoolManager.java` 생성 (`@Service`)
-- [ ] `assignUserAgent()` 메서드 구현
-- [ ] Pessimistic Lock 사용 (findFirstActiveForUpdate)
-- [ ] `canMakeRequest()` 검증 (토큰 버킷)
-- [ ] 요청 카운트 증가 → 저장
-- [ ] `@Transactional` 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: UserAgent 할당 로직 구현 (Green)`
+```java
+// application/src/main/java/.../manager/UserAgentPoolManager.java
+@Service
+public class UserAgentPoolManager {
+    private static final int MAX_TOKEN_ISSUE_RETRY = 3;
+    private static final double CIRCUIT_BREAKER_THRESHOLD = 20.0;
+
+    private final UserAgentQueryPort userAgentQueryPort;
+    private final UserAgentCommandPort userAgentCommandPort;
+    private final RedisTokenBucketPort redisTokenBucketPort;
+    private final MustitApiPort mustitApiPort;
+
+    @Transactional
+    public UserAgent assignUserAgent() {
+        // 서킷 브레이커 검증
+        checkCircuitBreaker();
+
+        // 1순위: ACTIVE + Token 보유 + Redis 제한 미초과
+        Optional<UserAgent> withToken = userAgentQueryPort.findFirstActiveWithToken();
+        if (withToken.isPresent() && redisTokenBucketPort.canMakeRequest(withToken.get().getUserAgentId())) {
+            return withToken.get();
+        }
+
+        // 2순위: ACTIVE + Token 없음 → 자동 발급 시도
+        Optional<UserAgent> withoutToken = userAgentQueryPort.findFirstActiveWithoutToken();
+        if (withoutToken.isPresent()) {
+            UserAgent userAgent = withoutToken.get();
+            tryIssueTokenWithRetry(userAgent);
+            userAgentCommandPort.save(userAgent);
+            return userAgent;
+        }
+
+        throw new NoAvailableUserAgentException("사용 가능한 UserAgent가 없습니다");
+    }
+
+    private void checkCircuitBreaker() {
+        int available = userAgentQueryPort.countByStatusIn(List.of(UserAgentStatus.ACTIVE));
+        int total = userAgentQueryPort.count();
+        double availableRate = (double) available / total * 100;
+
+        if (availableRate < CIRCUIT_BREAKER_THRESHOLD) {
+            throw new CircuitOpenException(
+                "UserAgent 풀 가용률이 " + CIRCUIT_BREAKER_THRESHOLD + "% 미만입니다 (현재: " + availableRate + "%)"
+            );
+        }
+    }
+
+    private void tryIssueTokenWithRetry(UserAgent userAgent) {
+        for (int attempt = 1; attempt <= MAX_TOKEN_ISSUE_RETRY; attempt++) {
+            try {
+                String token = mustitApiPort.issueToken(userAgent.getUserAgentId().value());
+                userAgent.issueToken(new Token(token));
+                return;
+            } catch (Exception e) {
+                if (attempt == MAX_TOKEN_ISSUE_RETRY) {
+                    userAgent.block();
+                    userAgentCommandPort.save(userAgent);
+                    throw new CircuitOpenException("토큰 발급 3회 실패로 UserAgent 차단됨", e);
+                }
+            }
+        }
+    }
+}
+```
+- [ ] `UserAgentPoolManager.java` 생성
+- [ ] Health 기반 선택 알고리즘 구현
+- [ ] 토큰 자동 발급 로직 구현 (3회 재시도)
+- [ ] 서킷 브레이커 정책 구현 (Available Rate < 20%)
+- [ ] Redis Token Bucket 검증 통합
+- [ ] 커밋: `feat: UserAgent Health 기반 할당 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Race Condition 방지 검증
-- [ ] ArchUnit 테스트 추가
+- [ ] Transaction 경계 검증
+- [ ] ArchUnit 테스트 추가 (외부 API 호출 검증)
 - [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: UserAgent 할당 로직 개선 (Refactor)`
+- [ ] 커밋: `struct: UserAgent 할당 로직 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
 - [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: UserAgent 할당 테스트 정리 (Tidy)`
+- [ ] 커밋: `struct: UserAgent 할당 테스트 정리 (Tidy)`
 
 ---
 
-### 2️⃣3️⃣ UserAgentPoolManager 구현 - Part 2 (suspendUserAgent) (Cycle 23)
+### 2️⃣3️⃣ UserAgentPoolManager 구현 - Part 2 (blockUserAgent) (Cycle 23)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldSuspendUserAgentWhenRateLimited()` 작성
-- [ ] Mock 동작 정의
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: UserAgent 일시 중지 테스트 추가 (Red)`
+```java
+@Test
+void shouldBlockUserAgent() {
+    String userAgentId = "ua_12345";
+    UserAgent userAgent = UserAgentFixture.activeUserAgent();
+    when(userAgentQueryPort.findById(userAgentId)).thenReturn(Optional.of(userAgent));
+
+    userAgentPoolManager.blockUserAgent(userAgentId);
+
+    assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
+    verify(userAgentCommandPort).save(userAgent);
+}
+
+@Test
+void shouldThrowExceptionWhenUserAgentNotFound() {
+    String userAgentId = "ua_99999";
+    when(userAgentQueryPort.findById(userAgentId)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> userAgentPoolManager.blockUserAgent(userAgentId))
+        .isInstanceOf(UserAgentNotFoundException.class);
+}
+```
+- [ ] `shouldBlockUserAgent()` 테스트 작성
+- [ ] 예외 케이스 테스트 추가
+- [ ] 커밋: `test: UserAgent 차단 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `suspendUserAgent(String userAgentId)` 메서드 구현
-- [ ] UserAgent 조회 → suspend() 호출 → 저장
+```java
+@Transactional
+public void blockUserAgent(String userAgentId) {
+    UserAgent userAgent = userAgentQueryPort.findById(userAgentId)
+        .orElseThrow(() -> new UserAgentNotFoundException("UserAgent를 찾을 수 없습니다: " + userAgentId));
+
+    userAgent.block();
+    userAgentCommandPort.save(userAgent);
+}
+```
+- [ ] `blockUserAgent()` 메서드 구현
+- [ ] UserAgent 조회 → block() 호출 → 저장
 - [ ] `@Transactional` 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: UserAgent 일시 중지 로직 구현 (Green)`
+- [ ] 커밋: `feat: UserAgent 차단 로직 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] 로직 명확화
 - [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: UserAgent 일시 중지 로직 개선 (Refactor)`
+- [ ] 커밋: `struct: UserAgent 차단 로직 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
 - [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: UserAgent 일시 중지 테스트 정리 (Tidy)`
+- [ ] 커밋: `struct: UserAgent 차단 테스트 정리 (Tidy)`
 
 ---
 

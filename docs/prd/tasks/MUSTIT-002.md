@@ -188,22 +188,61 @@
 
 ### 3. Application Service
 
-#### UserAgentPoolManager (UserAgent 풀 관리)
+#### UserAgentPoolManager (UserAgent 풀 관리) ⬅️ **업데이트**
 
 - [ ] **책임**
-  - UserAgent 할당 (Round-robin)
-  - 토큰 버킷 리미터 검증
+  - UserAgent 할당 (Health 기반 선택)
+  - Redis Token Bucket 리미터 검증
   - 429 응답 시 UserAgent 일시 중지
+  - 토큰 자동 발급 및 실패 처리
+  - 서킷 브레이커 (풀 고갈 방지)
   - 자동 복구 전략 (Scheduled Task)
 
 - [ ] **메서드 구현**
-  - `assignUserAgent()`: 사용 가능한 UserAgent 할당
-    - Pessimistic Lock 사용 (`SELECT FOR UPDATE`)
-    - Round-robin 알고리즘
-    - `canMakeRequest()` 검증
-  - `releaseUserAgent(userAgentId)`: UserAgent 반환
-  - `suspendUserAgent(userAgentId)`: 429 응답 시 일시 중지
-  - `recoverSuspendedUserAgents()`: 1시간 경과 UserAgent 복구 (Scheduled)
+
+  1. **assignUserAgent()**: Health 기반 UserAgent 할당
+     - **선택 알고리즘** (우선순위):
+       1. ACTIVE + Token 보유 + Redis 제한 미초과
+       2. ACTIVE + Token 없음 (자동 발급 시도)
+       3. SUSPENDED/BLOCKED 제외
+     - **토큰 자동 발급**:
+       - Token 없는 UserAgent 선택 시 즉시 발급 시도
+       - 3회 연속 실패 → `block()` (BLOCKED 상태)
+     - **서킷 브레이커 검증**:
+       - Available Rate < 20% → `CircuitOpenException`
+       - 10분 후 Half-Open 전환
+     - **Redis Token Bucket 검증**:
+       - Lua 스크립트로 `canMakeRequest()` 검증
+       - 거부 시 다음 UserAgent 시도
+     - **동시성 제어**: `SELECT FOR UPDATE` (Pessimistic Lock)
+
+  2. **releaseUserAgent(userAgentId)**:
+     - UserAgent 반환 (Stateless)
+
+  3. **suspendUserAgent(userAgentId)**:
+     - 429 응답 시 일시 중지
+     - Token null 처리 (재발급 필요)
+
+  4. **blockUserAgent(userAgentId)**: ⬅️ **신규**
+     - 토큰 발급 3회 실패 시 차단
+     - BLOCKED 상태 전환
+
+  5. **recoverSuspendedUserAgents()**: (Scheduled, 1시간마다)
+     - SUSPENDED → ACTIVE 복구
+     - Token 재발급 시도
+
+- [ ] **서킷 브레이커 정책** ⬅️ **신규**
+  ```java
+  // Available Rate 계산
+  int available = countByStatusIn(ACTIVE);
+  int total = count();
+  double availableRate = (double) available / total * 100;
+
+  // Circuit Open
+  if (availableRate < 20.0) {
+      throw new CircuitOpenException(...);
+  }
+  ```
 
 - [ ] **동시성 제어**
   - UserAgent 할당 시 Race Condition 방지

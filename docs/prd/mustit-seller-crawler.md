@@ -82,7 +82,7 @@
 - `taskId`: TaskId (Value Object, UUID)
 - `sellerId`: SellerId (FK)
 - `taskType`: CrawlerTaskType (Enum: MINISHOP, PRODUCT_DETAIL, PRODUCT_OPTION)
-- `requestUrl`: String (크롤링 대상 URL)
+- `requestUrl`: RequestUrl (Value Object, taskType에 따른 URL 형식 검증)
 - `status`: CrawlerTaskStatus (Enum)
 - `retryCount`: Integer (재시도 횟수, 최대 2회)
 - `errorMessage`: String (실패 시 에러 메시지)
@@ -94,7 +94,7 @@
 **비즈니스 규칙**:
 1. **태스크 생성**:
    - 태스크 생성 시 상태는 WAITING
-   - taskType에 따라 requestUrl 형식 검증
+   - RequestUrl VO가 taskType에 따라 URL 형식 자동 검증
      - MINISHOP: `/mustit-api/facade-api/v1/searchmini-shop-search?sellerId={seller_id}&pageNo={page}&pageSize=500&order=LATEST`
      - PRODUCT_DETAIL: `/mustit-api/facade-api/v1/item/{item_no}/detail/top`
      - PRODUCT_OPTION: `/mustit-api/legacy-api/v1/auction_products/{item_no}/options`
@@ -119,6 +119,10 @@
 
 **Value Objects**:
 - **TaskId**: UUID
+- **RequestUrl**: String (taskType에 따른 URL 형식 검증)
+  - MINISHOP: `/searchmini-shop-search` 패턴 포함 확인
+  - PRODUCT_DETAIL: `/item/{숫자}/detail/top` 정규식 검증
+  - PRODUCT_OPTION: `/auction_products/{숫자}/options` 정규식 검증
 - **CrawlerTaskType**: Enum (MINISHOP, PRODUCT_DETAIL, PRODUCT_OPTION)
 - **CrawlerTaskStatus**: Enum (WAITING, PUBLISHED, IN_PROGRESS, COMPLETED, FAILED, RETRY)
 
@@ -134,7 +138,7 @@
 **속성**:
 - `userAgentId`: UserAgentId (Value Object, UUID)
 - `userAgentString`: String (실제 User-Agent 문자열)
-- `token`: String (머스트잇 비회원 토큰, Nullable)
+- `token`: Token (Value Object, 머스트잇 비회원 토큰, Nullable)
 - `status`: UserAgentStatus (Enum: ACTIVE, SUSPENDED, BLOCKED)
 - `requestCount`: Integer (현재 시간 기준 요청 수)
 - `lastRequestAt`: LocalDateTime (마지막 요청 시점)
@@ -152,10 +156,12 @@
    - tokenIssuedAt 기록
 
 3. **토큰 버킷 리미터** (시간당 80회):
-   - 정확히 1시간 기준 (예: 10:00-11:00)
-   - 요청 전 `canMakeRequest()` 메서드로 검증
-   - requestCount가 80 미만이고, lastRequestAt이 현재 시간 기준 1시간 이내면 허용
-   - 1시간 경과 시 requestCount 리셋
+   - **Redis Sliding Window 방식** (Lua 스크립트)
+   - 요청 전 Redis에서 `canMakeRequest()` 검증
+   - 현재 시간 기준 **과거 1시간 동안** 요청 수가 80개 미만이면 허용
+   - **실시간 리필**: 1시간 이전 요청은 자동 제거되어 슬롯 확보
+   - **Burst 방지**: Fixed Window와 달리 어느 시점이든 정확히 시간당 80개 제한
+   - **Atomic 처리**: Redis Lua 스크립트로 Race Condition 방지
 
 4. **429 응답 처리**:
    - 429 응답 받은 즉시 token 폐기 (null)
@@ -169,14 +175,18 @@
 
 **Value Objects**:
 - **UserAgentId**: UUID
+- **Token**: String (머스트잇 비회원 토큰, null/blank 검증)
 - **UserAgentStatus**: Enum (ACTIVE, SUSPENDED, BLOCKED)
 
 **Domain 메서드**:
-- `issueToken()`: 토큰 발급
-- `canMakeRequest()`: 요청 가능 여부 확인 (토큰 버킷)
-- `incrementRequestCount()`: 요청 수 증가
-- `suspend()`: 429 응답 시 일시 중지
+- `issueToken(Token)`: 토큰 발급 (VO 주입)
+- `suspend()`: 429 응답 시 일시 중지 (token null 처리)
 - `activate()`: 재활성화
+- `block()`: 관리자 수동 차단
+
+**Infrastructure Layer 위임**:
+- `canMakeRequest()`: Redis Token Bucket으로 이동 (Domain에서 제거)
+- `incrementRequestCount()`: Redis에서 처리 (Domain에서 제거)
 
 **Zero-Tolerance 규칙 준수**:
 - ✅ Law of Demeter
@@ -276,6 +286,177 @@
 - ✅ Law of Demeter
 - ✅ Lombok 금지
 - ✅ Long FK 전략
+
+---
+
+#### 1.6 Aggregate: CrawlingSchedule (크롤링 스케줄)
+
+**속성**:
+- `scheduleId`: ScheduleId (Value Object, UUID)
+- `sellerId`: SellerId (FK)
+- `crawlingInterval`: CrawlingInterval (Value Object, 크롤링 주기)
+- `scheduleRule`: String (EventBridge Rule Name, 예: `mustit-crawler-{sellerId}`)
+- `scheduleExpression`: String (Cron 표현식, 예: `rate(1 day)`)
+- `status`: ScheduleStatus (Enum: ACTIVE, INACTIVE, FAILED)
+- `createdAt`: LocalDateTime
+- `updatedAt`: LocalDateTime
+
+**비즈니스 규칙**:
+1. **스케줄 생성**:
+   - Seller 등록 시 자동 생성
+   - 초기 상태는 ACTIVE
+   - scheduleRule은 `mustit-crawler-{sellerId}` 형식
+   - scheduleExpression은 `rate({intervalDays} days)` 형식
+
+2. **스케줄 업데이트**:
+   - Seller의 크롤링 주기 변경 시 자동 업데이트
+   - scheduleExpression 재계산
+   - SchedulerOutbox 이벤트 발행 (EventBridge Rule 업데이트)
+
+3. **스케줄 비활성화**:
+   - Seller INACTIVE 전환 시 스케줄도 INACTIVE
+   - SchedulerOutbox 이벤트 발행 (EventBridge Rule 삭제)
+
+4. **스케줄 실패 처리**:
+   - EventBridge Rule 생성/업데이트 실패 시 FAILED 상태
+   - 관리자 알림 필요 (TODO: 알림 전략)
+
+**Value Objects**:
+- **ScheduleId**: UUID
+- **ScheduleStatus**: Enum (ACTIVE, INACTIVE, FAILED)
+
+**Domain Event 발행**:
+- `ScheduleRegistered`: 스케줄 생성 시
+- `ScheduleUpdated`: 주기 변경 시
+- `ScheduleDeactivated`: 비활성화 시
+
+**Zero-Tolerance 규칙 준수**:
+- ✅ Law of Demeter
+- ✅ Lombok 금지
+- ✅ Long FK 전략
+
+---
+
+#### 1.7 Aggregate: CrawlingScheduleExecution (크롤링 스케줄 실행)
+
+**속성**:
+- `executionId`: ExecutionId (Value Object, UUID)
+- `scheduleId`: ScheduleId (FK)
+- `sellerId`: SellerId (FK)
+- `status`: ExecutionStatus (Enum: STARTED, IN_PROGRESS, COMPLETED, FAILED)
+- `totalTasksCreated`: Integer (생성된 크롤링 태스크 수)
+- `completedTasks`: Integer (완료된 태스크 수)
+- `failedTasks`: Integer (실패한 태스크 수)
+- `progressRate`: Double (진행률, %, 계산 필드)
+- `successRate`: Double (성공률, %, 계산 필드)
+- `startedAt`: LocalDateTime (실행 시작 시점)
+- `completedAt`: LocalDateTime (실행 완료 시점, Nullable)
+- `errorMessage`: String (실패 시 에러 메시지)
+
+**비즈니스 규칙**:
+1. **실행 시작**:
+   - EventBridge 트리거 → TriggerCrawlingUseCase 호출 시 생성
+   - 초기 상태는 STARTED
+   - startedAt 기록
+
+2. **실행 진행**:
+   - 크롤링 태스크 생성 완료 시 IN_PROGRESS 전환
+   - totalTasksCreated 기록
+   - progressRate 계산: `(completedTasks + failedTasks) / totalTasksCreated * 100`
+
+3. **실행 완료**:
+   - 모든 태스크 완료 시 COMPLETED 전환
+   - completedAt 기록
+   - successRate 계산: `completedTasks / totalTasksCreated * 100`
+
+4. **실행 실패**:
+   - 크롤링 태스크 생성 실패 시 FAILED 전환
+   - errorMessage 기록
+
+5. **히스토리 보관**:
+   - 실행 히스토리는 영구 보관 (삭제 없음)
+   - 메트릭 및 모니터링 대시보드에 활용
+
+**Value Objects**:
+- **ExecutionId**: UUID
+- **ExecutionStatus**: Enum (STARTED, IN_PROGRESS, COMPLETED, FAILED)
+
+**Domain 메서드**:
+- `start()`: 실행 시작 (STARTED)
+- `markInProgress(totalTasksCreated)`: 진행 중 전환 (IN_PROGRESS)
+- `updateProgress(completedCount, failedCount)`: 진행 상황 업데이트
+- `complete()`: 실행 완료 (COMPLETED)
+- `fail(errorMessage)`: 실행 실패 (FAILED)
+- `calculateProgressRate()`: 진행률 계산
+- `calculateSuccessRate()`: 성공률 계산
+
+**Zero-Tolerance 규칙 준수**:
+- ✅ Law of Demeter
+- ✅ Lombok 금지
+- ✅ Long FK 전략
+- ✅ Tell Don't Ask (진행률/성공률 계산 메서드 제공)
+
+---
+
+#### 1.8 Aggregate: SchedulerOutbox (스케줄러 외부 전송)
+
+**속성**:
+- `outboxId`: OutboxId (Value Object, UUID)
+- `scheduleId`: ScheduleId (FK)
+- `eventType`: SchedulerEventType (Enum: SCHEDULE_CREATED, SCHEDULE_UPDATED, SCHEDULE_DELETED)
+- `payload`: String (JSON, EventBridge API 호출 데이터)
+- `status`: OutboxStatus (Enum: WAITING, SENDING, COMPLETED, FAILED)
+- `retryCount`: Integer (재시도 횟수)
+- `errorMessage`: String (실패 시 에러 메시지)
+- `createdAt`: LocalDateTime
+- `sentAt`: LocalDateTime (전송 시점, Nullable)
+
+**비즈니스 규칙**:
+1. **Outbox 생성**:
+   - CrawlingSchedule의 Domain Event 발행 시 자동 생성
+   - 초기 상태는 WAITING
+   - payload에 EventBridge API 파라미터 구성:
+     - SCHEDULE_CREATED: `PutRule` + `PutTargets`
+     - SCHEDULE_UPDATED: `PutRule` (Schedule Expression 변경)
+     - SCHEDULE_DELETED: `DeleteRule`
+
+2. **외부 전송 (배치 처리)**:
+   - EventBridge API 호출 (Infrastructure Layer)
+   - 배치 주기: **TODO** (현재 미정, 제안: 즉시 실행)
+   - **트랜잭션 밖에서 처리** (Zero-Tolerance 규칙)
+
+3. **재시도 전략**:
+   - 실패 시 지연 재시도 (Exponential Backoff)
+   - 재시도 최대 횟수: **TODO** (현재 미정, 제안: 3회)
+   - 최종 실패 시 FAILED 상태로 저장, 관리자 알림
+
+4. **Outbox 상태 전환**:
+   ```
+   WAITING → SENDING → COMPLETED
+                    ↓
+                 FAILED (재시도 3회 초과)
+   ```
+
+**Value Objects**:
+- **OutboxId**: UUID (ProductOutbox와 동일 타입 재사용)
+- **SchedulerEventType**: Enum (SCHEDULE_CREATED, SCHEDULE_UPDATED, SCHEDULE_DELETED)
+- **OutboxStatus**: Enum (WAITING, SENDING, COMPLETED, FAILED) (ProductOutbox와 동일 재사용)
+
+**Payload 예시 (SCHEDULE_CREATED)**:
+```json
+{
+  "ruleName": "mustit-crawler-seller_12345",
+  "scheduleExpression": "rate(1 day)",
+  "targetArn": "arn:aws:execute-api:ap-northeast-2:123456789012:api/prod/POST/api/internal/crawling/trigger",
+  "input": "{\"sellerId\":\"seller_12345\"}"
+}
+```
+
+**Zero-Tolerance 규칙 준수**:
+- ✅ Law of Demeter
+- ✅ Lombok 금지
+- ✅ Long FK 전략
+- ✅ **Transaction 경계**: EventBridge API 호출은 트랜잭션 밖
 
 ---
 
@@ -483,15 +664,75 @@
 
 **책임**:
 - UserAgent 할당 (크롤링 요청 시)
-- 토큰 버킷 리미터 검증
+- Redis Token Bucket 리미터 검증
 - 429 응답 시 UserAgent 일시 중지
-- **자동 복구 전략**: **TODO** (현재 미정, 제안: Scheduled Task로 1시간마다 SUSPENDED → ACTIVE 복귀)
+- 토큰 자동 발급 및 실패 처리
+- 서킷 브레이커 (UserAgent 풀 고갈 방지)
+- 자동 복구 전략 (Scheduled)
 
 **메서드**:
-- `assignUserAgent()`: 사용 가능한 UserAgent 할당 (Round-robin)
-- `releaseUserAgent(userAgentId)`: UserAgent 반환
-- `suspendUserAgent(userAgentId)`: 429 응답 시 일시 중지
-- `recoverSuspendedUserAgents()`: 일시 중지된 UserAgent 복구 (Scheduled)
+
+1. **assignUserAgent()**:
+   - **선택 알고리즘** (Health 기반 우선순위):
+     1. ACTIVE + Token 보유 + Redis 제한 미초과 (최우선)
+     2. ACTIVE + Token 없음 (토큰 자동 발급 시도)
+     3. SUSPENDED/BLOCKED는 제외
+   - **토큰 자동 발급 로직**:
+     - Token 없는 UserAgent 선택 시 즉시 토큰 발급 시도
+     - 발급 성공: 할당 진행
+     - 발급 실패: 재시도 카운트 증가
+       - 3회 연속 실패 → `block()` (상태: BLOCKED)
+       - 다음 UserAgent 선택 시도
+   - **서킷 브레이커 검증**:
+     - 사용 가능한 UserAgent 비율 계산
+     - Available Rate < 20% → `CircuitOpenException` 발생
+     - 크롤링 일시 중단 (10분 후 자동 재시도)
+   - **Redis Token Bucket 검증**:
+     - Lua 스크립트로 `canMakeRequest()` 검증
+     - 거부 시 다음 UserAgent 시도
+   - **동시성 제어**:
+     - `SELECT FOR UPDATE` (Pessimistic Lock)
+
+2. **releaseUserAgent(userAgentId)**:
+   - UserAgent 반환 (현재는 Stateless, 향후 Connection Pool 시 구현)
+
+3. **suspendUserAgent(userAgentId)**:
+   - 429 응답 시 UserAgent 일시 중지
+   - Token null 처리 (재발급 필요)
+   - SUSPENDED 상태 전환
+
+4. **blockUserAgent(userAgentId)**:
+   - 토큰 발급 3회 연속 실패 시 차단
+   - BLOCKED 상태 전환
+   - 수동 복구 필요
+
+5. **recoverSuspendedUserAgents()**: (Scheduled Task, 1시간마다)
+   - SUSPENDED 상태 UserAgent 복구
+   - SUSPENDED → ACTIVE 전환
+   - Token 재발급 시도
+
+**서킷 브레이커 정책**:
+
+```java
+// Available Rate 계산
+int total = userAgentRepository.count();
+int available = userAgentRepository.countByStatusIn(List.of(ACTIVE));
+int unavailable = userAgentRepository.countByStatusIn(List.of(SUSPENDED, BLOCKED));
+
+double availableRate = (double) available / total * 100;
+
+// Circuit Open Condition
+if (availableRate < 20.0) {
+    throw new CircuitOpenException(
+        "UserAgent 풀 고갈 (Available: " + availableRate + "%)"
+    );
+}
+```
+
+**Circuit Open 시 동작**:
+- 크롤링 요청 즉시 거부
+- 10분 후 Half-Open 전환 (1개 요청 시도)
+- 성공 시 Close, 실패 시 다시 Open
 
 **동시성 제어**:
 - UserAgent 할당 시 Race Condition 방지
@@ -648,6 +889,90 @@
 
 ---
 
+##### CrawlingScheduleJpaEntity
+
+**테이블**: `crawling_schedules`
+
+**필드**:
+- `id`: Long (PK, Auto Increment)
+- `schedule_id`: String (UUID, Unique, Not Null, Index)
+- `seller_id`: String (FK, Not Null, Index)
+- `schedule_rule`: String (Not Null, EventBridge Rule Name)
+- `schedule_expression`: String (Not Null, Cron 표현식)
+- `status`: String (Not Null, Index, ACTIVE/INACTIVE/FAILED)
+- `created_at`: LocalDateTime (Not Null)
+- `updated_at`: LocalDateTime (Not Null)
+
+**인덱스**:
+- `idx_schedule_id` (schedule_id) - Unique
+- `idx_seller_id` (seller_id) - Unique (1 Seller = 1 Schedule)
+- `idx_status` (status) - 활성 스케줄 조회
+
+---
+
+##### CrawlingScheduleExecutionJpaEntity
+
+**테이블**: `crawling_schedule_executions`
+
+**필드**:
+- `id`: Long (PK, Auto Increment)
+- `execution_id`: String (UUID, Unique, Not Null, Index)
+- `schedule_id`: String (FK, Not Null, Index)
+- `seller_id`: String (FK, Not Null, Index)
+- `status`: String (Not Null, Index, STARTED/IN_PROGRESS/COMPLETED/FAILED)
+- `total_tasks_created`: Integer (Default 0)
+- `completed_tasks`: Integer (Default 0)
+- `failed_tasks`: Integer (Default 0)
+- `progress_rate`: Double (진행률 %, Nullable)
+- `success_rate`: Double (성공률 %, Nullable)
+- `started_at`: LocalDateTime (Not Null, Index)
+- `completed_at`: LocalDateTime (Nullable)
+- `error_message`: String (Nullable, TEXT)
+
+**인덱스**:
+- `idx_execution_id` (execution_id) - Unique
+- `idx_schedule_id_started_at` (schedule_id, started_at DESC) - 스케줄별 실행 히스토리 조회
+- `idx_seller_id_started_at` (seller_id, started_at DESC) - 셀러별 실행 히스토리 조회
+- `idx_status` (status) - 상태별 조회
+
+**파티셔닝 전략**:
+- **제안**: `started_at` 기준 월별 파티셔닝 (PARTITION BY RANGE)
+- 히스토리 데이터 증가 시 적용 검토
+
+---
+
+##### SchedulerOutboxJpaEntity
+
+**테이블**: `scheduler_outbox`
+
+**필드**:
+- `id`: Long (PK, Auto Increment)
+- `outbox_id`: String (UUID, Unique, Not Null, Index)
+- `schedule_id`: String (FK, Not Null, Index)
+- `event_type`: String (Not Null, SCHEDULE_CREATED/SCHEDULE_UPDATED/SCHEDULE_DELETED)
+- `payload`: String (TEXT, Not Null, EventBridge API JSON)
+- `status`: String (Not Null, Index, WAITING/SENDING/COMPLETED/FAILED)
+- `retry_count`: Integer (Default 0)
+- `error_message`: String (Nullable, TEXT)
+- `created_at`: LocalDateTime (Not Null, Index)
+- `sent_at`: LocalDateTime (Nullable)
+
+**인덱스**:
+- `idx_outbox_id` (outbox_id) - Unique
+- `idx_status_created_at` (status, created_at ASC) - 배치 처리 (오래된 순)
+
+**Payload 예시**:
+```json
+{
+  "ruleName": "mustit-crawler-seller_12345",
+  "scheduleExpression": "rate(1 day)",
+  "targetArn": "arn:aws:execute-api:ap-northeast-2:123456789012:api/prod/POST/api/internal/crawling/trigger",
+  "input": "{\"sellerId\":\"seller_12345\"}"
+}
+```
+
+---
+
 #### 3.2 Repository
 
 ##### SellerJpaRepository
@@ -720,6 +1045,56 @@ public interface ProductOutboxJpaRepository extends JpaRepository<ProductOutboxJ
     List<ProductOutboxJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
 }
 ```
+
+---
+
+##### CrawlingScheduleJpaRepository
+
+```java
+public interface CrawlingScheduleJpaRepository extends JpaRepository<CrawlingScheduleJpaEntity, Long> {
+    Optional<CrawlingScheduleJpaEntity> findByScheduleId(String scheduleId);
+    Optional<CrawlingScheduleJpaEntity> findBySellerId(String sellerId);
+    List<CrawlingScheduleJpaEntity> findByStatus(String status);
+}
+```
+
+**인덱스 활용**:
+- `idx_seller_id` (Unique): 1 Seller = 1 Schedule 보장
+- `idx_status`: 활성 스케줄 조회
+
+---
+
+##### CrawlingScheduleExecutionJpaRepository
+
+```java
+public interface CrawlingScheduleExecutionJpaRepository extends JpaRepository<CrawlingScheduleExecutionJpaEntity, Long> {
+    Optional<CrawlingScheduleExecutionJpaEntity> findByExecutionId(String executionId);
+    List<CrawlingScheduleExecutionJpaEntity> findByScheduleIdOrderByStartedAtDesc(String scheduleId, Pageable pageable);
+    List<CrawlingScheduleExecutionJpaEntity> findBySellerIdOrderByStartedAtDesc(String sellerId, Pageable pageable);
+    List<CrawlingScheduleExecutionJpaEntity> findByStatus(String status);
+}
+```
+
+**쿼리 최적화**:
+- `idx_schedule_id_started_at`: 스케줄별 히스토리 조회
+- `idx_seller_id_started_at`: 셀러별 히스토리 조회
+- Pageable로 페이징 처리 (최근 10건)
+
+---
+
+##### SchedulerOutboxJpaRepository
+
+```java
+public interface SchedulerOutboxJpaRepository extends JpaRepository<SchedulerOutboxJpaEntity, Long> {
+    List<SchedulerOutboxJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+    Optional<SchedulerOutboxJpaEntity> findByOutboxId(String outboxId);
+}
+```
+
+**Outbox 처리 패턴**:
+- `status = WAITING`: 배치로 가져와서 EventBridge API 호출
+- `created_at ASC`: 오래된 순으로 처리
+- 재시도 전략: 최대 5회
 
 ---
 

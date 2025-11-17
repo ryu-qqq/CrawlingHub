@@ -1120,9 +1120,400 @@
 
 ---
 
+## 🎯 Phase 7: CrawlingSchedule Persistence (3 Cycles)
+
+### 4️⃣1️⃣ CrawlingScheduleJpaEntity 구현 (Cycle 41)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleJpaEntityTest.java` 생성
+- [ ] Entity 필드 및 제약조건 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: CrawlingScheduleJpaEntity 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Entity
+@Table(name = "crawling_schedules")
+public class CrawlingScheduleJpaEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "schedule_id", nullable = false, unique = true)
+    private String scheduleId;
+
+    @Column(name = "seller_id", nullable = false, unique = true)
+    private String sellerId;  // Long FK 전략
+
+    @Column(name = "schedule_rule", nullable = false)
+    private String scheduleRule;  // EventBridge Rule Name
+
+    @Column(name = "schedule_expression", nullable = false)
+    private String scheduleExpression;  // Cron 표현식
+
+    @Column(name = "status", nullable = false)
+    private String status;  // ACTIVE, INACTIVE, FAILED
+
+    @Column(name = "crawling_interval_days", nullable = false)
+    private Integer crawlingIntervalDays;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    // Plain Java Getters/Setters
+}
+```
+- [ ] CrawlingScheduleJpaEntity 클래스 구현
+- [ ] Lombok 사용하지 않음
+- [ ] Long FK 전략 준수 (sellerId String)
+- [ ] 커밋: `feat: CrawlingScheduleJpaEntity 구현 (Green)`
+
+#### ♻️ Refactor: Mapper 추가
+```java
+@Component
+public class CrawlingScheduleMapper {
+    public CrawlingSchedule toDomain(CrawlingScheduleJpaEntity entity) {
+        // Entity → Domain 변환
+    }
+
+    public CrawlingScheduleJpaEntity toEntity(CrawlingSchedule schedule) {
+        // Domain → Entity 변환
+    }
+}
+```
+- [ ] CrawlingScheduleMapper 구현
+- [ ] 커밋: `struct: CrawlingScheduleMapper 추가 (Refactor)`
+
+#### 🧹 Tidy: Repository 추가
+```java
+public interface CrawlingScheduleJpaRepository extends JpaRepository<CrawlingScheduleJpaEntity, Long> {
+    Optional<CrawlingScheduleJpaEntity> findByScheduleId(String scheduleId);
+    Optional<CrawlingScheduleJpaEntity> findBySellerId(String sellerId);
+    List<CrawlingScheduleJpaEntity> findByStatus(String status);
+}
+```
+- [ ] CrawlingScheduleJpaRepository 인터페이스 구현
+- [ ] 커밋: `struct: CrawlingScheduleJpaRepository 추가 (Tidy)`
+
+---
+
+### 4️⃣2️⃣ CrawlingScheduleCommandAdapter 구현 (Cycle 42)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleCommandAdapterTest.java` 생성 (TestContainers)
+- [ ] `save()` 메서드 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: CrawlingScheduleCommandAdapter 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Adapter
+public class CrawlingScheduleCommandAdapter implements CrawlingScheduleCommandPort {
+    private final CrawlingScheduleJpaRepository repository;
+    private final CrawlingScheduleMapper mapper;
+
+    @Override
+    @Transactional
+    public void save(CrawlingSchedule schedule) {
+        CrawlingScheduleJpaEntity entity = mapper.toEntity(schedule);
+        repository.save(entity);
+    }
+}
+```
+- [ ] CrawlingScheduleCommandAdapter 구현
+- [ ] `@Transactional` 추가
+- [ ] 커밋: `feat: CrawlingScheduleCommandAdapter 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] Mapper 로직 검증
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: `struct: CrawlingScheduleCommandAdapter 개선 (Refactor)`
+
+#### 🧹 Tidy: TestFixture 정리
+- [ ] 테스트 → Fixture 사용
+- [ ] 커밋: `struct: CrawlingScheduleCommandAdapter 테스트 정리 (Tidy)`
+
+---
+
+### 4️⃣3️⃣ Flyway 마이그레이션 - V9 (crawling_schedules 테이블) (Cycle 43)
+
+#### 🔴 Red: 마이그레이션 스크립트 작성
+```sql
+-- V9__create_crawling_schedules_table.sql
+CREATE TABLE crawling_schedules (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    schedule_id VARCHAR(255) NOT NULL,
+    seller_id VARCHAR(255) NOT NULL,
+    schedule_rule VARCHAR(255) NOT NULL,
+    schedule_expression VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    crawling_interval_days INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    UNIQUE KEY uk_schedule_id (schedule_id),
+    UNIQUE KEY uk_seller_id (seller_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+- [ ] V9 마이그레이션 스크립트 작성
+- [ ] 커밋: `feat: V9 crawling_schedules 테이블 마이그레이션 (Red)`
+
+#### 🟢 Green: 마이그레이션 적용
+- [ ] Flyway 마이그레이션 실행
+- [ ] TestContainers에서 테이블 생성 확인
+- [ ] 커밋: `feat: V9 마이그레이션 적용 (Green)`
+
+---
+
+## 🎯 Phase 8: CrawlingScheduleExecution Persistence (3 Cycles)
+
+### 4️⃣4️⃣ CrawlingScheduleExecutionJpaEntity 구현 (Cycle 44)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleExecutionJpaEntityTest.java` 생성
+- [ ] Entity 필드 및 제약조건 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: CrawlingScheduleExecutionJpaEntity 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Entity
+@Table(name = "crawling_schedule_executions")
+public class CrawlingScheduleExecutionJpaEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "execution_id", nullable = false, unique = true)
+    private String executionId;
+
+    @Column(name = "schedule_id", nullable = false)
+    private String scheduleId;  // Long FK 전략
+
+    @Column(name = "seller_id", nullable = false)
+    private String sellerId;  // Long FK 전략
+
+    @Column(name = "status", nullable = false)
+    private String status;  // PENDING, RUNNING, COMPLETED, FAILED
+
+    @Column(name = "total_tasks_created", nullable = false)
+    private Integer totalTasksCreated;
+
+    @Column(name = "completed_tasks", nullable = false)
+    private Integer completedTasks;
+
+    @Column(name = "failed_tasks", nullable = false)
+    private Integer failedTasks;
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    // Plain Java Getters/Setters
+}
+```
+- [ ] CrawlingScheduleExecutionJpaEntity 구현
+- [ ] Lombok 사용하지 않음
+- [ ] Long FK 전략 준수
+- [ ] 커밋: `feat: CrawlingScheduleExecutionJpaEntity 구현 (Green)`
+
+#### ♻️ Refactor: Mapper 및 Repository 추가
+- [ ] CrawlingScheduleExecutionMapper 구현
+- [ ] CrawlingScheduleExecutionJpaRepository 인터페이스 구현
+- [ ] 커밋: `struct: CrawlingScheduleExecution Mapper/Repository 추가 (Refactor)`
+
+---
+
+### 4️⃣5️⃣ CrawlingScheduleExecutionCommandAdapter 구현 (Cycle 45)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `CrawlingScheduleExecutionCommandAdapterTest.java` 생성 (TestContainers)
+- [ ] `save()` 메서드 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: CrawlingScheduleExecutionCommandAdapter 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Adapter
+public class CrawlingScheduleExecutionCommandAdapter implements CrawlingScheduleExecutionCommandPort {
+    private final CrawlingScheduleExecutionJpaRepository repository;
+    private final CrawlingScheduleExecutionMapper mapper;
+
+    @Override
+    @Transactional
+    public void save(CrawlingScheduleExecution execution) {
+        CrawlingScheduleExecutionJpaEntity entity = mapper.toEntity(execution);
+        repository.save(entity);
+    }
+}
+```
+- [ ] CrawlingScheduleExecutionCommandAdapter 구현
+- [ ] 커밋: `feat: CrawlingScheduleExecutionCommandAdapter 구현 (Green)`
+
+---
+
+### 4️⃣6️⃣ Flyway 마이그레이션 - V10 (crawling_schedule_executions 테이블) (Cycle 46)
+
+#### 🔴 Red: 마이그레이션 스크립트 작성
+```sql
+-- V10__create_crawling_schedule_executions_table.sql
+CREATE TABLE crawling_schedule_executions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    execution_id VARCHAR(255) NOT NULL,
+    schedule_id VARCHAR(255) NOT NULL,
+    seller_id VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    total_tasks_created INT NOT NULL DEFAULT 0,
+    completed_tasks INT NOT NULL DEFAULT 0,
+    failed_tasks INT NOT NULL DEFAULT 0,
+    started_at DATETIME,
+    completed_at DATETIME,
+    created_at DATETIME NOT NULL,
+    UNIQUE KEY uk_execution_id (execution_id),
+    INDEX idx_schedule_id (schedule_id),
+    INDEX idx_seller_id (seller_id),
+    INDEX idx_status (status),
+    INDEX idx_started_at (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+- [ ] V10 마이그레이션 스크립트 작성
+- [ ] 월별 파티셔닝 고려 (히스토리 데이터 증가 시)
+- [ ] 커밋: `feat: V10 crawling_schedule_executions 테이블 마이그레이션 (Red)`
+
+---
+
+## 🎯 Phase 9: SchedulerOutbox Persistence (3 Cycles)
+
+### 4️⃣7️⃣ SchedulerOutboxJpaEntity 구현 (Cycle 47)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `SchedulerOutboxJpaEntityTest.java` 생성
+- [ ] Entity 필드 및 제약조건 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutboxJpaEntity 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Entity
+@Table(name = "scheduler_outbox")
+public class SchedulerOutboxJpaEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "outbox_id", nullable = false, unique = true)
+    private String outboxId;
+
+    @Column(name = "schedule_id", nullable = false)
+    private String scheduleId;  // Long FK 전략
+
+    @Column(name = "event_type", nullable = false)
+    private String eventType;  // SCHEDULE_REGISTERED, SCHEDULE_UPDATED, SCHEDULE_DEACTIVATED
+
+    @Column(name = "payload", columnDefinition = "TEXT", nullable = false)
+    private String payload;  // JSON
+
+    @Column(name = "status", nullable = false)
+    private String status;  // WAITING, SENDING, COMPLETED, FAILED
+
+    @Column(name = "retry_count", nullable = false)
+    private Integer retryCount;
+
+    @Column(name = "error_message", columnDefinition = "TEXT")
+    private String errorMessage;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    // Plain Java Getters/Setters
+}
+```
+- [ ] SchedulerOutboxJpaEntity 구현
+- [ ] Lombok 사용하지 않음
+- [ ] Long FK 전략 준수
+- [ ] 커밋: `feat: SchedulerOutboxJpaEntity 구현 (Green)`
+
+#### ♻️ Refactor: Mapper 및 Repository 추가
+- [ ] SchedulerOutboxMapper 구현
+- [ ] SchedulerOutboxJpaRepository 인터페이스 구현
+- [ ] 커밋: `struct: SchedulerOutbox Mapper/Repository 추가 (Refactor)`
+
+---
+
+### 4️⃣8️⃣ SchedulerOutboxCommandAdapter 구현 (Cycle 48)
+
+#### 🔴 Red: 테스트 작성
+- [ ] `SchedulerOutboxCommandAdapterTest.java` 생성 (TestContainers)
+- [ ] `save()` 메서드 테스트
+- [ ] 테스트 실행 → 실패 확인
+- [ ] 커밋: `test: SchedulerOutboxCommandAdapter 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+@Adapter
+public class SchedulerOutboxCommandAdapter implements SchedulerOutboxCommandPort {
+    private final SchedulerOutboxJpaRepository repository;
+    private final SchedulerOutboxMapper mapper;
+
+    @Override
+    @Transactional
+    public void save(SchedulerOutbox outbox) {
+        SchedulerOutboxJpaEntity entity = mapper.toEntity(outbox);
+        repository.save(entity);
+    }
+}
+```
+- [ ] SchedulerOutboxCommandAdapter 구현
+- [ ] 커밋: `feat: SchedulerOutboxCommandAdapter 구현 (Green)`
+
+---
+
+### 4️⃣9️⃣ Flyway 마이그레이션 - V11 (scheduler_outbox 테이블) (Cycle 49)
+
+#### 🔴 Red: 마이그레이션 스크립트 작성
+```sql
+-- V11__create_scheduler_outbox_table.sql
+CREATE TABLE scheduler_outbox (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    outbox_id VARCHAR(255) NOT NULL,
+    schedule_id VARCHAR(255) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,
+    payload TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    retry_count INT NOT NULL DEFAULT 0,
+    error_message TEXT,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    UNIQUE KEY uk_outbox_id (outbox_id),
+    INDEX idx_schedule_id (schedule_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+- [ ] V11 마이그레이션 스크립트 작성
+- [ ] 커밋: `feat: V11 scheduler_outbox 테이블 마이그레이션 (Red)`
+
+#### 🟢 Green: 마이그레이션 적용
+- [ ] Flyway 마이그레이션 실행
+- [ ] TestContainers에서 테이블 생성 확인
+- [ ] 커밋: `feat: V11 마이그레이션 적용 (Green)`
+
+---
+
 ## ✅ 완료 조건
 
-- [ ] 40개 TDD 사이클 모두 완료 (160개 체크박스 모두 ✅)
+- [ ] 49개 TDD 사이클 모두 완료 (196개 체크박스 모두 ✅)
 - [ ] 모든 테스트 통과 (TestContainers, Integration Test)
 - [ ] ArchUnit 테스트 통과 (Long FK, Lombok 금지, QueryDSL 최적화)
 - [ ] Zero-Tolerance 규칙 준수
@@ -1130,7 +1521,10 @@
   - [ ] QueryDSL 최적화 (N+1 방지, DTO Projection)
   - [ ] Lombok 금지 (Plain Java)
   - [ ] Pessimistic Lock 사용 (UserAgent 할당)
-- [ ] Flyway 마이그레이션 스크립트 작성 완료 (V1-V8)
+- [ ] Flyway 마이그레이션 스크립트 작성 완료 (V1-V11)
+  - [ ] V9: crawling_schedules 테이블
+  - [ ] V10: crawling_schedule_executions 테이블
+  - [ ] V11: scheduler_outbox 테이블
 - [ ] TestFixture 모두 정리 (Object Mother 패턴)
 - [ ] 테스트 커버리지 > 80%
 

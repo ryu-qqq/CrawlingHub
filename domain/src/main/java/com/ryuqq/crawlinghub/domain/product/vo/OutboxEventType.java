@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.product.vo;
 
 /**
  * ProductOutbox 이벤트 타입 Enum

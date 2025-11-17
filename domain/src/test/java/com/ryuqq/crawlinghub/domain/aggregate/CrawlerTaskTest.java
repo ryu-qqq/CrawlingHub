@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskStatus;
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
-import com.ryuqq.crawlinghub.domain.vo.TaskId;
+import com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask.CrawlerTask;
+import com.ryuqq.crawlinghub.domain.crawler.vo.*;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskStatus;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskType;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.TaskId;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;

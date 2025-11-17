@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.vo;
+package com.ryuqq.crawlinghub.domain.seller.vo;
 
 /**
  * 셀러 식별자 Value Object

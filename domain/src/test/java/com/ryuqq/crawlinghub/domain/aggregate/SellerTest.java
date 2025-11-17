@@ -1,8 +1,10 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
-import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
-import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+import com.ryuqq.crawlinghub.domain.seller.vo.*;
+import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;

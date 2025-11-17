@@ -1,8 +1,8 @@
-package com.ryuqq.crawlinghub.domain.aggregate;
+package com.ryuqq.crawlinghub.domain.seller.aggregate.seller;
 
-import com.ryuqq.crawlinghub.domain.vo.CrawlingInterval;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
-import com.ryuqq.crawlinghub.domain.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
