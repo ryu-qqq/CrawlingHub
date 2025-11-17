@@ -22,6 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li>✅ scheduleExpression 자동 변환 (rate(1 day), rate(6 hours))</li>
  *   <li>✅ CrawlingSchedule 주기 변경 (updateInterval)</li>
  *   <li>✅ INACTIVE 상태에서 주기 변경 불가 검증</li>
+ *   <li>✅ CrawlingSchedule 비활성화 (deactivate)</li>
+ *   <li>✅ CrawlingSchedule 활성화 (activate)</li>
+ *   <li>✅ 이미 ACTIVE인 스케줄 활성화 시도 시 예외 발생</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -84,5 +87,40 @@ class CrawlingScheduleTest {
         assertThatThrownBy(() -> schedule.updateInterval(newInterval))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+    }
+
+    @Test
+    void shouldDeactivateSchedule() {
+        // Given
+        CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+
+        // When
+        schedule.deactivate();
+
+        // Then
+        assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.INACTIVE);
+    }
+
+    @Test
+    void shouldActivateSchedule() {
+        // Given
+        CrawlingSchedule schedule = CrawlingScheduleFixture.inactiveSchedule();
+
+        // When
+        schedule.activate();
+
+        // Then
+        assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.ACTIVE);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenActivatingActiveSchedule() {
+        // Given
+        CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+
+        // When & Then
+        assertThatThrownBy(() -> schedule.activate())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("이미 ACTIVE 상태입니다");
     }
 }
