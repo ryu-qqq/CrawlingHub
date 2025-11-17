@@ -198,6 +198,32 @@ public class CrawlingSchedule {
         throw new IllegalArgumentException("지원하지 않는 크롤링 주기입니다: " + unit);
     }
 
+    // ===== Business Methods =====
+
+    /**
+     * 크롤링 주기 변경
+     *
+     * <p><strong>변경 규칙:</strong></p>
+     * <ul>
+     *   <li>✅ ACTIVE 상태에서만 변경 가능</li>
+     *   <li>✅ scheduleExpression 자동 재계산</li>
+     *   <li>✅ updatedAt 갱신</li>
+     * </ul>
+     *
+     * @param newInterval 새로운 크롤링 주기
+     * @throws IllegalStateException ACTIVE 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void updateInterval(CrawlingInterval newInterval) {
+        if (status != ScheduleStatus.ACTIVE) {
+            throw new IllegalStateException("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+        }
+        this.crawlingInterval = newInterval;
+        this.scheduleExpression = convertToRateExpression(newInterval);
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // ===== Getters =====
 
     public ScheduleId getScheduleId() {
