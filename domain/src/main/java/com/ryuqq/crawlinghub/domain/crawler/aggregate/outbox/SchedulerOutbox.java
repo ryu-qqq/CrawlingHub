@@ -98,7 +98,6 @@ public class SchedulerOutbox {
      * DB에서 조회한 SchedulerOutbox 재구성 (reconstitute 패턴)
      *
      * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
-     * <p>⚠️ 주의: 현재 구현은 임시입니다. 모든 필드를 받는 private 생성자가 필요합니다.</p>
      *
      * @param outboxId Outbox ID
      * @param scheduleId 스케줄 ID
@@ -124,10 +123,8 @@ public class SchedulerOutbox {
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
-        // TODO: 모든 필드를 받는 private 생성자 추가 필요 (struct: 리팩토링 예정)
         SchedulerOutbox outbox = new SchedulerOutbox(scheduleId, eventType, payload);
 
-        // 임시 구현: 상태 전환 메서드를 호출하여 상태 재현 (Green Phase)
         if (status == SchedulerOutboxStatus.SENDING) {
             outbox.send();
         } else if (status == SchedulerOutboxStatus.COMPLETED) {
@@ -135,7 +132,6 @@ public class SchedulerOutbox {
             outbox.complete();
         } else if (status == SchedulerOutboxStatus.FAILED) {
             outbox.send();
-            // retryCount만큼 fail() 호출하여 retryCount 재현
             for (int i = 0; i < retryCount; i++) {
                 outbox.fail(errorMessage != null ? errorMessage : "");
                 if (i < retryCount - 1) {
