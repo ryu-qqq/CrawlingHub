@@ -224,6 +224,50 @@ public class CrawlingSchedule {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * 스케줄 활성화
+     *
+     * <p><strong>활성화 규칙:</strong></p>
+     * <ul>
+     *   <li>✅ INACTIVE 상태에서만 활성화 가능</li>
+     *   <li>✅ 이미 ACTIVE 상태면 예외 발생</li>
+     *   <li>✅ updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException 이미 ACTIVE 상태일 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void activate() {
+        if (status == ScheduleStatus.ACTIVE) {
+            throw new IllegalStateException("이미 ACTIVE 상태입니다");
+        }
+        this.status = ScheduleStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 스케줄 비활성화
+     *
+     * <p><strong>비활성화 규칙:</strong></p>
+     * <ul>
+     *   <li>✅ ACTIVE 상태에서만 비활성화 가능</li>
+     *   <li>✅ 이미 INACTIVE 상태면 예외 발생</li>
+     *   <li>✅ updatedAt 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException 이미 INACTIVE 상태일 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void deactivate() {
+        if (status == ScheduleStatus.INACTIVE) {
+            throw new IllegalStateException("이미 INACTIVE 상태입니다");
+        }
+        this.status = ScheduleStatus.INACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // ===== Getters =====
 
     public ScheduleId getScheduleId() {
