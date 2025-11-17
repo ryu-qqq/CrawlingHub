@@ -3,12 +3,14 @@ package com.ryuqq.crawlinghub.domain.aggregate;
 import com.ryuqq.crawlinghub.domain.crawler.aggregate.schedule.CrawlingSchedule;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleStatus;
+import com.ryuqq.crawlinghub.domain.fixture.CrawlingScheduleFixture;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * CrawlingSchedule Aggregate Root 테스트
@@ -18,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>✅ CrawlingSchedule 생성 (ACTIVE 상태)</li>
  *   <li>✅ scheduleRule 자동 생성 (mustit-crawler-seller_{sellerId})</li>
  *   <li>✅ scheduleExpression 자동 변환 (rate(1 day), rate(6 hours))</li>
+ *   <li>✅ CrawlingSchedule 주기 변경 (updateInterval)</li>
+ *   <li>✅ INACTIVE 상태에서 주기 변경 불가 검증</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -54,5 +58,31 @@ class CrawlingScheduleTest {
 
         // Then
         assertThat(schedule.getScheduleExpression()).isEqualTo("rate(6 hours)");
+    }
+
+    @Test
+    void shouldUpdateCrawlingInterval() {
+        // Given
+        CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+        CrawlingInterval newInterval = new CrawlingInterval(12, ChronoUnit.HOURS);
+
+        // When
+        schedule.updateInterval(newInterval);
+
+        // Then
+        assertThat(schedule.getCrawlingInterval()).isEqualTo(newInterval);
+        assertThat(schedule.getScheduleExpression()).isEqualTo("rate(12 hours)");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingInactiveSchedule() {
+        // Given
+        CrawlingSchedule schedule = CrawlingScheduleFixture.inactiveSchedule();
+        CrawlingInterval newInterval = new CrawlingInterval(1, ChronoUnit.DAYS);
+
+        // When & Then
+        assertThatThrownBy(() -> schedule.updateInterval(newInterval))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
     }
 }
