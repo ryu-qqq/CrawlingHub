@@ -9,9 +9,21 @@ import java.time.LocalDateTime;
  * <ul>
  *   <li>✅ Record 타입 사용 (불변성 보장)</li>
  *   <li>✅ Lombok 금지</li>
- *   <li>✅ 비즈니스 검증 로직 포함 가능</li>
- *   <li>✅ Null-safe 설계</li>
+ *   <li>✅ of() 정적 팩토리 메서드만 제공</li>
+ *   <li>✅ Null-safe 설계 (모든 필드 nullable)</li>
  * </ul>
+ *
+ * <p><strong>사용 예시:</strong></p>
+ * <pre>{@code
+ * // Seller ID로 조회
+ * SellerSearchCriteria.of("seller_12345", null, null, null, null);
+ *
+ * // 활성 Seller만 조회
+ * SellerSearchCriteria.of(null, null, true, null, null);
+ *
+ * // 복합 조건 조회
+ * SellerSearchCriteria.of("seller_12345", "무신사", true, startDate, endDate);
+ * }</pre>
  *
  * @param sellerId Seller ID (String, 예: "seller_12345")
  * @param sellerName Seller 이름 (like 검색)
@@ -30,23 +42,22 @@ public record SellerSearchCriteria(
     LocalDateTime createdAtTo
 ) {
     /**
-     * 모든 Seller 조회 (조건 없음)
+     * 정적 팩토리 메서드
+     *
+     * @param sellerId Seller ID (nullable)
+     * @param sellerName Seller 이름 (nullable)
+     * @param active 활성 상태 (nullable)
+     * @param createdAtFrom 생성일 범위 시작 (nullable)
+     * @param createdAtTo 생성일 범위 종료 (nullable)
+     * @return SellerSearchCriteria
      */
-    public static SellerSearchCriteria all() {
-        return new SellerSearchCriteria(null, null, null, null, null);
-    }
-
-    /**
-     * Seller ID로 조회
-     */
-    public static SellerSearchCriteria bySellerId(String sellerId) {
-        return new SellerSearchCriteria(sellerId, null, null, null, null);
-    }
-
-    /**
-     * 활성 Seller만 조회
-     */
-    public static SellerSearchCriteria onlyActive() {
-        return new SellerSearchCriteria(null, null, true, null, null);
+    public static SellerSearchCriteria of(
+        String sellerId,
+        String sellerName,
+        Boolean active,
+        LocalDateTime createdAtFrom,
+        LocalDateTime createdAtTo
+    ) {
+        return new SellerSearchCriteria(sellerId, sellerName, active, createdAtFrom, createdAtTo);
     }
 }
