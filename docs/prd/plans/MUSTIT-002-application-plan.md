@@ -177,6 +177,20 @@
 #### 🧹 Tidy: TestFixture 정리 ✅
 - [x] Mock Port Fixture 불필요 (Port 인터페이스는 mock() 사용이 표준)
 
+#### 🔄 Refactor: ArchUnit 위반 수정 ✅
+- [x] EventBridgePort를 `port.out.external` 패키지로 이동 (user feedback)
+- [x] SellerCommandPort → SellerPersistencePort로 변경 (PersistencePort 패턴 준수)
+  - `save()` → `persist()` 메서드로 변경
+  - `delete()` 메서드 제거 (PersistencePort는 persist만 허용)
+  - 반환 타입: `Seller` → `SellerId` (Value Object 반환)
+- [x] RegisterSellerCommand DTO 컨벤션 준수
+  - `validateSellerId()`, `validateCrawlingIntervalDays()` 제거 (비즈니스 로직 금지)
+  - 순수 데이터 전달 객체로 변경
+- [x] DtoRecordArchTest 수정
+  - 테스트 클래스 제외 (ImportOption.DO_NOT_INCLUDE_TESTS)
+  - 타임스탬프 accessor 제외 (createdAt, updatedAt, deletedAt)
+- [x] 커밋: `refactor: RegisterSellerCommand DTO 컨벤션 준수 - 비즈니스 로직 제거` (91ecd79)
+
 ---
 
 ### 7️⃣ RegisterSellerUseCase 인터페이스 정의 (Cycle 7)
