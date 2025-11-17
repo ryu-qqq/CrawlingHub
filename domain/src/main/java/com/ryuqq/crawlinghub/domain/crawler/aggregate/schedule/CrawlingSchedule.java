@@ -50,7 +50,7 @@ public class CrawlingSchedule {
     private LocalDateTime updatedAt;
 
     /**
-     * Private Constructor - Factory Method 패턴
+     * Private Constructor - Factory Method 패턴 (create용)
      *
      * @param sellerId Seller ID
      * @param crawlingInterval 크롤링 주기
@@ -69,6 +69,40 @@ public class CrawlingSchedule {
     }
 
     /**
+     * Private Constructor - Reconstitute 패턴 (DB 조회용)
+     *
+     * @param scheduleId Schedule ID
+     * @param sellerId Seller ID
+     * @param crawlingInterval 크롤링 주기
+     * @param scheduleRule Schedule Rule
+     * @param scheduleExpression Schedule Expression
+     * @param status 스케줄 상태
+     * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    private CrawlingSchedule(
+            ScheduleId scheduleId,
+            SellerId sellerId,
+            CrawlingInterval crawlingInterval,
+            String scheduleRule,
+            String scheduleExpression,
+            ScheduleStatus status,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this.scheduleId = scheduleId;
+        this.sellerId = sellerId;
+        this.crawlingInterval = crawlingInterval;
+        this.scheduleRule = scheduleRule;
+        this.scheduleExpression = scheduleExpression;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    /**
      * CrawlingSchedule 생성 Factory Method
      *
      * <p>초기 상태: ACTIVE</p>
@@ -83,6 +117,41 @@ public class CrawlingSchedule {
      */
     public static CrawlingSchedule create(SellerId sellerId, CrawlingInterval crawlingInterval) {
         return new CrawlingSchedule(sellerId, crawlingInterval);
+    }
+
+    /**
+     * CrawlingSchedule 재구성 Factory Method (DB 조회용)
+     *
+     * <p>데이터베이스에서 조회한 데이터로 CrawlingSchedule을 재구성합니다.</p>
+     * <p>테스트에서 특정 상태의 스케줄을 생성할 때도 사용됩니다.</p>
+     *
+     * @param scheduleId Schedule ID
+     * @param sellerId Seller ID
+     * @param crawlingInterval 크롤링 주기
+     * @param scheduleRule Schedule Rule
+     * @param scheduleExpression Schedule Expression
+     * @param status 스케줄 상태
+     * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
+     * @return 재구성된 CrawlingSchedule
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingSchedule reconstitute(
+            ScheduleId scheduleId,
+            SellerId sellerId,
+            CrawlingInterval crawlingInterval,
+            String scheduleRule,
+            String scheduleExpression,
+            ScheduleStatus status,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        return new CrawlingSchedule(
+                scheduleId, sellerId, crawlingInterval,
+                scheduleRule, scheduleExpression, status,
+                createdAt, updatedAt
+        );
     }
 
     /**
