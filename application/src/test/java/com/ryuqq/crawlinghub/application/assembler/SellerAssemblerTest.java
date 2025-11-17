@@ -35,7 +35,7 @@ class SellerAssemblerTest {
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.sellerId()).isEqualTo(seller.getSellerId().value());
+        assertThat(response.sellerId()).isEqualTo(String.valueOf(seller.getSellerId().value()));
         assertThat(response.name()).isEqualTo(seller.getName());
         assertThat(response.status()).isEqualTo(seller.getStatus());
         assertThat(response.crawlingIntervalDays()).isEqualTo(seller.getCrawlingIntervalDays());
