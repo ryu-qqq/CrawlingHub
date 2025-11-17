@@ -311,9 +311,165 @@ public enum OutboxStatus {
 
 ---
 
+### 7️⃣ Cycle 7: RequestUrl VO (15분) ✅ **완료 (2025-11-17)**
+
+#### 🔴 Red: 테스트 작성
+```java
+// domain/src/test/java/.../vo/RequestUrlTest.java
+@Test
+void shouldCreateRequestUrlWithValidMinishopUrl() {
+    String validUrl = "https://m.mustit.co.kr/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123";
+    CrawlerTaskType taskType = CrawlerTaskType.MINISHOP;
+
+    RequestUrl requestUrl = new RequestUrl(validUrl, taskType);
+
+    assertThat(requestUrl.value()).isEqualTo(validUrl);
+}
+
+@Test
+void shouldThrowExceptionWhenMinishopUrlInvalid() {
+    String invalidUrl = "https://invalid.com/wrong-path";
+
+    assertThatThrownBy(() -> new RequestUrl(invalidUrl, CrawlerTaskType.MINISHOP))
+        .isInstanceOf(InvalidRequestUrlException.class)
+        .hasMessageContaining("MINISHOP URL은 /searchmini-shop-search 패턴을 포함해야 합니다");
+}
+
+@ParameterizedTest
+@CsvSource({
+    "https://m.mustit.co.kr/mustit-api/facade-api/v1/item/12345/detail/top, PRODUCT_DETAIL",
+    "https://m.mustit.co.kr/mustit-api/legacy-api/v1/auction_products/12345/options, PRODUCT_OPTION"
+})
+void shouldValidateUrlByTaskType(String url, CrawlerTaskType taskType) {
+    assertThatCode(() -> new RequestUrl(url, taskType))
+        .doesNotThrowAnyException();
+}
+```
+- [x] RequestUrlTest.java 생성
+- [x] 커밋: `test: RequestUrl VO 검증 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+// domain/src/main/java/.../vo/RequestUrl.java
+public record RequestUrl(String value, CrawlerTaskType taskType) {
+    public RequestUrl {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("RequestUrl은 비어있을 수 없습니다");
+        }
+        validateByTaskType(value, taskType);
+    }
+
+    private void validateByTaskType(String url, CrawlerTaskType type) {
+        switch (type) {
+            case MINISHOP -> {
+                if (!url.contains("/searchmini-shop-search")) {
+                    throw new InvalidRequestUrlException(
+                        "MINISHOP URL은 /searchmini-shop-search 패턴을 포함해야 합니다"
+                    );
+                }
+            }
+            case PRODUCT_DETAIL -> {
+                if (!url.matches(".*/item/\\d+/detail/top.*")) {
+                    throw new InvalidRequestUrlException(
+                        "PRODUCT_DETAIL URL은 /item/{숫자}/detail/top 형식이어야 합니다"
+                    );
+                }
+            }
+            case PRODUCT_OPTION -> {
+                if (!url.matches(".*/auction_products/\\d+/options.*")) {
+                    throw new InvalidRequestUrlException(
+                        "PRODUCT_OPTION URL은 /auction_products/{숫자}/options 형식이어야 합니다"
+                    );
+                }
+            }
+        }
+    }
+}
+```
+- [x] RequestUrl record 구현
+- [x] InvalidRequestUrlException 생성
+- [x] 커밋: `feat: RequestUrl VO 구현 (taskType별 검증)`
+
+#### 🧹 Tidy
+```java
+// domain/src/testFixtures/java/.../fixture/CrawlerTaskFixture.java
+public class CrawlerTaskFixture {
+    public static RequestUrl minishopRequestUrl() {
+        return new RequestUrl(
+            "https://m.mustit.co.kr/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123",
+            CrawlerTaskType.MINISHOP
+        );
+    }
+
+    public static RequestUrl productDetailRequestUrl(Long itemNo) {
+        return new RequestUrl(
+            "https://m.mustit.co.kr/mustit-api/facade-api/v1/item/" + itemNo + "/detail/top",
+            CrawlerTaskType.PRODUCT_DETAIL
+        );
+    }
+}
+```
+- [x] CrawlerTaskFixture에 RequestUrl factory 메서드 추가
+- [x] 커밋: `struct: RequestUrl TestFixture 추가`
+
+---
+
+### 8️⃣ Cycle 8: Token VO (10분) ⬅️ **신규 추가**
+
+#### 🔴 Red: 테스트 작성
+```java
+// domain/src/test/java/.../vo/TokenTest.java
+@Test
+void shouldCreateTokenWithValidValue() {
+    String validToken = "mustit_token_abc123";
+    Token token = new Token(validToken);
+
+    assertThat(token.value()).isEqualTo(validToken);
+}
+
+@ParameterizedTest
+@NullAndEmptySource
+@ValueSource(strings = {" ", "  "})
+void shouldThrowExceptionWhenTokenIsBlank(String invalidToken) {
+    assertThatThrownBy(() -> new Token(invalidToken))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Token은 비어있을 수 없습니다");
+}
+```
+- [ ] TokenTest.java 생성
+- [ ] 커밋: `test: Token VO 검증 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+// domain/src/main/java/.../vo/Token.java
+public record Token(String value) {
+    public Token {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Token은 비어있을 수 없습니다");
+        }
+    }
+}
+```
+- [ ] Token record 구현
+- [ ] 커밋: `feat: Token VO 구현 (null/blank 검증)`
+
+#### 🧹 Tidy
+```java
+// domain/src/testFixtures/java/.../fixture/UserAgentFixture.java (기존 파일 수정)
+public class UserAgentFixture {
+    public static Token defaultToken() {
+        return new Token("mustit_token_default_123");
+    }
+}
+```
+- [ ] UserAgentFixture에 Token factory 추가
+- [ ] 커밋: `struct: Token TestFixture 추가`
+
+---
+
 ## 🎯 Phase 2: Seller Aggregate (4 Cycles)
 
-### 7️⃣ Cycle 7: Seller Aggregate Root 생성 (15분) ✅ COMPLETE
+### 9️⃣ Cycle 9: Seller Aggregate Root 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -489,7 +645,7 @@ public Integer getTotalProductCount() {
 
 ## 🎯 Phase 3: CrawlerTask Aggregate (5 Cycles)
 
-### 1️⃣1️⃣ Cycle 11: CrawlerTask 생성 (15분) ✅ COMPLETE
+### 1️⃣3️⃣ Cycle 13: CrawlerTask 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -588,7 +744,7 @@ public class CrawlerTask {
 
 ---
 
-### 1️⃣2️⃣ Cycle 12: CrawlerTask 상태 전환 (Publish, Start) (15분) ✅ COMPLETE
+### 1️⃣4️⃣ Cycle 14: CrawlerTask 상태 전환 (Publish, Start) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -640,7 +796,7 @@ public void start() {
 
 ---
 
-### 1️⃣3️⃣ Cycle 13: CrawlerTask 완료/실패 (15분) ✅ COMPLETE
+### 1️⃣5️⃣ Cycle 15: CrawlerTask 완료/실패 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -693,7 +849,7 @@ public String getErrorMessage() {
 
 ---
 
-### 1️⃣4️⃣ Cycle 14: CrawlerTask 재시도 로직 (15분) ✅ COMPLETE
+### 1️⃣6️⃣ Cycle 16: CrawlerTask 재시도 로직 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -761,7 +917,7 @@ public void start() {
 
 ---
 
-### 1️⃣5️⃣ Cycle 15: CrawlerTask Fixture 정리 (10분) ✅ COMPLETE
+### 1️⃣7️⃣ Cycle 17: CrawlerTask Fixture 정리 (10분) ✅ COMPLETE
 
 #### 🧹 Tidy: CrawlerTaskFixture 완성
 ```java
@@ -810,7 +966,7 @@ public class CrawlerTaskFixture {
 
 ## 🎯 Phase 4: UserAgent Aggregate (4 Cycles)
 
-### 1️⃣6️⃣ Cycle 16: UserAgent 생성 (15분) ✅ COMPLETE
+### 1️⃣8️⃣ Cycle 18: UserAgent 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -881,7 +1037,7 @@ public class UserAgent {
 
 ---
 
-### 1️⃣7️⃣ Cycle 17: UserAgent 토큰 발급 (15분) ✅ COMPLETE
+### 1️⃣9️⃣ Cycle 19: UserAgent 토큰 발급 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -927,7 +1083,7 @@ public LocalDateTime getTokenIssuedAt() {
 
 ---
 
-### 1️⃣8️⃣ Cycle 18: UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (15분) ✅ COMPLETE
+### 2️⃣0️⃣ Cycle 20: UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1025,7 +1181,7 @@ static final ArchRule tell_dont_ask_rule = methods()
 
 ---
 
-### 1️⃣9️⃣ Cycle 19: UserAgent 상태 전환 (Suspend, Activate) (15분) ✅ COMPLETE
+### 2️⃣1️⃣ Cycle 21: UserAgent 상태 전환 (Suspend, Activate) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1072,7 +1228,7 @@ public void activate() {
 
 ## 🎯 Phase 5: Product Aggregate (3 Cycles)
 
-### 2️⃣0️⃣ Cycle 20: Product 생성 (15분) ✅ COMPLETE
+### 2️⃣2️⃣ Cycle 22: Product 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1135,7 +1291,7 @@ public class Product {
 
 ---
 
-### 2️⃣1️⃣ Cycle 21: Product 데이터 업데이트 및 해시 계산 (15분) ✅ COMPLETE
+### 2️⃣3️⃣ Cycle 23: Product 데이터 업데이트 및 해시 계산 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1234,7 +1390,7 @@ public String getMinishopDataHash() { return minishopDataHash; }
 
 ---
 
-### 2️⃣2️⃣ Cycle 22: Product 변경 감지 (Tell Don't Ask) (10분) ✅ COMPLETE
+### 2️⃣4️⃣ Cycle 24: Product 변경 감지 (Tell Don't Ask) (10분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1279,7 +1435,7 @@ public static boolean hasChanged(String oldHash, String newHash) {
 
 ## 🎯 Phase 6: ProductOutbox Aggregate (3 Cycles)
 
-### 2️⃣3️⃣ Cycle 23: ProductOutbox 생성 (15분) ✅ COMPLETE
+### 2️⃣5️⃣ Cycle 25: ProductOutbox 생성 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1346,7 +1502,7 @@ public class ProductOutbox {
 
 ---
 
-### 2️⃣4️⃣ Cycle 24: ProductOutbox 전송 상태 전환 (15분) ✅ COMPLETE
+### 2️⃣6️⃣ Cycle 26: ProductOutbox 전송 상태 전환 (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1417,7 +1573,7 @@ public String getErrorMessage() { return errorMessage; }
 
 ---
 
-### 2️⃣5️⃣ Cycle 25: ProductOutbox 재시도 로직 (Tell Don't Ask) (15분) ✅ COMPLETE
+### 2️⃣7️⃣ Cycle 27: ProductOutbox 재시도 로직 (Tell Don't Ask) (15분) ✅ COMPLETE
 
 #### 🔴 Red: 테스트 작성
 ```java
@@ -1467,55 +1623,869 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 
 ---
 
+## 🎯 Phase 7: CrawlingSchedule Aggregate (3 Cycles)
+
+### 2️⃣8️⃣ Cycle 28: CrawlingSchedule 생성 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+// domain/src/test/java/.../aggregate/CrawlingScheduleTest.java
+@Test
+void shouldCreateCrawlingScheduleWithActiveStatus() {
+    SellerId sellerId = new SellerId("seller_12345");
+    CrawlingInterval interval = new CrawlingInterval(1, ChronoUnit.DAYS);
+
+    CrawlingSchedule schedule = CrawlingSchedule.create(sellerId, interval);
+
+    assertThat(schedule.getScheduleId()).isNotNull();
+    assertThat(schedule.getSellerId()).isEqualTo(sellerId);
+    assertThat(schedule.getCrawlingInterval()).isEqualTo(interval);
+    assertThat(schedule.getScheduleRule()).isEqualTo("mustit-crawler-seller_12345");
+    assertThat(schedule.getScheduleExpression()).isEqualTo("rate(1 day)");
+    assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.ACTIVE);
+}
+
+@Test
+void shouldGenerateCorrectScheduleExpressionForHourInterval() {
+    SellerId sellerId = new SellerId("seller_67890");
+    CrawlingInterval interval = new CrawlingInterval(6, ChronoUnit.HOURS);
+
+    CrawlingSchedule schedule = CrawlingSchedule.create(sellerId, interval);
+
+    assertThat(schedule.getScheduleExpression()).isEqualTo("rate(6 hours)");
+}
+```
+- [ ] 테스트 파일 생성
+- [ ] ScheduleId VO, ScheduleStatus Enum 생성
+- [ ] 커밋: `test: CrawlingSchedule 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+// domain/src/main/java/.../aggregate/CrawlingSchedule.java
+public class CrawlingSchedule {
+    private ScheduleId scheduleId;
+    private SellerId sellerId;
+    private CrawlingInterval crawlingInterval;
+    private String scheduleRule;
+    private String scheduleExpression;
+    private ScheduleStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    private CrawlingSchedule(SellerId sellerId, CrawlingInterval crawlingInterval) {
+        this.scheduleId = ScheduleId.generate();
+        this.sellerId = sellerId;
+        this.crawlingInterval = crawlingInterval;
+        this.scheduleRule = "mustit-crawler-seller_" + sellerId.value();
+        this.scheduleExpression = convertToCronExpression(crawlingInterval);
+        this.status = ScheduleStatus.ACTIVE;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static CrawlingSchedule create(SellerId sellerId, CrawlingInterval crawlingInterval) {
+        return new CrawlingSchedule(sellerId, crawlingInterval);
+    }
+
+    private String convertToCronExpression(CrawlingInterval interval) {
+        long amount = interval.amount();
+        String unit = interval.unit() == ChronoUnit.HOURS ? "hours" :
+                     interval.unit() == ChronoUnit.DAYS ? "day" : "days";
+
+        if (interval.unit() == ChronoUnit.DAYS && amount == 1) {
+            return "rate(1 day)";
+        }
+        return "rate(" + amount + " " + unit + ")";
+    }
+
+    // Getters
+    public ScheduleId getScheduleId() { return scheduleId; }
+    public SellerId getSellerId() { return sellerId; }
+    public CrawlingInterval getCrawlingInterval() { return crawlingInterval; }
+    public String getScheduleRule() { return scheduleRule; }
+    public String getScheduleExpression() { return scheduleExpression; }
+    public ScheduleStatus getStatus() { return status; }
+}
+
+// domain/src/main/java/.../vo/ScheduleId.java
+public record ScheduleId(UUID value) {
+    public static ScheduleId generate() {
+        return new ScheduleId(UUID.randomUUID());
+    }
+}
+
+// domain/src/main/java/.../vo/ScheduleStatus.java
+public enum ScheduleStatus {
+    ACTIVE,
+    INACTIVE,
+    FAILED
+}
+```
+- [ ] CrawlingSchedule 클래스 구현
+- [ ] ScheduleId VO 구현
+- [ ] ScheduleStatus Enum 구현
+- [ ] 커밋: `feat: CrawlingSchedule Aggregate Root 구현 (create)`
+
+#### ♻️ Tidy: TestFixture 추가
+```java
+// domain/src/testFixtures/java/.../fixture/CrawlingScheduleFixture.java
+public class CrawlingScheduleFixture {
+    public static CrawlingSchedule defaultSchedule() {
+        SellerId sellerId = new SellerId("seller_12345");
+        CrawlingInterval interval = new CrawlingInterval(1, ChronoUnit.DAYS);
+        return CrawlingSchedule.create(sellerId, interval);
+    }
+
+    public static CrawlingSchedule hourlySchedule() {
+        SellerId sellerId = new SellerId("seller_67890");
+        CrawlingInterval interval = new CrawlingInterval(6, ChronoUnit.HOURS);
+        return CrawlingSchedule.create(sellerId, interval);
+    }
+}
+```
+- [ ] CrawlingScheduleFixture 추가
+- [ ] 커밋: `struct: CrawlingScheduleFixture 추가`
+
+---
+
+### 2️⃣9️⃣ Cycle 29: CrawlingSchedule 주기 변경 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldUpdateCrawlingInterval() {
+    CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+    CrawlingInterval newInterval = new CrawlingInterval(12, ChronoUnit.HOURS);
+
+    schedule.updateInterval(newInterval);
+
+    assertThat(schedule.getCrawlingInterval()).isEqualTo(newInterval);
+    assertThat(schedule.getScheduleExpression()).isEqualTo("rate(12 hours)");
+}
+
+@Test
+void shouldThrowExceptionWhenUpdatingInactiveSchedule() {
+    CrawlingSchedule schedule = CrawlingScheduleFixture.inactiveSchedule();
+    CrawlingInterval newInterval = new CrawlingInterval(1, ChronoUnit.DAYS);
+
+    assertThatThrownBy(() -> schedule.updateInterval(newInterval))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+}
+```
+- [ ] 테스트 추가
+- [ ] 커밋: `test: CrawlingSchedule 주기 변경 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+public void updateInterval(CrawlingInterval newInterval) {
+    if (status != ScheduleStatus.ACTIVE) {
+        throw new IllegalStateException("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+    }
+    this.crawlingInterval = newInterval;
+    this.scheduleExpression = convertToCronExpression(newInterval);
+    this.updatedAt = LocalDateTime.now();
+}
+```
+- [ ] updateInterval 메서드 구현
+- [ ] 커밋: `feat: CrawlingSchedule 주기 변경 구현 (updateInterval)`
+
+#### ♻️ Tidy: TestFixture 확장
+```java
+public static CrawlingSchedule inactiveSchedule() {
+    CrawlingSchedule schedule = defaultSchedule();
+    schedule.deactivate();  // 다음 Cycle에서 구현
+    return schedule;
+}
+```
+- [ ] inactiveSchedule Fixture 추가
+- [ ] 커밋: `struct: CrawlingScheduleFixture 확장 (inactiveSchedule)`
+
+---
+
+### 3️⃣0️⃣ Cycle 30: CrawlingSchedule 활성화/비활성화 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldDeactivateSchedule() {
+    CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+
+    schedule.deactivate();
+
+    assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.INACTIVE);
+}
+
+@Test
+void shouldActivateSchedule() {
+    CrawlingSchedule schedule = CrawlingScheduleFixture.inactiveSchedule();
+
+    schedule.activate();
+
+    assertThat(schedule.getStatus()).isEqualTo(ScheduleStatus.ACTIVE);
+}
+
+@Test
+void shouldThrowExceptionWhenActivatingActiveSchedule() {
+    CrawlingSchedule schedule = CrawlingScheduleFixture.defaultSchedule();
+
+    assertThatThrownBy(() -> schedule.activate())
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("이미 ACTIVE 상태입니다");
+}
+```
+- [ ] 테스트 추가
+- [ ] 커밋: `test: CrawlingSchedule 활성화/비활성화 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+public void activate() {
+    if (status == ScheduleStatus.ACTIVE) {
+        throw new IllegalStateException("이미 ACTIVE 상태입니다");
+    }
+    this.status = ScheduleStatus.ACTIVE;
+    this.updatedAt = LocalDateTime.now();
+}
+
+public void deactivate() {
+    if (status == ScheduleStatus.INACTIVE) {
+        throw new IllegalStateException("이미 INACTIVE 상태입니다");
+    }
+    this.status = ScheduleStatus.INACTIVE;
+    this.updatedAt = LocalDateTime.now();
+}
+```
+- [ ] activate, deactivate 메서드 구현
+- [ ] 커밋: `feat: CrawlingSchedule 활성화/비활성화 구현 (activate, deactivate)`
+
+---
+
+## 🎯 Phase 8: CrawlingScheduleExecution Aggregate (3 Cycles)
+
+### 3️⃣1️⃣ Cycle 31: CrawlingScheduleExecution 생성 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+// domain/src/test/java/.../aggregate/CrawlingScheduleExecutionTest.java
+@Test
+void shouldCreateExecutionWithPendingStatus() {
+    ScheduleId scheduleId = ScheduleId.generate();
+    SellerId sellerId = new SellerId("seller_12345");
+
+    CrawlingScheduleExecution execution = CrawlingScheduleExecution.create(scheduleId, sellerId);
+
+    assertThat(execution.getExecutionId()).isNotNull();
+    assertThat(execution.getScheduleId()).isEqualTo(scheduleId);
+    assertThat(execution.getSellerId()).isEqualTo(sellerId);
+    assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.PENDING);
+    assertThat(execution.getTotalTasksCreated()).isEqualTo(0);
+    assertThat(execution.getCompletedTasks()).isEqualTo(0);
+    assertThat(execution.getFailedTasks()).isEqualTo(0);
+}
+```
+- [ ] 테스트 파일 생성
+- [ ] ExecutionId VO, ExecutionStatus Enum 생성
+- [ ] 커밋: `test: CrawlingScheduleExecution 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+// domain/src/main/java/.../aggregate/CrawlingScheduleExecution.java
+public class CrawlingScheduleExecution {
+    private ExecutionId executionId;
+    private ScheduleId scheduleId;
+    private SellerId sellerId;
+    private ExecutionStatus status;
+    private Integer totalTasksCreated;
+    private Integer completedTasks;
+    private Integer failedTasks;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
+    private LocalDateTime createdAt;
+
+    private CrawlingScheduleExecution(ScheduleId scheduleId, SellerId sellerId) {
+        this.executionId = ExecutionId.generate();
+        this.scheduleId = scheduleId;
+        this.sellerId = sellerId;
+        this.status = ExecutionStatus.PENDING;
+        this.totalTasksCreated = 0;
+        this.completedTasks = 0;
+        this.failedTasks = 0;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static CrawlingScheduleExecution create(ScheduleId scheduleId, SellerId sellerId) {
+        return new CrawlingScheduleExecution(scheduleId, sellerId);
+    }
+
+    // Getters
+    public ExecutionId getExecutionId() { return executionId; }
+    public ScheduleId getScheduleId() { return scheduleId; }
+    public SellerId getSellerId() { return sellerId; }
+    public ExecutionStatus getStatus() { return status; }
+    public Integer getTotalTasksCreated() { return totalTasksCreated; }
+    public Integer getCompletedTasks() { return completedTasks; }
+    public Integer getFailedTasks() { return failedTasks; }
+}
+
+// domain/src/main/java/.../vo/ExecutionId.java
+public record ExecutionId(UUID value) {
+    public static ExecutionId generate() {
+        return new ExecutionId(UUID.randomUUID());
+    }
+}
+
+// domain/src/main/java/.../vo/ExecutionStatus.java
+public enum ExecutionStatus {
+    PENDING,
+    RUNNING,
+    COMPLETED,
+    FAILED
+}
+```
+- [ ] CrawlingScheduleExecution 클래스 구현
+- [ ] ExecutionId VO 구현
+- [ ] ExecutionStatus Enum 구현
+- [ ] 커밋: `feat: CrawlingScheduleExecution Aggregate Root 구현 (create)`
+
+#### ♻️ Tidy: TestFixture 추가
+```java
+// domain/src/testFixtures/java/.../fixture/CrawlingScheduleExecutionFixture.java
+public class CrawlingScheduleExecutionFixture {
+    public static CrawlingScheduleExecution pendingExecution() {
+        ScheduleId scheduleId = ScheduleId.generate();
+        SellerId sellerId = new SellerId("seller_12345");
+        return CrawlingScheduleExecution.create(scheduleId, sellerId);
+    }
+}
+```
+- [ ] CrawlingScheduleExecutionFixture 추가
+- [ ] 커밋: `struct: CrawlingScheduleExecutionFixture 추가`
+
+---
+
+### 3️⃣2️⃣ Cycle 32: CrawlingScheduleExecution 진행률 계산 (Tell Don't Ask) (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldCalculateProgressRate() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.pendingExecution();
+    execution.start(100);  // 총 100개 작업 생성
+    execution.completeTask();
+    execution.completeTask();
+    execution.completeTask();  // 3개 완료
+
+    double progressRate = execution.getProgressRate();
+
+    assertThat(progressRate).isEqualTo(3.0);  // 3/100 * 100 = 3%
+}
+
+@Test
+void shouldCalculateSuccessRate() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.pendingExecution();
+    execution.start(100);
+    execution.completeTask();
+    execution.completeTask();
+    execution.failTask();
+    execution.failTask();  // 2 성공, 2 실패
+
+    double successRate = execution.getSuccessRate();
+
+    assertThat(successRate).isEqualTo(50.0);  // 2/(2+2) * 100 = 50%
+}
+
+@Test
+void shouldReturnZeroWhenNoTasksCompleted() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.pendingExecution();
+    execution.start(100);
+
+    assertThat(execution.getProgressRate()).isEqualTo(0.0);
+    assertThat(execution.getSuccessRate()).isEqualTo(0.0);
+}
+```
+- [ ] 테스트 추가 (Tell Don't Ask)
+- [ ] 커밋: `test: CrawlingScheduleExecution 진행률 계산 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현 (Tell Don't Ask)
+```java
+public void start(int totalTasksCreated) {
+    if (status != ExecutionStatus.PENDING) {
+        throw new IllegalStateException("PENDING 상태에서만 시작할 수 있습니다");
+    }
+    this.totalTasksCreated = totalTasksCreated;
+    this.status = ExecutionStatus.RUNNING;
+    this.startedAt = LocalDateTime.now();
+}
+
+public void completeTask() {
+    this.completedTasks++;
+}
+
+public void failTask() {
+    this.failedTasks++;
+}
+
+// Tell Don't Ask: 외부에서 계산하지 않고 객체가 스스로 계산
+public double getProgressRate() {
+    if (totalTasksCreated == 0) {
+        return 0.0;
+    }
+    int processed = completedTasks + failedTasks;
+    return (double) processed / totalTasksCreated * 100;
+}
+
+public double getSuccessRate() {
+    int processed = completedTasks + failedTasks;
+    if (processed == 0) {
+        return 0.0;
+    }
+    return (double) completedTasks / processed * 100;
+}
+```
+- [ ] start, completeTask, failTask 메서드 구현
+- [ ] getProgressRate, getSuccessRate 구현 (Tell Don't Ask)
+- [ ] 커밋: `feat: CrawlingScheduleExecution 진행률 계산 구현 (Tell Don't Ask)`
+
+#### ♻️ Refactor: ArchUnit 테스트 추가
+```java
+@ArchTest
+static final ArchRule tell_dont_ask_execution_rule = methods()
+    .that().areDeclaredInClassesThat().resideInPackage("..application..")
+    .should().notCallMethod(CrawlingScheduleExecution.class, "getCompletedTasks")
+    .andShould().notCallMethod(CrawlingScheduleExecution.class, "getTotalTasksCreated")
+    .because("Tell Don't Ask: getProgressRate()를 사용해야 합니다");
+```
+- [ ] ArchUnit 테스트 추가
+- [ ] 커밋: `struct: CrawlingScheduleExecution Tell Don't Ask ArchUnit 테스트 추가`
+
+---
+
+### 3️⃣3️⃣ Cycle 33: CrawlingScheduleExecution 완료/실패 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldCompleteExecution() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.runningExecution();
+
+    execution.complete();
+
+    assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.COMPLETED);
+    assertThat(execution.getCompletedAt()).isNotNull();
+}
+
+@Test
+void shouldFailExecution() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.runningExecution();
+
+    execution.fail();
+
+    assertThat(execution.getStatus()).isEqualTo(ExecutionStatus.FAILED);
+    assertThat(execution.getCompletedAt()).isNotNull();
+}
+
+@Test
+void shouldThrowExceptionWhenCompletingNonRunningExecution() {
+    CrawlingScheduleExecution execution = CrawlingScheduleExecutionFixture.pendingExecution();
+
+    assertThatThrownBy(() -> execution.complete())
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("RUNNING 상태에서만 완료할 수 있습니다");
+}
+```
+- [ ] 테스트 추가
+- [ ] 커밋: `test: CrawlingScheduleExecution 완료/실패 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+public void complete() {
+    if (status != ExecutionStatus.RUNNING) {
+        throw new IllegalStateException("RUNNING 상태에서만 완료할 수 있습니다");
+    }
+    this.status = ExecutionStatus.COMPLETED;
+    this.completedAt = LocalDateTime.now();
+}
+
+public void fail() {
+    if (status != ExecutionStatus.RUNNING) {
+        throw new IllegalStateException("RUNNING 상태에서만 실패할 수 있습니다");
+    }
+    this.status = ExecutionStatus.FAILED;
+    this.completedAt = LocalDateTime.now();
+}
+
+public LocalDateTime getCompletedAt() { return completedAt; }
+```
+- [ ] complete, fail 메서드 구현
+- [ ] 커밋: `feat: CrawlingScheduleExecution 완료/실패 구현 (complete, fail)`
+
+#### ♻️ Tidy: TestFixture 확장
+```java
+public static CrawlingScheduleExecution runningExecution() {
+    CrawlingScheduleExecution execution = pendingExecution();
+    execution.start(100);
+    return execution;
+}
+```
+- [ ] runningExecution Fixture 추가
+- [ ] 커밋: `struct: CrawlingScheduleExecutionFixture 확장 (runningExecution)`
+
+---
+
+## 🎯 Phase 9: SchedulerOutbox Aggregate (3 Cycles)
+
+### 3️⃣4️⃣ Cycle 34: SchedulerOutbox 생성 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+// domain/src/test/java/.../aggregate/SchedulerOutboxTest.java
+@Test
+void shouldCreateSchedulerOutboxWithWaitingStatus() {
+    ScheduleId scheduleId = ScheduleId.generate();
+    OutboxEventType eventType = OutboxEventType.SCHEDULE_REGISTERED;
+    String payload = "{\"ruleName\":\"mustit-crawler-seller_12345\",\"scheduleExpression\":\"rate(1 day)\"}";
+
+    SchedulerOutbox outbox = SchedulerOutbox.create(scheduleId, eventType, payload);
+
+    assertThat(outbox.getOutboxId()).isNotNull();
+    assertThat(outbox.getScheduleId()).isEqualTo(scheduleId);
+    assertThat(outbox.getEventType()).isEqualTo(eventType);
+    assertThat(outbox.getPayload()).isEqualTo(payload);
+    assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.WAITING);
+    assertThat(outbox.getRetryCount()).isEqualTo(0);
+}
+
+@Test
+void shouldValidatePayloadFormat() {
+    ScheduleId scheduleId = ScheduleId.generate();
+    OutboxEventType eventType = OutboxEventType.SCHEDULE_REGISTERED;
+
+    assertThatThrownBy(() -> SchedulerOutbox.create(scheduleId, eventType, "invalid-json"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Payload는 유효한 JSON 형식이어야 합니다");
+}
+```
+- [ ] 테스트 파일 생성
+- [ ] OutboxEventType에 SCHEDULE_REGISTERED, SCHEDULE_UPDATED, SCHEDULE_DEACTIVATED 추가
+- [ ] 커밋: `test: SchedulerOutbox 생성 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+// domain/src/main/java/.../aggregate/SchedulerOutbox.java
+public class SchedulerOutbox {
+    private OutboxId outboxId;
+    private ScheduleId scheduleId;
+    private OutboxEventType eventType;
+    private String payload;
+    private OutboxStatus status;
+    private Integer retryCount;
+    private String errorMessage;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    private SchedulerOutbox(ScheduleId scheduleId, OutboxEventType eventType, String payload) {
+        validatePayload(payload);
+        this.outboxId = OutboxId.generate();
+        this.scheduleId = scheduleId;
+        this.eventType = eventType;
+        this.payload = payload;
+        this.status = OutboxStatus.WAITING;
+        this.retryCount = 0;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static SchedulerOutbox create(ScheduleId scheduleId, OutboxEventType eventType, String payload) {
+        return new SchedulerOutbox(scheduleId, eventType, payload);
+    }
+
+    private void validatePayload(String payload) {
+        // JSON 형식 간단 검증 ({ 시작, } 종료)
+        if (payload == null || !payload.trim().startsWith("{") || !payload.trim().endsWith("}")) {
+            throw new IllegalArgumentException("Payload는 유효한 JSON 형식이어야 합니다");
+        }
+    }
+
+    // Getters
+    public OutboxId getOutboxId() { return outboxId; }
+    public ScheduleId getScheduleId() { return scheduleId; }
+    public OutboxEventType getEventType() { return eventType; }
+    public String getPayload() { return payload; }
+    public OutboxStatus getStatus() { return status; }
+    public Integer getRetryCount() { return retryCount; }
+}
+
+// domain/src/main/java/.../vo/OutboxEventType.java (기존 Enum 확장)
+public enum OutboxEventType {
+    // Product events
+    PRODUCT_CREATED,
+    PRODUCT_UPDATED,
+    PRODUCT_DELETED,
+
+    // Scheduler events
+    SCHEDULE_REGISTERED,
+    SCHEDULE_UPDATED,
+    SCHEDULE_DEACTIVATED
+}
+```
+- [ ] SchedulerOutbox 클래스 구현
+- [ ] OutboxEventType에 스케줄러 이벤트 추가
+- [ ] 커밋: `feat: SchedulerOutbox Aggregate Root 구현 (create)`
+
+#### ♻️ Tidy: TestFixture 추가
+```java
+// domain/src/testFixtures/java/.../fixture/SchedulerOutboxFixture.java
+public class SchedulerOutboxFixture {
+    public static SchedulerOutbox waitingOutbox() {
+        ScheduleId scheduleId = ScheduleId.generate();
+        OutboxEventType eventType = OutboxEventType.SCHEDULE_REGISTERED;
+        String payload = "{\"ruleName\":\"mustit-crawler-seller_12345\",\"scheduleExpression\":\"rate(1 day)\"}";
+        return SchedulerOutbox.create(scheduleId, eventType, payload);
+    }
+}
+```
+- [ ] SchedulerOutboxFixture 추가
+- [ ] 커밋: `struct: SchedulerOutboxFixture 추가`
+
+---
+
+### 3️⃣5️⃣ Cycle 35: SchedulerOutbox 전송 상태 전환 (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldSendOutbox() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.waitingOutbox();
+
+    outbox.send();
+
+    assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.SENDING);
+}
+
+@Test
+void shouldCompleteOutbox() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.sendingOutbox();
+
+    outbox.complete();
+
+    assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.COMPLETED);
+}
+
+@Test
+void shouldFailOutbox() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.sendingOutbox();
+    String errorMessage = "EventBridge API call failed: InvalidRuleName";
+
+    outbox.fail(errorMessage);
+
+    assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.FAILED);
+    assertThat(outbox.getErrorMessage()).isEqualTo(errorMessage);
+    assertThat(outbox.getRetryCount()).isEqualTo(1);
+}
+```
+- [ ] 테스트 추가
+- [ ] 커밋: `test: SchedulerOutbox 상태 전환 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현
+```java
+public void send() {
+    if (status != OutboxStatus.WAITING) {
+        throw new IllegalStateException("WAITING 상태에서만 전송할 수 있습니다");
+    }
+    this.status = OutboxStatus.SENDING;
+    this.updatedAt = LocalDateTime.now();
+}
+
+public void complete() {
+    if (status != OutboxStatus.SENDING) {
+        throw new IllegalStateException("SENDING 상태에서만 완료할 수 있습니다");
+    }
+    this.status = OutboxStatus.COMPLETED;
+    this.updatedAt = LocalDateTime.now();
+}
+
+public void fail(String errorMessage) {
+    if (status != OutboxStatus.SENDING) {
+        throw new IllegalStateException("SENDING 상태에서만 실패할 수 있습니다");
+    }
+    this.status = OutboxStatus.FAILED;
+    this.errorMessage = errorMessage;
+    this.retryCount++;
+    this.updatedAt = LocalDateTime.now();
+}
+
+public String getErrorMessage() { return errorMessage; }
+```
+- [ ] 상태 전환 메서드 구현
+- [ ] 커밋: `feat: SchedulerOutbox 상태 전환 구현 (send, complete, fail)`
+
+#### ♻️ Tidy: TestFixture 확장
+```java
+public static SchedulerOutbox sendingOutbox() {
+    SchedulerOutbox outbox = waitingOutbox();
+    outbox.send();
+    return outbox;
+}
+```
+- [ ] sendingOutbox Fixture 추가
+- [ ] 커밋: `struct: SchedulerOutboxFixture 확장 (sendingOutbox)`
+
+---
+
+### 3️⃣6️⃣ Cycle 36: SchedulerOutbox 재시도 로직 (Tell Don't Ask) (15분)
+
+#### 🔴 Red: 테스트 작성
+```java
+@Test
+void shouldAllowRetryWhenCountLessThan5() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(3);
+
+    boolean canRetry = outbox.canRetry();
+
+    assertThat(canRetry).isTrue();
+}
+
+@Test
+void shouldNotAllowRetryWhenCountExceeds5() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(5);
+
+    boolean canRetry = outbox.canRetry();
+
+    assertThat(canRetry).isFalse();
+}
+
+@Test
+void shouldRetryFailedOutbox() {
+    SchedulerOutbox outbox = SchedulerOutboxFixture.failedOutboxWithRetryCount(2);
+
+    outbox.retry();
+
+    assertThat(outbox.getStatus()).isEqualTo(OutboxStatus.WAITING);
+}
+```
+- [ ] 테스트 추가 (Tell Don't Ask)
+- [ ] 커밋: `test: SchedulerOutbox 재시도 로직 테스트 추가 (Red)`
+
+#### 🟢 Green: 최소 구현 (Tell Don't Ask)
+```java
+private static final int MAX_RETRY_COUNT = 5;
+
+// Tell Don't Ask: 외부에서 판단하지 않고 객체가 스스로 판단
+public boolean canRetry() {
+    return retryCount < MAX_RETRY_COUNT;
+}
+
+public void retry() {
+    if (status != OutboxStatus.FAILED) {
+        throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
+    }
+    if (!canRetry()) {
+        throw new IllegalStateException("최대 재시도 횟수(" + MAX_RETRY_COUNT + ")를 초과했습니다");
+    }
+    this.status = OutboxStatus.WAITING;
+    this.errorMessage = null;
+    this.updatedAt = LocalDateTime.now();
+}
+```
+- [ ] canRetry, retry 메서드 구현
+- [ ] 커밋: `feat: SchedulerOutbox 재시도 로직 구현 (canRetry, retry)`
+
+#### ♻️ Refactor: ArchUnit 테스트 추가
+```java
+@ArchTest
+static final ArchRule tell_dont_ask_scheduler_outbox_rule = methods()
+    .that().areDeclaredInClassesThat().resideInPackage("..application..")
+    .should().notCallMethod(SchedulerOutbox.class, "getRetryCount")
+    .because("Tell Don't Ask: canRetry()를 사용해야 합니다");
+```
+- [ ] ArchUnit 테스트 추가
+- [ ] 커밋: `struct: SchedulerOutbox Tell Don't Ask ArchUnit 테스트 추가`
+
+#### ♻️ Tidy: TestFixture 확장
+```java
+public static SchedulerOutbox failedOutboxWithRetryCount(int retryCount) {
+    SchedulerOutbox outbox = sendingOutbox();
+    for (int i = 0; i < retryCount; i++) {
+        outbox.fail("Test error " + i);
+        if (outbox.canRetry()) {
+            outbox.retry();
+            outbox.send();
+        }
+    }
+    return outbox;
+}
+```
+- [ ] failedOutboxWithRetryCount Fixture 추가
+- [ ] 커밋: `struct: SchedulerOutboxFixture 확장 (failedOutboxWithRetryCount)`
+
+---
+
 ## ✅ 완료 조건 체크리스트
 
-### Phase 1: Value Objects & Enums (6 Cycles)
+### Phase 1: Value Objects & Enums (8 Cycles)
 - [x] SellerId VO (Cycle 1) ✅ 2025-11-15
 - [x] CrawlingInterval VO (Cycle 2) ✅ 2025-11-15
 - [x] SellerStatus Enum (Cycle 3) ✅ 2025-11-15
 - [x] TaskId, CrawlerTaskType, CrawlerTaskStatus (Cycle 4) ✅ 2025-11-15
 - [x] UserAgentId, UserAgentStatus (Cycle 5) ✅ 2025-11-15
 - [x] ProductId, ItemNo, OutboxId, OutboxEventType, OutboxStatus (Cycle 6) ✅ 2025-11-15
+- [x] RequestUrl VO (Cycle 7) ✅ 2025-11-17
+- [ ] Token VO (Cycle 8)
 
 ### Phase 2: Seller Aggregate (4 Cycles)
-- [ ] Seller 생성 (Cycle 7)
-- [ ] Seller 주기 변경 (Cycle 8)
-- [ ] Seller 활성화/비활성화 (Cycle 9)
-- [ ] Seller 상품 수 업데이트 (Cycle 10)
+- [ ] Seller 생성 (Cycle 9)
+- [ ] Seller 주기 변경 (Cycle 10)
+- [ ] Seller 활성화/비활성화 (Cycle 11)
+- [ ] Seller 상품 수 업데이트 (Cycle 12)
 
 ### Phase 3: CrawlerTask Aggregate (5 Cycles)
-- [ ] CrawlerTask 생성 및 URL 검증 (Cycle 11)
-- [ ] CrawlerTask 상태 전환 (Publish, Start) (Cycle 12)
-- [ ] CrawlerTask 완료/실패 (Cycle 13)
-- [ ] CrawlerTask 재시도 로직 (Cycle 14)
-- [ ] CrawlerTaskFixture 정리 (Cycle 15)
+- [ ] CrawlerTask 생성 및 URL 검증 (Cycle 13)
+- [ ] CrawlerTask 상태 전환 (Publish, Start) (Cycle 14)
+- [ ] CrawlerTask 완료/실패 (Cycle 15)
+- [ ] CrawlerTask 재시도 로직 (Cycle 16)
+- [ ] CrawlerTaskFixture 정리 (Cycle 17)
 
 ### Phase 4: UserAgent Aggregate (4 Cycles)
-- [x] UserAgent 생성 (Cycle 16)
-- [x] UserAgent 토큰 발급 (Cycle 17)
-- [x] UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (Cycle 18)
-- [x] UserAgent 상태 전환 (Cycle 19)
+- [x] UserAgent 생성 (Cycle 18)
+- [x] UserAgent 토큰 발급 (Cycle 19)
+- [x] UserAgent 토큰 버킷 리미터 (Tell Don't Ask) (Cycle 20)
+- [x] UserAgent 상태 전환 (Cycle 21)
 
 ### Phase 5: Product Aggregate (3 Cycles)
-- [ ] Product 생성 (Cycle 20)
-- [ ] Product 데이터 업데이트 및 해시 계산 (Cycle 21)
-- [ ] Product 변경 감지 (Cycle 22)
+- [ ] Product 생성 (Cycle 22)
+- [ ] Product 데이터 업데이트 및 해시 계산 (Cycle 23)
+- [ ] Product 변경 감지 (Cycle 24)
 
 ### Phase 6: ProductOutbox Aggregate (3 Cycles)
-- [ ] ProductOutbox 생성 (Cycle 23)
-- [ ] ProductOutbox 상태 전환 (Cycle 24)
-- [ ] ProductOutbox 재시도 로직 (Tell Don't Ask) (Cycle 25)
+- [ ] ProductOutbox 생성 (Cycle 25)
+- [ ] ProductOutbox 상태 전환 (Cycle 26)
+- [ ] ProductOutbox 재시도 로직 (Tell Don't Ask) (Cycle 27)
+
+### Phase 7: CrawlingSchedule Aggregate (3 Cycles)
+- [ ] CrawlingSchedule 생성 (Cycle 28)
+- [ ] CrawlingSchedule 주기 변경 (Cycle 29)
+- [ ] CrawlingSchedule 활성화/비활성화 (Cycle 30)
+
+### Phase 8: CrawlingScheduleExecution Aggregate (3 Cycles)
+- [ ] CrawlingScheduleExecution 생성 (Cycle 31)
+- [ ] CrawlingScheduleExecution 진행률 계산 (Tell Don't Ask) (Cycle 32)
+- [ ] CrawlingScheduleExecution 완료/실패 (Cycle 33)
+
+### Phase 9: SchedulerOutbox Aggregate (3 Cycles)
+- [ ] SchedulerOutbox 생성 (Cycle 34)
+- [ ] SchedulerOutbox 전송 상태 전환 (Cycle 35)
+- [ ] SchedulerOutbox 재시도 로직 (Tell Don't Ask) (Cycle 36)
 
 ### Zero-Tolerance 규칙 준수
 - [ ] Lombok 사용하지 않음 (Plain Java/Record)
 - [ ] Law of Demeter 준수 (Getter 체이닝 금지)
-- [ ] Tell Don't Ask 준수 (canMakeRequest, canRetry)
+- [ ] Tell Don't Ask 준수 (canRetry, getProgressRate, getSuccessRate)
 - [ ] Long FK 전략 준수 (관계 어노테이션 금지)
 
 ### ArchUnit 테스트
 - [ ] Lombok 금지 검증
 - [ ] Getter 체이닝 금지 검증
-- [ ] Tell Don't Ask 검증 (UserAgent, ProductOutbox)
+- [ ] Tell Don't Ask 검증 (UserAgent, ProductOutbox, CrawlingScheduleExecution, SchedulerOutbox)
 - [ ] 패키지 의존성 검증
 
 ### TestFixture 패턴
@@ -1524,6 +2494,9 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 - [ ] UserAgentFixture 완성
 - [ ] ProductFixture 완성
 - [ ] ProductOutboxFixture 완성
+- [ ] CrawlingScheduleFixture 완성
+- [ ] CrawlingScheduleExecutionFixture 완성
+- [ ] SchedulerOutboxFixture 완성
 
 ### 테스트 커버리지
 - [ ] Unit Test 커버리지 > 80%
@@ -1538,14 +2511,17 @@ static final ArchRule tell_dont_ask_outbox_rule = methods()
 **목표 완료일**: ___________
 
 ### Phase 진행률
-- [x] Phase 1: Value Objects & Enums (6/6) ✅ **완료!**
+- [x] Phase 1: Value Objects & Enums (7/8) ⚠️ **부분 완료** (Token VO 추가 필요)
 - [x] Phase 2: Seller Aggregate (4/4) ✅ **완료!**
 - [x] Phase 3: CrawlerTask Aggregate (5/5) ✅ **완료!**
 - [x] Phase 4: UserAgent Aggregate (4/4) ✅ **완료!**
 - [x] Phase 5: Product Aggregate (3/3) ✅ **완료!**
 - [x] Phase 6: ProductOutbox Aggregate (3/3) ✅ **완료!**
+- [ ] Phase 7: CrawlingSchedule Aggregate (0/3)
+- [ ] Phase 8: CrawlingScheduleExecution Aggregate (0/3)
+- [ ] Phase 9: SchedulerOutbox Aggregate (0/3)
 
-**전체 진행률**: 25/25 Cycles (100%) 🎉 **ALL COMPLETE!**
+**전체 진행률**: 26/36 Cycles (72%) 🔄 **진행 중**
 
 ---
 
