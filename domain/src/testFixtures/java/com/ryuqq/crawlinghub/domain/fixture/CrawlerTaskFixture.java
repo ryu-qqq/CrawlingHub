@@ -1,10 +1,11 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
-import com.ryuqq.crawlinghub.domain.aggregate.CrawlerTask;
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskStatus;
-import com.ryuqq.crawlinghub.domain.vo.CrawlerTaskType;
-import com.ryuqq.crawlinghub.domain.vo.SellerId;
-import com.ryuqq.crawlinghub.domain.vo.TaskId;
+import com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask.CrawlerTask;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskStatus;
+import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskType;
+import com.ryuqq.crawlinghub.domain.crawler.vo.RequestUrl;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.crawler.vo.TaskId;
 
 import java.time.Clock;
 
@@ -224,5 +225,51 @@ public class CrawlerTaskFixture {
         }
 
         return task;
+    }
+
+    /**
+     * MINISHOP 타입의 RequestUrl 생성
+     *
+     * <p>기본 MINISHOP URL 패턴: /searchmini-shop-search</p>
+     *
+     * @return MINISHOP RequestUrl
+     */
+    public static RequestUrl minishopRequestUrl() {
+        return new RequestUrl(
+            "https://m.mustit.co.kr/mustit-api/facade-api/v1/searchmini-shop-search?seller_id=123",
+            CrawlerTaskType.MINISHOP
+        );
+    }
+
+    /**
+     * PRODUCT_DETAIL 타입의 RequestUrl 생성
+     *
+     * <p>기본 상품 번호: 12345</p>
+     * <p>URL 패턴: /item/{숫자}/detail/top</p>
+     *
+     * @param itemNo 상품 번호
+     * @return PRODUCT_DETAIL RequestUrl
+     */
+    public static RequestUrl productDetailRequestUrl(Long itemNo) {
+        return new RequestUrl(
+            "https://m.mustit.co.kr/mustit-api/facade-api/v1/item/" + itemNo + "/detail/top",
+            CrawlerTaskType.PRODUCT_DETAIL
+        );
+    }
+
+    /**
+     * PRODUCT_OPTION 타입의 RequestUrl 생성
+     *
+     * <p>기본 상품 번호: 12345</p>
+     * <p>URL 패턴: /auction_products/{숫자}/options</p>
+     *
+     * @param itemNo 상품 번호
+     * @return PRODUCT_OPTION RequestUrl
+     */
+    public static RequestUrl productOptionRequestUrl(Long itemNo) {
+        return new RequestUrl(
+            "https://m.mustit.co.kr/mustit-api/legacy-api/v1/auction_products/" + itemNo + "/options",
+            CrawlerTaskType.PRODUCT_OPTION
+        );
     }
 }
