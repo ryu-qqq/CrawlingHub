@@ -61,7 +61,7 @@ class SellerQueryPortTest {
     void shouldHaveExistsByIdMethod() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerId sellerId = new SellerId("seller_12345");
+        SellerId sellerId = new SellerId(12345L);
 
         given(port.existsById(sellerId)).willReturn(true);
 
@@ -111,7 +111,7 @@ class SellerQueryPortTest {
     void shouldReturnEmptyWhenSellerNotFound() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerId sellerId = new SellerId("nonexistent_seller");
+        SellerId sellerId = new SellerId(99999L);
 
         given(port.findById(sellerId)).willReturn(Optional.empty());
 
@@ -126,7 +126,7 @@ class SellerQueryPortTest {
     void shouldReturnFalseWhenSellerDoesNotExist() {
         // Given
         SellerQueryPort port = mock(SellerQueryPort.class);
-        SellerId sellerId = new SellerId("nonexistent_seller");
+        SellerId sellerId = new SellerId(99999L);
 
         given(port.existsById(sellerId)).willReturn(false);
 
