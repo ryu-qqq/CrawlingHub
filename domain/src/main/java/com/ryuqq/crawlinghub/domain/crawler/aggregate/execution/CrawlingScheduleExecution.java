@@ -137,6 +137,50 @@ public class CrawlingScheduleExecution {
     }
 
     /**
+     * 스케줄 실행 완료
+     *
+     * <p><strong>완료 조건:</strong></p>
+     * <ul>
+     *   <li>✅ RUNNING 상태에서만 완료 가능</li>
+     *   <li>✅ COMPLETED 상태로 전환</li>
+     *   <li>✅ completedAt 타임스탬프 설정</li>
+     * </ul>
+     *
+     * @throws IllegalStateException RUNNING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void complete() {
+        if (status != ExecutionStatus.RUNNING) {
+            throw new IllegalStateException("RUNNING 상태에서만 완료할 수 있습니다");
+        }
+        this.status = ExecutionStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 스케줄 실행 실패
+     *
+     * <p><strong>실패 조건:</strong></p>
+     * <ul>
+     *   <li>✅ RUNNING 상태에서만 실패 가능</li>
+     *   <li>✅ FAILED 상태로 전환</li>
+     *   <li>✅ completedAt 타임스탬프 설정</li>
+     * </ul>
+     *
+     * @throws IllegalStateException RUNNING 상태가 아닐 때
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void fail() {
+        if (status != ExecutionStatus.RUNNING) {
+            throw new IllegalStateException("RUNNING 상태에서만 실패할 수 있습니다");
+        }
+        this.status = ExecutionStatus.FAILED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    /**
      * 진행률 계산 (Tell Don't Ask)
      *
      * <p><strong>계산 방식:</strong></p>
