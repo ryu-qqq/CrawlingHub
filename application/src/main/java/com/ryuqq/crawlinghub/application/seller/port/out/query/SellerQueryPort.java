@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.port.out.query;
+package com.ryuqq.crawlinghub.application.seller.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;

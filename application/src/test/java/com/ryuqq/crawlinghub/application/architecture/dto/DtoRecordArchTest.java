@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.architecture.dto;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,7 @@ class DtoRecordArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages("com.ryuqq.crawlinghub.application");
     }
 
@@ -173,6 +175,9 @@ class DtoRecordArchTest {
         ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().resideInAPackage("..dto..")
             .and().arePublic()
+            .and().doNotHaveName("createdAt")  // 타임스탬프 accessor 제외
+            .and().doNotHaveName("updatedAt")  // 타임스탬프 accessor 제외
+            .and().doNotHaveName("deletedAt")  // 타임스탬프 accessor 제외
             .should().haveNameMatching("validate.*|place.*|confirm.*|cancel.*|approve.*|reject.*|modify.*|change.*|update.*|delete.*|save.*|persist.*")
             .because("DTO는 비즈니스 로직을 가질 수 없습니다 (데이터 전달만)");
 

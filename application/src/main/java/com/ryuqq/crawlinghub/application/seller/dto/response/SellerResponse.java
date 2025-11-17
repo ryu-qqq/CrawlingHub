@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.dto.response;
+package com.ryuqq.crawlinghub.application.seller.dto.response;
 
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
