@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask;
 
+import com.ryuqq.crawlinghub.domain.crawler.exception.CrawlerTaskInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskStatus;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskType;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
@@ -260,11 +261,16 @@ public class CrawlerTask {
      *   <li>발행 시 updatedAt 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException WAITING 상태가 아닌 경우
+     * @throws CrawlerTaskInvalidStateException WAITING 상태가 아닌 경우
      */
     public void publish() {
         if (status != CrawlerTaskStatus.WAITING) {
-            throw new IllegalStateException("WAITING 상태에서만 발행할 수 있습니다");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "publish",
+                "Task must be in WAITING status to publish"
+            );
         }
         this.status = CrawlerTaskStatus.PUBLISHED;
         this.updatedAt = LocalDateTime.now(clock);
@@ -279,11 +285,16 @@ public class CrawlerTask {
      *   <li>시작 시 updatedAt 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException PUBLISHED 또는 RETRY 상태가 아닌 경우
+     * @throws CrawlerTaskInvalidStateException PUBLISHED 또는 RETRY 상태가 아닌 경우
      */
     public void start() {
         if (status != CrawlerTaskStatus.PUBLISHED && status != CrawlerTaskStatus.RETRY) {
-            throw new IllegalStateException("PUBLISHED 또는 RETRY 상태에서만 시작할 수 있습니다");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "start",
+                "Task must be in PUBLISHED or RETRY status to start"
+            );
         }
         this.status = CrawlerTaskStatus.IN_PROGRESS;
         this.updatedAt = LocalDateTime.now(clock);
@@ -298,11 +309,16 @@ public class CrawlerTask {
      *   <li>완료 시 updatedAt 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException IN_PROGRESS 상태가 아닌 경우
+     * @throws CrawlerTaskInvalidStateException IN_PROGRESS 상태가 아닌 경우
      */
     public void complete() {
         if (status != CrawlerTaskStatus.IN_PROGRESS) {
-            throw new IllegalStateException("IN_PROGRESS 상태에서만 완료할 수 있습니다");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "complete",
+                "Task must be in IN_PROGRESS status to complete"
+            );
         }
         this.status = CrawlerTaskStatus.COMPLETED;
         this.updatedAt = LocalDateTime.now(clock);
@@ -319,11 +335,16 @@ public class CrawlerTask {
      * </ul>
      *
      * @param errorMessage 실패 사유
-     * @throws IllegalStateException IN_PROGRESS 상태가 아닌 경우
+     * @throws CrawlerTaskInvalidStateException IN_PROGRESS 상태가 아닌 경우
      */
     public void fail(String errorMessage) {
         if (status != CrawlerTaskStatus.IN_PROGRESS) {
-            throw new IllegalStateException("IN_PROGRESS 상태에서만 실패 처리할 수 있습니다");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "fail",
+                "Task must be in IN_PROGRESS status to fail"
+            );
         }
         this.status = CrawlerTaskStatus.FAILED;
         this.errorMessage = errorMessage;
@@ -342,14 +363,24 @@ public class CrawlerTask {
      *   <li>재시도 시 updatedAt 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException FAILED 상태가 아니거나 재시도 횟수 초과 시
+     * @throws CrawlerTaskInvalidStateException FAILED 상태가 아니거나 재시도 횟수 초과 시
      */
     public void retry() {
         if (status != CrawlerTaskStatus.FAILED) {
-            throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "retry",
+                "Task must be in FAILED status to retry"
+            );
         }
         if (retryCount >= 2) {
-            throw new IllegalStateException("재시도 횟수를 초과했습니다 (최대 2회)");
+            throw new CrawlerTaskInvalidStateException(
+                taskId.value(),
+                status.name(),
+                "retry",
+                "Maximum retry count exceeded (max: 2)"
+            );
         }
         this.status = CrawlerTaskStatus.RETRY;
         this.retryCount++;

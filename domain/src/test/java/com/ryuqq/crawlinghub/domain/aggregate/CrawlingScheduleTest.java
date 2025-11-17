@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.crawler.aggregate.schedule.CrawlingSchedule;
+import com.ryuqq.crawlinghub.domain.crawler.exception.CrawlingScheduleInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleStatus;
 import com.ryuqq.crawlinghub.domain.fixture.CrawlingScheduleFixture;
@@ -85,8 +86,9 @@ class CrawlingScheduleTest {
 
         // When & Then
         assertThatThrownBy(() -> schedule.updateInterval(newInterval))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+            .isInstanceOf(CrawlingScheduleInvalidStateException.class)
+            .hasMessageContaining("Cannot updateInterval schedule")
+            .hasMessageContaining("INACTIVE");
     }
 
     @Test
@@ -120,7 +122,8 @@ class CrawlingScheduleTest {
 
         // When & Then
         assertThatThrownBy(() -> schedule.activate())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("이미 ACTIVE 상태입니다");
+            .isInstanceOf(CrawlingScheduleInvalidStateException.class)
+            .hasMessageContaining("Cannot activate schedule")
+            .hasMessageContaining("ACTIVE");
     }
 }

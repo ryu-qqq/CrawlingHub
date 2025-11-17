@@ -35,4 +35,29 @@ public record ExecutionId(UUID value) {
     public static ExecutionId generate() {
         return new ExecutionId(UUID.randomUUID());
     }
+
+    /**
+     * 새로운 ExecutionId 생성 (표준 패턴)
+     *
+     * @return 새로 생성된 ExecutionId
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static ExecutionId forNew() {
+        return generate();
+    }
+
+    /**
+     * 새로운 ID인지 확인 (표준 패턴)
+     *
+     * <p>UUID 기반 ID는 생성 시점에서만 의미가 있으므로 항상 true를 반환합니다.</p>
+     * <p>실제 영속성 상태는 Aggregate Root에서 관리됩니다.</p>
+     *
+     * @return 항상 true
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public boolean isNew() {
+        return true;
+    }
 }

@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawler.aggregate.schedule;
 
+import com.ryuqq.crawlinghub.domain.crawler.exception.CrawlingScheduleInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleStatus;
@@ -217,7 +218,12 @@ public class CrawlingSchedule {
      */
     public void updateInterval(CrawlingInterval newInterval) {
         if (status != ScheduleStatus.ACTIVE) {
-            throw new IllegalStateException("ACTIVE 상태에서만 주기를 변경할 수 있습니다");
+            throw new CrawlingScheduleInvalidStateException(
+                scheduleId.value(),
+                status.name(),
+                "updateInterval",
+                "Schedule must be in ACTIVE status to update interval"
+            );
         }
         this.crawlingInterval = newInterval;
         this.scheduleExpression = convertToRateExpression(newInterval);
@@ -240,7 +246,12 @@ public class CrawlingSchedule {
      */
     public void activate() {
         if (status == ScheduleStatus.ACTIVE) {
-            throw new IllegalStateException("이미 ACTIVE 상태입니다");
+            throw new CrawlingScheduleInvalidStateException(
+                scheduleId.value(),
+                status.name(),
+                "activate",
+                "Schedule is already ACTIVE"
+            );
         }
         this.status = ScheduleStatus.ACTIVE;
         this.updatedAt = LocalDateTime.now();
@@ -262,7 +273,12 @@ public class CrawlingSchedule {
      */
     public void deactivate() {
         if (status == ScheduleStatus.INACTIVE) {
-            throw new IllegalStateException("이미 INACTIVE 상태입니다");
+            throw new CrawlingScheduleInvalidStateException(
+                scheduleId.value(),
+                status.name(),
+                "deactivate",
+                "Schedule is already INACTIVE"
+            );
         }
         this.status = ScheduleStatus.INACTIVE;
         this.updatedAt = LocalDateTime.now();

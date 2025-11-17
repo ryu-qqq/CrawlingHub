@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask.CrawlerTask;
+import com.ryuqq.crawlinghub.domain.crawler.exception.CrawlerTaskInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.*;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.CrawlerTaskStatus;
@@ -222,8 +223,9 @@ class CrawlerTaskTest {
 
         // When & Then
         assertThatThrownBy(() -> task.publish())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("WAITING 상태에서만 발행할 수 있습니다");
+            .isInstanceOf(CrawlerTaskInvalidStateException.class)
+            .hasMessageContaining("Cannot publish task")
+            .hasMessageContaining("PUBLISHED");
     }
 
     @Test
@@ -313,8 +315,9 @@ class CrawlerTaskTest {
 
         // When & Then
         assertThatThrownBy(() -> task.retry())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("재시도 횟수를 초과했습니다 (최대 2회)");
+            .isInstanceOf(CrawlerTaskInvalidStateException.class)
+            .hasMessageContaining("Cannot retry task")
+            .hasMessageContaining("Maximum retry count exceeded");
     }
 
     @Test

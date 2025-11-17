@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawler.aggregate.outbox;
 
+import com.ryuqq.crawlinghub.domain.crawler.exception.SchedulerOutboxInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
 import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxId;
@@ -94,6 +95,60 @@ public class SchedulerOutbox {
     }
 
     /**
+     * DB에서 조회한 SchedulerOutbox 재구성 (reconstitute 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     * <p>⚠️ 주의: 현재 구현은 임시입니다. 모든 필드를 받는 private 생성자가 필요합니다.</p>
+     *
+     * @param outboxId Outbox ID
+     * @param scheduleId 스케줄 ID
+     * @param eventType 이벤트 타입
+     * @param payload JSON payload
+     * @param status Outbox 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     * @return 재구성된 SchedulerOutbox
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static SchedulerOutbox reconstitute(
+            SchedulerOutboxId outboxId,
+            ScheduleId scheduleId,
+            SchedulerOutboxEventType eventType,
+            String payload,
+            SchedulerOutboxStatus status,
+            Integer retryCount,
+            String errorMessage,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        // TODO: 모든 필드를 받는 private 생성자 추가 필요 (struct: 리팩토링 예정)
+        SchedulerOutbox outbox = new SchedulerOutbox(scheduleId, eventType, payload);
+
+        // 임시 구현: 상태 전환 메서드를 호출하여 상태 재현 (Green Phase)
+        if (status == SchedulerOutboxStatus.SENDING) {
+            outbox.send();
+        } else if (status == SchedulerOutboxStatus.COMPLETED) {
+            outbox.send();
+            outbox.complete();
+        } else if (status == SchedulerOutboxStatus.FAILED) {
+            outbox.send();
+            // retryCount만큼 fail() 호출하여 retryCount 재현
+            for (int i = 0; i < retryCount; i++) {
+                outbox.fail(errorMessage != null ? errorMessage : "");
+                if (i < retryCount - 1) {
+                    outbox.retry();
+                    outbox.send();
+                }
+            }
+        }
+
+        return outbox;
+    }
+
+    /**
      * Payload JSON 형식 검증
      *
      * <p>간단한 JSON 검증:</p>
@@ -126,13 +181,18 @@ public class SchedulerOutbox {
      *   <li>✅ updatedAt 타임스탬프 갱신</li>
      * </ul>
      *
-     * @throws IllegalStateException WAITING 상태가 아닐 때
+     * @throws SchedulerOutboxInvalidStateException WAITING 상태가 아닐 때
      * @author ryu-qqq
      * @since 2025-11-17
      */
     public void send() {
         if (status != SchedulerOutboxStatus.WAITING) {
-            throw new IllegalStateException("WAITING 상태에서만 전송할 수 있습니다");
+            throw new SchedulerOutboxInvalidStateException(
+                outboxId.value(),
+                status.name(),
+                "send",
+                "Outbox must be in WAITING status to send"
+            );
         }
         this.status = SchedulerOutboxStatus.SENDING;
         this.updatedAt = LocalDateTime.now();
@@ -154,7 +214,12 @@ public class SchedulerOutbox {
      */
     public void complete() {
         if (status != SchedulerOutboxStatus.SENDING) {
-            throw new IllegalStateException("SENDING 상태에서만 완료할 수 있습니다");
+            throw new SchedulerOutboxInvalidStateException(
+                outboxId.value(),
+                status.name(),
+                "complete",
+                "Outbox must be in SENDING status to complete"
+            );
         }
         this.status = SchedulerOutboxStatus.COMPLETED;
         this.updatedAt = LocalDateTime.now();
@@ -179,7 +244,12 @@ public class SchedulerOutbox {
      */
     public void fail(String errorMessage) {
         if (status != SchedulerOutboxStatus.SENDING) {
-            throw new IllegalStateException("SENDING 상태에서만 실패할 수 있습니다");
+            throw new SchedulerOutboxInvalidStateException(
+                outboxId.value(),
+                status.name(),
+                "fail",
+                "Outbox must be in SENDING status to fail"
+            );
         }
         this.status = SchedulerOutboxStatus.FAILED;
         this.errorMessage = errorMessage;
@@ -227,10 +297,20 @@ public class SchedulerOutbox {
      */
     public void retry() {
         if (status != SchedulerOutboxStatus.FAILED) {
-            throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
+            throw new SchedulerOutboxInvalidStateException(
+                outboxId.value(),
+                status.name(),
+                "retry",
+                "Outbox must be in FAILED status to retry"
+            );
         }
         if (!canRetry()) {
-            throw new IllegalStateException("최대 재시도 횟수(" + MAX_RETRY_COUNT + ")를 초과했습니다");
+            throw new SchedulerOutboxInvalidStateException(
+                outboxId.value(),
+                status.name(),
+                "retry",
+                "Maximum retry count exceeded (max: " + MAX_RETRY_COUNT + ")"
+            );
         }
         this.status = SchedulerOutboxStatus.WAITING;
         this.errorMessage = null;

@@ -9,9 +9,17 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
  *
  * <p>CrawlingScheduleExecution Aggregate와 관련 Value Object의 테스트 데이터를 제공합니다.</p>
  *
- * <p><strong>Factory Method 패턴:</strong></p>
+ * <p><strong>표준 메서드:</strong></p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 CrawlingScheduleExecution 생성 (표준 패턴)</li>
+ *   <li>{@link #of()} - 기본 CrawlingScheduleExecution 생성 (표준 패턴)</li>
+ *   <li>{@link #reconstitute} - DB에서 복원 (표준 패턴)</li>
+ * </ul>
+ *
+ * <p><strong>헬퍼 메서드:</strong></p>
  * <ul>
  *   <li>{@link #pendingExecution()} - PENDING 상태의 기본 실행 인스턴스</li>
+ *   <li>{@link #runningExecution()} - RUNNING 상태의 실행 인스턴스</li>
  * </ul>
  *
  * @author ryu-qqq
@@ -20,6 +28,73 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 public class CrawlingScheduleExecutionFixture {
 
     private static final SellerId DEFAULT_SELLER_ID = new SellerId("seller_12345");
+
+    /**
+     * 새로운 CrawlingScheduleExecution 생성 (표준 패턴)
+     *
+     * @return 새로 생성된 CrawlingScheduleExecution
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingScheduleExecution forNew() {
+        return pendingExecution();
+    }
+
+    /**
+     * 기본 CrawlingScheduleExecution 생성 (표준 패턴)
+     *
+     * @return 기본 CrawlingScheduleExecution
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingScheduleExecution of() {
+        return pendingExecution();
+    }
+
+    /**
+     * DB에서 복원된 CrawlingScheduleExecution 생성 (표준 패턴)
+     *
+     * <p>Aggregate의 reconstitute() 메서드를 호출하여 영속화된 상태를 복원합니다.</p>
+     *
+     * @param executionId 실행 ID
+     * @param scheduleId 스케줄 ID
+     * @param sellerId Seller ID
+     * @param status 실행 상태
+     * @param totalTasksCreated 생성된 총 작업 수
+     * @param completedTasks 완료된 작업 수
+     * @param failedTasks 실패한 작업 수
+     * @param startedAt 시작 일시
+     * @param completedAt 완료 일시
+     * @param createdAt 생성 일시
+     * @return 복원된 CrawlingScheduleExecution
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingScheduleExecution reconstitute(
+            com.ryuqq.crawlinghub.domain.crawler.vo.ExecutionId executionId,
+            ScheduleId scheduleId,
+            SellerId sellerId,
+            com.ryuqq.crawlinghub.domain.crawler.vo.ExecutionStatus status,
+            Integer totalTasksCreated,
+            Integer completedTasks,
+            Integer failedTasks,
+            java.time.LocalDateTime startedAt,
+            java.time.LocalDateTime completedAt,
+            java.time.LocalDateTime createdAt
+    ) {
+        return CrawlingScheduleExecution.reconstitute(
+                executionId,
+                scheduleId,
+                sellerId,
+                status,
+                totalTasksCreated,
+                completedTasks,
+                failedTasks,
+                startedAt,
+                completedAt,
+                createdAt
+        );
+    }
 
     /**
      * PENDING 상태의 CrawlingScheduleExecution 생성

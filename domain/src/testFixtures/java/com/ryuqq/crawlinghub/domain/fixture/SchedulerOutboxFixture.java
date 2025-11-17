@@ -7,7 +7,14 @@ import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
 /**
  * SchedulerOutbox TestFixture
  *
- * <p><strong>제공 메서드:</strong></p>
+ * <p><strong>표준 메서드:</strong></p>
+ * <ul>
+ *   <li>{@link #forNew()} - 새 SchedulerOutbox 생성 (표준 패턴)</li>
+ *   <li>{@link #of()} - 기본 SchedulerOutbox 생성 (표준 패턴)</li>
+ *   <li>{@link #reconstitute} - DB에서 복원 (표준 패턴)</li>
+ * </ul>
+ *
+ * <p><strong>헬퍼 메서드:</strong></p>
  * <ul>
  *   <li>{@link #waitingOutbox()} - WAITING 상태의 SchedulerOutbox</li>
  *   <li>{@link #sendingOutbox()} - SENDING 상태의 SchedulerOutbox</li>
@@ -18,6 +25,74 @@ import com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType;
  * @since 2025-11-17
  */
 public class SchedulerOutboxFixture {
+
+    /**
+     * 새로운 SchedulerOutbox 생성 (표준 패턴)
+     *
+     * <p>Aggregate의 create() Factory Method를 호출하여 새 Aggregate를 생성합니다.</p>
+     *
+     * @return 새로 생성된 SchedulerOutbox
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static SchedulerOutbox forNew() {
+        return waitingOutbox();
+    }
+
+    /**
+     * 기본 SchedulerOutbox 생성 (표준 패턴)
+     *
+     * <p>가장 기본적인 SchedulerOutbox를 반환합니다.</p>
+     *
+     * @return 기본 SchedulerOutbox
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static SchedulerOutbox of() {
+        return waitingOutbox();
+    }
+
+    /**
+     * DB에서 복원된 SchedulerOutbox 생성 (표준 패턴)
+     *
+     * <p>Aggregate의 reconstitute() 메서드를 호출하여 영속화된 상태를 복원합니다.</p>
+     *
+     * @param outboxId Outbox ID
+     * @param scheduleId 스케줄 ID
+     * @param eventType 이벤트 타입
+     * @param payload JSON payload
+     * @param status Outbox 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     * @return 복원된 SchedulerOutbox
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static SchedulerOutbox reconstitute(
+            com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxId outboxId,
+            ScheduleId scheduleId,
+            com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxEventType eventType,
+            String payload,
+            com.ryuqq.crawlinghub.domain.crawler.vo.SchedulerOutboxStatus status,
+            Integer retryCount,
+            String errorMessage,
+            java.time.LocalDateTime createdAt,
+            java.time.LocalDateTime updatedAt
+    ) {
+        return SchedulerOutbox.reconstitute(
+                outboxId,
+                scheduleId,
+                eventType,
+                payload,
+                status,
+                retryCount,
+                errorMessage,
+                createdAt,
+                updatedAt
+        );
+    }
 
     /**
      * WAITING 상태의 SchedulerOutbox 생성

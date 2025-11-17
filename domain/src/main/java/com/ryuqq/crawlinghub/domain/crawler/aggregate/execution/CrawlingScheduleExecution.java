@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawler.aggregate.execution;
 
+import com.ryuqq.crawlinghub.domain.crawler.exception.CrawlingScheduleExecutionInvalidStateException;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ExecutionId;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ExecutionStatus;
 import com.ryuqq.crawlinghub.domain.crawler.vo.ScheduleId;
@@ -86,6 +87,64 @@ public class CrawlingScheduleExecution {
         return new CrawlingScheduleExecution(scheduleId, sellerId);
     }
 
+    /**
+     * DB에서 조회한 CrawlingScheduleExecution 재구성 (reconstitute 패턴)
+     *
+     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
+     * <p>⚠️ 주의: 현재 구현은 임시입니다. 모든 필드를 받는 private 생성자가 필요합니다.</p>
+     *
+     * @param executionId 실행 ID
+     * @param scheduleId 스케줄 ID
+     * @param sellerId Seller ID
+     * @param status 실행 상태
+     * @param totalTasksCreated 생성된 총 작업 수
+     * @param completedTasks 완료된 작업 수
+     * @param failedTasks 실패한 작업 수
+     * @param startedAt 시작 일시
+     * @param completedAt 완료 일시
+     * @param createdAt 생성 일시
+     * @return 재구성된 CrawlingScheduleExecution
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public static CrawlingScheduleExecution reconstitute(
+            ExecutionId executionId,
+            ScheduleId scheduleId,
+            SellerId sellerId,
+            ExecutionStatus status,
+            Integer totalTasksCreated,
+            Integer completedTasks,
+            Integer failedTasks,
+            LocalDateTime startedAt,
+            LocalDateTime completedAt,
+            LocalDateTime createdAt
+    ) {
+        // TODO: 모든 필드를 받는 private 생성자 추가 필요 (struct: 리팩토링 예정)
+        CrawlingScheduleExecution execution = new CrawlingScheduleExecution(scheduleId, sellerId);
+
+        // 임시 구현: 상태 전환 메서드를 호출하여 상태 재현 (Green Phase)
+        if (status == ExecutionStatus.RUNNING || status == ExecutionStatus.COMPLETED || status == ExecutionStatus.FAILED) {
+            execution.start(totalTasksCreated);
+
+            // 완료/실패 작업 수만큼 카운터 증가
+            for (int i = 0; i < completedTasks; i++) {
+                execution.completeTask();
+            }
+            for (int i = 0; i < failedTasks; i++) {
+                execution.failTask();
+            }
+
+            // 최종 상태 전환
+            if (status == ExecutionStatus.COMPLETED) {
+                execution.complete();
+            } else if (status == ExecutionStatus.FAILED) {
+                execution.fail();
+            }
+        }
+
+        return execution;
+    }
+
     // ===== Business Methods =====
 
     /**
@@ -105,7 +164,12 @@ public class CrawlingScheduleExecution {
      */
     public void start(int totalTasksCreated) {
         if (status != ExecutionStatus.PENDING) {
-            throw new IllegalStateException("PENDING 상태에서만 시작할 수 있습니다");
+            throw new CrawlingScheduleExecutionInvalidStateException(
+                executionId.value(),
+                status.name(),
+                "start",
+                "Execution must be in PENDING status to start"
+            );
         }
         this.totalTasksCreated = totalTasksCreated;
         this.status = ExecutionStatus.RUNNING;
@@ -152,7 +216,12 @@ public class CrawlingScheduleExecution {
      */
     public void complete() {
         if (status != ExecutionStatus.RUNNING) {
-            throw new IllegalStateException("RUNNING 상태에서만 완료할 수 있습니다");
+            throw new CrawlingScheduleExecutionInvalidStateException(
+                executionId.value(),
+                status.name(),
+                "complete",
+                "Execution must be in RUNNING status to complete"
+            );
         }
         this.status = ExecutionStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
@@ -174,7 +243,12 @@ public class CrawlingScheduleExecution {
      */
     public void fail() {
         if (status != ExecutionStatus.RUNNING) {
-            throw new IllegalStateException("RUNNING 상태에서만 실패할 수 있습니다");
+            throw new CrawlingScheduleExecutionInvalidStateException(
+                executionId.value(),
+                status.name(),
+                "fail",
+                "Execution must be in RUNNING status to fail"
+            );
         }
         this.status = ExecutionStatus.FAILED;
         this.completedAt = LocalDateTime.now();
