@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.fixture;
 
-import com.ryuqq.crawlinghub.application.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
 import java.time.LocalDateTime;

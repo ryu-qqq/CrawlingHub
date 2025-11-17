@@ -1,6 +1,7 @@
-package com.ryuqq.crawlinghub.application.assembler;
+package com.ryuqq.crawlinghub.application.seller.assembler;
 
-import com.ryuqq.crawlinghub.application.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
