@@ -42,6 +42,8 @@ import java.time.LocalDateTime;
  */
 public class SchedulerOutbox {
 
+    private static final int MAX_RETRY_COUNT = 5;
+
     private final SchedulerOutboxId outboxId;
     private final ScheduleId scheduleId;
     private final SchedulerOutboxEventType eventType;
@@ -182,6 +184,56 @@ public class SchedulerOutbox {
         this.status = SchedulerOutboxStatus.FAILED;
         this.errorMessage = errorMessage;
         this.retryCount++;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 재시도 가능 여부 판단 (Tell Don't Ask)
+     *
+     * <p><strong>재시도 조건:</strong></p>
+     * <ul>
+     *   <li>✅ retryCount < MAX_RETRY_COUNT (5회)</li>
+     * </ul>
+     *
+     * <p><strong>Tell Don't Ask 패턴:</strong></p>
+     * <ul>
+     *   <li>❌ Bad: if (outbox.getRetryCount() < 5) { outbox.retry(); }</li>
+     *   <li>✅ Good: if (outbox.canRetry()) { outbox.retry(); }</li>
+     * </ul>
+     *
+     * @return 재시도 가능 여부
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public boolean canRetry() {
+        return retryCount < MAX_RETRY_COUNT;
+    }
+
+    /**
+     * 재시도 (FAILED → WAITING)
+     *
+     * <p><strong>재시도 조건:</strong></p>
+     * <ul>
+     *   <li>✅ FAILED 상태에서만 재시도 가능</li>
+     *   <li>✅ canRetry() = true (최대 재시도 횟수 미초과)</li>
+     *   <li>✅ WAITING 상태로 전환</li>
+     *   <li>✅ errorMessage 초기화</li>
+     *   <li>✅ updatedAt 타임스탬프 갱신</li>
+     * </ul>
+     *
+     * @throws IllegalStateException FAILED 상태가 아닐 때 또는 최대 재시도 횟수 초과 시
+     * @author ryu-qqq
+     * @since 2025-11-17
+     */
+    public void retry() {
+        if (status != SchedulerOutboxStatus.FAILED) {
+            throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다");
+        }
+        if (!canRetry()) {
+            throw new IllegalStateException("최대 재시도 횟수(" + MAX_RETRY_COUNT + ")를 초과했습니다");
+        }
+        this.status = SchedulerOutboxStatus.WAITING;
+        this.errorMessage = null;
         this.updatedAt = LocalDateTime.now();
     }
 
