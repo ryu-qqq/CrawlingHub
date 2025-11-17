@@ -9,65 +9,65 @@
 
 ## 📝 TDD 사이클 체크리스트
 
-### 1️⃣ RegisterSellerCommand DTO 구현 (Cycle 1)
+### 1️⃣ RegisterSellerCommand DTO 구현 (Cycle 1) ✅
 
 #### 🔴 Red: 테스트 작성
-- [ ] `RegisterSellerCommandTest.java` 생성
-- [ ] `shouldCreateCommandWithValidData()` 작성
-- [ ] `shouldRejectInvalidSellerId()` 작성
-- [ ] `shouldRejectNegativeInterval()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: RegisterSellerCommand DTO 테스트 추가 (Red)`
+- [x] `RegisterSellerCommandTest.java` 생성
+- [x] `shouldCreateCommandWithValidData()` 작성
+- [x] `shouldRejectInvalidSellerId()` 작성
+- [x] `shouldRejectNegativeInterval()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: RegisterSellerCommand DTO 테스트 추가 (Red)` (7369226)
 
 #### 🟢 Green: 최소 구현
-- [ ] `RegisterSellerCommand.java` 생성 (Record)
-- [ ] 필드: sellerId, name, crawlingIntervalDays
-- [ ] 검증 로직 추가 (sellerId 빈 값 체크, intervalDays > 0)
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: RegisterSellerCommand DTO 구현 (Green)`
+- [x] `RegisterSellerCommand.java` 생성 (Record)
+- [x] 필드: sellerId, name, crawlingIntervalDays
+- [x] 검증 로직 추가 (sellerId 빈 값 체크, intervalDays > 0)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: RegisterSellerCommand DTO 구현 (Green)` (66fcc2c)
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Validation 메시지 명확화
-- [ ] ArchUnit 테스트 추가 (Command DTO 규칙)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: RegisterSellerCommand DTO 개선 (Refactor)`
+- [x] Validation 메시지 명확화
+- [x] ArchUnit 테스트 추가 (Command DTO 규칙)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `refactor: RegisterSellerCommand ArchUnit 검증 통과 (Refactor)` (868829c)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `RegisterSellerCommandFixture.java` 생성
-- [ ] `aRegisterSellerCommand()` 메서드 작성
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: RegisterSellerCommandFixture 정리 (Tidy)`
+- [x] `RegisterSellerCommandFixture.java` 생성
+- [x] `aRegisterSellerCommand()` 메서드 작성
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: RegisterSellerCommandFixture 추가 및 테스트 정리 (Tidy)` (d4807de)
 
 ---
 
-### 2️⃣ SellerResponse DTO 구현 (Cycle 2)
+### 2️⃣ SellerResponse DTO 구현 (Cycle 2) ✅
 
 #### 🔴 Red: 테스트 작성
-- [ ] `SellerResponseTest.java` 생성
-- [ ] `shouldCreateResponseFromDomain()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: SellerResponse DTO 테스트 추가 (Red)`
+- [x] `SellerResponseTest.java` 생성
+- [x] `shouldCreateResponseFromDomain()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: SellerResponse DTO 테스트 추가 (Red)` (42a2c0d)
 
 #### 🟢 Green: 최소 구현
-- [ ] `SellerResponse.java` 생성 (Record)
-- [ ] 필드: sellerId, name, status, crawlingIntervalDays, totalProductCount, createdAt, updatedAt
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: SellerResponse DTO 구현 (Green)`
+- [x] `SellerResponse.java` 생성 (Record)
+- [x] 필드: sellerId, name, status, crawlingIntervalDays, totalProductCount, createdAt, updatedAt
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: SellerResponse DTO 구현 (Green)` (aa35db1)
 
 #### ♻️ Refactor: 리팩토링
-- [ ] ArchUnit 테스트 추가 (Response DTO 규칙)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: SellerResponse DTO 개선 (Refactor)`
+- [x] ArchUnit 테스트 실행 (Response DTO 규칙)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `refactor: SellerResponse ArchUnit 검증 통과 (Refactor)` (a388cb8)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerResponseFixture.java` 생성
-- [ ] `aSellerResponse()` 메서드 작성
-- [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: SellerResponseFixture 정리 (Tidy)`
+- [x] `SellerResponseFixture.java` 생성
+- [x] `aSellerResponse()` 메서드 작성
+- [x] Factory 메서드 패턴 적용
+- [x] 커밋: `test: SellerResponseFixture 추가 (Tidy)` (38dd332)
 
 ---
 
-### 3️⃣ SellerAssembler 구현 (Cycle 3)
+### 3️⃣ SellerAssembler 구현 (Cycle 3) 🔄
 
 #### 🔴 Red: 테스트 작성
 - [ ] `SellerAssemblerTest.java` 생성
