@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.domain.fixture;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
-import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
@@ -15,21 +14,20 @@ import java.time.Clock;
  * <p>표준 패턴 준수:</p>
  * <ul>
  *   <li>{@link #forNew()} - 새 Seller 생성 (ID 자동 생성)</li>
- *   <li>{@link #of(SellerId, String, CrawlingInterval)} - 불변 속성으로 재구성</li>
- *   <li>{@link #reconstitute(SellerId, String, CrawlingInterval, SellerStatus, Integer)} - 완전한 재구성</li>
+ *   <li>{@link #of(SellerId, String)} - 불변 속성으로 재구성</li>
+ *   <li>{@link #reconstitute(SellerId, String, SellerStatus, Integer)} - 완전한 재구성</li>
  * </ul>
  *
  * <p>레거시 호환 메서드:</p>
  * <ul>
- *   <li>{@link #defaultSeller()} - 기본 설정의 Seller (ACTIVE 상태, 1일 주기)</li>
- *   <li>{@link #defaultSellerId()} - 기본 SellerId ("seller_test_001")</li>
+ *   <li>{@link #defaultSeller()} - 기본 설정의 Seller (ACTIVE 상태)</li>
+ *   <li>{@link #defaultSellerId()} - 기본 SellerId (1L)</li>
  * </ul>
  */
 public class SellerFixture {
 
     private static final Long DEFAULT_SELLER_ID = 1L;
     private static final String DEFAULT_NAME = "테스트 셀러";
-    private static final CrawlingInterval DEFAULT_INTERVAL = new CrawlingInterval(1);
 
     /**
      * 새로운 Seller 생성 (표준 패턴)
@@ -52,7 +50,7 @@ public class SellerFixture {
      */
     public static Seller forNew(Clock clock) {
         SellerId sellerId = new SellerId(DEFAULT_SELLER_ID);
-        return Seller.forNew(sellerId, DEFAULT_NAME, DEFAULT_INTERVAL, clock);
+        return Seller.forNew(sellerId, DEFAULT_NAME, clock);
     }
 
     /**
@@ -62,11 +60,10 @@ public class SellerFixture {
      *
      * @param sellerId Seller ID
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @return 재구성된 Seller
      */
-    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        return of(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    public static Seller of(SellerId sellerId, String name) {
+        return of(sellerId, name, Clock.systemDefaultZone());
     }
 
     /**
@@ -76,12 +73,11 @@ public class SellerFixture {
      *
      * @param sellerId Seller ID
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param clock 시간 제어
      * @return 재구성된 Seller
      */
-    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
-        return Seller.of(sellerId, name, crawlingInterval, clock);
+    public static Seller of(SellerId sellerId, String name, Clock clock) {
+        return Seller.of(sellerId, name, clock);
     }
 
     /**
@@ -91,14 +87,12 @@ public class SellerFixture {
      *
      * @param sellerId Seller ID
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param status 상태
      * @param totalProductCount 총 상품 수
      * @return 재구성된 Seller
      */
-    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                                       SellerStatus status, Integer totalProductCount) {
-        return reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, Clock.systemDefaultZone());
+    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount) {
+        return reconstitute(sellerId, name, status, totalProductCount, Clock.systemDefaultZone());
     }
 
     /**
@@ -108,15 +102,13 @@ public class SellerFixture {
      *
      * @param sellerId Seller ID
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param status 상태
      * @param totalProductCount 총 상품 수
      * @param clock 시간 제어
      * @return 재구성된 Seller
      */
-    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                                       SellerStatus status, Integer totalProductCount, Clock clock) {
-        return Seller.reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, clock);
+    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount, Clock clock) {
+        return Seller.reconstitute(sellerId, name, status, totalProductCount, clock);
     }
 
     /**
