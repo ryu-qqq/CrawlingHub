@@ -59,4 +59,3 @@ langfuse/tests/__pycache__/
 # Pipeline metrics and reports (auto-generated)
 .pipeline-metrics/metrics.jsonl
 .pipeline-metrics/report.md
-.env

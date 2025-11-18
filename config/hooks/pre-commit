@@ -26,7 +26,14 @@ else
 fi
 
 HOOKS_DIR="$(cd "$(dirname "$HOOK_SCRIPT")" && pwd)"
-PROJECT_ROOT="$(cd "$HOOKS_DIR/.." && pwd)"
+# Prefer current working directory (worktree) if it contains gradlew; fallback to git info
+if [ -f "$PWD/gradlew" ]; then
+    PROJECT_ROOT="$PWD"
+elif [ -n "$GIT_WORK_TREE" ]; then
+    PROJECT_ROOT="$GIT_WORK_TREE"
+else
+    PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
 
 # Colors
 RED='\033[0;31m'
@@ -84,12 +91,20 @@ log_info "Found $JAVA_FILES Java file(s) changed"
 
 echo ""
 log_info "Running ArchUnit architecture tests..."
+log_info "Current directory: $(pwd)"
+log_info "Project root resolved to: $PROJECT_ROOT"
 cd "$PROJECT_ROOT"
 
 VALIDATION_FAILED=0
 
 # Run all ArchUnit tests (includes Zero-Tolerance rules)
-if ./gradlew test --tests "*ArchitectureTest" --tests "*ConventionTest" --quiet --no-daemon; then
+GRADLEW="$PROJECT_ROOT/gradlew"
+if ! [ -x "$GRADLEW" ]; then
+    log_error "gradlew not found at $GRADLEW"
+    exit 1
+fi
+
+if "$GRADLEW" test --tests "*ArchitectureTest" --tests "*ConventionTest" --quiet --no-daemon; then
     log_success "ArchUnit tests passed"
 else
     log_error "ArchUnit tests failed - architecture violations detected"
@@ -113,7 +128,7 @@ fi
 echo ""
 log_info "Running Gradle quality checks (Checkstyle, PMD, SpotBugs)..."
 
-if ./gradlew check --quiet --no-daemon; then
+if "$GRADLEW" check --quiet --no-daemon; then
     log_success "Gradle quality checks passed"
 else
     log_error "Gradle quality checks failed"

@@ -1,241 +1,105 @@
 package com.ryuqq.crawlinghub.domain.seller.aggregate.seller;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import com.ryuqq.crawlinghub.domain.seller.event.SellerDeactivatedEvent;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerHasActiveSchedulersException;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-
 /**
- * Seller Aggregate Root
- *
- * <p>머스트잇 셀러를 표현하는 Aggregate Root입니다.</p>
- *
- * <p>Zero-Tolerance Rules 준수:</p>
- * <ul>
- *   <li>Lombok 금지 - Plain Java 사용</li>
- *   <li>Law of Demeter - Getter 체이닝 금지</li>
- *   <li>Tell, Don't Ask - 비즈니스 로직은 Seller 내부에 캡슐화</li>
- *   <li>Long FK 전략 - JPA 관계 어노테이션 없음</li>
- * </ul>
- *
- * <p>비즈니스 규칙:</p>
- * <ul>
- *   <li>생성 시 상태는 항상 ACTIVE</li>
- *   <li>생성 시 totalProductCount는 0</li>
- *   <li>이름만 변경 가능 (크롤링 주기는 EventBridge에서 관리)</li>
- * </ul>
+ * Seller Aggregate Root.
  */
-public class Seller {
+public final class Seller {
+
+    private static Clock clock = Clock.systemUTC();
 
     private final SellerId sellerId;
-    private String name;
+    private final MustItSellerId mustItSellerId;
+    private final String sellerName;
     private SellerStatus status;
-    private Integer totalProductCount;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private final Clock clock;
 
-    /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (신규)
-     *
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @param clock 시간 제어 (테스트 가능성)
-     */
-    private Seller(SellerId sellerId, String name, Clock clock) {
-        this.sellerId = sellerId;
-        this.name = name;
-        this.status = SellerStatus.INACTIVE;
-        this.totalProductCount = 0;
-        this.clock = clock;
-        this.createdAt = LocalDateTime.now(clock);
-        this.updatedAt = LocalDateTime.now(clock);
+    private Seller(
+        SellerId sellerId,
+        MustItSellerId mustItSellerId,
+        String sellerName,
+        SellerStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this.sellerId = Objects.requireNonNull(sellerId, "sellerId must not be null");
+        this.mustItSellerId = Objects.requireNonNull(mustItSellerId, "mustItSellerId must not be null");
+        this.sellerName = requireSellerName(sellerName);
+        this.status = Objects.requireNonNull(status, "status must not be null");
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
+        this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt must not be null");
     }
 
     /**
-     * Private constructor - 정적 팩토리 메서드를 통해서만 생성 (재구성)
-     *
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @param status 상태
-     * @param totalProductCount 총 상품 수
-     * @param clock 시간 제어 (테스트 가능성)
+     * 신규 셀러 생성 전용 정적 팩토리.
      */
-    private Seller(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount, Clock clock) {
-        this.sellerId = sellerId;
-        this.name = name;
-        this.status = status;
-        this.totalProductCount = totalProductCount;
-        this.clock = clock;
-        this.createdAt = LocalDateTime.now(clock);
-        this.updatedAt = LocalDateTime.now(clock);
+    public static Seller forNew(MustItSellerId mustItSellerId, String sellerName) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        return new Seller(
+            SellerId.forNew(),
+            mustItSellerId,
+            sellerName,
+            SellerStatus.ACTIVE,
+            now,
+            now
+        );
     }
 
     /**
-     * 새로운 Seller 생성 (표준 패턴)
-     *
-     * <p>forNew() 패턴: 신규 엔티티 생성</p>
-     * <ul>
-     *   <li>초기 상태: ACTIVE</li>
-     *   <li>초기 상품 수: 0</li>
-     * </ul>
-     *
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @return 새로 생성된 Seller
+     * 영속화되지 않은 기존 셀러 생성 (ID 보유, 타임스탬프 없음).
      */
-    public static Seller forNew(SellerId sellerId, String name) {
-        return forNew(sellerId, name, Clock.systemDefaultZone());
-    }
-
-    public static Seller forNew(SellerId sellerId, String name, Clock clock) {
-        return new Seller(sellerId, name, clock);
+    public static Seller of(
+        SellerId sellerId,
+        MustItSellerId mustItSellerId,
+        String sellerName,
+        SellerStatus status
+    ) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        return new Seller(sellerId, mustItSellerId, sellerName, status, now, now);
     }
 
     /**
-     * 불변 속성으로 Seller 재구성 (표준 패턴)
-     *
-     * <p>of() 패턴: 테스트용 간편 생성</p>
-     * <ul>
-     *   <li>초기 상태: ACTIVE</li>
-     *   <li>초기 상품 수: 0</li>
-     * </ul>
-     *
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @return 재구성된 Seller
+     * 저장소에서 읽어온 셀러 재구성 전용 팩토리.
      */
-    public static Seller of(SellerId sellerId, String name) {
-        return of(sellerId, name, Clock.systemDefaultZone());
+    public static Seller reconstitute(
+        SellerId sellerId,
+        MustItSellerId mustItSellerId,
+        String sellerName,
+        SellerStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new Seller(sellerId, mustItSellerId, sellerName, status, createdAt, updatedAt);
     }
 
-    public static Seller of(SellerId sellerId, String name, Clock clock) {
-        return new Seller(sellerId, name, clock);
+    static void changeClock(Clock newClock) {
+        clock = Objects.requireNonNull(newClock, "clock must not be null");
     }
 
-    /**
-     * 완전한 Seller 재구성 (표준 패턴)
-     *
-     * <p>reconstitute() 패턴: DB에서 조회한 엔티티 재구성</p>
-     *
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @param status 상태
-     * @param totalProductCount 총 상품 수
-     * @return 재구성된 Seller
-     */
-    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount) {
-        return reconstitute(sellerId, name, status, totalProductCount, Clock.systemDefaultZone());
-    }
-
-    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount, Clock clock) {
-        return new Seller(sellerId, name, status, totalProductCount, clock);
-    }
-
-    /**
-     * Seller 활성화
-     *
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>이미 ACTIVE 상태이면 예외 발생</li>
-     *   <li>상태를 ACTIVE로 변경</li>
-     *   <li>변경 시 updatedAt 갱신</li>
-     * </ul>
-     *
-     * @throws com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException 이미 ACTIVE 상태인 경우
-     */
-    public void activate() {
-        if (this.status == SellerStatus.ACTIVE) {
-            throw new com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException(
-                    "이미 활성화된 상태입니다"
-            );
-        }
-        this.status = SellerStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now(clock);
-    }
-
-    /**
-     * Seller 비활성화
-     *
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>이미 INACTIVE 상태이면 예외 발생</li>
-     *   <li>상태를 INACTIVE로 변경</li>
-     *   <li>변경 시 updatedAt 갱신</li>
-     * </ul>
-     *
-     * @throws com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException 이미 INACTIVE 상태인 경우
-     */
-    public void deactivate() {
-        if (this.status == SellerStatus.INACTIVE) {
-            throw new com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException(
-                    "이미 비활성화된 상태입니다"
-            );
-        }
-        this.status = SellerStatus.INACTIVE;
-        this.updatedAt = LocalDateTime.now(clock);
-    }
-
-    /**
-     * 총 상품 수 업데이트
-     *
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>크롤링 완료 후 상품 수 갱신</li>
-     *   <li>변경 시 updatedAt 갱신</li>
-     * </ul>
-     *
-     * @param count 총 상품 수
-     */
-    public void updateTotalProductCount(Integer count) {
-        this.totalProductCount = count;
-        this.updatedAt = LocalDateTime.now(clock);
-    }
-
-    /**
-     * Seller 이름 변경
-     *
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>이름은 null일 수 없음</li>
-     *   <li>이름은 빈 값일 수 없음</li>
-     *   <li>이름은 100자를 초과할 수 없음</li>
-     *   <li>변경 시 updatedAt 갱신</li>
-     * </ul>
-     *
-     * @param newName 새로운 셀러 이름
-     * @throws IllegalArgumentException 이름이 null, blank, 또는 100자 초과인 경우
-     */
-    public void updateName(String newName) {
-        if (newName == null) {
-            throw new IllegalArgumentException("이름은 null일 수 없습니다");
-        }
-        if (newName.isBlank()) {
-            throw new IllegalArgumentException("이름은 빈 값일 수 없습니다");
-        }
-        if (newName.length() > 100) {
-            throw new IllegalArgumentException("이름은 100자를 초과할 수 없습니다");
-        }
-        this.name = newName;
-        this.updatedAt = LocalDateTime.now(clock);
-    }
-
-    // Getters (필요한 것만)
     public SellerId getSellerId() {
         return sellerId;
     }
 
-    public String getName() {
-        return name;
+    public MustItSellerId getMustItSellerId() {
+        return mustItSellerId;
+    }
+
+    public String getSellerName() {
+        return sellerName;
     }
 
     public SellerStatus getStatus() {
         return status;
-    }
-
-    public Integer getTotalProductCount() {
-        return totalProductCount;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -245,4 +109,36 @@ public class Seller {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    private static String requireSellerName(String sellerName) {
+        if (sellerName == null || sellerName.isBlank()) {
+            throw new IllegalArgumentException("sellerName must not be blank");
+        }
+        return sellerName;
+    }
+
+    public SellerDeactivatedEvent deactivate(int activeSchedulerCount) {
+        if (activeSchedulerCount > 0) {
+            long sellerIdValue = sellerId.value() == null ? -1L : sellerId.value();
+            throw new SellerHasActiveSchedulersException(sellerIdValue, activeSchedulerCount);
+        }
+
+        if (status == SellerStatus.INACTIVE) {
+            return null;
+        }
+
+        this.status = SellerStatus.INACTIVE;
+        this.updatedAt = LocalDateTime.now(clock);
+        return new SellerDeactivatedEvent(sellerId, updatedAt);
+    }
+
+    public void activate() {
+        if (status == SellerStatus.ACTIVE) {
+            return;
+        }
+
+        this.status = SellerStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now(clock);
+    }
 }
+
