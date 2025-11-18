@@ -136,10 +136,9 @@ class SellerTest {
 
     @Test
     void shouldActivateSeller() {
-        // Given - INACTIVE 상태의 Seller 생성
+        // Given - INACTIVE 상태의 Seller (forNew()로 생성 시 기본 INACTIVE)
         SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.forNew(sellerId, "테스트 셀러");
-        seller.deactivate(); // 먼저 비활성화
 
         // When
         seller.activate();
@@ -166,6 +165,7 @@ class SellerTest {
         // Given - ACTIVE 상태의 Seller
         SellerId sellerId = new SellerId(1L);
         Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+        seller.activate(); // ACTIVE 상태로 변경
 
         // When
         seller.deactivate();
