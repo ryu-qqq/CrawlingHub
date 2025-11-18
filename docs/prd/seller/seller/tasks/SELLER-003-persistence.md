@@ -17,7 +17,8 @@ Seller 데이터 영속성.
 
 ### 1. JPA Entity
 
-#### SellerJpaEntity
+#### SellerEntity
+- **엔티티 네이밍**: `*Entity` 접미사 사용 (Jpa 접두사 불필요)
 - 테이블: `sellers`
 - 인덱스:
   - `idx_seller_id` (seller_id) - Unique
@@ -25,10 +26,34 @@ Seller 데이터 영속성.
 
 ### 2. Repository
 
-- SellerJpaRepository (JPA 기본)
+**네이밍 규칙**:
+- JPA Repository: `*Repository` (Jpa 접두사 불필요)
+- QueryDSL Repository: `*QueryDslRepository`
+
+- SellerRepository (JPA 기본)
   - `findBySellerId(String sellerId)` - sellerId로 조회
   - `existsBySellerId(String sellerId)` - 존재 여부
   - `findAll(Pageable)` - 페이징 조회
+
+### 3. Adapter 구현 (Port 구현체)
+
+**Adapter 구조 규칙**:
+- Command Adapter: `*CommandAdapter` (CUD 연산, `mysql/adapter/command/`)
+- Query Adapter: `*QueryAdapter` (Read 연산, `mysql/adapter/query/`)
+- Mapper: `*EntityMapper` (Domain ↔ Entity 변환, `mysql/mapper/`)
+
+#### Command Adapter
+- **SellerCommandAdapter** (implements `SellerPersistencePort`)
+  - save(), delete() 구현
+  - Domain ↔ Entity 변환 (Mapper 사용)
+
+#### Query Adapter
+- **SellerQueryAdapter** (implements `SellerQueryPort`)
+  - findBySellerId(), existsBySellerId(), findAll() 구현
+
+#### Mapper
+- **SellerEntityMapper** (Domain ↔ Entity 변환)
+  - 위치: `mysql/mapper/`
 
 ### 3. Flyway
 
@@ -38,9 +63,10 @@ Seller 데이터 영속성.
 
 ## ✅ 완료 조건
 
-- [ ] SellerJpaEntity 구현 완료
-- [ ] Repository 구현 완료
-- [ ] Adapter 구현 완료 (Port 구현체)
+- [ ] SellerEntity 구현 완료
+- [ ] SellerRepository 구현 완료
+- [ ] Command/Query Adapter 구현 완료
+- [ ] EntityMapper 구현 완료
 
 ---
 
@@ -52,7 +78,7 @@ Seller 데이터 영속성.
 
 ## 📚 참고사항
 
-### SellerJpaEntity
+### SellerEntity
 
 ```java
 @Entity
@@ -63,7 +89,7 @@ Seller 데이터 영속성.
         @Index(name = "idx_status", columnList = "status")
     }
 )
-public class SellerJpaEntity {
+public class SellerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -91,74 +117,80 @@ public class SellerJpaEntity {
 }
 ```
 
-### SellerJpaRepository
+### SellerRepository
 
 ```java
-public interface SellerJpaRepository extends JpaRepository<SellerJpaEntity, Long> {
-    Optional<SellerJpaEntity> findBySellerId(String sellerId);
+public interface SellerRepository extends JpaRepository<SellerEntity, Long> {
+    Optional<SellerEntity> findBySellerId(String sellerId);
     boolean existsBySellerId(String sellerId);
-    Page<SellerJpaEntity> findAll(Pageable pageable);
+    Page<SellerEntity> findAll(Pageable pageable);
 }
 ```
 
-### SellerCommandAdapter (Port 구현체)
+### SellerCommandAdapter (Command Port 구현체)
+
+**위치**: `persistence-mysql/seller/adapter/command/`
 
 ```java
 @PersistenceAdapter
 @RequiredArgsConstructor
-public class SellerCommandAdapter implements SellerCommandPort {
-    private final SellerJpaRepository sellerJpaRepository;
-    private final SellerMapper sellerMapper;
+public class SellerCommandAdapter implements SellerPersistencePort {
+    private final SellerRepository sellerRepository;
+    private final SellerEntityMapper sellerEntityMapper;
 
     @Override
     public void save(Seller seller) {
-        SellerJpaEntity entity = sellerMapper.toEntity(seller);
-        sellerJpaRepository.save(entity);
+        SellerEntity entity = sellerEntityMapper.toEntity(seller);
+        sellerRepository.save(entity);
     }
 
     @Override
     public void delete(Seller seller) {
-        SellerJpaEntity entity = sellerMapper.toEntity(seller);
-        sellerJpaRepository.delete(entity);
+        SellerEntity entity = sellerEntityMapper.toEntity(seller);
+        sellerRepository.delete(entity);
     }
 }
 ```
 
-### SellerQueryAdapter
+### SellerQueryAdapter (Query Port 구현체)
+
+**위치**: `persistence-mysql/seller/adapter/query/`
 
 ```java
 @PersistenceAdapter
 @RequiredArgsConstructor
 public class SellerQueryAdapter implements SellerQueryPort {
-    private final SellerJpaRepository sellerJpaRepository;
-    private final SellerMapper sellerMapper;
+    private final SellerRepository sellerRepository;
+    private final SellerEntityMapper sellerEntityMapper;
 
     @Override
     public Optional<Seller> findBySellerId(SellerId sellerId) {
-        return sellerJpaRepository.findBySellerId(sellerId.value())
-            .map(sellerMapper::toDomain);
+        return sellerRepository.findBySellerId(sellerId.value())
+            .map(sellerEntityMapper::toDomain);
     }
 
     @Override
     public boolean existsBySellerId(String sellerId) {
-        return sellerJpaRepository.existsBySellerId(sellerId);
+        return sellerRepository.existsBySellerId(sellerId);
     }
 
     @Override
     public Page<Seller> findAll(Pageable pageable) {
-        Page<SellerJpaEntity> entities = sellerJpaRepository.findAll(pageable);
-        return entities.map(sellerMapper::toDomain);
+        Page<SellerEntity> entities = sellerRepository.findAll(pageable);
+        return entities.map(sellerEntityMapper::toDomain);
     }
 }
 ```
 
-### SellerMapper
+### SellerEntityMapper (Domain ↔ Entity 변환)
+
+**위치**: `persistence-mysql/seller/mapper/`
 
 ```java
 @Component
-public class SellerMapper {
+public class SellerEntityMapper {
 
-    public Seller toDomain(SellerJpaEntity entity) {
+    public Seller toDomain(SellerEntity entity) {
         return new Seller(
             new SellerId(entity.getSellerId()),
             entity.getName(),
@@ -169,8 +201,8 @@ public class SellerMapper {
         );
     }
 
-    public SellerJpaEntity toEntity(Seller seller) {
-        SellerJpaEntity entity = new SellerJpaEntity();
+    public SellerEntity toEntity(Seller seller) {
+        SellerEntity entity = new SellerEntity();
         entity.setSellerId(seller.getSellerIdValue());
         entity.setName(seller.getName());
         entity.setStatus(seller.getStatus());
@@ -202,8 +234,10 @@ CREATE TABLE sellers (
 ### Integration Test (TestContainers)
 
 ```java
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @Testcontainers
+@Transactional
 class SellerCommandAdapterTest {
 
     @Container
@@ -217,6 +251,7 @@ class SellerCommandAdapterTest {
         registry.add("spring.datasource.url", mysql::getJdbcUrl);
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.flyway.enabled", () -> "true");
     }
 
     @Autowired
