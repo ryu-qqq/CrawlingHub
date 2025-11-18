@@ -28,8 +28,8 @@ import java.time.LocalDateTime;
  * @param sellerId Seller ID (String, 예: "seller_12345")
  * @param sellerName Seller 이름 (like 검색)
  * @param active 활성 상태 (true/false/null)
- * @param createdAtFrom 생성일 범위 시작
- * @param createdAtTo 생성일 범위 종료
+ * @param fromCreatedAt 생성일 범위 시작
+ * @param toCreatedAt 생성일 범위 종료
  *
  * @author ryu-qqq
  * @since 2025-11-18
@@ -38,8 +38,8 @@ public record SellerSearchCriteria(
     String sellerId,
     String sellerName,
     Boolean active,
-    LocalDateTime createdAtFrom,
-    LocalDateTime createdAtTo
+    LocalDateTime fromCreatedAt,
+    LocalDateTime toCreatedAt
 ) {
     /**
      * 정적 팩토리 메서드
@@ -47,17 +47,17 @@ public record SellerSearchCriteria(
      * @param sellerId Seller ID (nullable)
      * @param sellerName Seller 이름 (nullable)
      * @param active 활성 상태 (nullable)
-     * @param createdAtFrom 생성일 범위 시작 (nullable)
-     * @param createdAtTo 생성일 범위 종료 (nullable)
+     * @param fromCreatedAt 생성일 범위 시작 (nullable)
+     * @param toCreatedAt 생성일 범위 종료 (nullable)
      * @return SellerSearchCriteria
      */
     public static SellerSearchCriteria of(
         String sellerId,
         String sellerName,
         Boolean active,
-        LocalDateTime createdAtFrom,
-        LocalDateTime createdAtTo
+        LocalDateTime fromCreatedAt,
+        LocalDateTime toCreatedAt
     ) {
-        return new SellerSearchCriteria(sellerId, sellerName, active, createdAtFrom, createdAtTo);
+        return new SellerSearchCriteria(sellerId, sellerName, active, fromCreatedAt, toCreatedAt);
     }
 }
