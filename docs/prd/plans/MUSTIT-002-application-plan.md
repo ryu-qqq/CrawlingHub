@@ -277,10 +277,10 @@
 
 ---
 
-### 🔟 RegisterSellerService 구현 - Part 3 (Transaction 경계 검증) (Cycle 10)
+### 🔟 RegisterSellerService 구현 - Part 3 (Transaction 경계 검증) 🔄 (Cycle 10)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldCallEventBridgeAfterTransactionCommit()` 작성
+- [~] `shouldCallEventBridgeAfterTransactionCommit()` 작성
 - [ ] Transaction 경계 검증 테스트
 - [ ] 테스트 실행 → 실패 확인
 - [ ] 커밋: `test: Transaction 경계 검증 테스트 추가 (Red)`

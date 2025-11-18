@@ -24,7 +24,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 /**
  * RegisterSellerService 테스트
@@ -147,5 +149,55 @@ class RegisterSellerServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.sellerId()).isEqualTo(command.sellerId());
         assertThat(response.name()).isEqualTo(command.name());
+    }
+
+    /**
+     * Part 3: Transaction 경계 검증
+     */
+    @Test
+    @DisplayName("EventBridge Rule 생성은 트랜잭션 커밋 후 실행되어야 한다")
+    void shouldCallEventBridgeAfterTransactionCommit() {
+        // Given
+        RegisterSellerCommand command = RegisterSellerCommandFixture.aRegisterSellerCommand();
+
+        // 중복 없음
+        SellerSearchCriteria criteria = SellerSearchCriteria.of(
+            command.sellerId(),
+            null,
+            null,
+            null,
+            null
+        );
+        given(sellerQueryPort.findByCriteria(criteria))
+            .willReturn(List.of());
+
+        // Seller 저장 성공
+        SellerId savedSellerId = new SellerId(1L);
+        given(sellerPersistencePort.persist(any(Seller.class)))
+            .willReturn(savedSellerId);
+
+        // SellerAssembler Mock 설정
+        SellerResponse expectedResponse = new SellerResponse(
+            command.sellerId(),
+            command.name(),
+            SellerStatus.ACTIVE,
+            command.crawlingIntervalDays(),
+            0,
+            null,
+            null
+        );
+        given(sellerAssembler.toResponse(any(Seller.class)))
+            .willReturn(expectedResponse);
+
+        // When
+        registerSellerService.execute(command);
+
+        // Then
+        // EventBridge Rule 생성이 호출되어야 함
+        // (현재는 구현되지 않아 테스트 실패할 것임)
+        verify(eventBridgePort).createRule(
+            eq(command.sellerId()),
+            eq(command.crawlingIntervalDays())
+        );
     }
 }
