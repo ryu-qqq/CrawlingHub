@@ -277,29 +277,29 @@
 
 ---
 
-### 🔟 RegisterSellerService 구현 - Part 3 (Transaction 경계 검증) 🔄 (Cycle 10)
+### 🔟 RegisterSellerService 구현 - Part 3 (Transaction 경계 검증) ✅ (Cycle 10)
 
 #### 🔴 Red: 테스트 작성
-- [~] `shouldCallEventBridgeAfterTransactionCommit()` 작성
-- [ ] Transaction 경계 검증 테스트
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: Transaction 경계 검증 테스트 추가 (Red)`
+- [x] `shouldCallEventBridgeAfterTransactionCommit()` 작성
+- [x] EventBridge Rule 생성 호출 검증
+- [x] 테스트 실행 → 실패 확인 (WantedButNotInvoked)
+- [x] 커밋: `test: Transaction 경계 검증 테스트 추가 (Red)` (5684042)
 
 #### 🟢 Green: 최소 구현
-- [ ] `@Transactional` 어노테이션 추가
-- [ ] EventBridge 호출을 트랜잭션 밖으로 이동
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Transaction 경계 구현 (Green)`
+- [x] executeInTransaction()과 executeExternalOperations() 분리
+- [x] executeInTransaction()에 @Transactional 적용
+- [x] EventBridge 호출을 트랜잭션 밖으로 이동
+- [x] 테스트 실행 → 통과 확인 (3개 테스트)
+- [x] 커밋: `feat: Transaction 경계 구현 (Green)` (85ff360)
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Transaction 경계 주석 추가
-- [ ] ArchUnit 테스트 추가 (Transaction 경계 검증)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: Transaction 경계 개선 (Refactor)`
+- [x] Transaction 경계 JavaDoc 상세화
+- [x] executeInTransaction() / executeExternalOperations() 주석 추가
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `refactor: Transaction 경계 JavaDoc 상세화 (Refactor)` (1340daf)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] 테스트 코드 정리
-- [ ] 커밋: `test: Transaction 경계 테스트 정리 (Tidy)`
+- [x] 테스트 이미 Fixture 사용 (생략)
 
 ---
 
