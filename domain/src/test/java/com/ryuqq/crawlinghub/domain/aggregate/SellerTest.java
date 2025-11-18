@@ -148,6 +148,19 @@ class SellerTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenActivatingAlreadyActiveSeller() {
+        // Given - 이미 ACTIVE 상태인 Seller
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+        seller.activate(); // ACTIVE 상태로 변경
+
+        // When & Then - 이미 ACTIVE인데 다시 activate() 시도
+        assertThatThrownBy(() -> seller.activate())
+                .isInstanceOf(SellerInvalidStateException.class)
+                .hasMessageContaining("이미 활성화된 상태입니다");
+    }
+
+    @Test
     void shouldDeactivateSeller() {
         // Given - ACTIVE 상태의 Seller
         SellerId sellerId = new SellerId(1L);
