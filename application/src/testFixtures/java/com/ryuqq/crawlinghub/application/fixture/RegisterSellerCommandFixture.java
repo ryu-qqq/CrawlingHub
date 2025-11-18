@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.application.fixture;
 
-import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-
 /**
  * RegisterSellerCommand Fixture
  *

@@ -32,7 +32,12 @@ public enum SellerErrorCode implements ErrorCode {
     /**
      * 유효하지 않은 Seller 상태 전환
      */
-    INVALID_SELLER_STATE("SELLER-003", 400, "Invalid seller state transition");
+    INVALID_SELLER_STATE("SELLER-003", 400, "Invalid seller state transition"),
+
+    /**
+     * Seller 중복
+     */
+    SELLER_DUPLICATED("SELLER-004", 409, "Seller already exists");
 
     private final String code;
     private final int httpStatus;
