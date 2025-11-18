@@ -11,6 +11,11 @@
 
 EventBridge Admin API E2E 시나리오 테스트.
 
+**핵심 원칙**:
+- **TestRestTemplate 필수**: MockMvc 금지, 실제 HTTP 요청/응답 검증
+- **Flyway (DDL) + @Sql (DML) 분리**: 스키마는 Flyway, 테스트 데이터는 @Sql
+- **@Transactional 롤백**: 각 테스트 후 데이터 자동 롤백, 테스트 격리
+
 ---
 
 ## 🎯 요구사항
@@ -187,12 +192,77 @@ EventBridge Admin API E2E 시나리오 테스트.
 
 ---
 
+## ⚠️ Zero-Tolerance 규칙
+
+### 필수 규칙 ✅
+
+- [ ] **@SpringBootTest(webEnvironment = RANDOM_PORT) 필수**
+  - 전체 Spring 컨텍스트 로딩
+  - 실제 HTTP 서버 시작
+
+- [ ] **TestRestTemplate 사용 (MockMvc 금지)**
+  - 실제 HTTP 요청/응답 검증
+  - 직렬화/역직렬화 검증
+
+- [ ] **@Transactional + @Rollback(true) 필수**
+  - 테스트 격리 (각 테스트는 독립적)
+  - 데이터 자동 롤백
+
+- [ ] **Flyway로 스키마 생성 (spring.flyway.enabled=true)**
+  - 운영 환경과 동일한 스키마
+  - 마이그레이션 파일 재사용
+
+- [ ] **@Sql로 테스트 데이터 삽입 (INSERT만)**
+  - DDL 작성 금지 (CREATE TABLE 금지)
+  - DML만 포함 (INSERT, UPDATE, DELETE)
+
+- [ ] **@ActiveProfiles("test") 필수**
+  - 테스트 전용 설정 사용
+  - application-test.yml 로드
+
+- [ ] **@Testcontainers 필수**
+  - 실제 DB 사용 (H2 금지)
+  - TestContainers로 MySQL 시작
+
+### 금지 규칙 ❌
+
+- [ ] **@Sql에 DDL 작성 금지**
+  - ❌ `@Sql("/sql/create-tables.sql")` (CREATE TABLE 금지)
+  - ✅ `@Sql("/sql/test-data.sql")` (INSERT만 허용)
+
+- [ ] **Flyway 마이그레이션 파일 수정 금지**
+  - 운영 환경 스키마 파일이므로 절대 수정 금지
+  - 새로운 파일 추가만 가능
+
+- [ ] **@WebMvcTest 사용 금지**
+  - Integration 테스트는 전체 컨텍스트 필요
+  - `@SpringBootTest` 사용
+
+- [ ] **MockMvc 사용 금지**
+  - 실제 HTTP 필요
+  - TestRestTemplate 사용
+
+- [ ] **@MockBean 남발 금지**
+  - 실제 Bean 사용 (통합 테스트 목적)
+  - 외부 API만 WireMock으로 모킹
+
+- [ ] **EntityManager.persist() 직접 호출 금지**
+  - `@Sql` 사용
+  - 테스트 데이터는 SQL 파일로 관리
+
+- [ ] **@DirtiesContext 남발 금지**
+  - 느림 (전체 컨텍스트 재로딩)
+  - `@Transactional` 롤백으로 충분
+
+---
+
 ## ✅ 완료 조건
 
 - [ ] 5개 E2E 시나리오 테스트 통과
 - [ ] Validation 테스트 통과
 - [ ] Localstack EventBridge 통합 테스트 통과
 - [ ] TestRestTemplate 사용 완료
+- [ ] Zero-Tolerance 규칙 준수
 
 ---
 

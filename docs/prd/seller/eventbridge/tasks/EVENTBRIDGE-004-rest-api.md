@@ -109,56 +109,107 @@ public class ScheduleCommandController {
     }
 
     @PatchMapping("/{scheduleId}/interval")
-    public ResponseEntity<ScheduleResponse> updateScheduleInterval(
+    public ResponseEntity<ScheduleApiResponse> updateScheduleInterval(
         @PathVariable String scheduleId,
-        @Valid @RequestBody UpdateScheduleIntervalRequest request) {
+        @Valid @RequestBody UpdateScheduleIntervalApiRequest request) {
 
-        UpdateScheduleIntervalCommand command = new UpdateScheduleIntervalCommand(
-            scheduleId,
-            request.newIntervalDays()
-        );
-
+        UpdateScheduleIntervalCommand command = scheduleApiMapper.toCommand(scheduleId, request);
         updateScheduleIntervalUseCase.execute(command);
-        ScheduleResponse response = getScheduleUseCase.execute(scheduleId);
 
+        ScheduleApiResponse response = scheduleApiMapper.toResponse(scheduleId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{scheduleId}/activate")
-    public ResponseEntity<ScheduleResponse> activateSchedule(@PathVariable String scheduleId) {
+    public ResponseEntity<ScheduleApiResponse> activateSchedule(@PathVariable String scheduleId) {
         ActivateScheduleCommand command = new ActivateScheduleCommand(scheduleId);
         activateScheduleUseCase.execute(command);
 
-        ScheduleResponse response = getScheduleUseCase.execute(scheduleId);
+        ScheduleApiResponse response = scheduleApiMapper.toResponse(scheduleId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{scheduleId}/deactivate")
-    public ResponseEntity<ScheduleResponse> deactivateSchedule(@PathVariable String scheduleId) {
+    public ResponseEntity<ScheduleApiResponse> deactivateSchedule(@PathVariable String scheduleId) {
         DeactivateScheduleCommand command = new DeactivateScheduleCommand(scheduleId);
         deactivateScheduleUseCase.execute(command);
 
-        ScheduleResponse response = getScheduleUseCase.execute(scheduleId);
+        ScheduleApiResponse response = scheduleApiMapper.toResponse(scheduleId);
         return ResponseEntity.ok(response);
     }
 }
 ```
 
-### Request/Response DTO
+#### ScheduleQueryController (조회)
 
 ```java
-// Request DTOs
-public record RegisterScheduleRequest(
-    @NotBlank String sellerId,
-    @Min(1) @Max(365) Integer intervalDays
+@RestController
+@RequestMapping("/api/v1/admin/schedules")
+@RequiredArgsConstructor
+public class ScheduleQueryController {
+    private final GetScheduleUseCase getScheduleUseCase;
+    private final ListSchedulesUseCase listSchedulesUseCase;
+    private final ScheduleApiMapper scheduleApiMapper;
+
+    @GetMapping("/{scheduleId}")
+    public ResponseEntity<ScheduleApiResponse> getSchedule(@PathVariable String scheduleId) {
+        ScheduleResponse useCaseResponse = getScheduleUseCase.execute(scheduleId);
+        ScheduleApiResponse response = scheduleApiMapper.toApiResponse(useCaseResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageApiResponse<ScheduleApiResponse>> listSchedules(
+        @RequestParam(required = false) String sellerId,
+        @RequestParam(required = false) String status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ScheduleResponse> useCaseResponse = listSchedulesUseCase.execute(sellerId, status, pageable);
+
+        PageApiResponse<ScheduleApiResponse> response = scheduleApiMapper.toPageApiResponse(useCaseResponse);
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+### Request/Response DTO (API Layer)
+
+#### Request DTOs (Command)
+
+```java
+/**
+ * 스케줄 등록 API 요청 DTO
+ */
+public record RegisterScheduleApiRequest(
+    @NotBlank(message = "Seller ID는 필수입니다")
+    String sellerId,
+
+    @NotNull(message = "크롤링 주기는 필수입니다")
+    @Min(value = 1, message = "크롤링 주기는 최소 1일입니다")
+    @Max(value = 365, message = "크롤링 주기는 최대 365일입니다")
+    Integer intervalDays
 ) {}
 
-public record UpdateScheduleIntervalRequest(
-    @Min(1) @Max(365) Integer newIntervalDays
+/**
+ * 스케줄 주기 변경 API 요청 DTO
+ */
+public record UpdateScheduleIntervalApiRequest(
+    @NotNull(message = "새 크롤링 주기는 필수입니다")
+    @Min(value = 1, message = "크롤링 주기는 최소 1일입니다")
+    @Max(value = 365, message = "크롤링 주기는 최대 365일입니다")
+    Integer newIntervalDays
 ) {}
+```
 
-// Response DTO
-public record ScheduleResponse(
+#### Response DTO
+
+```java
+/**
+ * 스케줄 API 응답 DTO
+ */
+public record ScheduleApiResponse(
     String scheduleId,
     String sellerId,
     Integer intervalDays,
@@ -169,6 +220,69 @@ public record ScheduleResponse(
     LocalDateTime updatedAt
 ) {}
 ```
+
+#### API Mapper (@Component Bean)
+
+```java
+/**
+ * Schedule API DTO Mapper
+ * @Component Bean으로 등록 (Static 메서드 금지)
+ */
+@Component
+@RequiredArgsConstructor
+public class ScheduleApiMapper {
+    private final MessageSource messageSource; // i18n 지원 예시
+
+    /**
+     * API Request → UseCase Command 변환
+     */
+    public RegisterScheduleCommand toCommand(RegisterScheduleApiRequest request) {
+        return new RegisterScheduleCommand(
+            request.sellerId(),
+            request.intervalDays()
+        );
+    }
+
+    /**
+     * UseCase Response → API Response 변환
+     */
+    public ScheduleApiResponse toApiResponse(ScheduleResponse useCaseResponse) {
+        return new ScheduleApiResponse(
+            useCaseResponse.scheduleId(),
+            useCaseResponse.sellerId(),
+            useCaseResponse.intervalDays(),
+            useCaseResponse.scheduleRule(),
+            useCaseResponse.scheduleExpression(),
+            useCaseResponse.status(),
+            useCaseResponse.createdAt(),
+            useCaseResponse.updatedAt()
+        );
+    }
+
+    /**
+     * Page<UseCaseResponse> → PageApiResponse 변환
+     */
+    public PageApiResponse<ScheduleApiResponse> toPageApiResponse(Page<ScheduleResponse> page) {
+        List<ScheduleApiResponse> content = page.getContent()
+            .stream()
+            .map(this::toApiResponse)
+            .toList();
+
+        return new PageApiResponse<>(
+            content,
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements(),
+            page.getTotalPages()
+        );
+    }
+}
+```
+
+**Mapper 규칙**:
+- `@Component` Bean으로 DI (Static 메서드 금지)
+- 의존성 주입 가능 (MessageSource, 다른 Mapper 등)
+- API DTO ↔ UseCase DTO 변환 책임
 
 ### Integration Test (TestRestTemplate)
 
