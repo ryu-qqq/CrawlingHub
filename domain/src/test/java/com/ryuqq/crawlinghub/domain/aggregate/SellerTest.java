@@ -84,6 +84,22 @@ class SellerTest {
     }
 
     @Test
+    void shouldCreateSellerWithInactiveStatus() {
+        // Given
+        SellerId sellerId = new SellerId(1L);
+        String name = "테스트 셀러";
+
+        // When
+        Seller seller = Seller.forNew(sellerId, name);
+
+        // Then - 초기 상태는 INACTIVE여야 함
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
+        assertThat(seller.getSellerId()).isEqualTo(sellerId);
+        assertThat(seller.getName()).isEqualTo(name);
+        assertThat(seller.getTotalProductCount()).isEqualTo(0);
+    }
+
+    @Test
     void shouldCreateSellerUsingOf() {
         // Given
         SellerId sellerId = new SellerId(1L);
