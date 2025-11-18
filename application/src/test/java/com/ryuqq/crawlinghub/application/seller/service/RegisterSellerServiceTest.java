@@ -1,10 +1,9 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import com.ryuqq.crawlinghub.application.fixture.RegisterSellerCommandFixture;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerCommandPort;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
-import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerManager;
+import com.ryuqq.crawlinghub.application.seller.port.out.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerDuplicatedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,23 +20,23 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("RegisterSellerUseCase 테스트")
-class RegisterSellerUseCaseTest {
+@DisplayName("RegisterSellerService 테스트")
+class RegisterSellerServiceTest {
 
     @Mock
-    private SellerCommandPort sellerCommandPort;
+    private SellerManager sellerManager;
 
     @Mock
     private SellerQueryPort sellerQueryPort;
 
     @InjectMocks
-    private RegisterSellerUseCase registerSellerUseCase;
+    private RegisterSellerService registerSellerService;
 
     private RegisterSellerCommand command;
 
     @BeforeEach
     void setUp() {
-        command = new RegisterSellerCommand("무신사");
+        command = RegisterSellerCommandFixture.aRegisterSellerCommand();
     }
 
     @Test
@@ -48,11 +47,11 @@ class RegisterSellerUseCaseTest {
                 .willReturn(false);
 
         // When
-        registerSellerUseCase.execute(command);
+        registerSellerService.execute(command);
 
         // Then
         then(sellerQueryPort).should().existsByName(command.name());
-        then(sellerCommandPort).should().save(any(Seller.class));
+        then(sellerManager).should().save(any());
     }
 
     @Test
@@ -63,10 +62,10 @@ class RegisterSellerUseCaseTest {
                 .willReturn(true);
 
         // When & Then
-        assertThatThrownBy(() -> registerSellerUseCase.execute(command))
+        assertThatThrownBy(() -> registerSellerService.execute(command))
                 .isInstanceOf(SellerDuplicatedException.class)
                 .hasMessage("이미 존재하는 Seller 이름입니다: " + command.name());
 
-        then(sellerCommandPort).should(never()).save(any(Seller.class));
+        then(sellerManager).should(never()).save(any());
     }
 }

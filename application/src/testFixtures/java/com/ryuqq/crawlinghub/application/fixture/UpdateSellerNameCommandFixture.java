@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.application.fixture;
 
+import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerNameCommand;
+
 /**
  * UpdateSellerNameCommand Fixture
  *
@@ -16,8 +18,8 @@ package com.ryuqq.crawlinghub.application.fixture;
  */
 public class UpdateSellerNameCommandFixture {
 
-    private static final String DEFAULT_SELLER_ID = "seller_12345";
-    private static final String DEFAULT_NEW_NAME = "무신사 업데이트";
+    private static final Long DEFAULT_SELLER_ID = 1L;
+    private static final String DEFAULT_NEW_NAME = "새로운이름";
 
     /**
      * 기본 UpdateSellerNameCommand 생성
@@ -37,7 +39,7 @@ public class UpdateSellerNameCommandFixture {
      * @param sellerId Seller ID
      * @return sellerId가 지정된 UpdateSellerNameCommand
      */
-    public static UpdateSellerNameCommand anUpdateSellerNameCommandWithSellerId(String sellerId) {
+    public static UpdateSellerNameCommand anUpdateSellerNameCommandWithSellerId(Long sellerId) {
         return new UpdateSellerNameCommand(
             sellerId,
             DEFAULT_NEW_NAME
@@ -65,7 +67,7 @@ public class UpdateSellerNameCommandFixture {
      * @return 커스텀 값으로 생성된 UpdateSellerNameCommand
      */
     public static UpdateSellerNameCommand anUpdateSellerNameCommand(
-            String sellerId,
+            Long sellerId,
             String newName
     ) {
         return new UpdateSellerNameCommand(sellerId, newName);
