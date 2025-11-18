@@ -171,4 +171,61 @@ class SellerTest {
         // Then
         assertThat(seller.getTotalProductCount()).isEqualTo(100);
     }
+
+    // ========== updateName() 테스트 ==========
+
+    @Test
+    void shouldUpdateSellerName() {
+        // Given
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "원래 이름");
+        String newName = "변경된 이름";
+
+        // When
+        seller.updateName(newName);
+
+        // Then
+        assertThat(seller.getName()).isEqualTo(newName);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNameIsNull() {
+        // Given
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+
+        // When & Then
+        assertThatThrownBy(() -> seller.updateName(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("이름은 null일 수 없습니다");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNameIsBlank() {
+        // Given
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+
+        // When & Then
+        assertThatThrownBy(() -> seller.updateName(""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("이름은 빈 값일 수 없습니다");
+
+        assertThatThrownBy(() -> seller.updateName("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("이름은 빈 값일 수 없습니다");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNameExceedsMaxLength() {
+        // Given
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+        String longName = "a".repeat(101); // 101자
+
+        // When & Then
+        assertThatThrownBy(() -> seller.updateName(longName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("이름은 100자를 초과할 수 없습니다");
+    }
 }
