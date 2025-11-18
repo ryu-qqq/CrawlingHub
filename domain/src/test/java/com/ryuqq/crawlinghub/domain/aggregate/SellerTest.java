@@ -79,7 +79,7 @@ class SellerTest {
         // Then
         assertThat(seller.getSellerId()).isEqualTo(sellerId);
         assertThat(seller.getName()).isEqualTo(name);
-        assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
         assertThat(seller.getTotalProductCount()).isEqualTo(0);
     }
 
@@ -111,7 +111,7 @@ class SellerTest {
         // Then
         assertThat(seller.getSellerId()).isEqualTo(sellerId);
         assertThat(seller.getName()).isEqualTo(name);
-        assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
     }
 
     @Test

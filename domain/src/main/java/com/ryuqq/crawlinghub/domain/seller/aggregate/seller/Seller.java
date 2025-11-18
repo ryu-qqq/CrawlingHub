@@ -46,7 +46,7 @@ public class Seller {
     private Seller(SellerId sellerId, String name, Clock clock) {
         this.sellerId = sellerId;
         this.name = name;
-        this.status = SellerStatus.ACTIVE;
+        this.status = SellerStatus.INACTIVE;
         this.totalProductCount = 0;
         this.clock = clock;
         this.createdAt = LocalDateTime.now(clock);
