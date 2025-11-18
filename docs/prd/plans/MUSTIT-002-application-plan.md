@@ -329,22 +329,22 @@
 
 ---
 
-### 1️⃣2️⃣ UpdateSellerIntervalUseCaseImpl 구현 (Cycle 12)
+### 1️⃣2️⃣ UpdateSellerIntervalService 구현 🔄 (Cycle 12)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `UpdateSellerIntervalUseCaseImplTest.java` 생성
+- [~] `UpdateSellerIntervalServiceTest.java` 생성
 - [ ] `shouldUpdateIntervalSuccessfully()` 작성
 - [ ] Mock Port 준비
 - [ ] 테스트 실행 → 실패 확인
 - [ ] 커밋: `test: 셀러 주기 변경 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `UpdateSellerIntervalUseCaseImpl.java` 생성
+- [ ] `UpdateSellerIntervalService.java` 생성 (Service 접미사)
 - [ ] Seller 조회 → changeInterval() 호출 → 저장
 - [ ] EventBridge 업데이트 (트랜잭션 밖)
 - [ ] `@Transactional` 추가
 - [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: 셀러 주기 변경 로직 구현 (Green)`
+- [ ] 커밋: `feat: 셀러 주기 변경 로직 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
 - [ ] Transaction 경계 검증
