@@ -47,6 +47,7 @@ bin/
 # Claude Code documentation and specs (auto-generated)
 claudedocs/
 spec-stories/
+.specstory/
 
 # LangFuse telemetry (contains credentials)
 .langfuse.telemetry
