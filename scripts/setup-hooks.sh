@@ -67,9 +67,20 @@ if [[ -f ".git/hooks/pre-commit" ]] && [[ ! -L ".git/hooks/pre-commit" ]]; then
     rm .git/hooks/pre-commit
 fi
 
-ln -sf ../../config/hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-chmod +x config/hooks/pre-commit
+# config/hooks 또는 .claude/hooks 경로 자동 감지
+if [[ -d "config/hooks" ]]; then
+    HOOKS_DIR="config/hooks"
+    HOOKS_RELATIVE="../../config/hooks"
+elif [[ -d ".claude/hooks" ]]; then
+    HOOKS_DIR=".claude/hooks"
+    HOOKS_RELATIVE="../../.claude/hooks"
+else
+    log_error "Hook directory not found (config/hooks or .claude/hooks)"
+    exit 1
+fi
+
+ln -sf "$HOOKS_RELATIVE/pre-commit" .git/hooks/pre-commit
+chmod +x "$HOOKS_DIR/pre-commit"
 
 log_success "pre-commit hook installed"
 
@@ -87,9 +98,8 @@ if [[ -f ".git/hooks/post-commit" ]] && [[ ! -L ".git/hooks/post-commit" ]]; the
     rm .git/hooks/post-commit
 fi
 
-ln -sf ../../config/hooks/post-commit .git/hooks/post-commit
-chmod +x .git/hooks/post-commit
-chmod +x config/hooks/post-commit
+ln -sf "$HOOKS_RELATIVE/post-commit" .git/hooks/post-commit
+chmod +x "$HOOKS_DIR/post-commit"
 
 log_success "post-commit hook installed"
 
