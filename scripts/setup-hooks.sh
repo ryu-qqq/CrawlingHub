@@ -9,6 +9,20 @@
 
 set -e  # Exit on error
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+HOOKS_DIR="$(git rev-parse --git-path hooks)"
+
+mkdir -p "${HOOKS_DIR}"
+
+if [[ -d "${REPO_ROOT}/config/hooks" ]]; then
+    HOOK_SOURCE_DIR="${REPO_ROOT}/config/hooks"
+elif [[ -d "${REPO_ROOT}/.claude/hooks" ]]; then
+    HOOK_SOURCE_DIR="${REPO_ROOT}/.claude/hooks"
+else
+    echo "Hook directory not found (config/hooks or .claude/hooks)"
+    exit 1
+fi
+
 # Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -46,17 +60,17 @@ echo "🔧 Git Hooks 설치"
 echo "=========================================="
 echo ""
 
-# 0. .git/hooks 디렉토리 생성 (없을 경우)
-if [[ ! -d ".git/hooks" ]]; then
-    log_warning ".git/hooks directory not found, creating..."
-    mkdir -p .git/hooks
-    log_success ".git/hooks directory created"
+# 0. hooks 디렉토리 생성 (없을 경우)
+if [[ ! -d "${HOOKS_DIR}" ]]; then
+    log_warning "hooks directory not found, creating..."
+    mkdir -p "${HOOKS_DIR}"
+    log_success "hooks directory created"
 fi
 
 # 1. pre-commit hook 설치
 log_info "Installing pre-commit hook..."
 
-if [[ -f ".git/hooks/pre-commit" ]] && [[ ! -L ".git/hooks/pre-commit" ]]; then
+if [[ -f "${HOOKS_DIR}/pre-commit" ]] && [[ ! -L "${HOOKS_DIR}/pre-commit" ]]; then
     log_warning "Existing pre-commit hook found (not a symlink)"
     read -p "   Overwrite? (y/n): " -n 1 -r
     echo
@@ -64,30 +78,19 @@ if [[ -f ".git/hooks/pre-commit" ]] && [[ ! -L ".git/hooks/pre-commit" ]]; then
         log_error "Installation cancelled"
         exit 1
     fi
-    rm .git/hooks/pre-commit
+    rm "${HOOKS_DIR}/pre-commit"
 fi
 
-# config/hooks 또는 .claude/hooks 경로 자동 감지
-if [[ -d "config/hooks" ]]; then
-    HOOKS_DIR="config/hooks"
-    HOOKS_RELATIVE="../../config/hooks"
-elif [[ -d ".claude/hooks" ]]; then
-    HOOKS_DIR=".claude/hooks"
-    HOOKS_RELATIVE="../../.claude/hooks"
-else
-    log_error "Hook directory not found (config/hooks or .claude/hooks)"
-    exit 1
-fi
-
-ln -sf "$HOOKS_RELATIVE/pre-commit" .git/hooks/pre-commit
-chmod +x "$HOOKS_DIR/pre-commit"
+ln -sf "${HOOK_SOURCE_DIR}/pre-commit" "${HOOKS_DIR}/pre-commit"
+chmod +x "${HOOKS_DIR}/pre-commit"
+chmod +x "${HOOK_SOURCE_DIR}/pre-commit"
 
 log_success "pre-commit hook installed"
 
 # 2. post-commit hook 설치
 log_info "Installing post-commit hook..."
 
-if [[ -f ".git/hooks/post-commit" ]] && [[ ! -L ".git/hooks/post-commit" ]]; then
+if [[ -f "${HOOKS_DIR}/post-commit" ]] && [[ ! -L "${HOOKS_DIR}/post-commit" ]]; then
     log_warning "Existing post-commit hook found (not a symlink)"
     read -p "   Overwrite? (y/n): " -n 1 -r
     echo
@@ -95,11 +98,12 @@ if [[ -f ".git/hooks/post-commit" ]] && [[ ! -L ".git/hooks/post-commit" ]]; the
         log_error "Installation cancelled"
         exit 1
     fi
-    rm .git/hooks/post-commit
+    rm "${HOOKS_DIR}/post-commit"
 fi
 
-ln -sf "$HOOKS_RELATIVE/post-commit" .git/hooks/post-commit
-chmod +x "$HOOKS_DIR/post-commit"
+ln -sf "${HOOK_SOURCE_DIR}/post-commit" "${HOOKS_DIR}/post-commit"
+chmod +x "${HOOKS_DIR}/post-commit"
+chmod +x "${HOOK_SOURCE_DIR}/post-commit"
 
 log_success "post-commit hook installed"
 
@@ -107,7 +111,7 @@ log_success "post-commit hook installed"
 echo ""
 log_info "Verifying installation..."
 
-if [[ -L ".git/hooks/pre-commit" ]] && [[ -L ".git/hooks/post-commit" ]]; then
+if [[ -L "${HOOKS_DIR}/pre-commit" ]] && [[ -L "${HOOKS_DIR}/post-commit" ]]; then
     log_success "Both hooks are properly linked"
 else
     log_error "Hook installation verification failed"

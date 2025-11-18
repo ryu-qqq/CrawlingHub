@@ -98,20 +98,14 @@ def upload_to_langfuse(event_type: str, data: dict):
             commit_msg = data.get("commit_msg", "unknown")
             trace_id = extract_trace_id(commit_msg)
 
-            # 프로젝트 이름 추출
-            project_name = data.get("project", "unknown")
-
-            # Phase별 함수 정의 (프로젝트 이름 포함)
+            # Phase별 함수 정의
             phase = data.get("tdd_phase", "unknown")
             phase_names = {
                 "red": "🔴 Red Phase",
                 "green": "🟢 Green Phase",
-                "structural": "♻️ Structural Phase",
-                "refactor": "🔧 Refactor Phase",
-                "non-tdd": "📝 Non-TDD"
+                "structural": "♻️ Structural Phase"
             }
-            phase_label = phase_names.get(phase, f"{phase} Phase")
-            span_name = f"[{project_name}] {phase_label}"
+            span_name = phase_names.get(phase, f"{phase} Phase")
 
             # @observe 데코레이터를 동적으로 적용
             @observe(name=span_name)
