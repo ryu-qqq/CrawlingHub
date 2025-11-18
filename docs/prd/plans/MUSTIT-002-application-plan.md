@@ -303,29 +303,29 @@
 
 ---
 
-### 1️⃣1️⃣ UpdateSellerIntervalCommand DTO 구현 🔄 (Cycle 11)
+### 1️⃣1️⃣ UpdateSellerIntervalCommand DTO 구현 ✅ (Cycle 11)
 
 #### 🔴 Red: 테스트 작성
-- [~] `UpdateSellerIntervalCommandTest.java` 생성
-- [ ] `shouldCreateCommandWithValidData()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: UpdateSellerIntervalCommand DTO 테스트 추가 (Red)`
+- [x] `UpdateSellerIntervalCommandTest.java` 생성
+- [x] `shouldCreateCommandWithValidData()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: UpdateSellerIntervalCommand DTO 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `UpdateSellerIntervalCommand.java` 생성 (Record)
-- [ ] 필드: sellerId, newIntervalDays
-- [ ] 검증 로직 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `impl: UpdateSellerIntervalCommand DTO 구현 (Green)`
+- [x] `UpdateSellerIntervalCommand.java` 생성 (Record)
+- [x] 필드: sellerId, newIntervalDays
+- [x] 검증 로직 추가
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: UpdateSellerIntervalCommand DTO 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] ArchUnit 테스트 추가
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: UpdateSellerIntervalCommand DTO 개선 (Refactor)`
+- [x] ArchUnit 테스트 추가 (기존 DtoRecordArchTest 활용)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: (ArchUnit은 기존 테스트로 자동 검증)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `UpdateSellerIntervalCommandFixture.java` 생성
-- [ ] 커밋: `test: UpdateSellerIntervalCommandFixture 정리 (Tidy)`
+- [x] `UpdateSellerIntervalCommandFixture.java` 생성
+- [x] 커밋: `test: UpdateSellerIntervalCommandFixture 생성 (Tidy)`
 
 ---
 
