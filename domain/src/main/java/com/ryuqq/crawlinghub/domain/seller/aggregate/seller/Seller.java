@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 public class Seller {
 
     private final SellerId sellerId;
-    private final String name;
+    private String name;
     private SellerStatus status;
     private Integer totalProductCount;
     private final LocalDateTime createdAt;
@@ -174,6 +174,34 @@ public class Seller {
      */
     public void updateTotalProductCount(Integer count) {
         this.totalProductCount = count;
+        this.updatedAt = LocalDateTime.now(clock);
+    }
+
+    /**
+     * Seller 이름 변경
+     *
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>이름은 null일 수 없음</li>
+     *   <li>이름은 빈 값일 수 없음</li>
+     *   <li>이름은 100자를 초과할 수 없음</li>
+     *   <li>변경 시 updatedAt 갱신</li>
+     * </ul>
+     *
+     * @param newName 새로운 셀러 이름
+     * @throws IllegalArgumentException 이름이 null, blank, 또는 100자 초과인 경우
+     */
+    public void updateName(String newName) {
+        if (newName == null) {
+            throw new IllegalArgumentException("이름은 null일 수 없습니다");
+        }
+        if (newName.isBlank()) {
+            throw new IllegalArgumentException("이름은 빈 값일 수 없습니다");
+        }
+        if (newName.length() > 100) {
+            throw new IllegalArgumentException("이름은 100자를 초과할 수 없습니다");
+        }
+        this.name = newName;
         this.updatedAt = LocalDateTime.now(clock);
     }
 
