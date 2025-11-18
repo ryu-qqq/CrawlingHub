@@ -11,107 +11,108 @@
 
 ### 1️⃣ CronExpression Value Object 구현 (Cycle 1)
 
-#### 🔴 Red: 테스트 작성
-- [ ] `CronExpressionTest.java` 파일 생성
-- [ ] `shouldCreateCronExpressionWithValidAwsFormat()` 작성
-- [ ] `shouldThrowExceptionWhenInvalidFormat()` 작성
-- [ ] `shouldThrowExceptionWhenIntervalLessThanOneHour()` 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: CronExpression VO 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `CronExpressionTest.java` 파일 생성
+- [x] `shouldCreateCronExpressionWithValidAwsFormat()` 작성
+- [x] `shouldThrowExceptionWhenInvalidFormat()` 작성
+- [x] `shouldThrowExceptionWhenIntervalLessThanOneHour()` 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: CronExpression VO 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `CronExpression.java` 파일 생성 (Record 사용)
-- [ ] AWS EventBridge 형식 검증 로직 추가 (6자리 `cron(분 시 일 월 요일 년도)`)
-- [ ] 최소 1시간 간격 검증 로직 추가
-- [ ] `InvalidCronExpressionException` 생성
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: CronExpression VO 구현 (Green)`
+- [x] `CronExpression.java` 파일 생성 (Record 사용)
+- [x] AWS EventBridge 형식 검증 로직 추가 (6자리 `cron(분 시 일 월 요일 년도)`)
+- [x] 최소 1시간 간격 검증 로직 추가
+- [x] `InvalidCronExpressionException` 생성
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: CronExpression VO 구현 (Green)`
 
 #### ♻️ Refactor: 구조 개선
-- [ ] Regex 패턴 상수로 추출
-- [ ] 검증 로직 메서드 분리
-- [ ] VO ArchUnit 테스트 추가 및 통과
-- [ ] 테스트 여전히 통과 확인
+- [x] Regex 패턴 상수로 추출
+- [x] 검증 로직 메서드 분리
+- [x] VO ArchUnit 테스트 추가 및 통과
+- [x] 테스트 여전히 통과 확인
 - [ ] 커밋: `struct: CronExpression VO 구조 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `CronExpressionFixture.java` 생성 (Object Mother 패턴)
-- [ ] `aCronExpression()`, `anInvalidCronExpression()` 메서드 작성
-- [ ] `CronExpressionTest` → Fixture 사용으로 리팩토링
-- [ ] 테스트 여전히 통과 확인
+- [x] `CronExpressionFixture.java` 생성 (Object Mother 패턴)
+- [x] `aCronExpression()`, `anInvalidCronExpression()` 메서드 작성
+- [x] `CronExpressionTest` → Fixture 사용으로 리팩토링
+- [x] 테스트 여전히 통과 확인
 - [ ] 커밋: `test: CronExpressionFixture 정리 (Tidy)`
 
 ---
 
 ### 2️⃣ SchedulerStatus Enum 구현 (Cycle 2)
 
-#### 🔴 Red: 테스트 작성
-- [ ] `SchedulerStatusTest.java` 파일 생성
-- [ ] `shouldHaveCorrectValues()` 작성 (PENDING, ACTIVE, INACTIVE)
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: SchedulerStatus Enum 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `SchedulerStatusTest.java` 파일 생성
+- [x] `shouldHaveCorrectValues()` 작성 (PENDING, ACTIVE, INACTIVE)
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: SchedulerStatus Enum 테스트 추가 (Red)`
 
-#### 🟢 Green: 최소 구현
-- [ ] `SchedulerStatus.java` Enum 생성
-- [ ] `PENDING`, `ACTIVE`, `INACTIVE` 값 정의
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: SchedulerStatus Enum 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `SchedulerStatus.java` Enum 생성
+- [x] `PENDING`, `ACTIVE`, `INACTIVE` 값 정의
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: SchedulerStatus Enum 구현 (Green)`
 
 #### ♻️ Refactor: 구조 개선
-- [ ] 상태 전이 메서드 추가 (canTransitionTo)
-- [ ] Domain Event ArchUnit 테스트 통과
-- [ ] 커밋: `struct: SchedulerStatus 상태 전이 로직 추가 (Refactor)`
+#### ♻️ Refactor: 구조 개선 ✅
+- [x] 상태 전이 메서드 추가 (canTransitionTo)
+- [x] Domain Event ArchUnit 테스트 통과
+- [x] 커밋: `struct: SchedulerStatus 상태 전이 로직 추가 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SchedulerStatusFixture.java` 생성
+- [x] `SchedulerStatusFixture.java` 생성
 - [ ] 커밋: `test: SchedulerStatusFixture 정리 (Tidy)`
 
 ---
 
 ### 3️⃣ CrawlingScheduler Aggregate Root 구현 - 생성 (Cycle 3)
 
-#### 🔴 Red: 테스트 작성
-- [ ] `CrawlingSchedulerTest.java` 파일 생성
-- [ ] `shouldCreateSchedulerWithForNew()` 작성
-- [ ] `forNew()` 호출 시 상태가 PENDING인지 검증
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: CrawlingScheduler 생성 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `CrawlingSchedulerTest.java` 파일 생성
+- [x] `shouldCreateSchedulerWithForNew()` 작성
+- [x] `forNew()` 호출 시 상태가 PENDING인지 검증
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: CrawlingScheduler 생성 테스트 추가 (Red)`
 
-#### 🟢 Green: 최소 구현
-- [ ] `CrawlingScheduler.java` 파일 생성 (Plain Java, Lombok 금지)
-- [ ] `forNew()` 정적 팩토리 메서드 구현
-- [ ] 생성자 작성 (private)
-- [ ] Getter 메서드 작성 (Law of Demeter 준수)
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: CrawlingScheduler forNew 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `CrawlingScheduler.java` 파일 생성 (Plain Java, Lombok 금지)
+- [x] `forNew()` 정적 팩토리 메서드 구현
+- [x] 생성자 작성 (private)
+- [x] Getter 메서드 작성 (Law of Demeter 준수)
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: CrawlingScheduler forNew 구현 (Green)`
 
-#### ♻️ Refactor: 구조 개선
-- [ ] 불변성 보장 (final 필드)
-- [ ] Law of Demeter 준수 확인
-- [ ] Aggregate ArchUnit 테스트 추가 및 통과
-- [ ] 커밋: `struct: CrawlingScheduler 불변성 보장 (Refactor)`
+#### ♻️ Refactor: 구조 개선 ✅
+- [x] 불변성 보장 (final 필드)
+- [x] Law of Demeter 준수 확인
+- [x] Aggregate ArchUnit 테스트 추가 및 통과
+- [x] 커밋: `struct: CrawlingScheduler 불변성 보장 (Refactor)`
 
-#### 🧹 Tidy: TestFixture 정리
-- [ ] `CrawlingSchedulerFixture.java` 생성
-- [ ] `aCrawlingScheduler()` 메서드 작성
-- [ ] `CrawlingSchedulerTest` → Fixture 사용
+#### 🧹 Tidy: TestFixture 정리 ✅
+- [x] `CrawlingSchedulerFixture.java` 생성
+- [x] `aCrawlingScheduler()` 메서드 작성
+- [x] `CrawlingSchedulerTest` → Fixture 사용
 - [ ] 커밋: `test: CrawlingSchedulerFixture 정리 (Tidy)`
 
 ---
 
 ### 4️⃣ CrawlingScheduler - of() 및 reconstitute() 구현 (Cycle 4)
 
-#### 🔴 Red: 테스트 작성
-- [ ] `shouldCreateSchedulerWithOf()` 작성 (Update용)
-- [ ] `shouldReconstituteSchedulerFromPersistence()` 작성 (DB → Domain)
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: CrawlingScheduler of/reconstitute 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `shouldCreateSchedulerWithOf()` 작성 (Update용)
+- [x] `shouldReconstituteSchedulerFromPersistence()` 작성 (DB → Domain)
+- [x] 테스트 실행 → 실패 확인
+- [x] 커밋: `test: CrawlingScheduler of/reconstitute 테스트 추가 (Red)`
 
-#### 🟢 Green: 최소 구현
-- [ ] `of()` 정적 팩토리 메서드 구현
-- [ ] `reconstitute()` 정적 팩토리 메서드 구현
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: CrawlingScheduler of/reconstitute 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `of()` 정적 팩토리 메서드 구현
+- [x] `reconstitute()` 정적 팩토리 메서드 구현
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: CrawlingScheduler of/reconstitute 구현 (Green)`
 
 #### ♻️ Refactor: 구조 개선
 - [ ] 생성 메서드 패턴 3종 완성 확인
@@ -119,35 +120,35 @@
 - [ ] 커밋: `struct: CrawlingScheduler 생성 패턴 정리 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] Fixture에 `aReconstitutedScheduler()` 메서드 추가
+- [x] Fixture에 `aReconstitutedScheduler()` 메서드 추가
 - [ ] 커밋: `test: CrawlingSchedulerFixture 업데이트 (Tidy)`
 
 ---
 
 ### 5️⃣ CrawlingScheduler - 스케줄 수정 (update) 구현 (Cycle 5)
 
-#### 🔴 Red: 테스트 작성
-- [ ] `shouldUpdateSchedulerName()` 작성
-- [ ] `shouldUpdateCronExpression()` 작성
-- [ ] `shouldUpdateStatus()` 작성
-- [ ] `shouldPublishSchedulerUpdatedEvent()` 작성 (Domain Event)
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: CrawlingScheduler update 테스트 추가 (Red)`
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `shouldUpdateSchedulerName()` 작성
+- [x] `shouldUpdateCronExpression()` 작성
+- [x] `shouldUpdateStatus()` 작성
+- [x] `shouldPublishSchedulerUpdatedEvent()` 작성 (Domain Event)
+- [x] 테스트 실행 → 실패 확인
+- [x] 커밋: `test: CrawlingScheduler update 테스트 추가 (Red)`
 
-#### 🟢 Green: 최소 구현
-- [ ] `update()` 메서드 구현 (Tell, Don't Ask 패턴)
-- [ ] `SchedulerUpdatedEvent` Record 생성
-- [ ] Domain Event 발행 로직 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: CrawlingScheduler update 구현 (Green)`
+#### 🟢 Green: 최소 구현 ✅
+- [x] `update()` 메서드 구현 (Tell, Don't Ask 패턴)
+- [x] `SchedulerUpdatedEvent` Record 생성
+- [x] Domain Event 발행 로직 추가
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: CrawlingScheduler update 구현 (Green)`
 
-#### ♻️ Refactor: 구조 개선
-- [ ] 변경 사항 추적 로직 개선
-- [ ] Domain Event 발행 메서드 분리
+#### ♻️ Refactor: 구조 개선 ✅
+- [x] 변경 사항 추적 로직 개선
+- [x] Domain Event 발행 메서드 분리
 - [ ] 커밋: `struct: CrawlingScheduler update 개선 (Refactor)`
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SchedulerUpdatedEventFixture` 생성
+- [x] `SchedulerUpdatedEventFixture` 생성
 - [ ] 커밋: `test: SchedulerUpdatedEventFixture 정리 (Tidy)`
 
 ---
