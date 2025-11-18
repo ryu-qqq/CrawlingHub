@@ -175,6 +175,19 @@ class SellerTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenDeactivatingAlreadyInactiveSeller() {
+        // Given - 이미 INACTIVE 상태인 Seller
+        SellerId sellerId = new SellerId(1L);
+        Seller seller = Seller.forNew(sellerId, "테스트 셀러");
+        // forNew()로 생성하면 이미 INACTIVE 상태
+
+        // When & Then - 이미 INACTIVE인데 다시 deactivate() 시도
+        assertThatThrownBy(() -> seller.deactivate())
+                .isInstanceOf(SellerInvalidStateException.class)
+                .hasMessageContaining("이미 비활성화된 상태입니다");
+    }
+
+    @Test
     void shouldUpdateTotalProductCount() {
         // Given
         SellerId sellerId = new SellerId(1L);
