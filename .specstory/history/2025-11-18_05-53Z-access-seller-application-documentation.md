@@ -1193,7 +1193,7 @@ Lines added: 100, lines removed: 1
 + import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
 + import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 + import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
-+ import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
++ import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 + import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 + import org.junit.jupiter.api.BeforeEach;
 + import org.junit.jupiter.api.DisplayName;
@@ -1310,7 +1310,7 @@ Lines added: 79, lines removed: 1
 + import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerNameUseCase;
 + import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
 + import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
-+ import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
++ import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 + import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 + import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 + import org.springframework.stereotype.Service;
@@ -2206,7 +2206,7 @@ Lines added: 3, lines removed: 1
 
 ```diff
 @@ -10,5 +10,7 @@
-  import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+  import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
   import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 - import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 + import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
@@ -2278,7 +2278,7 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -8,4 +8,5 @@
-  import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+  import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
   import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 + import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
   import org.junit.jupiter.api.BeforeEach;

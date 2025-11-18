@@ -15,6 +15,18 @@ public final class SellerExceptionFixture {
     private SellerExceptionFixture() {
     }
 
+    public static SellerNotFoundException forNew() {
+        return sellerNotFoundException(1L);
+    }
+
+    public static SellerNotFoundException of() {
+        return sellerNotFoundException(1L);
+    }
+
+    public static SellerNotFoundException reconstitute() {
+        return sellerNotFoundException(1L);
+    }
+
     public static DuplicateMustItSellerIdException duplicateMustItSellerIdException(long mustItSellerId) {
         return new DuplicateMustItSellerIdException(mustItSellerId);
     }
