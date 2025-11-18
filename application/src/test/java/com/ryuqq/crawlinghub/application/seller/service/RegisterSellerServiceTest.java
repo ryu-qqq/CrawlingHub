@@ -2,11 +2,13 @@ package com.ryuqq.crawlinghub.application.seller.service;
 
 import com.ryuqq.crawlinghub.application.fixture.RegisterSellerCommandFixture;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
 import com.ryuqq.crawlinghub.application.seller.port.out.external.EventBridgePort;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -90,5 +94,39 @@ class RegisterSellerServiceTest {
         assertThatThrownBy(() -> registerSellerService.execute(command))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("이미 존재하는 Seller ID입니다");
+    }
+
+    /**
+     * Part 2: Seller 등록 성공 케이스
+     */
+    @Test
+    @DisplayName("유효한 Command로 Seller를 등록하면 SellerResponse를 반환해야 한다")
+    void shouldRegisterSellerSuccessfully() {
+        // Given
+        RegisterSellerCommand command = RegisterSellerCommandFixture.aRegisterSellerCommand();
+
+        // 중복 없음
+        SellerSearchCriteria criteria = SellerSearchCriteria.of(
+            command.sellerId(),
+            null,
+            null,
+            null,
+            null
+        );
+        given(sellerQueryPort.findByCriteria(criteria))
+            .willReturn(List.of());
+
+        // Seller 저장 성공 (persist는 SellerId 반환)
+        SellerId savedSellerId = new SellerId(1L);
+        given(sellerPersistencePort.persist(any(Seller.class)))
+            .willReturn(savedSellerId);
+
+        // When
+        SellerResponse response = registerSellerService.execute(command);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.sellerId()).isEqualTo(command.sellerId());
+        assertThat(response.name()).isEqualTo(command.name());
     }
 }
