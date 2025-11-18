@@ -359,7 +359,36 @@
 
 ---
 
-### 1️⃣3️⃣ CrawlerTaskCommandPort 인터페이스 정의 (Cycle 13)
+### 1️⃣3️⃣ UpdateSellerNameUseCase 구현 (Cycle 13) ✅
+
+#### 🔴 Red: 테스트 작성 ✅
+- [x] `UpdateSellerNameCommandTest.java` 생성
+- [x] `UpdateSellerNameCommandFixture.java` 생성
+- [x] `UpdateSellerNameUseCaseTest.java` 생성
+- [x] `UpdateSellerNameServiceTest.java` 생성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: UpdateSellerNameUseCase 테스트 추가 (Red)` (4ab2174)
+
+#### 🟢 Green: 최소 구현 ✅
+- [x] `UpdateSellerNameCommand.java` 생성 (Record)
+- [x] `UpdateSellerNameUseCase.java` 인터페이스 생성
+- [x] `UpdateSellerNameService.java` 생성 (@Service)
+- [x] Seller 조회 → updateName() 호출 → 저장
+- [x] `@Transactional` 추가
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: UpdateSellerNameUseCase 구현 (Green)`
+
+#### ♻️ Refactor: 리팩토링
+- [ ] 추가 리팩토링 불필요 (코드 이미 완벽)
+- [ ] 테스트 여전히 통과 확인
+- [ ] 커밋: (필요 시)
+
+#### 🧹 Tidy: TestFixture 정리 ✅
+- [x] UpdateSellerNameCommandFixture 사용 중
+
+---
+
+### 1️⃣4️⃣ CrawlerTaskCommandPort 인터페이스 정의 (Cycle 14)
 
 #### 🔴 Red: 테스트 작성
 - [ ] `CrawlerTaskCommandPortTest.java` 생성
