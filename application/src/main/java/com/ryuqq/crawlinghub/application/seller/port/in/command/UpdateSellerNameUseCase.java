@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.port.in.command;
 
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerNameCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 
 /**
  * Seller 이름 변경 UseCase (Command)
@@ -16,6 +17,7 @@ public interface UpdateSellerNameUseCase {
      * Seller 이름 변경
      *
      * @param command 이름 변경 명령
+     * @return 변경된 Seller 정보
      */
-    void execute(UpdateSellerNameCommand command);
+    SellerResponse execute(UpdateSellerNameCommand command);
 }

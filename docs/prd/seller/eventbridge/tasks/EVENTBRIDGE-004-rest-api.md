@@ -17,33 +17,48 @@ EventBridge 스케줄 관리 Admin API 구현.
 
 ### 1. API 엔드포인트 (Admin 전용)
 
+**Controller 구조 (CQRS 분리)**:
+- `ScheduleCommandController`: POST, PATCH, DELETE (상태 변경)
+- `ScheduleQueryController`: GET (조회)
+
 #### POST /api/v1/admin/schedules - 스케줄 등록
-- Request: `RegisterScheduleRequest` (sellerId, intervalDays)
-- Response: `ScheduleResponse`
+- Controller: `ScheduleCommandController`
+- Request: `RegisterScheduleApiRequest` (sellerId, intervalDays)
+- Response: `ScheduleApiResponse`
 - Status Code: 201 Created, 400 Bad Request (INACTIVE Seller), 404 Not Found (Seller 없음)
 - 비즈니스 규칙: **ACTIVE Seller만** 스케줄 등록 가능
 
 #### GET /api/v1/admin/schedules/{scheduleId} - 스케줄 조회
-- Response: `ScheduleResponse`
+- Controller: `ScheduleQueryController`
+- Response: `ScheduleApiResponse`
 - Status Code: 200 OK, 404 Not Found
 
 #### GET /api/v1/admin/schedules - 스케줄 목록 조회
+- Controller: `ScheduleQueryController`
 - Request: Query Parameters (page, size, sellerId, status)
-- Response: `Page<ScheduleResponse>`
+- Response: `PageApiResponse<ScheduleApiResponse>`
 - Status Code: 200 OK
 
 #### PATCH /api/v1/admin/schedules/{scheduleId}/interval - 주기 변경
-- Request: `UpdateScheduleIntervalRequest` (newIntervalDays)
-- Response: `ScheduleResponse`
+- Controller: `ScheduleCommandController`
+- Request: `UpdateScheduleIntervalApiRequest` (newIntervalDays)
+- Response: `ScheduleApiResponse`
 - Status Code: 200 OK
 
 #### POST /api/v1/admin/schedules/{scheduleId}/activate - 활성화
-- Response: `ScheduleResponse`
+- Controller: `ScheduleCommandController`
+- Response: `ScheduleApiResponse`
 - Status Code: 200 OK
 
 #### POST /api/v1/admin/schedules/{scheduleId}/deactivate - 비활성화
-- Response: `ScheduleResponse`
+- Controller: `ScheduleCommandController`
+- Response: `ScheduleApiResponse`
 - Status Code: 200 OK
+
+**DTO 네이밍 규칙**:
+- Request DTO: `*ApiRequest` (예: `RegisterScheduleApiRequest`)
+- Response DTO: `*ApiResponse` (예: `ScheduleApiResponse`)
+- Mapper: `*ApiMapper` (@Component Bean, Static 금지)
 
 ---
 
@@ -63,52 +78,34 @@ EventBridge 스케줄 관리 Admin API 구현.
 
 ## 📚 참고사항
 
-### ScheduleAdminApiController 구현 예시
+### Controller 구현 예시 (CQRS 분리)
+
+#### ScheduleCommandController (상태 변경)
 
 ```java
 @RestController
 @RequestMapping("/api/v1/admin/schedules")
 @RequiredArgsConstructor
-public class ScheduleAdminApiController {
+public class ScheduleCommandController {
     private final RegisterScheduleUseCase registerScheduleUseCase;
     private final UpdateScheduleIntervalUseCase updateScheduleIntervalUseCase;
     private final ActivateScheduleUseCase activateScheduleUseCase;
     private final DeactivateScheduleUseCase deactivateScheduleUseCase;
-    private final GetScheduleUseCase getScheduleUseCase;
-    private final ListSchedulesUseCase listSchedulesUseCase;
+    private final ScheduleApiMapper scheduleApiMapper; // @Component Bean
 
     @PostMapping
-    public ResponseEntity<ScheduleResponse> registerSchedule(
-        @Valid @RequestBody RegisterScheduleRequest request) {
+    public ResponseEntity<ScheduleApiResponse> registerSchedule(
+        @Valid @RequestBody RegisterScheduleApiRequest request) {
 
-        RegisterScheduleCommand command = new RegisterScheduleCommand(
-            request.sellerId(),
-            request.intervalDays()
-        );
+        // API DTO → Command DTO 변환 (Mapper 사용)
+        RegisterScheduleCommand command = scheduleApiMapper.toCommand(request);
 
         ScheduleId scheduleId = registerScheduleUseCase.execute(command);
-        ScheduleResponse response = getScheduleUseCase.execute(scheduleId.value());
+
+        // UseCase 결과 → API Response 변환 (Mapper 사용)
+        ScheduleApiResponse response = scheduleApiMapper.toResponse(scheduleId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/{scheduleId}")
-    public ResponseEntity<ScheduleResponse> getSchedule(@PathVariable String scheduleId) {
-        ScheduleResponse response = getScheduleUseCase.execute(scheduleId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<ScheduleResponse>> listSchedules(
-        @RequestParam(required = false) String sellerId,
-        @RequestParam(required = false) String status,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ScheduleResponse> response = listSchedulesUseCase.execute(sellerId, status, pageable);
-
-        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{scheduleId}/interval")

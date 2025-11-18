@@ -292,13 +292,30 @@ public class CrawlingSchedule {
         return "rate(" + interval.days() + " days)";
     }
 
-    // Getter (Law of Demeter 준수)
-    public String getScheduleExpression() {
+    // Tell Don't Ask 패턴: 행위 중심 메서드
+    public String generateScheduleExpression() {
         return this.scheduleExpression;
     }
 
-    public boolean isActive() {
-        return this.status == ScheduleStatus.ACTIVE;
+    public void validateActive() {
+        if (this.status != ScheduleStatus.ACTIVE) {
+            throw new ScheduleInvalidStateException("Schedule is not active");
+        }
+    }
+
+    // Domain Event 관리
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
+
+    private void registerEvent(DomainEvent event) {
+        this.domainEvents.add(event);
+    }
+
+    public List<DomainEvent> getDomainEvents() {
+        return Collections.unmodifiableList(domainEvents);
+    }
+
+    public void clearDomainEvents() {
+        this.domainEvents.clear();
     }
 }
 ```
@@ -433,7 +450,58 @@ public class SchedulerOutbox {
 }
 ```
 
-### Domain Event 발행 예시
+### Domain Event 패턴
+
+#### DomainEvent 인터페이스
+
+```java
+/**
+ * Domain Event 기본 인터페이스
+ * 모든 Domain Event는 이 인터페이스를 구현해야 함
+ */
+public interface DomainEvent {
+    LocalDateTime occurredOn(); // 이벤트 발생 시각
+}
+```
+
+#### 구체적 Domain Event 구현
+
+```java
+public record ScheduleRegistered(
+    ScheduleId scheduleId,
+    SellerId sellerId,
+    CrawlingInterval interval,
+    String scheduleRule,
+    LocalDateTime occurredOn
+) implements DomainEvent {
+    public ScheduleRegistered(ScheduleId scheduleId, SellerId sellerId, CrawlingInterval interval, String scheduleRule) {
+        this(scheduleId, sellerId, interval, scheduleRule, LocalDateTime.now());
+    }
+}
+
+public record ScheduleUpdated(
+    ScheduleId scheduleId,
+    SellerId sellerId,
+    CrawlingInterval newInterval,
+    LocalDateTime occurredOn
+) implements DomainEvent {
+    public ScheduleUpdated(ScheduleId scheduleId, SellerId sellerId, CrawlingInterval newInterval) {
+        this(scheduleId, sellerId, newInterval, LocalDateTime.now());
+    }
+}
+
+public record ScheduleDeactivated(
+    ScheduleId scheduleId,
+    SellerId sellerId,
+    LocalDateTime occurredOn
+) implements DomainEvent {
+    public ScheduleDeactivated(ScheduleId scheduleId, SellerId sellerId) {
+        this(scheduleId, sellerId, LocalDateTime.now());
+    }
+}
+```
+
+#### Aggregate에서 Domain Event 발행
 
 ```java
 public class CrawlingSchedule {
