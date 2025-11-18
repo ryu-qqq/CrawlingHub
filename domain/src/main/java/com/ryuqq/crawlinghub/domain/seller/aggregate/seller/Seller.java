@@ -160,11 +160,19 @@ public class Seller {
      *
      * <p>비즈니스 규칙:</p>
      * <ul>
+     *   <li>이미 INACTIVE 상태이면 예외 발생</li>
      *   <li>상태를 INACTIVE로 변경</li>
      *   <li>변경 시 updatedAt 갱신</li>
      * </ul>
+     *
+     * @throws com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException 이미 INACTIVE 상태인 경우
      */
     public void deactivate() {
+        if (this.status == SellerStatus.INACTIVE) {
+            throw new com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException(
+                    "이미 비활성화된 상태입니다"
+            );
+        }
         this.status = SellerStatus.INACTIVE;
         this.updatedAt = LocalDateTime.now(clock);
     }
