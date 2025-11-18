@@ -63,17 +63,18 @@ public class RegisterSellerService implements RegisterSellerUseCase {
         validateDuplicateSellerId(command.sellerId());
 
         // Part 2: Seller 생성 및 저장
+        CrawlingInterval crawlingInterval = new CrawlingInterval(command.crawlingIntervalDays());
         Seller seller = Seller.forNew(
             SellerId.forNew(),
             command.name(),
-            new CrawlingInterval(command.crawlingIntervalDays())
+            crawlingInterval
         );
 
         SellerId savedSellerId = sellerPersistencePort.persist(seller);
         Seller savedSeller = Seller.reconstitute(
             savedSellerId,
             command.name(),
-            new CrawlingInterval(command.crawlingIntervalDays()),
+            crawlingInterval,
             seller.getStatus(),
             seller.getTotalProductCount()
         );
