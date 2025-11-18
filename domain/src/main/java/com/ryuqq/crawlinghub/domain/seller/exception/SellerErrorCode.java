@@ -27,7 +27,12 @@ public enum SellerErrorCode implements ErrorCode {
     /**
      * 유효하지 않은 Seller 파라미터
      */
-    INVALID_SELLER_ARGUMENT("SELLER-002", 400, "Invalid seller argument");
+    INVALID_SELLER_ARGUMENT("SELLER-002", 400, "Invalid seller argument"),
+
+    /**
+     * 유효하지 않은 Seller 상태 전환
+     */
+    INVALID_SELLER_STATE("SELLER-003", 400, "Invalid seller state transition");
 
     private final String code;
     private final int httpStatus;

@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.aggregate;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import org.junit.jupiter.api.Test;
