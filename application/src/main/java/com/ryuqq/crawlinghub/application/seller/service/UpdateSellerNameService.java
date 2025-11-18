@@ -1,5 +1,8 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerNameCommand;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerNameUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
@@ -7,8 +10,6 @@ import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Seller 이름 변경 Service 구현
