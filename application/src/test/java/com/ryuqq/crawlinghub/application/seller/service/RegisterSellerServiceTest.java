@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
 import com.ryuqq.crawlinghub.application.fixture.RegisterSellerCommandFixture;
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
@@ -10,6 +11,7 @@ import com.ryuqq.crawlinghub.domain.fixture.SellerFixture;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,9 @@ class RegisterSellerServiceTest {
     @Mock
     private EventBridgePort eventBridgePort;
 
+    @Mock
+    private SellerAssembler sellerAssembler;
+
     private RegisterSellerService registerSellerService;
 
     @BeforeEach
@@ -65,7 +70,8 @@ class RegisterSellerServiceTest {
         registerSellerService = new RegisterSellerService(
             sellerQueryPort,
             sellerPersistencePort,
-            eventBridgePort
+            eventBridgePort,
+            sellerAssembler
         );
     }
 
@@ -120,6 +126,19 @@ class RegisterSellerServiceTest {
         SellerId savedSellerId = new SellerId(1L);
         given(sellerPersistencePort.persist(any(Seller.class)))
             .willReturn(savedSellerId);
+
+        // SellerAssembler Mock 설정
+        SellerResponse expectedResponse = new SellerResponse(
+            command.sellerId(),
+            command.name(),
+            SellerStatus.ACTIVE,
+            command.crawlingIntervalDays(),
+            0,
+            null,
+            null
+        );
+        given(sellerAssembler.toResponse(any(Seller.class)))
+            .willReturn(expectedResponse);
 
         // When
         SellerResponse response = registerSellerService.execute(command);
