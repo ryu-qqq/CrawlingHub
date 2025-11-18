@@ -14,6 +14,15 @@ HOOKS_DIR="$(git rev-parse --git-path hooks)"
 
 mkdir -p "${HOOKS_DIR}"
 
+if [[ -d "${REPO_ROOT}/config/hooks" ]]; then
+    HOOK_SOURCE_DIR="${REPO_ROOT}/config/hooks"
+elif [[ -d "${REPO_ROOT}/.claude/hooks" ]]; then
+    HOOK_SOURCE_DIR="${REPO_ROOT}/.claude/hooks"
+else
+    echo "Hook directory not found (config/hooks or .claude/hooks)"
+    exit 1
+fi
+
 # Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -51,6 +60,13 @@ echo "🔧 Git Hooks 설치"
 echo "=========================================="
 echo ""
 
+# 0. hooks 디렉토리 생성 (없을 경우)
+if [[ ! -d "${HOOKS_DIR}" ]]; then
+    log_warning "hooks directory not found, creating..."
+    mkdir -p "${HOOKS_DIR}"
+    log_success "hooks directory created"
+fi
+
 # 1. pre-commit hook 설치
 log_info "Installing pre-commit hook..."
 
@@ -65,9 +81,9 @@ if [[ -f "${HOOKS_DIR}/pre-commit" ]] && [[ ! -L "${HOOKS_DIR}/pre-commit" ]]; t
     rm "${HOOKS_DIR}/pre-commit"
 fi
 
-ln -sf "${REPO_ROOT}/config/hooks/pre-commit" "${HOOKS_DIR}/pre-commit"
+ln -sf "${HOOK_SOURCE_DIR}/pre-commit" "${HOOKS_DIR}/pre-commit"
 chmod +x "${HOOKS_DIR}/pre-commit"
-chmod +x "${REPO_ROOT}/config/hooks/pre-commit"
+chmod +x "${HOOK_SOURCE_DIR}/pre-commit"
 
 log_success "pre-commit hook installed"
 
@@ -85,9 +101,9 @@ if [[ -f "${HOOKS_DIR}/post-commit" ]] && [[ ! -L "${HOOKS_DIR}/post-commit" ]];
     rm "${HOOKS_DIR}/post-commit"
 fi
 
-ln -sf "${REPO_ROOT}/config/hooks/post-commit" "${HOOKS_DIR}/post-commit"
+ln -sf "${HOOK_SOURCE_DIR}/post-commit" "${HOOKS_DIR}/post-commit"
 chmod +x "${HOOKS_DIR}/post-commit"
-chmod +x "${REPO_ROOT}/config/hooks/post-commit"
+chmod +x "${HOOK_SOURCE_DIR}/post-commit"
 
 log_success "post-commit hook installed"
 
@@ -120,33 +136,20 @@ else
     echo ""
 fi
 
-# .env 파일 확인
-if [[ -f ".env" ]]; then
-    log_success ".env file exists"
-
-    # 환경 변수 확인
-    if grep -q "LANGFUSE_PUBLIC_KEY" .env && grep -q "LANGFUSE_SECRET_KEY" .env; then
-        log_success "LangFuse environment variables configured"
-    else
-        log_warning "LangFuse environment variables NOT configured in .env"
-        echo ""
-        echo "   .env 파일에 다음 변수를 추가하세요:"
-        echo ""
-        echo "   ${GREEN}LANGFUSE_PUBLIC_KEY=pk-lf-...${NC}"
-        echo "   ${GREEN}LANGFUSE_SECRET_KEY=sk-lf-...${NC}"
-        echo "   ${GREEN}LANGFUSE_HOST=https://us.cloud.langfuse.com${NC}"
-        echo ""
-    fi
+# ~/.zshrc 환경 변수 확인
+if [[ -n "$LANGFUSE_PUBLIC_KEY" ]] && [[ -n "$LANGFUSE_SECRET_KEY" ]]; then
+    log_success "LangFuse environment variables configured in ~/.zshrc"
 else
-    log_warning ".env file NOT found"
+    log_warning "LangFuse environment variables NOT configured"
     echo ""
-    echo "   LangFuse 클라우드 업로드를 사용하려면 .env 파일을 생성하세요:"
+    echo "   LangFuse 클라우드 업로드를 사용하려면 ~/.zshrc에 환경 변수를 추가하세요:"
     echo ""
-    echo "   ${GREEN}cp .env.example .env${NC}"
+    echo "   ${GREEN}echo 'export LANGFUSE_PUBLIC_KEY=\"pk-lf-...\"' >> ~/.zshrc${NC}"
+    echo "   ${GREEN}echo 'export LANGFUSE_SECRET_KEY=\"sk-lf-...\"' >> ~/.zshrc${NC}"
+    echo "   ${GREEN}echo 'export LANGFUSE_HOST=\"https://us.cloud.langfuse.com\"' >> ~/.zshrc${NC}"
+    echo "   ${GREEN}source ~/.zshrc${NC}"
     echo ""
-    echo "   그리고 API 키를 입력하세요 (https://us.cloud.langfuse.com)"
-    echo ""
-    echo "   (선택사항: .env 없이도 JSONL 로그는 작동합니다)"
+    echo "   (선택사항: 환경 변수 없이도 JSONL 로그는 작동합니다)"
     echo ""
 fi
 
@@ -173,6 +176,6 @@ echo "  ☁️  LangFuse Cloud (환경 변수 설정 시)"
 echo ""
 echo "다음 단계:"
 echo "  1. LangFuse 사용 원하면: pip3 install langfuse"
-echo "  2. .env 파일 생성 (선택사항)"
+echo "  2. ~/.zshrc에 환경 변수 추가 (선택사항)"
 echo "  3. git commit 테스트!"
 echo ""
