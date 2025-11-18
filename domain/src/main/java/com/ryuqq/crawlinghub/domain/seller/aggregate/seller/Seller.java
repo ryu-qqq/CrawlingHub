@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.seller.aggregate.seller;
 
-import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
  * <p>Zero-Tolerance Rules 준수:</p>
  * <ul>
  *   <li>Lombok 금지 - Plain Java 사용</li>
- *   <li>Law of Demeter - Getter 체이닝 금지 (getCrawlingIntervalDays() 제공)</li>
+ *   <li>Law of Demeter - Getter 체이닝 금지</li>
  *   <li>Tell, Don't Ask - 비즈니스 로직은 Seller 내부에 캡슐화</li>
  *   <li>Long FK 전략 - JPA 관계 어노테이션 없음</li>
  * </ul>
@@ -24,14 +23,13 @@ import java.time.LocalDateTime;
  * <ul>
  *   <li>생성 시 상태는 항상 ACTIVE</li>
  *   <li>생성 시 totalProductCount는 0</li>
- *   <li>크롤링 주기는 1-30일 범위 (CrawlingInterval VO가 검증)</li>
+ *   <li>이름만 변경 가능 (크롤링 주기는 EventBridge에서 관리)</li>
  * </ul>
  */
 public class Seller {
 
     private final SellerId sellerId;
     private final String name;
-    private CrawlingInterval crawlingInterval;
     private SellerStatus status;
     private Integer totalProductCount;
     private final LocalDateTime createdAt;
@@ -43,13 +41,11 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param clock 시간 제어 (테스트 가능성)
      */
-    private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
+    private Seller(SellerId sellerId, String name, Clock clock) {
         this.sellerId = sellerId;
         this.name = name;
-        this.crawlingInterval = crawlingInterval;
         this.status = SellerStatus.ACTIVE;
         this.totalProductCount = 0;
         this.clock = clock;
@@ -62,16 +58,13 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param status 상태
      * @param totalProductCount 총 상품 수
      * @param clock 시간 제어 (테스트 가능성)
      */
-    private Seller(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                   SellerStatus status, Integer totalProductCount, Clock clock) {
+    private Seller(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount, Clock clock) {
         this.sellerId = sellerId;
         this.name = name;
-        this.crawlingInterval = crawlingInterval;
         this.status = status;
         this.totalProductCount = totalProductCount;
         this.clock = clock;
@@ -90,15 +83,14 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @return 새로 생성된 Seller
      */
-    public static Seller forNew(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        return forNew(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    public static Seller forNew(SellerId sellerId, String name) {
+        return forNew(sellerId, name, Clock.systemDefaultZone());
     }
 
-    public static Seller forNew(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
-        return new Seller(sellerId, name, crawlingInterval, clock);
+    public static Seller forNew(SellerId sellerId, String name, Clock clock) {
+        return new Seller(sellerId, name, clock);
     }
 
     /**
@@ -112,15 +104,14 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @return 재구성된 Seller
      */
-    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval) {
-        return of(sellerId, name, crawlingInterval, Clock.systemDefaultZone());
+    public static Seller of(SellerId sellerId, String name) {
+        return of(sellerId, name, Clock.systemDefaultZone());
     }
 
-    public static Seller of(SellerId sellerId, String name, CrawlingInterval crawlingInterval, Clock clock) {
-        return new Seller(sellerId, name, crawlingInterval, clock);
+    public static Seller of(SellerId sellerId, String name, Clock clock) {
+        return new Seller(sellerId, name, clock);
     }
 
     /**
@@ -130,51 +121,16 @@ public class Seller {
      *
      * @param sellerId 셀러 식별자
      * @param name 셀러 이름
-     * @param crawlingInterval 크롤링 주기
      * @param status 상태
      * @param totalProductCount 총 상품 수
      * @return 재구성된 Seller
      */
-    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                                       SellerStatus status, Integer totalProductCount) {
-        return reconstitute(sellerId, name, crawlingInterval, status, totalProductCount, Clock.systemDefaultZone());
+    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount) {
+        return reconstitute(sellerId, name, status, totalProductCount, Clock.systemDefaultZone());
     }
 
-    public static Seller reconstitute(SellerId sellerId, String name, CrawlingInterval crawlingInterval,
-                                       SellerStatus status, Integer totalProductCount, Clock clock) {
-        return new Seller(sellerId, name, crawlingInterval, status, totalProductCount, clock);
-    }
-
-    /**
-     * 새로운 Seller 등록 (레거시)
-     *
-     * @deprecated Use {@link #forNew(SellerId, String, CrawlingInterval)} instead
-     * @param sellerId 셀러 식별자
-     * @param name 셀러 이름
-     * @param intervalDays 크롤링 주기 (1-30일)
-     * @return 새로 생성된 Seller
-     * @throws IllegalArgumentException intervalDays가 1-30 범위를 벗어나는 경우
-     */
-    @Deprecated
-    public static Seller register(SellerId sellerId, String name, Integer intervalDays) {
-        return forNew(sellerId, name, new CrawlingInterval(intervalDays));
-    }
-
-    /**
-     * 크롤링 주기 변경
-     *
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>크롤링 주기는 1-30일 범위 (CrawlingInterval VO가 검증)</li>
-     *   <li>변경 시 updatedAt 갱신</li>
-     * </ul>
-     *
-     * @param newIntervalDays 새로운 크롤링 주기 (일수)
-     * @throws IllegalArgumentException intervalDays가 1-30 범위를 벗어나는 경우
-     */
-    public void updateInterval(Integer newIntervalDays) {
-        this.crawlingInterval = new CrawlingInterval(newIntervalDays);
-        this.updatedAt = LocalDateTime.now(clock);
+    public static Seller reconstitute(SellerId sellerId, String name, SellerStatus status, Integer totalProductCount, Clock clock) {
+        return new Seller(sellerId, name, status, totalProductCount, clock);
     }
 
     /**
@@ -219,21 +175,6 @@ public class Seller {
     public void updateTotalProductCount(Integer count) {
         this.totalProductCount = count;
         this.updatedAt = LocalDateTime.now(clock);
-    }
-
-    /**
-     * 크롤링 주기 일수 조회
-     *
-     * <p>Law of Demeter 준수:</p>
-     * <ul>
-     *   <li>seller.getCrawlingInterval().days() ❌ (Getter 체이닝)</li>
-     *   <li>seller.getCrawlingIntervalDays() ✅ (캡슐화)</li>
-     * </ul>
-     *
-     * @return 크롤링 주기 (일수)
-     */
-    public Integer getCrawlingIntervalDays() {
-        return crawlingInterval.days();
     }
 
     // Getters (필요한 것만)
