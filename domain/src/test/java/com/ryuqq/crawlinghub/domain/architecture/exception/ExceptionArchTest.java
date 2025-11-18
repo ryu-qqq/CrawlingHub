@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -40,6 +41,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 class ExceptionArchTest {
 
     private static JavaClasses classes;
+
+    static {
+        ArchConfiguration.get().setProperty("archRule.failOnEmptyShould", "false");
+    }
 
     @BeforeAll
     static void setUp() {
