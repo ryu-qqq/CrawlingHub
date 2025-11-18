@@ -46,10 +46,17 @@ echo "🔧 Git Hooks 설치"
 echo "=========================================="
 echo ""
 
+# Git metadata
+PROJECT_ROOT="$(pwd)"
+GIT_DIR="$(git rev-parse --git-dir)"
+HOOKS_DIR="${GIT_DIR}/hooks"
+
+mkdir -p "${HOOKS_DIR}"
+
 # 1. pre-commit hook 설치
 log_info "Installing pre-commit hook..."
 
-if [[ -f ".git/hooks/pre-commit" ]] && [[ ! -L ".git/hooks/pre-commit" ]]; then
+if [[ -f "${HOOKS_DIR}/pre-commit" ]] && [[ ! -L "${HOOKS_DIR}/pre-commit" ]]; then
     log_warning "Existing pre-commit hook found (not a symlink)"
     read -p "   Overwrite? (y/n): " -n 1 -r
     echo
@@ -57,19 +64,19 @@ if [[ -f ".git/hooks/pre-commit" ]] && [[ ! -L ".git/hooks/pre-commit" ]]; then
         log_error "Installation cancelled"
         exit 1
     fi
-    rm .git/hooks/pre-commit
+    rm "${HOOKS_DIR}/pre-commit"
 fi
 
-ln -sf ../../config/hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-chmod +x config/hooks/pre-commit
+ln -sf "${PROJECT_ROOT}/config/hooks/pre-commit" "${HOOKS_DIR}/pre-commit"
+chmod +x "${HOOKS_DIR}/pre-commit"
+chmod +x "${PROJECT_ROOT}/config/hooks/pre-commit"
 
 log_success "pre-commit hook installed"
 
 # 2. post-commit hook 설치
 log_info "Installing post-commit hook..."
 
-if [[ -f ".git/hooks/post-commit" ]] && [[ ! -L ".git/hooks/post-commit" ]]; then
+if [[ -f "${HOOKS_DIR}/post-commit" ]] && [[ ! -L "${HOOKS_DIR}/post-commit" ]]; then
     log_warning "Existing post-commit hook found (not a symlink)"
     read -p "   Overwrite? (y/n): " -n 1 -r
     echo
@@ -77,12 +84,12 @@ if [[ -f ".git/hooks/post-commit" ]] && [[ ! -L ".git/hooks/post-commit" ]]; the
         log_error "Installation cancelled"
         exit 1
     fi
-    rm .git/hooks/post-commit
+    rm "${HOOKS_DIR}/post-commit"
 fi
 
-ln -sf ../../config/hooks/post-commit .git/hooks/post-commit
-chmod +x .git/hooks/post-commit
-chmod +x config/hooks/post-commit
+ln -sf "${PROJECT_ROOT}/config/hooks/post-commit" "${HOOKS_DIR}/post-commit"
+chmod +x "${HOOKS_DIR}/post-commit"
+chmod +x "${PROJECT_ROOT}/config/hooks/post-commit"
 
 log_success "post-commit hook installed"
 
@@ -90,7 +97,7 @@ log_success "post-commit hook installed"
 echo ""
 log_info "Verifying installation..."
 
-if [[ -L ".git/hooks/pre-commit" ]] && [[ -L ".git/hooks/post-commit" ]]; then
+if [[ -L "${HOOKS_DIR}/pre-commit" ]] && [[ -L "${HOOKS_DIR}/post-commit" ]]; then
     log_success "Both hooks are properly linked"
 else
     log_error "Hook installation verification failed"
