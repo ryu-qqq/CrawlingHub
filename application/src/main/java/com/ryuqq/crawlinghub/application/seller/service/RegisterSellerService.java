@@ -1,37 +1,35 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerCommandPort;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerManager;
+import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.out.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerDuplicatedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Seller 등록 UseCase
+ * Seller 등록 Service
+ *
+ * @author ryu-qqq
+ * @since 2025-11-18
  */
 @Service
-public class RegisterSellerUseCase {
+public class RegisterSellerService implements RegisterSellerUseCase {
 
-    private final SellerCommandPort sellerCommandPort;
+    private final SellerManager sellerManager;
     private final SellerQueryPort sellerQueryPort;
 
-    public RegisterSellerUseCase(
-            SellerCommandPort sellerCommandPort,
+    public RegisterSellerService(
+            SellerManager sellerManager,
             SellerQueryPort sellerQueryPort
     ) {
-        this.sellerCommandPort = sellerCommandPort;
+        this.sellerManager = sellerManager;
         this.sellerQueryPort = sellerQueryPort;
     }
 
-    /**
-     * Seller 등록
-     *
-     * @param command RegisterSellerCommand
-     */
-    @Transactional
+    @Override
     public void execute(RegisterSellerCommand command) {
         // 1. 중복 name 검증
         if (sellerQueryPort.existsByName(command.name())) {
@@ -44,7 +42,7 @@ public class RegisterSellerUseCase {
                 command.name()
         );
 
-        // 3. Seller 저장
-        sellerCommandPort.save(seller);
+        // 3. SellerManager로 저장 (Transaction)
+        sellerManager.save(seller);
     }
 }
