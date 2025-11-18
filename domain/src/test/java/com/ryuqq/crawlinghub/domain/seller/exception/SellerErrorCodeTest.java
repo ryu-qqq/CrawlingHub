@@ -33,10 +33,11 @@ class SellerErrorCodeTest {
         SellerErrorCode[] errorCodes = SellerErrorCode.values();
 
         // then
-        assertThat(errorCodes).hasSize(2);
+        assertThat(errorCodes).hasSize(3);
         assertThat(errorCodes).contains(
                 SellerErrorCode.SELLER_NOT_FOUND,
-                SellerErrorCode.INVALID_SELLER_ARGUMENT
+                SellerErrorCode.INVALID_SELLER_ARGUMENT,
+                SellerErrorCode.INVALID_SELLER_STATE
         );
     }
 }
