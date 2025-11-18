@@ -329,32 +329,33 @@
 
 ---
 
-### 1️⃣2️⃣ UpdateSellerIntervalService 구현 🔄 (Cycle 12)
+### 1️⃣2️⃣ UpdateSellerIntervalService 구현 ✅ (Cycle 12)
 
 #### 🔴 Red: 테스트 작성
-- [~] `UpdateSellerIntervalServiceTest.java` 생성
-- [ ] `shouldUpdateIntervalSuccessfully()` 작성
-- [ ] Mock Port 준비
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: 셀러 주기 변경 테스트 추가 (Red)`
+- [x] `UpdateSellerIntervalServiceTest.java` 생성
+- [x] `shouldUpdateIntervalSuccessfully()` 작성
+- [x] Mock Port 준비
+- [x] 테스트 실행 → 실패 확인
+- [x] 커밋: `test: 셀러 주기 변경 테스트 추가 (Red)`
 
 #### 🟢 Green: 최소 구현
-- [ ] `UpdateSellerIntervalService.java` 생성 (Service 접미사)
-- [ ] Seller 조회 → changeInterval() 호출 → 저장
-- [ ] EventBridge 업데이트 (트랜잭션 밖)
-- [ ] `@Transactional` 추가
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: 셀러 주기 변경 로직 구현 (Green)`
+- [x] `UpdateSellerIntervalService.java` 생성 (Service 접미사)
+- [x] Seller 조회 → updateInterval() 호출 → 저장
+- [x] EventBridge 업데이트 (트랜잭션 밖)
+- [x] `@Transactional` 추가
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: 셀러 주기 변경 로직 구현 (Green)`
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Transaction 경계 검증
-- [ ] ArchUnit 테스트 추가
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: 셀러 주기 변경 로직 개선 (Refactor)`
+- [x] Transaction 경계 검증 (executeInTransaction/executeExternalOperations 분리)
+- [x] ArchUnit 테스트 자동 검증 (InputPortArchTest 통과)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: (Transaction 경계는 GREEN에서 이미 구현)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: 셀러 주기 변경 테스트 정리 (Tidy)`
+- [x] 테스트 이미 Fixture 사용 (UpdateSellerIntervalCommandFixture, SellerFixture)
+- [x] Unused import 제거
+- [x] 커밋: (별도 커밋 불필요, 이미 정리됨)
 
 ---
 
