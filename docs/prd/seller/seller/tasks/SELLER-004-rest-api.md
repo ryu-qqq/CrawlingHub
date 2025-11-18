@@ -15,41 +15,54 @@ Seller 관리 API 구현.
 
 ## 🎯 요구사항
 
-### 1. API 엔드포인트
+### 1. Controller 설계
 
-#### POST /api/v1/sellers - 셀러 등록
-- Request: `RegisterSellerRequest` (sellerId, name)
-- Response: `SellerResponse`
+**CQRS 분리 원칙**:
+- **SellerCommandController**: 상태 변경 (POST, PUT, PATCH, DELETE)
+- **SellerQueryController**: 조회 (GET)
+
+### 2. API 엔드포인트
+
+#### Command API (SellerCommandController)
+
+**POST /api/v1/sellers - 셀러 등록**
+- Request: `RegisterSellerApiRequest` (sellerId, name)
+- Response: `SellerApiResponse`
 - Status Code: 201 Created
 - 비즈니스 규칙: INACTIVE 상태로 생성
 
-#### GET /api/v1/sellers/{sellerId} - 셀러 조회
-- Response: `SellerResponse`
+**PATCH /api/v1/sellers/{sellerId}/name - 이름 변경**
+- Request: `UpdateSellerNameApiRequest` (newName)
+- Response: `SellerApiResponse`
+- Status Code: 200 OK
+
+**POST /api/v1/sellers/{sellerId}/activate - 활성화**
+- Response: `SellerApiResponse`
+- Status Code: 200 OK
+
+**POST /api/v1/sellers/{sellerId}/deactivate - 비활성화**
+- Response: `SellerApiResponse`
+- Status Code: 200 OK, 400 Bad Request (EventBridge 활성화 중)
+
+#### Query API (SellerQueryController)
+
+**GET /api/v1/sellers/{sellerId} - 셀러 조회**
+- Response: `SellerApiResponse`
 - Status Code: 200 OK, 404 Not Found
 
-#### GET /api/v1/sellers - 셀러 목록 조회
+**GET /api/v1/sellers - 셀러 목록 조회**
 - Request: Query Parameters (page, size)
-- Response: `Page<SellerResponse>`
+- Response: `Page<SellerApiResponse>`
 - Status Code: 200 OK
-
-#### PATCH /api/v1/sellers/{sellerId}/name - 이름 변경
-- Request: `UpdateSellerNameRequest` (newName)
-- Response: `SellerResponse`
-- Status Code: 200 OK
-
-#### POST /api/v1/sellers/{sellerId}/activate - 활성화
-- Response: `SellerResponse`
-- Status Code: 200 OK
-
-#### POST /api/v1/sellers/{sellerId}/deactivate - 비활성화
-- Response: `SellerResponse`
-- Status Code: 200 OK, 400 Bad Request (EventBridge 활성화 중)
 
 ---
 
 ## ✅ 완료 조건
 
-- [ ] 6개 API 엔드포인트 구현 완료
+- [ ] Command Controller 구현 완료 (4개 엔드포인트)
+- [ ] Query Controller 구현 완료 (2개 엔드포인트)
+- [ ] API Mapper 구현 완료 (@Component Bean)
+- [ ] API Error Mapper 구현 완료 (@Component Bean)
 - [ ] Integration Test 완료 (TestRestTemplate)
 
 ---
@@ -62,103 +75,129 @@ Seller 관리 API 구현.
 
 ## 📚 참고사항
 
-### SellerApiController 구현 예시
+### SellerCommandController 구현 (상태 변경)
+
+**위치**: `adapter-in/rest-api/seller/controller/`
 
 ```java
 @RestController
 @RequestMapping("/api/v1/sellers")
 @RequiredArgsConstructor
-public class SellerApiController {
+public class SellerCommandController {
     private final RegisterSellerUseCase registerSellerUseCase;
     private final UpdateSellerNameUseCase updateSellerNameUseCase;
     private final ActivateSellerUseCase activateSellerUseCase;
     private final DeactivateSellerUseCase deactivateSellerUseCase;
-    private final GetSellerUseCase getSellerUseCase;
-    private final ListSellersUseCase listSellersUseCase;
+    private final GetSellerUseCase getSellerUseCase; // 응답용
+    private final SellerApiMapper sellerApiMapper; // @Component Bean
 
     @PostMapping
-    public ResponseEntity<SellerResponse> registerSeller(
-        @Valid @RequestBody RegisterSellerRequest request) {
+    public ResponseEntity<SellerApiResponse> registerSeller(
+        @Valid @RequestBody RegisterSellerApiRequest request) {
 
-        RegisterSellerCommand command = new RegisterSellerCommand(
-            request.sellerId(),
-            request.name()
-        );
-
+        RegisterSellerCommand command = sellerApiMapper.toCommand(request);
         SellerId sellerId = registerSellerUseCase.execute(command);
-        SellerResponse response = getSellerUseCase.execute(sellerId.value());
+
+        SellerResponse useCaseResponse = getSellerUseCase.execute(sellerId.value());
+        SellerApiResponse response = sellerApiMapper.toApiResponse(useCaseResponse);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{sellerId}")
-    public ResponseEntity<SellerResponse> getSeller(@PathVariable String sellerId) {
-        SellerResponse response = getSellerUseCase.execute(sellerId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<SellerResponse>> listSellers(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<SellerResponse> response = listSellersUseCase.execute(pageable);
-
-        return ResponseEntity.ok(response);
-    }
-
     @PatchMapping("/{sellerId}/name")
-    public ResponseEntity<SellerResponse> updateSellerName(
+    public ResponseEntity<SellerApiResponse> updateSellerName(
         @PathVariable String sellerId,
-        @Valid @RequestBody UpdateSellerNameRequest request) {
+        @Valid @RequestBody UpdateSellerNameApiRequest request) {
 
-        UpdateSellerNameCommand command = new UpdateSellerNameCommand(
-            sellerId,
-            request.newName()
-        );
-
+        UpdateSellerNameCommand command = sellerApiMapper.toCommand(sellerId, request);
         updateSellerNameUseCase.execute(command);
-        SellerResponse response = getSellerUseCase.execute(sellerId);
+
+        SellerResponse useCaseResponse = getSellerUseCase.execute(sellerId);
+        SellerApiResponse response = sellerApiMapper.toApiResponse(useCaseResponse);
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{sellerId}/activate")
-    public ResponseEntity<SellerResponse> activateSeller(@PathVariable String sellerId) {
+    public ResponseEntity<SellerApiResponse> activateSeller(@PathVariable String sellerId) {
         ActivateSellerCommand command = new ActivateSellerCommand(sellerId);
         activateSellerUseCase.execute(command);
 
-        SellerResponse response = getSellerUseCase.execute(sellerId);
+        SellerResponse useCaseResponse = getSellerUseCase.execute(sellerId);
+        SellerApiResponse response = sellerApiMapper.toApiResponse(useCaseResponse);
+
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{sellerId}/deactivate")
-    public ResponseEntity<SellerResponse> deactivateSeller(@PathVariable String sellerId) {
+    public ResponseEntity<SellerApiResponse> deactivateSeller(@PathVariable String sellerId) {
         DeactivateSellerCommand command = new DeactivateSellerCommand(sellerId);
         deactivateSellerUseCase.execute(command);
 
-        SellerResponse response = getSellerUseCase.execute(sellerId);
+        SellerResponse useCaseResponse = getSellerUseCase.execute(sellerId);
+        SellerApiResponse response = sellerApiMapper.toApiResponse(useCaseResponse);
+
         return ResponseEntity.ok(response);
     }
 }
 ```
 
-### Request/Response DTO
+### SellerQueryController 구현 (조회)
+
+**위치**: `adapter-in/rest-api/seller/controller/`
 
 ```java
-// Request DTOs
-public record RegisterSellerRequest(
+@RestController
+@RequestMapping("/api/v1/sellers")
+@RequiredArgsConstructor
+public class SellerQueryController {
+    private final GetSellerUseCase getSellerUseCase;
+    private final ListSellersUseCase listSellersUseCase;
+    private final SellerApiMapper sellerApiMapper; // @Component Bean
+
+    @GetMapping("/{sellerId}")
+    public ResponseEntity<SellerApiResponse> getSeller(@PathVariable String sellerId) {
+        SellerResponse useCaseResponse = getSellerUseCase.execute(sellerId);
+        SellerApiResponse response = sellerApiMapper.toApiResponse(useCaseResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<SellerApiResponse>> listSellers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SellerResponse> useCaseResponses = listSellersUseCase.execute(pageable);
+        Page<SellerApiResponse> responses = useCaseResponses.map(sellerApiMapper::toApiResponse);
+
+        return ResponseEntity.ok(responses);
+    }
+}
+```
+
+### Request/Response DTO (API Layer)
+
+**네이밍 규칙**:
+- Command Request: `*ApiRequest` (예: `RegisterSellerApiRequest`)
+- Query Request: `*ApiRequest` (예: `SellerSearchApiRequest`)
+- Response: `*ApiResponse` (예: `SellerApiResponse`)
+
+**위치**: `adapter-in/rest-api/seller/dto/`
+
+```java
+// Command Request DTOs (dto/command/)
+public record RegisterSellerApiRequest(
     @NotBlank String sellerId,
     @NotBlank String name
 ) {}
 
-public record UpdateSellerNameRequest(
+public record UpdateSellerNameApiRequest(
     @NotBlank String newName
 ) {}
 
-// Response DTO
-public record SellerResponse(
+// Response DTO (dto/response/)
+public record SellerApiResponse(
     String sellerId,
     String name,
     String status,
@@ -168,32 +207,77 @@ public record SellerResponse(
 ) {}
 ```
 
+### SellerApiMapper (@Component Bean)
+
+**위치**: `adapter-in/rest-api/seller/mapper/`
+
+**핵심 원칙**:
+- `@Component`로 DI (Static 메서드 금지)
+- API DTO ↔ UseCase DTO 변환
+- 의존성 주입 가능 (MessageSource, Properties 등)
+
+```java
+@Component
+@RequiredArgsConstructor
+public class SellerApiMapper {
+    // 필요 시 의존성 주입 가능
+    // private final MessageSource messageSource;
+
+    public RegisterSellerCommand toCommand(RegisterSellerApiRequest request) {
+        return new RegisterSellerCommand(
+            request.sellerId(),
+            request.name()
+        );
+    }
+
+    public UpdateSellerNameCommand toCommand(String sellerId, UpdateSellerNameApiRequest request) {
+        return new UpdateSellerNameCommand(
+            sellerId,
+            request.newName()
+        );
+    }
+
+    public SellerApiResponse toApiResponse(SellerResponse useCaseResponse) {
+        return new SellerApiResponse(
+            useCaseResponse.sellerId(),
+            useCaseResponse.name(),
+            useCaseResponse.status(),
+            useCaseResponse.totalProductCount(),
+            useCaseResponse.createdAt(),
+            useCaseResponse.updatedAt()
+        );
+    }
+}
+```
+
 ### Integration Test (TestRestTemplate)
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @AutoConfigureTestRestTemplate
+@Transactional
 class SellerApiControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private SellerCommandPort sellerCommandPort;
+    private SellerPersistencePort sellerPersistencePort;
 
     @Test
     void 셀러_등록_성공() {
         // Given: 등록 요청
-        RegisterSellerRequest request = new RegisterSellerRequest(
+        RegisterSellerApiRequest request = new RegisterSellerApiRequest(
             "SELLER-001",
             "테스트 셀러"
         );
 
         // When: POST /api/v1/sellers
-        ResponseEntity<SellerResponse> response = restTemplate.postForEntity(
+        ResponseEntity<SellerApiResponse> response = restTemplate.postForEntity(
             "/api/v1/sellers",
             request,
-            SellerResponse.class
+            SellerApiResponse.class
         );
 
         // Then: 201 Created, INACTIVE 상태
@@ -208,15 +292,15 @@ class SellerApiControllerIntegrationTest {
     void 이름_변경_성공() {
         // Given: Seller 등록
         Seller seller = Seller.create(new SellerId("SELLER-002"), "원래 이름");
-        sellerCommandPort.save(seller);
+        sellerPersistencePort.save(seller);
 
         // When: PATCH /api/v1/sellers/{sellerId}/name
-        UpdateSellerNameRequest request = new UpdateSellerNameRequest("새 이름");
-        ResponseEntity<SellerResponse> response = restTemplate.exchange(
+        UpdateSellerNameApiRequest request = new UpdateSellerNameApiRequest("새 이름");
+        ResponseEntity<SellerApiResponse> response = restTemplate.exchange(
             "/api/v1/sellers/SELLER-002/name",
             HttpMethod.PATCH,
             new HttpEntity<>(request),
-            SellerResponse.class
+            SellerApiResponse.class
         );
 
         // Then: 200 OK, 이름 변경됨
@@ -228,13 +312,13 @@ class SellerApiControllerIntegrationTest {
     void 활성화_성공() {
         // Given: INACTIVE Seller
         Seller seller = Seller.create(new SellerId("SELLER-003"), "테스트 셀러");
-        sellerCommandPort.save(seller);
+        sellerPersistencePort.save(seller);
 
         // When: POST /api/v1/sellers/{sellerId}/activate
-        ResponseEntity<SellerResponse> response = restTemplate.postForEntity(
+        ResponseEntity<SellerApiResponse> response = restTemplate.postForEntity(
             "/api/v1/sellers/SELLER-003/activate",
             null,
-            SellerResponse.class
+            SellerApiResponse.class
         );
 
         // Then: 200 OK, ACTIVE 상태
@@ -246,67 +330,94 @@ class SellerApiControllerIntegrationTest {
     void 비활성화_실패_EventBridge_활성화_중() {
         // Given: ACTIVE Seller + 활성화된 EventBridge
         Seller seller = SellerFixture.createActive("SELLER-004", "테스트 셀러");
-        sellerCommandPort.save(seller);
+        sellerPersistencePort.save(seller);
 
         // EventBridge 등록 (별도 API - EventBridge Context)
         // POST /api/v1/admin/schedules
 
         // When: POST /api/v1/sellers/{sellerId}/deactivate
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        ResponseEntity<ErrorInfo> response = restTemplate.postForEntity(
             "/api/v1/sellers/SELLER-004/deactivate",
             null,
-            String.class
+            ErrorInfo.class
         );
 
         // Then: 400 Bad Request
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Active EventBridge schedules exist");
+        assertThat(response.getBody().errorCode()).isEqualTo("DEACTIVATION_NOT_ALLOWED");
+        assertThat(response.getBody().message()).contains("Active EventBridge schedules exist");
     }
 }
 ```
 
-### Exception Handler
+### SellerApiErrorMapper (@Component Bean)
+
+**위치**: `adapter-in/rest-api/seller/error/`
+
+**핵심 원칙**:
+- Domain Exception → HTTP 변환
+- `@Component`로 DI (ErrorMapper 인터페이스 구현)
+- ErrorMapperRegistry에 등록
+
+```java
+@Component
+@RequiredArgsConstructor
+public class SellerApiErrorMapper implements ErrorMapper {
+
+    @Override
+    public boolean supports(Exception exception) {
+        return exception instanceof SellerNotFoundException ||
+               exception instanceof DuplicateSellerIdException ||
+               exception instanceof SellerDeactivationNotAllowedException;
+    }
+
+    @Override
+    public ErrorInfo map(Exception exception) {
+        if (exception instanceof SellerNotFoundException) {
+            return ErrorInfo.of(
+                "SELLER_NOT_FOUND",
+                exception.getMessage(),
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        if (exception instanceof DuplicateSellerIdException) {
+            return ErrorInfo.of(
+                "DUPLICATE_SELLER_ID",
+                exception.getMessage(),
+                HttpStatus.CONFLICT
+            );
+        }
+
+        if (exception instanceof SellerDeactivationNotAllowedException) {
+            return ErrorInfo.of(
+                "DEACTIVATION_NOT_ALLOWED",
+                exception.getMessage(),
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        throw new IllegalStateException("Unsupported exception: " + exception.getClass());
+    }
+}
+```
+
+### GlobalExceptionHandler (공통)
+
+**위치**: `adapter-in/rest-api/common/controller/`
 
 ```java
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+    private final ErrorMapperRegistry errorMapperRegistry;
 
-    @ExceptionHandler(SellerNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleSellerNotFound(SellerNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "SELLER_NOT_FOUND",
-            ex.getMessage(),
-            LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(DuplicateSellerIdException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateSellerId(DuplicateSellerIdException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "DUPLICATE_SELLER_ID",
-            ex.getMessage(),
-            LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
-    @ExceptionHandler(SellerDeactivationNotAllowedException.class)
-    public ResponseEntity<ErrorResponse> handleDeactivationNotAllowed(SellerDeactivationNotAllowedException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "DEACTIVATION_NOT_ALLOWED",
-            ex.getMessage(),
-            LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorInfo> handleException(Exception ex) {
+        ErrorInfo errorInfo = errorMapperRegistry.map(ex);
+        return ResponseEntity.status(errorInfo.httpStatus()).body(errorInfo);
     }
 }
-
-public record ErrorResponse(
-    String errorCode,
-    String message,
-    LocalDateTime timestamp
-) {}
 ```
 
 ### 중요 변경사항
