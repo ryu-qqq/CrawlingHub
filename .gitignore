@@ -60,3 +60,4 @@ langfuse/tests/__pycache__/
 .pipeline-metrics/metrics.jsonl
 .pipeline-metrics/report.md
 .env
+.specstory/history/
