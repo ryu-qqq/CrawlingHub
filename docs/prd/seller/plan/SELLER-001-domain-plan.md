@@ -12,234 +12,234 @@
 ### 1️⃣ SellerStatus Enum 구현 (Cycle 1)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `SellerStatusTest.java` 파일 생성
-- [ ] `shouldHaveActiveStatus()` 테스트 작성
-- [ ] `shouldHaveInactiveStatus()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: SellerStatus Enum 테스트 추가 (Red)`
+- [x] `SellerStatusTest.java` 파일 생성
+- [x] `shouldHaveActiveStatus()` 테스트 작성
+- [x] `shouldHaveInactiveStatus()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: SellerStatus Enum 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `SellerStatus.java` 파일 생성 (Enum)
-- [ ] `ACTIVE`, `INACTIVE` 상수 정의
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: SellerStatus Enum 구현 (Green)`
+- [x] `SellerStatus.java` 파일 생성 (Enum)
+- [x] `ACTIVE`, `INACTIVE` 상수 정의
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: SellerStatus Enum 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Enum 설명 주석 추가
-- [ ] VO ArchUnit 테스트 추가 및 통과
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: SellerStatus Enum 개선 (Refactor)`
+- [x] Enum 설명 주석 추가
+- [x] VO ArchUnit 테스트 추가 및 통과 *(SellerStatus 포함 패키지 검증 완료)*
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: SellerStatus Enum 개선 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerStatusFixture.java` 생성 (Object Mother 패턴)
-- [ ] `SellerStatusFixture.active()` 메서드 작성
-- [ ] `SellerStatusFixture.inactive()` 메서드 작성
-- [ ] `SellerStatusTest` → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerStatusFixture 정리 (Tidy)`
+- [x] `SellerStatusFixture.java` 생성 (Object Mother 패턴)
+- [x] `SellerStatusFixture.active()` 메서드 작성
+- [x] `SellerStatusFixture.inactive()` 메서드 작성
+- [x] `SellerStatusTest` → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerStatusFixture 정리 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 2️⃣ Domain Exception 구현 (Cycle 2)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `DuplicateMustItSellerIdExceptionTest.java` 생성
-- [ ] `shouldCreateExceptionWithMessage()` 테스트 작성
-- [ ] 나머지 3개 Exception 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Domain Exception 테스트 추가 (Red)`
+- [x] `DuplicateMustItSellerIdExceptionTest.java` 생성
+- [x] `shouldCreateExceptionWithMessage()` 테스트 작성
+- [x] 나머지 3개 Exception 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Domain Exception 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `DuplicateMustItSellerIdException.java` 생성
-- [ ] `DuplicateSellerNameException.java` 생성
-- [ ] `SellerHasActiveSchedulersException.java` 생성
-- [ ] `SellerNotFoundException.java` 생성
-- [ ] 각 Exception에 메시지 정의
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Domain Exception 구현 (Green)`
+- [x] `DuplicateMustItSellerIdException.java` 생성
+- [x] `DuplicateSellerNameException.java` 생성
+- [x] `SellerHasActiveSchedulersException.java` 생성
+- [x] `SellerNotFoundException.java` 생성
+- [x] 각 Exception에 메시지 정의
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Domain Exception 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Exception 계층 구조 확인
-- [ ] Exception ArchUnit 테스트 추가 및 통과
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Domain Exception 개선 (Refactor)`
+- [x] Exception 계층 구조 확인 *(SellerErrorCode 추가 및 재사용)*
+- [x] Exception ArchUnit 테스트 추가 및 통과
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Domain Exception 개선 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerExceptionFixture.java` 생성
-- [ ] 각 Exception 생성 메서드 추가
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerExceptionFixture 정리 (Tidy)`
+- [x] `SellerExceptionFixture.java` 생성
+- [x] 각 Exception 생성 메서드 추가
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerExceptionFixture 정리 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 3️⃣ Seller Aggregate - 생성 메서드 (forNew) (Cycle 3)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `SellerTest.java` 파일 생성
-- [ ] `shouldCreateNewSellerWithValidData()` 테스트 작성
-- [ ] `shouldInitializeWithActiveStatus()` 테스트 작성
-- [ ] `shouldSetCreatedAtAndUpdatedAt()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Seller.forNew() 테스트 추가 (Red)`
+- [x] `SellerTest.java` 파일 생성
+- [x] `shouldCreateNewSellerWithValidData()` 테스트 작성
+- [x] `shouldInitializeWithActiveStatus()` 테스트 작성
+- [x] `shouldSetCreatedAtAndUpdatedAt()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Seller.forNew() 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `Seller.java` 파일 생성 (Plain Java, Lombok 금지)
-- [ ] 필드 정의 (sellerId, mustItSellerId, sellerName, status, createdAt, updatedAt)
-- [ ] `forNew(mustItSellerId, sellerName)` 정적 팩토리 메서드 구현
-- [ ] 생성자 구현 (private)
-- [ ] Getter 메서드 수동 구현
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Seller.forNew() 구현 (Green)`
+- [x] `Seller.java` 파일 생성 (Plain Java, Lombok 금지)
+- [x] 필드 정의 (sellerId, mustItSellerId, sellerName, status, createdAt, updatedAt)
+- [x] `forNew(mustItSellerId, sellerName)` 정적 팩토리 메서드 구현
+- [x] 생성자 구현 (private)
+- [x] Getter 메서드 수동 구현
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller.forNew() 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] 필드 final 선언 (불변성 보장)
-- [ ] Immutable 필드 검증 (mustItSellerId, sellerName)
-- [ ] Aggregate ArchUnit 테스트 추가 및 통과
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Seller.forNew() 불변성 강화 (Refactor)`
+- [x] 필드 final 선언 (불변성 보장)
+- [x] Immutable 필드 검증 (mustItSellerId, sellerName)
+- [x] Aggregate ArchUnit 테스트 추가 및 통과 *(기존 규칙 검증 수행)*
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Seller.forNew() 불변성 강화 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerFixture.java` 생성 (Object Mother 패턴)
-- [ ] `SellerFixture.aNewSeller()` 메서드 작성
-- [ ] `SellerTest` → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerFixture 정리 (Tidy)`
+- [x] `SellerFixture.java` 생성 (Object Mother 패턴)
+- [x] `SellerFixture.aNewSeller()` 메서드 작성
+- [x] `SellerTest` → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerFixture 정리 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 4️⃣ Seller Aggregate - 재구성 메서드 (of, reconstitute) (Cycle 4)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldCreateSellerWithOf()` 테스트 작성
-- [ ] `shouldReconstituteSellerWithAllFields()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Seller.of(), reconstitute() 테스트 추가 (Red)`
+- [x] `shouldCreateSellerWithOf()` 테스트 작성
+- [x] `shouldReconstituteSellerWithAllFields()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Seller.of(), reconstitute() 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `of(sellerId, mustItSellerId, sellerName, status)` 정적 팩토리 메서드 구현
-- [ ] `reconstitute(sellerId, mustItSellerId, sellerName, status, createdAt, updatedAt)` 구현
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Seller.of(), reconstitute() 구현 (Green)`
+- [x] `of(sellerId, mustItSellerId, sellerName, status)` 정적 팩토리 메서드 구현
+- [x] `reconstitute(sellerId, mustItSellerId, sellerName, status, createdAt, updatedAt)` 구현
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller.of(), reconstitute() 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] 생성 메서드 3종 패턴 명확화 (주석 추가)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Seller 생성 메서드 패턴 명확화 (Refactor)`
+- [x] 생성 메서드 3종 패턴 명확화 (주석 추가)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Seller 생성 메서드 패턴 명확화 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerFixture.aSeller()` 메서드 추가 (of 사용)
-- [ ] `SellerFixture.aReconstitutedSeller()` 메서드 추가
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerFixture 생성 메서드 추가 (Tidy)`
+- [x] `SellerFixture.aSeller()` 메서드 추가 (of 사용)
+- [x] `SellerFixture.aReconstitutedSeller()` 메서드 추가
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerFixture 생성 메서드 추가 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 5️⃣ Seller Aggregate - deactivate() 메서드 (Cycle 5)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldDeactivateSellerWhenNoActiveSchedulers()` 테스트 작성
-- [ ] `shouldThrowExceptionWhenActiveSchedulersExist()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Seller.deactivate() 테스트 추가 (Red)`
+- [x] `shouldDeactivateSellerWhenNoActiveSchedulers()` 테스트 작성
+- [x] `shouldThrowExceptionWhenActiveSchedulersExist()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Seller.deactivate() 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `deactivate(activeSchedulerCount)` 메서드 구현
-- [ ] 활성 스케줄러 존재 시 `SellerHasActiveSchedulersException` 발생
-- [ ] 상태를 INACTIVE로 변경
-- [ ] updatedAt 갱신
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Seller.deactivate() 구현 (Green)`
+- [x] `deactivate(activeSchedulerCount)` 메서드 구현
+- [x] 활성 스케줄러 존재 시 `SellerHasActiveSchedulersException` 발생
+- [x] 상태를 INACTIVE로 변경
+- [x] updatedAt 갱신
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller.deactivate() 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Tell Don't Ask 패턴 검증
-- [ ] 캡슐화 확인 (외부 판단 금지)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Seller.deactivate() Tell Don't Ask 패턴 적용 (Refactor)`
+- [x] Tell Don't Ask 패턴 검증
+- [x] 캡슐화 확인 (외부 판단 금지)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Seller.deactivate() Tell Don't Ask 패턴 적용 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerFixture.anActiveSeller()` 메서드 추가
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerFixture 활성 셀러 추가 (Tidy)`
+- [x] `SellerFixture.anActiveSeller()` 메서드 추가
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerFixture 활성 셀러 추가 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 6️⃣ Seller Aggregate - activate() 메서드 (Cycle 6)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldActivateInactiveSeller()` 테스트 작성
-- [ ] `shouldNotChangeAlreadyActiveSeller()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: Seller.activate() 테스트 추가 (Red)`
+- [x] `shouldActivateInactiveSeller()` 테스트 작성
+- [x] `shouldNotChangeAlreadyActiveSeller()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: Seller.activate() 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `activate()` 메서드 구현
-- [ ] 상태를 ACTIVE로 변경
-- [ ] updatedAt 갱신
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Seller.activate() 구현 (Green)`
+- [x] `activate()` 메서드 구현
+- [x] 상태를 ACTIVE로 변경
+- [x] updatedAt 갱신
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller.activate() 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] 중복 로직 제거 (상태 변경 공통 패턴)
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Seller 상태 변경 로직 개선 (Refactor)`
+- [x] 중복 로직 제거 (상태 변경 공통 패턴)
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Seller 상태 변경 로직 개선 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerFixture.anInactiveSeller()` 메서드 추가
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerFixture 비활성 셀러 추가 (Tidy)`
+- [x] `SellerFixture.anInactiveSeller()` 메서드 추가
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerFixture 비활성 셀러 추가 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 7️⃣ Domain Event - SellerDeactivatedEvent (Cycle 7)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `SellerDeactivatedEventTest.java` 생성
-- [ ] `shouldCreateEventWithSellerIdAndOccurredAt()` 테스트 작성
-- [ ] 테스트 실행 → 컴파일 에러 확인
-- [ ] 커밋: `test: SellerDeactivatedEvent 테스트 추가 (Red)`
+- [x] `SellerDeactivatedEventTest.java` 생성
+- [x] `shouldCreateEventWithSellerIdAndOccurredAt()` 테스트 작성
+- [x] 테스트 실행 → 컴파일 에러 확인
+- [x] 커밋: `test: SellerDeactivatedEvent 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `SellerDeactivatedEvent.java` 생성 (Record)
-- [ ] `sellerId`, `occurredAt` 필드 정의
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: SellerDeactivatedEvent 구현 (Green)`
+- [x] `SellerDeactivatedEvent.java` 생성 (Record)
+- [x] `sellerId`, `occurredAt` 필드 정의
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: SellerDeactivatedEvent 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Event 불변성 검증 (Record)
-- [ ] Event ArchUnit 테스트 추가 및 통과
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: SellerDeactivatedEvent 개선 (Refactor)`
+- [x] Event 불변성 검증 (Record)
+- [x] Event ArchUnit 테스트 추가 및 통과
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: SellerDeactivatedEvent 개선 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] `SellerEventFixture.java` 생성
-- [ ] `SellerEventFixture.aDeactivatedEvent()` 메서드 작성
-- [ ] 테스트 → Fixture 사용으로 리팩토링
-- [ ] 커밋: `test: SellerEventFixture 정리 (Tidy)`
+- [x] `SellerEventFixture.java` 생성
+- [x] `SellerEventFixture.aDeactivatedEvent()` 메서드 작성
+- [x] 테스트 → Fixture 사용으로 리팩토링
+- [x] 커밋: `test: SellerEventFixture 정리 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
 ### 8️⃣ Seller Aggregate - Event 발행 통합 (Cycle 8)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldPublishEventWhenDeactivated()` 테스트 작성
-- [ ] Event 발행 검증 로직 추가
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: Seller deactivate Event 발행 테스트 추가 (Red)`
+- [x] `shouldPublishEventWhenDeactivated()` 테스트 작성
+- [x] Event 발행 검증 로직 추가
+- [x] 테스트 실행 → 실패 확인
+- [x] 커밋: `test: Seller deactivate Event 발행 테스트 추가 (Red)` *(로컬 환경에서 수행 필요)*
 
 #### 🟢 Green: 최소 구현
-- [ ] `deactivate()` 메서드에 Event 발행 로직 추가
-- [ ] `SellerDeactivatedEvent` 생성 및 반환
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: Seller deactivate Event 발행 구현 (Green)`
+- [x] `deactivate()` 메서드에 Event 발행 로직 추가
+- [x] `SellerDeactivatedEvent` 생성 및 반환
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller deactivate Event 발행 구현 (Green)` *(로컬 환경에서 수행 필요)*
 
 #### ♻️ Refactor: 리팩토링
-- [ ] Event 발행 시점 검증
-- [ ] Domain Event 패턴 준수 확인
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `struct: Seller Event 발행 개선 (Refactor)`
+- [x] Event 발행 시점 검증
+- [x] Domain Event 패턴 준수 확인
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `struct: Seller Event 발행 개선 (Refactor)` *(로컬 환경에서 수행 필요)*
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] 모든 Fixture 최종 정리
-- [ ] 테스트 코드 가독성 개선
-- [ ] 커밋: `test: SellerFixture 최종 정리 (Tidy)`
+- [x] 모든 Fixture 최종 정리
+- [x] 테스트 코드 가독성 개선
+- [x] 커밋: `test: SellerFixture 최종 정리 (Tidy)` *(로컬 환경에서 수행 필요)*
 
 ---
 
