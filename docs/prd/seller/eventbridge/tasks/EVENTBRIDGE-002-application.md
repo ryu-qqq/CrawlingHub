@@ -147,14 +147,14 @@ EventBridge 스케줄링 관련 Application Layer 구현. Admin 전용 기능으
 
 #### Output Ports (Infrastructure 인터페이스)
 
-- [ ] **Persistence Ports**
+- [ ] **Persistence Ports (Port-Out)**
   - `SellerQueryPort`: findBySellerId() ⚠️ **Seller Context와 연동**
-  - `CrawlingScheduleCommandPort`: save()
-  - `CrawlingScheduleQueryPort`: findById(), findBySellerId(), existsActiveBySellerId()
-  - `CrawlingScheduleExecutionCommandPort`: save()
-  - `CrawlingScheduleExecutionQueryPort`: findByScheduleId(), findByStatus()
-  - `SchedulerOutboxCommandPort`: save()
-  - `SchedulerOutboxQueryPort`: findByStatusOrderByCreatedAtAsc()
+  - `CrawlingSchedulePersistencePort`: save() // Command Port
+  - `CrawlingScheduleQueryPort`: findById(), findBySellerId(), existsActiveBySellerId() // Query Port
+  - `CrawlingScheduleExecutionPersistencePort`: save() // Command Port
+  - `CrawlingScheduleExecutionQueryPort`: findByScheduleId(), findByStatus() // Query Port
+  - `SchedulerOutboxPersistencePort`: save() // Command Port
+  - `SchedulerOutboxQueryPort`: findByStatusOrderByCreatedAtAsc() // Query Port
 
 - [ ] **Infrastructure Ports**
   - `EventBridgePort`: createRule(), updateRule(), deleteRule()
@@ -216,14 +216,25 @@ EventBridge 스케줄링 관련 Application Layer 구현. Admin 전용 기능으
 
 ### RegisterScheduleUseCase 구현 예시
 
+#### Port-In Interface (UseCase)
+
 ```java
-@UseCase
+public interface RegisterScheduleUseCase {
+    ScheduleId execute(RegisterScheduleCommand command);
+}
+```
+
+#### Service Implementation
+
+```java
+@Service
 @RequiredArgsConstructor
-public class RegisterScheduleUseCase {
+public class RegisterScheduleService implements RegisterScheduleUseCase {
     private final SellerQueryPort sellerQueryPort; // Seller Context 연동
-    private final CrawlingScheduleCommandPort scheduleCommandPort;
+    private final CrawlingSchedulePersistencePort schedulePersistencePort; // Port-Out 네이밍 수정
 
     @Transactional
+    @Override
     public ScheduleId execute(RegisterScheduleCommand command) {
         // 1. Seller 조회
         Seller seller = sellerQueryPort.findBySellerId(new SellerId(command.sellerId()))
@@ -242,7 +253,7 @@ public class RegisterScheduleUseCase {
         );
 
         // 4. DB 저장
-        scheduleCommandPort.save(schedule);
+        schedulePersistencePort.save(schedule);
 
         // 5. Domain Event 발행 (자동)
         // schedule.registerEvent(new ScheduleRegistered(...))
@@ -259,12 +270,22 @@ public record RegisterScheduleCommand(
 
 ### UpdateScheduleIntervalUseCase 구현 예시
 
+#### Port-In Interface
+
 ```java
-@UseCase
+public interface UpdateScheduleIntervalUseCase {
+    void execute(UpdateScheduleIntervalCommand command);
+}
+```
+
+#### Service Implementation
+
+```java
+@Service
 @RequiredArgsConstructor
-public class UpdateScheduleIntervalUseCase {
+public class UpdateScheduleIntervalService implements UpdateScheduleIntervalUseCase {
     private final CrawlingScheduleQueryPort scheduleQueryPort;
-    private final CrawlingScheduleCommandPort scheduleCommandPort;
+    private final CrawlingSchedulePersistencePort schedulePersistencePort;
 
     @Transactional
     public void execute(UpdateScheduleIntervalCommand command) {
@@ -277,7 +298,7 @@ public class UpdateScheduleIntervalUseCase {
         schedule.updateInterval(newInterval);
 
         // 3. DB 저장
-        scheduleCommandPort.save(schedule);
+        schedulePersistencePort.save(schedule);
 
         // 4. Domain Event 발행 (자동)
         // schedule.registerEvent(new ScheduleUpdated(...))
@@ -309,7 +330,7 @@ public class ActivateScheduleUseCase {
         schedule.activate();
 
         // 3. DB 저장
-        scheduleCommandPort.save(schedule);
+        schedulePersistencePort.save(schedule);
     }
 }
 
@@ -337,7 +358,7 @@ public class DeactivateScheduleUseCase {
         schedule.deactivate();
 
         // 3. DB 저장
-        scheduleCommandPort.save(schedule);
+        schedulePersistencePort.save(schedule);
 
         // 4. Domain Event 발행 (자동)
         // schedule.registerEvent(new ScheduleDeactivated(...))

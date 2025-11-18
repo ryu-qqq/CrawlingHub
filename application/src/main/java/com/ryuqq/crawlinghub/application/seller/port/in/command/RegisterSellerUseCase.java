@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.port.in.command;
 
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 
 /**
  * Seller 등록 UseCase (Command)
@@ -16,6 +17,7 @@ public interface RegisterSellerUseCase {
      * Seller 등록
      *
      * @param command 등록 명령
+     * @return 등록된 Seller 정보
      */
-    void execute(RegisterSellerCommand command);
+    SellerResponse execute(RegisterSellerCommand command);
 }

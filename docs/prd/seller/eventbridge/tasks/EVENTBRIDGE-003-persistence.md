@@ -24,9 +24,10 @@ EventBridge 스케줄링 데이터 영속성을 담당하는 Persistence Layer �
 
 ### 1. JPA Entity 설계
 
-#### CrawlingScheduleJpaEntity
+#### CrawlingScheduleEntity
 
 - [ ] **테이블**: `crawling_schedules`
+- [ ] **엔티티 네이밍**: `*Entity` 접미사 사용 (JPA 명시 불필요)
 - [ ] **필드**:
   - id: Long (PK)
   - schedule_id: String (UUID, Unique, Index)
@@ -41,9 +42,10 @@ EventBridge 스케줄링 데이터 영속성을 담당하는 Persistence Layer �
   - `idx_seller_id` (seller_id) - Unique
   - `idx_status` (status)
 
-#### CrawlingScheduleExecutionJpaEntity
+#### CrawlingScheduleExecutionEntity
 
 - [ ] **테이블**: `crawling_schedule_executions`
+- [ ] **엔티티 네이밍**: `*Entity` 접미사 사용
 - [ ] **필드**:
   - id: Long (PK)
   - execution_id: String (UUID, Unique, Index)
@@ -64,9 +66,10 @@ EventBridge 스케줄링 데이터 영속성을 담당하는 Persistence Layer �
 
 - [ ] **파티셔닝**: `started_at` 기준 월별 (PARTITION BY RANGE, 1년 후 적용)
 
-#### SchedulerOutboxJpaEntity
+#### SchedulerOutboxEntity
 
 - [ ] **테이블**: `scheduler_outbox`
+- [ ] **엔티티 네이밍**: `*Entity` 접미사 사용
 - [ ] **필드**:
   - id: Long (PK)
   - outbox_id: String (UUID, Unique, Index)
@@ -87,16 +90,53 @@ EventBridge 스케줄링 데이터 영속성을 담당하는 Persistence Layer �
 
 ### 2. Repository 구현
 
-- [ ] **CrawlingScheduleJpaRepository**
-- [ ] **CrawlingScheduleExecutionJpaRepository**
-- [ ] **SchedulerOutboxJpaRepository**
+- [ ] **CrawlingScheduleRepository** (Spring Data JPA Interface)
+- [ ] **CrawlingScheduleQueryDslRepository** (QueryDSL 복잡 쿼리용)
+- [ ] **CrawlingScheduleExecutionRepository**
+- [ ] **CrawlingScheduleExecutionQueryDslRepository**
+- [ ] **SchedulerOutboxRepository**
+- [ ] **SchedulerOutboxQueryDslRepository**
+
+**네이밍 규칙**:
+- JPA Repository: `*Repository`
+- QueryDSL Repository: `*QueryDslRepository`
+- Jpa 접두사 불필요
 
 ---
 
-### 3. Adapter 구현
+### 3. Adapter 구현 (Port 구현체)
 
-- [ ] **Command/Query Adapters** (각 Entity별)
-- [ ] **Mapper** (Domain ↔ Entity 변환)
+#### Command Adapters (mysql/adapter/command/)
+- [ ] **CrawlingScheduleCommandAdapter** (implements `CrawlingSchedulePersistencePort`)
+  - save(), delete() 구현
+  - Domain ↔ Entity 변환 (Mapper 사용)
+
+- [ ] **CrawlingScheduleExecutionCommandAdapter** (implements `CrawlingScheduleExecutionPersistencePort`)
+  - save(), delete() 구현
+
+- [ ] **SchedulerOutboxCommandAdapter** (implements `SchedulerOutboxPersistencePort`)
+  - save(), delete() 구현
+
+#### Query Adapters (mysql/adapter/query/)
+- [ ] **CrawlingScheduleQueryAdapter** (implements `CrawlingScheduleQueryPort`)
+  - findById(), findBySellerId(), existsActiveBySellerId() 구현
+  - QueryDSL DTO Projection 사용
+
+- [ ] **CrawlingScheduleExecutionQueryAdapter** (implements `CrawlingScheduleExecutionQueryPort`)
+  - findByScheduleId(), findByStatus() 구현
+
+- [ ] **SchedulerOutboxQueryAdapter** (implements `SchedulerOutboxQueryPort`)
+  - findByStatusOrderByCreatedAtAsc() 구현
+
+#### Mappers (mysql/mapper/)
+- [ ] **CrawlingScheduleEntityMapper** (Domain ↔ Entity 변환)
+- [ ] **CrawlingScheduleExecutionEntityMapper**
+- [ ] **SchedulerOutboxEntityMapper**
+
+**Adapter 구조 규칙**:
+- Command Adapter: `*CommandAdapter` (CUD 연산)
+- Query Adapter: `*QueryAdapter` (Read 연산)
+- Mapper: `*EntityMapper` (Domain ↔ Entity 변환)
 
 ---
 
