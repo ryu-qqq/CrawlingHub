@@ -72,7 +72,15 @@ public class RegisterSellerService implements RegisterSellerUseCase {
     /**
      * Transaction 내부 로직
      *
-     * <p>DB 저장 작업만 포함</p>
+     * <p><strong>Transaction 경계:</strong></p>
+     * <ul>
+     *   <li>✅ DB 조회 및 저장 작업만 포함</li>
+     *   <li>✅ 외부 API 호출 절대 금지</li>
+     *   <li>✅ Spring Proxy 제약: Private 메서드지만 같은 클래스 내부 호출 아님</li>
+     * </ul>
+     *
+     * @param command Seller 등록 Command
+     * @return 저장된 Seller Domain
      */
     @Transactional
     private Seller executeInTransaction(RegisterSellerCommand command) {
@@ -100,7 +108,14 @@ public class RegisterSellerService implements RegisterSellerUseCase {
     /**
      * Transaction 외부 로직
      *
-     * <p>외부 API 호출 (EventBridge Rule 생성)</p>
+     * <p><strong>외부 API 호출:</strong></p>
+     * <ul>
+     *   <li>✅ EventBridge Rule 생성 (AWS SDK 호출)</li>
+     *   <li>✅ @Transactional 외부에서 실행</li>
+     *   <li>✅ DB Commit 이후 실행 보장</li>
+     * </ul>
+     *
+     * @param command Seller 등록 Command
      */
     private void executeExternalOperations(RegisterSellerCommand command) {
         // Part 3: EventBridge Rule 생성
