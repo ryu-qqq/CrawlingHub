@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.seller.service;
 
+import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
@@ -7,6 +8,8 @@ import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersisten
 import com.ryuqq.crawlinghub.application.seller.port.out.external.EventBridgePort;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
 import org.springframework.stereotype.Service;
 
@@ -40,15 +43,18 @@ public class RegisterSellerService implements RegisterSellerUseCase {
     private final SellerQueryPort sellerQueryPort;
     private final SellerPersistencePort sellerPersistencePort;
     private final EventBridgePort eventBridgePort;
+    private final SellerAssembler sellerAssembler;
 
     public RegisterSellerService(
         SellerQueryPort sellerQueryPort,
         SellerPersistencePort sellerPersistencePort,
-        EventBridgePort eventBridgePort
+        EventBridgePort eventBridgePort,
+        SellerAssembler sellerAssembler
     ) {
         this.sellerQueryPort = sellerQueryPort;
         this.sellerPersistencePort = sellerPersistencePort;
         this.eventBridgePort = eventBridgePort;
+        this.sellerAssembler = sellerAssembler;
     }
 
     @Override
@@ -56,10 +62,25 @@ public class RegisterSellerService implements RegisterSellerUseCase {
         // Part 1: 중복 Seller ID 검증
         validateDuplicateSellerId(command.sellerId());
 
-        // TODO: Part 2 - Seller 생성 및 저장
+        // Part 2: Seller 생성 및 저장
+        Seller seller = Seller.forNew(
+            SellerId.forNew(),
+            command.name(),
+            new CrawlingInterval(command.crawlingIntervalDays())
+        );
+
+        SellerId savedSellerId = sellerPersistencePort.persist(seller);
+        Seller savedSeller = Seller.reconstitute(
+            savedSellerId,
+            command.name(),
+            new CrawlingInterval(command.crawlingIntervalDays()),
+            seller.getStatus(),
+            seller.getTotalProductCount()
+        );
+
         // TODO: Part 3 - EventBridge Rule 생성
 
-        return null; // 임시
+        return sellerAssembler.toResponse(savedSeller);
     }
 
     /**
