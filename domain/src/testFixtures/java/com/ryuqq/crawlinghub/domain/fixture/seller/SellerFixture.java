@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.domain.fixture.seller;
 
 import java.time.LocalDateTime;
 
-import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
@@ -19,16 +19,24 @@ public final class SellerFixture {
     private SellerFixture() {
     }
 
-    public static Seller aNewSeller() {
+    public static Seller forNew() {
         return Seller.forNew(defaultMustItSellerId(), DEFAULT_SELLER_NAME);
+    }
+
+    public static Seller aNewSeller() {
+        return forNew();
     }
 
     public static Seller aNewSeller(MustItSellerId mustItSellerId, String sellerName) {
         return Seller.forNew(mustItSellerId, sellerName);
     }
 
-    public static Seller aSeller() {
+    public static Seller of() {
         return Seller.of(defaultSellerId(), defaultMustItSellerId(), DEFAULT_SELLER_NAME, SellerStatus.ACTIVE);
+    }
+
+    public static Seller aSeller() {
+        return of();
     }
 
     public static Seller aSeller(
@@ -40,7 +48,7 @@ public final class SellerFixture {
         return Seller.of(sellerId, mustItSellerId, sellerName, status);
     }
 
-    public static Seller aReconstitutedSeller() {
+    public static Seller reconstitute() {
         return Seller.reconstitute(
             defaultSellerId(),
             defaultMustItSellerId(),
@@ -49,6 +57,10 @@ public final class SellerFixture {
             DEFAULT_CREATED_AT,
             DEFAULT_UPDATED_AT
         );
+    }
+
+    public static Seller aReconstitutedSeller() {
+        return reconstitute();
     }
 
     public static Seller anInactiveSeller() {

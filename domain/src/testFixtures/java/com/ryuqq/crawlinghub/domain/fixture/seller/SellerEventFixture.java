@@ -13,6 +13,18 @@ public final class SellerEventFixture {
     private SellerEventFixture() {
     }
 
+    public static SellerDeactivatedEvent forNew() {
+        return aDeactivatedEvent();
+    }
+
+    public static SellerDeactivatedEvent of() {
+        return aDeactivatedEvent();
+    }
+
+    public static SellerDeactivatedEvent reconstitute() {
+        return aDeactivatedEvent();
+    }
+
     public static SellerDeactivatedEvent aDeactivatedEvent() {
         return aDeactivatedEvent(SellerId.of(1L), LocalDateTime.parse("2025-11-30T10:00:00"));
     }
