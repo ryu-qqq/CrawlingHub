@@ -252,29 +252,28 @@
 
 ---
 
-### 9️⃣ RegisterSellerService 구현 - Part 2 (Seller 생성 및 저장) (Cycle 9)
+### 9️⃣ RegisterSellerService 구현 - Part 2 (Seller 생성 및 저장) ✅ (Cycle 9)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `shouldRegisterSellerSuccessfully()` 작성
-- [ ] Mock 동작 정의 (persist, createRule)
-- [ ] 테스트 실행 → 실패 확인
-- [ ] 커밋: `test: 셀러 등록 성공 테스트 추가 (Red)`
+- [x] `shouldRegisterSellerSuccessfully()` 작성
+- [x] Mock 동작 정의 (persist, toResponse)
+- [x] 테스트 실행 → 실패 확인
+- [x] 커밋: `test: 셀러 등록 성공 테스트 추가 (Red)` (fb6edd7)
 
 #### 🟢 Green: 최소 구현
-- [ ] Seller.register() 호출
-- [ ] sellerPersistencePort.persist() 호출
-- [ ] SellerAssembler.toResponse() 호출
-- [ ] 테스트 실행 → 통과 확인
-- [ ] 커밋: `feat: 셀러 등록 로직 구현 (Green)`
+- [x] Seller.forNew() 호출
+- [x] sellerPersistencePort.persist() 호출
+- [x] SellerAssembler.toResponse() 호출
+- [x] 테스트 실행 → 통과 확인
+- [x] 커밋: `feat: Seller 등록 로직 구현 (Green)` (87ea44c)
 
 #### ♻️ Refactor: 리팩토링
-- [ ] 코드 가독성 개선
-- [ ] 테스트 여전히 통과 확인
-- [ ] 커밋: `refactor: 셀러 등록 로직 개선 (Refactor)`
+- [x] CrawlingInterval 중복 생성 제거
+- [x] 테스트 여전히 통과 확인
+- [x] 커밋: `refactor: CrawlingInterval 객체 재사용 (Refactor)` (d7f8610)
 
 #### 🧹 Tidy: TestFixture 정리
-- [ ] 테스트 → Fixture 사용
-- [ ] 커밋: `test: 셀러 등록 테스트 정리 (Tidy)`
+- [x] 테스트 이미 Fixture 사용 (생략)
 
 ---
 
