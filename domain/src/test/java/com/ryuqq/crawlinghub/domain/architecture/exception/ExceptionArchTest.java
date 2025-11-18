@@ -502,7 +502,7 @@ class ExceptionArchTest {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
                 String simpleName = javaClass.getSimpleName();
-                boolean hasMeaningfulName = simpleName.matches(".*(?:NotFound|Invalid|Already|Cannot|Failed|Exceeded|Unsupported).*Exception");
+                boolean hasMeaningfulName = simpleName.matches(".*(?:NotFound|Invalid|Already|Duplicate|Cannot|Failed|Exceeded|Unsupported|Active).*Exception");
 
                 if (!hasMeaningfulName) {
                     String message = String.format(
