@@ -138,11 +138,19 @@ public class Seller {
      *
      * <p>비즈니스 규칙:</p>
      * <ul>
+     *   <li>이미 ACTIVE 상태이면 예외 발생</li>
      *   <li>상태를 ACTIVE로 변경</li>
      *   <li>변경 시 updatedAt 갱신</li>
      * </ul>
+     *
+     * @throws com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException 이미 ACTIVE 상태인 경우
      */
     public void activate() {
+        if (this.status == SellerStatus.ACTIVE) {
+            throw new com.ryuqq.crawlinghub.domain.seller.exception.SellerInvalidStateException(
+                    "이미 활성화된 상태입니다"
+            );
+        }
         this.status = SellerStatus.ACTIVE;
         this.updatedAt = LocalDateTime.now(clock);
     }
