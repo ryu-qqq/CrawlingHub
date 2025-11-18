@@ -12,6 +12,7 @@ import com.ryuqq.crawlinghub.domain.seller.vo.CrawlingInterval;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerSearchCriteria;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -59,6 +60,22 @@ public class RegisterSellerService implements RegisterSellerUseCase {
 
     @Override
     public SellerResponse execute(RegisterSellerCommand command) {
+        // Transaction 내부: DB 저장
+        Seller savedSeller = executeInTransaction(command);
+
+        // Transaction 외부: 외부 API 호출
+        executeExternalOperations(command);
+
+        return sellerAssembler.toResponse(savedSeller);
+    }
+
+    /**
+     * Transaction 내부 로직
+     *
+     * <p>DB 저장 작업만 포함</p>
+     */
+    @Transactional
+    private Seller executeInTransaction(RegisterSellerCommand command) {
         // Part 1: 중복 Seller ID 검증
         validateDuplicateSellerId(command.sellerId());
 
@@ -71,17 +88,26 @@ public class RegisterSellerService implements RegisterSellerUseCase {
         );
 
         SellerId savedSellerId = sellerPersistencePort.persist(seller);
-        Seller savedSeller = Seller.reconstitute(
+        return Seller.reconstitute(
             savedSellerId,
             command.name(),
             crawlingInterval,
             seller.getStatus(),
             seller.getTotalProductCount()
         );
+    }
 
-        // TODO: Part 3 - EventBridge Rule 생성
-
-        return sellerAssembler.toResponse(savedSeller);
+    /**
+     * Transaction 외부 로직
+     *
+     * <p>외부 API 호출 (EventBridge Rule 생성)</p>
+     */
+    private void executeExternalOperations(RegisterSellerCommand command) {
+        // Part 3: EventBridge Rule 생성
+        eventBridgePort.createRule(
+            command.sellerId(),
+            command.crawlingIntervalDays()
+        );
     }
 
     /**
