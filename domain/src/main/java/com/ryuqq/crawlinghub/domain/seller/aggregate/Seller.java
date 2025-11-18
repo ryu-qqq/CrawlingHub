@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.seller.aggregate.seller;
+package com.ryuqq.crawlinghub.domain.seller.aggregate;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 /**
  * Seller Aggregate Root.
  */
-public final class Seller {
+public class Seller {
 
     private static Clock clock = Clock.systemUTC();
 

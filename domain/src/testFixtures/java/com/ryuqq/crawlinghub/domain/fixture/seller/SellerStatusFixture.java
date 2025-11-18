@@ -12,6 +12,18 @@ public final class SellerStatusFixture {
     private SellerStatusFixture() {
     }
 
+    public static SellerStatus forNew() {
+        return SellerStatus.ACTIVE;
+    }
+
+    public static SellerStatus of() {
+        return SellerStatus.ACTIVE;
+    }
+
+    public static SellerStatus reconstitute() {
+        return SellerStatus.ACTIVE;
+    }
+
     public static SellerStatus active() {
         return SellerStatus.ACTIVE;
     }

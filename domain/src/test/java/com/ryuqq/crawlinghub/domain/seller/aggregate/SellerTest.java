@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.domain.seller.aggregate.seller;
+package com.ryuqq.crawlinghub.domain.seller.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
