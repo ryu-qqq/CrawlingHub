@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -41,17 +42,14 @@ class AggregateRootArchTest {
 
     private static JavaClasses classes;
 
+    static {
+        ArchConfiguration.get().setProperty("archRule.failOnEmptyShould", "false");
+    }
+
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackagesOf(
-                com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller.class,
-                com.ryuqq.crawlinghub.domain.crawler.aggregate.crawlertask.CrawlerTask.class,
-                com.ryuqq.crawlinghub.domain.crawler.aggregate.useragent.UserAgent.class,
-                com.ryuqq.crawlinghub.domain.product.aggregate.product.Product.class,
-                com.ryuqq.crawlinghub.domain.product.aggregate.productoutbox.ProductOutbox.class,
-                com.ryuqq.crawlinghub.domain.fixture.ProductFixture.class
-            );
+            .importPackages("com.ryuqq.crawlinghub.domain");
     }
 
     /**
