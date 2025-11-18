@@ -303,10 +303,10 @@
 
 ---
 
-### 1️⃣1️⃣ UpdateSellerIntervalCommand DTO 구현 (Cycle 11)
+### 1️⃣1️⃣ UpdateSellerIntervalCommand DTO 구현 🔄 (Cycle 11)
 
 #### 🔴 Red: 테스트 작성
-- [ ] `UpdateSellerIntervalCommandTest.java` 생성
+- [~] `UpdateSellerIntervalCommandTest.java` 생성
 - [ ] `shouldCreateCommandWithValidData()` 작성
 - [ ] 테스트 실행 → 컴파일 에러 확인
 - [ ] 커밋: `test: UpdateSellerIntervalCommand DTO 테스트 추가 (Red)`
