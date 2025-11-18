@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.seller.port.out.query;
+package com.ryuqq.crawlinghub.application.seller.port.out;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.seller.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
@@ -6,7 +6,12 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import java.util.Optional;
 
 /**
- * Seller Query Port (R 작업)
+ * Seller Query Port
+ *
+ * <p>Seller 조회를 담당하는 읽기 전용 Port</p>
+ *
+ * @author ryu-qqq
+ * @since 2025-11-18
  */
 public interface SellerQueryPort {
 
