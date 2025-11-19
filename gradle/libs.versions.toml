@@ -85,6 +85,7 @@ spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
 spring-messaging = { module = "org.springframework:spring-messaging" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
+spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 
 # ========================================
 # QueryDSL
