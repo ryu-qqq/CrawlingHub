@@ -68,4 +68,3 @@ class SliceResponseTest {
         assertThat(response2.content()).isEqualTo(List.of("item2"));
     }
 }
-
