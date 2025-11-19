@@ -8,9 +8,7 @@ import com.ryuqq.crawlinghub.application.scheduler.dto.response.SchedulerSummary
 import com.ryuqq.crawlinghub.domain.eventbridge.aggregate.CrawlingScheduler;
 import com.ryuqq.crawlinghub.domain.eventbridge.history.SchedulerHistory;
 import com.ryuqq.crawlinghub.domain.eventbridge.vo.CronExpression;
-import com.ryuqq.crawlinghub.domain.eventbridge.vo.SchedulerStatus;
 import java.time.Clock;
-import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
 
 @Component
