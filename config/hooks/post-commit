@@ -9,6 +9,14 @@
 set -e  # Exit on first error
 
 # ========================================
+# Opt-out: disable LangFuse tracking
+# ========================================
+if [[ "${DISABLE_LANGFUSE:-}" == "1" ]] || [[ "${DISABLE_LANGFUSE:-}" == "true" ]]; then
+    echo "ℹ️  LangFuse tracking disabled via DISABLE_LANGFUSE"
+    exit 0
+fi
+
+# ========================================
 # Setup
 # ========================================
 

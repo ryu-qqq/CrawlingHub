@@ -26,6 +26,10 @@ dependencies {
     // Validation
     implementation libs.spring.boot.starter.validation
 
+    // Jackson for JSON parsing
+    implementation libs.jackson.databind
+    implementation libs.jackson.datatype.jsr310
+
     // ========================================
     // Test Dependencies
     // ========================================
@@ -42,6 +46,8 @@ dependencies {
     testFixturesApi project(':domain')
     testFixturesApi testFixtures(project(':domain'))
     testFixturesImplementation libs.spring.context
+    testFixturesImplementation libs.jackson.databind
+    testFixturesImplementation libs.jackson.datatype.jsr310
 }
 
 // ========================================
