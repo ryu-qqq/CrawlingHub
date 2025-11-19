@@ -16,6 +16,14 @@ from pathlib import Path
 LOG_DIR = Path.home() / ".claude" / "logs"
 JSONL_LOG = LOG_DIR / "tdd-cycle.jsonl"
 
+# LangFuse 업로드는 기본적으로 비활성화 (환경변수로만 활성화)
+LANGFUSE_UPLOAD_ENABLED = os.getenv("LANGFUSE_UPLOAD_ENABLED", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 
 def ensure_log_dir():
     """로그 디렉토리 생성"""
@@ -76,6 +84,10 @@ def upload_to_langfuse(event_type: str, data: dict):
     - LANGFUSE_SECRET_KEY
     - LANGFUSE_HOST (optional, default: https://us.cloud.langfuse.com)
     """
+    if not LANGFUSE_UPLOAD_ENABLED:
+        # 업로드 비활성화: 로컬 JSONL 로깅까지만 수행
+        return
+
     try:
         from langfuse import observe
     except ImportError:

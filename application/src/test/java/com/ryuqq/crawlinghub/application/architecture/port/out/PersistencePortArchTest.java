@@ -46,8 +46,9 @@ class PersistencePortArchTest {
         ArchRule rule = classes()
             .that().resideInAPackage("..port.out.command..")
             .and().areInterfaces()
+            .and().haveSimpleNameNotEndingWith("CommandPort")  // 다른 바운더리 컨텍스트 호출 Port 제외
             .should().haveSimpleNameEndingWith("PersistencePort")
-            .because("Command Port는 'PersistencePort' 접미사를 사용해야 합니다");
+            .because("Persistence Port는 'PersistencePort' 접미사를 사용해야 합니다 (CommandPort 제외)");
 
         rule.check(classes);
     }
