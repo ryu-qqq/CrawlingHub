@@ -22,6 +22,7 @@ dependencies {
     // Spring Context (Dependency Injection only)
     implementation libs.spring.context
     implementation libs.spring.tx
+    implementation libs.spring.data.commons
 
     // Validation
     implementation libs.spring.boot.starter.validation
