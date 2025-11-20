@@ -21,21 +21,24 @@ jobs:
       max-parallel: 1
       matrix:
         module:
-          - name: github-oidc
-            dir: terraform/github-oidc
-            order: 0
           - name: ecr
             dir: terraform/ecr
             order: 1
-          - name: ecs-service
-            dir: terraform/ecs-service
+          - name: ecs-cluster
+            dir: terraform/ecs-cluster
             order: 2
-          - name: elasticache-redis
-            dir: terraform/elasticache-redis
+          - name: elasticache
+            dir: terraform/elasticache
             order: 3
-          - name: sqs-queue
-            dir: terraform/sqs-queue
+          - name: ecs-web-api
+            dir: terraform/ecs-web-api
             order: 4
+          - name: ecs-scheduler
+            dir: terraform/ecs-scheduler
+            order: 5
+          - name: eventbridge
+            dir: terraform/eventbridge
+            order: 6
 
     steps:
       - name: Checkout code
@@ -76,9 +79,13 @@ jobs:
             # ECR 모듈
             if [ "${{ matrix.module.name }}" == "ecr" ]; then
               echo "📦 ECR Repository 리소스 Import 중..."
-              if aws ecr describe-repositories --repository-names crawlinghub-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-prod ECR repository..."
-                terraform import -input=false aws_ecr_repository.crawlinghub crawlinghub-prod || echo "  ⚠️  Import failed or already in state"
+              if aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing crawlinghub-web-api-prod ECR repository..."
+                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed or already in state"
+              fi
+              if aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing crawlinghub-scheduler-prod ECR repository..."
+                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
               fi
             fi
 
@@ -129,11 +136,11 @@ jobs:
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Modules Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ GitHub OIDC Provider" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECR Repository" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS Cluster & Services" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECR Repositories (web-api, scheduler)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Cluster" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ElastiCache Redis" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SQS Queues" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Service: web-api" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Service: scheduler" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
           echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
