@@ -17,7 +17,6 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
 
   # ============================================================================
   # Core Infrastructure
@@ -30,7 +29,6 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
 
   # ElastiCache (Redis)
   - name: crawlinghub-elasticache-prod
@@ -39,7 +37,6 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
 
   # ============================================================================
   # Application Infrastructure
@@ -52,7 +49,6 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
 
   # ECS Service for scheduler (No ALB, desired=1)
   - name: crawlinghub-ecs-scheduler-prod
@@ -61,7 +57,6 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
 
   # ============================================================================
   # Event-Driven Infrastructure
@@ -74,4 +69,3 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
-    apply_requirements: ["approved", "mergeable"]
