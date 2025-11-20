@@ -37,7 +37,7 @@ resource "aws_security_group" "redis" {
 # ElastiCache Module (from infrastructure repo)
 # ========================================
 module "redis" {
-  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/elasticache?ref=modules/elasticache/v1.0.0"
+  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/elasticache?ref=main"
 
   cluster_id = "${var.project_name}-redis-${var.environment}"
 
