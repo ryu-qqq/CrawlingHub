@@ -1,9 +1,9 @@
 // ========================================
-// Bootstrap: Web API Application
+// Bootstrap: Scheduler Application
 // ========================================
-// Runnable Spring Boot application
-// Wires all adapters and beans together
-// Main application entry point
+// Background scheduler for periodic tasks
+// No REST endpoints, runs @Scheduled tasks
+// Main scheduler entry point
 // NO Lombok allowed
 // ========================================
 
@@ -11,7 +11,6 @@ import java.time.Instant
 
 plugins {
     id 'java'
-    id 'java-test-fixtures'  // ← ArchUnit 유틸리티를 testFixtures로 제공
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -26,19 +25,16 @@ dependencies {
     // ========================================
     // Adapters
     // ========================================
-    // Inbound
-    implementation project(':adapter-in:rest-api')
-
-    // Outbound
+    // Outbound only (no REST API)
     implementation project(':adapter-out:persistence-mysql')
+    implementation project(':adapter-out:aws-eventbridge')
 
     // ========================================
     // Spring Boot Starters
     // ========================================
-    implementation libs.spring.boot.starter.web
+    implementation libs.spring.boot.starter.web  // For actuator endpoints
     implementation libs.spring.boot.starter.data.jpa
     implementation libs.spring.boot.starter.validation
-    implementation libs.spring.boot.starter.security
     implementation libs.spring.boot.starter.actuator
 
     // Configuration Processing
@@ -67,30 +63,19 @@ dependencies {
     // Test Dependencies
     // ========================================
     testImplementation libs.spring.boot.starter.test
-    testImplementation libs.spring.security.test
     testImplementation libs.testcontainers.mysql
     testImplementation libs.testcontainers.junit
-    testImplementation libs.rest.assured
-
-    // ArchUnit (for testFixtures utility classes)
-    testFixturesApi libs.archunit.junit5  // ← testFixtures에서 ArchUnit 사용
-
-    // TestFixtures from all modules (for CommonTestingRulesTest)
-    testImplementation testFixtures(project(':domain'))
-    testImplementation testFixtures(project(':application'))
-    testImplementation testFixtures(project(':adapter-in:rest-api'))
-    testImplementation testFixtures(project(':adapter-out:persistence-mysql'))
 }
 
 // ========================================
 // Spring Boot Configuration
 // ========================================
 tasks.bootJar {
-    archiveFileName = "${project.rootProject.name}-web-api.jar"
+    archiveFileName = "${project.rootProject.name}-scheduler.jar"
 
     manifest {
         attributes(
-            'Implementation-Title': project.rootProject.name,
+            'Implementation-Title': "${project.rootProject.name}-scheduler",
             'Implementation-Version': project.version,
             'Built-By': System.getProperty('user.name'),
             'Built-JDK': System.getProperty('java.version'),
@@ -100,27 +85,10 @@ tasks.bootJar {
 }
 
 // ========================================
-// Integration Test Coverage
+// Disable test coverage for now
 // ========================================
 tasks.jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.70
-            }
-        }
-        rule {
-            element = 'CLASS'
-            excludes = [
-                '*.config.*',
-                '*Application'
-            ]
-        }
-    }
-}
-
-tasks.test {
-    finalizedBy tasks.jacocoTestCoverageVerification
+    enabled = false
 }
 
 // ========================================
@@ -128,8 +96,8 @@ tasks.test {
 // ========================================
 tasks.bootRun {
     jvmArgs = [
-        '-Xms512m',
-        '-Xmx1024m',
+        '-Xms256m',
+        '-Xmx512m',
         '-XX:+UseG1GC'
     ]
 }

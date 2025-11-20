@@ -1,0 +1,93 @@
+version: 3
+
+automerge: false
+delete_source_branch_on_merge: false
+parallel_plan: true
+parallel_apply: false
+
+projects:
+  # ============================================================================
+  # Container Registry
+  # ============================================================================
+
+  # ECR repositories for web-api and scheduler
+  - name: crawlinghub-ecr-prod
+    dir: terraform/ecr
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+  # ============================================================================
+  # Core Infrastructure
+  # ============================================================================
+
+  # ECS Cluster (dedicated for crawlinghub)
+  - name: crawlinghub-ecs-cluster-prod
+    dir: terraform/ecs-cluster
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+  # ElastiCache (Redis)
+  - name: crawlinghub-elasticache-prod
+    dir: terraform/elasticache
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+  # ============================================================================
+  # Application Infrastructure
+  # ============================================================================
+
+  # ECS Service for web-api (ALB + Auto Scaling)
+  - name: crawlinghub-ecs-web-api-prod
+    dir: terraform/ecs-web-api
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+  # ECS Service for scheduler (No ALB, desired=1)
+  - name: crawlinghub-ecs-scheduler-prod
+    dir: terraform/ecs-scheduler
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+  # ============================================================================
+  # Event-Driven Infrastructure
+  # ============================================================================
+
+  # EventBridge for scheduled crawling tasks
+  - name: crawlinghub-eventbridge-prod
+    dir: terraform/eventbridge
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+    apply_requirements: ["approved", "mergeable"]
+    workflow: default
+
+workflows:
+  default:
+    plan:
+      steps:
+        - init
+        - plan
+    apply:
+      steps:
+        - apply

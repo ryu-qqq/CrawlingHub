@@ -23,6 +23,16 @@ jobs:
         module:
           - name: ecr
             dir: terraform/ecr
+          - name: ecs-cluster
+            dir: terraform/ecs-cluster
+          - name: elasticache
+            dir: terraform/elasticache
+          - name: ecs-web-api
+            dir: terraform/ecs-web-api
+          - name: ecs-scheduler
+            dir: terraform/ecs-scheduler
+          - name: eventbridge
+            dir: terraform/eventbridge
 
     steps:
       - name: Checkout code
@@ -93,7 +103,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const modules = ['ecr'];
+            const modules = ['ecr', 'ecs-cluster', 'elasticache', 'ecs-web-api', 'ecs-scheduler'];
             let planSummary = `#### CrawlingHub Terraform Plan 📋\n\n`;
             planSummary += `**Environment**: Production\n`;
             planSummary += `**Modules**: ${modules.length}\n\n`;
