@@ -1,7 +1,7 @@
 # ========================================
 # ElastiCache (Redis) for Crawlinghub
 # ========================================
-# Dedicated Redis cluster using infrastructure module
+# Dedicated Redis cluster
 # Naming: crawlinghub-redis-prod
 # ========================================
 
@@ -34,41 +34,56 @@ resource "aws_security_group" "redis" {
 }
 
 # ========================================
-# ElastiCache Module (from infrastructure repo)
+# ElastiCache Subnet Group
 # ========================================
-module "redis" {
-  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/elasticache?ref=main"
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "${var.project_name}-redis-subnet-${var.environment}"
+  subnet_ids = local.private_subnets
 
-  cluster_id = "${var.project_name}-redis-${var.environment}"
+  tags = {
+    Name        = "${var.project_name}-redis-subnet-${var.environment}"
+    Environment = var.environment
+  }
+}
 
-  # Engine Configuration
-  engine         = "redis"
-  engine_version = "7.0"
-  node_type      = var.redis_node_type
-  num_cache_nodes = 1
+# ========================================
+# ElastiCache Parameter Group
+# ========================================
+resource "aws_elasticache_parameter_group" "redis" {
+  name   = "${var.project_name}-redis-params-${var.environment}"
+  family = "redis7"
 
-  # Network Configuration
-  subnet_ids         = local.private_subnets
-  security_group_ids = [aws_security_group.redis.id]
+  parameter {
+    name  = "maxmemory-policy"
+    value = "allkeys-lru"
+  }
 
-  # Parameter Group
-  parameter_group_family = "redis7"
-  parameters = [
-    {
-      name  = "maxmemory-policy"
-      value = "allkeys-lru"
-    }
-  ]
+  tags = {
+    Name        = "${var.project_name}-redis-params-${var.environment}"
+    Environment = var.environment
+  }
+}
 
-  # Maintenance and Backup
+# ========================================
+# ElastiCache Cluster
+# ========================================
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id           = "${var.project_name}-redis-${var.environment}"
+  engine               = "redis"
+  engine_version       = "7.0"
+  node_type            = var.redis_node_type
+  num_cache_nodes      = 1
+  parameter_group_name = aws_elasticache_parameter_group.redis.name
+  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  security_group_ids   = [aws_security_group.redis.id]
+  port                 = 6379
+
   snapshot_retention_limit = 1
   snapshot_window          = "05:00-09:00"
   maintenance_window       = "mon:09:00-mon:10:00"
 
-  # Disable CloudWatch Alarms for now
-  enable_cloudwatch_alarms = false
-
-  common_tags = {
+  tags = {
+    Name        = "${var.project_name}-redis-${var.environment}"
     Environment = var.environment
     Service     = "${var.project_name}-redis-${var.environment}"
   }
@@ -88,12 +103,12 @@ variable "redis_node_type" {
 # ========================================
 output "redis_endpoint" {
   description = "Redis primary endpoint"
-  value       = module.redis.cluster_endpoint
+  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
 }
 
 output "redis_port" {
   description = "Redis port"
-  value       = module.redis.port
+  value       = aws_elasticache_cluster.redis.port
 }
 
 output "redis_security_group_id" {
