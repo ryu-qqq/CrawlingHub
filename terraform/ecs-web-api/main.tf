@@ -85,23 +85,34 @@ resource "aws_security_group" "ecs_web_api" {
 # Application Load Balancer
 # ========================================
 
-module "alb" {
-  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/alb?ref=main"
-
+# ========================================
+# Application Load Balancer
+# ========================================
+resource "aws_lb" "web_api" {
   name               = "${var.project_name}-alb-${var.environment}"
-  vpc_id             = local.vpc_id
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
   subnets            = local.public_subnets
-  security_group_ids = [aws_security_group.alb.id]
 
-  certificate_arn = local.certificate_arn
+  enable_deletion_protection = false
 
-  # Target Group for web-api
-  target_group_name     = "${var.project_name}-web-api-tg-${var.environment}"
-  target_group_port     = 8080
-  target_group_protocol = "HTTP"
-  target_type           = "ip"
+  tags = {
+    Name        = "${var.project_name}-alb-${var.environment}"
+    Environment = var.environment
+    Service     = "${var.project_name}-web-api-${var.environment}"
+  }
+}
 
-  health_check = {
+# Target Group
+resource "aws_lb_target_group" "web_api" {
+  name        = "${var.project_name}-web-api-tg-${var.environment}"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = local.vpc_id
+  target_type = "ip"
+
+  health_check {
     enabled             = true
     healthy_threshold   = 2
     unhealthy_threshold = 3
@@ -111,9 +122,40 @@ module "alb" {
     matcher             = "200"
   }
 
-  common_tags = {
+  tags = {
+    Name        = "${var.project_name}-web-api-tg-${var.environment}"
     Environment = var.environment
-    Service     = "${var.project_name}-web-api-${var.environment}"
+  }
+}
+
+# HTTPS Listener
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.web_api.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = local.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web_api.arn
+  }
+}
+
+# HTTP to HTTPS Redirect
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.web_api.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 }
 
@@ -127,8 +169,8 @@ resource "aws_route53_record" "web_api" {
   type    = "A"
 
   alias {
-    name                   = module.alb.dns_name
-    zone_id                = module.alb.zone_id
+    name                   = aws_lb.web_api.dns_name
+    zone_id                = aws_lb.web_api.zone_id
     evaluate_target_health = true
   }
 }
@@ -331,31 +373,73 @@ resource "aws_ecs_task_definition" "web_api" {
 # ECS Service
 # ========================================
 
-module "ecs_service_web_api" {
-  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/ecs-service?ref=main"
+resource "aws_ecs_service" "web_api" {
+  name            = "${var.project_name}-web-api-${var.environment}"
+  cluster         = data.aws_ecs_cluster.main.arn
+  task_definition = aws_ecs_task_definition.web_api.arn
+  desired_count   = var.web_api_desired_count
+  launch_type     = "FARGATE"
 
-  cluster_id         = data.aws_ecs_cluster.main.arn
-  service_name       = "${var.project_name}-web-api-${var.environment}"
-  task_definition    = aws_ecs_task_definition.web_api.arn
-  desired_count      = var.web_api_desired_count
-  subnets            = local.private_subnets
-  security_group_ids = [aws_security_group.ecs_web_api.id]
+  network_configuration {
+    subnets          = local.private_subnets
+    security_groups  = [aws_security_group.ecs_web_api.id]
+    assign_public_ip = false
+  }
 
-  load_balancer = {
-    target_group_arn = module.alb.target_group_arn
+  load_balancer {
+    target_group_arn = aws_lb_target_group.web_api.arn
     container_name   = "web-api"
     container_port   = 8080
   }
 
-  # Auto Scaling
-  enable_autoscaling  = true
-  min_capacity        = 2
-  max_capacity        = 10
-  cpu_target_value    = 70
-  memory_target_value = 80
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
 
-  common_tags = {
+  tags = {
     Environment = var.environment
     Service     = "${var.project_name}-web-api-${var.environment}"
+  }
+}
+
+# ========================================
+# Auto Scaling
+# ========================================
+resource "aws_appautoscaling_target" "web_api" {
+  max_capacity       = 10
+  min_capacity       = 2
+  resource_id        = "service/${data.aws_ecs_cluster.main.cluster_name}/${aws_ecs_service.web_api.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "web_api_cpu" {
+  name               = "${var.project_name}-web-api-cpu-${var.environment}"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.web_api.resource_id
+  scalable_dimension = aws_appautoscaling_target.web_api.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.web_api.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 70
+  }
+}
+
+resource "aws_appautoscaling_policy" "web_api_memory" {
+  name               = "${var.project_name}-web-api-memory-${var.environment}"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.web_api.resource_id
+  scalable_dimension = aws_appautoscaling_target.web_api.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.web_api.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value = 80
   }
 }
