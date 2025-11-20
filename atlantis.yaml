@@ -18,7 +18,6 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
 
   # ============================================================================
   # Core Infrastructure
@@ -32,7 +31,6 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
 
   # ElastiCache (Redis)
   - name: crawlinghub-elasticache-prod
@@ -42,7 +40,6 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
 
   # ============================================================================
   # Application Infrastructure
@@ -56,7 +53,6 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
 
   # ECS Service for scheduler (No ALB, desired=1)
   - name: crawlinghub-ecs-scheduler-prod
@@ -66,7 +62,6 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
 
   # ============================================================================
   # Event-Driven Infrastructure
@@ -80,14 +75,3 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
     apply_requirements: ["approved", "mergeable"]
-    workflow: default
-
-workflows:
-  default:
-    plan:
-      steps:
-        - init
-        - plan
-    apply:
-      steps:
-        - apply
