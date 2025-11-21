@@ -1,23 +1,13 @@
 package com.ryuqq.crawlinghub.application.seller.dto.command;
 
 /**
- * 셀러 등록 UseCase 입력 DTO.
+ * Register Seller Command
  *
- * @param mustItSellerId 머스트잇 셀러 식별자
- * @param sellerName 셀러명
+ * <p>셀러 등록 명령 데이터
+ *
+ * @param mustItSellerName 머스트잇 셀러 이름 (MustIt 시스템에 등록된 이름)
+ * @param sellerName 셀러 이름 (자사 커머스에 등록된 이름)
+ * @author development-team
+ * @since 1.0.0
  */
-public record RegisterSellerCommand(
-    Long mustItSellerId,
-    String sellerName
-) {
-
-    public RegisterSellerCommand {
-        if (mustItSellerId == null) {
-            throw new IllegalArgumentException("mustItSellerId must not be null");
-        }
-        if (sellerName == null || sellerName.isBlank()) {
-            throw new IllegalArgumentException("sellerName must not be blank");
-        }
-    }
-}
-
+public record RegisterSellerCommand(String mustItSellerName, String sellerName) {}

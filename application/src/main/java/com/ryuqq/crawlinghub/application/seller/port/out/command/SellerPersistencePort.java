@@ -4,9 +4,11 @@ import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 
 /**
- * Seller Aggregate 영속화를 담당하는 Command Outbound Port.
+ * Seller Persistence Port
  *
- * <p>Persistence Adapter는 이 Port를 구현하여 신규/수정 로직을 처리합니다.</p>
+ * <p>Seller Aggregate 영속성 관리 Port
+ *
+ * <p>단일 persist() 메서드로 생성/수정 모두 처리 (JPA ID 유무로 자동 판단)
  *
  * @author development-team
  * @since 1.0.0
@@ -14,13 +16,12 @@ import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 public interface SellerPersistencePort {
 
     /**
-     * Seller Aggregate를 저장한다.
+     * Seller 영속화
      *
-     * <p>ID가 없으면 신규 생성, 있으면 수정으로 처리한다.</p>
+     * <p>생성과 수정을 구분하지 않음 (JPA가 ID 유무로 판단)
      *
-     * @param seller 저장할 Seller Aggregate
-     * @return 저장된 Seller의 ID Value Object
+     * @param seller 영속화할 Seller Aggregate
+     * @return 저장된 Seller의 ID
      */
     SellerId persist(Seller seller);
 }
-
