@@ -1,55 +1,41 @@
-# ============================================================================
-# CRAWLINGHUB - ECR Repository
-# ============================================================================
-# Purpose: Docker 이미지 저장소
-# - Spring Boot 애플리케이션 이미지 저장 (web-api, scheduler, sqs-listener)
-# - 이미지 태깅: web-api-latest, scheduler-latest, sqs-listener-latest
-# - 라이프사이클: 최근 10개 이미지 유지
-# ============================================================================
+# ========================================
+# ECR Repositories for crawlinghub
+# ========================================
+# Container registries for:
+# - web-api: REST API server
+# - scheduler: Background scheduler
+# ========================================
 
-resource "aws_ecr_repository" "crawlinghub" {
-  name                 = "crawlinghub-prod"
+# ========================================
+# ECR Repository: web-api
+# ========================================
+resource "aws_ecr_repository" "web_api" {
+  name                 = "${var.project_name}-web-api-${var.environment}"
   image_tag_mutability = "MUTABLE"
 
-  # 이미지 스캔 설정 (보안 취약점 검사)
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  # 암호화 설정
-  encryption_configuration {
-    encryption_type = "KMS"
-    kms_key         = "arn:aws:kms:ap-northeast-2:646886795421:key/6ed5bf61-9e05-4bf0-ab5e-2233f3e57a1a"
-  }
-
   tags = {
-    Name        = "ecr-crawlinghub-prod"
-    Environment = "prod"
-    Service     = "crawlinghub"
-    ManagedBy   = "Terraform"
-    Component   = "container-registry"
-    Module      = "ecr/crawlinghub"
-    Owner       = "windsurf@ryuqqq.com"
-    CostCenter  = "engineering"
-    DataClass   = "confidential"
-    Lifecycle   = "production"
+    Environment = var.environment
+    Service     = "${var.project_name}-web-api-${var.environment}"
   }
 }
 
-# ECR 라이프사이클 정책 (이미지 정리)
-resource "aws_ecr_lifecycle_policy" "crawlinghub" {
-  repository = aws_ecr_repository.crawlinghub.name
+resource "aws_ecr_lifecycle_policy" "web_api" {
+  repository = aws_ecr_repository.web_api.name
 
   policy = jsonencode({
     rules = [
       {
         rulePriority = 1
-        description  = "최근 10개 이미지만 유지"
+        description  = "Keep last 30 tagged images"
         selection = {
           tagStatus     = "tagged"
-          tagPrefixList = ["v", "prod-", "release-"]
+          tagPrefixList = ["v", "prod", "latest"]
           countType     = "imageCountMoreThan"
-          countNumber   = 10
+          countNumber   = 30
         }
         action = {
           type = "expire"
@@ -57,7 +43,7 @@ resource "aws_ecr_lifecycle_policy" "crawlinghub" {
       },
       {
         rulePriority = 2
-        description  = "태그 없는 이미지 7일 후 삭제"
+        description  = "Delete untagged images older than 7 days"
         selection = {
           tagStatus   = "untagged"
           countType   = "sinceImagePushed"
@@ -72,28 +58,53 @@ resource "aws_ecr_lifecycle_policy" "crawlinghub" {
   })
 }
 
-# GitHub Actions용 ECR 접근 정책
-resource "aws_ecr_repository_policy" "crawlinghub_github_actions" {
-  repository = aws_ecr_repository.crawlinghub.name
+# ========================================
+# ECR Repository: scheduler
+# ========================================
+resource "aws_ecr_repository" "scheduler" {
+  name                 = "${var.project_name}-scheduler-${var.environment}"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Service     = "${var.project_name}-scheduler-${var.environment}"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "scheduler" {
+  repository = aws_ecr_repository.scheduler.name
 
   policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
+    rules = [
       {
-        Sid    = "AllowGitHubActions"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/GitHubActionsRole"
+        rulePriority = 1
+        description  = "Keep last 30 tagged images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["v", "prod", "latest"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 30
         }
-        Action = [
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload"
-        ]
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Delete untagged images older than 7 days"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 7
+        }
+        action = {
+          type = "expire"
+        }
       }
     ]
   })

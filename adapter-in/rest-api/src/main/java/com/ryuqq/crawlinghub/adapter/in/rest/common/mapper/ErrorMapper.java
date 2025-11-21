@@ -1,10 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.mapper;
 
-import com.ryuqq.crawlinghub.domain.common.DomainException;
-
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import java.net.URI;
 import java.util.Locale;
-
 import org.springframework.http.HttpStatus;
 
 public interface ErrorMapper {
@@ -16,5 +14,4 @@ public interface ErrorMapper {
 
     /** 매핑 결과 DTO */
     record MappedError(HttpStatus status, String title, String detail, URI type) {}
-
 }
