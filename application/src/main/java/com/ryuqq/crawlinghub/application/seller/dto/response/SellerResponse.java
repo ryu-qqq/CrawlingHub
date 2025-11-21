@@ -2,23 +2,24 @@ package com.ryuqq.crawlinghub.application.seller.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-
 /**
- * 셀러 기본 응답 DTO.
+ * Seller Response
+ *
+ * <p>셀러 상세 응답 데이터 (등록/수정 결과)
  *
  * @param sellerId 셀러 ID
- * @param mustItSellerId 머스트잇 셀러 식별자
- * @param sellerName 셀러명
- * @param status 상태
+ * @param mustItSellerName 머스트잇 셀러 이름
+ * @param sellerName 셀러 이름
+ * @param active 활성화 여부
  * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
+ * @author development-team
+ * @since 1.0.0
  */
 public record SellerResponse(
-    Long sellerId,
-    String mustItSellerId,
-    String sellerName,
-    SellerStatus status,
-    LocalDateTime createdAt
-) {
-}
-
+        Long sellerId,
+        String mustItSellerName,
+        String sellerName,
+        boolean active,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {}
