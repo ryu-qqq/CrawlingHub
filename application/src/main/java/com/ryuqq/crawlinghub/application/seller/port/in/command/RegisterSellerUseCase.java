@@ -4,16 +4,20 @@ import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerComman
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 
 /**
- * 셀러 등록 입력 Port.
+ * Register Seller UseCase (Command)
+ *
+ * <p>셀러 등록을 담당하는 Inbound Port
+ *
+ * @author development-team
+ * @since 1.0.0
  */
 public interface RegisterSellerUseCase {
 
     /**
-     * 셀러 등록을 수행한다.
+     * 셀러 등록
      *
      * @param command 등록 명령
-     * @return 등록된 셀러 응답
+     * @return 등록된 셀러 정보
      */
-    SellerResponse register(RegisterSellerCommand command);
+    SellerResponse execute(RegisterSellerCommand command);
 }
-

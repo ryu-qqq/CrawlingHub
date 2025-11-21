@@ -1,12 +1,9 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import java.util.Map;
 
-import com.ryuqq.crawlinghub.domain.common.DomainException;
-
-/**
- * 존재하지 않는 셀러를 조회했을 때 발생하는 예외입니다.
- */
+/** 존재하지 않는 셀러를 조회했을 때 발생하는 예외입니다. */
 public final class SellerNotFoundException extends DomainException {
 
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.SELLER_NOT_FOUND;
@@ -28,4 +25,3 @@ public final class SellerNotFoundException extends DomainException {
         return args;
     }
 }
-

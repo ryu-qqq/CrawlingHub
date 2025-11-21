@@ -37,7 +37,7 @@ dependencies {
 
     // Database Drivers (Runtime)
     runtimeOnly libs.mysql
-    runtimeOnly libs.h2 // For testing
+    testRuntimeOnly libs.h2 // For testing only - not included in production JAR
 
     // Connection Pooling
     implementation libs.hikaricp
