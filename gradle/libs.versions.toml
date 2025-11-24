@@ -19,7 +19,7 @@ querydsl = "5.1.0"
 hibernate = "6.4.4.Final"
 flyway = "10.10.0"
 postgresql = "42.7.3"
-mysql = "8.0.33"
+mysql = "8.4.0"
 h2 = "2.2.224"
 hikaricp = "5.1.0"
 
@@ -27,12 +27,6 @@ hikaricp = "5.1.0"
 # AWS SDK
 # ========================================
 awsSdk = "2.25.11"
-springCloudAws = "3.1.1"
-
-# ========================================
-# Resilience & Fault Tolerance
-# ========================================
-resilience4j = "2.1.0"
 
 # ========================================
 # Testing
@@ -42,6 +36,7 @@ assertj = "3.25.3"
 mockito = "5.11.0"
 testcontainers = "1.19.7"
 restAssured = "5.4.0"
+restdocs = "3.0.1"
 
 # ========================================
 # Architecture & Quality
@@ -51,6 +46,9 @@ checkstyle = "10.14.0"
 spotbugs = "4.8.3"
 spotbugsPlugin = "6.0.9"
 jacoco = "0.8.11"
+pmd = "7.0.0"
+pmdPlugin = "6.55.0"
+spotless = "7.0.0.BETA4"
 
 # ========================================
 # API Documentation
@@ -68,7 +66,6 @@ micrometer = "1.12.4"
 # ========================================
 commonsLang3 = "3.14.0"
 jackson = "2.17.0"
-guava = "33.0.0-jre"
 
 [libraries]
 # ========================================
@@ -81,7 +78,6 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
-spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 
 # ========================================
 # Spring Framework
@@ -90,6 +86,7 @@ spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
 spring-messaging = { module = "org.springframework:spring-messaging" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
+spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 
 # ========================================
 # QueryDSL
@@ -115,22 +112,7 @@ aws-bom = { module = "software.amazon.awssdk:bom", version.ref = "awsSdk" }
 aws-s3 = { module = "software.amazon.awssdk:s3" }
 aws-s3-transfer = { module = "software.amazon.awssdk:s3-transfer-manager" }
 aws-sqs = { module = "software.amazon.awssdk:sqs" }
-aws-eventbridge = { module = "software.amazon.awssdk:eventbridge" }
 aws-apache-client = { module = "software.amazon.awssdk:apache-client" }
-
-# ========================================
-# Spring Cloud AWS
-# ========================================
-spring-cloud-aws-starter-sqs = { module = "io.awspring.cloud:spring-cloud-aws-starter-sqs", version.ref = "springCloudAws" }
-spring-cloud-aws-sqs = { module = "io.awspring.cloud:spring-cloud-aws-starter-sqs", version.ref = "springCloudAws" }
-
-# ========================================
-# Resilience4j
-# ========================================
-resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
-resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
-resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
-resilience4j-timelimiter = { module = "io.github.resilience4j:resilience4j-timelimiter", version.ref = "resilience4j" }
 
 # ========================================
 # Testing
@@ -145,6 +127,7 @@ testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
 testcontainers-localstack = { module = "org.testcontainers:localstack", version.ref = "testcontainers" }
 rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
+spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc", version.ref = "restdocs" }
 
 # ========================================
 # Architecture Testing
@@ -164,8 +147,8 @@ springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-u
 # ========================================
 # Logging & Monitoring
 # ========================================
-slf4j-api = { module = "org.slf4j:slf4j-api" }
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogback" }
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
 # ========================================
@@ -174,7 +157,6 @@ micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version = "3.1.0" }
 
@@ -230,6 +212,5 @@ observability = [
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugsPlugin" }
-
-
-
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+# Note: PMD is a core Gradle plugin, applied via `id("pmd")` in build.gradle.kts

@@ -1,0 +1,73 @@
+version: 3
+
+automerge: false
+delete_source_branch_on_merge: false
+# Disable parallel plan to prevent plugin cache conflicts
+parallel_plan: false
+parallel_apply: false
+
+projects:
+  # ============================================================================
+  # Container Registry
+  # ============================================================================
+
+  # ECR repositories for web-api and scheduler
+  - name: crawlinghub-ecr-prod
+    dir: terraform/ecr
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ============================================================================
+  # Core Infrastructure
+  # ============================================================================
+
+  # ECS Cluster (dedicated for crawlinghub)
+  - name: crawlinghub-ecs-cluster-prod
+    dir: terraform/ecs-cluster
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ElastiCache (Redis)
+  - name: crawlinghub-elasticache-prod
+    dir: terraform/elasticache
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ============================================================================
+  # Application Infrastructure
+  # ============================================================================
+
+  # ECS Service for web-api (ALB + Auto Scaling)
+  - name: crawlinghub-ecs-web-api-prod
+    dir: terraform/ecs-web-api
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ECS Service for scheduler (No ALB, desired=1)
+  - name: crawlinghub-ecs-scheduler-prod
+    dir: terraform/ecs-scheduler
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # ============================================================================
+  # Event-Driven Infrastructure
+  # ============================================================================
+
+  # EventBridge for scheduled crawling tasks
+  # TODO: ECS 서비스 배포 후 활성화
+  # - name: crawlinghub-eventbridge-prod
+  #   dir: terraform/eventbridge
+  #   workspace: default
+  #   autoplan:
+  #     when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+  #     enabled: true

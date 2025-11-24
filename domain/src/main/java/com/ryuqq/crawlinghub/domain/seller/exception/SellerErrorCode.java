@@ -1,49 +1,22 @@
 package com.ryuqq.crawlinghub.domain.seller.exception;
 
-import com.ryuqq.crawlinghub.domain.common.ErrorCode;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 
-/**
- * Seller Bounded Context 전용 ErrorCode
- *
- * <p>Seller 도메인에서 발생하는 모든 비즈니스 예외의 에러 코드를 정의합니다.</p>
- *
- * <p><strong>코드 체계:</strong></p>
- * <ul>
- *   <li>SELLER-001 ~ SELLER-009: Not Found (404)</li>
- *   <li>SELLER-010 ~ SELLER-099: Conflict (409)</li>
- *   <li>SELLER-101 ~ SELLER-199: Bad Request (400)</li>
- * </ul>
- *
- * @author ryu-qqq
- * @since 2025-11-05
- */
+/** Seller Bounded Context에서 사용하는 ErrorCode Enum입니다. */
 public enum SellerErrorCode implements ErrorCode {
-
-    /**
-     * 셀러를 찾을 수 없음
-     */
-    SELLER_NOT_FOUND("SELLER-001", 404, "셀러를 찾을 수 없습니다", "Seller Not Found"),
-
-    /**
-     * 셀러가 비활성 상태
-     */
-    SELLER_INACTIVE("SELLER-010", 409, "셀러가 비활성 상태입니다", "Seller Inactive"),
-
-    /**
-     * 중복된 셀러 코드
-     */
-    DUPLICATE_SELLER_CODE("SELLER-011", 409, "이미 존재하는 셀러 코드입니다", "Duplicate Seller Code");
+    DUPLICATE_MUST_IT_SELLER_ID("SELLER-001", 409, "이미 등록된 머스트잇 셀러 ID입니다."),
+    DUPLICATE_SELLER_NAME("SELLER-002", 409, "이미 등록된 셀러 이름입니다."),
+    SELLER_HAS_ACTIVE_SCHEDULERS("SELLER-003", 400, "활성 상태의 스케줄러가 존재하여 셀러를 비활성화할 수 없습니다."),
+    SELLER_NOT_FOUND("SELLER-004", 404, "존재하지 않는 셀러입니다.");
 
     private final String code;
     private final int httpStatus;
     private final String message;
-    private final String title;
 
-    SellerErrorCode(String code, int httpStatus, String message, String title) {
+    SellerErrorCode(String code, int httpStatus, String message) {
         this.code = code;
         this.httpStatus = httpStatus;
         this.message = message;
-        this.title = title;
     }
 
     @Override
@@ -60,14 +33,4 @@ public enum SellerErrorCode implements ErrorCode {
     public String getMessage() {
         return message;
     }
-
-    /**
-     * HTTP 응답용 title 반환
-     *
-     * @return title (예: "Seller Not Found", "Seller Inactive")
-     */
-    public String getTitle() {
-        return title;
-    }
 }
-

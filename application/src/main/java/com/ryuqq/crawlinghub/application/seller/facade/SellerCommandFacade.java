@@ -1,67 +1,41 @@
 package com.ryuqq.crawlinghub.application.seller.facade;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
-import com.ryuqq.crawlinghub.application.seller.component.SellerManager;
-import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.port.in.RegisterSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.in.UpdateSellerStatusUseCase;
-import com.ryuqq.crawlinghub.domain.seller.MustItSeller;
-
-/**
- * SellerCommandFacade - Seller Command 작업 조율
- *
- * <p><strong>Facade 패턴 적용 ⭐</strong></p>
- * <ul>
- *   <li>여러 UseCase 조율</li>
- *   <li>트랜잭션 경계 관리</li>
- *   <li>Controller 의존성 감소</li>
- * </ul>
- *
- * @author ryu-qqq
- * @since 2025-11-05
- */
-@Service
+@Component
 public class SellerCommandFacade {
 
-    private final RegisterSellerUseCase registerSellerUseCase;
-    private final UpdateSellerStatusUseCase updateSellerStatusUseCase;
-    private final SellerManager sellerManager;
+    private final SellerTransactionManager transactionManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     public SellerCommandFacade(
-        RegisterSellerUseCase registerSellerUseCase,
-        UpdateSellerStatusUseCase updateSellerStatusUseCase,
-        SellerManager sellerManager
-    ) {
-        this.registerSellerUseCase = registerSellerUseCase;
-        this.updateSellerStatusUseCase = updateSellerStatusUseCase;
-        this.sellerManager = sellerManager;
+            SellerTransactionManager transactionManager, ApplicationEventPublisher eventPublisher) {
+        this.transactionManager = transactionManager;
+        this.eventPublisher = eventPublisher;
+    }
+
+    public Seller persist(Seller seller) {
+        transactionManager.persist(seller);
+        publishDomainEvents(seller);
+        return seller;
     }
 
     /**
-     * 셀러 등록 + 초기 이력 생성
+     * Domain Event 발행
      *
-     * <p>Facade가 여러 작업 조율:
-     * <ol>
-     *   <li>RegisterSellerUseCase 호출 (셀러 등록)</li>
-     *   <li>SellerManager를 통한 초기 이력 생성 (상품 수 0)</li>
-     * </ol>
+     * <p>Seller 내부에 쌓인 Domain Event를 Spring ApplicationEventPublisher로 발행
      *
-     * @param command 등록 Command
-     * @return SellerResponse
+     * <p>예: SellerDeActiveEvent → SellerDeactivatedEventHandler가 스케줄러 중지 처리
+     *
+     * <p><strong>중요</strong>: Spring Event는 구체 타입으로 매칭되므로 DomainEvent가 아닌 실제 이벤트 객체를 발행해야 함
+     *
+     * @param seller Domain Event를 보유한 Seller Aggregate
      */
-    @Transactional
-    public SellerResponse registerSellerWithInitialHistory(RegisterSellerCommand command) {
-        // 1. UseCase 호출
-        SellerResponse response = registerSellerUseCase.execute(command);
-
-        // 2. Manager를 통한 초기 이력 생성
-        MustItSeller seller = sellerManager.loadSeller(response.sellerId());
-        sellerManager.updateProductCountWithHistory(seller, 0);
-
-        return response;
+    private void publishDomainEvents(Seller seller) {
+        seller.getDomainEvents().forEach(eventPublisher::publishEvent);
+        seller.clearDomainEvents();
     }
 }
-

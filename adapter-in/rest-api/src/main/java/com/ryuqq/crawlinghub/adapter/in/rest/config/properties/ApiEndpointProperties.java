@@ -6,66 +6,66 @@ import org.springframework.stereotype.Component;
 /**
  * API 엔드포인트 경로 설정 Properties
  *
- * <p>REST API 엔드포인트 경로를 application.yml에서 중앙 관리합니다.</p>
+ * <p>REST API 엔드포인트 경로를 application.yml에서 중앙 관리합니다.
  *
- * <p><strong>설정 예시 (application.yml):</strong></p>
+ * <p><strong>주요 기능:</strong>
+ *
+ * <ul>
+ *   <li>Bounded Context별 엔드포인트 구조화
+ *   <li>버전 관리 용이 (v1 → v2 마이그레이션)
+ *   <li>환경별 엔드포인트 변경 가능
+ * </ul>
+ *
+ * <p><strong>설정 예시 (application.yml):</strong>
+ *
  * <pre>{@code
  * api:
  *   endpoints:
  *     base-v1: /api/v1
- *     example:
- *       base: /examples
+ *     seller:
+ *       base: /sellers
  *       by-id: /{id}
- *       admin-search: /admin/examples/search
+ *       status: /{id}/status
  * }</pre>
  *
- * <p><strong>사용 방법:</strong></p>
+ * <p><strong>사용 방법:</strong>
+ *
  * <pre>{@code
  * @RestController
- * @RequestMapping("${api.endpoints.base-v1}")
- * public class ExampleController {
- *     private final ApiEndpointProperties endpoints;
- *
- *     @GetMapping("${api.endpoints.example.base}")
- *     public ResponseEntity<?> searchExamples() { ... }
+ * @RequestMapping("${api.endpoints.base-v1}${api.endpoints.seller.base}")
+ * public class SellerController {
+ *     // GET /api/v1/sellers/{id}
+ *     @GetMapping("${api.endpoints.seller.by-id}")
+ *     public ResponseEntity<?> getSeller(@PathVariable Long id) { ... }
  * }
  * }</pre>
  *
- * @author windsurf
+ * @author development-team
  * @since 1.0.0
  */
 @Component
 @ConfigurationProperties(prefix = "api.endpoints")
 public class ApiEndpointProperties {
 
-    /**
-     * API v1 베이스 경로 (기본값: /api/v1)
-     */
+    /** API v1 베이스 경로 (기본값: /api/v1) */
     private String baseV1 = "/api/v1";
 
-    /**
-     * Example 도메인 엔드포인트 설정
-     */
-    private ExampleEndpoints example = new ExampleEndpoints();
+    /** Seller 도메인 엔드포인트 설정 */
+    private SellerEndpoints seller = new SellerEndpoints();
 
-    /**
-     * Example 도메인 엔드포인트 경로
-     */
-    public static class ExampleEndpoints {
-        /**
-         * Example 기본 경로 (기본값: /examples)
-         */
-        private String base = "/examples";
+    /** Schedule 도메인 엔드포인트 설정 */
+    private ScheduleEndpoints schedule = new ScheduleEndpoints();
 
-        /**
-         * Example ID 조회 경로 (기본값: /{id})
-         */
+    /** Seller 도메인 엔드포인트 경로 */
+    public static class SellerEndpoints {
+        /** Seller 기본 경로 (기본값: /sellers) */
+        private String base = "/sellers";
+
+        /** Seller ID 조회 경로 (기본값: /{id}) */
         private String byId = "/{id}";
 
-        /**
-         * Example 관리자 검색 경로 (기본값: /admin/examples/search)
-         */
-        private String adminSearch = "/admin/examples/search";
+        /** Seller 상태 변경 경로 (기본값: /{id}/status) */
+        private String status = "/{id}/status";
 
         public String getBase() {
             return base;
@@ -83,12 +83,37 @@ public class ApiEndpointProperties {
             this.byId = byId;
         }
 
-        public String getAdminSearch() {
-            return adminSearch;
+        public String getStatus() {
+            return status;
         }
 
-        public void setAdminSearch(String adminSearch) {
-            this.adminSearch = adminSearch;
+        public void setStatus(String status) {
+            this.status = status;
+        }
+    }
+
+    /** Schedule 도메인 엔드포인트 경로 */
+    public static class ScheduleEndpoints {
+        /** Schedule 기본 경로 (기본값: /schedules) */
+        private String base = "/schedules";
+
+        /** Schedule ID 조회 경로 (기본값: /{id}) */
+        private String byId = "/{id}";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getById() {
+            return byId;
+        }
+
+        public void setById(String byId) {
+            this.byId = byId;
         }
     }
 
@@ -100,11 +125,19 @@ public class ApiEndpointProperties {
         this.baseV1 = baseV1;
     }
 
-    public ExampleEndpoints getExample() {
-        return example;
+    public SellerEndpoints getSeller() {
+        return seller;
     }
 
-    public void setExample(ExampleEndpoints example) {
-        this.example = example;
+    public void setSeller(SellerEndpoints seller) {
+        this.seller = seller;
+    }
+
+    public ScheduleEndpoints getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(ScheduleEndpoints schedule) {
+        this.schedule = schedule;
     }
 }

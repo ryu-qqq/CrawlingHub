@@ -1,100 +1,45 @@
-# ============================================================================
-# CRAWLINGHUB - ECR Repository
-# ============================================================================
-# Purpose: Docker 이미지 저장소
-# - Spring Boot 애플리케이션 이미지 저장 (web-api, scheduler, sqs-listener)
-# - 이미지 태깅: web-api-latest, scheduler-latest, sqs-listener-latest
-# - 라이프사이클: 최근 10개 이미지 유지
-# ============================================================================
+# ========================================
+# ECR Repositories for crawlinghub (using Infrastructure module)
+# ========================================
+# Container registries for:
+# - web-api: REST API server
+# - scheduler: Background scheduler
+# ========================================
 
-resource "aws_ecr_repository" "crawlinghub" {
-  name                 = "crawlinghub-prod"
-  image_tag_mutability = "MUTABLE"
+# ========================================
+# ECR Repository: web-api
+# ========================================
+module "ecr_web_api" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecr?ref=main"
 
-  # 이미지 스캔 설정 (보안 취약점 검사)
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+  name = "${var.project_name}-web-api-${var.environment}"
 
-  # 암호화 설정
-  encryption_configuration {
-    encryption_type = "KMS"
-    kms_key         = "arn:aws:kms:ap-northeast-2:646886795421:key/6ed5bf61-9e05-4bf0-ab5e-2233f3e57a1a"
-  }
+  # KMS encryption: null = AES256 (default), provide ARN for KMS encryption
+  # kms_key_arn = data.terraform_remote_state.kms.outputs.ecr_key_arn
+  kms_key_arn = null
 
-  tags = {
-    Name        = "ecr-crawlinghub-prod"
-    Environment = "prod"
-    Service     = "crawlinghub"
-    ManagedBy   = "Terraform"
-    Component   = "container-registry"
-    Module      = "ecr/crawlinghub"
-    Owner       = "windsurf@ryuqqq.com"
-    CostCenter  = "engineering"
-    DataClass   = "confidential"
-    Lifecycle   = "production"
-  }
+  environment  = var.environment
+  service_name = "${var.project_name}-web-api"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
 }
 
-# ECR 라이프사이클 정책 (이미지 정리)
-resource "aws_ecr_lifecycle_policy" "crawlinghub" {
-  repository = aws_ecr_repository.crawlinghub.name
+# ========================================
+# ECR Repository: scheduler
+# ========================================
+module "ecr_scheduler" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecr?ref=main"
 
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "최근 10개 이미지만 유지"
-        selection = {
-          tagStatus     = "tagged"
-          tagPrefixList = ["v", "prod-", "release-"]
-          countType     = "imageCountMoreThan"
-          countNumber   = 10
-        }
-        action = {
-          type = "expire"
-        }
-      },
-      {
-        rulePriority = 2
-        description  = "태그 없는 이미지 7일 후 삭제"
-        selection = {
-          tagStatus   = "untagged"
-          countType   = "sinceImagePushed"
-          countUnit   = "days"
-          countNumber = 7
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
+  name = "${var.project_name}-scheduler-${var.environment}"
 
-# GitHub Actions용 ECR 접근 정책
-resource "aws_ecr_repository_policy" "crawlinghub_github_actions" {
-  repository = aws_ecr_repository.crawlinghub.name
+  # KMS encryption: null = AES256 (default), provide ARN for KMS encryption
+  # kms_key_arn = data.terraform_remote_state.kms.outputs.ecr_key_arn
+  kms_key_arn = null
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AllowGitHubActions"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/GitHubActionsRole"
-        }
-        Action = [
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload"
-        ]
-      }
-    ]
-  })
+  environment  = var.environment
+  service_name = "${var.project_name}-scheduler"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
 }

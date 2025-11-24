@@ -1,39 +1,20 @@
 package com.ryuqq.crawlinghub.domain.schedule.exception;
 
-import com.ryuqq.crawlinghub.domain.common.ErrorCode;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 
-/**
- * Schedule Bounded Context 전용 ErrorCode
- *
- * <p>Schedule 도메인에서 발생하는 모든 비즈니스 예외의 에러 코드를 정의합니다.</p>
- *
- * <p><strong>코드 체계:</strong></p>
- * <ul>
- *   <li>SCHEDULE-001 ~ SCHEDULE-009: Not Found (404)</li>
- *   <li>SCHEDULE-010 ~ SCHEDULE-099: Conflict (409)</li>
- *   <li>SCHEDULE-101 ~ SCHEDULE-199: Bad Request (400)</li>
- * </ul>
- *
- * @author ryu-qqq
- * @since 2025-11-05
- */
+/** Schedule Bounded Context에서 사용하는 ErrorCode Enum입니다. */
 public enum ScheduleErrorCode implements ErrorCode {
-
-    /**
-     * Placeholder 예외 (임시)
-     */
-    SCHEDULE_PLACEHOLDER("SCHEDULE-001", 404, "Placeholder exception", "Schedule Placeholder");
+    CRAWL_SCHEDULER_NOT_FOUND("SCHEDULE-001", 404, "존재하지 않는 크롤 스케줄러입니다."),
+    DUPLICATE_SCHEDULER_NAME("SCHEDULE-002", 409, "이미 존재하는 스케줄러 이름입니다.");
 
     private final String code;
     private final int httpStatus;
     private final String message;
-    private final String title;
 
-    ScheduleErrorCode(String code, int httpStatus, String message, String title) {
+    ScheduleErrorCode(String code, int httpStatus, String message) {
         this.code = code;
         this.httpStatus = httpStatus;
         this.message = message;
-        this.title = title;
     }
 
     @Override
@@ -50,14 +31,4 @@ public enum ScheduleErrorCode implements ErrorCode {
     public String getMessage() {
         return message;
     }
-
-    /**
-     * HTTP 응답용 title 반환
-     *
-     * @return title (예: "Schedule Placeholder")
-     */
-    public String getTitle() {
-        return title;
-    }
 }
-
