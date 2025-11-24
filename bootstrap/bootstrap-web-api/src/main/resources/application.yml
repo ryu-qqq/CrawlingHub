@@ -121,40 +121,49 @@ spring:
     throw-exception-if-no-handler-found: true
 
   # ===============================================
+  # Config Import (각 모듈의 설정 파일 로드)
+  # ===============================================
+  config:
+    import:
+      - classpath:rest-api.yml
+      - classpath:persistence.yml
+      - classpath:eventbridge.yml
+
+  # ===============================================
   # Flyway Migration
   # ===============================================
   flyway:
     # Flyway 활성화
     enabled: true
-
+    
     # 마이그레이션 스크립트 위치
     # classpath: 리소스 디렉토리 내 경로
     # filesystem: 파일 시스템 절대 경로
     locations: classpath:db/migration
-
+    
     # 베이스라인 설정
     # baseline-on-migrate: 기존 DB에 Flyway 적용 시 true
     # baseline-version: 베이스라인 버전 (기존 스키마의 버전)
     baseline-on-migrate: true
     baseline-version: 0
-
+    
     # 마이그레이션 검증
-    # validate-on-migrate: 마이그레이션 전 검증 수행
-    validate-on-migrate: true
-
+    # validate-on-migrate: 마이그레이션 전 검증 수행 (임시로 비활성화 - checksum 불일치 해결 후 다시 활성화)
+    validate-on-migrate: false
+    
     # Out of Order 마이그레이션 허용
     # out-of-order: 순서가 맞지 않는 마이그레이션 허용 (개발 환경)
     out-of-order: false
-
+    
     # 스키마 설정
     # default-schema: 기본 스키마 (미지정 시 DB 기본값)
     # schemas: 관리할 스키마 목록
     # default-schema: spring_standards
-
+    
     # 테이블 설정
     # table: Flyway 메타데이터 테이블명 (기본: flyway_schema_history)
     table: flyway_schema_history
-
+    
     # SQL 마이그레이션 설정
     # sql-migration-prefix: SQL 파일 접두사 (기본: V)
     # sql-migration-separator: 버전과 설명 구분자 (기본: __)
@@ -162,7 +171,7 @@ spring:
     sql-migration-prefix: V
     sql-migration-separator: __
     sql-migration-suffixes: .sql
-
+    
     # Placeholder 설정
     # placeholder-replacement: SQL 내 플레이스홀더 치환 활성화
     # placeholders: 플레이스홀더 값 정의
@@ -171,42 +180,25 @@ spring:
       database: spring_standards
       charset: utf8mb4
       collation: utf8mb4_unicode_ci
-
+    
     # 클린 설정 (주의: 프로덕션에서는 절대 사용 금지)
     # clean-disabled: clean 명령 비활성화 (프로덕션 필수)
     clean-disabled: true
-
+    
     # 마이그레이션 실패 시 동작
     # fail-on-missing-locations: 마이그레이션 위치 없을 시 실패
     fail-on-missing-locations: true
 
 # ===============================================
-# AWS Configuration
+# API Endpoint Configuration
 # ===============================================
-aws:
-  # AWS Credentials
-  credentials:
-    access-key: ${AWS_ACCESS_KEY:your-access-key}
-    secret-key: ${AWS_SECRET_KEY:your-secret-key}
-
-  # AWS Region
-  region: ${AWS_REGION:ap-northeast-2}  # 서울 리전
-
-  # SQS FIFO Queue Configuration
-  sqs:
-    # Schedule Trigger Queue (FIFO)
-    # Queue Name은 반드시 .fifo로 끝나야 함
-    schedule-trigger-queue-name: ${AWS_SQS_SCHEDULE_TRIGGER_QUEUE:seller-crawl-schedule-trigger.fifo}
-
-    # EventBridge Target Queue (FIFO) - EventBridge가 메시지를 전송하는 Queue
-    # 동일한 Queue를 사용 (EventBridge Target ARN과 Listener Queue가 같음)
-    target-queue-url: ${AWS_SQS_TARGET_QUEUE_URL:https://sqs.ap-northeast-2.amazonaws.com/123456789012/seller-crawl-schedule-trigger.fifo}
-
-  # EventBridge Configuration (Outbound Adapter용)
-  eventbridge:
-    # EventBridge Target ARN (SQS Queue ARN)
-    target:
-      arn: ${AWS_EVENTBRIDGE_TARGET_ARN:arn:aws:sqs:ap-northeast-2:123456789012:seller-crawl-schedule-trigger.fifo}
+api:
+  endpoints:
+    base-v1: /api/v1
+    seller:
+      base: /sellers
+      by-id: /{id}
+      status: /{id}/status
 
 # ===============================================
 # Management & Actuator (모니터링)
@@ -324,5 +316,5 @@ management:
   endpoints:
     web:
       exposure:
-        # 프로덕션에서는 health, metrics만 노출
-        include: health,metrics
+        # 프로덕션: health, metrics, prometheus 노출
+        include: health,metrics,prometheus

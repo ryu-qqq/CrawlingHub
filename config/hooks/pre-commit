@@ -107,6 +107,33 @@ else
 fi
 
 # ========================================
+# Spotless auto-format for changed Java files
+# ========================================
+
+echo ""
+log_info "Applying Spotless formatting for changed Java files..."
+
+# Only run if any Java files are staged
+if echo "$CHANGED_FILES" | grep -q "\.java$"; then
+  # Apply formatting project-wide (adjust to module-specific if desired)
+  if ./gradlew -q spotlessApply --no-daemon; then
+    log_success "Spotless formatting applied"
+
+    # Re-add formatted Java files to index
+    echo "$CHANGED_FILES" | grep "\.java$" | while read -r f; do
+      if [ -f "$f" ]; then
+        git add "$f"
+      fi
+    done
+  else
+    log_error "Spotless formatting failed"
+    exit 1
+  fi
+else
+  log_info "No Java files to format"
+fi
+
+# ========================================
 # Run Gradle Quality Checks
 # ========================================
 

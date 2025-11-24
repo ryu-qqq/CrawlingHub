@@ -1,58 +1,79 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.config;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-
 /**
- * JPA Configuration (Persistence Layer)
+ * JpaConfig - JPA 및 QueryDSL 설정
  *
- * <p><strong>역할</strong>: JPA Entity 스캔 및 Repository 활성화</p>
- * <p><strong>위치</strong>: adapter-out/persistence-mysql/config/</p>
+ * <p>Spring Data JPA와 QueryDSL을 위한 설정을 제공합니다.
  *
- * <h3>설정 내용</h3>
+ * <p><strong>주요 기능:</strong>
+ *
  * <ul>
- *   <li>✅ Entity 스캔 경로 지정: {@code com.ryuqq.fileflow.adapter.out.persistence.mysql}</li>
- *   <li>✅ JPA Repository 활성화</li>
- *   <li>✅ Transaction Management 활성화</li>
+ *   <li>JPAQueryFactory 빈 등록 (QueryDSL 사용)
+ *   <li>JPA Repository 스캔 경로 설정
+ *   <li>JPA Auditing 활성화 (생성/수정 일시 자동 관리)
+ *   <li>트랜잭션 관리 활성화
  * </ul>
  *
- * <p><strong>주의사항</strong>:
- * <ul>
- *   <li>Entity 패키지는 {@code adapter.out.persistence.mysql.*.entity} 구조</li>
- *   <li>Repository 패키지는 {@code adapter.out.persistence.mysql.*.repository} 구조</li>
- *   <li>{@code @Transactional}은 Application Layer에서 사용 (UseCase)</li>
- * </ul>
- * </p>
+ * <p><strong>QueryDSL 사용 이유:</strong>
  *
+ * <ul>
+ *   <li>타입 안전한 쿼리 작성
+ *   <li>컴파일 타임 오류 검증
+ *   <li>복잡한 동적 쿼리 작성 용이
+ *   <li>IDE 자동완성 지원
+ *   <li>리팩토링 안전성
+ * </ul>
+ *
+ * <p><strong>JPA Auditing:</strong>
+ *
+ * <ul>
+ *   <li>@CreatedDate: 엔티티 생성 일시 자동 설정
+ *   <li>@LastModifiedDate: 엔티티 수정 일시 자동 설정
+ *   <li>@CreatedBy: 생성자 자동 설정 (AuditorAware 필요)
+ *   <li>@LastModifiedBy: 수정자 자동 설정 (AuditorAware 필요)
+ * </ul>
+ *
+ * <p><strong>트랜잭션 관리:</strong>
+ *
+ * <ul>
+ *   <li>Application Layer에서 @Transactional 사용
+ *   <li>Persistence Layer는 트랜잭션 경계 없음
+ *   <li>읽기 전용 트랜잭션 최적화 (@Transactional(readOnly = true))
+ * </ul>
+ *
+ * @author windsurf
  * @since 1.0.0
+ * @see JPAQueryFactory
+ * @see EnableJpaRepositories
+ * @see EnableJpaAuditing
  */
 @Configuration
-@EnableJpaRepositories(basePackages = "com.ryuqq.fileflow.adapter.out.persistence.mysql")
-@EntityScan(basePackages = "com.ryuqq.fileflow.adapter.out.persistence.mysql")
+@EnableJpaRepositories(
+        basePackages = "com.ryuqq.crawlinghub.adapter.out.persistence" // 전체 persistence 패키지
+        )
 @EnableJpaAuditing
 @EnableTransactionManagement
 public class JpaConfig {
-    // JPA 설정은 application.yml에서 관리
-    // 필요 시 EntityManagerFactory, DataSource 커스터마이징 가능
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    @PersistenceContext private EntityManager entityManager;
 
     /**
      * JPAQueryFactory 빈 등록
      *
-     * <p>QueryDSL을 사용하여 타입 안전한 쿼리를 작성하기 위한 Factory 클래스입니다.</p>
+     * <p>QueryDSL을 사용하여 타입 안전한 쿼리를 작성하기 위한 Factory 클래스입니다.
      *
-     * <p><strong>사용 방법:</strong></p>
+     * <p><strong>사용 방법:</strong>
+     *
      * <pre>{@code
      * @Repository
      * public class ExampleQueryRepository {
@@ -74,19 +95,21 @@ public class JpaConfig {
      * }
      * }</pre>
      *
-     * <p><strong>QueryDSL 주요 메서드:</strong></p>
+     * <p><strong>QueryDSL 주요 메서드:</strong>
+     *
      * <ul>
-     *   <li><strong>select():</strong> 조회 대상 지정</li>
-     *   <li><strong>from():</strong> 조회 테이블 지정</li>
-     *   <li><strong>where():</strong> 조건절 (동적 쿼리 가능)</li>
-     *   <li><strong>orderBy():</strong> 정렬</li>
-     *   <li><strong>fetch():</strong> 리스트 조회</li>
-     *   <li><strong>fetchOne():</strong> 단건 조회</li>
-     *   <li><strong>fetchFirst():</strong> 첫 번째 결과 조회</li>
-     *   <li><strong>fetchCount():</strong> 카운트 조회</li>
+     *   <li><strong>select():</strong> 조회 대상 지정
+     *   <li><strong>from():</strong> 조회 테이블 지정
+     *   <li><strong>where():</strong> 조건절 (동적 쿼리 가능)
+     *   <li><strong>orderBy():</strong> 정렬
+     *   <li><strong>fetch():</strong> 리스트 조회
+     *   <li><strong>fetchOne():</strong> 단건 조회
+     *   <li><strong>fetchFirst():</strong> 첫 번째 결과 조회
+     *   <li><strong>fetchCount():</strong> 카운트 조회
      * </ul>
      *
-     * <p><strong>동적 쿼리 예시:</strong></p>
+     * <p><strong>동적 쿼리 예시:</strong>
+     *
      * <pre>{@code
      * BooleanBuilder builder = new BooleanBuilder();
      *
@@ -103,7 +126,8 @@ public class JpaConfig {
      *     .fetch();
      * }</pre>
      *
-     * <p><strong>조인 예시:</strong></p>
+     * <p><strong>조인 예시:</strong>
+     *
      * <pre>{@code
      * QExampleJpaEntity example = QExampleJpaEntity.exampleJpaEntity;
      * QRelatedEntity related = QRelatedEntity.relatedEntity;
@@ -115,7 +139,8 @@ public class JpaConfig {
      *     .fetchOne();
      * }</pre>
      *
-     * <p><strong>페이징 예시:</strong></p>
+     * <p><strong>페이징 예시:</strong>
+     *
      * <pre>{@code
      * return queryFactory
      *     .selectFrom(example)
@@ -125,12 +150,13 @@ public class JpaConfig {
      *     .fetch();
      * }</pre>
      *
-     * <p><strong>주의사항:</strong></p>
+     * <p><strong>주의사항:</strong>
+     *
      * <ul>
-     *   <li>Q클래스는 컴파일 시 자동 생성됨 (build/generated/sources/annotationProcessor)</li>
-     *   <li>Entity 변경 시 재컴파일 필요</li>
-     *   <li>복잡한 쿼리는 Native Query보다 QueryDSL 권장</li>
-     *   <li>N+1 문제 주의 (fetchJoin 활용)</li>
+     *   <li>Q클래스는 컴파일 시 자동 생성됨 (build/generated/sources/annotationProcessor)
+     *   <li>Entity 변경 시 재컴파일 필요
+     *   <li>복잡한 쿼리는 Native Query보다 QueryDSL 권장
+     *   <li>N+1 문제 주의 (fetchJoin 활용)
      * </ul>
      *
      * @param entityManager JPA EntityManager
@@ -141,4 +167,64 @@ public class JpaConfig {
         return new JPAQueryFactory(entityManager);
     }
 
+    /**
+     * Clock Bean 등록
+     *
+     * <p>시스템 시간을 제공하는 Clock 인스턴스입니다.
+     *
+     * @return Clock.systemDefaultZone() 인스턴스
+     */
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
+
+    /**
+     * AuditorAware 빈 등록 (선택 사항)
+     *
+     * <p>생성자/수정자 정보를 자동으로 설정하려면 AuditorAware를 구현해야 합니다.
+     *
+     * <p><strong>사용 예시:</strong>
+     *
+     * <pre>{@code
+     * @Bean
+     * public AuditorAware<String> auditorProvider() {
+     *     return () -> {
+     *         // Spring Security에서 현재 사용자 정보 가져오기
+     *         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+     *
+     *         if (authentication == null || !authentication.isAuthenticated()) {
+     *             return Optional.of("SYSTEM");
+     *         }
+     *
+     *         return Optional.of(authentication.getName());
+     *     };
+     * }
+     * }</pre>
+     *
+     * <p><strong>Entity 적용:</strong>
+     *
+     * <pre>{@code
+     * @Entity
+     * @EntityListeners(AuditingEntityListener.class)
+     * public class ExampleJpaEntity {
+     *     @CreatedBy
+     *     private String createdBy;
+     *
+     *     @LastModifiedBy
+     *     private String lastModifiedBy;
+     *
+     *     @CreatedDate
+     *     private LocalDateTime createdAt;
+     *
+     *     @LastModifiedDate
+     *     private LocalDateTime updatedAt;
+     * }
+     * }</pre>
+     */
+    // 필요 시 AuditorAware 구현
+    // @Bean
+    // public AuditorAware<String> auditorProvider() {
+    //     return () -> Optional.of("SYSTEM");
+    // }
 }
