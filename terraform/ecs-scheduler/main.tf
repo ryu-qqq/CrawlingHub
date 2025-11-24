@@ -173,17 +173,23 @@ resource "aws_iam_role_policy" "scheduler_adot_amp_access" {
 }
 
 # ========================================
-# CloudWatch Log Group
+# CloudWatch Log Group (using Infrastructure module)
 # ========================================
 
-resource "aws_cloudwatch_log_group" "scheduler" {
+module "scheduler_logs" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/cloudwatch-log-group?ref=main"
+
   name              = "/ecs/${var.project_name}-scheduler-${var.environment}"
   retention_in_days = 30
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-scheduler-${var.environment}"
-  }
+  # TODO: Add KMS key ARN when KMS module is available
+  # kms_key_id = data.terraform_remote_state.kms.outputs.logs_key_arn
+
+  environment  = var.environment
+  service_name = "${var.project_name}-scheduler"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
 }
 
 # ========================================
@@ -239,7 +245,7 @@ resource "aws_ecs_task_definition" "scheduler" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.scheduler.name
+          "awslogs-group"         = module.scheduler_logs.log_group_name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "scheduler"
         }
@@ -262,7 +268,7 @@ resource "aws_ecs_task_definition" "scheduler" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.scheduler.name
+          "awslogs-group"         = module.scheduler_logs.log_group_name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "adot"
         }
