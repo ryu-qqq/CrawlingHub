@@ -310,7 +310,7 @@ resource "aws_iam_role_policy" "adot_amp_access" {
 module "web_api_logs" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/cloudwatch-log-group?ref=main"
 
-  name              = "/ecs/${var.project_name}-web-api-${var.environment}"
+  name              = "/aws/ecs/${var.project_name}-web-api-${var.environment}/application"
   retention_in_days = 30
 
   # TODO: Add KMS key ARN when KMS module is available
