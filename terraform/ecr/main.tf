@@ -14,8 +14,9 @@ module "ecr_web_api" {
 
   name = "${var.project_name}-web-api-${var.environment}"
 
-  # TODO: Add KMS key ARN when KMS module is available
+  # KMS encryption: null = AES256 (default), provide ARN for KMS encryption
   # kms_key_arn = data.terraform_remote_state.kms.outputs.ecr_key_arn
+  kms_key_arn = null
 
   environment  = var.environment
   service_name = "${var.project_name}-web-api"
@@ -32,8 +33,9 @@ module "ecr_scheduler" {
 
   name = "${var.project_name}-scheduler-${var.environment}"
 
-  # TODO: Add KMS key ARN when KMS module is available
+  # KMS encryption: null = AES256 (default), provide ARN for KMS encryption
   # kms_key_arn = data.terraform_remote_state.kms.outputs.ecr_key_arn
+  kms_key_arn = null
 
   environment  = var.environment
   service_name = "${var.project_name}-scheduler"
