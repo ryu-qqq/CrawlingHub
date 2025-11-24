@@ -1,9 +1,9 @@
-# ============================================================================
-# Terraform & Provider Configuration
-# ============================================================================
+# ========================================
+# Terraform Provider Configuration
+# ========================================
 
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.0"
 
   required_providers {
     aws = {
@@ -12,24 +12,44 @@ terraform {
     }
   }
 
-  # S3 Backend
   backend "s3" {
     bucket         = "prod-connectly"
     key            = "crawlinghub/ecr/terraform.tfstate"
     region         = "ap-northeast-2"
-    encrypt        = true
     dynamodb_table = "prod-connectly-tf-lock"
+    encrypt        = true
   }
 }
 
 provider "aws" {
-  region = "ap-northeast-2"
+  region = var.aws_region
 
   default_tags {
     tags = {
-      ManagedBy = "terraform"
-      Project   = "crawlinghub"
-      Component = "ecr"
+      Project     = var.project_name
+      Environment = var.environment
+      ManagedBy   = "terraform"
     }
   }
+}
+
+# ========================================
+# Common Variables
+# ========================================
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "crawlinghub"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "prod"
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "ap-northeast-2"
 }

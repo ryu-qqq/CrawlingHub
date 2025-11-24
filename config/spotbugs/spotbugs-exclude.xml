@@ -33,4 +33,151 @@
         <Class name="~.*Configuration"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
+
+    <!-- ========================================
+         Domain Layer Patterns
+         ======================================== -->
+    <!-- Duplicate switch clauses in domain enums are intentional for clarity -->
+    <Match>
+        <Class name="com.ryuqq.crawlinghub.domain.eventbridge.vo.SchedulerStatus"/>
+        <Bug pattern="DB_DUPLICATE_SWITCH_CLAUSES"/>
+    </Match>
+
+    <!-- Aggregate constructors throw exceptions (DDD pattern) -->
+    <Match>
+        <Class name="~com\.ryuqq\.crawlinghub\.domain\..*\.aggregate\..*"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- ========================================
+         Application Layer - DTO Records
+         ======================================== -->
+    <!-- Records store immutable references - EI/EI2 false positives -->
+    <Match>
+        <Or>
+            <Class name="~.*\.application\..*Response"/>
+            <Class name="~.*\.application\..*Command"/>
+            <Class name="~.*\.application\..*Query"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Application Service constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.application\..*Service"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Application layer assemblers, managers, metrics - dependency injection -->
+    <Match>
+        <Or>
+            <Class name="~.*\.application\..*Assembler"/>
+            <Class name="~.*\.application\..*Manager"/>
+            <Class name="~.*\.application\..*Metrics"/>
+            <Class name="~.*\.application\..*Bundle"/>
+        </Or>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Unread fields - dependency injection may use fields via Spring -->
+    <Match>
+        <Class name="~.*\.application\..*"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - REST API DTOs
+         ======================================== -->
+    <!-- Records store immutable references - EI/EI2 false positives -->
+    <Match>
+        <Or>
+            <Class name="~.*\.adapter\.in\.rest\..*Response"/>
+            <Class name="~.*\.adapter\.in\.rest\..*Request"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- REST Controller constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\..*Controller"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- REST Mapper constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\..*Mapper"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- REST common classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\.common\..*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- GlobalExceptionHandler and common controllers - null checks done via assert -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\.common\.controller\..*"/>
+        <Or>
+            <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- REST API all adapter classes - DI pattern -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\..*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- REST API config properties - Spring properties pattern -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\.config\.properties\..*"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- REST API error mappers - intentional non-localized string operations -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\..*ErrorMapper"/>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - AWS EventBridge
+         ======================================== -->
+    <!-- EventBridge adapter constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.eventbridge\..*Adapter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- EventBridge config classes -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.eventbridge\..*Config"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Test Classes - General Exclusions
+         ======================================== -->
+    <!-- Exclude all SpotBugs checks for test classes -->
+    <!-- Test code intentionally uses patterns that trigger false positives -->
+    <Match>
+        <Class name="~.*Test"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*TestSupport"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Fixture"/>
+    </Match>
 </FindBugsFilter>

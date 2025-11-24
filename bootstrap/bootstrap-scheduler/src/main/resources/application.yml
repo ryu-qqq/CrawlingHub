@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: crawlinghub-scheduler
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  # ========================================
+  # Config Import (각 모듈의 설정 파일 로드)
+  # ========================================
+  config:
+    import:
+      - classpath:persistence.yml
+      - classpath:eventbridge.yml
+
+  # ========================================
+  # Flyway Configuration
+  # ========================================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+# ========================================
+# Actuator Configuration
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+
+# ========================================
+# Logging Configuration
+# ========================================
+logging:
+  level:
+    root: INFO
+    com.ryuqq.crawlinghub: INFO
+    org.springframework.scheduling: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ========================================
+# Server Configuration (for actuator only)
+# ========================================
+server:
+  port: 8081
+  shutdown: graceful
+
+---
+# ========================================
+# Production Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.ryuqq.crawlinghub: INFO

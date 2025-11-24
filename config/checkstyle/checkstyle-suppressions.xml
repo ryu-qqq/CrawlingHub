@@ -7,4 +7,40 @@
   <suppress files=".*/adapter-in-.*" checks="RegexpSinglelineJava"/>
   <suppress files=".*/adapter-out-.*" checks="RegexpSinglelineJava"/>
   <suppress files=".*Mapper\.java" checks="RegexpSinglelineJava"/>
+
+  <!-- Empty interface/record bodies (Spotless conflicts with WhitespaceAround) -->
+  <suppress files=".*DomainEvent\.java" checks="WhitespaceAround"/>
+  <suppress files=".*SchedulerUpdatedEvent\.java" checks="WhitespaceAround"/>
+  <suppress files=".*Fixture\.java" checks="WhitespaceAround"/>
+
+  <!-- Application layer DTO records with empty bodies -->
+  <suppress files=".*/application/.*Response\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/application/.*Command\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/application/.*Query\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/application/.*Criteria\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/application/.*TransactionSynchronizationAdapter\.java" checks="WhitespaceAround"/>
+
+  <!-- Persistence layer entities with empty bodies -->
+  <suppress files=".*/persistence.*/.*Entity\.java" checks="WhitespaceAround"/>
+
+  <!-- JPA Repository interfaces with empty bodies -->
+  <suppress files=".*/persistence.*/.*Repository\.java" checks="WhitespaceAround"/>
+
+  <!-- EventBridge adapter records with empty bodies -->
+  <suppress files=".*/eventbridge/.*/.*Adapter\.java" checks="WhitespaceAround"/>
+
+  <!-- REST API layer DTO records with empty bodies -->
+  <suppress files=".*/rest-api/.*/dto/.*Request\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/rest-api/.*/dto/.*Response\.java" checks="WhitespaceAround"/>
+  <suppress files=".*/rest-api/.*/mapper/.*Mapper\.java" checks="WhitespaceAround"/>
+
+  <!-- QueryDSL generated code -->
+  <suppress files=".*/build/generated/.*/Q.*\.java" checks="AvoidStarImport"/>
+
+  <!-- ArchUnit test files - allow star imports and longer lines for DSL readability -->
+  <suppress files=".*ArchTest\.java" checks="AvoidStarImport"/>
+  <suppress files=".*ArchTest\.java" checks="LineLength"/>
+
+  <!-- Seller domain VO records with empty bodies -->
+  <suppress files=".*/seller/vo/.*\.java" checks="WhitespaceAround"/>
 </suppressions>

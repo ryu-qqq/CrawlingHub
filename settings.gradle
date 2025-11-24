@@ -1,0 +1,34 @@
+rootProject.name = 'crawlinghub'
+
+// ========================================
+// Core Modules (Hexagonal Architecture)
+// ========================================
+include 'domain'
+include 'application'
+
+// ========================================
+// Adapter Modules (Ports & Adapters)
+// ========================================
+// Inbound Adapters (Driving) - {type}-in-{subject}-{middleware}
+include 'adapter-in:rest-api'
+
+// Outbound Adapters (Driven) - {purpose}-{technology}
+include 'adapter-out:persistence-mysql'
+include 'adapter-out:aws-eventbridge'
+
+// ========================================
+// Bootstrap Modules (Runnable Applications)
+// ========================================
+include 'bootstrap:bootstrap-web-api'
+include 'bootstrap:bootstrap-scheduler'
+
+// ========================================
+// Project Structure
+// ========================================
+project(':domain').projectDir = file('domain')
+project(':application').projectDir = file('application')
+project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
+project(':adapter-out:persistence-mysql').projectDir = file('adapter-out/persistence-mysql')
+project(':adapter-out:aws-eventbridge').projectDir = file('adapter-out/aws-eventbridge')
+project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
+project(':bootstrap:bootstrap-scheduler').projectDir = file('bootstrap/bootstrap-scheduler')

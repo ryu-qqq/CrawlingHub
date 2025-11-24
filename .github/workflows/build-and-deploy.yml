@@ -16,19 +16,17 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: crawlinghub-prod
-  ECS_SERVICE: crawlinghub
-  ECS_CLUSTER: crawlinghub-prod-cluster
-  CONTAINER_NAME: crawlinghub
+  ECS_CLUSTER: crawlinghub-cluster-prod
 
 jobs:
   build-and-push:
-    name: Build Docker Image and Push to ECR
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
-      image-tag: ${{ steps.image-tag.outputs.tag }}
-      image-uri: ${{ steps.build-image.outputs.image }}
+      web-api-image-tag: ${{ steps.image-tag.outputs.tag }}
+      web-api-image-uri: ${{ steps.build-web-api.outputs.image }}
+      scheduler-image-uri: ${{ steps.build-scheduler.outputs.image }}
 
     steps:
       - name: Checkout code
@@ -50,12 +48,19 @@ jobs:
           ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon --stacktrace
           echo "✅ Tests completed"
 
-      - name: Build JAR
+      - name: Build web-api JAR
         run: |
-          echo "🔨 Building Spring Boot application..."
-          ./gradlew clean :bootstrap:bootstrap-web-api:bootJar -x test --no-daemon --stacktrace
-          echo "✅ Build completed"
+          echo "🔨 Building web-api..."
+          ./gradlew :bootstrap:bootstrap-web-api:bootJar -x test --no-daemon --stacktrace
+          echo "✅ web-api build completed"
           ls -lh bootstrap/bootstrap-web-api/build/libs/
+
+      - name: Build scheduler JAR
+        run: |
+          echo "🔨 Building scheduler..."
+          ./gradlew :bootstrap:bootstrap-scheduler:bootJar -x test --no-daemon --stacktrace
+          echo "✅ scheduler build completed"
+          ls -lh bootstrap/bootstrap-scheduler/build/libs/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -77,33 +82,56 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "📦 Image tag: ${TAG}"
 
-      - name: Build and push Docker image
-        id: build-image
+      - name: Build and push web-api Docker image
+        id: build-web-api
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
         run: |
-          echo "🐳 Building Docker image..."
+          echo "🐳 Building web-api Docker image..."
+          ECR_REPOSITORY="crawlinghub-web-api-prod"
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
 
-          docker build -t ${IMAGE_URI} .
+          docker build \
+            -f bootstrap/bootstrap-web-api/Dockerfile \
+            -t ${IMAGE_URI} \
+            --build-arg JAR_FILE=bootstrap/bootstrap-web-api/build/libs/crawlinghub-web-api.jar \
+            .
           docker tag ${IMAGE_URI} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
-          echo "📤 Pushing to ECR..."
+          echo "📤 Pushing web-api to ECR..."
           docker push ${IMAGE_URI}
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
-          echo "✅ Image pushed: ${IMAGE_URI}"
+          echo "✅ web-api image pushed: ${IMAGE_URI}"
 
-      - name: Image vulnerability scan results
-        continue-on-error: true
+      - name: Build and push scheduler Docker image
+        id: build-scheduler
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
         run: |
-          echo "🔍 Checking ECR scan results..."
-          aws ecr describe-image-scan-findings             --repository-name ${ECR_REPOSITORY}             --image-id imageTag=${{ steps.image-tag.outputs.tag }}             --region ${AWS_REGION} || echo "⚠️ Scan not yet complete"
+          echo "🐳 Building scheduler Docker image..."
+          ECR_REPOSITORY="crawlinghub-scheduler-prod"
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
 
-  deploy-to-ecs:
-    name: Deploy to ECS
+          docker build \
+            -f bootstrap/bootstrap-scheduler/Dockerfile \
+            -t ${IMAGE_URI} \
+            --build-arg JAR_FILE=bootstrap/bootstrap-scheduler/build/libs/crawlinghub-scheduler.jar \
+            .
+          docker tag ${IMAGE_URI} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+
+          echo "📤 Pushing scheduler to ECR..."
+          docker push ${IMAGE_URI}
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+
+          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "✅ scheduler image pushed: ${IMAGE_URI}"
+
+  deploy-web-api:
+    name: Deploy web-api to ECS
     needs: build-and-push
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -118,74 +146,163 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-Deploy
+          role-session-name: GitHubActions-CrawlingHub-Deploy-WebApi
 
       - name: Get current task definition
         id: get-task-def
         run: |
-          echo "📋 Fetching current task definition..."
-          TASK_DEF_ARN=$(aws ecs describe-services             --cluster ${ECS_CLUSTER}             --services ${ECS_SERVICE}             --query 'services[0].taskDefinition'             --output text)
+          ECS_SERVICE="crawlinghub-web-api-prod"
+          echo "📋 Fetching current task definition for ${ECS_SERVICE}..."
+          TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster ${ECS_CLUSTER} \
+            --services ${ECS_SERVICE} \
+            --query 'services[0].taskDefinition' \
+            --output text)
 
-          aws ecs describe-task-definition             --task-definition ${TASK_DEF_ARN}             --query 'taskDefinition' > task-definition.json
+          aws ecs describe-task-definition \
+            --task-definition ${TASK_DEF_ARN} \
+            --query 'taskDefinition' > task-definition.json
 
           echo "✅ Task definition retrieved"
 
       - name: Update task definition with new image
-        id: update-task-def
         run: |
           echo "🔄 Updating task definition..."
 
-          # jq로 새 이미지 URI 업데이트
-          cat task-definition.json |             jq --arg IMAGE "${{ needs.build-and-push.outputs.image-uri }}"                '.containerDefinitions[0].image = $IMAGE' |             jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)'             > new-task-definition.json
+          cat task-definition.json | \
+            jq --arg IMAGE "${{ needs.build-and-push.outputs.web-api-image-uri }}" \
+               '.containerDefinitions[0].image = $IMAGE' | \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            > new-task-definition.json
 
-          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.image-uri }}"
+          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.web-api-image-uri }}"
 
       - name: Register new task definition
         id: register-task-def
         run: |
           echo "📝 Registering new task definition..."
 
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition             --cli-input-json file://new-task-definition.json             --query 'taskDefinition.taskDefinitionArn'             --output text)
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
 
           echo "task-def-arn=${NEW_TASK_DEF_ARN}" >> $GITHUB_OUTPUT
           echo "✅ New task definition registered: ${NEW_TASK_DEF_ARN}"
 
       - name: Update ECS service
         run: |
-          echo "🚀 Updating ECS service..."
+          ECS_SERVICE="crawlinghub-web-api-prod"
+          echo "🚀 Updating ECS service ${ECS_SERVICE}..."
 
-          aws ecs update-service             --cluster ${ECS_CLUSTER}             --service ${ECS_SERVICE}             --task-definition ${{ steps.register-task-def.outputs.task-def-arn }}             --force-new-deployment             --no-cli-pager
+          aws ecs update-service \
+            --cluster ${ECS_CLUSTER} \
+            --service ${ECS_SERVICE} \
+            --task-definition ${{ steps.register-task-def.outputs.task-def-arn }} \
+            --force-new-deployment \
+            --no-cli-pager
 
           echo "✅ ECS service update initiated"
 
       - name: Wait for service stability
         run: |
-          echo "⏳ Waiting for service to become stable (this may take 3-5 minutes)..."
+          ECS_SERVICE="crawlinghub-web-api-prod"
+          echo "⏳ Waiting for ${ECS_SERVICE} to become stable..."
 
-          aws ecs wait services-stable             --cluster ${ECS_CLUSTER}             --services ${ECS_SERVICE}
+          aws ecs wait services-stable \
+            --cluster ${ECS_CLUSTER} \
+            --services ${ECS_SERVICE}
 
           echo "✅ Service is now stable"
 
-      - name: Get service status
-        run: |
-          echo "📊 Service deployment status:"
-          aws ecs describe-services             --cluster ${ECS_CLUSTER}             --services ${ECS_SERVICE}             --query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount,Deployments:deployments[*].{Status:status,TaskDef:taskDefinition,Running:runningCount}}'             --output table
+  deploy-scheduler:
+    name: Deploy scheduler to ECS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-      - name: Get ALB endpoint
-        run: |
-          echo "🌐 Application endpoint:"
-          ALB_DNS=$(aws elbv2 describe-load-balancers             --names crawlinghub-prod-alb             --query 'LoadBalancers[0].DNSName'             --output text 2>/dev/null || echo "ALB not found")
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          if [ "$ALB_DNS" != "ALB not found" ]; then
-            echo "🔗 http://${ALB_DNS}"
-            echo "🔗 http://${ALB_DNS}/actuator/health"
-          else
-            echo "⚠️ ALB DNS not found"
-          fi
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-CrawlingHub-Deploy-Scheduler
+
+      - name: Get current task definition
+        id: get-task-def
+        run: |
+          ECS_SERVICE="crawlinghub-scheduler-prod"
+          echo "📋 Fetching current task definition for ${ECS_SERVICE}..."
+          TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster ${ECS_CLUSTER} \
+            --services ${ECS_SERVICE} \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          aws ecs describe-task-definition \
+            --task-definition ${TASK_DEF_ARN} \
+            --query 'taskDefinition' > task-definition.json
+
+          echo "✅ Task definition retrieved"
+
+      - name: Update task definition with new image
+        run: |
+          echo "🔄 Updating task definition..."
+
+          cat task-definition.json | \
+            jq --arg IMAGE "${{ needs.build-and-push.outputs.scheduler-image-uri }}" \
+               '.containerDefinitions[0].image = $IMAGE' | \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            > new-task-definition.json
+
+          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.scheduler-image-uri }}"
+
+      - name: Register new task definition
+        id: register-task-def
+        run: |
+          echo "📝 Registering new task definition..."
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "task-def-arn=${NEW_TASK_DEF_ARN}" >> $GITHUB_OUTPUT
+          echo "✅ New task definition registered: ${NEW_TASK_DEF_ARN}"
+
+      - name: Update ECS service
+        run: |
+          ECS_SERVICE="crawlinghub-scheduler-prod"
+          echo "🚀 Updating ECS service ${ECS_SERVICE}..."
+
+          aws ecs update-service \
+            --cluster ${ECS_CLUSTER} \
+            --service ${ECS_SERVICE} \
+            --task-definition ${{ steps.register-task-def.outputs.task-def-arn }} \
+            --force-new-deployment \
+            --no-cli-pager
+
+          echo "✅ ECS service update initiated"
+
+      - name: Wait for service stability
+        run: |
+          ECS_SERVICE="crawlinghub-scheduler-prod"
+          echo "⏳ Waiting for ${ECS_SERVICE} to become stable..."
+
+          aws ecs wait services-stable \
+            --cluster ${ECS_CLUSTER} \
+            --services ${ECS_SERVICE}
+
+          echo "✅ Service is now stable"
 
   notify-completion:
     name: Notify Deployment Completion
-    needs: [build-and-push, deploy-to-ecs]
+    needs: [build-and-push, deploy-web-api, deploy-scheduler]
     runs-on: ubuntu-latest
     if: always()
 
@@ -195,24 +312,26 @@ jobs:
           echo "## 🚀 CrawlingHub Application Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Build Status**: ${{ needs.build-and-push.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Deploy Status**: ${{ needs.deploy-to-ecs.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**web-api Deploy**: ${{ needs.deploy-web-api.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**scheduler Deploy**: ${{ needs.deploy-scheduler.result }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Image Tag**: ${{ needs.build-and-push.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag**: ${{ needs.build-and-push.outputs.web-api-image-tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Deployed Image" >> $GITHUB_STEP_SUMMARY
-          echo "`${{ needs.build-and-push.outputs.image-uri }}`" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Deployed Images" >> $GITHUB_STEP_SUMMARY
+          echo "- **web-api**: \`${{ needs.build-and-push.outputs.web-api-image-uri }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **scheduler**: \`${{ needs.build-and-push.outputs.scheduler-image-uri }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Deployment Steps" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Tests executed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Spring Boot JAR built" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Docker image built and pushed to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS task definition updated" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS service deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ web-api JAR built" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ scheduler JAR built" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Docker images built and pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS services deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
           echo "1. Check CloudWatch logs for application startup" >> $GITHUB_STEP_SUMMARY
-          echo "2. Verify health check: http://ALB_DNS/actuator/health" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify health check: https://crawler.set-of.com/actuator/health" >> $GITHUB_STEP_SUMMARY
           echo "3. Test API endpoints" >> $GITHUB_STEP_SUMMARY
           echo "4. Monitor CloudWatch metrics" >> $GITHUB_STEP_SUMMARY
