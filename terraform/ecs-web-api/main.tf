@@ -304,17 +304,23 @@ resource "aws_iam_role_policy" "adot_amp_access" {
 }
 
 # ========================================
-# CloudWatch Log Group
+# CloudWatch Log Group (using Infrastructure module)
 # ========================================
 
-resource "aws_cloudwatch_log_group" "web_api" {
+module "web_api_logs" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/cloudwatch-log-group?ref=main"
+
   name              = "/ecs/${var.project_name}-web-api-${var.environment}"
   retention_in_days = 30
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-web-api-${var.environment}"
-  }
+  # TODO: Add KMS key ARN when KMS module is available
+  # kms_key_id = data.terraform_remote_state.kms.outputs.logs_key_arn
+
+  environment  = var.environment
+  service_name = "${var.project_name}-web-api"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
 }
 
 # ========================================
@@ -375,7 +381,7 @@ resource "aws_ecs_task_definition" "web_api" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.web_api.name
+          "awslogs-group"         = module.web_api_logs.log_group_name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "web-api"
         }
@@ -406,7 +412,7 @@ resource "aws_ecs_task_definition" "web_api" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.web_api.name
+          "awslogs-group"         = module.web_api_logs.log_group_name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "adot"
         }
