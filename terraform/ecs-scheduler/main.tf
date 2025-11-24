@@ -179,7 +179,7 @@ resource "aws_iam_role_policy" "scheduler_adot_amp_access" {
 module "scheduler_logs" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/cloudwatch-log-group?ref=main"
 
-  name              = "/ecs/${var.project_name}-scheduler-${var.environment}"
+  name              = "/aws/ecs/${var.project_name}-scheduler-${var.environment}/application"
   retention_in_days = 30
 
   # TODO: Add KMS key ARN when KMS module is available
