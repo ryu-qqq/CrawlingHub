@@ -19,5 +19,5 @@ output "task_definition_arn" {
 
 output "log_group_name" {
   description = "CloudWatch log group name"
-  value       = aws_cloudwatch_log_group.scheduler.name
+  value       = module.scheduler_logs.log_group_name
 }
