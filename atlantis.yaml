@@ -2,7 +2,8 @@ version: 3
 
 automerge: false
 delete_source_branch_on_merge: false
-parallel_plan: true
+# Disable parallel plan to prevent plugin cache conflicts
+parallel_plan: false
 parallel_apply: false
 
 projects:
@@ -70,3 +71,20 @@ projects:
   #   autoplan:
   #     when_modified: ["*.tf", "*.tfvars", "../*.tf"]
   #     enabled: true
+
+# Workflows
+workflows:
+  default:
+    plan:
+      steps:
+        # Disable shared plugin cache to prevent "text file busy" race conditions
+        - env:
+            name: TF_PLUGIN_CACHE_DIR
+            value: ""
+        - init:
+            extra_args:
+              - "-upgrade"
+        - plan
+    apply:
+      steps:
+        - apply
