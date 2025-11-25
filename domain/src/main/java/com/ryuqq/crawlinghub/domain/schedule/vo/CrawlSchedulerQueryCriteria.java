@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.schedule.vo;
 
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 
 /**
  * 크롤 스케줄러 조회 조건 Value Object.

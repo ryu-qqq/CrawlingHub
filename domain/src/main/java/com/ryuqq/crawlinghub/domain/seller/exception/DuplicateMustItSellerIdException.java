@@ -8,20 +8,10 @@ public final class DuplicateMustItSellerIdException extends DomainException {
 
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.DUPLICATE_MUST_IT_SELLER_ID;
 
-    private final Map<String, Object> args;
-
     public DuplicateMustItSellerIdException(String mustItSellerName) {
-        super(ERROR_CODE.getMessage());
-        this.args = Map.of("mustItSellerName", mustItSellerName);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE.getCode();
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return args;
+        super(
+                ERROR_CODE.getCode(),
+                ERROR_CODE.getMessage(),
+                Map.of("mustItSellerName", mustItSellerName));
     }
 }

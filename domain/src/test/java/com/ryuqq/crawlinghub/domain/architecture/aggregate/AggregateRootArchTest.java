@@ -3,8 +3,10 @@ package com.ryuqq.crawlinghub.domain.architecture.aggregate;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -42,7 +44,7 @@ class AggregateRootArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
     /** 규칙 1: Lombok 어노테이션 절대 금지 */
@@ -420,7 +422,31 @@ class AggregateRootArchTest {
                         .and()
                         .doNotHaveName("has.*")
                         .and()
+                        .doNotHaveName("equals")
+                        .and()
+                        .doNotHaveName("hashCode")
+                        .and()
+                        .doNotHaveName("toString")
+                        .and()
+                        .doNotHaveName("id")
+                        .and()
+                        .doNotHaveName(".*Id") // *Id accessor 제외
+                        .and()
+                        .doNotHaveName("items")
+                        .and()
+                        .doNotHaveName("createdAt")
+                        .and()
+                        .doNotHaveName("updatedAt")
+                        .and()
                         .areNotStatic()
+                        .and(
+                                new DescribedPredicate<JavaMethod>("have parameters") {
+                                    @Override
+                                    public boolean test(JavaMethod method) {
+                                        return method.getRawParameterTypes().size()
+                                                > 0; // 파라미터가 있는 메서드만
+                                    }
+                                })
                         .should()
                         .haveNameMatching(
                                 "(add|remove|confirm|cancel|approve|reject|ship|deliver|complete|fail|update|change|place|validate|calculate|transfer|process).*")

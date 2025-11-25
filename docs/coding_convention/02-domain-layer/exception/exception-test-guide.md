@@ -35,7 +35,7 @@ Domain Exception은 **ErrorCode, 구체적인 예외 클래스, 예외 발생 �
 ```java
 package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.domain.common.ErrorCode;
+import com.ryuqq.domain.common.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -221,7 +221,7 @@ class {Bc}ErrorCodeTest {
 ```java
 package com.ryuqq.domain.{bc}.exception;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -354,7 +354,7 @@ class {Bc}NotFoundExceptionTest {
 ```java
 package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;

@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.schedule.manager;
 
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlScheduleOutBoxPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOutBoxId;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

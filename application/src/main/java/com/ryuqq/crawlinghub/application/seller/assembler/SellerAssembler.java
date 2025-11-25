@@ -1,15 +1,15 @@
 package com.ryuqq.crawlinghub.application.seller.assembler;
 
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
@@ -49,7 +49,7 @@ public class SellerAssembler {
         return Seller.forNew(
                 MustItSellerName.of(command.mustItSellerName()),
                 SellerName.of(command.sellerName()),
-                clockHolder.getClock());
+                clockHolder.clock());
     }
 
     /**
@@ -82,7 +82,7 @@ public class SellerAssembler {
                 status,
                 null, // createdAt (비교 불필요)
                 null, // updatedAt (비교 불필요)
-                clockHolder.getClock());
+                clockHolder.clock());
     }
 
     /**
