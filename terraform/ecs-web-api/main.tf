@@ -3,7 +3,23 @@
 # ========================================
 # REST API server with ALB and Auto Scaling
 # Domain: crawler.set-of.com
+# Using Infrastructure repository modules
 # ========================================
+
+# ========================================
+# Common Tags (for governance)
+# ========================================
+locals {
+  common_tags = {
+    environment  = var.environment
+    service_name = "${var.project_name}-web-api"
+    team         = "platform-team"
+    owner        = "platform@ryuqqq.com"
+    cost_center  = "engineering"
+    project      = var.project_name
+    data_class   = "confidential"
+  }
+}
 
 # ========================================
 # ECR Repository Reference
@@ -20,143 +36,119 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ========================================
-# Security Groups
+# Security Groups (using Infrastructure module)
 # ========================================
 
-resource "aws_security_group" "alb" {
+# ALB Security Group
+module "alb_security_group" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/security-group?ref=main"
+
   name        = "${var.project_name}-alb-sg-${var.environment}"
   description = "Security group for ALB"
   vpc_id      = local.vpc_id
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from anywhere"
-  }
+  type = "alb"
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP for redirect"
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.project_name}-alb-sg-${var.environment}"
-  }
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
-resource "aws_security_group" "ecs_web_api" {
+# ECS Security Group
+module "ecs_security_group" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/security-group?ref=main"
+
   name        = "${var.project_name}-web-api-sg-${var.environment}"
   description = "Security group for web-api ECS tasks"
   vpc_id      = local.vpc_id
 
-  ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-    description     = "From ALB only"
-  }
+  type                       = "ecs"
+  enable_ecs_alb_ingress     = true
+  ecs_ingress_from_alb_sg_id = module.alb_security_group.security_group_id
+  ecs_container_port         = 8080
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.project_name}-web-api-sg-${var.environment}"
-  }
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
-# Application Load Balancer
+# Application Load Balancer (using Infrastructure module)
 # ========================================
 
-# ========================================
-# Application Load Balancer
-# ========================================
-resource "aws_lb" "web_api" {
+module "alb" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/alb?ref=main"
+
   name               = "${var.project_name}-alb-${var.environment}"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = local.public_subnets
+  vpc_id             = local.vpc_id
+  subnet_ids         = local.public_subnets
+  security_group_ids = [module.alb_security_group.security_group_id]
 
   enable_deletion_protection = false
 
-  tags = {
-    Name        = "${var.project_name}-alb-${var.environment}"
-    Environment = var.environment
-    Service     = "${var.project_name}-web-api-${var.environment}"
-  }
-}
-
-# Target Group
-resource "aws_lb_target_group" "web_api" {
-  name        = "${var.project_name}-web-api-tg-${var.environment}"
-  port        = 8080
-  protocol    = "HTTP"
-  vpc_id      = local.vpc_id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-    path                = "/actuator/health"
-    matcher             = "200"
-  }
-
-  tags = {
-    Name        = "${var.project_name}-web-api-tg-${var.environment}"
-    Environment = var.environment
-  }
-}
-
-# HTTPS Listener
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.web_api.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = local.certificate_arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.web_api.arn
-  }
-}
-
-# HTTP to HTTPS Redirect
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.web_api.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+  # Target Groups
+  target_groups = {
+    web-api = {
+      port        = 8080
+      protocol    = "HTTP"
+      target_type = "ip"
+      health_check = {
+        enabled             = true
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+        timeout             = 5
+        interval            = 30
+        path                = "/actuator/health"
+        matcher             = "200"
+      }
     }
   }
+
+  # HTTPS Listener
+  https_listeners = {
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = local.certificate_arn
+      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+      default_action = {
+        type             = "forward"
+        target_group_key = "web-api"
+      }
+    }
+  }
+
+  # HTTP to HTTPS Redirect
+  http_listeners = {
+    http-redirect = {
+      port     = 80
+      protocol = "HTTP"
+      default_action = {
+        type = "redirect"
+        redirect = {
+          port        = "443"
+          protocol    = "HTTPS"
+          status_code = "HTTP_301"
+        }
+      }
+    }
+  }
+
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
@@ -169,18 +161,21 @@ resource "aws_route53_record" "web_api" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.web_api.dns_name
-    zone_id                = aws_lb.web_api.zone_id
+    name                   = module.alb.alb_dns_name
+    zone_id                = module.alb.alb_zone_id
     evaluate_target_health = true
   }
 }
 
 # ========================================
-# IAM Role for ECS Task Execution
+# IAM Roles (using Infrastructure module)
 # ========================================
 
-resource "aws_iam_role" "ecs_task_execution" {
-  name = "${var.project_name}-web-api-execution-role-${var.environment}"
+# ECS Task Execution Role
+module "ecs_task_execution_role" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
+
+  role_name = "${var.project_name}-web-api-execution-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -194,49 +189,48 @@ resource "aws_iam_role" "ecs_task_execution" {
       }
     ]
   })
+
+  attach_aws_managed_policies = [
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  ]
+
+  enable_secrets_manager_policy = true
+  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn]
+
+  custom_inline_policies = {
+    ssm-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "ssm:GetParameters",
+              "ssm:GetParameter"
+            ]
+            Resource = [
+              "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*"
+            ]
+          }
+        ]
+      })
+    }
+  }
+
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
-  role       = aws_iam_role.ecs_task_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
+# ECS Task Role
+module "ecs_task_role" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
 
-resource "aws_iam_role_policy" "secrets_access" {
-  name = "${var.project_name}-secrets-access-${var.environment}"
-  role = aws_iam_role.ecs_task_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = [
-          data.aws_secretsmanager_secret.rds.arn
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:GetParameters",
-          "ssm:GetParameter"
-        ]
-        Resource = [
-          "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*"
-        ]
-      }
-    ]
-  })
-}
-
-# ========================================
-# IAM Role for ECS Task
-# ========================================
-
-resource "aws_iam_role" "ecs_task" {
-  name = "${var.project_name}-web-api-task-role-${var.environment}"
+  role_name = "${var.project_name}-web-api-task-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -250,57 +244,58 @@ resource "aws_iam_role" "ecs_task" {
       }
     ]
   })
-}
 
-# Add EventBridge permissions for web-api
-resource "aws_iam_role_policy" "eventbridge_access" {
-  name = "${var.project_name}-eventbridge-access-${var.environment}"
-  role = aws_iam_role.ecs_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "events:PutEvents",
-          "events:PutRule",
-          "events:PutTargets",
-          "events:DeleteRule",
-          "events:RemoveTargets"
+  custom_inline_policies = {
+    eventbridge-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "events:PutEvents",
+              "events:PutRule",
+              "events:PutTargets",
+              "events:DeleteRule",
+              "events:RemoveTargets"
+            ]
+            Resource = "*"
+          }
         ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# ADOT permissions for AMP and S3 config
-resource "aws_iam_role_policy" "adot_amp_access" {
-  name = "${var.project_name}-web-api-adot-amp-${var.environment}"
-  role = aws_iam_role.ecs_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AMPRemoteWrite"
-        Effect = "Allow"
-        Action = [
-          "aps:RemoteWrite"
+      })
+    }
+    adot-amp-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Sid    = "AMPRemoteWrite"
+            Effect = "Allow"
+            Action = [
+              "aps:RemoteWrite"
+            ]
+            Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
+          },
+          {
+            Sid    = "S3ConfigAccess"
+            Effect = "Allow"
+            Action = [
+              "s3:GetObject"
+            ]
+            Resource = "arn:aws:s3:::connectly-prod/*"
+          }
         ]
-        Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
-      },
-      {
-        Sid    = "S3ConfigAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = "arn:aws:s3:::connectly-prod/*"
-      }
-    ]
-  })
+      })
+    }
+  }
+
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
@@ -313,14 +308,27 @@ module "web_api_logs" {
   name              = "/aws/ecs/${var.project_name}-web-api-${var.environment}/application"
   retention_in_days = 30
 
-  # TODO: Add KMS key ARN when KMS module is available
-  # kms_key_id = data.terraform_remote_state.kms.outputs.logs_key_arn
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
+}
 
-  environment  = var.environment
-  service_name = "${var.project_name}-web-api"
-  team         = "platform-team"
-  owner        = "platform@ryuqqq.com"
-  cost_center  = "engineering"
+# ========================================
+# ADOT Sidecar (using Infrastructure module)
+# ========================================
+
+module "adot_sidecar" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/adot-sidecar?ref=main"
+
+  project_name      = var.project_name
+  service_name      = "web-api"
+  aws_region        = var.aws_region
+  amp_workspace_arn = "arn:aws:aps:${var.aws_region}:*:workspace/*"
+  log_group_name    = module.web_api_logs.log_group_name
 }
 
 # ========================================
@@ -333,8 +341,8 @@ resource "aws_ecs_task_definition" "web_api" {
   network_mode             = "awsvpc"
   cpu                      = var.web_api_cpu
   memory                   = var.web_api_memory
-  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
-  task_role_arn            = aws_iam_role.ecs_task.arn
+  execution_role_arn       = module.ecs_task_execution_role.role_arn
+  task_role_arn            = module.ecs_task_role.role_arn
 
   container_definitions = jsonencode([
     {
@@ -395,29 +403,8 @@ resource "aws_ecs_task_definition" "web_api" {
         startPeriod = 60
       }
     },
-    # ADOT Sidecar for metrics collection to AMP
-    {
-      name      = "adot-collector"
-      image     = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
-      cpu       = 256
-      memory    = 512
-      essential = false
-
-      command = [
-        "--config=https://cdn.set-of.com/otel-config/crawlinghub-web-api/otel-config.yaml"
-      ]
-
-      environment = []
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = module.web_api_logs.log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "adot"
-        }
-      }
-    }
+    # ADOT Sidecar from module
+    module.adot_sidecar.container_definition
   ])
 
   tags = {
@@ -439,12 +426,12 @@ resource "aws_ecs_service" "web_api" {
 
   network_configuration {
     subnets          = local.private_subnets
-    security_groups  = [aws_security_group.ecs_web_api.id]
+    security_groups  = [module.ecs_security_group.security_group_id]
     assign_public_ip = false
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.web_api.arn
+    target_group_arn = module.alb.target_group_arns["web-api"]
     container_name   = "web-api"
     container_port   = 8080
   }
@@ -459,45 +446,3 @@ resource "aws_ecs_service" "web_api" {
     Service     = "${var.project_name}-web-api-${var.environment}"
   }
 }
-
-# ========================================
-# Auto Scaling
-# ========================================
-# TODO: Enable after adding application-autoscaling:TagResource permission to IAM user
-# resource "aws_appautoscaling_target" "web_api" {
-#   max_capacity       = 10
-#   min_capacity       = 2
-#   resource_id        = "service/${data.aws_ecs_cluster.main.cluster_name}/${aws_ecs_service.web_api.name}"
-#   scalable_dimension = "ecs:service:DesiredCount"
-#   service_namespace  = "ecs"
-# }
-
-# resource "aws_appautoscaling_policy" "web_api_cpu" {
-#   name               = "${var.project_name}-web-api-cpu-${var.environment}"
-#   policy_type        = "TargetTrackingScaling"
-#   resource_id        = aws_appautoscaling_target.web_api.resource_id
-#   scalable_dimension = aws_appautoscaling_target.web_api.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.web_api.service_namespace
-
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageCPUUtilization"
-#     }
-#     target_value = 70
-#   }
-# }
-
-# resource "aws_appautoscaling_policy" "web_api_memory" {
-#   name               = "${var.project_name}-web-api-memory-${var.environment}"
-#   policy_type        = "TargetTrackingScaling"
-#   resource_id        = aws_appautoscaling_target.web_api.resource_id
-#   scalable_dimension = aws_appautoscaling_target.web_api.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.web_api.service_namespace
-
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-#     }
-#     target_value = 80
-#   }
-# }
