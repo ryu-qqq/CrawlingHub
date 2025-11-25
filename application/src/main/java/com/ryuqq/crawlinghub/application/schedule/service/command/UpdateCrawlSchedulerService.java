@@ -9,11 +9,11 @@ import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQu
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
 /** 크롤 스케줄러 수정 UseCase 구현체. */

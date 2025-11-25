@@ -8,20 +8,10 @@ public final class DuplicateSchedulerNameException extends DomainException {
 
     private static final ScheduleErrorCode ERROR_CODE = ScheduleErrorCode.DUPLICATE_SCHEDULER_NAME;
 
-    private final Map<String, Object> args;
-
     public DuplicateSchedulerNameException(Long sellerId, String schedulerName) {
-        super(ERROR_CODE.getMessage());
-        this.args = Map.of("sellerId", sellerId, "schedulerName", schedulerName);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE.getCode();
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return args;
+        super(
+                ERROR_CODE.getCode(),
+                ERROR_CODE.getMessage(),
+                Map.of("sellerId", sellerId, "schedulerName", schedulerName));
     }
 }

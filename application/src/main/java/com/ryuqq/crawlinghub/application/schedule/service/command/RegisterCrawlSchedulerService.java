@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.RegisterCrawlSchedulerUseCase;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
 /** 크롤 스케줄러 등록 UseCase 구현체. */

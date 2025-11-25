@@ -7,7 +7,7 @@ import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
 /** 셀러 단건 조회 UseCase 구현체. */
