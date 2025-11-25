@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.crawl.task.identifier;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -91,7 +92,7 @@ class CrawlTaskIdTest {
         @DisplayName("값이 있으면 isAssigned()가 true 반환")
         void shouldReturnTrueWhenValueExists() {
             // given
-            CrawlTaskId id = CrawlTaskId.of(1L);
+            CrawlTaskId id = CrawlTaskIdFixture.anAssignedId();
 
             // when
             boolean result = id.isAssigned();
@@ -104,7 +105,7 @@ class CrawlTaskIdTest {
         @DisplayName("값이 null이면 isAssigned()가 false 반환")
         void shouldReturnFalseWhenValueIsNull() {
             // given
-            CrawlTaskId id = CrawlTaskId.unassigned();
+            CrawlTaskId id = CrawlTaskIdFixture.anUnassignedId();
 
             // when
             boolean result = id.isAssigned();
