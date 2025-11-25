@@ -67,6 +67,7 @@ module "ecs_security_group" {
   vpc_id      = local.vpc_id
 
   type                       = "ecs"
+  enable_ecs_alb_ingress     = true
   ecs_ingress_from_alb_sg_id = module.alb_security_group.security_group_id
   ecs_container_port         = 8080
 
