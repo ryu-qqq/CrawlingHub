@@ -4,7 +4,23 @@
 # Background scheduler service
 # No ALB, no auto scaling
 # Desired count: 1 (fixed)
+# Using Infrastructure repository modules
 # ========================================
+
+# ========================================
+# Common Tags (for governance)
+# ========================================
+locals {
+  common_tags = {
+    environment  = var.environment
+    service_name = "${var.project_name}-scheduler"
+    team         = "platform-team"
+    owner        = "platform@ryuqqq.com"
+    cost_center  = "engineering"
+    project      = var.project_name
+    data_class   = "confidential"
+  }
+}
 
 # ========================================
 # ECR Repository Reference
@@ -21,35 +37,39 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ========================================
-# Security Groups
+# Security Group (using Infrastructure module)
 # ========================================
 
-resource "aws_security_group" "ecs_scheduler" {
+module "ecs_security_group" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/security-group?ref=main"
+
   name        = "${var.project_name}-scheduler-sg-${var.environment}"
   description = "Security group for scheduler ECS tasks"
   vpc_id      = local.vpc_id
 
-  # No ingress - scheduler doesn't expose any ports
+  # Custom type for scheduler (no ingress, egress only)
+  type = "custom"
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
+  # No ingress rules - scheduler doesn't expose any ports
 
-  tags = {
-    Name = "${var.project_name}-scheduler-sg-${var.environment}"
-  }
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
-# IAM Role for ECS Task Execution
+# IAM Roles (using Infrastructure module)
 # ========================================
 
-resource "aws_iam_role" "scheduler_task_execution" {
-  name = "${var.project_name}-scheduler-execution-role-${var.environment}"
+# ECS Task Execution Role
+module "scheduler_task_execution_role" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
+
+  role_name = "${var.project_name}-scheduler-execution-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -63,49 +83,48 @@ resource "aws_iam_role" "scheduler_task_execution" {
       }
     ]
   })
+
+  attach_aws_managed_policies = [
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  ]
+
+  enable_secrets_manager_policy = true
+  secrets_manager_secret_arns   = [data.aws_secretsmanager_secret.rds.arn]
+
+  custom_inline_policies = {
+    ssm-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "ssm:GetParameters",
+              "ssm:GetParameter"
+            ]
+            Resource = [
+              "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*"
+            ]
+          }
+        ]
+      })
+    }
+  }
+
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
-resource "aws_iam_role_policy_attachment" "scheduler_task_execution" {
-  role       = aws_iam_role.scheduler_task_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
+# ECS Task Role
+module "scheduler_task_role" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
 
-resource "aws_iam_role_policy" "scheduler_secrets_access" {
-  name = "${var.project_name}-scheduler-secrets-access-${var.environment}"
-  role = aws_iam_role.scheduler_task_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = [
-          data.aws_secretsmanager_secret.rds.arn
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:GetParameters",
-          "ssm:GetParameter"
-        ]
-        Resource = [
-          "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*"
-        ]
-      }
-    ]
-  })
-}
-
-# ========================================
-# IAM Role for ECS Task
-# ========================================
-
-resource "aws_iam_role" "scheduler_task" {
-  name = "${var.project_name}-scheduler-task-role-${var.environment}"
+  role_name = "${var.project_name}-scheduler-task-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -119,57 +138,58 @@ resource "aws_iam_role" "scheduler_task" {
       }
     ]
   })
-}
 
-# EventBridge permissions for scheduler
-resource "aws_iam_role_policy" "scheduler_eventbridge_access" {
-  name = "${var.project_name}-scheduler-eventbridge-access-${var.environment}"
-  role = aws_iam_role.scheduler_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "events:PutEvents",
-          "events:PutRule",
-          "events:PutTargets",
-          "events:DeleteRule",
-          "events:RemoveTargets"
+  custom_inline_policies = {
+    eventbridge-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "events:PutEvents",
+              "events:PutRule",
+              "events:PutTargets",
+              "events:DeleteRule",
+              "events:RemoveTargets"
+            ]
+            Resource = "*"
+          }
         ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# ADOT permissions for AMP and S3 config
-resource "aws_iam_role_policy" "scheduler_adot_amp_access" {
-  name = "${var.project_name}-scheduler-adot-amp-${var.environment}"
-  role = aws_iam_role.scheduler_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AMPRemoteWrite"
-        Effect = "Allow"
-        Action = [
-          "aps:RemoteWrite"
+      })
+    }
+    adot-amp-access = {
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Sid    = "AMPRemoteWrite"
+            Effect = "Allow"
+            Action = [
+              "aps:RemoteWrite"
+            ]
+            Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
+          },
+          {
+            Sid    = "S3ConfigAccess"
+            Effect = "Allow"
+            Action = [
+              "s3:GetObject"
+            ]
+            Resource = "arn:aws:s3:::connectly-prod/*"
+          }
         ]
-        Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
-      },
-      {
-        Sid    = "S3ConfigAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = "arn:aws:s3:::connectly-prod/*"
-      }
-    ]
-  })
+      })
+    }
+  }
+
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
@@ -182,14 +202,27 @@ module "scheduler_logs" {
   name              = "/aws/ecs/${var.project_name}-scheduler-${var.environment}/application"
   retention_in_days = 30
 
-  # TODO: Add KMS key ARN when KMS module is available
-  # kms_key_id = data.terraform_remote_state.kms.outputs.logs_key_arn
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
+}
 
-  environment  = var.environment
-  service_name = "${var.project_name}-scheduler"
-  team         = "platform-team"
-  owner        = "platform@ryuqqq.com"
-  cost_center  = "engineering"
+# ========================================
+# ADOT Sidecar (using Infrastructure module)
+# ========================================
+
+module "adot_sidecar" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/adot-sidecar?ref=main"
+
+  project_name      = var.project_name
+  service_name      = "scheduler"
+  aws_region        = var.aws_region
+  amp_workspace_arn = "arn:aws:aps:${var.aws_region}:*:workspace/*"
+  log_group_name    = module.scheduler_logs.log_group_name
 }
 
 # ========================================
@@ -202,8 +235,8 @@ resource "aws_ecs_task_definition" "scheduler" {
   network_mode             = "awsvpc"
   cpu                      = var.scheduler_cpu
   memory                   = var.scheduler_memory
-  execution_role_arn       = aws_iam_role.scheduler_task_execution.arn
-  task_role_arn            = aws_iam_role.scheduler_task.arn
+  execution_role_arn       = module.scheduler_task_execution_role.role_arn
+  task_role_arn            = module.scheduler_task_role.role_arn
 
   container_definitions = jsonencode([
     {
@@ -251,29 +284,8 @@ resource "aws_ecs_task_definition" "scheduler" {
         }
       }
     },
-    # ADOT Sidecar for metrics collection to AMP
-    {
-      name      = "adot-collector"
-      image     = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
-      cpu       = 256
-      memory    = 512
-      essential = false
-
-      command = [
-        "--config=https://cdn.set-of.com/otel-config/crawlinghub-scheduler/otel-config.yaml"
-      ]
-
-      environment = []
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = module.scheduler_logs.log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "adot"
-        }
-      }
-    }
+    # ADOT Sidecar from module
+    module.adot_sidecar.container_definition
   ])
 
   tags = {
@@ -295,7 +307,7 @@ resource "aws_ecs_service" "scheduler" {
 
   network_configuration {
     subnets          = local.private_subnets
-    security_groups  = [aws_security_group.ecs_scheduler.id]
+    security_groups  = [module.ecs_security_group.security_group_id]
     assign_public_ip = false
   }
 

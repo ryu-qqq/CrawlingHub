@@ -4,12 +4,12 @@
 
 output "alb_dns_name" {
   description = "ALB DNS name"
-  value       = aws_lb.web_api.dns_name
+  value       = module.alb.alb_dns_name
 }
 
 output "alb_arn" {
   description = "ALB ARN"
-  value       = aws_lb.web_api.arn
+  value       = module.alb.alb_arn
 }
 
 output "service_name" {
