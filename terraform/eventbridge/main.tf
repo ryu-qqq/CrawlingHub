@@ -6,10 +6,26 @@
 # ========================================
 
 # ========================================
+# Common Tags (for governance)
+# ========================================
+locals {
+  common_tags = {
+    environment  = var.environment
+    service_name = "${var.project_name}-eventbridge"
+    team         = "platform-team"
+    owner        = "platform@ryuqqq.com"
+    cost_center  = "engineering"
+    project      = var.project_name
+    data_class   = "confidential"
+  }
+  ecs_cluster_arn = data.aws_ecs_cluster.this.arn
+}
+
+# ========================================
 # EventBridge Module (from infrastructure repo)
 # ========================================
 module "crawler_scheduler" {
-  source = "git::https://github.com/ryu-qqq/infrastructure.git//terraform/modules/eventbridge?ref=main"
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/eventbridge?ref=main"
 
   name        = "${var.project_name}-scheduler-${var.environment}"
   target_type = "ecs"
@@ -31,10 +47,14 @@ module "crawler_scheduler" {
     assign_public_ip = false
   }
 
-  common_tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-eventbridge-${var.environment}"
-  }
+  # Required Tags
+  environment  = local.common_tags.environment
+  service_name = local.common_tags.service_name
+  team         = local.common_tags.team
+  owner        = local.common_tags.owner
+  cost_center  = local.common_tags.cost_center
+  project      = local.common_tags.project
+  data_class   = local.common_tags.data_class
 }
 
 # ========================================
@@ -66,13 +86,6 @@ resource "aws_security_group" "eventbridge_task" {
   tags = {
     Name = "${var.project_name}-eventbridge-task-sg-${var.environment}"
   }
-}
-
-# ========================================
-# Local Variables
-# ========================================
-locals {
-  ecs_cluster_arn = data.aws_ecs_cluster.this.arn
 }
 
 # ========================================
