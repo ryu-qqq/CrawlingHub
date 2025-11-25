@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.common.util.PersistenceClockHolder;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOutBoxId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,9 +18,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CrawlSchedulerOutBoxJpaEntityMapper {
 
-    private final PersistenceClockHolder clockHolder;
+    private final ClockHolder clockHolder;
 
-    public CrawlSchedulerOutBoxJpaEntityMapper(PersistenceClockHolder clockHolder) {
+    public CrawlSchedulerOutBoxJpaEntityMapper(ClockHolder clockHolder) {
         this.clockHolder = clockHolder;
     }
 
@@ -58,6 +58,6 @@ public class CrawlSchedulerOutBoxJpaEntityMapper {
                 entity.getVersion(),
                 entity.getCreatedAt(),
                 entity.getProcessedAt(),
-                clockHolder.getClock());
+                clockHolder.clock());
     }
 }

@@ -8,20 +8,7 @@ public final class DuplicateSellerNameException extends DomainException {
 
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.DUPLICATE_SELLER_NAME;
 
-    private final Map<String, Object> args;
-
     public DuplicateSellerNameException(String sellerName) {
-        super(ERROR_CODE.getMessage());
-        this.args = Map.of("sellerName", sellerName);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE.getCode();
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return args;
+        super(ERROR_CODE.getCode(), ERROR_CODE.getMessage(), Map.of("sellerName", sellerName));
     }
 }

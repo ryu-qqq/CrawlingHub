@@ -43,7 +43,7 @@ class MapperArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.crawlinghub.adapter.in.rest");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
     }
 
     /** 규칙 1: @Component 어노테이션 필수 */
@@ -144,19 +144,12 @@ class MapperArchTest {
                         .areNotNestedClasses()
                         .and()
                         .haveSimpleNameNotContaining("Error")
-                        .and()
-                        .haveSimpleNameNotContaining("CrawlScheduler")
-                        .and()
-                        .haveSimpleNameNotContaining("SellerQuery")
-                        .and()
-                        .resideOutsideOfPackage("..architecture..")
                         .should()
                         .dependOnClassesThat()
                         .resideInAPackage("..domain..")
-                        .allowEmptyShould(true)
                         .because(
-                                "Mapper는 Application DTO만 사용하며 Domain 직접 의존은 금지됩니다 (ErrorMapper,"
-                                        + " CrawlScheduler, SellerQuery Mapper는 예외)");
+                                "Mapper는 Application DTO만 사용하며 Domain 직접 의존은 금지됩니다 (ErrorMapper는"
+                                        + " 예외)");
 
         rule.check(classes);
     }

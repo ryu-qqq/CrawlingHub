@@ -5,9 +5,9 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedu
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerQueryDslRepository;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;

@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.application.schedule.port.in.command.DeactivateSche
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

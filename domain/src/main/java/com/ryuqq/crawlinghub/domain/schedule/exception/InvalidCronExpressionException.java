@@ -11,11 +11,9 @@ import java.util.Map;
 public final class InvalidCronExpressionException extends DomainException {
 
     private static final String ERROR_CODE = "EVENTBRIDGE-CRON-001";
-    private final String expression;
 
     private InvalidCronExpressionException(String message, String expression) {
-        super(message);
-        this.expression = expression;
+        super(ERROR_CODE, message, Map.of("expression", expression));
     }
 
     public static InvalidCronExpressionException dueToInvalidFormat(String expression) {
@@ -33,15 +31,5 @@ public final class InvalidCronExpressionException extends DomainException {
                         "Cron expression must execute at intervals of at least 1 hour: %s",
                         expression);
         return new InvalidCronExpressionException(message, expression);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE;
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return Map.of("expression", expression);
     }
 }

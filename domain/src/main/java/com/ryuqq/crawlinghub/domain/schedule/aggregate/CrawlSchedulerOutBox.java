@@ -1,10 +1,11 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
+import com.ryuqq.crawlinghub.domain.common.Clock;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOutBoxId;
-import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 크롤 스케줄러 아웃박스 Aggregate Root
@@ -47,7 +48,7 @@ public class CrawlSchedulerOutBox {
      */
     public static CrawlSchedulerOutBox forNew(
             CrawlSchedulerHistoryId historyId, String eventPayload, Clock clock) {
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         return new CrawlSchedulerOutBox(
                 null, // Auto Increment: ID null
                 historyId,
@@ -168,7 +169,7 @@ public class CrawlSchedulerOutBox {
             return; // 이미 완료 상태면 무시
         }
         this.status = CrawlSchedulerOubBoxStatus.COMPLETED;
-        this.processedAt = LocalDateTime.now(clock);
+        this.processedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         this.errorMessage = null;
     }
 
@@ -182,7 +183,7 @@ public class CrawlSchedulerOutBox {
             throw new IllegalArgumentException("에러 메시지는 null이거나 빈 문자열일 수 없습니다.");
         }
         this.status = CrawlSchedulerOubBoxStatus.FAILED;
-        this.processedAt = LocalDateTime.now(clock);
+        this.processedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         this.errorMessage = errorMessage;
     }
 

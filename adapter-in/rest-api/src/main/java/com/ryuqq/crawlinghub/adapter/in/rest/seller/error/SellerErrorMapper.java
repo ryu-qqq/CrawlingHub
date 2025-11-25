@@ -99,10 +99,10 @@ public class SellerErrorMapper implements ErrorMapper {
         //    SELLER-001 → error.seller.001
         String messageKey = toMessageKey(code);
         Object[] args = extractArgs(code, exception);
-        String title = messageSource.getMessage(messageKey, args, exception.message(), locale);
+        String title = messageSource.getMessage(messageKey, args, exception.getMessage(), locale);
 
         // 3. Detail은 도메인에서 정의한 기본 메시지
-        String detail = exception.message();
+        String detail = exception.getMessage();
 
         return new MappedError(httpStatus, title, detail, type);
     }
