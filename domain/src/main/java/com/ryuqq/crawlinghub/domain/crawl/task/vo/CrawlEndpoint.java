@@ -8,13 +8,11 @@ import java.util.stream.Collectors;
  *
  * <p>크롤링 대상 API 엔드포인트 정보를 담는 불변 객체
  *
- * <p><strong>생성 패턴</strong>:
- *
+ * <p><strong>MUSTIT API 엔드포인트</strong>:
  * <ul>
- *   <li>{@code forMiniShopMeta()} - 미니샵 메타 정보 엔드포인트
- *   <li>{@code forMiniShopList()} - 미니샵 상품 목록 엔드포인트
- *   <li>{@code forProductDetail()} - 상품 상세 엔드포인트
- *   <li>{@code forProductOption()} - 상품 옵션 엔드포인트
+ *   <li>미니샵 목록: /mustit-api/facade-api/v1/searchmini-shop-search
+ *   <li>상품 상세: /mustit-api/facade-api/v1/item/{item_no}/detail/top
+ *   <li>상품 옵션: /mustit-api/legacy-api/v1/auction_products/{item_no}/options
  * </ul>
  *
  * @author development-team
@@ -26,11 +24,8 @@ public record CrawlEndpoint(
         Map<String, String> queryParams
 ) {
 
-    private static final String MUSTIT_BASE_URL = "https://api.mustit.co.kr";
+    private static final String MUSTIT_BASE_URL = "https://m.web.mustit.co.kr";
 
-    /**
-     * Compact Constructor (검증 + 불변 보장)
-     */
     public CrawlEndpoint {
         if (baseUrl == null || baseUrl.isBlank()) {
             throw new IllegalArgumentException("CrawlEndpoint baseUrl은 null이거나 빈 값일 수 없습니다.");
@@ -42,45 +37,36 @@ public record CrawlEndpoint(
     }
 
     /**
-     * 미니샵 메타 정보 엔드포인트 생성
-     *
-     * @param sellerId 셀러 ID
-     * @return CrawlEndpoint
-     */
-    public static CrawlEndpoint forMiniShopMeta(Long sellerId) {
-        return new CrawlEndpoint(
-                MUSTIT_BASE_URL,
-                "/api/v1/minishop/" + sellerId + "/meta",
-                Map.of()
-        );
-    }
-
-    /**
      * 미니샵 상품 목록 엔드포인트 생성
      *
      * @param sellerId 셀러 ID
      * @param page     페이지 번호
-     * @param size     페이지 크기
+     * @param pageSize 페이지 크기
      * @return CrawlEndpoint
      */
-    public static CrawlEndpoint forMiniShopList(Long sellerId, int page, int size) {
+    public static CrawlEndpoint forMiniShopList(Long sellerId, int page, int pageSize) {
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
-                "/api/v1/minishop/" + sellerId + "/products",
-                Map.of("page", String.valueOf(page), "size", String.valueOf(size))
+                "/mustit-api/facade-api/v1/searchmini-shop-search",
+                Map.of(
+                        "sellerId", String.valueOf(sellerId),
+                        "pageNo", String.valueOf(page),
+                        "pageSize", String.valueOf(pageSize),
+                        "order", "LATEST"
+                )
         );
     }
 
     /**
      * 상품 상세 엔드포인트 생성
      *
-     * @param productId 상품 ID
+     * @param itemNo 상품 번호
      * @return CrawlEndpoint
      */
-    public static CrawlEndpoint forProductDetail(Long productId) {
+    public static CrawlEndpoint forProductDetail(Long itemNo) {
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
-                "/api/v1/product/" + productId,
+                "/mustit-api/facade-api/v1/item/" + itemNo + "/detail/top",
                 Map.of()
         );
     }
@@ -88,13 +74,13 @@ public record CrawlEndpoint(
     /**
      * 상품 옵션 엔드포인트 생성
      *
-     * @param productId 상품 ID
+     * @param itemNo 상품 번호
      * @return CrawlEndpoint
      */
-    public static CrawlEndpoint forProductOption(Long productId) {
+    public static CrawlEndpoint forProductOption(Long itemNo) {
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
-                "/api/v1/product/" + productId + "/option",
+                "/mustit-api/legacy-api/v1/auction_products/" + itemNo + "/options",
                 Map.of()
         );
     }

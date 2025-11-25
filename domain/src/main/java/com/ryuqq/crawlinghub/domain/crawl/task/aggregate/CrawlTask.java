@@ -5,6 +5,9 @@ import com.ryuqq.crawlinghub.domain.crawl.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.domain.crawl.task.vo.RetryCount;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 
 import java.time.LocalDateTime;
 
@@ -28,23 +31,23 @@ import java.time.LocalDateTime;
 public class CrawlTask {
 
     private final CrawlTaskId id;
-    private final Long crawlSchedulerId;
-    private final Long sellerId;
+    private final CrawlSchedulerId crawlSchedulerId;
+    private final SellerId sellerId;
     private final CrawlTaskType taskType;
     private final CrawlEndpoint endpoint;
     private CrawlTaskStatus status;
-    private int retryCount;
+    private RetryCount retryCount;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private CrawlTask(
             CrawlTaskId id,
-            Long crawlSchedulerId,
-            Long sellerId,
+            CrawlSchedulerId crawlSchedulerId,
+            SellerId sellerId,
             CrawlTaskType taskType,
             CrawlEndpoint endpoint,
             CrawlTaskStatus status,
-            int retryCount,
+            RetryCount retryCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -69,8 +72,8 @@ public class CrawlTask {
      * @return 새로운 CrawlTask (WAITING 상태)
      */
     public static CrawlTask forNew(
-            Long crawlSchedulerId,
-            Long sellerId,
+            CrawlSchedulerId crawlSchedulerId,
+            SellerId sellerId,
             CrawlTaskType taskType,
             CrawlEndpoint endpoint
     ) {
@@ -82,7 +85,7 @@ public class CrawlTask {
                 taskType,
                 endpoint,
                 CrawlTaskStatus.WAITING,
-                0,
+                RetryCount.zero(),
                 now,
                 now
         );
@@ -104,12 +107,12 @@ public class CrawlTask {
      */
     public static CrawlTask reconstitute(
             CrawlTaskId id,
-            Long crawlSchedulerId,
-            Long sellerId,
+            CrawlSchedulerId crawlSchedulerId,
+            SellerId sellerId,
             CrawlTaskType taskType,
             CrawlEndpoint endpoint,
             CrawlTaskStatus status,
-            int retryCount,
+            RetryCount retryCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -184,26 +187,24 @@ public class CrawlTask {
     /**
      * 재시도 가능 여부 확인
      *
-     * @param maxRetryCount 최대 재시도 횟수
      * @return 재시도 가능 여부
      */
-    public boolean canRetry(int maxRetryCount) {
+    public boolean canRetry() {
         boolean isRetryableStatus = this.status == CrawlTaskStatus.FAILED
                 || this.status == CrawlTaskStatus.TIMEOUT;
-        return isRetryableStatus && this.retryCount < maxRetryCount;
+        return isRetryableStatus && this.retryCount.canRetry();
     }
 
     /**
      * 재시도 수행
      *
-     * @param maxRetryCount 최대 재시도 횟수
      * @return 재시도 성공 여부
      */
-    public boolean attemptRetry(int maxRetryCount) {
-        if (!canRetry(maxRetryCount)) {
+    public boolean attemptRetry() {
+        if (!canRetry()) {
             return false;
         }
-        this.retryCount++;
+        this.retryCount = this.retryCount.increment();
         this.status = CrawlTaskStatus.RETRY;
         this.updatedAt = LocalDateTime.now();
         return true;
@@ -235,17 +236,17 @@ public class CrawlTask {
         }
     }
 
-    // Getters (Lombok 금지로 수동 작성)
+    // Getters
 
     public CrawlTaskId getId() {
         return id;
     }
 
-    public Long getCrawlSchedulerId() {
+    public CrawlSchedulerId getCrawlSchedulerId() {
         return crawlSchedulerId;
     }
 
-    public Long getSellerId() {
+    public SellerId getSellerId() {
         return sellerId;
     }
 
@@ -261,7 +262,7 @@ public class CrawlTask {
         return status;
     }
 
-    public int getRetryCount() {
+    public RetryCount getRetryCount() {
         return retryCount;
     }
 
