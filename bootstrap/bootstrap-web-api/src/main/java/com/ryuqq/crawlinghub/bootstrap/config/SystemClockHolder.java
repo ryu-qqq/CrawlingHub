@@ -23,6 +23,6 @@ public record SystemClockHolder(java.time.Clock systemClock) implements ClockHol
 
     @Override
     public Clock clock() {
-        return () -> systemClock.instant();
+        return systemClock::instant;
     }
 }
