@@ -1,13 +1,14 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
+import com.ryuqq.crawlinghub.domain.common.Clock;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
-import java.time.Clock;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 크롤 스케줄러 히스토리 Aggregate Root
@@ -55,7 +56,7 @@ public class CrawlSchedulerHistory {
             CronExpression cronExpression,
             SchedulerStatus status,
             Clock clock) {
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         return new CrawlSchedulerHistory(
                 null, // Auto Increment: ID null
                 crawlSchedulerId,

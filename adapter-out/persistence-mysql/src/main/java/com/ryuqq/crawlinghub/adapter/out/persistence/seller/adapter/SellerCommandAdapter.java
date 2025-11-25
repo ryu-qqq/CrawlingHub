@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper.SellerJpaEnti
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.SellerJpaRepository;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Component;
 
 /**

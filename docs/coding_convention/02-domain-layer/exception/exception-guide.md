@@ -388,7 +388,7 @@ public class Order {
 ```java
 package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -455,7 +455,7 @@ public class OrderCancellationException extends DomainException {
 ```java
 package com.ryuqq.domain.tenant.exception;
 
-import com.ryuqq.domain.common.ErrorCode;
+import com.ryuqq.domain.common.exception.ErrorCode;
 
 /**
  * TenantErrorCode - Tenant Bounded Context 에러 코드
@@ -584,7 +584,7 @@ public enum TenantErrorCode implements ErrorCode {
 ```java
 package com.ryuqq.domain.tenant.exception;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 
 /**
  * TenantNotFoundException - Tenant를 찾을 수 없을 때 발생하는 예외
@@ -648,7 +648,7 @@ public class TenantNotFoundException extends DomainException {
 ```java
 package com.ryuqq.domain.order.exception;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -871,7 +871,7 @@ public class CancelOrderService implements CancelOrderUseCase {
 ```java
 package com.ryuqq.adapter.in.rest.common;
 
-import com.ryuqq.domain.common.DomainException;
+import com.ryuqq.domain.common.exception.DomainException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

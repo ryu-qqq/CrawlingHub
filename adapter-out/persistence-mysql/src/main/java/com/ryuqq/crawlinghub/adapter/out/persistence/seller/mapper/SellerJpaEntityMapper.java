@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import java.time.Clock;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,10 +35,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SellerJpaEntityMapper {
 
-    private final Clock clock;
+    private final ClockHolder clockHolder;
 
-    public SellerJpaEntityMapper(Clock clock) {
-        this.clock = clock;
+    public SellerJpaEntityMapper(ClockHolder clockHolder) {
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -106,6 +106,6 @@ public class SellerJpaEntityMapper {
                 entity.getStatus(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
-                clock);
+                clockHolder.clock());
     }
 }
