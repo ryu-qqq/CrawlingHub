@@ -1,4 +1,4 @@
-package com.ryuqq.application.architecture.port.out;
+package com.ryuqq.crawlinghub.application.architecture.port.port.out;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -68,7 +68,7 @@ class LockQueryPortArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.application");
+            .importPackages("com.ryuqq.crawlinghub.application");
     }
 
     /**
@@ -80,7 +80,7 @@ class LockQueryPortArchTest {
         ArchRule rule = classes()
             .that().resideInAPackage("..port.out.query..")
             .and().areInterfaces()
-            .and().haveSimpleNameMatching(".*Lock.*")
+            .and().haveSimpleNameContaining("Lock")
             .should().haveSimpleNameEndingWith("LockQueryPort")
             .because("락을 사용하는 Query Port는 'LockQueryPort' 접미사를 사용해야 합니다");
 
@@ -247,7 +247,7 @@ class LockQueryPortArchTest {
             .resideInAnyPackage(
                 "com.ryuqq.domain..",
                 "java..",
-                "com.ryuqq.application.."  // 같은 application 내 DTO는 허용
+                "com.ryuqq.crawlinghub.application.."  // 같은 application 내 DTO는 허용
             )
             .because("LockQueryPort는 Domain Layer만 의존해야 합니다 (Infrastructure 의존 금지)");
 
