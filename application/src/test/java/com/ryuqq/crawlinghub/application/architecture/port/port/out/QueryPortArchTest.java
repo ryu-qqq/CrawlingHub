@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.architecture.port.out;
+package com.ryuqq.application.architecture.port.out;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -20,9 +20,17 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
  * <ul>
  *   <li>인터페이스명: *QueryPort</li>
  *   <li>패키지: ..application..port.out.query..</li>
- *   <li>4개 표준 메서드 필수: findById, existsById, findByCriteria, countByCriteria</li>
- *   <li>Value Object 파라미터: {Bc}Id, {Bc}SearchCriteria</li>
- *   <li>Domain 반환: DTO/Entity 반환 금지</li>
+ *   <li>필수 메서드 (2개): findById, existsById</li>
+ *   <li>선택 메서드 (패턴별 강제):
+ *     <ul>
+ *       <li>search* → Criteria 파라미터 + PageResponse 반환 (페이징 필수)</li>
+ *       <li>findBy* → 단순 파라미터 + Optional/List 반환</li>
+ *       <li>count* → long 반환</li>
+ *     </ul>
+ *   </li>
+ *   <li>금지 메서드: findAll (OOM 위험)</li>
+ *   <li>Value Object 파라미터 사용 (원시 타입 금지)</li>
+ *   <li>Domain 반환 (DTO/Entity 반환 금지)</li>
  * </ul>
  *
  * @author development-team
@@ -128,31 +136,33 @@ class QueryPortArchTest {
     }
 
     /**
-     * 규칙 7: findByCriteria() 메서드 필수
+     * 규칙 7: search* 메서드는 PageResponse 반환
      */
     @Test
-    @DisplayName("[필수] QueryPort는 findByCriteria() 메서드를 가져야 한다")
-    void queryPort_MustHaveFindByCriteriaMethod() {
+    @DisplayName("[패턴] search* 메서드는 PageResponse를 반환해야 한다")
+    void queryPort_SearchMethodsMustReturnPageResponse() {
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .and().haveNameMatching("findByCriteria")
-            .should().beDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .because("QueryPort는 findByCriteria() 메서드를 무조건 제공해야 합니다");
+            .and().haveNameMatching("search.*")
+            .should().haveRawReturnType("com.ryuqq.application.common.dto.response.PageResponse")
+            .because("search* 메서드는 PageResponse를 반환해야 합니다 (복잡한 조건 조회는 페이징 필수)");
 
         rule.check(classes);
     }
 
     /**
-     * 규칙 8: countByCriteria() 메서드 필수
+     * 규칙 8: findBy* 메서드는 Optional 또는 List 반환
      */
     @Test
-    @DisplayName("[필수] QueryPort는 countByCriteria() 메서드를 가져야 한다")
-    void queryPort_MustHaveCountByCriteriaMethod() {
+    @DisplayName("[패턴] findBy* 메서드는 Optional 또는 List를 반환해야 한다")
+    void queryPort_FindByMethodsMustReturnOptionalOrList() {
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .and().haveNameMatching("countByCriteria")
-            .should().beDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .because("QueryPort는 countByCriteria() 메서드를 무조건 제공해야 합니다");
+            .and().haveNameMatching("findBy[A-Z].*")
+            .and().doNotHaveName("findById")  // findById는 별도 규칙
+            .should().haveRawReturnType(Optional.class)
+            .orShould().haveRawReturnType(List.class)
+            .because("단순 조건 조회는 Optional 또는 List를 반환해야 합니다");
 
         rule.check(classes);
     }
@@ -202,31 +212,30 @@ class QueryPortArchTest {
     }
 
     /**
-     * 규칙 12: findByCriteria는 List 반환
+     * 규칙 12: count* 메서드는 long 반환
      */
     @Test
-    @DisplayName("[필수] findByCriteria()는 List를 반환해야 한다")
-    void queryPort_FindByCriteriaMustReturnList() {
+    @DisplayName("[패턴] count* 메서드는 long을 반환해야 한다")
+    void queryPort_CountMethodsMustReturnLong() {
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .and().haveNameMatching("findByCriteria")
-            .should().haveRawReturnType(List.class)
-            .because("findByCriteria()는 List를 반환해야 합니다");
+            .and().haveNameMatching("count[A-Z].*")
+            .should().haveRawReturnType(long.class)
+            .because("count* 메서드는 long을 반환해야 합니다");
 
         rule.check(classes);
     }
 
     /**
-     * 규칙 13: countByCriteria는 long 반환
+     * 규칙 13: findAll 금지 (OOM 방지)
      */
     @Test
-    @DisplayName("[필수] countByCriteria()는 long을 반환해야 한다")
-    void queryPort_CountByCriteriaMustReturnLong() {
-        ArchRule rule = methods()
+    @DisplayName("[금지] QueryPort는 findAll 메서드를 가지지 않아야 한다")
+    void queryPort_MustNotHaveFindAllMethod() {
+        ArchRule rule = noMethods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
-            .and().haveNameMatching("countByCriteria")
-            .should().haveRawReturnType(long.class)
-            .because("countByCriteria()는 long을 반환해야 합니다");
+            .should().haveNameMatching("findAll")
+            .because("findAll()은 OOM 위험이 있습니다. 페이징 처리된 search() 메서드를 사용하세요");
 
         rule.check(classes);
     }
