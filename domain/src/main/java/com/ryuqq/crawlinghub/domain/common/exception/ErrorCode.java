@@ -1,78 +1,62 @@
 package com.ryuqq.crawlinghub.domain.common.exception;
 
 /**
- * ErrorCode - 도메인 에러 코드 인터페이스
+ * ErrorCode - 비즈니스 예외 에러 코드 인터페이스
  *
- * <p>모든 Bounded Context의 ErrorCode Enum이 구현해야 하는 인터페이스입니다.
+ * <p>모든 비즈니스 예외는 ErrorCode를 구현하여 일관된 에러 정보를 제공합니다.
  *
  * <p><strong>설계 원칙:</strong>
  *
  * <ul>
- *   <li>✅ 형식: {BC}-{3자리 숫자} (예: SELLER-001, CRAWLER-001)
- *   <li>✅ HTTP 상태 코드 매핑 (404, 400, 409, 500 등)
- *   <li>✅ 명확한 에러 메시지
+ *   <li>✅ Bounded Context별 ErrorCode enum 구현
+ *   <li>✅ HTTP Status와 에러 코드 매핑
+ *   <li>✅ 명확한 에러 메시지 제공
  * </ul>
  *
- * <p><strong>사용 예시:</strong>
+ * <p><strong>구현 예시:</strong>
  *
  * <pre>{@code
- * public enum SellerErrorCode implements ErrorCode {
- *     SELLER_NOT_FOUND("SELLER-001", 404, "Seller not found"),
- *     SELLER_NAME_DUPLICATED("SELLER-002", 409, "Seller name already exists");
- *
- *     private final String code;
- *     private final int httpStatus;
- *     private final String message;
- *
- *     SellerErrorCode(String code, int httpStatus, String message) {
- *         this.code = code;
- *         this.httpStatus = httpStatus;
- *         this.message = message;
- *     }
- *
- *     public String getCode() { return code; }
- *     public int getHttpStatus() { return httpStatus; }
- *     public String getMessage() { return message; }
+ * public enum TenantErrorCode implements ErrorCode {
+ *     TENANT_NOT_FOUND("TENANT-001", 404, "Tenant not found");
+ *     // ...
  * }
  * }</pre>
  *
  * @author ryu-qqq
- * @since 2025-11-17
+ * @since 2025-10-23
  */
 public interface ErrorCode {
 
     /**
      * 에러 코드 반환
      *
-     * <p>형식: {BC}-{3자리 숫자}
-     *
-     * <p>예: SELLER-001, CRAWLER-001, PRODUCT-001
+     * <p>형식: {CONTEXT}-{NUMBER} (예: TENANT-001, ORDER-002)
      *
      * @return 에러 코드 문자열
      * @author ryu-qqq
-     * @since 2025-11-17
+     * @since 2025-10-23
      */
     String getCode();
 
     /**
      * HTTP 상태 코드 반환
      *
-     * <p>GlobalExceptionHandler에서 HTTP 응답 생성 시 사용됩니다.
+     * <p>RESTful API 응답에 사용될 HTTP 상태 코드
      *
-     * @return HTTP 상태 코드 (예: 404, 400, 409, 500)
+     * @return HTTP 상태 코드 (예: 404, 400, 500)
      * @author ryu-qqq
-     * @since 2025-11-17
+     * @since 2025-10-23
      */
     int getHttpStatus();
 
     /**
      * 에러 메시지 반환
      *
-     * <p>사용자에게 표시될 에러 메시지입니다.
+     * <p>사용자에게 표시될 에러 메시지
      *
      * @return 에러 메시지 문자열
      * @author ryu-qqq
-     * @since 2025-11-17
+     * @since 2025-10-23
      */
     String getMessage();
 }

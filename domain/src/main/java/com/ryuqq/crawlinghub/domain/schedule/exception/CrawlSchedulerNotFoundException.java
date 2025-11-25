@@ -8,20 +8,10 @@ public final class CrawlSchedulerNotFoundException extends DomainException {
 
     private static final ScheduleErrorCode ERROR_CODE = ScheduleErrorCode.CRAWL_SCHEDULER_NOT_FOUND;
 
-    private final Map<String, Object> args;
-
     public CrawlSchedulerNotFoundException(long crawlSchedulerId) {
-        super(ERROR_CODE.getMessage());
-        this.args = Map.of("crawlSchedulerId", crawlSchedulerId);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE.getCode();
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return args;
+        super(
+                ERROR_CODE.getCode(),
+                ERROR_CODE.getMessage(),
+                Map.of("crawlSchedulerId", crawlSchedulerId));
     }
 }

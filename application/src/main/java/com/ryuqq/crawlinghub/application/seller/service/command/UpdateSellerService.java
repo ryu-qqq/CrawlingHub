@@ -10,7 +10,7 @@ import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
 /**

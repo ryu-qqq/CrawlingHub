@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.schedule.dto;
 
+import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
-import java.time.Clock;
 
 /**
  * 크롤 스케줄러 번들 VO

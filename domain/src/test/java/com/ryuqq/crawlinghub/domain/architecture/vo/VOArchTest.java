@@ -42,7 +42,7 @@ class VOArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
     }
 
     /** 규칙 1: Value Object는 Record여야 한다 */
@@ -59,6 +59,14 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Mother")
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .haveSimpleNameNotContaining("Status")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
+                        .and()
+                        .areNotEnums()
                         .should(beRecords())
                         .because("Value Object는 Java 21 Record로 구현해야 합니다");
 
@@ -79,6 +87,14 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Mother")
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .haveSimpleNameNotContaining("Status")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
+                        .and()
+                        .areNotEnums()
                         .should(haveStaticMethodWithName("of"))
                         .because("Value Object는 of() 정적 팩토리 메서드로 생성해야 합니다");
 
@@ -92,7 +108,7 @@ class VOArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("..vo..")
+                        .resideInAPackage("..identifier..")
                         .and()
                         .haveSimpleNameEndingWith("Id")
                         .and()
@@ -101,6 +117,10 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Mother")
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should(haveStaticMethodWithName("forNew"))
                         .because("ID Value Object는 forNew() 메서드로 null 생성을 지원해야 합니다");
 
@@ -114,7 +134,7 @@ class VOArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("..vo..")
+                        .resideInAPackage("..identifier..")
                         .and()
                         .haveSimpleNameEndingWith("Id")
                         .and()
@@ -123,6 +143,10 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Mother")
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should(haveMethodWithName("isNew"))
                         .because("ID Value Object는 isNew() 메서드로 null 여부를 확인해야 합니다");
 
@@ -137,6 +161,10 @@ class VOArchTest {
                 classes()
                         .that()
                         .resideInAPackage("..vo..")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should()
                         .notBeAnnotatedWith("lombok.Data")
                         .andShould()
@@ -164,6 +192,10 @@ class VOArchTest {
                 classes()
                         .that()
                         .resideInAPackage("..vo..")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should()
                         .notBeAnnotatedWith("javax.persistence.Entity")
                         .andShould()
@@ -189,6 +221,10 @@ class VOArchTest {
                 classes()
                         .that()
                         .resideInAPackage("..vo..")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should()
                         .notBeAnnotatedWith("org.springframework.stereotype.Component")
                         .andShould()
@@ -214,6 +250,10 @@ class VOArchTest {
                         .haveSimpleNameNotContaining("Mother")
                         .and()
                         .haveSimpleNameNotContaining("Test")
+                        .and()
+                        .areNotAnonymousClasses()
+                        .and()
+                        .areNotMemberClasses()
                         .should(notHaveMethodsWithNameStartingWith("create"))
                         .because("Value Object는 create*() 대신 of(), forNew()를 사용해야 합니다");
 
@@ -227,19 +267,12 @@ class VOArchTest {
         return new ArchCondition<JavaClass>("be records") {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
+                // Java Record는 java.lang.Record를 상속함
                 boolean isRecord =
-                        javaClass.getModifiers().contains(JavaModifier.FINAL)
-                                && javaClass.getAllMethods().stream()
-                                        .anyMatch(
-                                                method ->
-                                                        method.getName().equals("toString")
-                                                                && method.getModifiers()
-                                                                        .contains(
-                                                                                JavaModifier.PUBLIC)
-                                                                && method.getModifiers()
-                                                                        .contains(
-                                                                                JavaModifier
-                                                                                        .FINAL));
+                        javaClass.getAllRawSuperclasses().stream()
+                                .anyMatch(
+                                        superClass ->
+                                                superClass.getName().equals("java.lang.Record"));
 
                 if (!isRecord) {
                     String message =

@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedu
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerJpaRepository;
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlSchedulePort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import org.springframework.stereotype.Component;
 
 /**

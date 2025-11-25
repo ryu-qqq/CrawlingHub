@@ -3,16 +3,16 @@ package com.ryuqq.crawlinghub.application.schedule.assembler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@ public class CrawlSchedulerAssembler {
     public CrawlSchedulerBundle toBundle(RegisterCrawlSchedulerCommand command) {
         CrawlScheduler scheduler = toCrawlScheduler(command);
         String eventPayload = buildEventPayload(command);
-        return CrawlSchedulerBundle.of(scheduler, eventPayload, clockHolder.getClock());
+        return CrawlSchedulerBundle.of(scheduler, eventPayload, clockHolder.clock());
     }
 
     private String buildEventPayload(RegisterCrawlSchedulerCommand command) {
@@ -68,7 +68,7 @@ public class CrawlSchedulerAssembler {
                 SellerId.of(command.sellerId()),
                 SchedulerName.of(command.schedulerName()),
                 CronExpression.of(command.cronExpression()),
-                clockHolder.getClock());
+                clockHolder.clock());
     }
 
     /**

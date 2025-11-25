@@ -5,12 +5,12 @@ import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerHistoryManager;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerManager;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
-import java.time.Clock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ public class CrawlerSchedulerFacade {
     private final CrawlerSchedulerHistoryManager crawlerSchedulerHistoryManager;
     private final CrawlSchedulerAssembler crawlSchedulerAssembler;
     private final ApplicationEventPublisher eventPublisher;
-    private final Clock clock;
+    private final ClockHolder clockHolder;
 
     public CrawlerSchedulerFacade(
             CrawlerSchedulerManager crawlerSchedulerManager,
@@ -31,13 +31,13 @@ public class CrawlerSchedulerFacade {
             CrawlerSchedulerHistoryManager crawlerSchedulerHistoryManager,
             CrawlSchedulerAssembler crawlSchedulerAssembler,
             ApplicationEventPublisher eventPublisher,
-            Clock clock) {
+            ClockHolder clockHolder) {
         this.crawlerSchedulerManager = crawlerSchedulerManager;
         this.crawlerSchedulerOutBoxManager = crawlerSchedulerOutBoxManager;
         this.crawlerSchedulerHistoryManager = crawlerSchedulerHistoryManager;
         this.crawlSchedulerAssembler = crawlSchedulerAssembler;
         this.eventPublisher = eventPublisher;
-        this.clock = clock;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -100,12 +100,12 @@ public class CrawlerSchedulerFacade {
         // 2. 이벤트가 있는 경우에만 히스토리/아웃박스 저장
         if (!crawlScheduler.getDomainEvents().isEmpty()) {
             CrawlSchedulerHistory history =
-                    CrawlSchedulerHistory.fromScheduler(crawlScheduler, clock);
+                    CrawlSchedulerHistory.fromScheduler(crawlScheduler, clockHolder.clock());
             CrawlSchedulerHistoryId historyId = crawlerSchedulerHistoryManager.persist(history);
 
             String eventPayload = crawlSchedulerAssembler.toEventPayload(crawlScheduler);
             CrawlSchedulerOutBox outBox =
-                    CrawlSchedulerOutBox.forNew(historyId, eventPayload, clock);
+                    CrawlSchedulerOutBox.forNew(historyId, eventPayload, clockHolder.clock());
             crawlerSchedulerOutBoxManager.persist(outBox);
 
             // 3. 이벤트 발행

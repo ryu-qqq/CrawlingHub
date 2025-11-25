@@ -1,13 +1,14 @@
 package com.ryuqq.crawlinghub.domain.seller.aggregate;
 
+import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,7 @@ public class Seller {
      */
     public static Seller forNew(
             MustItSellerName mustItSellerName, SellerName sellerName, Clock clock) {
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         return new Seller(
                 null, // Auto Increment: ID null
                 mustItSellerName,
@@ -140,7 +141,7 @@ public class Seller {
             return; // 이미 활성 상태면 무시
         }
         this.status = SellerStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
     }
 
     /**
@@ -154,7 +155,7 @@ public class Seller {
         }
 
         this.status = SellerStatus.INACTIVE;
-        this.updatedAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
         // 이벤트 발행: 크롤링 스케줄 중지
         this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId));
@@ -176,13 +177,13 @@ public class Seller {
         // 머스트잇 셀러명 변경 (자기 자신이 판단)
         if (newMustItSellerName != null && !this.mustItSellerName.equals(newMustItSellerName)) {
             this.mustItSellerName = newMustItSellerName;
-            this.updatedAt = LocalDateTime.now(clock);
+            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         }
 
         // 셀러명 변경 (자기 자신이 판단)
         if (newSellerName != null && !this.sellerName.equals(newSellerName)) {
             this.sellerName = newSellerName;
-            this.updatedAt = LocalDateTime.now(clock);
+            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         }
 
         // 상태 변경 (자기 자신이 판단)

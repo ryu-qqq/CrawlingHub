@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.seller.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 
 /**
  * 셀러 비활성화 이벤트
