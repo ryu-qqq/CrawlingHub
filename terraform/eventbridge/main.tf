@@ -17,7 +17,7 @@ module "crawler_scheduler" {
 
   # Schedule Configuration
   schedule_expression = var.schedule_expression
-  enabled            = var.enabled
+  enabled             = var.enabled
 
   # ECS Target Configuration
   ecs_cluster_arn         = local.ecs_cluster_arn
