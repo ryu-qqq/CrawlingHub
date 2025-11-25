@@ -1,15 +1,16 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
+import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerId;
-import java.time.Clock;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +61,7 @@ public class CrawlScheduler {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             Clock clock) {
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
         // Auto Increment: ID null
 
         // 등록 이벤트는 ID 할당 후 발행 (영속화 후 처리)
@@ -219,7 +220,7 @@ public class CrawlScheduler {
         this.schedulerName = newSchedulerName;
         this.cronExpression = newCronExpression;
         this.status = newStatus;
-        this.updatedAt = LocalDateTime.now(clock);
+        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
         // 2. 이벤트 발행 판단
         // - 최종 상태가 ACTIVE → EventBridge 동기화 필요 (enable + cron 업데이트)

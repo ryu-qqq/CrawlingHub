@@ -8,20 +8,7 @@ public final class SellerNotFoundException extends DomainException {
 
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.SELLER_NOT_FOUND;
 
-    private final Map<String, Object> args;
-
     public SellerNotFoundException(long sellerId) {
-        super(ERROR_CODE.getMessage());
-        this.args = Map.of("sellerId", sellerId);
-    }
-
-    @Override
-    public String code() {
-        return ERROR_CODE.getCode();
-    }
-
-    @Override
-    public Map<String, Object> args() {
-        return args;
+        super(ERROR_CODE.getCode(), ERROR_CODE.getMessage(), Map.of("sellerId", sellerId));
     }
 }
