@@ -19,9 +19,9 @@ import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentPoo
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * UserAgentQueryController REST Docs 테스트
@@ -34,11 +34,9 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("UserAgentQueryController REST Docs")
 class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
+    @MockitoBean private GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
 
-    @MockitoBean
-    private UserAgentApiMapper userAgentApiMapper;
+    @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
     @Test
     @DisplayName("GET /api/v1/user-agents/pool-status - UserAgent Pool 상태 조회 API 문서")
@@ -46,11 +44,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
         // given
         UserAgentPoolStatusResponse useCaseResponse =
                 new UserAgentPoolStatusResponse(
-                        100L,
-                        85L,
-                        15L,
-                        85.0,
-                        new HealthScoreStats(75.5, 30, 100));
+                        100L, 85L, 15L, 85.0, new HealthScoreStats(75.5, 30, 100));
 
         UserAgentPoolStatusApiResponse apiResponse =
                 new UserAgentPoolStatusApiResponse(
@@ -108,7 +102,9 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("최대 Health Score"),
                                         fieldWithPath("data.isCircuitBreakerOpen")
                                                 .type(JsonFieldType.BOOLEAN)
-                                                .description("Circuit Breaker 열림 여부 (가용률 < 20%일 때 true)"),
+                                                .description(
+                                                        "Circuit Breaker 열림 여부 (가용률 < 20%일 때"
+                                                                + " true)"),
                                         fieldWithPath("data.isHealthy")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("Pool 상태 건강 여부 (가용률 >= 50%일 때 true)"),

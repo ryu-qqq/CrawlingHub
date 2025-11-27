@@ -119,9 +119,12 @@ public class CrawlTaskErrorMapper implements ErrorMapper {
 
         return switch (code) {
             case "CRAWL-TASK-001" -> new Object[] {argsMap.get("crawlTaskId")};
-            case "CRAWL-TASK-002" -> new Object[] {argsMap.get("currentStatus"), argsMap.get("targetStatus")};
-            case "CRAWL-TASK-003" -> new Object[] {argsMap.get("crawlSchedulerId"), argsMap.get("requestUrl")};
-            case "CRAWL-TASK-004" -> new Object[] {argsMap.get("crawlTaskId"), argsMap.get("retryCount")};
+            case "CRAWL-TASK-002" ->
+                    new Object[] {argsMap.get("currentStatus"), argsMap.get("targetStatus")};
+            case "CRAWL-TASK-003" ->
+                    new Object[] {argsMap.get("crawlSchedulerId"), argsMap.get("requestUrl")};
+            case "CRAWL-TASK-004" ->
+                    new Object[] {argsMap.get("crawlTaskId"), argsMap.get("retryCount")};
             case "CRAWL-TASK-005" -> new Object[] {argsMap.get("crawlTaskId")};
             default -> new Object[0];
         };
@@ -141,7 +144,8 @@ public class CrawlTaskErrorMapper implements ErrorMapper {
             case "CRAWL-TASK-002" -> HttpStatus.BAD_REQUEST; // INVALID_CRAWL_TASK_STATE
             case "CRAWL-TASK-003" -> HttpStatus.CONFLICT; // DUPLICATE_CRAWL_TASK
             case "CRAWL-TASK-004" -> HttpStatus.BAD_REQUEST; // RETRY_LIMIT_EXCEEDED
-            case "CRAWL-TASK-005" -> HttpStatus.INTERNAL_SERVER_ERROR; // CRAWL_TASK_EXECUTION_FAILED
+            case "CRAWL-TASK-005" ->
+                    HttpStatus.INTERNAL_SERVER_ERROR; // CRAWL_TASK_EXECUTION_FAILED
             default -> HttpStatus.BAD_REQUEST;
         };
     }

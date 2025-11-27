@@ -4,7 +4,6 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
 import com.ryuqq.crawlinghub.domain.product.vo.RawDataStatus;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -48,5 +47,6 @@ public interface CrawledRawQueryPort {
      * @param crawlType 크롤링 타입
      * @return CrawledRaw (Optional)
      */
-    Optional<CrawledRaw> findBySellerIdAndItemNoAndType(long sellerId, long itemNo, CrawlType crawlType);
+    Optional<CrawledRaw> findBySellerIdAndItemNoAndType(
+            long sellerId, long itemNo, CrawlType crawlType);
 }

@@ -3,11 +3,9 @@ package com.ryuqq.crawlinghub.application.crawl.parser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Component;
  * <p>상품 옵션 배열 응답을 파싱하여 ProductOption Domain VO 목록으로 변환합니다.
  *
  * <p><strong>응답 형식</strong>:
+ *
  * <pre>
  * [
  *   {
@@ -93,9 +92,7 @@ public class OptionResponseParser {
         }
     }
 
-    /**
-     * 개별 옵션 파싱
-     */
+    /** 개별 옵션 파싱 */
     private ProductOption parseOption(JsonNode optionNode, Long contextItemNo) {
         try {
             long optionNo = getAsLongOrDefault(optionNode, OPTION_NO_FIELD, 0);

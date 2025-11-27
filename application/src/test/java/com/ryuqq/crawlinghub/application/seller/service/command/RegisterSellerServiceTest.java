@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
@@ -18,7 +19,6 @@ import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameExceptio
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,17 +40,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RegisterSellerService 테스트")
 class RegisterSellerServiceTest {
 
-    @Mock
-    private SellerTransactionManager transactionManager;
+    @Mock private SellerTransactionManager transactionManager;
 
-    @Mock
-    private SellerQueryPort sellerQueryPort;
+    @Mock private SellerQueryPort sellerQueryPort;
 
-    @Mock
-    private SellerAssembler assembler;
+    @Mock private SellerAssembler assembler;
 
-    @InjectMocks
-    private RegisterSellerService service;
+    @InjectMocks private RegisterSellerService service;
 
     @Nested
     @DisplayName("execute() 셀러 등록 테스트")
@@ -60,16 +56,21 @@ class RegisterSellerServiceTest {
         @DisplayName("[성공] 중복 없는 신규 셀러 등록")
         void shouldRegisterNewSellerWhenNoDuplicate() {
             // Given
-            RegisterSellerCommand command = new RegisterSellerCommand("mustit-seller", "seller-name");
+            RegisterSellerCommand command =
+                    new RegisterSellerCommand("mustit-seller", "seller-name");
             Seller newSeller = SellerFixture.aNewActiveSeller();
-            SellerResponse expectedResponse = new SellerResponse(
-                    1L, "mustit-seller", "seller-name", true,
-                    LocalDateTime.now(), LocalDateTime.now());
+            SellerResponse expectedResponse =
+                    new SellerResponse(
+                            1L,
+                            "mustit-seller",
+                            "seller-name",
+                            true,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(false);
-            given(sellerQueryPort.existsBySellerName(any(SellerName.class)))
-                    .willReturn(false);
+            given(sellerQueryPort.existsBySellerName(any(SellerName.class))).willReturn(false);
             given(assembler.toDomain(command)).willReturn(newSeller);
             given(transactionManager.persist(newSeller)).willReturn(SellerId.of(1L));
             given(assembler.toResponse(newSeller)).willReturn(expectedResponse);
@@ -90,7 +91,8 @@ class RegisterSellerServiceTest {
         @DisplayName("[실패] MustItSellerName 중복 시 DuplicateMustItSellerIdException 발생")
         void shouldThrowExceptionWhenMustItSellerNameDuplicated() {
             // Given
-            RegisterSellerCommand command = new RegisterSellerCommand("duplicate-mustit", "seller-name");
+            RegisterSellerCommand command =
+                    new RegisterSellerCommand("duplicate-mustit", "seller-name");
 
             given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(true);
@@ -108,12 +110,12 @@ class RegisterSellerServiceTest {
         @DisplayName("[실패] SellerName 중복 시 DuplicateSellerNameException 발생")
         void shouldThrowExceptionWhenSellerNameDuplicated() {
             // Given
-            RegisterSellerCommand command = new RegisterSellerCommand("mustit-seller", "duplicate-name");
+            RegisterSellerCommand command =
+                    new RegisterSellerCommand("mustit-seller", "duplicate-name");
 
             given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(false);
-            given(sellerQueryPort.existsBySellerName(any(SellerName.class)))
-                    .willReturn(true);
+            given(sellerQueryPort.existsBySellerName(any(SellerName.class))).willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))

@@ -1,14 +1,10 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.time.LocalDateTime;
 
 /**

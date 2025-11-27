@@ -3,10 +3,10 @@ package com.ryuqq.crawlinghub.application.task.manager;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,11 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskOutboxTransactionManager 테스트")
 class CrawlTaskOutboxTransactionManagerTest {
 
-    @Mock
-    private CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort;
+    @Mock private CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort;
 
-    @InjectMocks
-    private CrawlTaskOutboxTransactionManager manager;
+    @InjectMocks private CrawlTaskOutboxTransactionManager manager;
 
     @Nested
     @DisplayName("persist() 테스트")

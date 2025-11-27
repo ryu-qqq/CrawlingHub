@@ -151,14 +151,10 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
     @Column(name = "needs_sync", nullable = false)
     private boolean needsSync;
 
-    /**
-     * JPA 기본 생성자 (protected)
-     */
+    /** JPA 기본 생성자 (protected) */
     protected CrawledProductJpaEntity() {}
 
-    /**
-     * 전체 필드 생성자 (private)
-     */
+    /** 전체 필드 생성자 (private) */
     private CrawledProductJpaEntity(
             Long id,
             long sellerId,
@@ -211,9 +207,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
         this.needsSync = needsSync;
     }
 
-    /**
-     * of() 스태틱 팩토리 메서드 (Mapper 전용)
-     */
+    /** of() 스태틱 팩토리 메서드 (Mapper 전용) */
     public static CrawledProductJpaEntity of(
             Long id,
             long sellerId,
@@ -241,11 +235,31 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new CrawledProductJpaEntity(
-                id, sellerId, itemNo, itemName, brandName,
-                originalPrice, discountPrice, discountRate, imagesJson, freeShipping,
-                categoryJson, shippingInfoJson, descriptionMarkUp, itemStatus, originCountry,
-                shippingLocation, optionsJson, miniShopCrawledAt, detailCrawledAt, optionCrawledAt,
-                externalProductId, lastSyncedAt, needsSync, createdAt, updatedAt);
+                id,
+                sellerId,
+                itemNo,
+                itemName,
+                brandName,
+                originalPrice,
+                discountPrice,
+                discountRate,
+                imagesJson,
+                freeShipping,
+                categoryJson,
+                shippingInfoJson,
+                descriptionMarkUp,
+                itemStatus,
+                originCountry,
+                shippingLocation,
+                optionsJson,
+                miniShopCrawledAt,
+                detailCrawledAt,
+                optionCrawledAt,
+                externalProductId,
+                lastSyncedAt,
+                needsSync,
+                createdAt,
+                updatedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====

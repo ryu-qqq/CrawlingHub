@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetCrawlTaskQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
@@ -16,7 +17,6 @@ import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -40,14 +40,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawlTaskService 테스트")
 class GetCrawlTaskServiceTest {
 
-    @Mock
-    private CrawlTaskQueryPort crawlTaskQueryPort;
+    @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
 
-    @Mock
-    private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskAssembler assembler;
 
-    @InjectMocks
-    private GetCrawlTaskService service;
+    @InjectMocks private GetCrawlTaskService service;
 
     @Nested
     @DisplayName("execute() 크롤 태스크 단건 조회 테스트")
@@ -60,16 +57,24 @@ class GetCrawlTaskServiceTest {
             Long crawlTaskId = 1L;
             GetCrawlTaskQuery query = new GetCrawlTaskQuery(crawlTaskId);
             CrawlTask crawlTask = CrawlTaskFixture.aWaitingTask();
-            CrawlTaskDetailResponse expectedResponse = new CrawlTaskDetailResponse(
-                    crawlTaskId, 1L, 1L, CrawlTaskStatus.WAITING, CrawlTaskType.META,
-                    0, "https://example.com", "/api/products",
-                    Map.of("page", "1"), "https://example.com/api/products?page=1",
-                    LocalDateTime.now(), LocalDateTime.now());
+            CrawlTaskDetailResponse expectedResponse =
+                    new CrawlTaskDetailResponse(
+                            crawlTaskId,
+                            1L,
+                            1L,
+                            CrawlTaskStatus.WAITING,
+                            CrawlTaskType.META,
+                            0,
+                            "https://example.com",
+                            "/api/products",
+                            Map.of("page", "1"),
+                            "https://example.com/api/products?page=1",
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(crawlTask));
-            given(assembler.toDetailResponse(crawlTask))
-                    .willReturn(expectedResponse);
+            given(assembler.toDetailResponse(crawlTask)).willReturn(expectedResponse);
 
             // When
             CrawlTaskDetailResponse result = service.execute(query);
@@ -87,8 +92,7 @@ class GetCrawlTaskServiceTest {
             Long crawlTaskId = 999L;
             GetCrawlTaskQuery query = new GetCrawlTaskQuery(crawlTaskId);
 
-            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
-                    .willReturn(Optional.empty());
+            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(query))
@@ -104,16 +108,24 @@ class GetCrawlTaskServiceTest {
             Long crawlTaskId = 2L;
             GetCrawlTaskQuery query = new GetCrawlTaskQuery(crawlTaskId);
             CrawlTask runningTask = CrawlTaskFixture.aRunningTask();
-            CrawlTaskDetailResponse expectedResponse = new CrawlTaskDetailResponse(
-                    crawlTaskId, 1L, 1L, CrawlTaskStatus.RUNNING, CrawlTaskType.META,
-                    0, "https://example.com", "/api/products",
-                    Map.of("page", "1"), "https://example.com/api/products?page=1",
-                    LocalDateTime.now(), LocalDateTime.now());
+            CrawlTaskDetailResponse expectedResponse =
+                    new CrawlTaskDetailResponse(
+                            crawlTaskId,
+                            1L,
+                            1L,
+                            CrawlTaskStatus.RUNNING,
+                            CrawlTaskType.META,
+                            0,
+                            "https://example.com",
+                            "/api/products",
+                            Map.of("page", "1"),
+                            "https://example.com/api/products?page=1",
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(runningTask));
-            given(assembler.toDetailResponse(runningTask))
-                    .willReturn(expectedResponse);
+            given(assembler.toDetailResponse(runningTask)).willReturn(expectedResponse);
 
             // When
             CrawlTaskDetailResponse result = service.execute(query);

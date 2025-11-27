@@ -1,14 +1,12 @@
 package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
-import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 

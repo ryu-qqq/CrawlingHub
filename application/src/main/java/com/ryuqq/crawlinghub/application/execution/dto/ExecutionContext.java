@@ -13,4 +13,6 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
  * @author development-team
  * @since 1.0.0
  */
-public record ExecutionContext(CrawlTask crawlTask, CrawlExecution execution) {}
+public record ExecutionContext(CrawlTask crawlTask, CrawlExecution execution) {
+    // Immutable data carrier
+}

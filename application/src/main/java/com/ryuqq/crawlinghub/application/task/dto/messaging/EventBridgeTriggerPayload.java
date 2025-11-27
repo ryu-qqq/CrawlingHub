@@ -22,4 +22,6 @@ package com.ryuqq.crawlinghub.application.task.dto.messaging;
  * @since 1.0.0
  */
 public record EventBridgeTriggerPayload(
-        Long schedulerId, Long sellerId, String schedulerName, String triggerTime) {}
+        Long schedulerId, Long sellerId, String schedulerName, String triggerTime) {
+    // Immutable data carrier
+}

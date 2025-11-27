@@ -4,12 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.domain.product.vo.ItemTag;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -113,18 +111,19 @@ public class MiniShopResponseParser {
             List<String> imageUrls = parseImageUrls(itemNode);
             List<ItemTag> tagList = parseTagList(itemNode);
 
-            return Optional.of(MiniShopItem.fromStrings(
-                    itemNo,
-                    imageUrls,
-                    brandName,
-                    name,
-                    priceString,
-                    originalPriceString,
-                    normalPriceString,
-                    discountRateString,
-                    appDiscountRateString,
-                    appPriceString,
-                    tagList));
+            return Optional.of(
+                    MiniShopItem.fromStrings(
+                            itemNo,
+                            imageUrls,
+                            brandName,
+                            name,
+                            priceString,
+                            originalPriceString,
+                            normalPriceString,
+                            discountRateString,
+                            appDiscountRateString,
+                            appPriceString,
+                            tagList));
 
         } catch (Exception e) {
             log.warn("상품 아이템 파싱 실패: {}", e.getMessage());
@@ -132,9 +131,7 @@ public class MiniShopResponseParser {
         }
     }
 
-    /**
-     * 이미지 URL 목록 파싱
-     */
+    /** 이미지 URL 목록 파싱 */
     private List<String> parseImageUrls(JsonNode itemNode) {
         List<String> imageUrls = new ArrayList<>();
         JsonNode imageUrlListNode = itemNode.get(IMAGE_URL_LIST_FIELD);
@@ -150,9 +147,7 @@ public class MiniShopResponseParser {
         return imageUrls;
     }
 
-    /**
-     * 태그 목록 파싱
-     */
+    /** 태그 목록 파싱 */
     private List<ItemTag> parseTagList(JsonNode itemNode) {
         List<ItemTag> tags = new ArrayList<>();
         JsonNode tagListNode = itemNode.get(TAG_LIST_FIELD);

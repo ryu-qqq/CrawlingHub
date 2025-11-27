@@ -15,4 +15,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(SqsListenerProperties.class)
-public class SqsListenerConfig {}
+public class SqsListenerConfig {
+    // Configuration class - properties only
+}

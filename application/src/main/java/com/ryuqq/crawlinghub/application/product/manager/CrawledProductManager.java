@@ -9,15 +9,15 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * CrawledProduct 트랜잭션 관리자
  *
  * <p><strong>책임</strong>:
+ *
  * <ul>
  *   <li>CrawledProduct 영속성 관리 (저장/삭제)
  *   <li>도메인 메서드 호출을 통한 상태 변경
@@ -25,6 +25,7 @@ import java.util.List;
  * </ul>
  *
  * <p><strong>주의</strong>:
+ *
  * <ul>
  *   <li>QueryPort는 사용하지 않음 (Facade에서 사용)
  *   <li>외부 API 호출 금지 (트랜잭션 내)
@@ -65,8 +66,9 @@ public class CrawledProductManager {
             ProductPrice price,
             ProductImages images,
             boolean freeShipping) {
-        CrawledProduct product = CrawledProduct.fromMiniShop(
-                sellerId, itemNo, itemName, brandName, price, images, freeShipping);
+        CrawledProduct product =
+                CrawledProduct.fromMiniShop(
+                        sellerId, itemNo, itemName, brandName, price, images, freeShipping);
         CrawledProductId savedId = crawledProductPersistencePort.persist(product);
         return CrawledProduct.reconstitute(
                 savedId,
@@ -144,8 +146,13 @@ public class CrawledProductManager {
             String shippingLocation,
             List<String> descriptionImages) {
         product.updateFromDetail(
-                category, shippingInfo, descriptionMarkUp,
-                itemStatus, originCountry, shippingLocation, descriptionImages);
+                category,
+                shippingInfo,
+                descriptionMarkUp,
+                itemStatus,
+                originCountry,
+                shippingLocation,
+                descriptionImages);
         crawledProductPersistencePort.persist(product);
         return product;
     }
@@ -178,9 +185,7 @@ public class CrawledProductManager {
      */
     @Transactional
     public CrawledProduct markImageAsUploaded(
-            CrawledProduct product,
-            String originalUrl,
-            String s3Url) {
+            CrawledProduct product, String originalUrl, String s3Url) {
         product.markImageAsUploaded(originalUrl, s3Url);
         crawledProductPersistencePort.persist(product);
         return product;

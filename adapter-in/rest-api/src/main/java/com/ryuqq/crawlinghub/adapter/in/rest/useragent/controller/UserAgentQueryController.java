@@ -107,7 +107,8 @@ public class UserAgentQueryController {
         UserAgentPoolStatusResponse useCaseResponse = getUserAgentPoolStatusUseCase.execute();
 
         // 2. UseCase Response → API Response 변환 (Mapper)
-        UserAgentPoolStatusApiResponse apiResponse = userAgentApiMapper.toApiResponse(useCaseResponse);
+        UserAgentPoolStatusApiResponse apiResponse =
+                userAgentApiMapper.toApiResponse(useCaseResponse);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));

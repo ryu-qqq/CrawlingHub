@@ -9,11 +9,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -36,20 +36,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlSchedulerOutBoxRetryScheduler 테스트")
 class CrawlSchedulerOutBoxRetrySchedulerTest {
 
-    @Mock
-    private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
+    @Mock private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
 
-    @Mock
-    private CrawlerSchedulerOutBoxManager outBoxManager;
+    @Mock private CrawlerSchedulerOutBoxManager outBoxManager;
 
-    @Mock
-    private EventBridgeClientPort eventBridgeClientPort;
+    @Mock private EventBridgeClientPort eventBridgeClientPort;
 
-    @InjectMocks
-    private CrawlSchedulerOutBoxRetryScheduler scheduler;
+    @InjectMocks private CrawlSchedulerOutBoxRetryScheduler scheduler;
 
     @Nested
-    @DisplayName("processOutBox() 테스트")
+    @DisplayName("processOutbox() 테스트")
     class ProcessOutBox {
 
         @Test
@@ -63,7 +59,7 @@ class CrawlSchedulerOutBoxRetrySchedulerTest {
             given(outBoxQueryPort.findPendingOrFailed(anyInt())).willReturn(outBoxes);
 
             // When
-            scheduler.processOutBox();
+            scheduler.processOutbox();
 
             // Then
             verify(outBoxQueryPort).findPendingOrFailed(100);
@@ -76,10 +72,11 @@ class CrawlSchedulerOutBoxRetrySchedulerTest {
         @DisplayName("[성공] 처리할 Outbox가 없는 경우 → 아무 작업 안함")
         void shouldDoNothingWhenNoOutboxFound() {
             // Given
-            given(outBoxQueryPort.findPendingOrFailed(anyInt())).willReturn(Collections.emptyList());
+            given(outBoxQueryPort.findPendingOrFailed(anyInt()))
+                    .willReturn(Collections.emptyList());
 
             // When
-            scheduler.processOutBox();
+            scheduler.processOutbox();
 
             // Then
             verify(outBoxQueryPort).findPendingOrFailed(100);
@@ -97,10 +94,11 @@ class CrawlSchedulerOutBoxRetrySchedulerTest {
 
             given(outBoxQueryPort.findPendingOrFailed(anyInt())).willReturn(outBoxes);
             doThrow(new RuntimeException("EventBridge error"))
-                    .when(eventBridgeClientPort).syncFromOutBox(outBox);
+                    .when(eventBridgeClientPort)
+                    .syncFromOutBox(outBox);
 
             // When
-            scheduler.processOutBox();
+            scheduler.processOutbox();
 
             // Then
             verify(outBoxQueryPort).findPendingOrFailed(100);

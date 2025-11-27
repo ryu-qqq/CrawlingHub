@@ -25,5 +25,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author development-team
  * @since 1.0.0
  */
-public interface CrawledRawJpaRepository extends JpaRepository<CrawledRawJpaEntity, Long> {
-}
+public interface CrawledRawJpaRepository extends JpaRepository<CrawledRawJpaEntity, Long> {}

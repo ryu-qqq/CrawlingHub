@@ -3,9 +3,9 @@ package com.ryuqq.crawlinghub.application.seller.facade;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,14 +27,11 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("SellerCommandFacade 테스트")
 class SellerCommandFacadeTest {
 
-    @Mock
-    private SellerTransactionManager transactionManager;
+    @Mock private SellerTransactionManager transactionManager;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
-    private SellerCommandFacade facade;
+    @InjectMocks private SellerCommandFacade facade;
 
     @Nested
     @DisplayName("persist() 테스트")

@@ -57,7 +57,8 @@ public class UserAgentCommandController {
      * @param userAgentApiMapper UserAgent API Mapper
      */
     public UserAgentCommandController(
-            RecoverUserAgentUseCase recoverUserAgentUseCase, UserAgentApiMapper userAgentApiMapper) {
+            RecoverUserAgentUseCase recoverUserAgentUseCase,
+            UserAgentApiMapper userAgentApiMapper) {
         this.recoverUserAgentUseCase = recoverUserAgentUseCase;
         this.userAgentApiMapper = userAgentApiMapper;
     }
@@ -104,7 +105,8 @@ public class UserAgentCommandController {
         int recoveredCount = recoverUserAgentUseCase.recoverAll();
 
         // 2. UseCase 결과 → API Response 변환 (Mapper)
-        RecoverUserAgentApiResponse apiResponse = userAgentApiMapper.toRecoverApiResponse(recoveredCount);
+        RecoverUserAgentApiResponse apiResponse =
+                userAgentApiMapper.toRecoverApiResponse(recoveredCount);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));

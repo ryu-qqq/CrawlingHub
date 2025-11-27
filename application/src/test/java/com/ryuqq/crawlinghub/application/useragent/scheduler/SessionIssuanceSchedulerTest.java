@@ -1,11 +1,9 @@
 package com.ryuqq.crawlinghub.application.useragent.scheduler;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.useragent.config.SessionSchedulerProperties;
@@ -39,14 +37,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SessionIssuanceScheduler 테스트")
 class SessionIssuanceSchedulerTest {
 
-    @Mock
-    private SessionTokenPort sessionTokenPort;
+    @Mock private SessionTokenPort sessionTokenPort;
 
-    @Mock
-    private UserAgentPoolCachePort cachePort;
+    @Mock private UserAgentPoolCachePort cachePort;
 
-    @Mock
-    private SessionSchedulerProperties properties;
+    @Mock private SessionSchedulerProperties properties;
 
     private SessionIssuanceScheduler scheduler;
 
@@ -67,20 +62,22 @@ class SessionIssuanceSchedulerTest {
             UserAgentId userAgentId = new UserAgentId(1L);
             List<UserAgentId> sessionRequiredIds = List.of(userAgentId);
 
-            CachedUserAgent cachedUserAgent = new CachedUserAgent(
-                    userAgentId.value(),
-                    "Mozilla/5.0 Test Agent",
-                    null, // sessionToken
-                    null, // sessionExpiresAt
-                    80, // remainingTokens
-                    80, // maxTokens
-                    null, // windowStart
-                    null, // windowEnd
-                    100, // healthScore
-                    CacheStatus.SESSION_REQUIRED,
-                    null); // suspendedAt
+            CachedUserAgent cachedUserAgent =
+                    new CachedUserAgent(
+                            userAgentId.value(),
+                            "Mozilla/5.0 Test Agent",
+                            null, // sessionToken
+                            null, // sessionExpiresAt
+                            80, // remainingTokens
+                            80, // maxTokens
+                            null, // windowStart
+                            null, // windowEnd
+                            100, // healthScore
+                            CacheStatus.SESSION_REQUIRED,
+                            null); // suspendedAt
 
-            SessionToken sessionToken = new SessionToken("token-abc123", Instant.now().plusSeconds(1800));
+            SessionToken sessionToken =
+                    new SessionToken("token-abc123", Instant.now().plusSeconds(1800));
 
             given(cachePort.getSessionRequiredUserAgents()).willReturn(sessionRequiredIds);
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
@@ -144,20 +141,22 @@ class SessionIssuanceSchedulerTest {
             UserAgentId userAgentId = new UserAgentId(1L);
             List<UserAgentId> expiringIds = List.of(userAgentId);
 
-            CachedUserAgent cachedUserAgent = new CachedUserAgent(
-                    userAgentId.value(),
-                    "Mozilla/5.0 Test Agent",
-                    "old-token", // sessionToken
-                    Instant.now().plusSeconds(120), // sessionExpiresAt (만료 임박)
-                    80, // remainingTokens
-                    80, // maxTokens
-                    null, // windowStart
-                    null, // windowEnd
-                    100, // healthScore
-                    CacheStatus.READY,
-                    null); // suspendedAt
+            CachedUserAgent cachedUserAgent =
+                    new CachedUserAgent(
+                            userAgentId.value(),
+                            "Mozilla/5.0 Test Agent",
+                            "old-token", // sessionToken
+                            Instant.now().plusSeconds(120), // sessionExpiresAt (만료 임박)
+                            80, // remainingTokens
+                            80, // maxTokens
+                            null, // windowStart
+                            null, // windowEnd
+                            100, // healthScore
+                            CacheStatus.READY,
+                            null); // suspendedAt
 
-            SessionToken newSessionToken = new SessionToken("new-token-xyz789", Instant.now().plusSeconds(1800));
+            SessionToken newSessionToken =
+                    new SessionToken("new-token-xyz789", Instant.now().plusSeconds(1800));
 
             given(cachePort.getSessionExpiringUserAgents(5)).willReturn(expiringIds);
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));

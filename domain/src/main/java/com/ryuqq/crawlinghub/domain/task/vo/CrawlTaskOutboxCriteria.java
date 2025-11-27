@@ -37,6 +37,10 @@ public record CrawlTaskOutboxCriteria(OutboxStatus status, List<OutboxStatus> st
         if (limit <= 0) {
             limit = DEFAULT_LIMIT;
         }
+        // 방어적 복사 - SpotBugs EI2 경고 수정
+        if (statuses != null) {
+            statuses = List.copyOf(statuses);
+        }
     }
 
     // ===== Static Factory Methods =====

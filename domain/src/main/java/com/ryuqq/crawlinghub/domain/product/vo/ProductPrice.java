@@ -43,9 +43,7 @@ public record ProductPrice(
         }
     }
 
-    /**
-     * 기본 팩토리 메서드
-     */
+    /** 기본 팩토리 메서드 */
     public static ProductPrice of(
             int price,
             int originalPrice,
@@ -53,12 +51,11 @@ public record ProductPrice(
             int appPrice,
             int discountRate,
             int appDiscountRate) {
-        return new ProductPrice(price, originalPrice, normalPrice, appPrice, discountRate, appDiscountRate);
+        return new ProductPrice(
+                price, originalPrice, normalPrice, appPrice, discountRate, appDiscountRate);
     }
 
-    /**
-     * MiniShopItem에서 생성하는 팩토리 메서드
-     */
+    /** MiniShopItem에서 생성하는 팩토리 메서드 */
     public static ProductPrice fromMiniShopItem(MiniShopItem item) {
         return new ProductPrice(
                 item.price(),
@@ -87,30 +84,22 @@ public record ProductPrice(
                 || this.appDiscountRate != other.appDiscountRate;
     }
 
-    /**
-     * 할인 중인지 확인
-     */
+    /** 할인 중인지 확인 */
     public boolean hasDiscount() {
         return discountRate > 0;
     }
 
-    /**
-     * 앱 전용 추가 할인이 있는지 확인
-     */
+    /** 앱 전용 추가 할인이 있는지 확인 */
     public boolean hasAppExclusiveDiscount() {
         return appDiscountRate > discountRate;
     }
 
-    /**
-     * 판매가 반환 (price 별칭)
-     */
+    /** 판매가 반환 (price 별칭) */
     public int sellingPrice() {
         return price;
     }
 
-    /**
-     * 할인가 반환 (앱 가격 또는 판매가)
-     */
+    /** 할인가 반환 (앱 가격 또는 판매가) */
     public int discountPrice() {
         return appPrice > 0 ? appPrice : price;
     }

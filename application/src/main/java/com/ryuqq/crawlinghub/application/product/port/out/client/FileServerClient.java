@@ -6,6 +6,7 @@ import java.util.Optional;
  * 파일 서버 연동 Port (Port Out - External)
  *
  * <p>이미지 파일을 S3에 업로드하기 위한 파일서버 API 연동.
+ *
  * <p>비동기 방식: 업로드 요청 후 웹훅으로 결과 수신
  *
  * @author development-team
@@ -31,32 +32,19 @@ public interface FileServerClient {
      */
     Optional<ImageUploadResult> getUploadStatus(String idempotencyKey);
 
-    /**
-     * 이미지 업로드 요청 정보
-     */
+    /** 이미지 업로드 요청 정보 */
     record ImageUploadRequest(
-            String idempotencyKey,
-            String originalUrl,
-            String imageType,
-            String callbackUrl) {
+            String idempotencyKey, String originalUrl, String imageType, String callbackUrl) {
 
         public static ImageUploadRequest of(
-                String idempotencyKey,
-                String originalUrl,
-                String imageType,
-                String callbackUrl) {
+                String idempotencyKey, String originalUrl, String imageType, String callbackUrl) {
             return new ImageUploadRequest(idempotencyKey, originalUrl, imageType, callbackUrl);
         }
     }
 
-    /**
-     * 이미지 업로드 결과
-     */
+    /** 이미지 업로드 결과 */
     record ImageUploadResult(
-            String idempotencyKey,
-            UploadStatus status,
-            String s3Url,
-            String errorMessage) {
+            String idempotencyKey, UploadStatus status, String s3Url, String errorMessage) {
 
         public boolean isCompleted() {
             return status == UploadStatus.COMPLETED;
@@ -83,9 +71,7 @@ public interface FileServerClient {
         }
     }
 
-    /**
-     * 업로드 상태
-     */
+    /** 업로드 상태 */
     enum UploadStatus {
         PENDING,
         PROCESSING,

@@ -30,11 +30,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawledRawAssembler 테스트")
 class CrawledRawAssemblerTest {
 
-    @Spy
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Spy private ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
-    private CrawledRawAssembler assembler;
+    @InjectMocks private CrawledRawAssembler assembler;
 
     @Nested
     @DisplayName("toMiniShopRaws() 테스트")
@@ -46,10 +44,11 @@ class CrawledRawAssemblerTest {
             // Given
             long schedulerId = 1L;
             long sellerId = 100L;
-            List<MiniShopItem> items = List.of(
-                    createMiniShopItem(12345L, "상품1"),
-                    createMiniShopItem(12346L, "상품2"),
-                    createMiniShopItem(12347L, "상품3"));
+            List<MiniShopItem> items =
+                    List.of(
+                            createMiniShopItem(12345L, "상품1"),
+                            createMiniShopItem(12346L, "상품2"),
+                            createMiniShopItem(12347L, "상품3"));
 
             // When
             List<CrawledRaw> result = assembler.toMiniShopRaws(schedulerId, sellerId, items);
@@ -85,9 +84,8 @@ class CrawledRawAssemblerTest {
             // Given
             long schedulerId = 1L;
             long sellerId = 100L;
-            List<MiniShopItem> items = List.of(
-                    createMiniShopItem(111L, "첫번째"),
-                    createMiniShopItem(222L, "두번째"));
+            List<MiniShopItem> items =
+                    List.of(createMiniShopItem(111L, "첫번째"), createMiniShopItem(222L, "두번째"));
 
             // When
             List<CrawledRaw> result = assembler.toMiniShopRaws(schedulerId, sellerId, items);
@@ -154,10 +152,11 @@ class CrawledRawAssemblerTest {
             long schedulerId = 1L;
             long sellerId = 100L;
             long itemNo = 12345L;
-            List<ProductOption> options = List.of(
-                    ProductOption.of(1L, itemNo, "Black", "M", 10, ""),
-                    ProductOption.of(2L, itemNo, "Black", "L", 5, ""),
-                    ProductOption.of(3L, itemNo, "White", "M", 0, ""));
+            List<ProductOption> options =
+                    List.of(
+                            ProductOption.of(1L, itemNo, "Black", "M", 10, ""),
+                            ProductOption.of(2L, itemNo, "Black", "L", 5, ""),
+                            ProductOption.of(3L, itemNo, "White", "M", 0, ""));
 
             // When
             CrawledRaw result = assembler.toOptionRaw(schedulerId, sellerId, itemNo, options);
@@ -178,8 +177,8 @@ class CrawledRawAssemblerTest {
             long schedulerId = 1L;
             long sellerId = 100L;
             long itemNo = 12345L;
-            List<ProductOption> options = List.of(
-                    ProductOption.of(1L, itemNo, "Black", "M", 10, ""));
+            List<ProductOption> options =
+                    List.of(ProductOption.of(1L, itemNo, "Black", "M", 10, ""));
 
             // When
             CrawledRaw result = assembler.toOptionRaw(schedulerId, sellerId, itemNo, options);

@@ -3,6 +3,13 @@ package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
@@ -13,13 +20,6 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -31,12 +31,13 @@ import org.junit.jupiter.api.Test;
  * CrawlScheduler Aggregate Root 단위 테스트
  *
  * <p>테스트 대상:
+ *
  * <ul>
- *   <li>신규 생성 {@code forNew()} - ACTIVE 상태, ID=null</li>
- *   <li>ID 기반 생성 {@code of()} - crawlSchedulerId null 시 예외</li>
- *   <li>등록 이벤트 {@code addRegisteredEvent()} - ID 미할당 시 예외, historyId null 시 예외</li>
- *   <li>통합 수정 {@code update()} - null 파라미터 예외, 이벤트 발행 조건 검증</li>
- *   <li>이름 비교 {@code hasSameSchedulerName()} - 동일 이름 확인</li>
+ *   <li>신규 생성 {@code forNew()} - ACTIVE 상태, ID=null
+ *   <li>ID 기반 생성 {@code of()} - crawlSchedulerId null 시 예외
+ *   <li>등록 이벤트 {@code addRegisteredEvent()} - ID 미할당 시 예외, historyId null 시 예외
+ *   <li>통합 수정 {@code update()} - null 파라미터 예외, 이벤트 발행 조건 검증
+ *   <li>이름 비교 {@code hasSameSchedulerName()} - 동일 이름 확인
  * </ul>
  *
  * @author development-team
@@ -60,8 +61,8 @@ class CrawlSchedulerTest {
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
             // when
-            CrawlScheduler scheduler = CrawlScheduler.forNew(
-                    sellerId, schedulerName, cronExpression, DEFAULT_CLOCK);
+            CrawlScheduler scheduler =
+                    CrawlScheduler.forNew(sellerId, schedulerName, cronExpression, DEFAULT_CLOCK);
 
             // then
             assertThat(scheduler.getCrawlSchedulerId()).isNull();
@@ -78,14 +79,16 @@ class CrawlSchedulerTest {
         void shouldSetCreatedAtAndUpdatedAtToCurrentTime() {
             // given
             Clock clock = FixedClock.aDefaultClock();
-            LocalDateTime expectedTime = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            LocalDateTime expectedTime =
+                    LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
             // when
-            CrawlScheduler scheduler = CrawlScheduler.forNew(
-                    SellerIdFixture.anAssignedId(),
-                    SchedulerNameFixture.aDefaultName(),
-                    CronExpressionFixture.aDefaultCron(),
-                    clock);
+            CrawlScheduler scheduler =
+                    CrawlScheduler.forNew(
+                            SellerIdFixture.anAssignedId(),
+                            SchedulerNameFixture.aDefaultName(),
+                            CronExpressionFixture.aDefaultCron(),
+                            clock);
 
             // then
             assertThat(scheduler.getCreatedAt()).isEqualTo(expectedTime);
@@ -108,15 +111,16 @@ class CrawlSchedulerTest {
             LocalDateTime now = LocalDateTime.now();
 
             // when
-            CrawlScheduler scheduler = CrawlScheduler.of(
-                    schedulerId,
-                    sellerId,
-                    schedulerName,
-                    cronExpression,
-                    SchedulerStatus.ACTIVE,
-                    now,
-                    now,
-                    DEFAULT_CLOCK);
+            CrawlScheduler scheduler =
+                    CrawlScheduler.of(
+                            schedulerId,
+                            sellerId,
+                            schedulerName,
+                            cronExpression,
+                            SchedulerStatus.ACTIVE,
+                            now,
+                            now,
+                            DEFAULT_CLOCK);
 
             // then
             assertThat(scheduler.getCrawlSchedulerId()).isEqualTo(schedulerId);
@@ -132,16 +136,17 @@ class CrawlSchedulerTest {
             LocalDateTime now = LocalDateTime.now();
 
             // when & then
-            assertThatThrownBy(() ->
-                    CrawlScheduler.of(
-                            null,
-                            SellerIdFixture.anAssignedId(),
-                            SchedulerNameFixture.aDefaultName(),
-                            CronExpressionFixture.aDefaultCron(),
-                            SchedulerStatus.ACTIVE,
-                            now,
-                            now,
-                            DEFAULT_CLOCK))
+            assertThatThrownBy(
+                            () ->
+                                    CrawlScheduler.of(
+                                            null,
+                                            SellerIdFixture.anAssignedId(),
+                                            SchedulerNameFixture.aDefaultName(),
+                                            CronExpressionFixture.aDefaultCron(),
+                                            SchedulerStatus.ACTIVE,
+                                            now,
+                                            now,
+                                            DEFAULT_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("crawlSchedulerId는 null일 수 없습니다.");
         }
@@ -162,15 +167,16 @@ class CrawlSchedulerTest {
             LocalDateTime now = LocalDateTime.now();
 
             // when
-            CrawlScheduler scheduler = CrawlScheduler.reconstitute(
-                    schedulerId,
-                    sellerId,
-                    schedulerName,
-                    cronExpression,
-                    SchedulerStatus.INACTIVE,
-                    now,
-                    now,
-                    DEFAULT_CLOCK);
+            CrawlScheduler scheduler =
+                    CrawlScheduler.reconstitute(
+                            schedulerId,
+                            sellerId,
+                            schedulerName,
+                            cronExpression,
+                            SchedulerStatus.INACTIVE,
+                            now,
+                            now,
+                            DEFAULT_CLOCK);
 
             // then
             assertThat(scheduler.getCrawlSchedulerId()).isEqualTo(schedulerId);
@@ -185,16 +191,17 @@ class CrawlSchedulerTest {
             LocalDateTime now = LocalDateTime.now();
 
             // when & then
-            assertThatThrownBy(() ->
-                    CrawlScheduler.reconstitute(
-                            null,
-                            SellerIdFixture.anAssignedId(),
-                            SchedulerNameFixture.aDefaultName(),
-                            CronExpressionFixture.aDefaultCron(),
-                            SchedulerStatus.ACTIVE,
-                            now,
-                            now,
-                            DEFAULT_CLOCK))
+            assertThatThrownBy(
+                            () ->
+                                    CrawlScheduler.reconstitute(
+                                            null,
+                                            SellerIdFixture.anAssignedId(),
+                                            SchedulerNameFixture.aDefaultName(),
+                                            CronExpressionFixture.aDefaultCron(),
+                                            SchedulerStatus.ACTIVE,
+                                            now,
+                                            now,
+                                            DEFAULT_CLOCK))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("crawlSchedulerId는 null일 수 없습니다.");
         }
@@ -276,11 +283,12 @@ class CrawlSchedulerTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             // when & then
-            assertThatThrownBy(() ->
-                    scheduler.update(
-                            null,
-                            CronExpressionFixture.aDefaultCron(),
-                            SchedulerStatus.ACTIVE))
+            assertThatThrownBy(
+                            () ->
+                                    scheduler.update(
+                                            null,
+                                            CronExpressionFixture.aDefaultCron(),
+                                            SchedulerStatus.ACTIVE))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("스케줄러 이름은 null일 수 없습니다.");
         }
@@ -292,11 +300,12 @@ class CrawlSchedulerTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             // when & then
-            assertThatThrownBy(() ->
-                    scheduler.update(
-                            SchedulerNameFixture.aDefaultName(),
-                            null,
-                            SchedulerStatus.ACTIVE))
+            assertThatThrownBy(
+                            () ->
+                                    scheduler.update(
+                                            SchedulerNameFixture.aDefaultName(),
+                                            null,
+                                            SchedulerStatus.ACTIVE))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("크론 표현식은 null일 수 없습니다.");
         }
@@ -308,11 +317,12 @@ class CrawlSchedulerTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             // when & then
-            assertThatThrownBy(() ->
-                    scheduler.update(
-                            SchedulerNameFixture.aDefaultName(),
-                            CronExpressionFixture.aDefaultCron(),
-                            null))
+            assertThatThrownBy(
+                            () ->
+                                    scheduler.update(
+                                            SchedulerNameFixture.aDefaultName(),
+                                            CronExpressionFixture.aDefaultCron(),
+                                            null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("상태는 null일 수 없습니다.");
         }
@@ -323,7 +333,8 @@ class CrawlSchedulerTest {
             // given
             Clock clock = FixedClock.at("2025-11-27T12:00:00Z");
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler(clock);
-            LocalDateTime expectedTime = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            LocalDateTime expectedTime =
+                    LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
             // when
             scheduler.update(

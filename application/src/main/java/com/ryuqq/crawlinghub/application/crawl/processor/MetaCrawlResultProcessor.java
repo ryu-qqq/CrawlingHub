@@ -9,12 +9,10 @@ import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCount;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -46,7 +44,8 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
     private final UpdateSellerProductCountUseCase updateSellerProductCountUseCase;
 
     public MetaCrawlResultProcessor(
-        MetaResponseParser metaResponseParser, UpdateSellerProductCountUseCase updateSellerProductCountUseCase) {
+            MetaResponseParser metaResponseParser,
+            UpdateSellerProductCountUseCase updateSellerProductCountUseCase) {
         this.metaResponseParser = metaResponseParser;
         this.updateSellerProductCountUseCase = updateSellerProductCountUseCase;
     }
@@ -64,7 +63,8 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
                 crawlTask.getCrawlSchedulerIdValue());
 
         // 1. 응답 파싱
-        Optional<ProductCount> parsedOpt = metaResponseParser.parseResponse(crawlResult.getResponseBody());
+        Optional<ProductCount> parsedOpt =
+                metaResponseParser.parseResponse(crawlResult.getResponseBody());
 
         if (parsedOpt.isEmpty()) {
             log.warn(
@@ -78,8 +78,7 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
 
         // 2. 셀러 상품 수 업데이트
         updateSellerProductCountUseCase.execute(
-                crawlTask.getSellerIdValue(),
-                productCount.totalCount());
+                crawlTask.getSellerIdValue(), productCount.totalCount());
 
         log.info(
                 "META 정보 처리 완료: sellerId={}, totalProducts={}, totalPages={}",
@@ -88,7 +87,8 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
                 productCount.calculateTotalPages());
 
         // 3. 후속 MINI_SHOP Task 생성 (페이지별, 0번부터)
-        List<CreateCrawlTaskCommand> followUpCommands = createMiniShopTaskCommands(crawlTask, productCount);
+        List<CreateCrawlTaskCommand> followUpCommands =
+                createMiniShopTaskCommands(crawlTask, productCount);
 
         return ProcessingResult.withFollowUp(followUpCommands, 1, 1);
     }
@@ -118,7 +118,10 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
 
         // 0번 페이지부터 시작 (0, 1, 2, ..., totalPages-1)
         return IntStream.range(0, totalPages)
-                .mapToObj(page -> CreateCrawlTaskCommand.forMiniShop(schedulerId, sellerId, (long) page))
+                .mapToObj(
+                        page ->
+                                CreateCrawlTaskCommand.forMiniShop(
+                                        schedulerId, sellerId, (long) page))
                 .toList();
     }
 }
