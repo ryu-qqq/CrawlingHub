@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  */
 @SpringBootApplication(
         scanBasePackages = {
+            "com.ryuqq.crawlinghub.bootstrap",
             "com.ryuqq.crawlinghub.adapter.in.rest",
             "com.ryuqq.crawlinghub.adapter.out.persistence",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge",
