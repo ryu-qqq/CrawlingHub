@@ -45,7 +45,7 @@ redisson:
 distributed-lock:
   default-wait-time-ms: 5000
   default-lease-time-ms: 30000
-  key-prefix: crawlinghub:lock:
+  key-prefix: "crawlinghub:lock:"
 
   crawl-trigger:
     wait-time-ms: 3000
