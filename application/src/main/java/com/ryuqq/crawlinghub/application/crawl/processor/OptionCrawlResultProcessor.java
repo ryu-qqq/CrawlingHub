@@ -20,10 +20,11 @@ import org.springframework.stereotype.Component;
  * OPTION 크롤링 결과 처리기
  *
  * <p><strong>처리 내용</strong>:
+ *
  * <ul>
- *   <li>상품 옵션 정보 파싱 (사이즈, 색상, 재고 등)</li>
- *   <li>파싱된 ProductOption 목록을 JSON으로 변환하여 crawled_raw 테이블에 저장</li>
- *   <li>후속 Task 없음 (최종 단계)</li>
+ *   <li>상품 옵션 정보 파싱 (사이즈, 색상, 재고 등)
+ *   <li>파싱된 ProductOption 목록을 JSON으로 변환하여 crawled_raw 테이블에 저장
+ *   <li>후속 Task 없음 (최종 단계)
  * </ul>
  *
  * <p><strong>성능 최적화</strong>: 중복 체크 없이 JSON 형태로 저장
@@ -80,7 +81,8 @@ public class OptionCrawlResultProcessor implements CrawlResultProcessor {
         long sellerId = crawlTask.getSellerId().value();
 
         // 2. Assembler로 ProductOption 목록 → CrawledRaw 변환
-        CrawledRaw crawledRaw = crawledRawAssembler.toOptionRaw(schedulerId, sellerId, itemNo, options);
+        CrawledRaw crawledRaw =
+                crawledRawAssembler.toOptionRaw(schedulerId, sellerId, itemNo, options);
 
         // 3. Manager로 저장
         int savedCount = 0;
@@ -93,7 +95,8 @@ public class OptionCrawlResultProcessor implements CrawlResultProcessor {
         int availableCount = (int) options.stream().filter(ProductOption::isInStock).count();
 
         log.info(
-                "OPTION Raw 저장 완료: schedulerId={}, sellerId={}, itemNo={}, optionCount={}, availableCount={}",
+                "OPTION Raw 저장 완료: schedulerId={}, sellerId={}, itemNo={}, optionCount={},"
+                        + " availableCount={}",
                 schedulerId,
                 sellerId,
                 itemNo,

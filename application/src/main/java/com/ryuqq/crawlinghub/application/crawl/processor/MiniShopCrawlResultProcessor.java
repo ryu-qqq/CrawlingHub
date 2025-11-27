@@ -23,10 +23,11 @@ import org.springframework.stereotype.Component;
  * MINI_SHOP 크롤링 결과 처리기
  *
  * <p><strong>처리 내용</strong>:
+ *
  * <ul>
- *   <li>상품 목록 파싱 (상품번호, 상품명, 브랜드, 가격, 할인율 등)</li>
- *   <li>파싱된 MiniShopItem을 JSON으로 변환하여 crawled_raw 테이블에 벌크 저장</li>
- *   <li>DETAIL + OPTION 후속 Task 생성 (상품별)</li>
+ *   <li>상품 목록 파싱 (상품번호, 상품명, 브랜드, 가격, 할인율 등)
+ *   <li>파싱된 MiniShopItem을 JSON으로 변환하여 crawled_raw 테이블에 벌크 저장
+ *   <li>DETAIL + OPTION 후속 Task 생성 (상품별)
  * </ul>
  *
  * <p><strong>성능 최적화</strong>: 중복 체크 없이 JSON 형태로 벌크 저장
@@ -80,14 +81,16 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
         long sellerId = crawlTask.getSellerId().value();
 
         // 2. Assembler로 MiniShopItem → CrawledRaw 변환
-        List<CrawledRaw> crawledRaws = crawledRawAssembler.toMiniShopRaws(schedulerId, sellerId, items);
+        List<CrawledRaw> crawledRaws =
+                crawledRawAssembler.toMiniShopRaws(schedulerId, sellerId, items);
 
         // 3. Manager로 벌크 저장
         List<CrawledRawId> savedIds = crawledRawManager.saveAll(crawledRaws);
         int savedCount = savedIds.size();
 
         log.info(
-                "MINI_SHOP Raw 벌크 저장 완료: schedulerId={}, sellerId={}, parsedCount={}, savedCount={}",
+                "MINI_SHOP Raw 벌크 저장 완료: schedulerId={}, sellerId={}, parsedCount={},"
+                        + " savedCount={}",
                 schedulerId,
                 sellerId,
                 parsedCount,
@@ -100,9 +103,7 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
         return ProcessingResult.withFollowUp(followUpCommands, parsedCount, savedCount);
     }
 
-    /**
-     * DETAIL + OPTION 후속 Task 커맨드 생성
-     */
+    /** DETAIL + OPTION 후속 Task 커맨드 생성 */
     private List<CreateCrawlTaskCommand> createDetailAndOptionTaskCommands(
             CrawlTask crawlTask, List<MiniShopItem> items) {
         if (items.isEmpty()) {

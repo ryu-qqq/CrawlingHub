@@ -13,8 +13,10 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 public final class TokenFixture {
 
     // 유효한 Base64 토큰 (최소 44자)
-    private static final String DEFAULT_TOKEN = "dGhpc0lzQVZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nUHVycG9zZXM=";
-    private static final String ALTERNATIVE_TOKEN = "YW5vdGhlclZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nT25seQ==";
+    private static final String DEFAULT_TOKEN =
+            "dGhpc0lzQVZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nUHVycG9zZXM=";
+    private static final String ALTERNATIVE_TOKEN =
+            "YW5vdGhlclZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nT25seQ==";
 
     /**
      * 기본 토큰 생성

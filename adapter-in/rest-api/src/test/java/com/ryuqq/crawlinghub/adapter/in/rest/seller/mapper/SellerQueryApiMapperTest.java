@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
@@ -10,26 +12,24 @@ import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * SellerQueryApiMapper 단위 테스트
  *
- * <p>검증 범위:</p>
+ * <p>검증 범위:
+ *
  * <ul>
- *   <li>API Request → Application Query 변환</li>
- *   <li>Application Response → API Response 변환</li>
- *   <li>페이징 응답 변환</li>
- *   <li>Enum 변환 (String ↔ SellerStatus)</li>
+ *   <li>API Request → Application Query 변환
+ *   <li>Application Response → API Response 변환
+ *   <li>페이징 응답 변환
+ *   <li>Enum 변환 (String ↔ SellerStatus)
  * </ul>
  *
  * @author development-team
@@ -88,11 +88,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=ACTIVE 변환")
         void toQuery_SearchSellers_StatusActive() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    "ACTIVE",
-                    0,
-                    20
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest("ACTIVE", 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -108,11 +104,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=INACTIVE 변환")
         void toQuery_SearchSellers_StatusInactive() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    "INACTIVE",
-                    0,
-                    20
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest("INACTIVE", 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -126,11 +118,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=null (전체 조회)")
         void toQuery_SearchSellers_StatusNull() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    null,
-                    0,
-                    20
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest(null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -144,11 +132,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=빈 문자열 (전체 조회)")
         void toQuery_SearchSellers_StatusBlank() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    "",
-                    0,
-                    20
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest("", 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -162,11 +146,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 기본 페이징 파라미터")
         void toQuery_SearchSellers_DefaultPagination() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    null,
-                    0,
-                    20
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest(null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -181,11 +161,7 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 커스텀 페이징 파라미터")
         void toQuery_SearchSellers_CustomPagination() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(
-                    "ACTIVE",
-                    5,
-                    50
-            );
+            SearchSellersApiRequest request = new SearchSellersApiRequest("ACTIVE", 5, 50);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -205,14 +181,14 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: active=true → status=ACTIVE 변환")
         void toApiResponse_ActiveTrue() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    1L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    true,
-                    LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                    null
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            1L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            true,
+                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            null);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -231,14 +207,14 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: active=false → status=INACTIVE 변환")
         void toApiResponse_ActiveFalse() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    2L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    false,
-                    LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                    LocalDateTime.of(2024, 11, 27, 11, 0, 0)
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            2L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            false,
+                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            LocalDateTime.of(2024, 11, 27, 11, 0, 0));
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -257,13 +233,9 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: active=true → status=ACTIVE 변환")
         void toSummaryApiResponse_ActiveTrue() {
             // Given
-            SellerSummaryResponse appResponse = new SellerSummaryResponse(
-                    1L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    true,
-                    LocalDateTime.now()
-            );
+            SellerSummaryResponse appResponse =
+                    new SellerSummaryResponse(
+                            1L, "머스트잇 테스트 셀러", "테스트 셀러", true, LocalDateTime.now());
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -280,13 +252,9 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: active=false → status=INACTIVE 변환")
         void toSummaryApiResponse_ActiveFalse() {
             // Given
-            SellerSummaryResponse appResponse = new SellerSummaryResponse(
-                    2L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    false,
-                    LocalDateTime.now()
-            );
+            SellerSummaryResponse appResponse =
+                    new SellerSummaryResponse(
+                            2L, "머스트잇 테스트 셀러", "테스트 셀러", false, LocalDateTime.now());
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -306,20 +274,15 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 첫 페이지 변환 (first=true, last=false)")
         void toPageApiResponse_FirstPage() {
             // Given
-            List<SellerSummaryResponse> content = List.of(
-                    new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
-                    new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", true, LocalDateTime.now())
-            );
+            List<SellerSummaryResponse> content =
+                    List.of(
+                            new SellerSummaryResponse(
+                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
+                            new SellerSummaryResponse(
+                                    2L, "머스트잇 셀러2", "셀러2", true, LocalDateTime.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse = new PageResponse<>(
-                    content,
-                    0,
-                    20,
-                    100L,
-                    5,
-                    true,
-                    false
-            );
+            PageResponse<SellerSummaryResponse> appPageResponse =
+                    new PageResponse<>(content, 0, 20, 100L, 5, true, false);
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
@@ -343,20 +306,15 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 마지막 페이지 변환 (first=false, last=true)")
         void toPageApiResponse_LastPage() {
             // Given
-            List<SellerSummaryResponse> content = List.of(
-                    new SellerSummaryResponse(99L, "머스트잇 셀러99", "셀러99", true, LocalDateTime.now()),
-                    new SellerSummaryResponse(100L, "머스트잇 셀러100", "셀러100", false, LocalDateTime.now())
-            );
+            List<SellerSummaryResponse> content =
+                    List.of(
+                            new SellerSummaryResponse(
+                                    99L, "머스트잇 셀러99", "셀러99", true, LocalDateTime.now()),
+                            new SellerSummaryResponse(
+                                    100L, "머스트잇 셀러100", "셀러100", false, LocalDateTime.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse = new PageResponse<>(
-                    content,
-                    4,
-                    20,
-                    100L,
-                    5,
-                    false,
-                    true
-            );
+            PageResponse<SellerSummaryResponse> appPageResponse =
+                    new PageResponse<>(content, 4, 20, 100L, 5, false, true);
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
@@ -374,15 +332,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 빈 결과 변환")
         void toPageApiResponse_EmptyContent() {
             // Given
-            PageResponse<SellerSummaryResponse> appPageResponse = new PageResponse<>(
-                    List.of(),
-                    0,
-                    20,
-                    0L,
-                    0,
-                    true,
-                    true
-            );
+            PageResponse<SellerSummaryResponse> appPageResponse =
+                    new PageResponse<>(List.of(), 0, 20, 0L, 0, true, true);
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
@@ -401,19 +352,13 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 단일 페이지 (first=true, last=true)")
         void toPageApiResponse_SinglePage() {
             // Given
-            List<SellerSummaryResponse> content = List.of(
-                    new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now())
-            );
+            List<SellerSummaryResponse> content =
+                    List.of(
+                            new SellerSummaryResponse(
+                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse = new PageResponse<>(
-                    content,
-                    0,
-                    20,
-                    1L,
-                    1,
-                    true,
-                    true
-            );
+            PageResponse<SellerSummaryResponse> appPageResponse =
+                    new PageResponse<>(content, 0, 20, 1L, 1, true, true);
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
@@ -432,21 +377,17 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: ACTIVE와 INACTIVE 혼합 변환")
         void toPageApiResponse_MixedStatus() {
             // Given
-            List<SellerSummaryResponse> content = List.of(
-                    new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
-                    new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", false, LocalDateTime.now()),
-                    new SellerSummaryResponse(3L, "머스트잇 셀러3", "셀러3", true, LocalDateTime.now())
-            );
+            List<SellerSummaryResponse> content =
+                    List.of(
+                            new SellerSummaryResponse(
+                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
+                            new SellerSummaryResponse(
+                                    2L, "머스트잇 셀러2", "셀러2", false, LocalDateTime.now()),
+                            new SellerSummaryResponse(
+                                    3L, "머스트잇 셀러3", "셀러3", true, LocalDateTime.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse = new PageResponse<>(
-                    content,
-                    0,
-                    20,
-                    3L,
-                    1,
-                    true,
-                    true
-            );
+            PageResponse<SellerSummaryResponse> appPageResponse =
+                    new PageResponse<>(content, 0, 20, 3L, 1, true, true);
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =

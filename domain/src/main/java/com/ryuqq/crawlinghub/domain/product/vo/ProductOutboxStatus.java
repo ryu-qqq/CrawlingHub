@@ -28,37 +28,27 @@ public enum ProductOutboxStatus {
     /** 처리 실패 (재시도 필요) */
     FAILED;
 
-    /**
-     * 대기 상태인지 확인
-     */
+    /** 대기 상태인지 확인 */
     public boolean isPending() {
         return this == PENDING;
     }
 
-    /**
-     * 진행 중인지 확인
-     */
+    /** 진행 중인지 확인 */
     public boolean isProcessing() {
         return this == PROCESSING;
     }
 
-    /**
-     * 완료 상태인지 확인
-     */
+    /** 완료 상태인지 확인 */
     public boolean isCompleted() {
         return this == COMPLETED;
     }
 
-    /**
-     * 실패 상태인지 확인
-     */
+    /** 실패 상태인지 확인 */
     public boolean isFailed() {
         return this == FAILED;
     }
 
-    /**
-     * 재시도 가능 상태인지 확인
-     */
+    /** 재시도 가능 상태인지 확인 */
     public boolean canRetry() {
         return this == PENDING || this == FAILED;
     }

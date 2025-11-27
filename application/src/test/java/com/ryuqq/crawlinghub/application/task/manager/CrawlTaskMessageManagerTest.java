@@ -2,10 +2,6 @@ package com.ryuqq.crawlinghub.application.task.manager;
 
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessagePort;
-import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
@@ -13,6 +9,10 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessagePort;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
+import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,11 +33,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskMessageManager 테스트")
 class CrawlTaskMessageManagerTest {
 
-    @Mock
-    private CrawlTaskMessagePort crawlTaskMessagePort;
+    @Mock private CrawlTaskMessagePort crawlTaskMessagePort;
 
-    @InjectMocks
-    private CrawlTaskMessageManager manager;
+    @InjectMocks private CrawlTaskMessageManager manager;
 
     @Nested
     @DisplayName("publishFromEvent() 테스트")
@@ -47,13 +45,14 @@ class CrawlTaskMessageManagerTest {
         @DisplayName("[성공] CrawlTaskRegisteredEvent 기반 메시지 발행")
         void shouldPublishFromEvent() {
             // Given
-            CrawlTaskRegisteredEvent event = CrawlTaskRegisteredEvent.of(
-                    CrawlTaskIdFixture.anAssignedId(),
-                    CrawlSchedulerIdFixture.anAssignedId(),
-                    SellerIdFixture.anAssignedId(),
-                    CrawlTaskTypeFixture.defaultType(),
-                    CrawlEndpointFixture.aMiniShopListEndpoint(),
-                    "{\"payload\": \"test\"}");
+            CrawlTaskRegisteredEvent event =
+                    CrawlTaskRegisteredEvent.of(
+                            CrawlTaskIdFixture.anAssignedId(),
+                            CrawlSchedulerIdFixture.anAssignedId(),
+                            SellerIdFixture.anAssignedId(),
+                            CrawlTaskTypeFixture.defaultType(),
+                            CrawlEndpointFixture.aMiniShopListEndpoint(),
+                            "{\"payload\": \"test\"}");
 
             // When
             manager.publishFromEvent(event);

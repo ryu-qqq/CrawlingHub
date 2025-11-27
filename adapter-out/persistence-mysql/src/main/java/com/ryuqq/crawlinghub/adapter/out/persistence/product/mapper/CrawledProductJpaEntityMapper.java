@@ -15,7 +15,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,10 +96,11 @@ public class CrawledProductJpaEntityMapper {
         ProductCategory category = fromCategoryJson(entity.getCategoryJson());
         ShippingInfo shippingInfo = fromShippingInfoJson(entity.getShippingInfoJson());
         ProductOptions options = fromOptionsJson(entity.getOptionsJson());
-        CrawlCompletionStatus completionStatus = new CrawlCompletionStatus(
-                entity.getMiniShopCrawledAt(),
-                entity.getDetailCrawledAt(),
-                entity.getOptionCrawledAt());
+        CrawlCompletionStatus completionStatus =
+                new CrawlCompletionStatus(
+                        entity.getMiniShopCrawledAt(),
+                        entity.getDetailCrawledAt(),
+                        entity.getOptionCrawledAt());
 
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(entity.getId()),
@@ -183,7 +183,8 @@ public class CrawledProductJpaEntityMapper {
             return ProductImages.empty();
         }
         try {
-            List<ProductImage> images = objectMapper.readValue(json, new TypeReference<List<ProductImage>>() {});
+            List<ProductImage> images =
+                    objectMapper.readValue(json, new TypeReference<List<ProductImage>>() {});
             return ProductImages.of(images);
         } catch (JsonProcessingException e) {
             log.error("ProductImages JSON 역직렬화 실패: {}", json, e);
@@ -220,7 +221,8 @@ public class CrawledProductJpaEntityMapper {
             return ProductOptions.empty();
         }
         try {
-            List<ProductOption> options = objectMapper.readValue(json, new TypeReference<List<ProductOption>>() {});
+            List<ProductOption> options =
+                    objectMapper.readValue(json, new TypeReference<List<ProductOption>>() {});
             return ProductOptions.of(options);
         } catch (JsonProcessingException e) {
             log.error("ProductOptions JSON 역직렬화 실패: {}", json, e);
@@ -243,12 +245,6 @@ public class CrawledProductJpaEntityMapper {
         int discPrice = discountPrice != null ? discountPrice.intValue() : origPrice;
         int discRate = discountRate != null ? discountRate : 0;
 
-        return ProductPrice.of(
-                discPrice,
-                origPrice,
-                origPrice,
-                discPrice,
-                discRate,
-                discRate);
+        return ProductPrice.of(discPrice, origPrice, origPrice, discPrice, discRate, discRate);
     }
 }

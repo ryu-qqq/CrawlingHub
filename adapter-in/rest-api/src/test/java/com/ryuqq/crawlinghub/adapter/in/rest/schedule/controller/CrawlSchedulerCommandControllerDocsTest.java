@@ -26,10 +26,10 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * CrawlSchedulerCommandController REST Docs 테스트
@@ -42,14 +42,11 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("CrawlSchedulerCommandController REST Docs")
 class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private RegisterCrawlSchedulerUseCase registerCrawlSchedulerUseCase;
+    @MockitoBean private RegisterCrawlSchedulerUseCase registerCrawlSchedulerUseCase;
 
-    @MockitoBean
-    private UpdateCrawlSchedulerUseCase updateCrawlSchedulerUseCase;
+    @MockitoBean private UpdateCrawlSchedulerUseCase updateCrawlSchedulerUseCase;
 
-    @MockitoBean
-    private CrawlSchedulerCommandApiMapper crawlSchedulerCommandApiMapper;
+    @MockitoBean private CrawlSchedulerCommandApiMapper crawlSchedulerCommandApiMapper;
 
     @Test
     @DisplayName("POST /api/v1/schedules - 크롤 스케줄러 등록 API 문서")

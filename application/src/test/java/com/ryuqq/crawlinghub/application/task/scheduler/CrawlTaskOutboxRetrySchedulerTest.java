@@ -7,12 +7,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -35,17 +35,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskOutboxRetryScheduler 테스트")
 class CrawlTaskOutboxRetrySchedulerTest {
 
-    @Mock
-    private CrawlTaskOutboxQueryPort outboxQueryPort;
+    @Mock private CrawlTaskOutboxQueryPort outboxQueryPort;
 
-    @Mock
-    private CrawlTaskOutboxTransactionManager outboxTransactionManager;
+    @Mock private CrawlTaskOutboxTransactionManager outboxTransactionManager;
 
-    @Mock
-    private CrawlTaskMessageManager crawlTaskMessageManager;
+    @Mock private CrawlTaskMessageManager crawlTaskMessageManager;
 
-    @InjectMocks
-    private CrawlTaskOutboxRetryScheduler scheduler;
+    @InjectMocks private CrawlTaskOutboxRetryScheduler scheduler;
 
     @Nested
     @DisplayName("processOutbox() 테스트")
@@ -99,7 +95,8 @@ class CrawlTaskOutboxRetrySchedulerTest {
             given(outboxQueryPort.findByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(outboxes);
             doThrow(new RuntimeException("SQS publish error"))
-                    .when(crawlTaskMessageManager).publishFromOutbox(outbox);
+                    .when(crawlTaskMessageManager)
+                    .publishFromOutbox(outbox);
 
             // When
             scheduler.processOutbox();

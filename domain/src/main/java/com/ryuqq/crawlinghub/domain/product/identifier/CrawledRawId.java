@@ -4,9 +4,10 @@ package com.ryuqq.crawlinghub.domain.product.identifier;
  * CrawledRaw ID Value Object
  *
  * <p><strong>생성 패턴</strong>:
+ *
  * <ul>
- *   <li>{@code unassigned()} - 미할당 상태 (ID = null, Auto Increment 대비)</li>
- *   <li>{@code of(Long value)} - 값 기반 생성 (null 체크 필수)</li>
+ *   <li>{@code unassigned()} - 미할당 상태 (ID = null, Auto Increment 대비)
+ *   <li>{@code of(Long value)} - 값 기반 생성 (null 체크 필수)
  * </ul>
  *
  * @author development-team

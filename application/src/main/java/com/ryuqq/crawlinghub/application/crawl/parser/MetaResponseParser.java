@@ -2,16 +2,13 @@ package com.ryuqq.crawlinghub.application.crawl.parser;
 
 import static com.ryuqq.crawlinghub.application.common.utils.StringTruncator.truncate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCount;
-
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class MetaResponseParser {
