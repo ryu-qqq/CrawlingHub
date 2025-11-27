@@ -105,11 +105,9 @@ jobs:
             -t ${IMAGE_URI} \
             --build-arg JAR_FILE=bootstrap/bootstrap-web-api/build/libs/crawlinghub-web-api.jar \
             .
-          docker tag ${IMAGE_URI} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "📤 Pushing web-api to ECR..."
           docker push ${IMAGE_URI}
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
           echo "✅ web-api image pushed: ${IMAGE_URI}"
@@ -129,11 +127,9 @@ jobs:
             -t ${IMAGE_URI} \
             --build-arg JAR_FILE=bootstrap/bootstrap-scheduler/build/libs/crawlinghub-scheduler.jar \
             .
-          docker tag ${IMAGE_URI} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "📤 Pushing scheduler to ECR..."
           docker push ${IMAGE_URI}
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
           echo "✅ scheduler image pushed: ${IMAGE_URI}"
@@ -153,11 +149,9 @@ jobs:
             -t ${IMAGE_URI} \
             --build-arg JAR_FILE=bootstrap/bootstrap-crawl-worker/build/libs/crawlinghub-crawl-worker.jar \
             .
-          docker tag ${IMAGE_URI} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "📤 Pushing crawl-worker to ECR..."
           docker push ${IMAGE_URI}
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
           echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
           echo "✅ crawl-worker image pushed: ${IMAGE_URI}"
