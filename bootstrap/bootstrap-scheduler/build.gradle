@@ -27,7 +27,10 @@ dependencies {
     // ========================================
     // Outbound only (no REST API)
     implementation project(':adapter-out:persistence-mysql')
+    implementation project(':adapter-out:persistence-redis')
     implementation project(':adapter-out:aws-eventbridge')
+    implementation project(':adapter-out:aws-sqs')
+    implementation project(':adapter-out:http-client')
 
     // ========================================
     // Spring Boot Starters

@@ -1,0 +1,59 @@
+// ========================================
+// Adapter-Out: Persistence Redis
+// ========================================
+// Outbound adapter for Redis operations (Redisson)
+// Implements distributed lock ports from application layer
+// Technology: Redisson (Redis client with distributed lock support)
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // ========================================
+    // Core Dependencies
+    // ========================================
+    api project(':application')
+    api project(':domain')
+
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // Redisson (Redis client with distributed lock, Watchdog support)
+    implementation libs.redisson
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+
+    // ArchUnit for architecture validation
+    testImplementation libs.archunit.junit5
+}
+
+// ========================================
+// Test Coverage (70% for adapters)
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.70
+            }
+        }
+    }
+}
+
+tasks.test {
+    finalizedBy tasks.jacocoTestCoverageVerification
+
+    useJUnitPlatform {
+        excludeTags 'arch-test'
+    }
+    filter {
+        excludeTestsMatching '*ArchTest'
+        failOnNoMatchingTests = false
+    }
+}

@@ -1,4 +1,4 @@
-package com.ryuqq.application.architecture.port.out;
+package com.ryuqq.crawlinghub.application.architecture.port.port.out;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -45,7 +45,7 @@ class QueryPortArchTest {
     @BeforeAll
     static void setUp() {
         classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.application");
+            .importPackages("com.ryuqq.crawlinghub.application");
     }
 
     /**
@@ -144,7 +144,7 @@ class QueryPortArchTest {
         ArchRule rule = methods()
             .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("QueryPort")
             .and().haveNameMatching("search.*")
-            .should().haveRawReturnType("com.ryuqq.application.common.dto.response.PageResponse")
+            .should().haveRawReturnType("com.ryuqq.crawlinghub.application.common.dto.response.PageResponse")
             .because("search* 메서드는 PageResponse를 반환해야 합니다 (복잡한 조건 조회는 페이징 필수)");
 
         rule.check(classes);
@@ -298,7 +298,7 @@ class QueryPortArchTest {
             .resideInAnyPackage(
                 "com.ryuqq.domain..",
                 "java..",
-                "com.ryuqq.application.."  // 같은 application 내 DTO는 허용
+                "com.ryuqq.crawlinghub.application.."  // 같은 application 내 DTO는 허용
             )
             .because("QueryPort는 Domain Layer만 의존해야 합니다 (Infrastructure 의존 금지)");
 

@@ -58,6 +58,7 @@ public class SellerJpaEntityMapper {
      *   <li>MustItSellerName: Domain.getMustItSellerNameValue() → Entity.mustItSellerName
      *   <li>SellerName: Domain.getSellerNameValue() → Entity.sellerName
      *   <li>Status: Domain.getStatus() → Entity.status
+     *   <li>ProductCount: Domain.getProductCount() → Entity.productCount
      *   <li>CreatedAt: Domain.getCreatedAt() → Entity.createdAt
      *   <li>UpdatedAt: Domain.getUpdatedAt() → Entity.updatedAt
      * </ul>
@@ -71,6 +72,7 @@ public class SellerJpaEntityMapper {
                 domain.getMustItSellerNameValue(),
                 domain.getSellerNameValue(),
                 domain.getStatus(),
+                domain.getProductCount(),
                 domain.getCreatedAt(),
                 domain.getUpdatedAt());
     }
@@ -92,6 +94,7 @@ public class SellerJpaEntityMapper {
      *   <li>MustItSellerName: Entity.mustItSellerName → Domain.MustItSellerName
      *   <li>SellerName: Entity.sellerName → Domain.SellerName
      *   <li>Status: Entity.status → Domain.SellerStatus
+     *   <li>ProductCount: Entity.productCount → Domain.productCount
      *   <li>CreatedAt/UpdatedAt: Entity → Domain
      * </ul>
      *
@@ -104,6 +107,7 @@ public class SellerJpaEntityMapper {
                 MustItSellerName.of(entity.getMustItSellerName()),
                 SellerName.of(entity.getSellerName()),
                 entity.getStatus(),
+                entity.getProductCount(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 clockHolder.clock());

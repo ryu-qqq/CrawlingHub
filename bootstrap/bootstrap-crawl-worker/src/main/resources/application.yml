@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: crawlinghub-crawl-worker
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  # ========================================
+  # Config Import (load module-specific configurations)
+  # ========================================
+  config:
+    import:
+      - classpath:persistence.yml
+      - classpath:redis.yml
+      - classpath:sqs.yml
+      - classpath:sqs-listener.yml
+
+  # ========================================
+  # Flyway Configuration
+  # ========================================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+# ========================================
+# Actuator Configuration
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+
+# ========================================
+# Logging Configuration
+# ========================================
+logging:
+  level:
+    root: INFO
+    com.ryuqq.crawlinghub: INFO
+    io.awspring.cloud.sqs: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ========================================
+# Server Configuration (for actuator only)
+# ========================================
+server:
+  port: 8082
+  shutdown: graceful
+
+# ========================================
+# SQS Listener Feature Toggles
+# ========================================
+aws:
+  sqs:
+    listener:
+      crawl-task-listener-enabled: true
+      event-bridge-trigger-listener-enabled: true
+      crawl-task-dlq-listener-enabled: true
+
+---
+# ========================================
+# Local Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+aws:
+  sqs:
+    listener:
+      # Local development: disable listeners by default
+      crawl-task-listener-enabled: false
+      event-bridge-trigger-listener-enabled: false
+      crawl-task-dlq-listener-enabled: false
+
+---
+# ========================================
+# Production Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.ryuqq.crawlinghub: INFO

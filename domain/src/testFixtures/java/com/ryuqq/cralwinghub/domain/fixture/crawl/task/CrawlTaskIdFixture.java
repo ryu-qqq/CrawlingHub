@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.crawl.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 
 /**
  * CrawlTaskId Test Fixture

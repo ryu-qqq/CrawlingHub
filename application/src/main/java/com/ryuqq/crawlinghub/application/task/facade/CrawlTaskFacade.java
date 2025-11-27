@@ -1,0 +1,91 @@
+package com.ryuqq.crawlinghub.application.task.facade;
+
+import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
+import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
+import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * CrawlTask Facade
+ *
+ * <p><strong>책임</strong>:
+ *
+ * <ul>
+ *   <li>검증 로직 조율 (Validator)
+ *   <li>저장 로직 조율 (TransactionManager)
+ *   <li>트랜잭션 경계 관리
+ * </ul>
+ *
+ * <p><strong>처리 흐름</strong>:
+ *
+ * <ol>
+ *   <li>스케줄러 상태 검증 (ACTIVE만 트리거 가능)
+ *   <li>중복 Task 검증 (진행 중인 Task가 있으면 생성 불가)
+ *   <li>CrawlTask + Outbox 저장 (단일 트랜잭션)
+ * </ol>
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Component
+public class CrawlTaskFacade {
+
+    private final CrawlTaskPersistenceValidator validator;
+    private final CrawlTaskTransactionManager transactionManager;
+    private final CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public CrawlTaskFacade(
+            CrawlTaskPersistenceValidator validator,
+            CrawlTaskTransactionManager transactionManager,
+            CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager,
+            ApplicationEventPublisher eventPublisher) {
+        this.validator = validator;
+        this.transactionManager = transactionManager;
+        this.crawlTaskOutboxTransactionManager = crawlTaskOutboxTransactionManager;
+        this.eventPublisher = eventPublisher;
+    }
+
+    /**
+     * CrawlTask 번들을 하나의 트랜잭션으로 저장
+     *
+     * <p><strong>트랜잭션 범위</strong>:
+     *
+     * <ol>
+     *   <li>스케줄러 검증
+     *   <li>중복 Task 검증
+     *   <li>CrawlTask 저장 → ID 반환 → 번들에 설정
+     *   <li>Outbox 저장 (Task ID 참조)
+     * </ol>
+     *
+     * @param bundle 저장할 CrawlTask 번들
+     * @return 저장된 CrawlTask 번들 (ID 할당됨)
+     */
+    @Transactional
+    public CrawlTaskBundle persist(CrawlTaskBundle bundle) {
+        CrawlTask crawlTask = bundle.getCrawlTask();
+
+        // 1. 중복 Task 검증
+        validator.validateNoDuplicateTask(
+                bundle.getCrawlScheduleId(), crawlTask.getSellerId(), crawlTask.getTaskType());
+
+        // 3. CrawlTask 저장 → ID 반환 → 번들에 설정
+        CrawlTaskId savedTaskId = transactionManager.persist(crawlTask);
+        bundle.withTaskId(savedTaskId);
+
+        // 4. Outbox 저장
+        crawlTaskOutboxTransactionManager.persist(bundle.createOutbox());
+
+        // 5. 도메인 이벤트 발행 (getSavedCrawlTask()에서 자동으로 등록 이벤트 추가)
+        CrawlTask savedTask = bundle.getSavedCrawlTask();
+        savedTask.getDomainEvents().forEach(eventPublisher::publishEvent);
+        savedTask.clearDomainEvents();
+
+        return bundle;
+    }
+}

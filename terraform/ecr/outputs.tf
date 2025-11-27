@@ -21,3 +21,13 @@ output "scheduler_repository_arn" {
   description = "ECR repository ARN for scheduler"
   value       = module.ecr_scheduler.repository_arn
 }
+
+output "crawl_worker_repository_url" {
+  description = "ECR repository URL for crawl-worker"
+  value       = module.ecr_crawl_worker.repository_url
+}
+
+output "crawl_worker_repository_arn" {
+  description = "ECR repository ARN for crawl-worker"
+  value       = module.ecr_crawl_worker.repository_arn
+}

@@ -1,0 +1,28 @@
+# ========================================
+# AWS SQS Configuration (Default/Production)
+# ========================================
+# Terraform outputs reference:
+#   - queue_url: /${project_name}/sqs/crawling-task-queue-url (SSM Parameter)
+#   - queue_arn: /${project_name}/sqs/crawling-task-queue-arn (SSM Parameter)
+#   - dlq_url:   /${project_name}/sqs/crawling-task-dlq-url (SSM Parameter)
+#
+# Queue Type: Standard (NOT FIFO)
+# Queue Name Pattern: ${project_name}-crawling-task-${environment}
+# ========================================
+
+aws:
+  sqs:
+    # AWS Region
+    region: ${AWS_REGION:ap-northeast-2}
+
+    # Crawl Task Queue URL
+    # Production: Terraform output -> SSM Parameter -> ECS Task Definition
+    crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
+
+    # Message Group ID Prefix (FIFO only, Standard queue does not use this)
+    message-group-id-prefix: crawl-task-
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.sqs: INFO
+    software.amazon.awssdk: WARN
