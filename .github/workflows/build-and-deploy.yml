@@ -1,3 +1,10 @@
+# ============================================================================
+# CrawlingHub Build & Deploy
+#
+# Reusable Workflows 사용하여 단순화
+# 기존 450줄 → 약 130줄로 단순화
+# ============================================================================
+
 name: Build and Deploy to ECS
 
 on:
@@ -19,15 +26,13 @@ env:
   ECS_CLUSTER: crawlinghub-cluster-prod
 
 jobs:
-  build-and-push:
-    name: Build and Push Docker Images
+  # ============================================================================
+  # 테스트 (공통 - 한 번만 실행)
+  # ============================================================================
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    outputs:
-      web-api-image-tag: ${{ steps.image-tag.outputs.tag }}
-      web-api-image-uri: ${{ steps.build-web-api.outputs.image }}
-      scheduler-image-uri: ${{ steps.build-scheduler.outputs.image }}
-      crawl-worker-image-uri: ${{ steps.build-crawl-worker.outputs.image }}
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -40,412 +45,107 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
       - name: Run tests
         run: |
-          echo "🧪 Running tests..."
-          ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon --stacktrace
-          echo "✅ Tests completed"
+          chmod +x gradlew
+          ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon
 
-      - name: Build web-api JAR
-        run: |
-          echo "🔨 Building web-api..."
-          ./gradlew :bootstrap:bootstrap-web-api:bootJar -x test --no-daemon --stacktrace
-          echo "✅ web-api build completed"
-          ls -lh bootstrap/bootstrap-web-api/build/libs/
+  # ============================================================================
+  # 빌드 Jobs (병렬 실행)
+  # ============================================================================
+  build-web-api:
+    name: Build web-api
+    needs: test
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-web-api-prod
+      component: web-api
+      dockerfile: bootstrap/bootstrap-web-api/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-web-api:bootJar"
+      timeout-minutes: 30
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Build scheduler JAR
-        run: |
-          echo "🔨 Building scheduler..."
-          ./gradlew :bootstrap:bootstrap-scheduler:bootJar -x test --no-daemon --stacktrace
-          echo "✅ scheduler build completed"
-          ls -lh bootstrap/bootstrap-scheduler/build/libs/
+  build-scheduler:
+    name: Build scheduler
+    needs: test
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-scheduler-prod
+      component: scheduler
+      dockerfile: bootstrap/bootstrap-scheduler/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-scheduler:bootJar"
+      timeout-minutes: 25
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Build crawl-worker JAR
-        run: |
-          echo "🔨 Building crawl-worker..."
-          ./gradlew :bootstrap:bootstrap-crawl-worker:bootJar -x test --no-daemon --stacktrace
-          echo "✅ crawl-worker build completed"
-          ls -lh bootstrap/bootstrap-crawl-worker/build/libs/
+  build-crawl-worker:
+    name: Build crawl-worker
+    needs: test
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-crawl-worker-prod
+      component: crawl-worker
+      dockerfile: bootstrap/bootstrap-crawl-worker/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-crawl-worker:bootJar"
+      timeout-minutes: 30
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-Build
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Generate image tag
-        id: image-tag
-        run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          TAG="${{ github.run_number }}-${SHORT_SHA}"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "📦 Image tag: ${TAG}"
-
-      - name: Build and push web-api Docker image
-        id: build-web-api
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
-        run: |
-          echo "🐳 Building web-api Docker image..."
-          ECR_REPOSITORY="crawlinghub-web-api-prod"
-          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-
-          docker build \
-            -f bootstrap/bootstrap-web-api/Dockerfile \
-            -t ${IMAGE_URI} \
-            --build-arg JAR_FILE=bootstrap/bootstrap-web-api/build/libs/crawlinghub-web-api.jar \
-            .
-
-          echo "📤 Pushing web-api to ECR..."
-          docker push ${IMAGE_URI}
-
-          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
-          echo "✅ web-api image pushed: ${IMAGE_URI}"
-
-      - name: Build and push scheduler Docker image
-        id: build-scheduler
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
-        run: |
-          echo "🐳 Building scheduler Docker image..."
-          ECR_REPOSITORY="crawlinghub-scheduler-prod"
-          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-
-          docker build \
-            -f bootstrap/bootstrap-scheduler/Dockerfile \
-            -t ${IMAGE_URI} \
-            --build-arg JAR_FILE=bootstrap/bootstrap-scheduler/build/libs/crawlinghub-scheduler.jar \
-            .
-
-          echo "📤 Pushing scheduler to ECR..."
-          docker push ${IMAGE_URI}
-
-          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
-          echo "✅ scheduler image pushed: ${IMAGE_URI}"
-
-      - name: Build and push crawl-worker Docker image
-        id: build-crawl-worker
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
-        run: |
-          echo "🐳 Building crawl-worker Docker image..."
-          ECR_REPOSITORY="crawlinghub-crawl-worker-prod"
-          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-
-          docker build \
-            -f bootstrap/bootstrap-crawl-worker/Dockerfile \
-            -t ${IMAGE_URI} \
-            --build-arg JAR_FILE=bootstrap/bootstrap-crawl-worker/build/libs/crawlinghub-crawl-worker.jar \
-            .
-
-          echo "📤 Pushing crawl-worker to ECR..."
-          docker push ${IMAGE_URI}
-
-          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
-          echo "✅ crawl-worker image pushed: ${IMAGE_URI}"
-
+  # ============================================================================
+  # 배포 Jobs (병렬 실행)
+  # ============================================================================
   deploy-web-api:
-    name: Deploy web-api to ECS
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-Deploy-WebApi
-
-      - name: Get current task definition
-        id: get-task-def
-        run: |
-          ECS_SERVICE="crawlinghub-web-api-prod"
-          echo "📋 Fetching current task definition for ${ECS_SERVICE}..."
-          TASK_DEF_ARN=$(aws ecs describe-services \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE} \
-            --query 'services[0].taskDefinition' \
-            --output text)
-
-          aws ecs describe-task-definition \
-            --task-definition ${TASK_DEF_ARN} \
-            --query 'taskDefinition' > task-definition.json
-
-          echo "✅ Task definition retrieved"
-
-      - name: Update task definition with new image
-        run: |
-          echo "🔄 Updating task definition..."
-
-          cat task-definition.json | \
-            jq --arg IMAGE "${{ needs.build-and-push.outputs.web-api-image-uri }}" \
-               '.containerDefinitions[0].image = $IMAGE' | \
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-            > new-task-definition.json
-
-          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.web-api-image-uri }}"
-
-      - name: Register new task definition
-        id: register-task-def
-        run: |
-          echo "📝 Registering new task definition..."
-
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-
-          echo "task-def-arn=${NEW_TASK_DEF_ARN}" >> $GITHUB_OUTPUT
-          echo "✅ New task definition registered: ${NEW_TASK_DEF_ARN}"
-
-      - name: Update ECS service
-        run: |
-          ECS_SERVICE="crawlinghub-web-api-prod"
-          echo "🚀 Updating ECS service ${ECS_SERVICE}..."
-
-          aws ecs update-service \
-            --cluster ${ECS_CLUSTER} \
-            --service ${ECS_SERVICE} \
-            --task-definition ${{ steps.register-task-def.outputs.task-def-arn }} \
-            --force-new-deployment \
-            --no-cli-pager
-
-          echo "✅ ECS service update initiated"
-
-      - name: Wait for service stability
-        run: |
-          ECS_SERVICE="crawlinghub-web-api-prod"
-          echo "⏳ Waiting for ${ECS_SERVICE} to become stable..."
-
-          aws ecs wait services-stable \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE}
-
-          echo "✅ Service is now stable"
+    name: Deploy web-api
+    needs: build-web-api
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
+    with:
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-web-api-prod
+      image-uri: ${{ needs.build-web-api.outputs.image-uri }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
   deploy-scheduler:
-    name: Deploy scheduler to ECS
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-Deploy-Scheduler
-
-      - name: Get current task definition
-        id: get-task-def
-        run: |
-          ECS_SERVICE="crawlinghub-scheduler-prod"
-          echo "📋 Fetching current task definition for ${ECS_SERVICE}..."
-          TASK_DEF_ARN=$(aws ecs describe-services \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE} \
-            --query 'services[0].taskDefinition' \
-            --output text)
-
-          aws ecs describe-task-definition \
-            --task-definition ${TASK_DEF_ARN} \
-            --query 'taskDefinition' > task-definition.json
-
-          echo "✅ Task definition retrieved"
-
-      - name: Update task definition with new image
-        run: |
-          echo "🔄 Updating task definition..."
-
-          cat task-definition.json | \
-            jq --arg IMAGE "${{ needs.build-and-push.outputs.scheduler-image-uri }}" \
-               '.containerDefinitions[0].image = $IMAGE' | \
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-            > new-task-definition.json
-
-          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.scheduler-image-uri }}"
-
-      - name: Register new task definition
-        id: register-task-def
-        run: |
-          echo "📝 Registering new task definition..."
-
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-
-          echo "task-def-arn=${NEW_TASK_DEF_ARN}" >> $GITHUB_OUTPUT
-          echo "✅ New task definition registered: ${NEW_TASK_DEF_ARN}"
-
-      - name: Update ECS service
-        run: |
-          ECS_SERVICE="crawlinghub-scheduler-prod"
-          echo "🚀 Updating ECS service ${ECS_SERVICE}..."
-
-          aws ecs update-service \
-            --cluster ${ECS_CLUSTER} \
-            --service ${ECS_SERVICE} \
-            --task-definition ${{ steps.register-task-def.outputs.task-def-arn }} \
-            --force-new-deployment \
-            --no-cli-pager
-
-          echo "✅ ECS service update initiated"
-
-      - name: Wait for service stability
-        run: |
-          ECS_SERVICE="crawlinghub-scheduler-prod"
-          echo "⏳ Waiting for ${ECS_SERVICE} to become stable..."
-
-          aws ecs wait services-stable \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE}
-
-          echo "✅ Service is now stable"
+    name: Deploy scheduler
+    needs: build-scheduler
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
+    with:
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-scheduler-prod
+      image-uri: ${{ needs.build-scheduler.outputs.image-uri }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
   deploy-crawl-worker:
-    name: Deploy crawl-worker to ECS
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    name: Deploy crawl-worker
+    needs: build-crawl-worker
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
+    with:
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-crawl-worker-prod
+      image-uri: ${{ needs.build-crawl-worker.outputs.image-uri }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-Deploy-CrawlWorker
-
-      - name: Get current task definition
-        id: get-task-def
-        run: |
-          ECS_SERVICE="crawlinghub-crawl-worker-prod"
-          echo "📋 Fetching current task definition for ${ECS_SERVICE}..."
-          TASK_DEF_ARN=$(aws ecs describe-services \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE} \
-            --query 'services[0].taskDefinition' \
-            --output text)
-
-          aws ecs describe-task-definition \
-            --task-definition ${TASK_DEF_ARN} \
-            --query 'taskDefinition' > task-definition.json
-
-          echo "✅ Task definition retrieved"
-
-      - name: Update task definition with new image
-        run: |
-          echo "🔄 Updating task definition..."
-
-          cat task-definition.json | \
-            jq --arg IMAGE "${{ needs.build-and-push.outputs.crawl-worker-image-uri }}" \
-               '.containerDefinitions[0].image = $IMAGE' | \
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-            > new-task-definition.json
-
-          echo "✅ Task definition updated with image: ${{ needs.build-and-push.outputs.crawl-worker-image-uri }}"
-
-      - name: Register new task definition
-        id: register-task-def
-        run: |
-          echo "📝 Registering new task definition..."
-
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-
-          echo "task-def-arn=${NEW_TASK_DEF_ARN}" >> $GITHUB_OUTPUT
-          echo "✅ New task definition registered: ${NEW_TASK_DEF_ARN}"
-
-      - name: Update ECS service
-        run: |
-          ECS_SERVICE="crawlinghub-crawl-worker-prod"
-          echo "🚀 Updating ECS service ${ECS_SERVICE}..."
-
-          aws ecs update-service \
-            --cluster ${ECS_CLUSTER} \
-            --service ${ECS_SERVICE} \
-            --task-definition ${{ steps.register-task-def.outputs.task-def-arn }} \
-            --force-new-deployment \
-            --no-cli-pager
-
-          echo "✅ ECS service update initiated"
-
-      - name: Wait for service stability
-        run: |
-          ECS_SERVICE="crawlinghub-crawl-worker-prod"
-          echo "⏳ Waiting for ${ECS_SERVICE} to become stable..."
-
-          aws ecs wait services-stable \
-            --cluster ${ECS_CLUSTER} \
-            --services ${ECS_SERVICE}
-
-          echo "✅ Service is now stable"
-
-  notify-completion:
-    name: Notify Deployment Completion
-    needs: [build-and-push, deploy-web-api, deploy-scheduler, deploy-crawl-worker]
-    runs-on: ubuntu-latest
+  # ============================================================================
+  # 배포 완료 알림 (Slack + GitHub Summary)
+  # ============================================================================
+  notify:
+    name: Deployment Notification
+    needs: [build-web-api, build-scheduler, build-crawl-worker, deploy-web-api, deploy-scheduler, deploy-crawl-worker]
     if: always()
-
-    steps:
-      - name: Create Deployment Summary
-        run: |
-          echo "## 🚀 CrawlingHub Application Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Status**: ${{ needs.build-and-push.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**web-api Deploy**: ${{ needs.deploy-web-api.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**scheduler Deploy**: ${{ needs.deploy-scheduler.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**crawl-worker Deploy**: ${{ needs.deploy-crawl-worker.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Image Tag**: ${{ needs.build-and-push.outputs.web-api-image-tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Deployed Images" >> $GITHUB_STEP_SUMMARY
-          echo "- **web-api**: \`${{ needs.build-and-push.outputs.web-api-image-uri }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **scheduler**: \`${{ needs.build-and-push.outputs.scheduler-image-uri }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **crawl-worker**: \`${{ needs.build-and-push.outputs.crawl-worker-image-uri }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ Deployment Steps" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Tests executed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ web-api JAR built" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ scheduler JAR built" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ crawl-worker JAR built" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Docker images built and pushed to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS services deployed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Check CloudWatch logs for application startup" >> $GITHUB_STEP_SUMMARY
-          echo "2. Verify health check: https://crawler.set-of.com/actuator/health" >> $GITHUB_STEP_SUMMARY
-          echo "3. Test API endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "4. Monitor CloudWatch metrics" >> $GITHUB_STEP_SUMMARY
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-notify-slack.yml@main
+    with:
+      project-name: CrawlingHub
+      environment: prod
+      status: ${{ (needs.deploy-web-api.result == 'success' && needs.deploy-scheduler.result == 'success' && needs.deploy-crawl-worker.result == 'success') && 'success' || (needs.deploy-web-api.result == 'failure' || needs.deploy-scheduler.result == 'failure' || needs.deploy-crawl-worker.result == 'failure') && 'failure' || 'partial' }}
+      components: |
+        [
+          {"name": "web-api", "status": "${{ needs.deploy-web-api.result }}", "image": "${{ needs.build-web-api.outputs.image-tag || 'N/A' }}"},
+          {"name": "scheduler", "status": "${{ needs.deploy-scheduler.result }}", "image": "${{ needs.build-scheduler.outputs.image-tag || 'N/A' }}"},
+          {"name": "crawl-worker", "status": "${{ needs.deploy-crawl-worker.result }}", "image": "${{ needs.build-crawl-worker.outputs.image-tag || 'N/A' }}"}
+        ]
+      mention-on-failure: "@here"
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
