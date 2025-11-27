@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.execution.assembler.CrawlExecutionAssembler;
 import com.ryuqq.crawlinghub.application.execution.dto.query.GetCrawlExecutionQuery;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDetailResponse;
@@ -15,7 +16,6 @@ import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -38,14 +38,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawlExecutionService 테스트")
 class GetCrawlExecutionServiceTest {
 
-    @Mock
-    private CrawlExecutionQueryPort crawlExecutionQueryPort;
+    @Mock private CrawlExecutionQueryPort crawlExecutionQueryPort;
 
-    @Mock
-    private CrawlExecutionAssembler assembler;
+    @Mock private CrawlExecutionAssembler assembler;
 
-    @InjectMocks
-    private GetCrawlExecutionService service;
+    @InjectMocks private GetCrawlExecutionService service;
 
     @Nested
     @DisplayName("execute() 크롤 실행 단건 조회 테스트")
@@ -58,15 +55,23 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 1L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            CrawlExecutionDetailResponse expectedResponse = new CrawlExecutionDetailResponse(
-                    crawlExecutionId, 1L, 1L, 1L, CrawlExecutionStatus.RUNNING,
-                    null, null, null, null,
-                    LocalDateTime.now(), null);
+            CrawlExecutionDetailResponse expectedResponse =
+                    new CrawlExecutionDetailResponse(
+                            crawlExecutionId,
+                            1L,
+                            1L,
+                            1L,
+                            CrawlExecutionStatus.RUNNING,
+                            null,
+                            null,
+                            null,
+                            null,
+                            LocalDateTime.now(),
+                            null);
 
             given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(execution));
-            given(assembler.toDetailResponse(execution))
-                    .willReturn(expectedResponse);
+            given(assembler.toDetailResponse(execution)).willReturn(expectedResponse);
 
             // When
             CrawlExecutionDetailResponse result = service.execute(query);
@@ -101,15 +106,23 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 2L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution successExecution = CrawlExecutionFixture.aSuccessExecution();
-            CrawlExecutionDetailResponse expectedResponse = new CrawlExecutionDetailResponse(
-                    crawlExecutionId, 1L, 1L, 1L, CrawlExecutionStatus.SUCCESS,
-                    200, "{\"products\": []}", null, 1500L,
-                    LocalDateTime.now(), LocalDateTime.now());
+            CrawlExecutionDetailResponse expectedResponse =
+                    new CrawlExecutionDetailResponse(
+                            crawlExecutionId,
+                            1L,
+                            1L,
+                            1L,
+                            CrawlExecutionStatus.SUCCESS,
+                            200,
+                            "{\"products\": []}",
+                            null,
+                            1500L,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(successExecution));
-            given(assembler.toDetailResponse(successExecution))
-                    .willReturn(expectedResponse);
+            given(assembler.toDetailResponse(successExecution)).willReturn(expectedResponse);
 
             // When
             CrawlExecutionDetailResponse result = service.execute(query);
@@ -127,15 +140,23 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 3L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution failedExecution = CrawlExecutionFixture.aFailedExecution();
-            CrawlExecutionDetailResponse expectedResponse = new CrawlExecutionDetailResponse(
-                    crawlExecutionId, 1L, 1L, 1L, CrawlExecutionStatus.FAILED,
-                    500, null, "Internal Server Error", 500L,
-                    LocalDateTime.now(), LocalDateTime.now());
+            CrawlExecutionDetailResponse expectedResponse =
+                    new CrawlExecutionDetailResponse(
+                            crawlExecutionId,
+                            1L,
+                            1L,
+                            1L,
+                            CrawlExecutionStatus.FAILED,
+                            500,
+                            null,
+                            "Internal Server Error",
+                            500L,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(failedExecution));
-            given(assembler.toDetailResponse(failedExecution))
-                    .willReturn(expectedResponse);
+            given(assembler.toDetailResponse(failedExecution)).willReturn(expectedResponse);
 
             // When
             CrawlExecutionDetailResponse result = service.execute(query);

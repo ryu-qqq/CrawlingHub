@@ -25,11 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UserAgentRecoveryScheduler 테스트")
 class UserAgentRecoverySchedulerTest {
 
-    @Mock
-    private UserAgentPoolManager poolManager;
+    @Mock private UserAgentPoolManager poolManager;
 
-    @InjectMocks
-    private UserAgentRecoveryScheduler scheduler;
+    @InjectMocks private UserAgentRecoveryScheduler scheduler;
 
     @Nested
     @DisplayName("recoverSuspendedUserAgents() 테스트")
@@ -67,7 +65,8 @@ class UserAgentRecoverySchedulerTest {
         void shouldHandleExceptionGracefully() {
             // Given
             doThrow(new RuntimeException("Recovery error"))
-                    .when(poolManager).recoverSuspendedUserAgents();
+                    .when(poolManager)
+                    .recoverSuspendedUserAgents();
 
             // When - 예외가 전파되지 않아야 함
             scheduler.recoverSuspendedUserAgents();

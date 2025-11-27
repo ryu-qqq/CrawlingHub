@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
@@ -20,8 +22,6 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,20 +43,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("TriggerCrawlTaskService 테스트")
 class TriggerCrawlTaskServiceTest {
 
-    @Mock
-    private CrawlTaskPersistenceValidator validator;
+    @Mock private CrawlTaskPersistenceValidator validator;
 
-    @Mock
-    private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskAssembler assembler;
 
-    @Mock
-    private CrawlTaskFacade facade;
+    @Mock private CrawlTaskFacade facade;
 
-    @Mock
-    private CrawlTaskBundle mockBundle;
+    @Mock private CrawlTaskBundle mockBundle;
 
-    @InjectMocks
-    private TriggerCrawlTaskService service;
+    @InjectMocks private TriggerCrawlTaskService service;
 
     @Nested
     @DisplayName("execute() 크롤 태스크 트리거 테스트")
@@ -70,9 +65,16 @@ class TriggerCrawlTaskServiceTest {
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(crawlSchedulerId);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             CrawlTask savedTask = CrawlTaskFixture.aWaitingTask();
-            CrawlTaskResponse expectedResponse = new CrawlTaskResponse(
-                    1L, crawlSchedulerId, 1L, "https://example.com/api",
-                    CrawlTaskStatus.WAITING, CrawlTaskType.META, 0, LocalDateTime.now());
+            CrawlTaskResponse expectedResponse =
+                    new CrawlTaskResponse(
+                            1L,
+                            crawlSchedulerId,
+                            1L,
+                            "https://example.com/api",
+                            CrawlTaskStatus.WAITING,
+                            CrawlTaskType.META,
+                            0,
+                            LocalDateTime.now());
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willReturn(scheduler);
@@ -86,7 +88,9 @@ class TriggerCrawlTaskServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(validator).should().findAndValidateScheduler(CrawlSchedulerId.of(crawlSchedulerId));
+            then(validator)
+                    .should()
+                    .findAndValidateScheduler(CrawlSchedulerId.of(crawlSchedulerId));
             then(assembler).should().toBundle(command, scheduler);
             then(facade).should().persist(mockBundle);
             then(assembler).should().toResponse(savedTask);
@@ -118,9 +122,12 @@ class TriggerCrawlTaskServiceTest {
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(crawlSchedulerId);
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
-                    .willThrow(new InvalidSchedulerStateException(
-                            com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus.INACTIVE,
-                            com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus.ACTIVE));
+                    .willThrow(
+                            new InvalidSchedulerStateException(
+                                    com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus
+                                            .INACTIVE,
+                                    com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus
+                                            .ACTIVE));
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))

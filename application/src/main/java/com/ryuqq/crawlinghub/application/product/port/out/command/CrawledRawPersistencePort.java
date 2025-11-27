@@ -2,13 +2,13 @@ package com.ryuqq.crawlinghub.application.product.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
-
 import java.util.List;
 
 /**
  * CrawledRaw 저장 Port (Port Out - Command)
  *
  * <p>CrawledRawManager에서만 사용됩니다.
+ *
  * <p>트랜잭션 경계 내에서 CrawledRaw Aggregate의 저장을 담당합니다.
  *
  * @author development-team

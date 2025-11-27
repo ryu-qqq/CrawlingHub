@@ -137,7 +137,8 @@ public class SellerJpaEntity extends BaseAuditEntity {
             int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        return new SellerJpaEntity(id, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
+        return new SellerJpaEntity(
+                id, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====

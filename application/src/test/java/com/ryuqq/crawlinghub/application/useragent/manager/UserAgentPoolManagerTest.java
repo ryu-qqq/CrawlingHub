@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
+import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
@@ -17,8 +19,6 @@ import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
-import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
-import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -41,17 +41,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UserAgentPoolManager 테스트")
 class UserAgentPoolManagerTest {
 
-    @Mock
-    private UserAgentPoolCachePort cachePort;
+    @Mock private UserAgentPoolCachePort cachePort;
 
-    @Mock
-    private UserAgentQueryPort queryPort;
+    @Mock private UserAgentQueryPort queryPort;
 
-    @Mock
-    private UserAgentPersistencePort persistencePort;
+    @Mock private UserAgentPersistencePort persistencePort;
 
-    @InjectMocks
-    private UserAgentPoolManager manager;
+    @InjectMocks private UserAgentPoolManager manager;
 
     @Nested
     @DisplayName("consume() 테스트")
@@ -160,7 +156,8 @@ class UserAgentPoolManagerTest {
             // Given
             RecordUserAgentResultCommand command = RecordUserAgentResultCommand.failure(1L, 500);
 
-            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class))).willReturn(false);
+            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class)))
+                    .willReturn(false);
 
             // When
             manager.recordResult(command);
@@ -178,7 +175,8 @@ class UserAgentPoolManagerTest {
             RecordUserAgentResultCommand command = RecordUserAgentResultCommand.failure(1L, 500);
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
-            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class))).willReturn(true);
+            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class)))
+                    .willReturn(true);
             given(queryPort.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
 
             // When

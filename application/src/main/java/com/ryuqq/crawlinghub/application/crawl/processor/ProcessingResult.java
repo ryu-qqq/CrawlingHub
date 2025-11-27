@@ -27,7 +27,9 @@ public class ProcessingResult {
     private final int savedItemCount;
 
     private ProcessingResult(
-            List<CreateCrawlTaskCommand> followUpCommands, int parsedItemCount, int savedItemCount) {
+            List<CreateCrawlTaskCommand> followUpCommands,
+            int parsedItemCount,
+            int savedItemCount) {
         this.followUpCommands =
                 followUpCommands == null
                         ? Collections.emptyList()

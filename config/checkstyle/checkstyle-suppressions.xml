@@ -34,6 +34,9 @@
   <suppress files=".*/rest-api/.*/dto/.*Response\.java" checks="WhitespaceAround"/>
   <suppress files=".*/rest-api/.*/mapper/.*Mapper\.java" checks="WhitespaceAround"/>
 
+  <!-- Persistence layer mapper files - TypeReference anonymous classes -->
+  <suppress files=".*/persistence.*/.*Mapper\.java" checks="WhitespaceAround"/>
+
   <!-- QueryDSL generated code -->
   <suppress files=".*/build/generated/.*/Q.*\.java" checks="AvoidStarImport"/>
 

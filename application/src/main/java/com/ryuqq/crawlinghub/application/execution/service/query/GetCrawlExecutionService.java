@@ -39,7 +39,9 @@ public class GetCrawlExecutionService implements GetCrawlExecutionUseCase {
                 crawlExecutionQueryPort
                         .findById(CrawlExecutionId.of(query.crawlExecutionId()))
                         .orElseThrow(
-                                () -> new CrawlExecutionNotFoundException(query.crawlExecutionId()));
+                                () ->
+                                        new CrawlExecutionNotFoundException(
+                                                query.crawlExecutionId()));
 
         // 2. 응답 변환 (Assembler)
         return assembler.toDetailResponse(execution);

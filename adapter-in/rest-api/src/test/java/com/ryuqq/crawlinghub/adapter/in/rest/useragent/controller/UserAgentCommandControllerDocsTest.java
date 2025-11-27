@@ -16,9 +16,9 @@ import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAg
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * UserAgentCommandController REST Docs 테스트
@@ -31,11 +31,9 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("UserAgentCommandController REST Docs")
 class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private RecoverUserAgentUseCase recoverUserAgentUseCase;
+    @MockitoBean private RecoverUserAgentUseCase recoverUserAgentUseCase;
 
-    @MockitoBean
-    private UserAgentApiMapper userAgentApiMapper;
+    @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
     @Test
     @DisplayName("POST /api/v1/user-agents/recover - 정지된 UserAgent 복구 API 문서")

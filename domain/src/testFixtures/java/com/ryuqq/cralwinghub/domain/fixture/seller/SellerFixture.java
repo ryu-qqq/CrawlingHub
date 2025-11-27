@@ -1,12 +1,12 @@
 package com.ryuqq.cralwinghub.domain.fixture.seller;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -43,9 +43,7 @@ public final class SellerFixture {
      */
     public static Seller aNewActiveSeller(String mustItSellerName, String sellerName) {
         return Seller.forNew(
-                MustItSellerName.of(mustItSellerName),
-                SellerName.of(sellerName),
-                DEFAULT_CLOCK);
+                MustItSellerName.of(mustItSellerName), SellerName.of(sellerName), DEFAULT_CLOCK);
     }
 
     /**
@@ -56,9 +54,7 @@ public final class SellerFixture {
      */
     public static Seller aNewActiveSeller(Clock clock) {
         return Seller.forNew(
-                MustItSellerNameFixture.aDefaultName(),
-                SellerNameFixture.aDefaultName(),
-                clock);
+                MustItSellerNameFixture.aDefaultName(), SellerNameFixture.aDefaultName(), clock);
     }
 
     /**

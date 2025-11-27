@@ -5,6 +5,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerHistoryManager;
@@ -16,10 +20,6 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,26 +42,19 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("CrawlerSchedulerFacade 테스트")
 class CrawlerSchedulerFacadeTest {
 
-    @Mock
-    private CrawlerSchedulerManager crawlerSchedulerManager;
+    @Mock private CrawlerSchedulerManager crawlerSchedulerManager;
 
-    @Mock
-    private CrawlerSchedulerOutBoxManager crawlerSchedulerOutBoxManager;
+    @Mock private CrawlerSchedulerOutBoxManager crawlerSchedulerOutBoxManager;
 
-    @Mock
-    private CrawlerSchedulerHistoryManager crawlerSchedulerHistoryManager;
+    @Mock private CrawlerSchedulerHistoryManager crawlerSchedulerHistoryManager;
 
-    @Mock
-    private CrawlSchedulerAssembler crawlSchedulerAssembler;
+    @Mock private CrawlSchedulerAssembler crawlSchedulerAssembler;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private ClockHolder clockHolder;
+    @Mock private ClockHolder clockHolder;
 
-    @InjectMocks
-    private CrawlerSchedulerFacade facade;
+    @InjectMocks private CrawlerSchedulerFacade facade;
 
     private FixedClock fixedClock;
 
@@ -82,7 +75,8 @@ class CrawlerSchedulerFacadeTest {
             CrawlSchedulerBundle bundle =
                     CrawlSchedulerBundle.of(scheduler, "{\"payload\": \"test\"}", fixedClock);
             CrawlSchedulerId expectedSchedulerId = CrawlSchedulerIdFixture.anAssignedId();
-            CrawlSchedulerHistoryId expectedHistoryId = CrawlSchedulerHistoryIdFixture.anAssignedId();
+            CrawlSchedulerHistoryId expectedHistoryId =
+                    CrawlSchedulerHistoryIdFixture.anAssignedId();
 
             given(crawlerSchedulerManager.persist(scheduler)).willReturn(expectedSchedulerId);
             given(crawlerSchedulerHistoryManager.persist(any(CrawlSchedulerHistory.class)))

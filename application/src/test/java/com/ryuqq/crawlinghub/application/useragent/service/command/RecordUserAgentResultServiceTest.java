@@ -24,11 +24,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RecordUserAgentResultService 테스트")
 class RecordUserAgentResultServiceTest {
 
-    @Mock
-    private UserAgentPoolManager poolManager;
+    @Mock private UserAgentPoolManager poolManager;
 
-    @InjectMocks
-    private RecordUserAgentResultService service;
+    @InjectMocks private RecordUserAgentResultService service;
 
     @Nested
     @DisplayName("execute() 결과 기록 테스트")

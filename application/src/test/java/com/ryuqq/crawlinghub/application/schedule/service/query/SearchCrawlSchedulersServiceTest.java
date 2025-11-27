@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.application.schedule.service.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
@@ -16,7 +16,6 @@ import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQu
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -40,14 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchCrawlSchedulersService 테스트")
 class SearchCrawlSchedulersServiceTest {
 
-    @Mock
-    private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
 
-    @Mock
-    private CrawlSchedulerAssembler assembler;
+    @Mock private CrawlSchedulerAssembler assembler;
 
-    @InjectMocks
-    private SearchCrawlSchedulersService service;
+    @InjectMocks private SearchCrawlSchedulersService service;
 
     @Nested
     @DisplayName("execute() 스케줄러 목록 조회 테스트")
@@ -57,17 +53,24 @@ class SearchCrawlSchedulersServiceTest {
         @DisplayName("[성공] 조건에 맞는 스케줄러 목록 조회 시 PageResponse 반환")
         void shouldReturnPageResponseWhenSchedulersExist() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(
-                    1L, SchedulerStatus.ACTIVE, 0, 10);
-            CrawlSchedulerQueryCriteria criteria = new CrawlSchedulerQueryCriteria(null, null, 0, 10);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(1L, SchedulerStatus.ACTIVE, 0, 10);
+            CrawlSchedulerQueryCriteria criteria =
+                    new CrawlSchedulerQueryCriteria(null, null, 0, 10);
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 1L;
 
-            CrawlSchedulerResponse response = new CrawlSchedulerResponse(
-                    1L, 1L, "daily-crawl", "cron(0 0 * * ? *)", SchedulerStatus.ACTIVE,
-                    LocalDateTime.now(), LocalDateTime.now());
-            PageResponse<CrawlSchedulerResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlSchedulerResponse response =
+                    new CrawlSchedulerResponse(
+                            1L,
+                            1L,
+                            "daily-crawl",
+                            "cron(0 0 * * ? *)",
+                            SchedulerStatus.ACTIVE,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
+            PageResponse<CrawlSchedulerResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(schedulers);
@@ -91,14 +94,14 @@ class SearchCrawlSchedulersServiceTest {
         @DisplayName("[성공] 조건에 맞는 스케줄러 없을 시 빈 PageResponse 반환")
         void shouldReturnEmptyPageResponseWhenNoSchedulersFound() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(
-                    999L, null, 0, 10);
-            CrawlSchedulerQueryCriteria criteria = new CrawlSchedulerQueryCriteria(null, null, 0, 10);
+            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(999L, null, 0, 10);
+            CrawlSchedulerQueryCriteria criteria =
+                    new CrawlSchedulerQueryCriteria(null, null, 0, 10);
             List<CrawlScheduler> emptySchedulers = Collections.emptyList();
             long totalElements = 0L;
 
-            PageResponse<CrawlSchedulerResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), 0, 10, 0L, 0, true, true);
+            PageResponse<CrawlSchedulerResponse> expectedResponse =
+                    PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(emptySchedulers);
@@ -120,13 +123,16 @@ class SearchCrawlSchedulersServiceTest {
             // Given
             int page = 2;
             int size = 20;
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(null, null, page, size);
-            CrawlSchedulerQueryCriteria criteria = new CrawlSchedulerQueryCriteria(null, null, page, size);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(null, null, page, size);
+            CrawlSchedulerQueryCriteria criteria =
+                    new CrawlSchedulerQueryCriteria(null, null, page, size);
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 50L;
 
-            PageResponse<CrawlSchedulerResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), page, size, totalElements, 3, false, false);
+            PageResponse<CrawlSchedulerResponse> expectedResponse =
+                    PageResponse.of(
+                            Collections.emptyList(), page, size, totalElements, 3, false, false);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(schedulers);

@@ -68,10 +68,6 @@
     <!-- God Class 방지 (LCOM 기반) -->
     <rule ref="category/java/design.xml/GodClass">
         <priority>2</priority>
-        <properties>
-            <!-- LCOM > 0.7 경고 -->
-            <property name="topscore" value="70"/>
-        </properties>
     </rule>
 
     <!-- ========================================
@@ -178,12 +174,7 @@
         </properties>
     </rule>
 
-    <rule ref="category/java/design.xml/ExcessiveClassLength">
-        <priority>3</priority>
-        <properties>
-            <property name="minimum" value="300"/>
-        </properties>
-    </rule>
+    <!-- ExcessiveClassLength removed in PMD 7 - using custom XPath rule instead covered by TooManyMethods rules -->
 
     <!-- ========================================
          레이어별 커스텀 규칙

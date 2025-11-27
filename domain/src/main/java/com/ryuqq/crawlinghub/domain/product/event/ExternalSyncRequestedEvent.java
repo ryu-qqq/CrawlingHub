@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-
 import java.time.LocalDateTime;
 
 /**
@@ -19,7 +18,8 @@ public record ExternalSyncRequestedEvent(
         SellerId sellerId,
         long itemNo,
         SyncType syncType,
-        LocalDateTime occurredAt) implements DomainEvent {
+        LocalDateTime occurredAt)
+        implements DomainEvent {
 
     public ExternalSyncRequestedEvent {
         if (crawledProductId == null) {
@@ -39,31 +39,21 @@ public record ExternalSyncRequestedEvent(
         }
     }
 
-    /**
-     * 신규 등록용 이벤트 생성
-     */
+    /** 신규 등록용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forCreate(
-            CrawledProductId crawledProductId,
-            SellerId sellerId,
-            long itemNo) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo) {
         return new ExternalSyncRequestedEvent(
                 crawledProductId, sellerId, itemNo, SyncType.CREATE, LocalDateTime.now());
     }
 
-    /**
-     * 갱신용 이벤트 생성
-     */
+    /** 갱신용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forUpdate(
-            CrawledProductId crawledProductId,
-            SellerId sellerId,
-            long itemNo) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo) {
         return new ExternalSyncRequestedEvent(
                 crawledProductId, sellerId, itemNo, SyncType.UPDATE, LocalDateTime.now());
     }
 
-    /**
-     * 동기화 타입
-     */
+    /** 동기화 타입 */
     public enum SyncType {
         /** 신규 상품 등록 */
         CREATE,

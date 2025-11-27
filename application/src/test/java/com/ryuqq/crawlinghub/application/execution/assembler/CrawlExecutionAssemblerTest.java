@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.execution.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutionsQuery;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDetailResponse;
@@ -9,7 +10,6 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionRe
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -39,8 +39,9 @@ class CrawlExecutionAssemblerTest {
             // Given
             LocalDateTime from = LocalDateTime.of(2025, 11, 1, 0, 0);
             LocalDateTime to = LocalDateTime.of(2025, 11, 30, 23, 59);
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    1L, 10L, 100L, CrawlExecutionStatus.SUCCESS, from, to, 0, 20);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(
+                            1L, 10L, 100L, CrawlExecutionStatus.SUCCESS, from, to, 0, 20);
 
             // When
             CrawlExecutionCriteria result = assembler.toCriteria(query);
@@ -59,8 +60,8 @@ class CrawlExecutionAssemblerTest {
         @DisplayName("[성공] ListCrawlExecutionsQuery → CrawlExecutionCriteria 변환 (null 필드)")
         void shouldConvertQueryToCriteriaWithNullFields() {
             // Given
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    null, null, null, null, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(null, null, null, null, null, null, 0, 10);
 
             // When
             CrawlExecutionCriteria result = assembler.toCriteria(query);
@@ -77,8 +78,9 @@ class CrawlExecutionAssemblerTest {
         @DisplayName("[성공] toCriteriaWithSeller() - 기본 Criteria 생성")
         void shouldReturnBasicCriteriaForSellerExtension() {
             // Given
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    1L, 10L, 100L, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(
+                            1L, 10L, 100L, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
 
             // When
             CrawlExecutionCriteria result = assembler.toCriteriaWithSeller(query);
@@ -105,7 +107,8 @@ class CrawlExecutionAssemblerTest {
             // Then
             assertThat(result.crawlExecutionId()).isEqualTo(execution.getId().value());
             assertThat(result.crawlTaskId()).isEqualTo(execution.getCrawlTaskId().value());
-            assertThat(result.crawlSchedulerId()).isEqualTo(execution.getCrawlSchedulerId().value());
+            assertThat(result.crawlSchedulerId())
+                    .isEqualTo(execution.getCrawlSchedulerId().value());
             assertThat(result.sellerId()).isEqualTo(execution.getSellerId().value());
             assertThat(result.status()).isEqualTo(CrawlExecutionStatus.RUNNING);
         }
@@ -216,10 +219,11 @@ class CrawlExecutionAssemblerTest {
         @DisplayName("[성공] CrawlExecution 목록 → CrawlExecutionResponse 목록 변환")
         void shouldConvertExecutionListToResponses() {
             // Given
-            List<CrawlExecution> executions = List.of(
-                    CrawlExecutionFixture.anExecutionWithId(1L),
-                    CrawlExecutionFixture.anExecutionWithId(2L),
-                    CrawlExecutionFixture.anExecutionWithId(3L));
+            List<CrawlExecution> executions =
+                    List.of(
+                            CrawlExecutionFixture.anExecutionWithId(1L),
+                            CrawlExecutionFixture.anExecutionWithId(2L),
+                            CrawlExecutionFixture.anExecutionWithId(3L));
 
             // When
             List<CrawlExecutionResponse> result = assembler.toResponses(executions);
@@ -253,9 +257,10 @@ class CrawlExecutionAssemblerTest {
         @DisplayName("[성공] CrawlExecution 목록 → PageResponse 변환")
         void shouldConvertExecutionsToPageResponse() {
             // Given
-            List<CrawlExecution> executions = List.of(
-                    CrawlExecutionFixture.anExecutionWithId(1L),
-                    CrawlExecutionFixture.anExecutionWithId(2L));
+            List<CrawlExecution> executions =
+                    List.of(
+                            CrawlExecutionFixture.anExecutionWithId(1L),
+                            CrawlExecutionFixture.anExecutionWithId(2L));
             int page = 0;
             int size = 10;
             long totalElements = 25L;

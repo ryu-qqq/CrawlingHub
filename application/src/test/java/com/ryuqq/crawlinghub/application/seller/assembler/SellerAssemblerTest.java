@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.seller.assembler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
@@ -13,7 +14,6 @@ import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -36,11 +36,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SellerAssembler 테스트")
 class SellerAssemblerTest {
 
-    @Mock
-    private ClockHolder clockHolder;
+    @Mock private ClockHolder clockHolder;
 
-    @InjectMocks
-    private SellerAssembler assembler;
+    @InjectMocks private SellerAssembler assembler;
 
     @Nested
     @DisplayName("toDomain(RegisterSellerCommand) 테스트")
@@ -50,7 +48,8 @@ class SellerAssemblerTest {
         @DisplayName("[성공] RegisterSellerCommand → Seller 신규 생성")
         void shouldCreateNewSellerFromRegisterCommand() {
             // Given
-            RegisterSellerCommand command = new RegisterSellerCommand("MUSTIT_SELLER_001", "테스트 셀러");
+            RegisterSellerCommand command =
+                    new RegisterSellerCommand("MUSTIT_SELLER_001", "테스트 셀러");
             Instant now = Instant.parse("2025-11-27T12:00:00Z");
 
             given(clockHolder.clock()).willReturn(() -> now);
@@ -74,7 +73,8 @@ class SellerAssemblerTest {
         @DisplayName("[성공] UpdateSellerCommand → Seller 비교용 객체 생성 (전체 필드)")
         void shouldCreateComparisonSellerFromUpdateCommand() {
             // Given
-            UpdateSellerCommand command = new UpdateSellerCommand(1L, "UPDATED_MUSTIT", "수정된 셀러", false);
+            UpdateSellerCommand command =
+                    new UpdateSellerCommand(1L, "UPDATED_MUSTIT", "수정된 셀러", false);
             Instant now = Instant.parse("2025-11-27T12:00:00Z");
 
             given(clockHolder.clock()).willReturn(() -> now);
@@ -175,10 +175,11 @@ class SellerAssemblerTest {
         @DisplayName("[성공] Seller 목록 → SellerSummaryResponse 목록 변환")
         void shouldConvertSellerListToSummaryResponses() {
             // Given
-            List<Seller> sellers = List.of(
-                    SellerFixture.anActiveSeller(1L),
-                    SellerFixture.anActiveSeller(2L),
-                    SellerFixture.anActiveSeller(3L));
+            List<Seller> sellers =
+                    List.of(
+                            SellerFixture.anActiveSeller(1L),
+                            SellerFixture.anActiveSeller(2L),
+                            SellerFixture.anActiveSeller(3L));
 
             // When
             List<SellerSummaryResponse> result = assembler.toSummaryResponses(sellers);
@@ -212,8 +213,8 @@ class SellerAssemblerTest {
         @DisplayName("[성공] SearchSellersQuery → SellerQueryCriteria 변환 (전체 필드)")
         void shouldConvertQueryToCriteria() {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(
-                    "MUSTIT_001", "테스트셀러", SellerStatus.ACTIVE, 0, 20);
+            SearchSellersQuery query =
+                    new SearchSellersQuery("MUSTIT_001", "테스트셀러", SellerStatus.ACTIVE, 0, 20);
 
             // When
             SellerQueryCriteria result = assembler.toCriteria(query);
@@ -250,9 +251,8 @@ class SellerAssemblerTest {
         @DisplayName("[성공] Seller 목록 → PageResponse 변환")
         void shouldConvertSellersToPageResponse() {
             // Given
-            List<Seller> sellers = List.of(
-                    SellerFixture.anActiveSeller(1L),
-                    SellerFixture.anActiveSeller(2L));
+            List<Seller> sellers =
+                    List.of(SellerFixture.anActiveSeller(1L), SellerFixture.anActiveSeller(2L));
             int page = 0;
             int size = 10;
             long totalElements = 25L;

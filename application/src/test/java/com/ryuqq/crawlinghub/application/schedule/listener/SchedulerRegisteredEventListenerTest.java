@@ -7,6 +7,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
@@ -17,12 +23,6 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,17 +44,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SchedulerRegisteredEventListener 테스트")
 class SchedulerRegisteredEventListenerTest {
 
-    @Mock
-    private EventBridgeClientPort eventBridgeClientPort;
+    @Mock private EventBridgeClientPort eventBridgeClientPort;
 
-    @Mock
-    private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
+    @Mock private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
 
-    @Mock
-    private CrawlerSchedulerOutBoxManager outBoxManager;
+    @Mock private CrawlerSchedulerOutBoxManager outBoxManager;
 
-    @InjectMocks
-    private SchedulerRegisteredEventListener listener;
+    @InjectMocks private SchedulerRegisteredEventListener listener;
 
     @Nested
     @DisplayName("handleSchedulerRegistered() 테스트")
@@ -70,8 +66,9 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
-            SchedulerRegisteredEvent event = new SchedulerRegisteredEvent(
-                    schedulerId, historyId, sellerId, schedulerName, cronExpression);
+            SchedulerRegisteredEvent event =
+                    new SchedulerRegisteredEvent(
+                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
 
             CrawlSchedulerOutBox outBox = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
@@ -97,8 +94,9 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
-            SchedulerRegisteredEvent event = new SchedulerRegisteredEvent(
-                    schedulerId, historyId, sellerId, schedulerName, cronExpression);
+            SchedulerRegisteredEvent event =
+                    new SchedulerRegisteredEvent(
+                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
 
             given(outBoxQueryPort.findByHistoryId(historyId)).willReturn(Optional.empty());
 
@@ -122,14 +120,16 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
-            SchedulerRegisteredEvent event = new SchedulerRegisteredEvent(
-                    schedulerId, historyId, sellerId, schedulerName, cronExpression);
+            SchedulerRegisteredEvent event =
+                    new SchedulerRegisteredEvent(
+                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
 
             CrawlSchedulerOutBox outBox = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
             given(outBoxQueryPort.findByHistoryId(historyId)).willReturn(Optional.of(outBox));
             doThrow(new RuntimeException("AWS EventBridge error"))
-                    .when(eventBridgeClientPort).createScheduler(event);
+                    .when(eventBridgeClientPort)
+                    .createScheduler(event);
 
             // When
             listener.handleSchedulerRegistered(event);

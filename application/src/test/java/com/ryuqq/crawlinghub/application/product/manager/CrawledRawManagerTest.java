@@ -29,11 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawledRawManager 테스트")
 class CrawledRawManagerTest {
 
-    @Mock
-    private CrawledRawPersistencePort crawledRawPersistencePort;
+    @Mock private CrawledRawPersistencePort crawledRawPersistencePort;
 
-    @InjectMocks
-    private CrawledRawManager manager;
+    @InjectMocks private CrawledRawManager manager;
 
     @Nested
     @DisplayName("save() 테스트")
@@ -65,14 +63,13 @@ class CrawledRawManagerTest {
         @DisplayName("[성공] CrawledRaw 벌크 저장")
         void shouldSaveAllCrawledRaws() {
             // Given
-            List<CrawledRaw> raws = List.of(
-                    createPendingRaw(1L, 100L, 12345L),
-                    createPendingRaw(1L, 100L, 12346L),
-                    createPendingRaw(1L, 100L, 12347L));
-            List<CrawledRawId> expectedIds = List.of(
-                    CrawledRawId.of(1L),
-                    CrawledRawId.of(2L),
-                    CrawledRawId.of(3L));
+            List<CrawledRaw> raws =
+                    List.of(
+                            createPendingRaw(1L, 100L, 12345L),
+                            createPendingRaw(1L, 100L, 12346L),
+                            createPendingRaw(1L, 100L, 12347L));
+            List<CrawledRawId> expectedIds =
+                    List.of(CrawledRawId.of(1L), CrawledRawId.of(2L), CrawledRawId.of(3L));
 
             given(crawledRawPersistencePort.persistAll(raws)).willReturn(expectedIds);
 
@@ -119,7 +116,8 @@ class CrawledRawManagerTest {
             CrawledRaw crawledRaw = createPendingRaw(1L, 100L, 12345L);
             CrawledRawId expectedId = CrawledRawId.of(1L);
 
-            given(crawledRawPersistencePort.persist(crawledRaw.markAsProcessed())).willReturn(expectedId);
+            given(crawledRawPersistencePort.persist(crawledRaw.markAsProcessed()))
+                    .willReturn(expectedId);
 
             // When
             CrawledRawId result = manager.markAsProcessed(crawledRaw);
@@ -141,7 +139,8 @@ class CrawledRawManagerTest {
             String errorMessage = "JSON 파싱 실패";
             CrawledRawId expectedId = CrawledRawId.of(1L);
 
-            given(crawledRawPersistencePort.persist(crawledRaw.markAsFailed(errorMessage))).willReturn(expectedId);
+            given(crawledRawPersistencePort.persist(crawledRaw.markAsFailed(errorMessage)))
+                    .willReturn(expectedId);
 
             // When
             CrawledRawId result = manager.markAsFailed(crawledRaw, errorMessage);
@@ -155,10 +154,6 @@ class CrawledRawManagerTest {
 
     private CrawledRaw createPendingRaw(long schedulerId, long sellerId, long itemNo) {
         return CrawledRaw.create(
-                schedulerId,
-                sellerId,
-                itemNo,
-                CrawlType.MINI_SHOP,
-                "{\"test\": \"data\"}");
+                schedulerId, sellerId, itemNo, CrawlType.MINI_SHOP, "{\"test\": \"data\"}");
     }
 }

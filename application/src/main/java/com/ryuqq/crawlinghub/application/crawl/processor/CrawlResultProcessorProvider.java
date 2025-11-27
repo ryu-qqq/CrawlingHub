@@ -45,8 +45,7 @@ public class CrawlResultProcessorProvider {
     public CrawlResultProcessor getProcessor(CrawlTaskType taskType) {
         CrawlResultProcessor processor = processorMap.get(taskType);
         if (processor == null) {
-            throw new IllegalArgumentException(
-                    "지원하지 않는 CrawlTaskType입니다: " + taskType);
+            throw new IllegalArgumentException("지원하지 않는 CrawlTaskType입니다: " + taskType);
         }
         return processor;
     }
