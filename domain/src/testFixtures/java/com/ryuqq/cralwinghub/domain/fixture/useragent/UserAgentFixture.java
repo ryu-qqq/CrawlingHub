@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 public final class UserAgentFixture {
 
-    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2025, 11, 27, 12, 0, 0);
+    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
 
     /**
      * 신규 UserAgent 생성 (ID 미할당, AVAILABLE, Health Score 100)
