@@ -55,7 +55,7 @@ distributed-lock:
   default-lease-time-ms: 30000
 
   # Lock key prefixes
-  key-prefix: crawlinghub:lock:
+  key-prefix: "crawlinghub:lock:"
 
   # Specific lock configurations
   crawl-trigger:
@@ -89,7 +89,7 @@ useragent-pool:
     suspension-threshold: 30
 
   # Key Prefixes
-  key-prefix: useragent:
+  key-prefix: "useragent:"
 
 logging:
   level:
