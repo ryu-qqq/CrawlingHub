@@ -1,0 +1,452 @@
+{
+  "moduleList": [
+    {
+      "type": "ProductBannersModule",
+      "data": {
+        "images": [
+          "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/0bec6de328e8d100303d138c1ffad0e4.jpeg/_dims_/resize/500x500/extent/500x500"
+        ],
+        "timesales": []
+      }
+    },
+    {
+      "type": "ProductInfoModule",
+      "data": {
+        "sellerNo": 678,
+        "sellerId": "dmont",
+        "itemNo": 118005032,
+        "itemName": "디몬트 비비안웨스트우드 여성 ORB 하이랜드 백팩(블랙) 43010072U W019E N403",
+        "brandName": "Vivienne Westwood",
+        "brandNameKr": "비비안웨스트우드",
+        "brandCode": 153,
+        "headerCategoryCode": "W",
+        "headerCategory": "여성",
+        "largeCategoryCode": "16",
+        "largeCategory": "가방",
+        "mediumCategoryCode": "16r05",
+        "mediumCategory": "백팩",
+        "normalPrice": 1083000,
+        "discountRate": 48,
+        "sellingPrice": 621000,
+        "discountPrice": 565100,
+        "isBoutiqueItem": false,
+        "isSoldOut": false,
+        "stock": 3,
+        "userDiscountInfo": {
+          "dpsDiscount": false,
+          "purchasePrice": 565100,
+          "isLike": false
+        },
+        "badgeList": [],
+        "discountDetails": {
+          "prices": [
+            {
+              "type": "NORMAL",
+              "name": "정상가",
+              "price": 1083000
+            },
+            {
+              "type": "DISCOUNT_PRICE",
+              "name": "할인가",
+              "price": 621000
+            }
+          ],
+          "discounts": [
+            {
+              "type": "ACCOUNT",
+              "name": "회원할인",
+              "price": 55900,
+              "isAccountGroup": false
+            },
+            {
+              "type": "DPS_DISCOUNT",
+              "name": "스페셜 쿠폰",
+              "price": 55900,
+              "isAccountGroup": true
+            }
+          ],
+          "total": {
+            "type": "ACCOUNT",
+            "name": "최대혜택가",
+            "price": 565100
+          }
+        },
+        "catalogId": 110587795,
+        "countPriceComparison": 2,
+        "isPriceComparison": true,
+        "isLowestPrice": true
+      }
+    },
+    {
+      "type": "NonMemberBannerModule",
+      "data": {
+        "landingUrl": "https://m.web.mustit.co.kr/m/member/login?redirect=https%3A%2F%2Fm.web.mustit.co.kr%2Fv2%2Fm%2Fproduct%2Fproduct_detail%2F118005032"
+      }
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 10,
+        "backgroundColor": "#FAFAFA"
+      }
+    },
+    {
+      "type": "PurchaseBenefitModule",
+      "data": {
+        "title": "혜택안내",
+        "items": [
+          {
+            "type": "REWARD",
+            "data": {
+              "point": 3000
+            }
+          },
+          {
+            "type": "INTEREST_FREE",
+            "data": {
+              "interestMaxMonth": 6,
+              "Installment": 94183
+            }
+          },
+          {
+            "type": "AS",
+            "data": {
+              "isAfterService": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "ShippingModule",
+      "data": {
+        "title": "배송정보",
+        "items": [
+          {
+            "type": "SHIPPING",
+            "data": {
+              "shippingType": "DOMESTIC",
+              "shippingFee": 0,
+              "shippingFeeType": "FREE",
+              "isEachShippingFee": false,
+              "isDirectShipping": false,
+              "isCustomsDuty": false,
+              "averageDeliveryDay": {
+                "text": "평균 배송 1일 소요",
+                "focusText": "1일 소요"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 10,
+        "backgroundColor": "#FAFAFA"
+      }
+    },
+    {
+      "type": "SellerModule",
+      "data": {
+        "title": "판매자정보",
+        "sellerInfo": {
+          "sellerNo": 678,
+          "status": "ACTIVE",
+          "idleRegDate": "2016-04-06T00:00:00Z",
+          "idleFlag": "ZERO",
+          "eventPoint": 283520,
+          "trustPoint": 3403,
+          "regularCustomCnt": 0,
+          "cntPointBad": 43,
+          "cntPointNormal": 24871,
+          "cntPointGood": 9573,
+          "prodUpdateCnt": 0,
+          "todayUpdateCnt": 0,
+          "prodRenewableCnt": 0,
+          "prodInsertExcept": 0,
+          "bestSellerExp": "",
+          "naverDiscountExp": 0,
+          "naverDiscountExpYn": true,
+          "appDiscountExp": 0,
+          "appDiscountExpYn": true,
+          "sellerDiscountExp": 0,
+          "prodBannerYn": false,
+          "stockCheckYn": "NO",
+          "quickYn": false,
+          "reservDelivYn": false,
+          "reservDelivProdCnt": 1,
+          "reservDelivOrdCnt": 130,
+          "holdSettlementYn": false,
+          "holdSettlementDate": null,
+          "holdSettlementAdmId": null,
+          "holdSettlementExYn": false,
+          "couponDiscountYn": true,
+          "partnershipMallTargetYn": false,
+          "prodRegLimit": 30000
+        },
+        "sellerTopPercentile": 5,
+        "sellerReviewSummary": {
+          "reviewCount": 14119,
+          "reviewTotalAvg": 4.8303,
+          "satisfactionScore": 87,
+          "sizeReviewCnt": 0,
+          "satisfactions": [
+            {
+              "satisfactionType": "DELIVERY",
+              "satisfactions": [
+                {
+                  "satisfactionName": "DELIVERY_0",
+                  "satisfactionScore": 52,
+                  "satisfactionPercent": 0
+                },
+                {
+                  "satisfactionName": "DELIVERY_1",
+                  "satisfactionScore": 2784,
+                  "satisfactionPercent": 21
+                },
+                {
+                  "satisfactionName": "DELIVERY_2",
+                  "satisfactionScore": 10671,
+                  "satisfactionPercent": 79
+                }
+              ]
+            },
+            {
+              "satisfactionType": "PACKING",
+              "satisfactions": [
+                {
+                  "satisfactionName": "PACKING_0",
+                  "satisfactionScore": 324,
+                  "satisfactionPercent": 2
+                },
+                {
+                  "satisfactionName": "PACKING_1",
+                  "satisfactionScore": 3922,
+                  "satisfactionPercent": 29
+                },
+                {
+                  "satisfactionName": "PACKING_2",
+                  "satisfactionScore": 9261,
+                  "satisfactionPercent": 69
+                }
+              ]
+            },
+            {
+              "satisfactionType": "PRICE",
+              "satisfactions": [
+                {
+                  "satisfactionName": "PRICE_0",
+                  "satisfactionScore": 2243,
+                  "satisfactionPercent": 17
+                },
+                {
+                  "satisfactionName": "PRICE_1",
+                  "satisfactionScore": 10553,
+                  "satisfactionPercent": 78
+                },
+                {
+                  "satisfactionName": "PRICE_2",
+                  "satisfactionScore": 711,
+                  "satisfactionPercent": 5
+                }
+              ]
+            }
+          ]
+        },
+        "sellerBadgeUrl": "https://static-ux.mustit.co.kr/img/front/icon/seller/icon_seller_excellence.svg"
+      }
+    },
+    {
+      "type": "CatalogModule",
+      "data": {
+        "NEW": {
+          "title": "가격비교",
+          "count": 2,
+          "isSelectedFreeShipping": false,
+          "isRegisteredLowestAlarm": false,
+          "catalogNo": 110587795,
+          "items": [
+            {
+              "itemNo": 118005032,
+              "sellerId": "dmont",
+              "isLowestPrice": true,
+              "sellPrice": "565100",
+              "sellPriceWeb": "565100",
+              "usedStatus": "",
+              "shippingType": "국내배송",
+              "shippingFee": "무료",
+              "isTariff": false,
+              "tagList": [],
+              "sellerBadgeUrl": "https://static-ux.mustit.co.kr/img/front/icon/seller/icon_seller_excellence.svg",
+              "isFocusItem": true,
+              "amplitudeInfo": {
+                "eventType": "click_price_comparison_product",
+                "parameters": {
+                  "brand_id": 153,
+                  "brand_name": "Vivienne Westwood",
+                  "category_1_id": "16",
+                  "category_1_name": "여성가방",
+                  "category_2_id": "16r05",
+                  "category_2_name": "백팩",
+                  "category_3_id": "",
+                  "product_id": 118005032,
+                  "product_name": "디몬트 비비안웨스트우드 여성 ORB 하이랜드 백팩(블랙) 43010072U W019E N403",
+                  "discount_price": 565100,
+                  "discount_rate": 48,
+                  "is_lowest_price": true
+                }
+              }
+            },
+            {
+              "itemNo": 117262919,
+              "sellerId": "dinapino2014",
+              "isLowestPrice": false,
+              "sellPrice": "844000",
+              "sellPriceWeb": "844000",
+              "usedStatus": "",
+              "shippingType": "국내배송",
+              "shippingFee": "무료",
+              "isTariff": false,
+              "tagList": [],
+              "sellerBadgeUrl": "",
+              "isFocusItem": false,
+              "amplitudeInfo": {
+                "eventType": "click_price_comparison_product",
+                "parameters": {
+                  "brand_id": 153,
+                  "brand_name": "Vivienne Westwood",
+                  "category_1_id": "16",
+                  "category_1_name": "여성가방",
+                  "category_2_id": "16r05",
+                  "category_2_name": "백팩",
+                  "category_3_id": "",
+                  "product_id": 117262919,
+                  "product_name": "비비안웨스트우드 25FW 오알비 폴리 하이랜드 여성 백팩 43010072U W019E N403",
+                  "discount_price": 844000,
+                  "discount_rate": 23,
+                  "is_lowest_price": false
+                }
+              }
+            }
+          ],
+          "landingUrl": ""
+        },
+        "USED": {
+          "title": "가격비교",
+          "count": 0,
+          "isSelectedFreeShipping": false,
+          "isRegisteredLowestAlarm": false,
+          "catalogNo": 110587795,
+          "items": [],
+          "landingUrl": ""
+        }
+      }
+    },
+    {
+      "type": "PromotionBannerModule",
+      "data": [
+        {
+          "imageUrl": "https://image.mustit.co.kr/lib/upload/event/uploads/dec7e99e3b42172012c53f64edbd916e.jpeg",
+          "landingUrl": "https://m.mustit.co.kr/m/etc/event_view?number=308&click=product_detail"
+        },
+        {
+          "imageUrl": "https://static-ux.mustit.co.kr/img/m/m_banner/middle_banner_ourpolicy_v2.jpg",
+          "landingUrl": "https://m.web.mustit.co.kr/m/board/introduce_our_policies"
+        }
+      ]
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 24,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "type": "LazyComponent",
+      "data": {
+        "params": {
+          "eid": null,
+          "uid": null,
+          "adid": null,
+          "os": null,
+          "osVersion": null,
+          "model": null,
+          "gender": null
+        },
+        "method": "GET",
+        "url": "/v1/ai-recommendation/moloco/item/118005032?headerCategory=W&largeCategory=16&mediumCategory=16r05"
+      }
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 10,
+        "backgroundColor": "#FAFAFA"
+      }
+    },
+    {
+      "type": "SinglePromotionBannerModule",
+      "data": {
+        "title": "기획전 바로가기",
+        "imageUrl": "https://image.mustit.co.kr/lib/upload/admin/banner/pdp/1ca4b0d4410c387412da87011b56711d.png",
+        "landingUrl": "https://m.web.mustit.co.kr/v2/m/promotion/exhibition/3927"
+      }
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 10,
+        "backgroundColor": "#FAFAFA"
+      }
+    },
+    {
+      "type": "TabListModule",
+      "data": [
+        {
+          "type": "DETAIL",
+          "title": "상세정보"
+        },
+        {
+          "type": "REVIEW",
+          "title": "리뷰",
+          "count": 0
+        },
+        {
+          "type": "INQUIRY",
+          "title": "문의",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "type": "ProductDetailInfoModule",
+      "data": {
+        "title": "상세정보",
+        "itemNo": 118005032,
+        "itemStatus": "새상품",
+        "originCountry": "케냐",
+        "shippingLocation": "대구 중구",
+        "sellerEvaluations": [],
+        "warningTextSellerStatus": [],
+        "descriptionMarkUp": "<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/dmontnotice.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/111.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/02.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/03.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/04.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/05.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/06.jpg\"></p>\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/43010072UW019EN403/01.jpg\"></p>\n\n<p align=\"center\"><img src=\"https://zstormz1227.openhost.cafe24.com/web/product/image/shoppingguide.jpg\"></p>"
+      }
+    },
+    {
+      "type": "VerticalMargin",
+      "data": {
+        "lineHeight": 10,
+        "backgroundColor": "#FAFAFA"
+      }
+    }
+  ],
+  "bottom": {
+    "freeGift": "",
+    "likeCount": 0,
+    "isLike": false,
+    "hasLowestOtherProduct": false
+  },
+  "nextApiUrl": "/v1/item/118005032/detail/bottom?sellerId=dmont&catalogNo=110587795"
+}

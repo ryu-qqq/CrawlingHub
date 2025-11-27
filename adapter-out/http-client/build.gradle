@@ -1,0 +1,51 @@
+// ========================================
+// Adapter-Out: HTTP Client
+// ========================================
+// Outbound adapter for HTTP operations
+// Implements session token port from application layer
+// Technology: Spring WebClient (WebFlux)
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // ========================================
+    // Core Dependencies
+    // ========================================
+    api project(':application')
+    api project(':domain')
+
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // Spring WebFlux (WebClient)
+    implementation libs.spring.boot.starter.webflux
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+
+    // ArchUnit for architecture validation
+    testImplementation libs.archunit.junit5
+}
+
+// ========================================
+// Test Coverage (temporarily disabled for integration tests)
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    enabled = false
+}
+
+tasks.test {
+    useJUnitPlatform {
+        excludeTags 'arch-test'
+    }
+    filter {
+        excludeTestsMatching '*ArchTest'
+        failOnNoMatchingTests = false
+    }
+}

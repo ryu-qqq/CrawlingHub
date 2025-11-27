@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.config.EventBridgeProperties;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
+import com.ryuqq.crawlinghub.application.task.dto.messaging.EventBridgeTriggerPayload;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
@@ -231,6 +232,13 @@ public class EventBridgeClientAdapter implements EventBridgeClientPort {
     /**
      * Target Input Payload 생성
      *
+     * <p>EventBridge Scheduler는 context variable을 지원하여 트리거 시간을 동적으로 주입 가능:
+     *
+     * <ul>
+     *   <li>{@code <aws.scheduler.scheduled-time>}: 예정된 트리거 시간 (ISO-8601)
+     *   <li>{@code <aws.scheduler.execution-id>}: 실행 ID
+     * </ul>
+     *
      * @param schedulerId 스케줄러 ID
      * @param sellerId 셀러 ID
      * @param schedulerName 스케줄러 이름
@@ -238,7 +246,11 @@ public class EventBridgeClientAdapter implements EventBridgeClientPort {
      */
     private String buildInputPayload(Long schedulerId, Long sellerId, String schedulerName) {
         try {
-            SchedulePayload payload = new SchedulePayload(schedulerId, sellerId, schedulerName);
+            // EventBridge context variable로 triggerTime 동적 주입
+            // <aws.scheduler.scheduled-time>은 실행 시점에 실제 시간으로 치환됨
+            EventBridgeTriggerPayload payload =
+                    new EventBridgeTriggerPayload(
+                            schedulerId, sellerId, schedulerName, "<aws.scheduler.scheduled-time>");
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
             log.error("페이로드 직렬화 실패: schedulerId={}", schedulerId);
@@ -297,13 +309,4 @@ public class EventBridgeClientAdapter implements EventBridgeClientPort {
             throw new RuntimeException("SchedulerUpdatedEvent 파싱 실패", e);
         }
     }
-
-    // ==================== Inner Classes ====================
-
-    /**
-     * EventBridge Target Input Payload
-     *
-     * <p>Lambda 또는 다른 Target에 전달될 JSON 페이로드
-     */
-    private record SchedulePayload(Long schedulerId, Long sellerId, String schedulerName) {}
 }

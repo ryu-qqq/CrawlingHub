@@ -1,0 +1,107 @@
+// ========================================
+// Bootstrap: Crawl Worker Application
+// ========================================
+// SQS message consumer for crawling task execution
+// Handles CrawlTask and EventBridge trigger messages
+// Main worker entry point
+// NO Lombok allowed
+// ========================================
+
+import java.time.Instant
+
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencies {
+    // ========================================
+    // Core Modules
+    // ========================================
+    implementation project(':domain')
+    implementation project(':application')
+
+    // ========================================
+    // Adapters
+    // ========================================
+    // Inbound (SQS Listener)
+    implementation project(':adapter-in:sqs-listener')
+
+    // Outbound
+    implementation project(':adapter-out:persistence-mysql')
+    implementation project(':adapter-out:persistence-redis')  // For distributed lock
+    implementation project(':adapter-out:aws-sqs')            // For SQS message publishing
+
+    // ========================================
+    // Spring Boot Starters
+    // ========================================
+    implementation libs.spring.boot.starter.web  // For actuator endpoints
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.spring.boot.starter.validation
+    implementation libs.spring.boot.starter.actuator
+
+    // Configuration Processing
+    annotationProcessor libs.spring.boot.configuration.processor
+
+    // ========================================
+    // Observability
+    // ========================================
+    // Micrometer for metrics
+    implementation libs.micrometer.prometheus
+
+    // Logging
+    implementation libs.logstash.logback.encoder
+
+    // ========================================
+    // Database
+    // ========================================
+    runtimeOnly libs.mysql
+
+    // ========================================
+    // AWS SDK (from adapters)
+    // ========================================
+    implementation platform(libs.aws.bom)
+
+    // ========================================
+    // Test Dependencies
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.testcontainers.mysql
+    testImplementation libs.testcontainers.junit
+}
+
+// ========================================
+// Spring Boot Configuration
+// ========================================
+tasks.bootJar {
+    archiveFileName = "${project.rootProject.name}-crawl-worker.jar"
+
+    manifest {
+        attributes(
+            'Implementation-Title': "${project.rootProject.name}-crawl-worker",
+            'Implementation-Version': project.version,
+            'Built-By': System.getProperty('user.name'),
+            'Built-JDK': System.getProperty('java.version'),
+            'Build-Timestamp': Instant.now().toString()
+        )
+    }
+}
+
+// ========================================
+// Disable test coverage for now
+// ========================================
+tasks.jacocoTestCoverageVerification {
+    enabled = false
+}
+
+// ========================================
+// Application Run Configuration
+// ========================================
+tasks.bootRun {
+    jvmArgs = [
+        '-Xms512m',
+        '-Xmx1024m',
+        '-XX:+UseG1GC'
+    ]
+}

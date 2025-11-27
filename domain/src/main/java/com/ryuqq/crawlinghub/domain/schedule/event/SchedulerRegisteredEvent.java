@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.domain.schedule.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -12,6 +13,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
  * <p><strong>용도</strong>: 스케줄러가 등록될 때 발행하여 AWS EventBridge에 동기화합니다.
  *
  * @param schedulerId 스케줄러 ID
+ * @param historyId 히스토리 ID (Outbox 조회용)
  * @param sellerId 셀러 ID
  * @param schedulerName 스케줄러 이름
  * @param cronExpression 크론 표현식
@@ -20,6 +22,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
  */
 public record SchedulerRegisteredEvent(
         CrawlSchedulerId schedulerId,
+        CrawlSchedulerHistoryId historyId,
         SellerId sellerId,
         SchedulerName schedulerName,
         CronExpression cronExpression)
@@ -29,6 +32,9 @@ public record SchedulerRegisteredEvent(
     public SchedulerRegisteredEvent {
         if (schedulerId == null) {
             throw new IllegalArgumentException("schedulerId는 null일 수 없습니다.");
+        }
+        if (historyId == null) {
+            throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
         }
         if (sellerId == null) {
             throw new IllegalArgumentException("sellerId는 null일 수 없습니다.");
@@ -45,6 +51,7 @@ public record SchedulerRegisteredEvent(
      * 팩토리 메서드 (도메인 규칙)
      *
      * @param schedulerId 스케줄러 ID
+     * @param historyId 히스토리 ID
      * @param sellerId 셀러 ID
      * @param schedulerName 스케줄러 이름
      * @param cronExpression 크론 표현식
@@ -52,10 +59,12 @@ public record SchedulerRegisteredEvent(
      */
     public static SchedulerRegisteredEvent of(
             CrawlSchedulerId schedulerId,
+            CrawlSchedulerHistoryId historyId,
             SellerId sellerId,
             SchedulerName schedulerName,
             CronExpression cronExpression) {
-        return new SchedulerRegisteredEvent(schedulerId, sellerId, schedulerName, cronExpression);
+        return new SchedulerRegisteredEvent(
+                schedulerId, historyId, sellerId, schedulerName, cronExpression);
     }
 
     public String getScheduleNameValue() {
@@ -64,6 +73,10 @@ public record SchedulerRegisteredEvent(
 
     public Long getCrawlSchedulerIdValue() {
         return schedulerId.value();
+    }
+
+    public Long getHistoryIdValue() {
+        return historyId.value();
     }
 
     public Long getSellerIdValue() {

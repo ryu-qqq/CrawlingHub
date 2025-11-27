@@ -1,0 +1,60 @@
+# ========================================
+# Redis Configuration (Local Development)
+# ========================================
+# Local Redis server (Docker or native)
+# docker run -d --name redis -p 6379:6379 redis:7-alpine
+# ========================================
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 3000ms
+      connect-timeout: 3000ms
+
+# ========================================
+# Redisson Configuration (Local)
+# ========================================
+redisson:
+  single-server-config:
+    address: redis://localhost:6379
+    password:
+    database: 0
+
+    # Smaller pool for local development
+    connection-minimum-idle-size: 2
+    connection-pool-size: 10
+
+    connect-timeout: 3000
+    timeout: 3000
+    retry-attempts: 3
+    retry-interval: 1500
+
+    subscription-connection-minimum-idle-size: 1
+    subscription-connection-pool-size: 2
+
+  threads: 2
+  netty-threads: 2
+
+# ========================================
+# Distributed Lock Configuration (Local)
+# ========================================
+distributed-lock:
+  default-wait-time-ms: 5000
+  default-lease-time-ms: 30000
+  key-prefix: crawlinghub:lock:
+
+  crawl-trigger:
+    wait-time-ms: 3000
+    lease-time-ms: 60000
+
+  crawl-task:
+    wait-time-ms: 5000
+    lease-time-ms: 300000
+
+logging:
+  level:
+    org.redisson: DEBUG

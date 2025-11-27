@@ -2,7 +2,8 @@
 # EventBridge for Crawlinghub Scheduler
 # ========================================
 # EventBridge rules for scheduled crawling tasks
-# Uses infrastructure module
+# Target: SQS Queue (eventbridge-trigger-queue)
+# Flow: EventBridge Rule -> SQS -> Listener -> CrawlTask Creation
 # ========================================
 
 # ========================================
@@ -18,74 +19,139 @@ locals {
     project      = var.project_name
     data_class   = "confidential"
   }
-  ecs_cluster_arn = data.aws_ecs_cluster.this.arn
-}
-
-# ========================================
-# EventBridge Module (from infrastructure repo)
-# ========================================
-module "crawler_scheduler" {
-  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/eventbridge?ref=main"
-
-  name        = "${var.project_name}-scheduler-${var.environment}"
-  target_type = "ecs"
-  description = "Crawlinghub scheduled crawling tasks"
-
-  # Schedule Configuration
-  schedule_expression = var.schedule_expression
-  enabled             = var.enabled
-
-  # ECS Target Configuration
-  ecs_cluster_arn         = local.ecs_cluster_arn
-  ecs_task_definition_arn = data.aws_ecs_task_definition.scheduler.arn
-  ecs_task_count          = 1
-  ecs_launch_type         = "FARGATE"
-
-  ecs_network_configuration = {
-    subnets          = local.private_subnets
-    security_groups  = [aws_security_group.eventbridge_task.id]
-    assign_public_ip = false
-  }
-
-  # Required Tags
-  environment  = local.common_tags.environment
-  service_name = local.common_tags.service_name
-  team         = local.common_tags.team
-  owner        = local.common_tags.owner
-  cost_center  = local.common_tags.cost_center
-  project      = local.common_tags.project
-  data_class   = local.common_tags.data_class
 }
 
 # ========================================
 # Data Sources
 # ========================================
-data "aws_ecs_cluster" "this" {
-  cluster_name = "${var.project_name}-cluster-${var.environment}"
+data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
+  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-arn"
 }
 
-data "aws_ecs_task_definition" "scheduler" {
-  task_definition = "${var.project_name}-scheduler-${var.environment}"
+data "aws_ssm_parameter" "eventbridge_trigger_queue_url" {
+  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-url"
 }
 
 # ========================================
-# Security Group for EventBridge triggered tasks
+# EventBridge Rule: Crawler Scheduler Trigger
 # ========================================
-resource "aws_security_group" "eventbridge_task" {
-  name        = "${var.project_name}-eventbridge-task-sg-${var.environment}"
-  description = "Security group for EventBridge triggered ECS tasks"
-  vpc_id      = local.vpc_id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+# Periodic trigger to check and execute scheduled crawling tasks
+# The actual scheduler logic is handled by the SQS Listener
+# ========================================
+resource "aws_cloudwatch_event_rule" "crawler_scheduler" {
+  name                = "${var.project_name}-scheduler-${var.environment}"
+  description         = "Crawlinghub scheduled crawling task trigger"
+  schedule_expression = var.schedule_expression
+  state               = var.enabled ? "ENABLED" : "DISABLED"
 
   tags = {
-    Name = "${var.project_name}-eventbridge-task-sg-${var.environment}"
+    Name        = "${var.project_name}-scheduler-${var.environment}"
+    Environment = var.environment
+    Service     = local.common_tags.service_name
+    Team        = local.common_tags.team
+    Owner       = local.common_tags.owner
+    CostCenter  = local.common_tags.cost_center
+    Project     = local.common_tags.project
+    DataClass   = local.common_tags.data_class
   }
+}
+
+# ========================================
+# EventBridge Target: SQS Queue
+# ========================================
+resource "aws_cloudwatch_event_target" "sqs_target" {
+  rule      = aws_cloudwatch_event_rule.crawler_scheduler.name
+  target_id = "${var.project_name}-sqs-target"
+  arn       = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value
+
+  # Transform the EventBridge event to match EventBridgeTriggerPayload format
+  # Note: schedulerId and sellerId will be null for global trigger
+  # The listener will query active schedulers and create tasks for each
+  input_transformer {
+    input_paths = {
+      time = "$.time"
+    }
+    input_template = <<EOF
+{
+  "schedulerId": null,
+  "sellerId": null,
+  "schedulerName": "global-scheduler-trigger",
+  "triggerTime": <time>
+}
+EOF
+  }
+}
+
+# ========================================
+# IAM Role for EventBridge to send messages to SQS
+# ========================================
+resource "aws_iam_role" "eventbridge_sqs" {
+  name = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+    Environment = var.environment
+  }
+}
+
+resource "aws_iam_role_policy" "eventbridge_sqs" {
+  name = "${var.project_name}-eventbridge-sqs-policy-${var.environment}"
+  role = aws_iam_role.eventbridge_sqs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value
+      }
+    ]
+  })
+}
+
+# ========================================
+# SQS Queue Policy: Allow EventBridge to send messages
+# ========================================
+data "aws_caller_identity" "current" {}
+
+resource "aws_sqs_queue_policy" "eventbridge_trigger" {
+  queue_url = data.aws_ssm_parameter.eventbridge_trigger_queue_url.value
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowEventBridgeToSendMessage"
+        Effect = "Allow"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+        Action   = "sqs:SendMessage"
+        Resource = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = aws_cloudwatch_event_rule.crawler_scheduler.arn
+          }
+        }
+      }
+    ]
+  })
 }
 
 # ========================================
@@ -108,10 +174,15 @@ variable "enabled" {
 # ========================================
 output "eventbridge_rule_arn" {
   description = "EventBridge rule ARN"
-  value       = module.crawler_scheduler.rule_arn
+  value       = aws_cloudwatch_event_rule.crawler_scheduler.arn
 }
 
 output "eventbridge_rule_name" {
   description = "EventBridge rule name"
-  value       = module.crawler_scheduler.rule_name
+  value       = aws_cloudwatch_event_rule.crawler_scheduler.name
+}
+
+output "eventbridge_sqs_role_arn" {
+  description = "IAM role ARN for EventBridge to SQS"
+  value       = aws_iam_role.eventbridge_sqs.arn
 }

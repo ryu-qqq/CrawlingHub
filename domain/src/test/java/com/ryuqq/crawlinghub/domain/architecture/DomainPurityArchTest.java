@@ -466,7 +466,7 @@ class DomainPurityArchTest {
                         .should()
                         .dependOnClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.application..",
+                                "com.ryuqq.crawlinghub.application..",
                                 "com.ryuqq.adapter..",
                                 "com.ryuqq.bootstrap..",
                                 "com.ryuqq.persistence..")

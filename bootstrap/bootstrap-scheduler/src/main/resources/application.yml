@@ -10,7 +10,10 @@ spring:
   config:
     import:
       - classpath:persistence.yml
+      - classpath:redis.yml
       - classpath:eventbridge.yml
+      - classpath:sqs.yml
+      - classpath:http-client.yml
 
   # ========================================
   # Flyway Configuration
@@ -54,6 +57,39 @@ logging:
 server:
   port: 8081
   shutdown: graceful
+
+# ========================================
+# Scheduler Feature Toggles
+# ========================================
+scheduler:
+  # CrawlScheduler OutBox Retry (EventBridge sync)
+  outbox:
+    enabled: true
+
+  # CrawlTaskOutbox Retry (SQS message publishing)
+  crawl-task-outbox:
+    enabled: true
+
+  # UserAgent Session Token Issuance
+  session-issuance:
+    enabled: true
+
+---
+# ========================================
+# Local Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+scheduler:
+  outbox:
+    enabled: false
+  crawl-task-outbox:
+    enabled: false
+  session-issuance:
+    enabled: false
 
 ---
 # ========================================

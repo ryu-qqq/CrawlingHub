@@ -51,15 +51,5 @@ variable "environment" {
 # ========================================
 # Shared Resource References
 # ========================================
-data "aws_ssm_parameter" "vpc_id" {
-  name = "/shared/network/vpc-id"
-}
-
-data "aws_ssm_parameter" "private_subnets" {
-  name = "/shared/network/private-subnets"
-}
-
-locals {
-  vpc_id          = data.aws_ssm_parameter.vpc_id.value
-  private_subnets = split(",", data.aws_ssm_parameter.private_subnets.value)
-}
+# Note: VPC/Subnet data sources removed - no longer needed for SQS target
+# EventBridge now sends messages to SQS instead of triggering ECS tasks directly
