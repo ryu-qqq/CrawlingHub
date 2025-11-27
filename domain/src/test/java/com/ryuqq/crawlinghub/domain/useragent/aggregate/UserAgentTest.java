@@ -437,7 +437,7 @@ class UserAgentTest {
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
             // aSuspendedUserAgent의 lastUsedAt = DEFAULT_TIME (2025-11-27 12:00:00)
             // threshold를 lastUsedAt 이전으로 설정하면 lastUsedAt >= threshold가 됨
-            LocalDateTime threshold = LocalDateTime.of(2025, 11, 27, 11, 0, 0);
+            LocalDateTime threshold = LocalDateTime.of(2024, 1, 1, 11, 0, 0);
 
             // when
             boolean result = userAgent.isRecoverable(threshold);
