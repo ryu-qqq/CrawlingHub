@@ -73,6 +73,10 @@ public class SellerJpaEntity extends BaseAuditEntity {
     @Column(name = "status", nullable = false, length = 20)
     private SellerStatus status;
 
+    /** 셀러 상품 수 (META 크롤링 결과) */
+    @Column(name = "product_count", nullable = false)
+    private int productCount;
+
     /**
      * JPA 기본 생성자 (protected)
      *
@@ -89,6 +93,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
      * @param status 셀러 상태
+     * @param productCount 상품 수
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      */
@@ -97,6 +102,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
             String mustItSellerName,
             String sellerName,
             SellerStatus status,
+            int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
@@ -104,6 +110,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
         this.mustItSellerName = mustItSellerName;
         this.sellerName = sellerName;
         this.status = status;
+        this.productCount = productCount;
     }
 
     /**
@@ -117,6 +124,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
      * @param status 셀러 상태
+     * @param productCount 상품 수
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      * @return SellerJpaEntity 인스턴스
@@ -126,9 +134,10 @@ public class SellerJpaEntity extends BaseAuditEntity {
             String mustItSellerName,
             String sellerName,
             SellerStatus status,
+            int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        return new SellerJpaEntity(id, mustItSellerName, sellerName, status, createdAt, updatedAt);
+        return new SellerJpaEntity(id, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
@@ -147,5 +156,9 @@ public class SellerJpaEntity extends BaseAuditEntity {
 
     public SellerStatus getStatus() {
         return status;
+    }
+
+    public int getProductCount() {
+        return productCount;
     }
 }

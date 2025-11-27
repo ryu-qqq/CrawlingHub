@@ -10,6 +10,18 @@
 plugins {
     id 'java-library'
     id 'java-test-fixtures'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+}
+
+// ========================================
+// Asciidoctor Configuration
+// ========================================
+ext {
+    snippetsDir = file('build/generated-snippets')
+}
+
+configurations {
+    asciidoctorExt
 }
 
 dependencies {
@@ -39,6 +51,9 @@ dependencies {
     testImplementation libs.spring.restdocs.mockmvc
     testImplementation libs.archunit.junit5
 
+    // Asciidoctor Extension
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.1'
+
     // ========================================
     // Test Fixtures Dependencies
     // ========================================
@@ -46,6 +61,51 @@ dependencies {
     testFixturesApi project(':application')
     testFixturesApi project(':domain')
     testFixturesImplementation libs.jackson.databind
+}
+
+// ========================================
+// Test Configuration
+// ========================================
+tasks.named('test') {
+    outputs.dir snippetsDir
+}
+
+// ========================================
+// Asciidoctor Task
+// ========================================
+tasks.named('asciidoctor') {
+    dependsOn test
+    inputs.dir snippetsDir
+
+    configurations 'asciidoctorExt'
+    baseDirFollowsSourceFile()
+
+    sources {
+        include '**/index.adoc'
+    }
+
+    attributes = [
+        'snippets': snippetsDir,
+        'doctype': 'book',
+        'icons': 'font',
+        'source-highlighter': 'highlightjs',
+        'toc': 'left',
+        'toclevels': '3',
+        'sectlinks': 'true'
+    ]
+}
+
+// ========================================
+// Copy REST Docs to static folder
+// ========================================
+tasks.register('copyDocument', Copy) {
+    dependsOn asciidoctor
+    from file("build/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
+
+tasks.named('build') {
+    dependsOn copyDocument
 }
 
 // ========================================

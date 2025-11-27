@@ -2,12 +2,13 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedulerOutBoxJpaEntityMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerOutBoxJpaRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerOutBoxQueryDslRepository;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
 import java.util.List;
-import org.springframework.data.domain.PageRequest;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,20 +16,33 @@ import org.springframework.stereotype.Component;
  *
  * <p>CQRS의 Query(읽기) 담당 Adapter입니다.
  *
+ * <p>QueryDSL Repository를 사용하여 조회 쿼리를 처리합니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
 @Component
 public class CrawlSchedulerOutBoxQueryAdapter implements CrawlSchedulerOutBoxQueryPort {
 
-    private final CrawlSchedulerOutBoxJpaRepository jpaRepository;
+    private final CrawlSchedulerOutBoxQueryDslRepository queryDslRepository;
     private final CrawlSchedulerOutBoxJpaEntityMapper mapper;
 
     public CrawlSchedulerOutBoxQueryAdapter(
-            CrawlSchedulerOutBoxJpaRepository jpaRepository,
+            CrawlSchedulerOutBoxQueryDslRepository queryDslRepository,
             CrawlSchedulerOutBoxJpaEntityMapper mapper) {
-        this.jpaRepository = jpaRepository;
+        this.queryDslRepository = queryDslRepository;
         this.mapper = mapper;
+    }
+
+    /**
+     * 히스토리 ID로 아웃박스 조회
+     *
+     * @param historyId 히스토리 ID
+     * @return 아웃박스 (Optional)
+     */
+    @Override
+    public Optional<CrawlSchedulerOutBox> findByHistoryId(CrawlSchedulerHistoryId historyId) {
+        return queryDslRepository.findByHistoryId(historyId.value()).map(mapper::toDomain);
     }
 
     /**
@@ -41,7 +55,7 @@ public class CrawlSchedulerOutBoxQueryAdapter implements CrawlSchedulerOutBoxQue
     @Override
     public List<CrawlSchedulerOutBox> findByStatus(CrawlSchedulerOubBoxStatus status, int limit) {
         List<CrawlSchedulerOutBoxJpaEntity> entities =
-                jpaRepository.findByStatus(status, PageRequest.of(0, limit));
+                queryDslRepository.findByStatus(status, limit);
 
         return entities.stream().map(mapper::toDomain).toList();
     }
@@ -58,7 +72,7 @@ public class CrawlSchedulerOutBoxQueryAdapter implements CrawlSchedulerOutBoxQue
                 List.of(CrawlSchedulerOubBoxStatus.PENDING, CrawlSchedulerOubBoxStatus.FAILED);
 
         List<CrawlSchedulerOutBoxJpaEntity> entities =
-                jpaRepository.findByStatusIn(statuses, PageRequest.of(0, limit));
+                queryDslRepository.findByStatusIn(statuses, limit);
 
         return entities.stream().map(mapper::toDomain).toList();
     }
