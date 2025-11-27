@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  */
 public final class CrawlExecutionFixture {
 
-    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2025, 11, 27, 12, 0, 0);
+    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
 
     /**
      * 신규 실행 시작 (ID 미할당, RUNNING 상태)

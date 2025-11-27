@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
  */
 public final class ExecutionDurationFixture {
 
-    private static final LocalDateTime DEFAULT_START = LocalDateTime.of(2025, 11, 27, 12, 0, 0);
-    private static final LocalDateTime DEFAULT_END = LocalDateTime.of(2025, 11, 27, 12, 0, 5);
+    private static final LocalDateTime DEFAULT_START = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+    private static final LocalDateTime DEFAULT_END = LocalDateTime.of(2024, 1, 1, 12, 0, 5);
     private static final Long DEFAULT_DURATION_MS = 5000L;
 
     /**
