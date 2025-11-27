@@ -1,7 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlTaskType;
-
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
 
 /**
