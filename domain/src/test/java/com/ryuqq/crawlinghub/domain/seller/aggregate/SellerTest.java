@@ -166,7 +166,7 @@ class SellerTest {
             MustItSellerName mustItSellerName = MustItSellerName.of("mustit-seller");
             SellerName sellerName = SellerName.of("commerce-seller");
             LocalDateTime createdAt = LocalDateTime.of(2025, 1, 1, 0, 0);
-            LocalDateTime updatedAt = LocalDateTime.of(2025, 11, 27, 12, 0);
+            LocalDateTime updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0);
 
             // when
             Seller seller = Seller.reconstitute(
