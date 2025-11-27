@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolManager;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -28,11 +28,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ConsumeUserAgentService 테스트")
 class ConsumeUserAgentServiceTest {
 
-    @Mock
-    private UserAgentPoolManager poolManager;
+    @Mock private UserAgentPoolManager poolManager;
 
-    @InjectMocks
-    private ConsumeUserAgentService service;
+    @InjectMocks private ConsumeUserAgentService service;
 
     @Nested
     @DisplayName("execute() UserAgent 토큰 소비 테스트")

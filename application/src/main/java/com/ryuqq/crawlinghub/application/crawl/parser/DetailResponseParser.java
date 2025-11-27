@@ -5,13 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -22,11 +20,12 @@ import org.springframework.stereotype.Component;
  * <p>상품 상세 응답(moduleList)을 파싱하여 ProductDetailInfo Domain VO로 변환합니다.
  *
  * <p><strong>파싱 대상 모듈</strong>:
+ *
  * <ul>
- *   <li>ProductBannersModule: 배너 이미지</li>
- *   <li>ProductInfoModule: 상품 기본 정보 (가격, 카테고리, 브랜드 등)</li>
- *   <li>ShippingModule: 배송 정보</li>
- *   <li>ProductDetailInfoModule: 상세 설명, 이미지 (descriptionMarkUp)</li>
+ *   <li>ProductBannersModule: 배너 이미지
+ *   <li>ProductInfoModule: 상품 기본 정보 (가격, 카테고리, 브랜드 등)
+ *   <li>ShippingModule: 배송 정보
+ *   <li>ProductDetailInfoModule: 상세 설명, 이미지 (descriptionMarkUp)
  * </ul>
  *
  * @author development-team
@@ -46,8 +45,8 @@ public class DetailResponseParser {
     private static final String SHIPPING_MODULE = "ShippingModule";
     private static final String PRODUCT_DETAIL_INFO_MODULE = "ProductDetailInfoModule";
 
-    private static final Pattern IMG_SRC_PATTERN = Pattern.compile(
-            "<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+    private static final Pattern IMG_SRC_PATTERN =
+            Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
     private final ObjectMapper objectMapper;
 
@@ -105,7 +104,10 @@ public class DetailResponseParser {
             }
 
             ProductDetailInfo detailInfo = builder.build();
-            log.debug("DETAIL 파싱 완료: itemNo={}, itemName={}", detailInfo.itemNo(), detailInfo.itemName());
+            log.debug(
+                    "DETAIL 파싱 완료: itemNo={}, itemName={}",
+                    detailInfo.itemNo(),
+                    detailInfo.itemName());
             return Optional.of(detailInfo);
 
         } catch (Exception e) {
@@ -114,9 +116,7 @@ public class DetailResponseParser {
         }
     }
 
-    /**
-     * ProductBannersModule 파싱 - 배너 이미지 추출
-     */
+    /** ProductBannersModule 파싱 - 배너 이미지 추출 */
     private void parseBannersModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         List<String> bannerImages = new ArrayList<>();
         JsonNode imagesNode = dataNode.get("images");
@@ -132,9 +132,7 @@ public class DetailResponseParser {
         builder.bannerImages(bannerImages);
     }
 
-    /**
-     * ProductInfoModule 파싱 - 상품 기본 정보
-     */
+    /** ProductInfoModule 파싱 - 상품 기본 정보 */
     private void parseProductInfoModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         builder.sellerNo(getAsLongOrDefault(dataNode, "sellerNo", 0))
                 .sellerId(getAsTextOrDefault(dataNode, "sellerId", ""))
@@ -150,19 +148,18 @@ public class DetailResponseParser {
                 .stock(getAsIntOrDefault(dataNode, "stock", 0))
                 .isSoldOut(getAsBooleanOrDefault(dataNode, "isSoldOut", false));
 
-        ProductCategory category = ProductCategory.of(
-                getAsTextOrDefault(dataNode, "headerCategoryCode", ""),
-                getAsTextOrDefault(dataNode, "headerCategory", ""),
-                getAsTextOrDefault(dataNode, "largeCategoryCode", ""),
-                getAsTextOrDefault(dataNode, "largeCategory", ""),
-                getAsTextOrDefault(dataNode, "mediumCategoryCode", ""),
-                getAsTextOrDefault(dataNode, "mediumCategory", ""));
+        ProductCategory category =
+                ProductCategory.of(
+                        getAsTextOrDefault(dataNode, "headerCategoryCode", ""),
+                        getAsTextOrDefault(dataNode, "headerCategory", ""),
+                        getAsTextOrDefault(dataNode, "largeCategoryCode", ""),
+                        getAsTextOrDefault(dataNode, "largeCategory", ""),
+                        getAsTextOrDefault(dataNode, "mediumCategoryCode", ""),
+                        getAsTextOrDefault(dataNode, "mediumCategory", ""));
         builder.category(category);
     }
 
-    /**
-     * ShippingModule 파싱 - 배송 정보
-     */
+    /** ShippingModule 파싱 - 배송 정보 */
     private void parseShippingModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         JsonNode itemsNode = dataNode.get("items");
 
@@ -171,9 +168,11 @@ public class DetailResponseParser {
             JsonNode shippingDataNode = firstItem.get(DATA_FIELD);
 
             if (shippingDataNode != null) {
-                String shippingType = getAsTextOrDefault(shippingDataNode, "shippingType", "DOMESTIC");
+                String shippingType =
+                        getAsTextOrDefault(shippingDataNode, "shippingType", "DOMESTIC");
                 int shippingFee = getAsIntOrDefault(shippingDataNode, "shippingFee", 0);
-                String shippingFeeType = getAsTextOrDefault(shippingDataNode, "shippingFeeType", "PAID");
+                String shippingFeeType =
+                        getAsTextOrDefault(shippingDataNode, "shippingFeeType", "PAID");
 
                 String averageDeliveryText = "";
                 JsonNode avgDeliveryNode = shippingDataNode.get("averageDeliveryDay");
@@ -181,16 +180,15 @@ public class DetailResponseParser {
                     averageDeliveryText = getAsTextOrDefault(avgDeliveryNode, "text", "");
                 }
 
-                ShippingInfo shippingInfo = ShippingInfo.fromShippingModule(
-                        shippingType, shippingFee, shippingFeeType, averageDeliveryText);
+                ShippingInfo shippingInfo =
+                        ShippingInfo.fromShippingModule(
+                                shippingType, shippingFee, shippingFeeType, averageDeliveryText);
                 builder.shipping(shippingInfo);
             }
         }
     }
 
-    /**
-     * ProductDetailInfoModule 파싱 - 상세 정보 (원산지, 상태, 상세 이미지)
-     */
+    /** ProductDetailInfoModule 파싱 - 상세 정보 (원산지, 상태, 상세 이미지) */
     private void parseDetailInfoModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         builder.originCountry(getAsTextOrDefault(dataNode, "originCountry", ""))
                 .itemStatus(getAsTextOrDefault(dataNode, "itemStatus", ""));
@@ -200,9 +198,7 @@ public class DetailResponseParser {
         builder.detailImages(detailImages);
     }
 
-    /**
-     * HTML에서 이미지 URL 추출
-     */
+    /** HTML에서 이미지 URL 추출 */
     private List<String> extractImageUrlsFromHtml(String html) {
         List<String> imageUrls = new ArrayList<>();
         if (html == null || html.isBlank()) {

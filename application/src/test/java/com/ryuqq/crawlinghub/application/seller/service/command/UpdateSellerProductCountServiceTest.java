@@ -6,12 +6,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,14 +33,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateSellerProductCountService 테스트")
 class UpdateSellerProductCountServiceTest {
 
-    @Mock
-    private SellerTransactionManager sellerTransactionManager;
+    @Mock private SellerTransactionManager sellerTransactionManager;
 
-    @Mock
-    private SellerQueryPort sellerQueryPort;
+    @Mock private SellerQueryPort sellerQueryPort;
 
-    @InjectMocks
-    private UpdateSellerProductCountService service;
+    @InjectMocks private UpdateSellerProductCountService service;
 
     @Nested
     @DisplayName("execute() 상품 수 업데이트 테스트")
@@ -54,8 +51,7 @@ class UpdateSellerProductCountServiceTest {
             int productCount = 100;
             Seller seller = SellerFixture.anActiveSeller();
 
-            given(sellerQueryPort.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(seller));
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
             given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
 
             // When
@@ -74,8 +70,7 @@ class UpdateSellerProductCountServiceTest {
             int productCount = 0;
             Seller seller = SellerFixture.anActiveSellerWithProducts(50);
 
-            given(sellerQueryPort.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(seller));
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
             given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
 
             // When
@@ -93,8 +88,7 @@ class UpdateSellerProductCountServiceTest {
             Long sellerId = 999L;
             int productCount = 100;
 
-            given(sellerQueryPort.findById(any(SellerId.class)))
-                    .willReturn(Optional.empty());
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(sellerId, productCount))

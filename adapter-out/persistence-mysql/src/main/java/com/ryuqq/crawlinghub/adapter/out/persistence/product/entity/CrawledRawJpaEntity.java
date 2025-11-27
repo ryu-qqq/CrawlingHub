@@ -155,8 +155,16 @@ public class CrawledRawJpaEntity {
             Instant createdAt,
             Instant processedAt) {
         return new CrawledRawJpaEntity(
-                id, crawlSchedulerId, sellerId, itemNo, crawlType,
-                rawData, status, errorMessage, createdAt, processedAt);
+                id,
+                crawlSchedulerId,
+                sellerId,
+                itemNo,
+                crawlType,
+                rawData,
+                status,
+                errorMessage,
+                createdAt,
+                processedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====

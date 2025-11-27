@@ -26,10 +26,10 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * SellerCommandController REST Docs 테스트
@@ -42,21 +42,17 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("SellerCommandController REST Docs")
 class SellerCommandControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private RegisterSellerUseCase registerSellerUseCase;
+    @MockitoBean private RegisterSellerUseCase registerSellerUseCase;
 
-    @MockitoBean
-    private UpdateSellerUseCase updateSellerUseCase;
+    @MockitoBean private UpdateSellerUseCase updateSellerUseCase;
 
-    @MockitoBean
-    private SellerCommandApiMapper sellerCommandApiMapper;
+    @MockitoBean private SellerCommandApiMapper sellerCommandApiMapper;
 
     @Test
     @DisplayName("POST /api/v1/sellers - 셀러 등록 API 문서")
     void registerSeller() throws Exception {
         // given
-        RegisterSellerApiRequest request =
-                new RegisterSellerApiRequest("머스트잇 셀러명", "커머스 셀러명");
+        RegisterSellerApiRequest request = new RegisterSellerApiRequest("머스트잇 셀러명", "커머스 셀러명");
 
         SellerResponse useCaseResponse =
                 new SellerResponse(

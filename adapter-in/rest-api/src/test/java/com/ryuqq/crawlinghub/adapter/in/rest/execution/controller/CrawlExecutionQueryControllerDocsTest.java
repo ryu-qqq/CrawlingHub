@@ -29,9 +29,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * CrawlExecutionQueryController REST Docs 테스트
@@ -44,14 +44,11 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("CrawlExecutionQueryController REST Docs")
 class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private ListCrawlExecutionsUseCase listCrawlExecutionsUseCase;
+    @MockitoBean private ListCrawlExecutionsUseCase listCrawlExecutionsUseCase;
 
-    @MockitoBean
-    private GetCrawlExecutionUseCase getCrawlExecutionUseCase;
+    @MockitoBean private GetCrawlExecutionUseCase getCrawlExecutionUseCase;
 
-    @MockitoBean
-    private CrawlExecutionQueryApiMapper mapper;
+    @MockitoBean private CrawlExecutionQueryApiMapper mapper;
 
     @Test
     @DisplayName("GET /api/v1/executions - CrawlExecution 목록 조회 API 문서")
@@ -141,7 +138,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .optional(),
                                         parameterWithName("status")
                                                 .description(
-                                                        "상태 필터 (RUNNING/SUCCESS/FAILED/TIMEOUT, 선택)")
+                                                        "상태 필터 (RUNNING/SUCCESS/FAILED/TIMEOUT,"
+                                                                + " 선택)")
                                                 .optional(),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (0부터 시작, 기본값: 0)")
@@ -173,8 +171,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("셀러 ID"),
                                         fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
-                                                .description(
-                                                        "상태 (RUNNING/SUCCESS/FAILED/TIMEOUT)"),
+                                                .description("상태 (RUNNING/SUCCESS/FAILED/TIMEOUT)"),
                                         fieldWithPath("data.content[].httpStatusCode")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("HTTP 상태 코드")
@@ -289,8 +286,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("셀러 ID"),
                                         fieldWithPath("data.status")
                                                 .type(JsonFieldType.STRING)
-                                                .description(
-                                                        "상태 (RUNNING/SUCCESS/FAILED/TIMEOUT)"),
+                                                .description("상태 (RUNNING/SUCCESS/FAILED/TIMEOUT)"),
                                         fieldWithPath("data.httpStatusCode")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("HTTP 상태 코드")
@@ -369,7 +365,9 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlExecutionId").value(2))
                 .andExpect(jsonPath("$.data.status").value("FAILED"))
-                .andExpect(jsonPath("$.data.errorMessage").value("Internal Server Error: Connection timeout"))
+                .andExpect(
+                        jsonPath("$.data.errorMessage")
+                                .value("Internal Server Error: Connection timeout"))
                 .andDo(
                         document(
                                 "execution-query/get-failed",

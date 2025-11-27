@@ -9,7 +9,6 @@ import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.util.List;
 import org.springframework.stereotype.Component;

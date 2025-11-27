@@ -12,11 +12,7 @@ package com.ryuqq.crawlinghub.domain.product.vo;
  * @author development-team
  * @since 1.0.0
  */
-public record ItemTag(
-        String title,
-        String textColor,
-        String bgColor,
-        String borderColor) {
+public record ItemTag(String title, String textColor, String bgColor, String borderColor) {
 
     public ItemTag {
         if (title == null || title.isBlank()) {

@@ -43,20 +43,18 @@ public record ProductImage(
      * @param displayOrder 표시 순서
      * @return ProductImage
      */
-    public static ProductImage ofPending(String originalUrl, ImageType imageType, int displayOrder) {
-        return new ProductImage(originalUrl, null, imageType, ImageUploadStatus.PENDING, displayOrder);
+    public static ProductImage ofPending(
+            String originalUrl, ImageType imageType, int displayOrder) {
+        return new ProductImage(
+                originalUrl, null, imageType, ImageUploadStatus.PENDING, displayOrder);
     }
 
-    /**
-     * 썸네일 이미지 생성
-     */
+    /** 썸네일 이미지 생성 */
     public static ProductImage thumbnail(String originalUrl, int displayOrder) {
         return ofPending(originalUrl, ImageType.THUMBNAIL, displayOrder);
     }
 
-    /**
-     * 상세 설명 이미지 생성
-     */
+    /** 상세 설명 이미지 생성 */
     public static ProductImage description(String originalUrl, int displayOrder) {
         return ofPending(originalUrl, ImageType.DESCRIPTION, displayOrder);
     }
@@ -71,54 +69,55 @@ public record ProductImage(
         if (s3Url == null || s3Url.isBlank()) {
             throw new IllegalArgumentException("s3Url은 필수입니다.");
         }
-        return new ProductImage(this.originalUrl, s3Url, this.imageType, ImageUploadStatus.UPLOADED, this.displayOrder);
+        return new ProductImage(
+                this.originalUrl,
+                s3Url,
+                this.imageType,
+                ImageUploadStatus.UPLOADED,
+                this.displayOrder);
     }
 
-    /**
-     * 업로드 진행 중 상태로 변경
-     */
+    /** 업로드 진행 중 상태로 변경 */
     public ProductImage withUploading() {
-        return new ProductImage(this.originalUrl, this.s3Url, this.imageType, ImageUploadStatus.UPLOADING, this.displayOrder);
+        return new ProductImage(
+                this.originalUrl,
+                this.s3Url,
+                this.imageType,
+                ImageUploadStatus.UPLOADING,
+                this.displayOrder);
     }
 
-    /**
-     * 업로드 실패 상태로 변경
-     */
+    /** 업로드 실패 상태로 변경 */
     public ProductImage withFailed() {
-        return new ProductImage(this.originalUrl, this.s3Url, this.imageType, ImageUploadStatus.FAILED, this.displayOrder);
+        return new ProductImage(
+                this.originalUrl,
+                this.s3Url,
+                this.imageType,
+                ImageUploadStatus.FAILED,
+                this.displayOrder);
     }
 
-    /**
-     * 업로드가 필요한지 확인
-     */
+    /** 업로드가 필요한지 확인 */
     public boolean needsUpload() {
         return status == ImageUploadStatus.PENDING || status == ImageUploadStatus.FAILED;
     }
 
-    /**
-     * 업로드 완료 여부 확인
-     */
+    /** 업로드 완료 여부 확인 */
     public boolean isUploaded() {
         return status == ImageUploadStatus.UPLOADED && s3Url != null;
     }
 
-    /**
-     * 썸네일 이미지인지 확인
-     */
+    /** 썸네일 이미지인지 확인 */
     public boolean isThumbnail() {
         return imageType == ImageType.THUMBNAIL;
     }
 
-    /**
-     * 상세 설명 이미지인지 확인
-     */
+    /** 상세 설명 이미지인지 확인 */
     public boolean isDescription() {
         return imageType == ImageType.DESCRIPTION;
     }
 
-    /**
-     * 사용할 URL 반환 (S3 URL 우선, 없으면 원본 URL)
-     */
+    /** 사용할 URL 반환 (S3 URL 우선, 없으면 원본 URL) */
     public String getEffectiveUrl() {
         return isUploaded() ? s3Url : originalUrl;
     }

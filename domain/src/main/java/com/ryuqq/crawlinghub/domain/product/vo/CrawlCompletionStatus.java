@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
  * 크롤링 완료 상태 VO
  *
  * <p>MINI_SHOP, DETAIL, OPTION 각 크롤링 타입별 완료 여부와 시간을 추적합니다.
+ *
  * <p>외부 서버 동기화는 세 가지 크롤링이 모두 최소 한 번 이상 완료되어야 가능합니다.
  *
  * @param miniShopCrawledAt MINI_SHOP 크롤링 완료 시각 (null이면 미완료)
@@ -19,9 +20,7 @@ public record CrawlCompletionStatus(
         LocalDateTime detailCrawledAt,
         LocalDateTime optionCrawledAt) {
 
-    /**
-     * 초기 상태 생성 (모두 미완료)
-     */
+    /** 초기 상태 생성 (모두 미완료) */
     public static CrawlCompletionStatus initial() {
         return new CrawlCompletionStatus(null, null, null);
     }
@@ -56,23 +55,17 @@ public record CrawlCompletionStatus(
         return new CrawlCompletionStatus(this.miniShopCrawledAt, this.detailCrawledAt, crawledAt);
     }
 
-    /**
-     * MINI_SHOP 크롤링이 완료되었는지 확인
-     */
+    /** MINI_SHOP 크롤링이 완료되었는지 확인 */
     public boolean isMiniShopCrawled() {
         return miniShopCrawledAt != null;
     }
 
-    /**
-     * DETAIL 크롤링이 완료되었는지 확인
-     */
+    /** DETAIL 크롤링이 완료되었는지 확인 */
     public boolean isDetailCrawled() {
         return detailCrawledAt != null;
     }
 
-    /**
-     * OPTION 크롤링이 완료되었는지 확인
-     */
+    /** OPTION 크롤링이 완료되었는지 확인 */
     public boolean isOptionCrawled() {
         return optionCrawledAt != null;
     }
@@ -106,9 +99,15 @@ public record CrawlCompletionStatus(
      */
     public int getCompletedCount() {
         int count = 0;
-        if (isMiniShopCrawled()) count++;
-        if (isDetailCrawled()) count++;
-        if (isOptionCrawled()) count++;
+        if (isMiniShopCrawled()) {
+            count++;
+        }
+        if (isDetailCrawled()) {
+            count++;
+        }
+        if (isOptionCrawled()) {
+            count++;
+        }
         return count;
     }
 
@@ -123,11 +122,15 @@ public record CrawlCompletionStatus(
             sb.append("MINI_SHOP");
         }
         if (!isDetailCrawled()) {
-            if (sb.length() > 0) sb.append(", ");
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
             sb.append("DETAIL");
         }
         if (!isOptionCrawled()) {
-            if (sb.length() > 0) sb.append(", ");
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
             sb.append("OPTION");
         }
         return sb.toString();

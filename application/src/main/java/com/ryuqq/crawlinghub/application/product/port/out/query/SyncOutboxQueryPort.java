@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-
 import java.util.List;
 import java.util.Optional;
 

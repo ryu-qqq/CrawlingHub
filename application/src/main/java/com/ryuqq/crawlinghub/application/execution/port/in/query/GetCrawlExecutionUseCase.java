@@ -18,7 +18,8 @@ public interface GetCrawlExecutionUseCase {
      *
      * @param query 조회 쿼리 (crawlExecutionId)
      * @return CrawlExecution 상세 응답
-     * @throws com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException 해당 ID의 CrawlExecution이 없는 경우
+     * @throws com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException 해당
+     *     ID의 CrawlExecution이 없는 경우
      */
     CrawlExecutionDetailResponse execute(GetCrawlExecutionQuery query);
 }

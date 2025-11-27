@@ -25,9 +25,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * CrawlSchedulerQueryController REST Docs 테스트
@@ -40,11 +40,9 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("CrawlSchedulerQueryController REST Docs")
 class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase;
+    @MockitoBean private SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase;
 
-    @MockitoBean
-    private CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper;
+    @MockitoBean private CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper;
 
     @Test
     @DisplayName("GET /api/v1/schedules - 크롤 스케줄러 목록 조회 API 문서")

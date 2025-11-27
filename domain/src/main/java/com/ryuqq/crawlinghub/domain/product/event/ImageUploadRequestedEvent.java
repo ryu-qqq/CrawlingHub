@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,7 +17,8 @@ import java.util.List;
 public record ImageUploadRequestedEvent(
         CrawledProductId crawledProductId,
         List<ImageUploadTarget> targets,
-        LocalDateTime occurredAt) implements DomainEvent {
+        LocalDateTime occurredAt)
+        implements DomainEvent {
 
     public ImageUploadRequestedEvent {
         if (crawledProductId == null) {
@@ -30,27 +30,21 @@ public record ImageUploadRequestedEvent(
         if (occurredAt == null) {
             occurredAt = LocalDateTime.now();
         }
+        // 방어적 복사 - SpotBugs EI2 경고 수정
+        targets = List.copyOf(targets);
     }
 
-    /**
-     * 팩토리 메서드
-     */
+    /** 팩토리 메서드 */
     public static ImageUploadRequestedEvent of(
-            CrawledProductId crawledProductId,
-            List<ImageUploadTarget> targets) {
+            CrawledProductId crawledProductId, List<ImageUploadTarget> targets) {
         return new ImageUploadRequestedEvent(crawledProductId, targets, LocalDateTime.now());
     }
 
-    /**
-     * 단일 이미지 타입으로 생성
-     */
+    /** 단일 이미지 타입으로 생성 */
     public static ImageUploadRequestedEvent ofUrls(
-            CrawledProductId crawledProductId,
-            List<String> imageUrls,
-            ImageType imageType) {
-        List<ImageUploadTarget> targets = imageUrls.stream()
-                .map(url -> new ImageUploadTarget(url, imageType))
-                .toList();
+            CrawledProductId crawledProductId, List<String> imageUrls, ImageType imageType) {
+        List<ImageUploadTarget> targets =
+                imageUrls.stream().map(url -> new ImageUploadTarget(url, imageType)).toList();
         return new ImageUploadRequestedEvent(crawledProductId, targets, LocalDateTime.now());
     }
 

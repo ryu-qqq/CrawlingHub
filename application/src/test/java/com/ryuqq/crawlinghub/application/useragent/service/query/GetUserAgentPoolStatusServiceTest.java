@@ -27,11 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetUserAgentPoolStatusService 테스트")
 class GetUserAgentPoolStatusServiceTest {
 
-    @Mock
-    private UserAgentPoolManager poolManager;
+    @Mock private UserAgentPoolManager poolManager;
 
-    @InjectMocks
-    private GetUserAgentPoolStatusService service;
+    @InjectMocks private GetUserAgentPoolStatusService service;
 
     @Nested
     @DisplayName("execute() Pool 상태 조회 테스트")

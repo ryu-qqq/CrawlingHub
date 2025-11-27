@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
  * 외부 동기화 Outbox 저장 Port (Port Out - Command)
  *
  * <p>SyncOutboxManager에서만 사용됩니다.
+ *
  * <p>외부 상품 서버 동기화 요청의 트랜잭션 경계를 관리합니다.
  *
  * @author development-team

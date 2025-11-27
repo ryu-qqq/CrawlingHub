@@ -11,6 +11,7 @@ package com.ryuqq.crawlinghub.application.product.listener;
  * <p><strong>현재 상태</strong>: Phase 2에서 구현 예정 (임시 비활성화)
  *
  * <p><strong>처리 흐름</strong>:
+ *
  * <ol>
  *   <li>이벤트 수신 (트랜잭션 커밋 후)
  *   <li>SyncOutbox 조회 및 상태 PROCESSING으로 변경
@@ -27,6 +28,7 @@ public class ExternalSyncEventListener {
 
     // 임시 비활성화 - 컴파일 오류 방지용 스텁
     public ExternalSyncEventListener() {
+        // stub constructor
     }
 
     // Phase 2에서 아래 코드 활성화 예정

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.execution.assembler.CrawlExecutionAssembler;
 import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutionsQuery;
@@ -15,7 +16,6 @@ import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecution
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -40,14 +40,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ListCrawlExecutionsService 테스트")
 class ListCrawlExecutionsServiceTest {
 
-    @Mock
-    private CrawlExecutionQueryPort crawlExecutionQueryPort;
+    @Mock private CrawlExecutionQueryPort crawlExecutionQueryPort;
 
-    @Mock
-    private CrawlExecutionAssembler assembler;
+    @Mock private CrawlExecutionAssembler assembler;
 
-    @InjectMocks
-    private ListCrawlExecutionsService service;
+    @InjectMocks private ListCrawlExecutionsService service;
 
     @Nested
     @DisplayName("execute() 크롤 실행 목록 조회 테스트")
@@ -57,17 +54,25 @@ class ListCrawlExecutionsServiceTest {
         @DisplayName("[성공] 조건에 맞는 실행 목록 조회 시 PageResponse 반환")
         void shouldReturnPageResponseWhenExecutionsExist() {
             // Given
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    1L, null, null, null, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(1L, null, null, null, null, null, 0, 10);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
             List<CrawlExecution> executions = List.of(CrawlExecutionFixture.aRunningExecution());
             long totalElements = 1L;
 
-            CrawlExecutionResponse response = new CrawlExecutionResponse(
-                    1L, 1L, 1L, 1L, CrawlExecutionStatus.RUNNING,
-                    null, null, LocalDateTime.now(), null);
-            PageResponse<CrawlExecutionResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlExecutionResponse response =
+                    new CrawlExecutionResponse(
+                            1L,
+                            1L,
+                            1L,
+                            1L,
+                            CrawlExecutionStatus.RUNNING,
+                            null,
+                            null,
+                            LocalDateTime.now(),
+                            null);
+            PageResponse<CrawlExecutionResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);
@@ -91,14 +96,14 @@ class ListCrawlExecutionsServiceTest {
         @DisplayName("[성공] 조건에 맞는 실행 없을 시 빈 PageResponse 반환")
         void shouldReturnEmptyPageResponseWhenNoExecutionsFound() {
             // Given
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    999L, null, null, null, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(999L, null, null, null, null, null, 0, 10);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
             List<CrawlExecution> emptyExecutions = Collections.emptyList();
             long totalElements = 0L;
 
-            PageResponse<CrawlExecutionResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), 0, 10, 0L, 0, true, true);
+            PageResponse<CrawlExecutionResponse> expectedResponse =
+                    PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(emptyExecutions);
@@ -118,17 +123,27 @@ class ListCrawlExecutionsServiceTest {
         @DisplayName("[성공] 상태 필터로 조회")
         void shouldFilterByStatus() {
             // Given
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    1L, null, null, CrawlExecutionStatus.SUCCESS, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(
+                            1L, null, null, CrawlExecutionStatus.SUCCESS, null, null, 0, 10);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
-            List<CrawlExecution> successExecutions = List.of(CrawlExecutionFixture.aSuccessExecution());
+            List<CrawlExecution> successExecutions =
+                    List.of(CrawlExecutionFixture.aSuccessExecution());
             long totalElements = 1L;
 
-            CrawlExecutionResponse response = new CrawlExecutionResponse(
-                    1L, 1L, 1L, 1L, CrawlExecutionStatus.SUCCESS,
-                    200, 1500L, LocalDateTime.now(), LocalDateTime.now());
-            PageResponse<CrawlExecutionResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlExecutionResponse response =
+                    new CrawlExecutionResponse(
+                            1L,
+                            1L,
+                            1L,
+                            1L,
+                            CrawlExecutionStatus.SUCCESS,
+                            200,
+                            1500L,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
+            PageResponse<CrawlExecutionResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(successExecutions);
@@ -149,17 +164,25 @@ class ListCrawlExecutionsServiceTest {
         void shouldFilterBySellerId() {
             // Given
             Long sellerId = 5L;
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    null, null, sellerId, null, null, null, 0, 10);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(null, null, sellerId, null, null, null, 0, 10);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
             List<CrawlExecution> executions = List.of(CrawlExecutionFixture.aRunningExecution());
             long totalElements = 1L;
 
-            CrawlExecutionResponse response = new CrawlExecutionResponse(
-                    1L, 1L, 1L, sellerId, CrawlExecutionStatus.RUNNING,
-                    null, null, LocalDateTime.now(), null);
-            PageResponse<CrawlExecutionResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlExecutionResponse response =
+                    new CrawlExecutionResponse(
+                            1L,
+                            1L,
+                            1L,
+                            sellerId,
+                            CrawlExecutionStatus.RUNNING,
+                            null,
+                            null,
+                            LocalDateTime.now(),
+                            null);
+            PageResponse<CrawlExecutionResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);
@@ -181,14 +204,15 @@ class ListCrawlExecutionsServiceTest {
             // Given
             int page = 2;
             int size = 20;
-            ListCrawlExecutionsQuery query = new ListCrawlExecutionsQuery(
-                    1L, null, null, null, null, null, page, size);
+            ListCrawlExecutionsQuery query =
+                    new ListCrawlExecutionsQuery(1L, null, null, null, null, null, page, size);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
             List<CrawlExecution> executions = List.of(CrawlExecutionFixture.aRunningExecution());
             long totalElements = 50L;
 
-            PageResponse<CrawlExecutionResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), page, size, totalElements, 3, false, false);
+            PageResponse<CrawlExecutionResponse> expectedResponse =
+                    PageResponse.of(
+                            Collections.emptyList(), page, size, totalElements, 3, false, false);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);

@@ -33,14 +33,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SessionRequiredEventListener 테스트")
 class SessionRequiredEventListenerTest {
 
-    @Mock
-    private SessionTokenPort sessionTokenPort;
+    @Mock private SessionTokenPort sessionTokenPort;
 
-    @Mock
-    private UserAgentPoolCachePort cachePort;
+    @Mock private UserAgentPoolCachePort cachePort;
 
-    @InjectMocks
-    private SessionRequiredEventListener listener;
+    @InjectMocks private SessionRequiredEventListener listener;
 
     @Nested
     @DisplayName("handleSessionRequired() 테스트")
@@ -77,8 +74,7 @@ class SessionRequiredEventListenerTest {
             String userAgentValue = "Mozilla/5.0 Test Agent";
             SessionRequiredEvent event = new SessionRequiredEvent(userAgentId, userAgentValue);
 
-            given(sessionTokenPort.issueSessionToken(userAgentValue))
-                    .willReturn(Optional.empty());
+            given(sessionTokenPort.issueSessionToken(userAgentValue)).willReturn(Optional.empty());
 
             // When
             listener.handleSessionRequired(event);

@@ -3,12 +3,12 @@ package com.ryuqq.crawlinghub.domain.useragent.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
-import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.HealthScoreFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.TokenFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
+import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,16 +18,17 @@ import org.junit.jupiter.api.Test;
  * UserAgent Aggregate Root 단위 테스트
  *
  * <p>테스트 대상:
+ *
  * <ul>
- *   <li>신규 생성 {@code create()} - AVAILABLE 상태, Health Score 100</li>
- *   <li>복원 {@code reconstitute()} - 기존 데이터 복원</li>
- *   <li>사용 기록 {@code markAsUsed()} - lastUsedAt, requestsPerDay 업데이트</li>
- *   <li>성공 기록 {@code recordSuccess()} - Health Score +5</li>
- *   <li>실패 기록 {@code recordFailure()} - HTTP 상태 코드 기반 페널티</li>
- *   <li>정지 {@code suspend()} - AVAILABLE → SUSPENDED</li>
- *   <li>복구 {@code recover()} - SUSPENDED → AVAILABLE, Health Score 70</li>
- *   <li>차단 {@code block()} - BLOCKED 상태</li>
- *   <li>상태 확인 메서드 - isAvailable, isSuspended, isBlocked, isRecoverable</li>
+ *   <li>신규 생성 {@code create()} - AVAILABLE 상태, Health Score 100
+ *   <li>복원 {@code reconstitute()} - 기존 데이터 복원
+ *   <li>사용 기록 {@code markAsUsed()} - lastUsedAt, requestsPerDay 업데이트
+ *   <li>성공 기록 {@code recordSuccess()} - Health Score +5
+ *   <li>실패 기록 {@code recordFailure()} - HTTP 상태 코드 기반 페널티
+ *   <li>정지 {@code suspend()} - AVAILABLE → SUSPENDED
+ *   <li>복구 {@code recover()} - SUSPENDED → AVAILABLE, Health Score 70
+ *   <li>차단 {@code block()} - BLOCKED 상태
+ *   <li>상태 확인 메서드 - isAvailable, isSuspended, isBlocked, isRecoverable
  * </ul>
  *
  * @author development-team
@@ -246,15 +247,16 @@ class UserAgentTest {
         @DisplayName("기타 응답으로 Health Score < 30이 되면 자동 SUSPENDED")
         void shouldAutoSuspendWhenHealthScoreBelowThresholdByOtherError() {
             // given
-            UserAgent userAgent = UserAgent.reconstitute(
-                    UserAgentIdFixture.anAssignedId(),
-                    TokenFixture.aDefaultToken(),
-                    UserAgentStatus.AVAILABLE,
-                    HealthScoreFixture.of(32),
-                    LocalDateTime.now(),
-                    0,
-                    LocalDateTime.now(),
-                    LocalDateTime.now());
+            UserAgent userAgent =
+                    UserAgent.reconstitute(
+                            UserAgentIdFixture.anAssignedId(),
+                            TokenFixture.aDefaultToken(),
+                            UserAgentStatus.AVAILABLE,
+                            HealthScoreFixture.of(32),
+                            LocalDateTime.now(),
+                            0,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             // when
             userAgent.recordFailure(400); // -5 → 27
@@ -388,8 +390,7 @@ class UserAgentTest {
             UserAgent userAgent = UserAgentFixture.aBlockedUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::block)
-                    .isInstanceOf(InvalidUserAgentStateException.class);
+            assertThatThrownBy(userAgent::block).isInstanceOf(InvalidUserAgentStateException.class);
         }
     }
 

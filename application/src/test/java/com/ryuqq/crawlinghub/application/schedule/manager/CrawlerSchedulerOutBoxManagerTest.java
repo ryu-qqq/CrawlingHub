@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxIdFixture;
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlScheduleOutBoxPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlerSchedulerOutBoxManager 테스트")
 class CrawlerSchedulerOutBoxManagerTest {
 
-    @Mock
-    private PersistCrawlScheduleOutBoxPort persistCrawlScheduleOutBoxPort;
+    @Mock private PersistCrawlScheduleOutBoxPort persistCrawlScheduleOutBoxPort;
 
-    @InjectMocks
-    private CrawlerSchedulerOutBoxManager manager;
+    @InjectMocks private CrawlerSchedulerOutBoxManager manager;
 
     @Nested
     @DisplayName("persist() 테스트")

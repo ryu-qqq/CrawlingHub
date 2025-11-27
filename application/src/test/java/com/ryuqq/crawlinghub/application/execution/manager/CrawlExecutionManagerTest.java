@@ -5,6 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.execution.port.out.command.CrawlExecutionPersistencePort;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
@@ -12,11 +17,6 @@ import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,11 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlExecutionManager 테스트")
 class CrawlExecutionManagerTest {
 
-    @Mock
-    private CrawlExecutionPersistencePort crawlExecutionPersistencePort;
+    @Mock private CrawlExecutionPersistencePort crawlExecutionPersistencePort;
 
-    @InjectMocks
-    private CrawlExecutionManager manager;
+    @InjectMocks private CrawlExecutionManager manager;
 
     @Nested
     @DisplayName("startAndPersist() 테스트")
@@ -85,7 +83,8 @@ class CrawlExecutionManagerTest {
             given(crawlExecutionPersistencePort.persist(execution)).willReturn(expectedId);
 
             // When
-            CrawlExecutionId result = manager.completeWithSuccess(execution, responseBody, httpStatusCode);
+            CrawlExecutionId result =
+                    manager.completeWithSuccess(execution, responseBody, httpStatusCode);
 
             // Then
             assertThat(result).isEqualTo(expectedId);
@@ -110,7 +109,8 @@ class CrawlExecutionManagerTest {
             given(crawlExecutionPersistencePort.persist(execution)).willReturn(expectedId);
 
             // When
-            CrawlExecutionId result = manager.completeWithFailure(execution, httpStatusCode, errorMessage);
+            CrawlExecutionId result =
+                    manager.completeWithFailure(execution, httpStatusCode, errorMessage);
 
             // Then
             assertThat(result).isEqualTo(expectedId);
@@ -131,7 +131,9 @@ class CrawlExecutionManagerTest {
             given(crawlExecutionPersistencePort.persist(execution)).willReturn(expectedId);
 
             // When
-            CrawlExecutionId result = manager.completeWithFailure(execution, responseBody, httpStatusCode, errorMessage);
+            CrawlExecutionId result =
+                    manager.completeWithFailure(
+                            execution, responseBody, httpStatusCode, errorMessage);
 
             // Then
             assertThat(result).isEqualTo(expectedId);

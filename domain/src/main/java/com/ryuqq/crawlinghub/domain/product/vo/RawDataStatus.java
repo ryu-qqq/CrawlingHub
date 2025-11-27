@@ -8,18 +8,12 @@ package com.ryuqq.crawlinghub.domain.product.vo;
  */
 public enum RawDataStatus {
 
-    /**
-     * 대기 중 - 가공 파이프라인 처리 대기
-     */
+    /** 대기 중 - 가공 파이프라인 처리 대기 */
     PENDING,
 
-    /**
-     * 처리 완료 - 가공 파이프라인 처리 완료
-     */
+    /** 처리 완료 - 가공 파이프라인 처리 완료 */
     PROCESSED,
 
-    /**
-     * 처리 실패 - 가공 중 오류 발생
-     */
+    /** 처리 실패 - 가공 중 오류 발생 */
     FAILED
 }

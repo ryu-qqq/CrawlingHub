@@ -51,7 +51,7 @@ public class CrawlSchedulerOutBoxRetryScheduler {
      * <p>5분마다 실행되며, 배치 단위로 처리
      */
     @Scheduled(fixedDelay = 300000)
-    public void processOutBox() {
+    public void processOutbox() {
         List<CrawlSchedulerOutBox> outBoxes = outBoxQueryPort.findPendingOrFailed(BATCH_SIZE);
 
         if (outBoxes.isEmpty()) {
@@ -65,7 +65,7 @@ public class CrawlSchedulerOutBoxRetryScheduler {
 
         for (CrawlSchedulerOutBox outBox : outBoxes) {
             try {
-                processOutBoxItem(outBox);
+                processOutboxItem(outBox);
                 successCount++;
             } catch (Exception e) {
                 log.error(
@@ -84,7 +84,7 @@ public class CrawlSchedulerOutBoxRetryScheduler {
      *
      * @param outBox 처리할 아웃박스
      */
-    private void processOutBoxItem(CrawlSchedulerOutBox outBox) {
+    private void processOutboxItem(CrawlSchedulerOutBox outBox) {
         try {
             eventBridgeClientPort.syncFromOutBox(outBox);
             outBoxManager.markAsCompleted(outBox);

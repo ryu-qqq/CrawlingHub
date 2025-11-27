@@ -5,8 +5,8 @@ import java.util.List;
 /**
  * 상품 상세 정보 VO
  *
- * <p>DETAIL 크롤링 응답에서 파싱된 상품 상세 정보.
- * ProductInfoModule, ShippingModule, ProductDetailInfoModule 등에서 추출.
+ * <p>DETAIL 크롤링 응답에서 파싱된 상품 상세 정보. ProductInfoModule, ShippingModule, ProductDetailInfoModule 등에서
+ * 추출.
  *
  * @param sellerNo 판매자 번호
  * @param sellerId 판매자 ID
@@ -79,11 +79,16 @@ public record ProductDetailInfo(
         if (stock < 0) {
             throw new IllegalArgumentException("stock은 0 이상이어야 합니다.");
         }
+        // 방어적 복사 - SpotBugs EI2 경고 수정
         if (bannerImages == null) {
             bannerImages = List.of();
+        } else {
+            bannerImages = List.copyOf(bannerImages);
         }
         if (detailImages == null) {
             detailImages = List.of();
+        } else {
+            detailImages = List.copyOf(detailImages);
         }
         if (originCountry == null) {
             originCountry = "";
@@ -93,26 +98,21 @@ public record ProductDetailInfo(
         }
     }
 
-    /**
-     * 빌더 시작
-     */
+    /** 빌더 시작 */
     public static Builder builder() {
         return new Builder();
     }
 
-    /**
-     * 모든 이미지 URL 반환 (배너 + 상세)
-     */
+    /** 모든 이미지 URL 반환 (배너 + 상세) */
     public List<String> getAllImageUrls() {
         if (bannerImages.isEmpty() && detailImages.isEmpty()) {
             return List.of();
         }
-        return java.util.stream.Stream.concat(bannerImages.stream(), detailImages.stream()).toList();
+        return java.util.stream.Stream.concat(bannerImages.stream(), detailImages.stream())
+                .toList();
     }
 
-    /**
-     * 대표 이미지 URL 반환
-     */
+    /** 대표 이미지 URL 반환 */
     public String getMainImageUrl() {
         if (!bannerImages.isEmpty()) {
             return bannerImages.get(0);
@@ -123,16 +123,12 @@ public record ProductDetailInfo(
         return null;
     }
 
-    /**
-     * 할인 상품인지 확인
-     */
+    /** 할인 상품인지 확인 */
     public boolean hasDiscount() {
         return discountRate > 0;
     }
 
-    /**
-     * 가격 변경 여부 확인
-     */
+    /** 가격 변경 여부 확인 */
     public boolean hasPriceChange(ProductDetailInfo other) {
         if (other == null) {
             return true;
@@ -143,9 +139,7 @@ public record ProductDetailInfo(
                 || this.discountRate != other.discountRate;
     }
 
-    /**
-     * 재고 변경 여부 확인
-     */
+    /** 재고 변경 여부 확인 */
     public boolean hasStockChange(ProductDetailInfo other) {
         if (other == null) {
             return true;
@@ -153,22 +147,13 @@ public record ProductDetailInfo(
         return this.stock != other.stock || this.isSoldOut != other.isSoldOut;
     }
 
-    /**
-     * ProductPrice VO로 변환
-     */
+    /** ProductPrice VO로 변환 */
     public ProductPrice toProductPrice() {
         return ProductPrice.of(
-                sellingPrice,
-                normalPrice,
-                normalPrice,
-                discountPrice,
-                discountRate,
-                discountRate);
+                sellingPrice, normalPrice, normalPrice, discountPrice, discountRate, discountRate);
     }
 
-    /**
-     * Builder 클래스
-     */
+    /** Builder 클래스 */
     public static class Builder {
         private long sellerNo;
         private String sellerId;
@@ -266,12 +251,14 @@ public record ProductDetailInfo(
         }
 
         public Builder bannerImages(List<String> bannerImages) {
-            this.bannerImages = bannerImages;
+            // 방어적 복사 - SpotBugs EI2 경고 수정
+            this.bannerImages = bannerImages != null ? List.copyOf(bannerImages) : List.of();
             return this;
         }
 
         public Builder detailImages(List<String> detailImages) {
-            this.detailImages = detailImages;
+            // 방어적 복사 - SpotBugs EI2 경고 수정
+            this.detailImages = detailImages != null ? List.copyOf(detailImages) : List.of();
             return this;
         }
 
