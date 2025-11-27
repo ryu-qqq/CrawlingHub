@@ -1,0 +1,2930 @@
+{
+  "count": 3464,
+  "indexName": "item-idx-a",
+  "groupResult": {
+    "headerCategoryGroupResult": [
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "categoryCount": 1535
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "categoryCount": 1074
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "categoryCount": 854
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "categoryCount": 3
+      }
+    ],
+    "largeCategoryGroupResult": [
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "categoryCount": 1155
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "categoryCount": 765
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "categoryCount": 471
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "categoryCount": 281
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "categoryCount": 275
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "categoryCount": 228
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "categoryCount": 86
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "categoryCount": 84
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "categoryCount": 66
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "categoryCount": 47
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "21",
+        "largeCategoryName": "슈즈",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "24",
+        "largeCategoryName": "테크",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "22",
+        "largeCategoryName": "스포츠용품",
+        "categoryCount": 1
+      }
+    ],
+    "mediumCategoryGroupResult": [
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "categoryCount": 507
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r01",
+        "mediumCategoryName": "코트/자켓",
+        "categoryCount": 374
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "categoryCount": 337
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r02",
+        "mediumCategoryName": "탑",
+        "categoryCount": 297
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "categoryCount": 242
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "categoryCount": 170
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "categoryCount": 122
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r02",
+        "mediumCategoryName": "토트백",
+        "categoryCount": 99
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r09",
+        "mediumCategoryName": "숄더백",
+        "categoryCount": 94
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "categoryCount": 93
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "categoryCount": 92
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "categoryCount": 86
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "categoryCount": 79
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r03",
+        "mediumCategoryName": "팬츠",
+        "categoryCount": 73
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r05",
+        "mediumCategoryName": "벨트/서스펜더",
+        "categoryCount": 73
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r04",
+        "mediumCategoryName": "크로스백",
+        "categoryCount": 62
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "categoryCount": 57
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "categoryCount": 57
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "categoryCount": 52
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "categoryCount": 43
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "categoryCount": 42
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r04",
+        "mediumCategoryName": "크로스백",
+        "categoryCount": 41
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r02",
+        "mediumCategoryName": "모자",
+        "categoryCount": 37
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r11",
+        "mediumCategoryName": "스포츠/아웃도어",
+        "categoryCount": 33
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r06",
+        "mediumCategoryName": "셔츠",
+        "categoryCount": 29
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r01",
+        "mediumCategoryName": "가방",
+        "categoryCount": 28
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "categoryCount": 24
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "categoryCount": 19
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r05",
+        "mediumCategoryName": "백팩",
+        "categoryCount": 18
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "categoryCount": 18
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r07",
+        "mediumCategoryName": "샌들/슬리퍼",
+        "categoryCount": 16
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r06",
+        "mediumCategoryName": "클러치/파우치",
+        "categoryCount": 15
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r06",
+        "mediumCategoryName": "클러치/파우치",
+        "categoryCount": 12
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r04",
+        "mediumCategoryName": "아이웨어",
+        "categoryCount": 10
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r05",
+        "mediumCategoryName": "목도리",
+        "categoryCount": 9
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r15",
+        "mediumCategoryName": "벨트",
+        "categoryCount": 8
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r02",
+        "mediumCategoryName": "토트백",
+        "categoryCount": 7
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r08",
+        "mediumCategoryName": "기타",
+        "categoryCount": 7
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r13",
+        "mediumCategoryName": "헤어액세서리",
+        "categoryCount": 7
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r05",
+        "mediumCategoryName": "세트",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r04",
+        "mediumCategoryName": "로퍼",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r04",
+        "mediumCategoryName": "아이웨어",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r04",
+        "mediumCategoryName": "원피스",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r08",
+        "mediumCategoryName": "수영복",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r09",
+        "mediumCategoryName": "스커트",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r09",
+        "mediumCategoryName": "패션소품",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r03",
+        "mediumCategoryName": "원피스",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r05",
+        "mediumCategoryName": "백팩",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "21",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "21r01",
+        "mediumCategoryName": "스니커즈",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r08",
+        "mediumCategoryName": "헤어ACC",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r07",
+        "mediumCategoryName": "샌들/슬리퍼",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r01",
+        "mediumCategoryName": "힐",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "21",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "21r02",
+        "mediumCategoryName": "부츠",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r03",
+        "mediumCategoryName": "장갑",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "24",
+        "largeCategoryName": "테크",
+        "mediumCategoryCode": "24r01",
+        "mediumCategoryName": "테크액세서리",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r09",
+        "mediumCategoryName": "스커트",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r02",
+        "mediumCategoryName": "플랫",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "22",
+        "largeCategoryName": "스포츠용품",
+        "mediumCategoryCode": "22r01",
+        "mediumCategoryName": "썸머",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r03",
+        "mediumCategoryName": "더플백",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r04",
+        "mediumCategoryName": "블라우스/셔츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r04",
+        "mediumCategoryName": "로퍼",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r05",
+        "mediumCategoryName": "부츠/워커",
+        "categoryCount": 1
+      }
+    ],
+    "smallCategoryGroupResult": [
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r01",
+        "smallCategoryName": "티셔츠",
+        "categoryCount": 241
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r01",
+        "smallCategoryName": "자켓",
+        "categoryCount": 230
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "20r01r03",
+        "smallCategoryName": "다운 자켓",
+        "categoryCount": 209
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "20r01r02",
+        "smallCategoryName": "자켓",
+        "categoryCount": 164
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r02",
+        "smallCategoryName": "스웨트셔츠",
+        "categoryCount": 156
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "20r02r02",
+        "smallCategoryName": "긴팔티셔츠",
+        "categoryCount": 137
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "20r02r01",
+        "smallCategoryName": "반팔티셔츠",
+        "categoryCount": 126
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r05",
+        "smallCategoryName": "다운/패딩",
+        "categoryCount": 111
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r04",
+        "smallCategoryName": "폴로 셔츠",
+        "categoryCount": 109
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r05",
+        "smallCategoryName": "다운/패딩",
+        "categoryCount": 95
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r01",
+        "smallCategoryName": "티셔츠",
+        "categoryCount": 80
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r05",
+        "mediumCategoryName": "벨트/서스펜더",
+        "smallCategoryCode": "18r05r01",
+        "smallCategoryName": "벨트",
+        "categoryCount": 73
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "smallCategoryCode": "18r03r04",
+        "smallCategoryName": "귀걸이/피어싱",
+        "categoryCount": 63
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r01",
+        "smallCategoryName": "자켓",
+        "categoryCount": 54
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r02",
+        "smallCategoryName": "스웨트팬츠/조거팬츠",
+        "categoryCount": 53
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "smallCategoryCode": "17r06r01",
+        "smallCategoryName": "로우탑스니커즈",
+        "categoryCount": 51
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "smallCategoryCode": "15r05r01",
+        "smallCategoryName": "라운드넥 니트",
+        "categoryCount": 48
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r01",
+        "smallCategoryName": "반지갑",
+        "categoryCount": 47
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r05",
+        "smallCategoryName": "데님 팬츠",
+        "categoryCount": 46
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r01",
+        "smallCategoryName": "반지갑",
+        "categoryCount": 42
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r08",
+        "smallCategoryName": "베스트",
+        "categoryCount": 38
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "smallCategoryCode": "18r07r02",
+        "smallCategoryName": "스카프",
+        "categoryCount": 37
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r03",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "20r03r02",
+        "smallCategoryName": "스웨트팬츠",
+        "categoryCount": 36
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r03",
+        "smallCategoryName": "코트",
+        "categoryCount": 35
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r02",
+        "smallCategoryName": "스웨트셔츠",
+        "categoryCount": 34
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "smallCategoryCode": "15r05r04",
+        "smallCategoryName": "가디건",
+        "categoryCount": 34
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r11",
+        "mediumCategoryName": "스포츠/아웃도어",
+        "smallCategoryCode": "15r11r04",
+        "smallCategoryName": "수영복",
+        "categoryCount": 33
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r03",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "20r03r04",
+        "smallCategoryName": "숏팬츠",
+        "categoryCount": 32
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "20r02r04",
+        "smallCategoryName": "스웨터",
+        "categoryCount": 31
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "smallCategoryCode": "15r05r04",
+        "smallCategoryName": "가디건",
+        "categoryCount": 31
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r08",
+        "smallCategoryName": "숏팬츠",
+        "categoryCount": 30
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r04",
+        "smallCategoryName": "카드지갑",
+        "categoryCount": 28
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r01",
+        "smallCategoryName": "캡",
+        "categoryCount": 26
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r02",
+        "smallCategoryName": "장지갑",
+        "categoryCount": 26
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "smallCategoryCode": "18r03r01",
+        "smallCategoryName": "목걸이/팬던트",
+        "categoryCount": 24
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r06",
+        "mediumCategoryName": "셔츠",
+        "smallCategoryCode": "15r06r01",
+        "smallCategoryName": "긴팔 셔츠",
+        "categoryCount": 23
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r03",
+        "smallCategoryName": "카고팬츠",
+        "categoryCount": 23
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r05",
+        "mediumCategoryName": "니트",
+        "smallCategoryCode": "15r05r01",
+        "smallCategoryName": "라운드넥 니트",
+        "categoryCount": 23
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "smallCategoryCode": "17r06r01",
+        "smallCategoryName": "로우탑스니커즈",
+        "categoryCount": 23
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r01",
+        "smallCategoryName": "클래식팬츠",
+        "categoryCount": 18
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r04",
+        "smallCategoryName": "카드지갑",
+        "categoryCount": 17
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "smallCategoryCode": "18r07r01",
+        "smallCategoryName": "목도리",
+        "categoryCount": 16
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r05",
+        "smallCategoryName": "데님 팬츠",
+        "categoryCount": 16
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r08",
+        "smallCategoryName": "숏팬츠",
+        "categoryCount": 15
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "smallCategoryCode": "18r07r01",
+        "smallCategoryName": "목도리",
+        "categoryCount": 15
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r02",
+        "smallCategoryName": "장지갑",
+        "categoryCount": 14
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r03",
+        "smallCategoryName": "비니",
+        "categoryCount": 14
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r06",
+        "mediumCategoryName": "클러치/파우치",
+        "smallCategoryCode": "16r06r01",
+        "smallCategoryName": "클러치",
+        "categoryCount": 12
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r07",
+        "mediumCategoryName": "샌들/슬리퍼",
+        "smallCategoryCode": "17r07r02",
+        "smallCategoryName": "슬리퍼",
+        "categoryCount": 11
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r06",
+        "mediumCategoryName": "클러치/파우치",
+        "smallCategoryCode": "16r06r01",
+        "smallCategoryName": "클러치",
+        "categoryCount": 10
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r04",
+        "mediumCategoryName": "아이웨어",
+        "smallCategoryCode": "18r04r02",
+        "smallCategoryName": "선글라스",
+        "categoryCount": 10
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r08",
+        "smallCategoryName": "베스트",
+        "categoryCount": 8
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r04",
+        "smallCategoryName": "폴로 셔츠",
+        "categoryCount": 8
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r08",
+        "mediumCategoryName": "기타",
+        "smallCategoryCode": "16r08r01",
+        "smallCategoryName": "힙색",
+        "categoryCount": 7
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r06",
+        "mediumCategoryName": "셔츠",
+        "smallCategoryCode": "15r06r02",
+        "smallCategoryName": "반팔 셔츠",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r04",
+        "mediumCategoryName": "로퍼",
+        "smallCategoryCode": "17r04r08",
+        "smallCategoryName": "로퍼",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r04",
+        "mediumCategoryName": "아이웨어",
+        "smallCategoryCode": "18r04r02",
+        "smallCategoryName": "선글라스",
+        "categoryCount": 6
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r08",
+        "mediumCategoryName": "수영복",
+        "smallCategoryCode": "20r08r03",
+        "smallCategoryName": "스윔 팬츠",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r02",
+        "smallCategoryName": "스웨트팬츠/조거팬츠",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "16",
+        "largeCategoryName": "가방",
+        "mediumCategoryCode": "16r06",
+        "mediumCategoryName": "클러치/파우치",
+        "smallCategoryCode": "16r06r02",
+        "smallCategoryName": "파우치",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r07",
+        "mediumCategoryName": "샌들/슬리퍼",
+        "smallCategoryCode": "17r07r04",
+        "smallCategoryName": "샌들",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r01",
+        "smallCategoryName": "캡",
+        "categoryCount": 5
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r03",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "20r03r03",
+        "smallCategoryName": "데님 팬츠",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "smallCategoryCode": "17r06r02",
+        "smallCategoryName": "하이탑스니커즈",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r04",
+        "smallCategoryName": "트렌치코트",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r03",
+        "mediumCategoryName": "원피스",
+        "smallCategoryCode": "15r03r02",
+        "smallCategoryName": "미디원피스",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "smallCategoryCode": "18r03r02",
+        "smallCategoryName": "팔찌",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r04",
+        "smallCategoryName": "버켓햇",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r09",
+        "smallCategoryName": "기타 모자",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r13",
+        "mediumCategoryName": "헤어액세서리",
+        "smallCategoryCode": "18r13r03",
+        "smallCategoryName": "헤어핀",
+        "categoryCount": 4
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "20r02r03",
+        "smallCategoryName": "셔츠",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "21",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "21r01",
+        "mediumCategoryName": "스니커즈",
+        "smallCategoryCode": "21r01r01",
+        "smallCategoryName": "로우탑스니커즈",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "27",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "27r08",
+        "mediumCategoryName": "헤어ACC",
+        "smallCategoryCode": "27r08r01",
+        "smallCategoryName": "헤어밴드",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r03",
+        "smallCategoryName": "코트",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r07",
+        "mediumCategoryName": "샌들/슬리퍼",
+        "smallCategoryCode": "17r07r02",
+        "smallCategoryName": "슬리퍼",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r01",
+        "smallCategoryName": "클래식팬츠",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r01",
+        "mediumCategoryName": "힐",
+        "smallCategoryCode": "17r01r01",
+        "smallCategoryName": "펌프스/슬링백 힐",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r03",
+        "smallCategoryName": "비니",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r13",
+        "mediumCategoryName": "헤어액세서리",
+        "smallCategoryCode": "18r13r04",
+        "smallCategoryName": "기타 헤어액세서리",
+        "categoryCount": 3
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "24",
+        "largeCategoryName": "테크",
+        "mediumCategoryCode": "24r01",
+        "mediumCategoryName": "테크액세서리",
+        "smallCategoryCode": "24r01r01",
+        "smallCategoryName": "핸드폰 ACC",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r06",
+        "mediumCategoryName": "스니커즈",
+        "smallCategoryCode": "17r06r03",
+        "smallCategoryName": "슬립온 스니커즈",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r09",
+        "smallCategoryName": "머니클립",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r03",
+        "mediumCategoryName": "주얼리",
+        "smallCategoryCode": "18r03r02",
+        "smallCategoryName": "팔찌",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r04",
+        "smallCategoryName": "버켓햇",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r07",
+        "mediumCategoryName": "목도리/스카프",
+        "smallCategoryCode": "18r07r02",
+        "smallCategoryName": "스카프",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r09",
+        "mediumCategoryName": "스커트",
+        "smallCategoryCode": "15r09r02",
+        "smallCategoryName": "미디스커트",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r02",
+        "mediumCategoryName": "플랫",
+        "smallCategoryCode": "17r02r01",
+        "smallCategoryName": "플랫 슈즈",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r01",
+        "mediumCategoryName": "지갑",
+        "smallCategoryCode": "18r01r06",
+        "smallCategoryName": "동전지갑",
+        "categoryCount": 2
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "20r01r01",
+        "smallCategoryName": "코트",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "K",
+        "headerCategoryName": "키즈",
+        "largeCategoryCode": "20",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "20r03",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "20r03r01",
+        "smallCategoryName": "클래식팬츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "L",
+        "headerCategoryName": "라이프",
+        "largeCategoryCode": "22",
+        "largeCategoryName": "스포츠용품",
+        "mediumCategoryCode": "22r01",
+        "mediumCategoryName": "썸머",
+        "smallCategoryCode": "22r01r01",
+        "smallCategoryName": "비치타월",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r01",
+        "mediumCategoryName": "코트/자켓",
+        "smallCategoryCode": "15r01r02",
+        "smallCategoryName": "봄버 자켓",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r02",
+        "mediumCategoryName": "탑",
+        "smallCategoryCode": "15r02r03",
+        "smallCategoryName": "후드 티셔츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "M",
+        "headerCategoryName": "남성",
+        "largeCategoryCode": "18",
+        "largeCategoryName": "액세서리",
+        "mediumCategoryCode": "18r06",
+        "mediumCategoryName": "모자",
+        "smallCategoryCode": "18r06r02",
+        "smallCategoryName": "스냅백",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r03",
+        "mediumCategoryName": "원피스",
+        "smallCategoryCode": "15r03r01",
+        "smallCategoryName": "롱원피스",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r04",
+        "mediumCategoryName": "블라우스/셔츠",
+        "smallCategoryCode": "15r04r02",
+        "smallCategoryName": "셔츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r03",
+        "smallCategoryName": "카고팬츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r04",
+        "smallCategoryName": "크롭팬츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "15",
+        "largeCategoryName": "의류",
+        "mediumCategoryCode": "15r07",
+        "mediumCategoryName": "팬츠",
+        "smallCategoryCode": "15r07r06",
+        "smallCategoryName": "가죽 팬츠",
+        "categoryCount": 1
+      },
+      {
+        "headerCategoryCode": "W",
+        "headerCategoryName": "여성",
+        "largeCategoryCode": "17",
+        "largeCategoryName": "슈즈",
+        "mediumCategoryCode": "17r04",
+        "mediumCategoryName": "로퍼",
+        "smallCategoryCode": "17r04r08",
+        "smallCategoryName": "로퍼",
+        "categoryCount": 1
+      }
+    ],
+    "brandGroupResult": [
+      {
+        "brandCode": 106,
+        "brandName": "Moncler",
+        "brandNameKor": "몽클레르",
+        "brandCount": 735
+      },
+      {
+        "brandCode": 133,
+        "brandName": "STONE ISLAND",
+        "brandNameKor": "스톤 아일랜드",
+        "brandCount": 546
+      },
+      {
+        "brandCode": 25,
+        "brandName": "BURBERRY",
+        "brandNameKor": "버버리",
+        "brandCount": 273
+      },
+      {
+        "brandCode": 100,
+        "brandName": "Max Mara",
+        "brandNameKor": "막스마라",
+        "brandCount": 153
+      },
+      {
+        "brandCode": 263,
+        "brandName": "CP Company",
+        "brandNameKor": "CP 컴퍼니",
+        "brandCount": 147
+      },
+      {
+        "brandCode": 67,
+        "brandName": "GUCCI",
+        "brandNameKor": "구찌",
+        "brandCount": 128
+      },
+      {
+        "brandCode": 153,
+        "brandName": "Vivienne Westwood",
+        "brandNameKor": "비비안웨스트우드",
+        "brandCount": 120
+      },
+      {
+        "brandCode": 32,
+        "brandName": "CELINE",
+        "brandNameKor": "셀린느",
+        "brandCount": 115
+      },
+      {
+        "brandCode": 939,
+        "brandName": "BOBO CHOSES",
+        "brandNameKor": "보보쇼즈",
+        "brandCount": 113
+      },
+      {
+        "brandCode": 262,
+        "brandName": "Parajumpers",
+        "brandNameKor": "파라점퍼스",
+        "brandCount": 58
+      },
+      {
+        "brandCode": 118,
+        "brandName": "Ralph Lauren",
+        "brandNameKor": "랄프로렌",
+        "brandCount": 57
+      },
+      {
+        "brandCode": 59,
+        "brandName": "Ferragamo",
+        "brandNameKor": "페라가모",
+        "brandCount": 56
+      },
+      {
+        "brandCode": 141,
+        "brandName": "Tory Burch",
+        "brandNameKor": "토리버치",
+        "brandCount": 55
+      },
+      {
+        "brandCode": 1376,
+        "brandName": "SPORTY&RICH",
+        "brandNameKor": "스포티앤리치",
+        "brandCount": 52
+      },
+      {
+        "brandCode": 115,
+        "brandName": "PRADA",
+        "brandNameKor": "프라다",
+        "brandCount": 48
+      },
+      {
+        "brandCode": 222,
+        "brandName": "THOM BROWNE",
+        "brandNameKor": "톰브라운",
+        "brandCount": 48
+      },
+      {
+        "brandCode": 36,
+        "brandName": "DIOR",
+        "brandNameKor": "디올",
+        "brandCount": 45
+      },
+      {
+        "brandCode": 1005,
+        "brandName": "GANNI",
+        "brandNameKor": "가니",
+        "brandCount": 44
+      },
+      {
+        "brandCode": 49,
+        "brandName": "Dsquared2",
+        "brandNameKor": "디스퀘어드2",
+        "brandCount": 42
+      },
+      {
+        "brandCode": 371,
+        "brandName": "Maison Kitsune",
+        "brandNameKor": "메종 키츠네",
+        "brandCount": 41
+      },
+      {
+        "brandCode": 1474,
+        "brandName": "AUTRY",
+        "brandNameKor": "오트리",
+        "brandCount": 40
+      },
+      {
+        "brandCode": 372,
+        "brandName": "Brunello Cucinelli",
+        "brandNameKor": "브루넬로쿠치넬리",
+        "brandCount": 36
+      },
+      {
+        "brandCode": 23,
+        "brandName": "Bottega Veneta",
+        "brandNameKor": "보테가베네타",
+        "brandCount": 34
+      },
+      {
+        "brandCode": 74,
+        "brandName": "Isabel Marant",
+        "brandNameKor": "이자벨마랑",
+        "brandCount": 31
+      },
+      {
+        "brandCode": 1568,
+        "brandName": "Ai Riders on the storm",
+        "brandNameKor": "Ai 라이더스온더스톰",
+        "brandCount": 30
+      },
+      {
+        "brandCode": 748,
+        "brandName": "Loro Piana",
+        "brandNameKor": "로로피아나",
+        "brandCount": 23
+      },
+      {
+        "brandCode": 157,
+        "brandName": "Zegna",
+        "brandNameKor": "제냐",
+        "brandCount": 22
+      },
+      {
+        "brandCode": 421,
+        "brandName": "AMI",
+        "brandNameKor": "아미",
+        "brandCount": 21
+      },
+      {
+        "brandCode": 58,
+        "brandName": "FENDI",
+        "brandNameKor": "펜디",
+        "brandCount": 20
+      },
+      {
+        "brandCode": 1922,
+        "brandName": "PT TORINO",
+        "brandNameKor": "피티토리노",
+        "brandCount": 19
+      },
+      {
+        "brandCode": 601,
+        "brandName": "ARC`TERYX",
+        "brandNameKor": "아크테릭스",
+        "brandCount": 19
+      },
+      {
+        "brandCode": 82,
+        "brandName": "KENZO",
+        "brandNameKor": "겐조",
+        "brandCount": 17
+      },
+      {
+        "brandCode": 89,
+        "brandName": "Longchamp",
+        "brandNameKor": "롱샴",
+        "brandCount": 17
+      },
+      {
+        "brandCode": 169,
+        "brandName": "Acne Studios",
+        "brandNameKor": "아크네스튜디오",
+        "brandCount": 16
+      },
+      {
+        "brandCode": 145,
+        "brandName": "VALENTINO",
+        "brandNameKor": "발렌티노",
+        "brandCount": 15
+      },
+      {
+        "brandCode": 99,
+        "brandName": "Maison Margiela",
+        "brandNameKor": "메종 마르지엘라",
+        "brandCount": 15
+      },
+      {
+        "brandCode": 1226,
+        "brandName": "A-COLD-WALL",
+        "brandNameKor": "어콜드월",
+        "brandCount": 14
+      },
+      {
+        "brandCode": 1561,
+        "brandName": "Wild Donkey",
+        "brandNameKor": "와일드 동키",
+        "brandCount": 14
+      },
+      {
+        "brandCode": 40,
+        "brandName": "Comme des Garcons",
+        "brandNameKor": "꼼데가르송",
+        "brandCount": 14
+      },
+      {
+        "brandCode": 956,
+        "brandName": "Lemaire",
+        "brandNameKor": "르메르",
+        "brandCount": 14
+      },
+      {
+        "brandCode": 1350,
+        "brandName": "Ten C",
+        "brandNameKor": "텐씨",
+        "brandCount": 13
+      },
+      {
+        "brandCode": 126,
+        "brandName": "Robins jean",
+        "brandNameKor": "로빈스진",
+        "brandCount": 11
+      },
+      {
+        "brandCode": 461,
+        "brandName": "LARDINI",
+        "brandNameKor": "라르디니",
+        "brandCount": 9
+      },
+      {
+        "brandCode": 103,
+        "brandName": "Michael Kors",
+        "brandNameKor": "마이클코어스",
+        "brandCount": 8
+      },
+      {
+        "brandCode": 1312,
+        "brandName": "OUR LEGACY",
+        "brandNameKor": "아워 레가시",
+        "brandCount": 8
+      },
+      {
+        "brandCode": 1528,
+        "brandName": "STUDIO NICHOLSON",
+        "brandNameKor": "스튜디오 니콜슨",
+        "brandCount": 8
+      },
+      {
+        "brandCode": 314,
+        "brandName": "J BRAND",
+        "brandNameKor": "제이브랜드",
+        "brandCount": 8
+      },
+      {
+        "brandCode": 258,
+        "brandName": "Herno",
+        "brandNameKor": "에르노",
+        "brandCount": 7
+      },
+      {
+        "brandCode": 1317,
+        "brandName": "WOOYOUNGMI",
+        "brandNameKor": "우영미",
+        "brandCount": 6
+      },
+      {
+        "brandCode": 250,
+        "brandName": "Moose Knuckles",
+        "brandNameKor": "무스너클",
+        "brandCount": 6
+      },
+      {
+        "brandCode": 321,
+        "brandName": "HELEN KAMINSKI",
+        "brandNameKor": "헬렌카민스키",
+        "brandCount": 6
+      },
+      {
+        "brandCode": 156,
+        "brandName": "Saint Laurent",
+        "brandNameKor": "생로랑",
+        "brandCount": 5
+      },
+      {
+        "brandCode": 256,
+        "brandName": "MSGM",
+        "brandNameKor": "엠에스지엠",
+        "brandCount": 5
+      },
+      {
+        "brandCode": 836,
+        "brandName": "Fear of God",
+        "brandNameKor": "피어오브갓",
+        "brandCount": 5
+      },
+      {
+        "brandCode": 110,
+        "brandName": "Neil Barrett",
+        "brandNameKor": "닐바렛",
+        "brandCount": 4
+      },
+      {
+        "brandCode": 1288,
+        "brandName": "SUNNEI",
+        "brandNameKor": "써네이",
+        "brandCount": 4
+      },
+      {
+        "brandCode": 239,
+        "brandName": "Marcelo Burlon",
+        "brandNameKor": "마르셀로불론",
+        "brandCount": 4
+      },
+      {
+        "brandCode": 1075,
+        "brandName": "BABOR",
+        "brandNameKor": "바버",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 44,
+        "brandName": "DIESEL",
+        "brandNameKor": "디젤",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 747,
+        "brandName": "Engineered Garments",
+        "brandNameKor": "엔지니어드가먼츠",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 76,
+        "brandName": "JIL SANDER",
+        "brandNameKor": "질샌더",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 88,
+        "brandName": "LOEWE",
+        "brandNameKor": "로에베",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 926,
+        "brandName": "JACQUEMUS",
+        "brandNameKor": "자크뮈스",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 98,
+        "brandName": "Marni",
+        "brandNameKor": "마르니",
+        "brandCount": 3
+      },
+      {
+        "brandCode": 140,
+        "brandName": "TOM FORD",
+        "brandNameKor": "톰포드",
+        "brandCount": 2
+      },
+      {
+        "brandCode": 1547,
+        "brandName": "BARACUTA",
+        "brandNameKor": "바라쿠타",
+        "brandCount": 2
+      },
+      {
+        "brandCode": 19,
+        "brandName": "Balmain",
+        "brandNameKor": "발망",
+        "brandCount": 2
+      },
+      {
+        "brandCode": 202,
+        "brandName": "GOLDEN GOOSE",
+        "brandNameKor": "골든구스",
+        "brandCount": 2
+      },
+      {
+        "brandCode": 35,
+        "brandName": "Chloe",
+        "brandNameKor": "끌로에",
+        "brandCount": 2
+      },
+      {
+        "brandCode": 105,
+        "brandName": "Miu Miu",
+        "brandNameKor": "미우미우",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 1196,
+        "brandName": "MARTINE ROSE",
+        "brandNameKor": "마틴로즈",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 139,
+        "brandName": "Tods",
+        "brandNameKor": "토즈",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 165,
+        "brandName": "Siwy",
+        "brandNameKor": "씨위",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 311,
+        "brandName": "STUSSY",
+        "brandNameKor": "스투시",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 363,
+        "brandName": "Mackage",
+        "brandNameKor": "맥케이지",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 47,
+        "brandName": "Dolce&Gabbana",
+        "brandNameKor": "돌체앤가바나",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 65,
+        "brandName": "GIVENCHY",
+        "brandNameKor": "지방시",
+        "brandCount": 1
+      },
+      {
+        "brandCode": 685,
+        "brandName": "SALOMON",
+        "brandNameKor": "살로몬",
+        "brandCount": 1
+      }
+    ],
+    "priceRangeResult": [
+      {
+        "startPrice": 27200,
+        "endPrice": 99999
+      },
+      {
+        "startPrice": 100000,
+        "endPrice": 199999
+      },
+      {
+        "startPrice": 200000,
+        "endPrice": 299999
+      },
+      {
+        "startPrice": 300000,
+        "endPrice": 399999
+      },
+      {
+        "startPrice": 400000,
+        "endPrice": 599999
+      },
+      {
+        "startPrice": 600000,
+        "endPrice": 4869300
+      }
+    ],
+    "colorCodeResult": [
+      {
+        "imgColorCode": "GRAY",
+        "imgColorCodeCount": 2866
+      },
+      {
+        "imgColorCode": "BLACK",
+        "imgColorCodeCount": 1931
+      },
+      {
+        "imgColorCode": "NAVY",
+        "imgColorCodeCount": 1602
+      },
+      {
+        "imgColorCode": "BEIGE",
+        "imgColorCodeCount": 623
+      },
+      {
+        "imgColorCode": "BROWN",
+        "imgColorCodeCount": 426
+      },
+      {
+        "imgColorCode": "BLUE",
+        "imgColorCodeCount": 88
+      },
+      {
+        "imgColorCode": "PINK",
+        "imgColorCodeCount": 65
+      },
+      {
+        "imgColorCode": "GREEN",
+        "imgColorCodeCount": 58
+      },
+      {
+        "imgColorCode": "RED",
+        "imgColorCodeCount": 34
+      },
+      {
+        "imgColorCode": "PURPLE",
+        "imgColorCodeCount": 28
+      },
+      {
+        "imgColorCode": "ORANGE",
+        "imgColorCodeCount": 24
+      },
+      {
+        "imgColorCode": "KHAKI",
+        "imgColorCodeCount": 23
+      },
+      {
+        "imgColorCode": "WHITE",
+        "imgColorCodeCount": 12
+      },
+      {
+        "imgColorCode": "YELLOW",
+        "imgColorCodeCount": 11
+      },
+      {
+        "imgColorCode": "WINE",
+        "imgColorCodeCount": 6
+      }
+    ],
+    "recommendKeywordGroupResult": [
+      {
+        "keyword": "반팔",
+        "count": 196
+      },
+      {
+        "keyword": "슬림",
+        "count": 9
+      },
+      {
+        "keyword": "치노팬츠",
+        "count": 3
+      },
+      {
+        "keyword": "스트레이트",
+        "count": 2
+      },
+      {
+        "keyword": "코치자켓",
+        "count": 2
+      },
+      {
+        "keyword": "가죽",
+        "count": 1
+      },
+      {
+        "keyword": "긴팔",
+        "count": 1
+      },
+      {
+        "keyword": "싱글",
+        "count": 1
+      },
+      {
+        "keyword": "클래식",
+        "count": 1
+      },
+      {
+        "keyword": "후드집업",
+        "count": 1
+      }
+    ],
+    "usedStatusGroupResult": [
+      {
+        "usedStatus": "NEW",
+        "count": 1
+      },
+      {
+        "usedStatus": "USED",
+        "count": 1
+      },
+      {
+        "usedStatus": "REFURB",
+        "count": 1
+      }
+    ]
+  },
+  "items": [
+    {
+      "itemNo": 117757690,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/0b4a3d68db951ad18b1e5e8b9b10211d.jpeg/_dims_/resize/300x300/extent/300x400",
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/8f8209ff93c95cca46d1aea85c1cfd21.jpeg/_dims_/resize/300x300/extent/300x400",
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/b39f3dae844f7a3190fcdfc4ce197c21.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "STONE ISLAND",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117757690",
+      "name": "디몬트 스톤 남성 와펜 패치 램스울 반집업 니트(네이비) K2S15 5100040 S00A3 V0020",
+      "price": "545,600",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "1,075,000",
+      "normalPrice": "1,075,000",
+      "discountRate": "49",
+      "likeStatus": false,
+      "appDiscountRate": "49",
+      "appPrice": "545,600",
+      "likeImageUrl": "https://static-ux.mustit.co.kr/img/m/m_icon/icon_zzim_on.png",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117757668,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/253bb18d9c784e6a68f6e4fad07d1636.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117757668",
+      "name": "디몬트 막스마라 여성 레지나 벨티드 롱 코트(뉴트럴) 2525016102600 002",
+      "price": "1,047,600",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,065,000",
+      "normalPrice": "2,065,000",
+      "discountRate": "49",
+      "likeStatus": false,
+      "appDiscountRate": "49",
+      "appPrice": "1,047,600",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117757667,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/db74d75311846e9c48670e5d5be59809.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117757667",
+      "name": "디몬트 막스마라 여성 레지나 벨티드 롱 코트(네이비) 2525016102600 010",
+      "price": "1,086,400",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,065,000",
+      "normalPrice": "2,065,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,086,400",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117757666,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/b4502b4c4a185cd38f4e40e87e80e9da.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117757666",
+      "name": "디몬트 막스마라 여성 레지나 벨티드 롱 코트(그레이) 2525016102600 011",
+      "price": "1,047,600",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,065,000",
+      "normalPrice": "2,065,000",
+      "discountRate": "49",
+      "likeStatus": false,
+      "appDiscountRate": "49",
+      "appPrice": "1,047,600",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117757664,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/2af06bca65ca81a9be1e282ca19ce736.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117757664",
+      "name": "디몬트 막스마라 여성 레지나 벨티드 롱 코트(블랙) 2525016102600 013",
+      "price": "1,086,400",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,065,000",
+      "normalPrice": "2,065,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,086,400",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117705403,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/b8c1a7e5809013760fb5e99d2db39c9a.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Moncler",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117705403",
+      "name": "디몬트 몽클레어 공용 나일론 카모 베스트 키링(밀리터리) 6F00002 M7727 F88",
+      "price": "356,000",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "677,000",
+      "normalPrice": "677,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "356,000",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117704810,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/e64c41cb5d0aac8a0946a400d4e6d264.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704810",
+      "name": "디몬트 막스마라 여성 코르테 벨트 랩 코트(아이보리) 2525016062 048",
+      "price": "773,100",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "1,834,000",
+      "normalPrice": "1,834,000",
+      "discountRate": "58",
+      "likeStatus": false,
+      "appDiscountRate": "58",
+      "appPrice": "773,100",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117704807,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/cfcd0b6617e4c0f033d8234083ec7a7f.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704807",
+      "name": "디몬트 막스마라 여성 코르테 벨트 랩 코트(도브그레이) 2525016062 002",
+      "price": "773,100",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "1,981,000",
+      "normalPrice": "1,981,000",
+      "discountRate": "61",
+      "likeStatus": false,
+      "appDiscountRate": "61",
+      "appPrice": "773,100",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117704725,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/3edbbfc823c76e9ac72fbc92fdadd010.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "DIOR",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704725",
+      "name": "디몬트 디올 남성 B80 라운지 까나쥬 니트 스니커즈(블랙) 3SN333AAS 900",
+      "price": "1,407,200",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,679,000",
+      "normalPrice": "2,679,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,407,200",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117704616,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/a8ff018d5e221eec81f4ec4b5bcabf94.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Moncler",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704616",
+      "name": "디몬트 몽클레어 남성 LYCO 숏 패딩 자켓(네이비) 1A00134 597X2 779",
+      "price": "1,913,800",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "3,639,000",
+      "normalPrice": "3,639,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,913,800",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117704433,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/9945cb5ebac66bb036996c2987bd405e.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "CELINE",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704433",
+      "name": "디몬트 셀린느 남성 트리오페 자수 로고 울 니트(그린) 2AH80322U 31FE",
+      "price": "1,452,500",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,899,000",
+      "normalPrice": "2,899,000",
+      "discountRate": "50",
+      "likeStatus": false,
+      "appDiscountRate": "50",
+      "appPrice": "1,452,500",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117704323,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/14c4eaa841e7b6619e0cff8c1acd7f45.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704323",
+      "name": "디몬트 막스마라 여성 펠리체 후드 패딩 자켓(블랙) 2529486155600 004",
+      "price": "1,151,400",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,190,000",
+      "normalPrice": "2,190,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,151,400",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117704322,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/03e8dfff76dd001fb137677486e8d870.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117704322",
+      "name": "디몬트 막스마라 여성 세이카 퀼팅 패딩 자켓(베이지) 2529486065600 023",
+      "price": "762,400",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "1,492,000",
+      "normalPrice": "1,492,000",
+      "discountRate": "49",
+      "likeStatus": false,
+      "appDiscountRate": "49",
+      "appPrice": "762,400",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117703385,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/7a4ed6f190067107fad4f85fc376e53c.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117703385",
+      "name": "디몬트 막스마라 여성 세이 롱패딩 자켓(브라운) 2529496085600 072",
+      "price": "1,041,800",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,190,000",
+      "normalPrice": "2,190,000",
+      "discountRate": "52",
+      "likeStatus": false,
+      "appDiscountRate": "52",
+      "appPrice": "1,041,800",
+      "likeImageUrl": "https://static-ux.mustit.co.kr/img/m/m_icon/icon_zzim_on.png",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117703384,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/7694d0168bdef6c820ea6bb89c4ce5df.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117703384",
+      "name": "디몬트 막스마라 여성 트레필 벨트 패딩 코트 자켓(베이지) 2529496035600 040",
+      "price": "1,259,100",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,398,000",
+      "normalPrice": "2,398,000",
+      "discountRate": "47",
+      "likeStatus": false,
+      "appDiscountRate": "47",
+      "appPrice": "1,259,100",
+      "likeImageUrl": "https://static-ux.mustit.co.kr/img/m/m_icon/icon_zzim_on.png",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117702964,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/02f0702828842eb43ad421b8759ec370.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Brunello Cucinelli",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117702964",
+      "name": "디몬트 브루넬로쿠치넬리 남성 리브 캐시미어 비니(그레이) M2240900 CBL55",
+      "price": "427,700",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "866,000",
+      "normalPrice": "866,000",
+      "discountRate": "51",
+      "likeStatus": false,
+      "appDiscountRate": "51",
+      "appPrice": "427,700",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117679333,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/5c107eecab5c0816d5611adde6a53788.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117679333",
+      "name": "디몬트 막스마라 여성 노베프 리버시블 벨트 패딩 코트(진베이지) 2529496055600 071",
+      "price": "1,196,000",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,398,000",
+      "normalPrice": "2,398,000",
+      "discountRate": "50",
+      "likeStatus": false,
+      "appDiscountRate": "50",
+      "appPrice": "1,196,000",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117679332,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/8d7bb42e02eb86c14afa534a37731562.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117679332",
+      "name": "디몬트 막스마라 여성 노베프 리버시블 벨트 패딩 코트(모카) 2529496055600 070",
+      "price": "1,139,300",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,398,000",
+      "normalPrice": "2,398,000",
+      "discountRate": "52",
+      "likeStatus": false,
+      "appDiscountRate": "52",
+      "appPrice": "1,139,300",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    },
+    {
+      "itemNo": 117679331,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/12036c192df715b87e3676dcc1be661a.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117679331",
+      "name": "디몬트 막스마라 여성 노베프 리버시블 벨트 패딩 코트(도브그레이) 2529496055600 019",
+      "price": "1,141,800",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,398,000",
+      "normalPrice": "2,398,000",
+      "discountRate": "52",
+      "likeStatus": false,
+      "appDiscountRate": "52",
+      "appPrice": "1,141,800",
+      "likeImageUrl": "",
+      "webSpacingInfo": "odd"
+    },
+    {
+      "itemNo": 117679330,
+      "imageUrlList": [
+        "https://image.mustit.co.kr/lib/upload/product/dmont/2025/11/4b05cec5932f3bd18b3108f55eb7fc92.jpeg/_dims_/resize/300x300/extent/300x400"
+      ],
+      "brandName": "Max Mara",
+      "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/117679330",
+      "name": "디몬트 막스마라 여성 노베프 리버시블 벨트 패딩 코트(연베이지) 2529496055600 009",
+      "price": "1,141,800",
+      "tagList": [
+        {
+          "title": "무료배송",
+          "textColor": "#888888",
+          "bgColor": "#ffffff",
+          "borderColor": "#dddddd"
+        }
+      ],
+      "originalPrice": "2,398,000",
+      "normalPrice": "2,398,000",
+      "discountRate": "52",
+      "likeStatus": false,
+      "appDiscountRate": "52",
+      "appPrice": "1,141,800",
+      "likeImageUrl": "",
+      "webSpacingInfo": "even"
+    }
+  ]
+}

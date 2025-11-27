@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlEndpoint;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 
 /**
  * CrawlEndpoint Test Fixture

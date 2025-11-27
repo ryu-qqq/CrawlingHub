@@ -35,6 +35,7 @@ public class Seller {
     private MustItSellerName mustItSellerName;
     private SellerName sellerName;
     private SellerStatus status;
+    private int productCount;
 
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -60,6 +61,7 @@ public class Seller {
                 mustItSellerName,
                 sellerName,
                 SellerStatus.ACTIVE,
+                0, // 신규 셀러는 상품 수 0
                 now,
                 now,
                 clock);
@@ -72,6 +74,7 @@ public class Seller {
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
      * @param status 셀러 상태
+     * @param productCount 상품 수
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
      * @param clock 시간 제어
@@ -82,6 +85,7 @@ public class Seller {
             MustItSellerName mustItSellerName,
             SellerName sellerName,
             SellerStatus status,
+            int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             Clock clock) {
@@ -89,7 +93,7 @@ public class Seller {
             throw new IllegalArgumentException("sellerId는 null일 수 없습니다.");
         }
         return new Seller(
-                sellerId, mustItSellerName, sellerName, status, createdAt, updatedAt, clock);
+                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt, clock);
     }
 
     /**
@@ -99,6 +103,7 @@ public class Seller {
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
      * @param status 셀러 상태
+     * @param productCount 상품 수
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
      * @param clock 시간 제어
@@ -109,10 +114,11 @@ public class Seller {
             MustItSellerName mustItSellerName,
             SellerName sellerName,
             SellerStatus status,
+            int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             Clock clock) {
-        return of(sellerId, mustItSellerName, sellerName, status, createdAt, updatedAt, clock);
+        return of(sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt, clock);
     }
 
     /** 생성자 (private) */
@@ -121,6 +127,7 @@ public class Seller {
             MustItSellerName mustItSellerName,
             SellerName sellerName,
             SellerStatus status,
+            int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             Clock clock) {
@@ -128,6 +135,7 @@ public class Seller {
         this.mustItSellerName = mustItSellerName;
         this.sellerName = sellerName;
         this.status = status;
+        this.productCount = productCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.clock = clock;
@@ -216,6 +224,23 @@ public class Seller {
         return newSellerName != null && !this.sellerName.equals(newSellerName);
     }
 
+    /**
+     * 상품 수 업데이트
+     *
+     * <p>META 크롤링 결과에서 파싱된 총 상품 수를 업데이트합니다.
+     *
+     * @param newProductCount 새로운 상품 수 (0 이상)
+     */
+    public void updateProductCount(int newProductCount) {
+        if (newProductCount < 0) {
+            throw new IllegalArgumentException("상품 수는 0 이상이어야 합니다: " + newProductCount);
+        }
+        if (this.productCount != newProductCount) {
+            this.productCount = newProductCount;
+            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        }
+    }
+
     // ==================== Getter ====================
 
     public SellerId getSellerId() {
@@ -247,6 +272,10 @@ public class Seller {
 
     public SellerStatus getStatus() {
         return status;
+    }
+
+    public int getProductCount() {
+        return productCount;
     }
 
     public LocalDateTime getCreatedAt() {

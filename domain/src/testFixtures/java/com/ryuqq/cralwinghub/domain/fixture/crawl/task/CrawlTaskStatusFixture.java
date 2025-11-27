@@ -1,7 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.crawl.task.vo.CrawlTaskStatus;
-
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.util.List;
 
 /**
@@ -20,11 +19,7 @@ public final class CrawlTaskStatusFixture {
      * @return WAITING, PUBLISHED, RUNNING 목록
      */
     public static List<CrawlTaskStatus> inProgressStatuses() {
-        return List.of(
-                CrawlTaskStatus.WAITING,
-                CrawlTaskStatus.PUBLISHED,
-                CrawlTaskStatus.RUNNING
-        );
+        return List.of(CrawlTaskStatus.WAITING, CrawlTaskStatus.PUBLISHED, CrawlTaskStatus.RUNNING);
     }
 
     /**
@@ -33,10 +28,7 @@ public final class CrawlTaskStatusFixture {
      * @return SUCCESS, FAILED 목록
      */
     public static List<CrawlTaskStatus> terminalStatuses() {
-        return List.of(
-                CrawlTaskStatus.SUCCESS,
-                CrawlTaskStatus.FAILED
-        );
+        return List.of(CrawlTaskStatus.SUCCESS, CrawlTaskStatus.FAILED);
     }
 
     /**
@@ -45,10 +37,7 @@ public final class CrawlTaskStatusFixture {
      * @return FAILED, TIMEOUT 목록
      */
     public static List<CrawlTaskStatus> retryableStatuses() {
-        return List.of(
-                CrawlTaskStatus.FAILED,
-                CrawlTaskStatus.TIMEOUT
-        );
+        return List.of(CrawlTaskStatus.FAILED, CrawlTaskStatus.TIMEOUT);
     }
 
     private CrawlTaskStatusFixture() {

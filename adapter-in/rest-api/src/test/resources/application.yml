@@ -1,0 +1,25 @@
+# REST API 모듈 테스트용 설정
+api:
+  endpoints:
+    base-v1: /api/v1
+    seller:
+      base: /sellers
+      by-id: /{id}
+      status: /{id}/status
+    schedule:
+      base: /schedules
+      by-id: /{id}
+    task:
+      base: /tasks
+      by-id: /{id}
+    user-agent:
+      base: /user-agents
+      pool-status: /pool-status
+      recover: /recover
+    execution:
+      base: /executions
+      by-id: /{id}
+
+spring:
+  main:
+    allow-bean-definition-overriding: true

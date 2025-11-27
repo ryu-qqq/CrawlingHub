@@ -1,8 +1,10 @@
 package com.ryuqq.crawlinghub.application.schedule.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 크롤 스케줄러 아웃박스 조회 Port (Port Out).
@@ -13,6 +15,14 @@ import java.util.List;
  * @since 1.0.0
  */
 public interface CrawlSchedulerOutBoxQueryPort {
+
+    /**
+     * 히스토리 ID로 아웃박스 조회
+     *
+     * @param historyId 히스토리 ID
+     * @return 아웃박스 (Optional)
+     */
+    Optional<CrawlSchedulerOutBox> findByHistoryId(CrawlSchedulerHistoryId historyId);
 
     /**
      * 상태별 아웃박스 목록 조회.

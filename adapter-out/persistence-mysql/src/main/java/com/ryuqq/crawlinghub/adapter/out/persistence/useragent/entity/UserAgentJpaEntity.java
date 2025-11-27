@@ -1,0 +1,174 @@
+package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity;
+
+import com.ryuqq.crawlinghub.adapter.out.persistence.entity.BaseAuditEntity;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+
+/**
+ * UserAgentJpaEntity - UserAgent JPA Entity
+ *
+ * <p>Persistence Layer의 JPA Entity로서 user_agent 테이블과 매핑됩니다.
+ *
+ * <p><strong>BaseAuditEntity 상속:</strong>
+ *
+ * <ul>
+ *   <li>공통 감사 필드 상속: createdAt, updatedAt
+ *   <li>시간 정보는 Domain에서 관리하여 전달
+ * </ul>
+ *
+ * <p><strong>Long FK 전략:</strong>
+ *
+ * <ul>
+ *   <li>JPA 관계 어노테이션 사용 금지 (@ManyToOne, @OneToMany 등)
+ *   <li>모든 외래키는 Long 타입으로 직접 관리
+ * </ul>
+ *
+ * <p><strong>Lombok 금지:</strong>
+ *
+ * <ul>
+ *   <li>Plain Java getter 사용
+ *   <li>Setter 제공 금지
+ *   <li>명시적 생성자 제공
+ * </ul>
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@Entity
+@Table(name = "user_agent")
+public class UserAgentJpaEntity extends BaseAuditEntity {
+
+    /** 기본 키 - AUTO_INCREMENT */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    /**
+     * 암호화된 토큰 (AES-256 Base64)
+     *
+     * <p>복호화 불가, 암호화 상태로만 저장/비교
+     */
+    @Column(name = "token", nullable = false, length = 500)
+    private String token;
+
+    /** UserAgent 상태 (AVAILABLE/SUSPENDED/BLOCKED) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private UserAgentStatus status;
+
+    /** Health Score (0-100) */
+    @Column(name = "health_score", nullable = false)
+    private int healthScore;
+
+    /** 마지막 사용 시각 (nullable) */
+    @Column(name = "last_used_at")
+    private LocalDateTime lastUsedAt;
+
+    /** 일일 요청 수 */
+    @Column(name = "requests_per_day", nullable = false)
+    private int requestsPerDay;
+
+    /**
+     * JPA 기본 생성자 (protected)
+     *
+     * <p>JPA 스펙 요구사항으로 반드시 필요합니다.
+     */
+    protected UserAgentJpaEntity() {}
+
+    /**
+     * 전체 필드 생성자 (private)
+     *
+     * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
+     *
+     * @param id 기본 키
+     * @param token 암호화된 토큰
+     * @param status UserAgent 상태
+     * @param healthScore Health Score
+     * @param lastUsedAt 마지막 사용 시각
+     * @param requestsPerDay 일일 요청 수
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     */
+    private UserAgentJpaEntity(
+            Long id,
+            String token,
+            UserAgentStatus status,
+            int healthScore,
+            LocalDateTime lastUsedAt,
+            int requestsPerDay,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+        super(createdAt, updatedAt);
+        this.id = id;
+        this.token = token;
+        this.status = status;
+        this.healthScore = healthScore;
+        this.lastUsedAt = lastUsedAt;
+        this.requestsPerDay = requestsPerDay;
+    }
+
+    /**
+     * of() 스태틱 팩토리 메서드 (Mapper 전용)
+     *
+     * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
+     *
+     * <p>Mapper에서 Domain → Entity 변환 시 사용합니다.
+     *
+     * @param id 기본 키
+     * @param token 암호화된 토큰
+     * @param status UserAgent 상태
+     * @param healthScore Health Score
+     * @param lastUsedAt 마지막 사용 시각
+     * @param requestsPerDay 일일 요청 수
+     * @param createdAt 생성 일시
+     * @param updatedAt 수정 일시
+     * @return UserAgentJpaEntity 인스턴스
+     */
+    public static UserAgentJpaEntity of(
+            Long id,
+            String token,
+            UserAgentStatus status,
+            int healthScore,
+            LocalDateTime lastUsedAt,
+            int requestsPerDay,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+        return new UserAgentJpaEntity(
+                id, token, status, healthScore, lastUsedAt, requestsPerDay, createdAt, updatedAt);
+    }
+
+    // ===== Getters (Setter 제공 금지) =====
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public UserAgentStatus getStatus() {
+        return status;
+    }
+
+    public int getHealthScore() {
+        return healthScore;
+    }
+
+    public LocalDateTime getLastUsedAt() {
+        return lastUsedAt;
+    }
+
+    public int getRequestsPerDay() {
+        return requestsPerDay;
+    }
+}

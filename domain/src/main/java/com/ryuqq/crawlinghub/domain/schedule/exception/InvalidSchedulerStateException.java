@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.schedule.exception;
 
 import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-
 import java.util.Map;
 
 /**
@@ -23,14 +22,13 @@ public final class InvalidSchedulerStateException extends DomainException {
      * @param currentStatus 현재 상태
      * @param expectedStatus 기대 상태
      */
-    public InvalidSchedulerStateException(SchedulerStatus currentStatus, SchedulerStatus expectedStatus) {
+    public InvalidSchedulerStateException(
+            SchedulerStatus currentStatus, SchedulerStatus expectedStatus) {
         super(
                 ERROR_CODE.getCode(),
                 "스케줄러 상태가 유효하지 않습니다. 현재: " + currentStatus + ", 기대: " + expectedStatus,
                 Map.of(
                         "currentStatus", currentStatus.name(),
-                        "expectedStatus", expectedStatus.name()
-                )
-        );
+                        "expectedStatus", expectedStatus.name()));
     }
 }

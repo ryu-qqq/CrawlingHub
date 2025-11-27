@@ -80,6 +80,7 @@ public class SellerAssembler {
                 mustItSellerName,
                 sellerName,
                 status,
+                0, // productCount (비교 불필요)
                 null, // createdAt (비교 불필요)
                 null, // updatedAt (비교 불필요)
                 clockHolder.clock());

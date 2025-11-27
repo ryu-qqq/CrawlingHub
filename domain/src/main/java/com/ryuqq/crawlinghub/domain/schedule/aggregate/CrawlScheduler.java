@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
@@ -171,14 +172,20 @@ public class CrawlScheduler {
      * 등록 이벤트 발행 (영속화 후 호출)
      *
      * <p>ID 할당 후 호출해야 합니다.
+     *
+     * @param historyId 히스토리 ID (Outbox 조회용)
      */
-    public void addRegisteredEvent() {
+    public void addRegisteredEvent(CrawlSchedulerHistoryId historyId) {
         if (this.crawlSchedulerId == null || this.crawlSchedulerId.isNew()) {
             throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
+        }
+        if (historyId == null) {
+            throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
         }
         this.domainEvents.add(
                 SchedulerRegisteredEvent.of(
                         this.crawlSchedulerId,
+                        historyId,
                         this.sellerId,
                         this.schedulerName,
                         this.cronExpression));

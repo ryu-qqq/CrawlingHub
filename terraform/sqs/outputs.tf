@@ -41,3 +41,31 @@ output "sqs_access_policy_arn" {
   description = "ARN of the IAM policy for SQS access"
   value       = aws_iam_policy.sqs_access.arn
 }
+
+# ========================================
+# EventBridge Trigger Queue Outputs
+# ========================================
+output "eventbridge_trigger_queue_url" {
+  description = "URL of the EventBridge trigger SQS queue"
+  value       = module.eventbridge_trigger_queue.queue_url
+}
+
+output "eventbridge_trigger_queue_arn" {
+  description = "ARN of the EventBridge trigger SQS queue"
+  value       = module.eventbridge_trigger_queue.queue_arn
+}
+
+output "eventbridge_trigger_queue_name" {
+  description = "Name of the EventBridge trigger SQS queue"
+  value       = module.eventbridge_trigger_queue.queue_name
+}
+
+output "eventbridge_trigger_dlq_url" {
+  description = "URL of the EventBridge trigger dead letter queue"
+  value       = module.eventbridge_trigger_queue.dlq_url
+}
+
+output "eventbridge_trigger_dlq_arn" {
+  description = "ARN of the EventBridge trigger dead letter queue"
+  value       = module.eventbridge_trigger_queue.dlq_arn
+}

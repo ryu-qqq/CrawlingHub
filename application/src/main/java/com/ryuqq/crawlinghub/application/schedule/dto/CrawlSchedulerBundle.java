@@ -84,11 +84,14 @@ public class CrawlSchedulerBundle {
      * <p><strong>주의</strong>: 이 메서드는 등록 이벤트를 자동 발행합니다. 이미 발행된 스케줄러를 다시 가져오려면 캐시된 인스턴스를 사용하세요.
      *
      * @return CrawlScheduler with ID (이벤트 발행됨)
-     * @throws IllegalStateException ID가 아직 할당되지 않은 경우
+     * @throws IllegalStateException ID 또는 히스토리 ID가 아직 할당되지 않은 경우
      */
     public CrawlScheduler getSavedScheduler() {
         if (savedSchedulerId == null) {
             throw new IllegalStateException("스케줄러 ID가 아직 할당되지 않았습니다.");
+        }
+        if (savedHistoryId == null) {
+            throw new IllegalStateException("히스토리 ID가 아직 할당되지 않았습니다.");
         }
         CrawlScheduler savedScheduler =
                 CrawlScheduler.of(
@@ -101,8 +104,8 @@ public class CrawlSchedulerBundle {
                         scheduler.getUpdatedAt(),
                         clock);
 
-        // ID 할당 후 자동으로 등록 이벤트 발행
-        savedScheduler.addRegisteredEvent();
+        // ID 할당 후 자동으로 등록 이벤트 발행 (historyId 전달)
+        savedScheduler.addRegisteredEvent(savedHistoryId);
         return savedScheduler;
     }
 
@@ -116,7 +119,18 @@ public class CrawlSchedulerBundle {
         if (savedSchedulerId == null) {
             throw new IllegalStateException("스케줄러 ID가 아직 할당되지 않았습니다.");
         }
-        return CrawlSchedulerHistory.fromScheduler(getSavedScheduler(), clock);
+        // 히스토리 생성용 스케줄러 (이벤트 발행 없이)
+        CrawlScheduler schedulerForHistory =
+                CrawlScheduler.of(
+                        savedSchedulerId,
+                        scheduler.getSellerId(),
+                        scheduler.getSchedulerName(),
+                        scheduler.getCronExpression(),
+                        scheduler.getStatus(),
+                        scheduler.getCreatedAt(),
+                        scheduler.getUpdatedAt(),
+                        clock);
+        return CrawlSchedulerHistory.fromScheduler(schedulerForHistory, clock);
     }
 
     /**
