@@ -33,7 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
  * @DisplayName("OrderCommandController REST Docs")
  * class OrderCommandControllerDocsTest extends RestDocsTestSupport {
  *
- *     @MockBean
+ *     @MockitoBean
  *     private CreateOrderUseCase createOrderUseCase;
  *
  *     @Test

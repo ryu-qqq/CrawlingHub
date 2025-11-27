@@ -28,7 +28,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -43,13 +43,13 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("SellerQueryController REST Docs")
 class SellerQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockBean
+    @MockitoBean
     private GetSellerUseCase getSellerUseCase;
 
-    @MockBean
+    @MockitoBean
     private SearchSellersUseCase searchSellersUseCase;
 
-    @MockBean
+    @MockitoBean
     private SellerQueryApiMapper sellerQueryApiMapper;
 
     @Test
