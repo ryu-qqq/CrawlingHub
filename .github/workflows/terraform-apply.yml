@@ -7,6 +7,21 @@ on:
     paths:
       - 'terraform/**'
       - '.github/workflows/terraform-*.yml'
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Terraform module to apply (leave empty for all)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - ecr
+          - ecs-cluster
+          - elasticache
+          - ecs-web-api
+          - ecs-scheduler
+          - eventbridge
 
 permissions:
   contents: read
@@ -87,6 +102,10 @@ jobs:
                 echo "  → Importing crawlinghub-scheduler-prod ECR repository..."
                 terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
               fi
+              if aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → Importing crawlinghub-crawl-worker-prod ECR repository..."
+                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed or already in state"
+              fi
             fi
 
             echo "✅ Import 완료! Plan 재실행..."
@@ -136,7 +155,7 @@ jobs:
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Modules Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECR Repositories (web-api, scheduler)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECR Repositories (web-api, scheduler, crawl-worker)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Cluster" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ElastiCache Redis" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Service: web-api" >> $GITHUB_STEP_SUMMARY
