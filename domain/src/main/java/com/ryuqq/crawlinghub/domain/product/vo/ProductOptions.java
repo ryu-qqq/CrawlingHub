@@ -24,55 +24,37 @@ public class ProductOptions {
         this.options = options != null ? new ArrayList<>(options) : new ArrayList<>();
     }
 
-    /**
-     * 빈 컬렉션 생성
-     */
+    /** 빈 컬렉션 생성 */
     public static ProductOptions empty() {
         return new ProductOptions(Collections.emptyList());
     }
 
-    /**
-     * 옵션 목록으로 생성
-     */
+    /** 옵션 목록으로 생성 */
     public static ProductOptions of(List<ProductOption> options) {
         return new ProductOptions(options);
     }
 
-    /**
-     * 옵션 목록으로 생성 (of 별칭)
-     */
+    /** 옵션 목록으로 생성 (of 별칭) */
     public static ProductOptions from(List<ProductOption> options) {
         return of(options);
     }
 
-    /**
-     * 모든 옵션 반환 (불변)
-     */
+    /** 모든 옵션 반환 (불변) */
     public List<ProductOption> getAll() {
         return Collections.unmodifiableList(options);
     }
 
-    /**
-     * 재고가 있는 옵션만 반환
-     */
+    /** 재고가 있는 옵션만 반환 */
     public List<ProductOption> getInStockOptions() {
-        return options.stream()
-                .filter(ProductOption::isInStock)
-                .collect(Collectors.toList());
+        return options.stream().filter(ProductOption::isInStock).collect(Collectors.toList());
     }
 
-    /**
-     * 품절 옵션만 반환
-     */
+    /** 품절 옵션만 반환 */
     public List<ProductOption> getSoldOutOptions() {
-        return options.stream()
-                .filter(ProductOption::isSoldOut)
-                .collect(Collectors.toList());
+        return options.stream().filter(ProductOption::isSoldOut).collect(Collectors.toList());
     }
 
-    /**
-     * 특정 색상의 옵션만 반환
-     */
+    /** 특정 색상의 옵션만 반환 */
     public List<ProductOption> getByColor(String color) {
         if (color == null || color.isBlank()) {
             return Collections.emptyList();
@@ -82,61 +64,40 @@ public class ProductOptions {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 특정 사이즈의 옵션만 반환
-     */
+    /** 특정 사이즈의 옵션만 반환 */
     public List<ProductOption> getBySize(String size) {
         if (size == null || size.isBlank()) {
             return Collections.emptyList();
         }
-        return options.stream()
-                .filter(opt -> size.equals(opt.size()))
-                .collect(Collectors.toList());
+        return options.stream().filter(opt -> size.equals(opt.size())).collect(Collectors.toList());
     }
 
-    /**
-     * 옵션 번호로 찾기
-     */
+    /** 옵션 번호로 찾기 */
     public ProductOption findByOptionNo(long optionNo) {
-        return options.stream()
-                .filter(opt -> opt.optionNo() == optionNo)
-                .findFirst()
-                .orElse(null);
+        return options.stream().filter(opt -> opt.optionNo() == optionNo).findFirst().orElse(null);
     }
 
-    /**
-     * 총 재고 수량
-     */
+    /** 총 재고 수량 */
     public int getTotalStock() {
-        return options.stream()
-                .mapToInt(ProductOption::stock)
-                .sum();
+        return options.stream().mapToInt(ProductOption::stock).sum();
     }
 
-    /**
-     * 옵션 개수
-     */
+    /** 옵션 개수 */
     public int size() {
         return options.size();
     }
 
-    /**
-     * 비어있는지 확인
-     */
+    /** 비어있는지 확인 */
     public boolean isEmpty() {
         return options.isEmpty();
     }
 
-    /**
-     * 모든 옵션이 품절인지 확인
-     */
+    /** 모든 옵션이 품절인지 확인 */
     public boolean isAllSoldOut() {
         return !options.isEmpty() && options.stream().allMatch(ProductOption::isSoldOut);
     }
 
-    /**
-     * 고유 색상 목록 반환
-     */
+    /** 고유 색상 목록 반환 */
     public List<String> getDistinctColors() {
         return options.stream()
                 .map(ProductOption::color)
@@ -145,9 +106,7 @@ public class ProductOptions {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 고유 사이즈 목록 반환
-     */
+    /** 고유 사이즈 목록 반환 */
     public List<String> getDistinctSizes() {
         return options.stream()
                 .map(ProductOption::size)
@@ -171,8 +130,9 @@ public class ProductOptions {
             return true;
         }
 
-        Map<Long, ProductOption> otherMap = other.options.stream()
-                .collect(Collectors.toMap(ProductOption::optionNo, Function.identity()));
+        Map<Long, ProductOption> otherMap =
+                other.options.stream()
+                        .collect(Collectors.toMap(ProductOption::optionNo, Function.identity()));
 
         for (ProductOption option : this.options) {
             ProductOption otherOption = otherMap.get(option.optionNo());
@@ -195,14 +155,16 @@ public class ProductOptions {
             return new ArrayList<>(this.options);
         }
 
-        Map<Long, ProductOption> prevMap = previous.options.stream()
-                .collect(Collectors.toMap(ProductOption::optionNo, Function.identity()));
+        Map<Long, ProductOption> prevMap =
+                previous.options.stream()
+                        .collect(Collectors.toMap(ProductOption::optionNo, Function.identity()));
 
         return this.options.stream()
-                .filter(opt -> {
-                    ProductOption prevOpt = prevMap.get(opt.optionNo());
-                    return prevOpt == null || opt.hasStockChange(prevOpt);
-                })
+                .filter(
+                        opt -> {
+                            ProductOption prevOpt = prevMap.get(opt.optionNo());
+                            return prevOpt == null || opt.hasStockChange(prevOpt);
+                        })
                 .collect(Collectors.toList());
     }
 
@@ -217,9 +179,8 @@ public class ProductOptions {
             return new ArrayList<>(this.options);
         }
 
-        List<Long> previousOptionNos = previous.options.stream()
-                .map(ProductOption::optionNo)
-                .collect(Collectors.toList());
+        List<Long> previousOptionNos =
+                previous.options.stream().map(ProductOption::optionNo).collect(Collectors.toList());
 
         return this.options.stream()
                 .filter(opt -> !previousOptionNos.contains(opt.optionNo()))
@@ -228,8 +189,12 @@ public class ProductOptions {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ProductOptions that = (ProductOptions) o;
         return Objects.equals(options, that.options);
     }

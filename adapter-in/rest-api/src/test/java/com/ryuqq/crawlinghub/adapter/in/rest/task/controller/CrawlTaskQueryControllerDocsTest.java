@@ -31,9 +31,9 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * CrawlTaskQueryController REST Docs 테스트
@@ -46,14 +46,11 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("CrawlTaskQueryController REST Docs")
 class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private ListCrawlTasksUseCase listCrawlTasksUseCase;
+    @MockitoBean private ListCrawlTasksUseCase listCrawlTasksUseCase;
 
-    @MockitoBean
-    private GetCrawlTaskUseCase getCrawlTaskUseCase;
+    @MockitoBean private GetCrawlTaskUseCase getCrawlTaskUseCase;
 
-    @MockitoBean
-    private CrawlTaskQueryApiMapper crawlTaskQueryApiMapper;
+    @MockitoBean private CrawlTaskQueryApiMapper crawlTaskQueryApiMapper;
 
     @Test
     @DisplayName("GET /api/v1/tasks - 크롤 태스크 목록 조회 API 문서")
@@ -135,11 +132,14 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .optional(),
                                         parameterWithName("status")
                                                 .description(
-                                                        "상태 필터 (PENDING/RUNNING/SUCCESS/FAILED/CANCELLED, 선택)")
+                                                        "상태 필터"
+                                                            + " (PENDING/RUNNING/SUCCESS/FAILED/CANCELLED,"
+                                                            + " 선택)")
                                                 .optional(),
                                         parameterWithName("taskType")
                                                 .description(
-                                                        "태스크 유형 필터 (META/MINI_SHOP/DETAIL/OPTION, 선택)")
+                                                        "태스크 유형 필터 (META/MINI_SHOP/DETAIL/OPTION,"
+                                                                + " 선택)")
                                                 .optional(),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (0부터 시작, 기본값: 0)")
@@ -260,8 +260,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "task-query/get",
-                                pathParameters(
-                                        parameterWithName("id").description("크롤 태스크 ID")),
+                                pathParameters(parameterWithName("id").description("크롤 태스크 ID")),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)

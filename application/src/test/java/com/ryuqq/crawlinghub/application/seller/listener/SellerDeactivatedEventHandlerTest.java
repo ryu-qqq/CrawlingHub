@@ -1,18 +1,17 @@
 package com.ryuqq.crawlinghub.application.seller.listener;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.DeactivateSchedulersBySellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.event.SellerDeactivatedEventHandler;
 import com.ryuqq.crawlinghub.application.seller.metrics.SellerEventMetrics;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,14 +32,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SellerDeactivatedEventHandler 테스트")
 class SellerDeactivatedEventHandlerTest {
 
-    @Mock
-    private DeactivateSchedulersBySellerUseCase deactivateSchedulersBySellerUseCase;
+    @Mock private DeactivateSchedulersBySellerUseCase deactivateSchedulersBySellerUseCase;
 
-    @Mock
-    private SellerEventMetrics metrics;
+    @Mock private SellerEventMetrics metrics;
 
-    @InjectMocks
-    private SellerDeactivatedEventHandler handler;
+    @InjectMocks private SellerDeactivatedEventHandler handler;
 
     @Nested
     @DisplayName("handle() 테스트")
@@ -58,11 +54,14 @@ class SellerDeactivatedEventHandlerTest {
                     .willReturn(deactivatedCount);
 
             // Runnable 실행을 위한 doAnswer 설정
-            doAnswer(invocation -> {
-                Runnable runnable = invocation.getArgument(0);
-                runnable.run();
-                return null;
-            }).when(metrics).recordDeactivationEvent(any(Runnable.class));
+            doAnswer(
+                            invocation -> {
+                                Runnable runnable = invocation.getArgument(0);
+                                runnable.run();
+                                return null;
+                            })
+                    .when(metrics)
+                    .recordDeactivationEvent(any(Runnable.class));
 
             // When
             handler.handle(event);
@@ -70,7 +69,8 @@ class SellerDeactivatedEventHandlerTest {
             // Then
             verify(metrics).recordDeactivationEvent(any(Runnable.class));
             verify(deactivateSchedulersBySellerUseCase).execute(sellerId.value());
-            verify(metrics).recordSchedulersDeactivated(eq(sellerId.value()), eq((long) deactivatedCount));
+            verify(metrics)
+                    .recordSchedulersDeactivated(eq(sellerId.value()), eq((long) deactivatedCount));
         }
 
         @Test
@@ -84,11 +84,14 @@ class SellerDeactivatedEventHandlerTest {
             given(deactivateSchedulersBySellerUseCase.execute(sellerId.value()))
                     .willReturn(deactivatedCount);
 
-            doAnswer(invocation -> {
-                Runnable runnable = invocation.getArgument(0);
-                runnable.run();
-                return null;
-            }).when(metrics).recordDeactivationEvent(any(Runnable.class));
+            doAnswer(
+                            invocation -> {
+                                Runnable runnable = invocation.getArgument(0);
+                                runnable.run();
+                                return null;
+                            })
+                    .when(metrics)
+                    .recordDeactivationEvent(any(Runnable.class));
 
             // When
             handler.handle(event);

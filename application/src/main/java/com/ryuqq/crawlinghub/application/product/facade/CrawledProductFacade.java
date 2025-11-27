@@ -1,36 +1,10 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
-import com.ryuqq.crawlinghub.application.product.manager.CrawledProductManager;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
-import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
-import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
-import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
-import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
-import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-
 /**
  * CrawledProduct Facade
  *
  * <p><strong>책임</strong>:
+ *
  * <ul>
  *   <li>QueryPort를 통한 조회 로직 조율
  *   <li>Manager들을 통한 저장/업데이트 조율
@@ -39,6 +13,7 @@ import java.util.Optional;
  * </ul>
  *
  * <p><strong>트랜잭션 전략</strong>:
+ *
  * <ul>
  *   <li>조회는 readOnly 트랜잭션
  *   <li>저장/업데이트 시 Outbox도 같은 트랜잭션에서 저장
@@ -48,7 +23,6 @@ import java.util.Optional;
  * @author development-team
  * @since 1.0.0
  */
-
 public class CrawledProductFacade {
 
     // private final CrawledProductQueryPort crawledProductQueryPort;
@@ -140,7 +114,8 @@ public class CrawledProductFacade {
     //     }
     //
     //     // 이미지 업로드 Outbox 생성 및 이벤트 발행
-    //     createImageOutboxesAndPublishEvent(product, images.getPendingUploadUrls(), ImageType.THUMBNAIL);
+    //     createImageOutboxesAndPublishEvent(product, images.getPendingUploadUrls(),
+    // ImageType.THUMBNAIL);
     //
     //     return product;
     // }
@@ -205,7 +180,8 @@ public class CrawledProductFacade {
     //         SellerId sellerId,
     //         long itemNo,
     //         ProductDetailInfo detailInfo) {
-    //     Optional<CrawledProduct> productOpt = crawledProductQueryPort.findBySellerIdAndItemNo(sellerId, itemNo);
+    //     Optional<CrawledProduct> productOpt =
+    // crawledProductQueryPort.findBySellerIdAndItemNo(sellerId, itemNo);
     //     if (productOpt.isEmpty()) {
     //         return Optional.empty();
     //     }
@@ -255,7 +231,8 @@ public class CrawledProductFacade {
     //         SellerId sellerId,
     //         long itemNo,
     //         List<ProductOption> options) {
-    //     Optional<CrawledProduct> productOpt = crawledProductQueryPort.findBySellerIdAndItemNo(sellerId, itemNo);
+    //     Optional<CrawledProduct> productOpt =
+    // crawledProductQueryPort.findBySellerIdAndItemNo(sellerId, itemNo);
     //     if (productOpt.isEmpty()) {
     //         return Optional.empty();
     //     }
@@ -282,7 +259,8 @@ public class CrawledProductFacade {
     //     imageOutboxManager.markAsCompleted(outbox, s3Url);
     //
     //     // CrawledProduct의 이미지 URL 업데이트
-    //     Optional<CrawledProduct> productOpt = crawledProductQueryPort.findById(outbox.getCrawledProductId());
+    //     Optional<CrawledProduct> productOpt =
+    // crawledProductQueryPort.findById(outbox.getCrawledProductId());
     //     if (productOpt.isPresent()) {
     //         crawledProductManager.markImageAsUploaded(
     //                 productOpt.get(),
@@ -326,7 +304,8 @@ public class CrawledProductFacade {
     //
     //     // 이미 존재하는 Outbox 제외
     //     List<String> newImageUrls = imageUrls.stream()
-    //             .filter(url -> !imageOutboxQueryPort.existsByCrawledProductIdAndOriginalUrl(product.getId(), url))
+    //             .filter(url ->
+    // !imageOutboxQueryPort.existsByCrawledProductIdAndOriginalUrl(product.getId(), url))
     //             .toList();
     //
     //     if (newImageUrls.isEmpty()) {

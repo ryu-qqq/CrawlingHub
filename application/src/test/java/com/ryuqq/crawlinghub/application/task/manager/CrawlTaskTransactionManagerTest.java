@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskPersistencePort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskTransactionManager 테스트")
 class CrawlTaskTransactionManagerTest {
 
-    @Mock
-    private CrawlTaskPersistencePort crawlTaskPersistencePort;
+    @Mock private CrawlTaskPersistencePort crawlTaskPersistencePort;
 
-    @InjectMocks
-    private CrawlTaskTransactionManager manager;
+    @InjectMocks private CrawlTaskTransactionManager manager;
 
     @Nested
     @DisplayName("persist() 테스트")

@@ -1,10 +1,10 @@
 package com.ryuqq.cralwinghub.domain.fixture.execution;
 
-import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.LocalDateTime;
 
 /**

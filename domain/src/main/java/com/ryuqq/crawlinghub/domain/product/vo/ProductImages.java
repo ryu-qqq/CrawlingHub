@@ -22,23 +22,17 @@ public class ProductImages {
         this.images = images != null ? new ArrayList<>(images) : new ArrayList<>();
     }
 
-    /**
-     * 빈 컬렉션 생성
-     */
+    /** 빈 컬렉션 생성 */
     public static ProductImages empty() {
         return new ProductImages(Collections.emptyList());
     }
 
-    /**
-     * 이미지 목록으로 생성
-     */
+    /** 이미지 목록으로 생성 */
     public static ProductImages of(List<ProductImage> images) {
         return new ProductImages(images);
     }
 
-    /**
-     * 썸네일 URL 목록으로 생성
-     */
+    /** 썸네일 URL 목록으로 생성 */
     public static ProductImages fromThumbnailUrls(List<String> urls) {
         if (urls == null || urls.isEmpty()) {
             return empty();
@@ -50,16 +44,12 @@ public class ProductImages {
         return new ProductImages(images);
     }
 
-    /**
-     * URL 목록으로 생성 (fromThumbnailUrls 별칭)
-     */
+    /** URL 목록으로 생성 (fromThumbnailUrls 별칭) */
     public static ProductImages fromUrls(List<String> urls) {
         return fromThumbnailUrls(urls);
     }
 
-    /**
-     * 상세 설명 URL 목록 추가
-     */
+    /** 상세 설명 URL 목록 추가 */
     public ProductImages addDescriptionImages(List<String> urls) {
         if (urls == null || urls.isEmpty()) {
             return this;
@@ -72,16 +62,12 @@ public class ProductImages {
         return new ProductImages(newImages);
     }
 
-    /**
-     * 모든 이미지 반환 (불변)
-     */
+    /** 모든 이미지 반환 (불변) */
     public List<ProductImage> getAll() {
         return Collections.unmodifiableList(images);
     }
 
-    /**
-     * 썸네일 이미지만 반환
-     */
+    /** 썸네일 이미지만 반환 */
     public List<ProductImage> getThumbnails() {
         return images.stream()
                 .filter(ProductImage::isThumbnail)
@@ -89,9 +75,7 @@ public class ProductImages {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 상세 설명 이미지만 반환
-     */
+    /** 상세 설명 이미지만 반환 */
     public List<ProductImage> getDescriptionImages() {
         return images.stream()
                 .filter(ProductImage::isDescription)
@@ -99,18 +83,12 @@ public class ProductImages {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 업로드가 필요한 이미지 반환
-     */
+    /** 업로드가 필요한 이미지 반환 */
     public List<ProductImage> getPendingUploads() {
-        return images.stream()
-                .filter(ProductImage::needsUpload)
-                .collect(Collectors.toList());
+        return images.stream().filter(ProductImage::needsUpload).collect(Collectors.toList());
     }
 
-    /**
-     * 업로드가 필요한 이미지의 원본 URL 목록 반환
-     */
+    /** 업로드가 필요한 이미지의 원본 URL 목록 반환 */
     public List<String> getPendingUploadUrls() {
         return getPendingUploads().stream()
                 .map(ProductImage::originalUrl)
@@ -125,36 +103,33 @@ public class ProductImages {
      * @return 갱신된 ProductImages
      */
     public ProductImages updateS3Url(String originalUrl, String s3Url) {
-        List<ProductImage> updated = images.stream()
-                .map(img -> img.originalUrl().equals(originalUrl) ? img.withS3Uploaded(s3Url) : img)
-                .collect(Collectors.toList());
+        List<ProductImage> updated =
+                images.stream()
+                        .map(
+                                img ->
+                                        img.originalUrl().equals(originalUrl)
+                                                ? img.withS3Uploaded(s3Url)
+                                                : img)
+                        .collect(Collectors.toList());
         return new ProductImages(updated);
     }
 
-    /**
-     * 모든 이미지가 업로드 완료되었는지 확인
-     */
+    /** 모든 이미지가 업로드 완료되었는지 확인 */
     public boolean allUploaded() {
         return images.stream().allMatch(ProductImage::isUploaded);
     }
 
-    /**
-     * 이미지 개수
-     */
+    /** 이미지 개수 */
     public int size() {
         return images.size();
     }
 
-    /**
-     * 비어있는지 확인
-     */
+    /** 비어있는지 확인 */
     public boolean isEmpty() {
         return images.isEmpty();
     }
 
-    /**
-     * 대표 이미지 (첫 번째 썸네일) 반환
-     */
+    /** 대표 이미지 (첫 번째 썸네일) 반환 */
     public ProductImage getMainImage() {
         return getThumbnails().stream().findFirst().orElse(null);
     }
@@ -184,15 +159,17 @@ public class ProductImages {
             return !this.isEmpty();
         }
 
-        List<String> thisUrls = this.images.stream()
-                .map(ProductImage::originalUrl)
-                .sorted()
-                .collect(Collectors.toList());
+        List<String> thisUrls =
+                this.images.stream()
+                        .map(ProductImage::originalUrl)
+                        .sorted()
+                        .collect(Collectors.toList());
 
-        List<String> otherUrls = other.images.stream()
-                .map(ProductImage::originalUrl)
-                .sorted()
-                .collect(Collectors.toList());
+        List<String> otherUrls =
+                other.images.stream()
+                        .map(ProductImage::originalUrl)
+                        .sorted()
+                        .collect(Collectors.toList());
 
         return !thisUrls.equals(otherUrls);
     }
@@ -205,14 +182,13 @@ public class ProductImages {
      */
     public List<String> getNewImageUrls(ProductImages previous) {
         if (previous == null || previous.isEmpty()) {
-            return this.images.stream()
-                    .map(ProductImage::originalUrl)
-                    .collect(Collectors.toList());
+            return this.images.stream().map(ProductImage::originalUrl).collect(Collectors.toList());
         }
 
-        List<String> previousUrls = previous.images.stream()
-                .map(ProductImage::originalUrl)
-                .collect(Collectors.toList());
+        List<String> previousUrls =
+                previous.images.stream()
+                        .map(ProductImage::originalUrl)
+                        .collect(Collectors.toList());
 
         return this.images.stream()
                 .map(ProductImage::originalUrl)
@@ -230,8 +206,12 @@ public class ProductImages {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ProductImages that = (ProductImages) o;
         return Objects.equals(images, that.images);
     }

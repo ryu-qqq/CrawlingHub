@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -74,5 +73,6 @@ public interface ImageOutboxQueryPort {
      * @param originalUrl 원본 URL
      * @return 존재하면 true
      */
-    boolean existsByCrawledProductIdAndOriginalUrl(CrawledProductId crawledProductId, String originalUrl);
+    boolean existsByCrawledProductIdAndOriginalUrl(
+            CrawledProductId crawledProductId, String originalUrl);
 }

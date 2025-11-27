@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.crawl.component.Crawler;
 import com.ryuqq.crawlinghub.application.crawl.component.CrawlerProvider;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
@@ -13,16 +15,14 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.execution.facade.CrawlTaskExecutionFacade;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.ConsumeUserAgentUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecordUserAgentResultUseCase;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,23 +44,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskExecutionService 테스트")
 class CrawlTaskExecutionServiceTest {
 
-    @Mock
-    private CrawlTaskExecutionFacade crawlTaskExecutionFacade;
+    @Mock private CrawlTaskExecutionFacade crawlTaskExecutionFacade;
 
-    @Mock
-    private CrawlerProvider crawlerProvider;
+    @Mock private CrawlerProvider crawlerProvider;
 
-    @Mock
-    private ConsumeUserAgentUseCase consumeUserAgentUseCase;
+    @Mock private ConsumeUserAgentUseCase consumeUserAgentUseCase;
 
-    @Mock
-    private RecordUserAgentResultUseCase recordUserAgentResultUseCase;
+    @Mock private RecordUserAgentResultUseCase recordUserAgentResultUseCase;
 
-    @Mock
-    private Crawler mockCrawler;
+    @Mock private Crawler mockCrawler;
 
-    @InjectMocks
-    private CrawlTaskExecutionService service;
+    @InjectMocks private CrawlTaskExecutionService service;
 
     @Nested
     @DisplayName("execute() 크롤 태스크 실행 테스트")
@@ -70,8 +64,8 @@ class CrawlTaskExecutionServiceTest {
         @DisplayName("[성공] 크롤링 성공 시 completeWithSuccess 호출")
         void shouldCompleteWithSuccessWhenCrawlingSucceeds() {
             // Given
-            ExecuteCrawlTaskCommand command = new ExecuteCrawlTaskCommand(
-                    1L, 1L, 1L, "META", "https://example.com/api");
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
             CrawlTask task = CrawlTaskFixture.aRunningTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             ExecutionContext context = new ExecutionContext(task, execution);
@@ -91,7 +85,9 @@ class CrawlTaskExecutionServiceTest {
             then(consumeUserAgentUseCase).should().execute();
             then(crawlerProvider).should().getCrawler(any(CrawlTaskType.class));
             then(mockCrawler).should().crawl(any(CrawlContext.class));
-            then(recordUserAgentResultUseCase).should().execute(any(RecordUserAgentResultCommand.class));
+            then(recordUserAgentResultUseCase)
+                    .should()
+                    .execute(any(RecordUserAgentResultCommand.class));
             then(crawlTaskExecutionFacade).should().completeWithSuccess(context, successResult);
         }
 
@@ -99,8 +95,8 @@ class CrawlTaskExecutionServiceTest {
         @DisplayName("[성공] 크롤링 실패(HTTP 에러) 시 completeWithFailure 호출")
         void shouldCompleteWithFailureWhenCrawlingFails() {
             // Given
-            ExecuteCrawlTaskCommand command = new ExecuteCrawlTaskCommand(
-                    1L, 1L, 1L, "META", "https://example.com/api");
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
             CrawlTask task = CrawlTaskFixture.aRunningTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             ExecutionContext context = new ExecutionContext(task, execution);
@@ -116,7 +112,9 @@ class CrawlTaskExecutionServiceTest {
             service.execute(command);
 
             // Then
-            then(crawlTaskExecutionFacade).should().completeWithFailure(context, 500, "Internal Server Error");
+            then(crawlTaskExecutionFacade)
+                    .should()
+                    .completeWithFailure(context, 500, "Internal Server Error");
             then(crawlTaskExecutionFacade).should(never()).completeWithSuccess(any(), any());
         }
 
@@ -124,8 +122,8 @@ class CrawlTaskExecutionServiceTest {
         @DisplayName("[성공] 429 Rate Limit 시 UserAgent 실패 기록 및 completeWithFailure 호출")
         void shouldRecordFailureAndCompleteWithFailureWhenRateLimited() {
             // Given
-            ExecuteCrawlTaskCommand command = new ExecuteCrawlTaskCommand(
-                    1L, 1L, 1L, "META", "https://example.com/api");
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
             CrawlTask task = CrawlTaskFixture.aRunningTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             ExecutionContext context = new ExecutionContext(task, execution);
@@ -141,16 +139,20 @@ class CrawlTaskExecutionServiceTest {
             service.execute(command);
 
             // Then
-            then(recordUserAgentResultUseCase).should().execute(any(RecordUserAgentResultCommand.class));
-            then(crawlTaskExecutionFacade).should().completeWithFailure(context, 429, "Rate limited (429)");
+            then(recordUserAgentResultUseCase)
+                    .should()
+                    .execute(any(RecordUserAgentResultCommand.class));
+            then(crawlTaskExecutionFacade)
+                    .should()
+                    .completeWithFailure(context, 429, "Rate limited (429)");
         }
 
         @Test
         @DisplayName("[실패] 크롤링 중 예외 발생 시 UserAgent 실패 기록 후 예외 재전파")
         void shouldRecordFailureAndRethrowExceptionWhenCrawlingThrows() {
             // Given
-            ExecuteCrawlTaskCommand command = new ExecuteCrawlTaskCommand(
-                    1L, 1L, 1L, "META", "https://example.com/api");
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
             CrawlTask task = CrawlTaskFixture.aRunningTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             ExecutionContext context = new ExecutionContext(task, execution);
@@ -167,16 +169,21 @@ class CrawlTaskExecutionServiceTest {
                     .isInstanceOf(RuntimeException.class)
                     .hasMessage("Connection timeout");
 
-            then(recordUserAgentResultUseCase).should().execute(any(RecordUserAgentResultCommand.class));
-            then(crawlTaskExecutionFacade).should().completeWithFailure(context, null, "Connection timeout");
+            then(recordUserAgentResultUseCase)
+                    .should()
+                    .execute(any(RecordUserAgentResultCommand.class));
+            then(crawlTaskExecutionFacade)
+                    .should()
+                    .completeWithFailure(context, null, "Connection timeout");
         }
 
         @Test
         @DisplayName("[성공] 다양한 TaskType에 대해 적절한 Crawler 선택")
         void shouldSelectCorrectCrawlerForTaskType() {
             // Given
-            ExecuteCrawlTaskCommand command = new ExecuteCrawlTaskCommand(
-                    1L, 1L, 1L, "DETAIL", "https://example.com/api/product/123");
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(
+                            1L, 1L, 1L, "DETAIL", "https://example.com/api/product/123");
             CrawlTask task = CrawlTaskFixture.aRunningTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             ExecutionContext context = new ExecutionContext(task, execution);

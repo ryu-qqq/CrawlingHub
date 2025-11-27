@@ -150,6 +150,102 @@
     </Match>
 
     <!-- ========================================
+         Domain Layer - VOs and Events
+         ======================================== -->
+    <!-- Domain VOs - intentional non-localized string operations for idempotency keys -->
+    <Match>
+        <Class name="~.*\.domain\..*"/>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+
+    <!-- Domain records - immutable data carriers -->
+    <Match>
+        <Package name="~.*\.domain\..*\.vo"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Domain events - immutable data carriers -->
+    <Match>
+        <Package name="~.*\.domain\..*\.event"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Application Layer - Additional Patterns
+         ======================================== -->
+    <!-- Parser classes - dependency injection via constructor -->
+    <Match>
+        <Class name="~.*\.application\..*Parser"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Parser classes - Exception catching is intentional for parsing -->
+    <Match>
+        <Class name="~.*\.application\..*Parser"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- Parser classes - switch default handled by fallback logic -->
+    <Match>
+        <Class name="~.*\.application\..*Parser"/>
+        <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+
+    <!-- DTO records in application layer - immutable data carriers -->
+    <Match>
+        <Package name="~.*\.application\..*\.dto"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Listener classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.application\..*Listener"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Scheduler classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.application\..*Scheduler"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Processor classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.application\..*Processor"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ProcessingResult - intentional mutable internal list -->
+    <Match>
+        <Class name="~.*\.application\..*ProcessingResult"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
          Adapter Layer - AWS EventBridge
          ======================================== -->
     <!-- EventBridge adapter constructors - dependency injection -->
@@ -165,19 +261,213 @@
     </Match>
 
     <!-- ========================================
+         Adapter Layer - AWS SQS
+         ======================================== -->
+    <!-- SQS adapter constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.sqs\..*Adapter"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- SQS config classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.sqs\..*Config"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- SQS properties classes - Spring properties pattern -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.sqs\..*Properties"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - HTTP Client
+         ======================================== -->
+    <!-- HTTP Client adapter constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.http\..*Adapter"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- HTTP Client config classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.http\..*Config"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- HTTP Client properties classes - Spring properties pattern -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.http\..*Properties"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - Persistence MySQL
+         ======================================== -->
+    <!-- MySQL adapter constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.persistence\..*Adapter"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- MySQL config classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.persistence\..*Config"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- MySQL mapper classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.persistence\..*Mapper"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- MySQL entity classes - JPA entities with mutable state -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.persistence\..*Entity"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - SQS Listener
+         ======================================== -->
+    <!-- SQS Listener config classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.sqs\..*Config"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- SQS Listener handler classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.sqs\..*Handler"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- SQS Listener classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.sqs\..*Listener"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - Persistence Redis
+         ======================================== -->
+    <!-- Redis adapter constructors - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.redis\..*Adapter"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- Redis adapter - constructor throws for validation (DDD pattern) -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.redis\..*Adapter"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Redis adapter - IllegalMonitorStateException is valid for lock release -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.redis\..*LockAdapter"/>
+        <Bug pattern="IMSE_DONT_CATCH_IMSE"/>
+    </Match>
+
+    <!-- Redis config classes - dependency injection -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.redis\..*Config"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+            <Bug pattern="URF_UNREAD_FIELD"/>
+        </Or>
+    </Match>
+
+    <!-- Redis properties classes - Spring properties pattern -->
+    <Match>
+        <Class name="~.*\.adapter\.out\.redis\..*Properties"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+    <!-- ========================================
+         Adapter Layer - REST API Error Mapper
+         ======================================== -->
+    <!-- Duplicate switch clauses in error mappers are intentional for clarity -->
+    <Match>
+        <Class name="~.*\.adapter\.in\.rest\..*ErrorMapper"/>
+        <Bug pattern="DB_DUPLICATE_SWITCH_CLAUSES"/>
+    </Match>
+
+    <!-- ========================================
          Test Classes - General Exclusions
          ======================================== -->
     <!-- Exclude all SpotBugs checks for test classes -->
     <!-- Test code intentionally uses patterns that trigger false positives -->
     <Match>
-        <Class name="~.*Test"/>
+        <Class name="~.*Test$"/>
     </Match>
 
     <Match>
-        <Class name="~.*TestSupport"/>
+        <Class name="~.*Tests$"/>
     </Match>
 
     <Match>
-        <Class name="~.*Fixture"/>
+        <Class name="~.*Test\$.*"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*TestSupport$"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Fixture$"/>
+    </Match>
+
+    <!-- Test source directory exclusion -->
+    <Match>
+        <Source name="~.*/test/.*"/>
     </Match>
 </FindBugsFilter>

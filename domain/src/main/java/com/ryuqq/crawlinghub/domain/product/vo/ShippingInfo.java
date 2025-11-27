@@ -35,17 +35,14 @@ public record ShippingInfo(
         }
     }
 
-    /**
-     * 무료 배송 팩토리 메서드
-     */
+    /** 무료 배송 팩토리 메서드 */
     public static ShippingInfo freeShipping(String shippingType, int averageDeliveryDays) {
         return new ShippingInfo(shippingType, 0, "FREE", averageDeliveryDays, true);
     }
 
-    /**
-     * 유료 배송 팩토리 메서드
-     */
-    public static ShippingInfo paidShipping(String shippingType, int shippingFee, int averageDeliveryDays) {
+    /** 유료 배송 팩토리 메서드 */
+    public static ShippingInfo paidShipping(
+            String shippingType, int shippingFee, int averageDeliveryDays) {
         return new ShippingInfo(shippingType, shippingFee, "PAID", averageDeliveryDays, false);
     }
 
@@ -68,16 +65,12 @@ public record ShippingInfo(
         return new ShippingInfo(shippingType, shippingFee, shippingFeeType, deliveryDays, isFree);
     }
 
-    /**
-     * 국내 배송인지 확인
-     */
+    /** 국내 배송인지 확인 */
     public boolean isDomestic() {
         return "DOMESTIC".equalsIgnoreCase(shippingType);
     }
 
-    /**
-     * 해외 배송인지 확인
-     */
+    /** 해외 배송인지 확인 */
     public boolean isInternational() {
         return "INTERNATIONAL".equalsIgnoreCase(shippingType);
     }

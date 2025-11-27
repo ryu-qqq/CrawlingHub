@@ -109,6 +109,13 @@ tasks.named('build') {
 }
 
 // ========================================
+// SpotBugs must run before copyDocument to avoid task conflicts
+// ========================================
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    mustRunAfter tasks.named('copyDocument')
+}
+
+// ========================================
 // Test Coverage (disabled during development)
 // TODO: Re-enable when tests are written
 // ========================================

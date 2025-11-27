@@ -1,30 +1,30 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.UpdateSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
-
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * SellerCommandApiMapper 단위 테스트
  *
- * <p>검증 범위:</p>
+ * <p>검증 범위:
+ *
  * <ul>
- *   <li>API Request → Application Command 변환</li>
- *   <li>Application Response → API Response 변환</li>
- *   <li>필드 매핑 정확성</li>
- *   <li>null 값 처리</li>
+ *   <li>API Request → Application Command 변환
+ *   <li>Application Response → API Response 변환
+ *   <li>필드 매핑 정확성
+ *   <li>null 값 처리
  * </ul>
  *
  * @author development-team
@@ -50,10 +50,8 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: API Request → RegisterSellerCommand 변환")
         void toCommand_RegisterSeller_Success() {
             // Given
-            RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러"
-            );
+            RegisterSellerApiRequest request =
+                    new RegisterSellerApiRequest("머스트잇 테스트 셀러", "테스트 셀러");
 
             // When
             RegisterSellerCommand command = mapper.toCommand(request);
@@ -68,10 +66,8 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: 특수문자 포함된 이름 변환")
         void toCommand_RegisterSeller_WithSpecialCharacters() {
             // Given
-            RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                    "머스트잇-테스트_셀러 (주)",
-                    "테스트@셀러#123"
-            );
+            RegisterSellerApiRequest request =
+                    new RegisterSellerApiRequest("머스트잇-테스트_셀러 (주)", "테스트@셀러#123");
 
             // When
             RegisterSellerCommand command = mapper.toCommand(request);
@@ -87,10 +83,8 @@ class SellerCommandApiMapperTest {
         void toCommand_RegisterSeller_MaxLength() {
             // Given
             String maxLengthName = "a".repeat(100);
-            RegisterSellerApiRequest request = new RegisterSellerApiRequest(
-                    maxLengthName,
-                    maxLengthName
-            );
+            RegisterSellerApiRequest request =
+                    new RegisterSellerApiRequest(maxLengthName, maxLengthName);
 
             // When
             RegisterSellerCommand command = mapper.toCommand(request);
@@ -111,11 +105,8 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_AllFields() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    "수정된 머스트잇 셀러명",
-                    "수정된 셀러명",
-                    false
-            );
+            UpdateSellerApiRequest request =
+                    new UpdateSellerApiRequest("수정된 머스트잇 셀러명", "수정된 셀러명", false);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -133,11 +124,7 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_MustItSellerNameOnly() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    "새로운 머스트잇 셀러명",
-                    null,
-                    null
-            );
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest("새로운 머스트잇 셀러명", null, null);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -155,11 +142,7 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_SellerNameOnly() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    null,
-                    "새로운 셀러명",
-                    null
-            );
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, "새로운 셀러명", null);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -177,11 +160,7 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_ActiveOnly_True() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    null,
-                    null,
-                    true
-            );
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, null, true);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -199,11 +178,7 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_ActiveOnly_False() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    null,
-                    null,
-                    false
-            );
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, null, false);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -219,11 +194,7 @@ class SellerCommandApiMapperTest {
         void toCommand_UpdateSeller_AllFieldsNull() {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(
-                    null,
-                    null,
-                    null
-            );
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, null, null);
 
             // When
             UpdateSellerCommand command = mapper.toCommand(sellerId, request);
@@ -245,14 +216,14 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: active=true → status=ACTIVE 변환")
         void toApiResponse_ActiveTrue() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    1L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    true,
-                    LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                    null
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            1L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            true,
+                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            null);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -271,14 +242,14 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: active=false → status=INACTIVE 변환")
         void toApiResponse_ActiveFalse() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    2L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    false,
-                    LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                    LocalDateTime.of(2024, 11, 27, 11, 0, 0)
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            2L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            false,
+                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            LocalDateTime.of(2024, 11, 27, 11, 0, 0));
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -295,14 +266,14 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: updatedAt이 null인 경우 (신규 생성)")
         void toApiResponse_UpdatedAtNull() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    1L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    true,
-                    LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                    null
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            1L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            true,
+                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            null);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -319,14 +290,8 @@ class SellerCommandApiMapperTest {
             LocalDateTime createdAt = LocalDateTime.of(2024, 11, 27, 10, 0, 0);
             LocalDateTime updatedAt = LocalDateTime.of(2024, 11, 27, 15, 30, 0);
 
-            SellerResponse appResponse = new SellerResponse(
-                    1L,
-                    "머스트잇 테스트 셀러",
-                    "테스트 셀러",
-                    true,
-                    createdAt,
-                    updatedAt
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, createdAt, updatedAt);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -342,14 +307,9 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: 특수문자 포함된 이름 변환")
         void toApiResponse_WithSpecialCharacters() {
             // Given
-            SellerResponse appResponse = new SellerResponse(
-                    1L,
-                    "머스트잇-테스트_셀러 (주)",
-                    "테스트@셀러#123",
-                    true,
-                    LocalDateTime.now(),
-                    null
-            );
+            SellerResponse appResponse =
+                    new SellerResponse(
+                            1L, "머스트잇-테스트_셀러 (주)", "테스트@셀러#123", true, LocalDateTime.now(), null);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);

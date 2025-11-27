@@ -200,7 +200,8 @@ public class CrawlTaskQueryController {
      * @return 크롤 태스크 상세 정보 (200 OK)
      */
     @GetMapping("${api.endpoints.task.by-id}")
-    public ResponseEntity<ApiResponse<CrawlTaskDetailApiResponse>> getCrawlTask(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CrawlTaskDetailApiResponse>> getCrawlTask(
+            @PathVariable Long id) {
         // 1. Path Variable → UseCase Query 변환 (Mapper)
         GetCrawlTaskQuery query = crawlTaskQueryApiMapper.toGetQuery(id);
 

@@ -34,9 +34,7 @@ public interface ExternalProductServerClient {
      */
     boolean existsProduct(Long externalProductId);
 
-    /**
-     * 상품 신규 등록 요청
-     */
+    /** 상품 신규 등록 요청 */
     record ProductCreateRequest(
             String idempotencyKey,
             long sellerId,
@@ -166,17 +164,28 @@ public interface ExternalProductServerClient {
 
             public ProductCreateRequest build() {
                 return new ProductCreateRequest(
-                        idempotencyKey, sellerId, itemNo, itemName, brandName,
-                        sellingPrice, normalPrice, discountPrice, discountRate,
-                        categoryCode, categoryName, mainImageUrl, descriptionMarkUp,
-                        originCountry, itemStatus, freeShipping, totalStock);
+                        idempotencyKey,
+                        sellerId,
+                        itemNo,
+                        itemName,
+                        brandName,
+                        sellingPrice,
+                        normalPrice,
+                        discountPrice,
+                        discountRate,
+                        categoryCode,
+                        categoryName,
+                        mainImageUrl,
+                        descriptionMarkUp,
+                        originCountry,
+                        itemStatus,
+                        freeShipping,
+                        totalStock);
             }
         }
     }
 
-    /**
-     * 상품 갱신 요청
-     */
+    /** 상품 갱신 요청 */
     record ProductUpdateRequest(
             String idempotencyKey,
             Long externalProductId,
@@ -264,21 +273,24 @@ public interface ExternalProductServerClient {
 
             public ProductUpdateRequest build() {
                 return new ProductUpdateRequest(
-                        idempotencyKey, externalProductId, itemName, brandName,
-                        sellingPrice, normalPrice, discountPrice, discountRate,
-                        mainImageUrl, descriptionMarkUp, totalStock);
+                        idempotencyKey,
+                        externalProductId,
+                        itemName,
+                        brandName,
+                        sellingPrice,
+                        normalPrice,
+                        discountPrice,
+                        discountRate,
+                        mainImageUrl,
+                        descriptionMarkUp,
+                        totalStock);
             }
         }
     }
 
-    /**
-     * 상품 동기화 결과
-     */
+    /** 상품 동기화 결과 */
     record ProductSyncResult(
-            boolean success,
-            Long externalProductId,
-            String errorCode,
-            String errorMessage) {
+            boolean success, Long externalProductId, String errorCode, String errorMessage) {
 
         public static ProductSyncResult success(Long externalProductId) {
             return new ProductSyncResult(true, externalProductId, null, null);

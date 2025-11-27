@@ -3,6 +3,8 @@ package com.ryuqq.crawlinghub.application.task.assembler;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
@@ -15,8 +17,6 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,11 +38,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskAssembler 테스트")
 class CrawlTaskAssemblerTest {
 
-    @Spy
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Spy private ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
-    private CrawlTaskAssembler assembler;
+    @InjectMocks private CrawlTaskAssembler assembler;
 
     @Nested
     @DisplayName("toBundle(TriggerCrawlTaskCommand, CrawlScheduler) 테스트")
@@ -61,7 +59,8 @@ class CrawlTaskAssemblerTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getCrawlTask()).isNotNull();
-            assertThat(result.getCrawlTask().getCrawlSchedulerId()).isEqualTo(scheduler.getCrawlSchedulerId());
+            assertThat(result.getCrawlTask().getCrawlSchedulerId())
+                    .isEqualTo(scheduler.getCrawlSchedulerId());
             assertThat(result.getCrawlTask().getSellerId()).isEqualTo(scheduler.getSellerId());
             assertThat(result.getCrawlTask().getTaskType()).isEqualTo(CrawlTaskType.META);
             assertThat(result.getOutboxPayload()).isNotBlank();
@@ -76,8 +75,8 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CreateCrawlTaskCommand (META) → CrawlTaskBundle 생성")
         void shouldCreateBundleForMetaTask() {
             // Given
-            CreateCrawlTaskCommand command = new CreateCrawlTaskCommand(
-                    1L, 100L, CrawlTaskType.META, null);
+            CreateCrawlTaskCommand command =
+                    new CreateCrawlTaskCommand(1L, 100L, CrawlTaskType.META, null);
 
             // When
             CrawlTaskBundle result = assembler.toBundle(command);
@@ -92,8 +91,8 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CreateCrawlTaskCommand (MINI_SHOP) → CrawlTaskBundle 생성")
         void shouldCreateBundleForMiniShopTask() {
             // Given
-            CreateCrawlTaskCommand command = new CreateCrawlTaskCommand(
-                    1L, 100L, CrawlTaskType.MINI_SHOP, null);
+            CreateCrawlTaskCommand command =
+                    new CreateCrawlTaskCommand(1L, 100L, CrawlTaskType.MINI_SHOP, null);
 
             // When
             CrawlTaskBundle result = assembler.toBundle(command);
@@ -107,8 +106,8 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CreateCrawlTaskCommand (DETAIL) → CrawlTaskBundle 생성")
         void shouldCreateBundleForDetailTask() {
             // Given
-            CreateCrawlTaskCommand command = new CreateCrawlTaskCommand(
-                    1L, 100L, CrawlTaskType.DETAIL, 12345L);
+            CreateCrawlTaskCommand command =
+                    new CreateCrawlTaskCommand(1L, 100L, CrawlTaskType.DETAIL, 12345L);
 
             // When
             CrawlTaskBundle result = assembler.toBundle(command);
@@ -123,8 +122,8 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CreateCrawlTaskCommand (OPTION) → CrawlTaskBundle 생성")
         void shouldCreateBundleForOptionTask() {
             // Given
-            CreateCrawlTaskCommand command = new CreateCrawlTaskCommand(
-                    1L, 100L, CrawlTaskType.OPTION, 12345L);
+            CreateCrawlTaskCommand command =
+                    new CreateCrawlTaskCommand(1L, 100L, CrawlTaskType.OPTION, 12345L);
 
             // When
             CrawlTaskBundle result = assembler.toBundle(command);
@@ -278,10 +277,11 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CrawlTask 목록 → CrawlTaskResponse 목록 변환")
         void shouldConvertTaskListToResponses() {
             // Given
-            List<CrawlTask> tasks = List.of(
-                    CrawlTaskFixture.aTaskWithId(1L),
-                    CrawlTaskFixture.aTaskWithId(2L),
-                    CrawlTaskFixture.aTaskWithId(3L));
+            List<CrawlTask> tasks =
+                    List.of(
+                            CrawlTaskFixture.aTaskWithId(1L),
+                            CrawlTaskFixture.aTaskWithId(2L),
+                            CrawlTaskFixture.aTaskWithId(3L));
 
             // When
             List<CrawlTaskResponse> result = assembler.toResponses(tasks);
@@ -315,9 +315,8 @@ class CrawlTaskAssemblerTest {
         @DisplayName("[성공] CrawlTask 목록 → PageResponse 변환")
         void shouldConvertTasksToPageResponse() {
             // Given
-            List<CrawlTask> tasks = List.of(
-                    CrawlTaskFixture.aTaskWithId(1L),
-                    CrawlTaskFixture.aTaskWithId(2L));
+            List<CrawlTask> tasks =
+                    List.of(CrawlTaskFixture.aTaskWithId(1L), CrawlTaskFixture.aTaskWithId(2L));
             int page = 0;
             int size = 10;
             long totalElements = 25L;

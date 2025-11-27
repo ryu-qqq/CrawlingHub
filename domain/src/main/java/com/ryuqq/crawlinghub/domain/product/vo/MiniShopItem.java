@@ -61,11 +61,16 @@ public record MiniShopItem(
         if (appPrice < 0) {
             throw new IllegalArgumentException("appPrice는 0 이상이어야 합니다.");
         }
+        // 방어적 복사 - SpotBugs EI2 경고 수정
         if (imageUrlList == null) {
             imageUrlList = List.of();
+        } else {
+            imageUrlList = List.copyOf(imageUrlList);
         }
         if (tagList == null) {
             tagList = List.of();
+        } else {
+            tagList = List.copyOf(tagList);
         }
     }
 
@@ -190,12 +195,7 @@ public record MiniShopItem(
      */
     public ProductPrice toProductPrice() {
         return ProductPrice.of(
-                price,
-                originalPrice,
-                normalPrice,
-                appPrice,
-                discountRate,
-                appDiscountRate);
+                price, originalPrice, normalPrice, appPrice, discountRate, appDiscountRate);
     }
 
     /**
@@ -208,7 +208,10 @@ public record MiniShopItem(
             return false;
         }
         return tagList.stream()
-                .anyMatch(tag -> tag.title() != null
-                        && (tag.title().contains("무료배송") || tag.title().contains("FREE")));
+                .anyMatch(
+                        tag ->
+                                tag.title() != null
+                                        && (tag.title().contains("무료배송")
+                                                || tag.title().contains("FREE")));
     }
 }
