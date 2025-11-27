@@ -5,7 +5,8 @@ import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 /** Schedule Bounded Context에서 사용하는 ErrorCode Enum입니다. */
 public enum ScheduleErrorCode implements ErrorCode {
     CRAWL_SCHEDULER_NOT_FOUND("SCHEDULE-001", 404, "존재하지 않는 크롤 스케줄러입니다."),
-    DUPLICATE_SCHEDULER_NAME("SCHEDULE-002", 409, "이미 존재하는 스케줄러 이름입니다.");
+    DUPLICATE_SCHEDULER_NAME("SCHEDULE-002", 409, "이미 존재하는 스케줄러 이름입니다."),
+    INVALID_SCHEDULER_STATE("SCHEDULE-003", 400, "스케줄러 상태가 유효하지 않습니다.");
 
     private final String code;
     private final int httpStatus;

@@ -56,6 +56,15 @@ public class ApiEndpointProperties {
     /** Schedule 도메인 엔드포인트 설정 */
     private ScheduleEndpoints schedule = new ScheduleEndpoints();
 
+    /** Task 도메인 엔드포인트 설정 */
+    private TaskEndpoints task = new TaskEndpoints();
+
+    /** UserAgent 도메인 엔드포인트 설정 */
+    private UserAgentEndpoints userAgent = new UserAgentEndpoints();
+
+    /** Execution 도메인 엔드포인트 설정 */
+    private ExecutionEndpoints execution = new ExecutionEndpoints();
+
     /** Seller 도메인 엔드포인트 경로 */
     public static class SellerEndpoints {
         /** Seller 기본 경로 (기본값: /sellers) */
@@ -117,6 +126,92 @@ public class ApiEndpointProperties {
         }
     }
 
+    /** Task 도메인 엔드포인트 경로 */
+    public static class TaskEndpoints {
+        /** Task 기본 경로 (기본값: /tasks) */
+        private String base = "/tasks";
+
+        /** Task ID 조회 경로 (기본값: /{id}) */
+        private String byId = "/{id}";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getById() {
+            return byId;
+        }
+
+        public void setById(String byId) {
+            this.byId = byId;
+        }
+    }
+
+    /** UserAgent 도메인 엔드포인트 경로 */
+    public static class UserAgentEndpoints {
+        /** UserAgent 기본 경로 (기본값: /user-agents) */
+        private String base = "/user-agents";
+
+        /** Pool 상태 조회 경로 (기본값: /pool-status) */
+        private String poolStatus = "/pool-status";
+
+        /** UserAgent 복구 경로 (기본값: /recover) */
+        private String recover = "/recover";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getPoolStatus() {
+            return poolStatus;
+        }
+
+        public void setPoolStatus(String poolStatus) {
+            this.poolStatus = poolStatus;
+        }
+
+        public String getRecover() {
+            return recover;
+        }
+
+        public void setRecover(String recover) {
+            this.recover = recover;
+        }
+    }
+
+    /** Execution 도메인 엔드포인트 경로 */
+    public static class ExecutionEndpoints {
+        /** Execution 기본 경로 (기본값: /executions) */
+        private String base = "/executions";
+
+        /** Execution ID 조회 경로 (기본값: /{id}) */
+        private String byId = "/{id}";
+
+        public String getBase() {
+            return base;
+        }
+
+        public void setBase(String base) {
+            this.base = base;
+        }
+
+        public String getById() {
+            return byId;
+        }
+
+        public void setById(String byId) {
+            this.byId = byId;
+        }
+    }
+
     public String getBaseV1() {
         return baseV1;
     }
@@ -139,5 +234,29 @@ public class ApiEndpointProperties {
 
     public void setSchedule(ScheduleEndpoints schedule) {
         this.schedule = schedule;
+    }
+
+    public TaskEndpoints getTask() {
+        return task;
+    }
+
+    public void setTask(TaskEndpoints task) {
+        this.task = task;
+    }
+
+    public UserAgentEndpoints getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(UserAgentEndpoints userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public ExecutionEndpoints getExecution() {
+        return execution;
+    }
+
+    public void setExecution(ExecutionEndpoints execution) {
+        this.execution = execution;
     }
 }

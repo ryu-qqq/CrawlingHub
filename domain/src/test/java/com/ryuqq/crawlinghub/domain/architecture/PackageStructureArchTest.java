@@ -56,7 +56,7 @@ class PackageStructureArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.authhub.domain");
+        classes = new ClassFileImporter().importPackages("com.ryuqq.crawlinghub.domain");
     }
 
     // ==================== domain.common 패키지 규칙 ====================
@@ -68,7 +68,7 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain.common.event")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.event")
                         .should()
                         .beInterfaces()
                         .because(
@@ -88,7 +88,7 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain.common.exception")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.exception")
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .should()
@@ -114,7 +114,7 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain.common.util")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.util")
                         .should()
                         .beInterfaces()
                         .because(
@@ -136,7 +136,7 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .implement("com.ryuqq.authhub.domain.common.event.DomainEvent")
+                        .implement("com.ryuqq.crawlinghub.domain.common.event.DomainEvent")
                         .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
@@ -164,7 +164,7 @@ class PackageStructureArchTest {
                 classes()
                         .that()
                         .areAssignableTo(
-                                "com.ryuqq.authhub.domain.common.exception.DomainException")
+                                "com.ryuqq.crawlinghub.domain.common.exception.DomainException")
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
@@ -191,7 +191,7 @@ class PackageStructureArchTest {
     @DisplayName("[필수] Bounded Context 간 순환 의존성이 없어야 한다")
     void boundedContexts_ShouldBeFreeOfCycles() {
         SlicesRuleDefinition.slices()
-                .matching("com.ryuqq.authhub.domain.(*)..")
+                .matching("com.ryuqq.crawlinghub.domain.(*)..")
                 .should()
                 .beFreeOfCycles()
                 .because(
@@ -211,12 +211,12 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain.common..")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common..")
                         .should()
                         .onlyBeAccessed()
                         .byAnyPackage(
-                                "com.ryuqq.authhub.domain..",
-                                "com.ryuqq.application..",
+                                "com.ryuqq.crawlinghub.domain..",
+                                "com.ryuqq.crawlinghub.application..",
                                 "com.ryuqq.adapter..",
                                 "com.ryuqq.persistence..",
                                 "com.ryuqq.bootstrap..")
@@ -237,11 +237,11 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain..")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain..")
                         .and()
-                        .resideOutsideOfPackage("com.ryuqq.authhub.domain.common..")
+                        .resideOutsideOfPackage("com.ryuqq.crawlinghub.domain.common..")
                         .should()
-                        .resideInAPackage("com.ryuqq.authhub.domain.(*)..")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.(*)..")
                         .because(
                                 "Bounded Context 패키지명은 소문자 단어로 구성되어야 합니다\n"
                                     + "예시:\n"
@@ -267,16 +267,16 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.authhub.domain.(*)..")
+                        .resideInAPackage("com.ryuqq.crawlinghub.domain.(*)..")
                         .and()
-                        .resideOutsideOfPackage("com.ryuqq.authhub.domain.common..")
+                        .resideOutsideOfPackage("com.ryuqq.crawlinghub.domain.common..")
                         .and()
                         .resideOutsideOfPackage("..architecture..") // 테스트 클래스 제외
                         .should()
                         .onlyDependOnClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.authhub.domain.common..",
-                                "com.ryuqq.authhub.domain.(*)..", // 같은 BC는 허용
+                                "com.ryuqq.crawlinghub.domain.common..",
+                                "com.ryuqq.crawlinghub.domain.(*)..", // 같은 BC는 허용
                                 "java..",
                                 "jakarta.annotation..")
                         .because(
