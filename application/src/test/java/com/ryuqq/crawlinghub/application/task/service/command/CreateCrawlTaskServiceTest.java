@@ -10,7 +10,6 @@ import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,17 +31,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CreateCrawlTaskService 테스트")
 class CreateCrawlTaskServiceTest {
 
-    @Mock
-    private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskAssembler assembler;
 
-    @Mock
-    private CrawlTaskFacade facade;
+    @Mock private CrawlTaskFacade facade;
 
-    @Mock
-    private CrawlTaskBundle mockBundle;
+    @Mock private CrawlTaskBundle mockBundle;
 
-    @InjectMocks
-    private CreateCrawlTaskService service;
+    @InjectMocks private CreateCrawlTaskService service;
 
     @Nested
     @DisplayName("execute() 단건 태스크 생성 테스트")
@@ -121,10 +116,11 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] 여러 태스크 일괄 생성")
         void shouldCreateMultipleTasks() {
             // Given
-            List<CreateCrawlTaskCommand> commands = List.of(
-                    CreateCrawlTaskCommand.forDetail(1L, 1L, 100L),
-                    CreateCrawlTaskCommand.forDetail(1L, 1L, 101L),
-                    CreateCrawlTaskCommand.forOption(1L, 1L, 100L));
+            List<CreateCrawlTaskCommand> commands =
+                    List.of(
+                            CreateCrawlTaskCommand.forDetail(1L, 1L, 100L),
+                            CreateCrawlTaskCommand.forDetail(1L, 1L, 101L),
+                            CreateCrawlTaskCommand.forOption(1L, 1L, 100L));
 
             given(assembler.toBundle(any(CreateCrawlTaskCommand.class))).willReturn(mockBundle);
 
@@ -154,8 +150,7 @@ class CreateCrawlTaskServiceTest {
             given(assembler.toBundle(command3)).willReturn(bundle3);
 
             // 두 번째 태스크 실패
-            doThrow(new RuntimeException("Duplicate task"))
-                    .when(facade).persist(bundle2);
+            doThrow(new RuntimeException("Duplicate task")).when(facade).persist(bundle2);
 
             // When
             service.executeBatch(commands);

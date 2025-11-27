@@ -20,10 +20,11 @@ import org.springframework.stereotype.Component;
  * DETAIL 크롤링 결과 처리기
  *
  * <p><strong>처리 내용</strong>:
+ *
  * <ul>
- *   <li>상품 상세 정보 파싱 (설명, 이미지, 카테고리 등)</li>
- *   <li>파싱된 ProductDetailInfo를 JSON으로 변환하여 crawled_raw 테이블에 저장</li>
- *   <li>후속 Task 없음 (OPTION은 MiniShop에서 이미 생성)</li>
+ *   <li>상품 상세 정보 파싱 (설명, 이미지, 카테고리 등)
+ *   <li>파싱된 ProductDetailInfo를 JSON으로 변환하여 crawled_raw 테이블에 저장
+ *   <li>후속 Task 없음 (OPTION은 MiniShop에서 이미 생성)
  * </ul>
  *
  * <p><strong>성능 최적화</strong>: 중복 체크 없이 JSON 형태로 저장

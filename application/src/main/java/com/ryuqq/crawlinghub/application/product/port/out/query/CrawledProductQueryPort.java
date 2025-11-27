@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +10,7 @@ import java.util.Optional;
  * CrawledProduct 조회 Port (Port Out - Query)
  *
  * <p>CrawledProductFacade에서 사용됩니다.
+ *
  * <p>조회 전용 Port로, 트랜잭션 없이 읽기 작업만 수행합니다.
  *
  * @author development-team

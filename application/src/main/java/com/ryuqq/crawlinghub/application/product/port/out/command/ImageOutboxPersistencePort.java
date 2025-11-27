@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.application.product.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
-
 import java.util.List;
 
 /**
  * 이미지 업로드 Outbox 저장 Port (Port Out - Command)
  *
  * <p>ImageOutboxManager에서만 사용됩니다.
+ *
  * <p>이미지 업로드 요청의 트랜잭션 경계를 관리합니다.
  *
  * @author development-team

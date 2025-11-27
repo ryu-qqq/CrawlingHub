@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.application.seller.service.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
@@ -16,7 +16,6 @@ import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -40,14 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchSellersService 테스트")
 class SearchSellersServiceTest {
 
-    @Mock
-    private SellerQueryPort sellerQueryPort;
+    @Mock private SellerQueryPort sellerQueryPort;
 
-    @Mock
-    private SellerAssembler assembler;
+    @Mock private SellerAssembler assembler;
 
-    @InjectMocks
-    private SearchSellersService service;
+    @InjectMocks private SearchSellersService service;
 
     @Nested
     @DisplayName("execute() 셀러 목록 조회 테스트")
@@ -57,16 +53,17 @@ class SearchSellersServiceTest {
         @DisplayName("[성공] 조건에 맞는 셀러 목록 조회 시 PageResponse 반환")
         void shouldReturnPageResponseWhenSellersExist() {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(
-                    "mustit", "seller", SellerStatus.ACTIVE, 0, 10);
+            SearchSellersQuery query =
+                    new SearchSellersQuery("mustit", "seller", SellerStatus.ACTIVE, 0, 10);
             SellerQueryCriteria criteria = new SellerQueryCriteria(null, null, null, 0, 10);
             List<Seller> sellers = List.of(SellerFixture.anActiveSeller());
             long totalElements = 1L;
 
-            SellerSummaryResponse summaryResponse = new SellerSummaryResponse(
-                    1L, "mustit-seller", "seller-name", true, LocalDateTime.now());
-            PageResponse<SellerSummaryResponse> expectedResponse = PageResponse.of(
-                    List.of(summaryResponse), 0, 10, 1L, 1, true, true);
+            SellerSummaryResponse summaryResponse =
+                    new SellerSummaryResponse(
+                            1L, "mustit-seller", "seller-name", true, LocalDateTime.now());
+            PageResponse<SellerSummaryResponse> expectedResponse =
+                    PageResponse.of(List.of(summaryResponse), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(sellerQueryPort.findByCriteria(criteria)).willReturn(sellers);
@@ -90,14 +87,13 @@ class SearchSellersServiceTest {
         @DisplayName("[성공] 조건에 맞는 셀러 없을 시 빈 PageResponse 반환")
         void shouldReturnEmptyPageResponseWhenNoSellersFound() {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(
-                    "nonexistent", null, null, 0, 10);
+            SearchSellersQuery query = new SearchSellersQuery("nonexistent", null, null, 0, 10);
             SellerQueryCriteria criteria = new SellerQueryCriteria(null, null, null, 0, 10);
             List<Seller> emptySellers = Collections.emptyList();
             long totalElements = 0L;
 
-            PageResponse<SellerSummaryResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), 0, 10, 0L, 0, true, true);
+            PageResponse<SellerSummaryResponse> expectedResponse =
+                    PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(sellerQueryPort.findByCriteria(criteria)).willReturn(emptySellers);
@@ -126,8 +122,9 @@ class SearchSellersServiceTest {
             List<Seller> sellers = List.of(SellerFixture.anActiveSeller());
             long totalElements = 50L;
 
-            PageResponse<SellerSummaryResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), page, size, totalElements, 3, false, false);
+            PageResponse<SellerSummaryResponse> expectedResponse =
+                    PageResponse.of(
+                            Collections.emptyList(), page, size, totalElements, 3, false, false);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(sellerQueryPort.findByCriteria(criteria)).willReturn(sellers);

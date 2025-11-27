@@ -73,14 +73,11 @@ public class CrawledRawCommandAdapter implements CrawledRawPersistencePort {
      */
     @Override
     public List<CrawledRawId> persistAll(List<CrawledRaw> crawledRaws) {
-        List<CrawledRawJpaEntity> entities = crawledRaws.stream()
-                .map(crawledRawJpaEntityMapper::toEntity)
-                .toList();
+        List<CrawledRawJpaEntity> entities =
+                crawledRaws.stream().map(crawledRawJpaEntityMapper::toEntity).toList();
 
         List<CrawledRawJpaEntity> savedEntities = crawledRawJpaRepository.saveAll(entities);
 
-        return savedEntities.stream()
-                .map(entity -> CrawledRawId.of(entity.getId()))
-                .toList();
+        return savedEntities.stream().map(entity -> CrawledRawId.of(entity.getId())).toList();
     }
 }

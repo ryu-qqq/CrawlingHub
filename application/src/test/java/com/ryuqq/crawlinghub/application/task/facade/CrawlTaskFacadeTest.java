@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
@@ -12,8 +14,6 @@ import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManage
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,20 +35,15 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("CrawlTaskFacade 테스트")
 class CrawlTaskFacadeTest {
 
-    @Mock
-    private CrawlTaskPersistenceValidator validator;
+    @Mock private CrawlTaskPersistenceValidator validator;
 
-    @Mock
-    private CrawlTaskTransactionManager transactionManager;
+    @Mock private CrawlTaskTransactionManager transactionManager;
 
-    @Mock
-    private CrawlTaskOutboxTransactionManager outboxTransactionManager;
+    @Mock private CrawlTaskOutboxTransactionManager outboxTransactionManager;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
-    private CrawlTaskFacade facade;
+    @InjectMocks private CrawlTaskFacade facade;
 
     @Nested
     @DisplayName("persist() 테스트")
@@ -70,8 +65,9 @@ class CrawlTaskFacadeTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getSavedTaskId()).isEqualTo(expectedId);
-            verify(validator).validateNoDuplicateTask(
-                    bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
+            verify(validator)
+                    .validateNoDuplicateTask(
+                            bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
             verify(transactionManager).persist(task);
             verify(outboxTransactionManager).persist(any(CrawlTaskOutbox.class));
         }
@@ -90,8 +86,9 @@ class CrawlTaskFacadeTest {
             facade.persist(bundle);
 
             // Then
-            verify(validator).validateNoDuplicateTask(
-                    bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
+            verify(validator)
+                    .validateNoDuplicateTask(
+                            bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
         }
     }
 }

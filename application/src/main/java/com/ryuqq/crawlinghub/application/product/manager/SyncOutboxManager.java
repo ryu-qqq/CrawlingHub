@@ -1,16 +1,10 @@
 package com.ryuqq.crawlinghub.application.product.manager;
 
-import com.ryuqq.crawlinghub.application.product.port.out.command.SyncOutboxPersistencePort;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * 외부 동기화 Outbox 트랜잭션 관리자
  *
  * <p><strong>책임</strong>:
+ *
  * <ul>
  *   <li>SyncOutbox 영속성 관리
  *   <li>Outbox 상태 전환 관리
@@ -18,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
  * </ul>
  *
  * <p><strong>상태 전환</strong>:
+ *
  * <pre>
  * PENDING → PROCESSING (외부 서버 API 호출 시작)
  * PROCESSING → COMPLETED (API 호출 성공)
@@ -28,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author development-team
  * @since 1.0.0
  */
-
 public class SyncOutboxManager {
 
     // private final SyncOutboxPersistencePort syncOutboxPersistencePort;

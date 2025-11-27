@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlSchedulePort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlerSchedulerManager 테스트")
 class CrawlerSchedulerManagerTest {
 
-    @Mock
-    private PersistCrawlSchedulePort crawlSchedulerPersistencePort;
+    @Mock private PersistCrawlSchedulePort crawlSchedulerPersistencePort;
 
-    @InjectMocks
-    private CrawlerSchedulerManager manager;
+    @InjectMocks private CrawlerSchedulerManager manager;
 
     @Nested
     @DisplayName("persist() 테스트")

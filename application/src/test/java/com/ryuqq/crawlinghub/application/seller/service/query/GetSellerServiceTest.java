@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
@@ -13,7 +14,6 @@ import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -36,14 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetSellerService 테스트")
 class GetSellerServiceTest {
 
-    @Mock
-    private SellerQueryPort sellerQueryPort;
+    @Mock private SellerQueryPort sellerQueryPort;
 
-    @Mock
-    private SellerAssembler sellerAssembler;
+    @Mock private SellerAssembler sellerAssembler;
 
-    @InjectMocks
-    private GetSellerService service;
+    @InjectMocks private GetSellerService service;
 
     @Nested
     @DisplayName("execute() 셀러 조회 테스트")
@@ -56,14 +53,17 @@ class GetSellerServiceTest {
             Long sellerId = 1L;
             GetSellerQuery query = new GetSellerQuery(sellerId);
             Seller seller = SellerFixture.anActiveSeller();
-            SellerResponse expectedResponse = new SellerResponse(
-                    sellerId, "mustit-seller", "seller-name", true,
-                    LocalDateTime.now(), LocalDateTime.now());
+            SellerResponse expectedResponse =
+                    new SellerResponse(
+                            sellerId,
+                            "mustit-seller",
+                            "seller-name",
+                            true,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
-            given(sellerQueryPort.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(seller));
-            given(sellerAssembler.toResponse(seller))
-                    .willReturn(expectedResponse);
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(sellerAssembler.toResponse(seller)).willReturn(expectedResponse);
 
             // When
             SellerResponse result = service.execute(query);
@@ -81,8 +81,7 @@ class GetSellerServiceTest {
             Long sellerId = 999L;
             GetSellerQuery query = new GetSellerQuery(sellerId);
 
-            given(sellerQueryPort.findById(any(SellerId.class)))
-                    .willReturn(Optional.empty());
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(query))

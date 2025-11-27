@@ -3,12 +3,12 @@ package com.ryuqq.crawlinghub.domain.execution.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.crawlinghub.domain.execution.exception.InvalidCrawlExecutionStateException;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.domain.execution.exception.InvalidCrawlExecutionStateException;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,12 +17,13 @@ import org.junit.jupiter.api.Test;
  * CrawlExecution Aggregate Root 단위 테스트
  *
  * <p>테스트 대상:
+ *
  * <ul>
- *   <li>실행 시작 {@code start()} - RUNNING 상태, ID 미할당</li>
- *   <li>성공 완료 {@code completeWithSuccess()} - SUCCESS 상태 전환</li>
- *   <li>실패 완료 {@code completeWithFailure()} - FAILED 상태 전환</li>
- *   <li>타임아웃 완료 {@code completeWithTimeout()} - TIMEOUT 상태 전환</li>
- *   <li>상태 확인 메서드 - isRunning, isSuccess, isFailure, isCompleted</li>
+ *   <li>실행 시작 {@code start()} - RUNNING 상태, ID 미할당
+ *   <li>성공 완료 {@code completeWithSuccess()} - SUCCESS 상태 전환
+ *   <li>실패 완료 {@code completeWithFailure()} - FAILED 상태 전환
+ *   <li>타임아웃 완료 {@code completeWithTimeout()} - TIMEOUT 상태 전환
+ *   <li>상태 확인 메서드 - isRunning, isSuccess, isFailure, isCompleted
  * </ul>
  *
  * @author development-team
@@ -39,10 +40,11 @@ class CrawlExecutionTest {
         @DisplayName("실행 시작 시 RUNNING 상태, ID 미할당")
         void shouldStartExecutionWithRunningStatusAndUnassignedId() {
             // when
-            CrawlExecution execution = CrawlExecution.start(
-                    CrawlTaskIdFixture.anAssignedId(),
-                    CrawlSchedulerIdFixture.anAssignedId(),
-                    SellerIdFixture.anAssignedId());
+            CrawlExecution execution =
+                    CrawlExecution.start(
+                            CrawlTaskIdFixture.anAssignedId(),
+                            CrawlSchedulerIdFixture.anAssignedId(),
+                            SellerIdFixture.anAssignedId());
 
             // then
             assertThat(execution.getId()).isNotNull();
@@ -330,7 +332,8 @@ class CrawlExecutionTest {
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
 
             // then
-            assertThat(execution.getCrawlSchedulerId()).isEqualTo(CrawlSchedulerIdFixture.anAssignedId());
+            assertThat(execution.getCrawlSchedulerId())
+                    .isEqualTo(CrawlSchedulerIdFixture.anAssignedId());
         }
 
         @Test

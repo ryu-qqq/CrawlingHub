@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,11 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SellerTransactionManager 테스트")
 class SellerTransactionManagerTest {
 
-    @Mock
-    private SellerPersistencePort sellerPersistencePort;
+    @Mock private SellerPersistencePort sellerPersistencePort;
 
-    @InjectMocks
-    private SellerTransactionManager manager;
+    @InjectMocks private SellerTransactionManager manager;
 
     @Nested
     @DisplayName("persist() 테스트")

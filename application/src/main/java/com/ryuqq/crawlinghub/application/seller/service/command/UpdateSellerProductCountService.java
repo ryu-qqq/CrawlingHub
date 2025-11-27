@@ -6,9 +6,6 @@ import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,21 +23,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateSellerProductCountService implements UpdateSellerProductCountUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(UpdateSellerProductCountService.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(UpdateSellerProductCountService.class);
 
     private final SellerTransactionManager sellerTransactionManager;
     private final SellerQueryPort sellerQueryPort;
 
-    public UpdateSellerProductCountService(SellerTransactionManager sellerTransactionManager,
-                                           SellerQueryPort sellerQueryPort) {
+    public UpdateSellerProductCountService(
+            SellerTransactionManager sellerTransactionManager, SellerQueryPort sellerQueryPort) {
         this.sellerTransactionManager = sellerTransactionManager;
         this.sellerQueryPort = sellerQueryPort;
     }
 
     @Override
     public void execute(Long sellerId, int productCount) {
-        Seller seller = sellerQueryPort.findById(SellerId.of(sellerId))
-            .orElseThrow(() -> new SellerNotFoundException(sellerId));
+        Seller seller =
+                sellerQueryPort
+                        .findById(SellerId.of(sellerId))
+                        .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
         seller.updateProductCount(productCount);
 

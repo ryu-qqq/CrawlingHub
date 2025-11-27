@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.crawl.processor.CrawlResultProcessorProvider;
 import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
@@ -19,9 +22,6 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,23 +43,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskExecutionFacade 테스트")
 class CrawlTaskExecutionFacadeTest {
 
-    @Mock
-    private CrawlTaskQueryPort crawlTaskQueryPort;
+    @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
 
-    @Mock
-    private CrawlTaskTransactionManager crawlTaskTransactionManager;
+    @Mock private CrawlTaskTransactionManager crawlTaskTransactionManager;
 
-    @Mock
-    private CrawlExecutionManager crawlExecutionManager;
+    @Mock private CrawlExecutionManager crawlExecutionManager;
 
-    @Mock
-    private CrawlResultProcessorProvider processorProvider;
+    @Mock private CrawlResultProcessorProvider processorProvider;
 
-    @Mock
-    private CreateCrawlTaskUseCase createCrawlTaskUseCase;
+    @Mock private CreateCrawlTaskUseCase createCrawlTaskUseCase;
 
-    @InjectMocks
-    private CrawlTaskExecutionFacade facade;
+    @InjectMocks private CrawlTaskExecutionFacade facade;
 
     @Nested
     @DisplayName("prepareExecution() 테스트")
@@ -73,16 +67,22 @@ class CrawlTaskExecutionFacadeTest {
             Long schedulerId = 100L;
             Long sellerId = 200L;
             ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(taskId, schedulerId, sellerId, "MINI_SHOP", "https://example.com");
+                    new ExecuteCrawlTaskCommand(
+                            taskId, schedulerId, sellerId, "MINI_SHOP", "https://example.com");
 
             // PUBLISHED 상태에서 markAsRunning() 호출 가능
             CrawlTask task = CrawlTaskFixture.aPublishedTask();
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
 
-            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class))).willReturn(Optional.of(task));
-            given(crawlTaskTransactionManager.persist(task)).willReturn(CrawlTaskIdFixture.anAssignedId());
-            given(crawlExecutionManager.startAndPersist(
-                            any(CrawlTaskId.class), any(CrawlSchedulerId.class), any(SellerId.class)))
+            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
+                    .willReturn(Optional.of(task));
+            given(crawlTaskTransactionManager.persist(task))
+                    .willReturn(CrawlTaskIdFixture.anAssignedId());
+            given(
+                            crawlExecutionManager.startAndPersist(
+                                    any(CrawlTaskId.class),
+                                    any(CrawlSchedulerId.class),
+                                    any(SellerId.class)))
                     .willReturn(execution);
 
             // When
@@ -102,7 +102,8 @@ class CrawlTaskExecutionFacadeTest {
             // Given
             Long taskId = 999L;
             ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(taskId, 100L, 200L, "MINI_SHOP", "https://example.com");
+                    new ExecuteCrawlTaskCommand(
+                            taskId, 100L, 200L, "MINI_SHOP", "https://example.com");
 
             given(crawlTaskQueryPort.findById(any(CrawlTaskId.class))).willReturn(Optional.empty());
 
@@ -126,13 +127,15 @@ class CrawlTaskExecutionFacadeTest {
             Integer httpStatusCode = 500;
             String errorMessage = "Internal Server Error";
 
-            given(crawlTaskTransactionManager.persist(task)).willReturn(CrawlTaskIdFixture.anAssignedId());
+            given(crawlTaskTransactionManager.persist(task))
+                    .willReturn(CrawlTaskIdFixture.anAssignedId());
 
             // When
             facade.completeWithFailure(context, httpStatusCode, errorMessage);
 
             // Then
-            verify(crawlExecutionManager).completeWithFailure(execution, httpStatusCode, errorMessage);
+            verify(crawlExecutionManager)
+                    .completeWithFailure(execution, httpStatusCode, errorMessage);
             verify(crawlTaskTransactionManager).persist(task);
         }
     }
@@ -150,7 +153,8 @@ class CrawlTaskExecutionFacadeTest {
             ExecutionContext context = new ExecutionContext(task, execution);
             String errorMessage = "Request timed out after 30 seconds";
 
-            given(crawlTaskTransactionManager.persist(task)).willReturn(CrawlTaskIdFixture.anAssignedId());
+            given(crawlTaskTransactionManager.persist(task))
+                    .willReturn(CrawlTaskIdFixture.anAssignedId());
 
             // When
             facade.completeWithTimeout(context, errorMessage);

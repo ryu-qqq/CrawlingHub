@@ -15,12 +15,7 @@ package com.ryuqq.crawlinghub.domain.product.vo;
  * @since 1.0.0
  */
 public record ProductOption(
-        long optionNo,
-        long itemNo,
-        String color,
-        String size,
-        int stock,
-        String sizeGuide) {
+        long optionNo, long itemNo, String color, String size, int stock, String sizeGuide) {
 
     public ProductOption {
         if (optionNo <= 0) {
@@ -44,43 +39,28 @@ public record ProductOption(
         }
     }
 
-    /**
-     * 팩토리 메서드
-     */
+    /** 팩토리 메서드 */
     public static ProductOption of(
-            long optionNo,
-            long itemNo,
-            String color,
-            String size,
-            int stock,
-            String sizeGuide) {
+            long optionNo, long itemNo, String color, String size, int stock, String sizeGuide) {
         return new ProductOption(optionNo, itemNo, color, size, stock, sizeGuide);
     }
 
-    /**
-     * 재고가 있는지 확인
-     */
+    /** 재고가 있는지 확인 */
     public boolean isInStock() {
         return stock > 0;
     }
 
-    /**
-     * 품절인지 확인
-     */
+    /** 품절인지 확인 */
     public boolean isSoldOut() {
         return stock <= 0;
     }
 
-    /**
-     * 색상이 있는지 확인
-     */
+    /** 색상이 있는지 확인 */
     public boolean hasColor() {
         return color != null && !color.isBlank();
     }
 
-    /**
-     * 사이즈가 있는지 확인
-     */
+    /** 사이즈가 있는지 확인 */
     public boolean hasSize() {
         return size != null && !size.isBlank();
     }
@@ -97,6 +77,4 @@ public record ProductOption(
         }
         return this.stock != other.stock;
     }
-
-
 }

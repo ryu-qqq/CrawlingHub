@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
@@ -17,9 +18,8 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -42,17 +42,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateCrawlSchedulerService 테스트")
 class UpdateCrawlSchedulerServiceTest {
 
-    @Mock
-    private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
 
-    @Mock
-    private CrawlerSchedulerFacade crawlerSchedulerFacade;
+    @Mock private CrawlerSchedulerFacade crawlerSchedulerFacade;
 
-    @Mock
-    private CrawlSchedulerAssembler crawlSchedulerAssembler;
+    @Mock private CrawlSchedulerAssembler crawlSchedulerAssembler;
 
-    @InjectMocks
-    private UpdateCrawlSchedulerService service;
+    @InjectMocks private UpdateCrawlSchedulerService service;
 
     @Nested
     @DisplayName("update() 스케줄러 수정 테스트")
@@ -63,16 +59,25 @@ class UpdateCrawlSchedulerServiceTest {
         void shouldUpdateSchedulerAndReturnResponse() {
             // Given
             Long schedulerId = 1L;
-            UpdateCrawlSchedulerCommand command = new UpdateCrawlSchedulerCommand(
-                    schedulerId, "updated-scheduler", "cron(0 12 * * ? *)", true);
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(
+                            schedulerId, "updated-scheduler", "cron(0 12 * * ? *)", true);
             CrawlScheduler existingScheduler = CrawlSchedulerFixture.anActiveScheduler();
-            CrawlSchedulerResponse expectedResponse = new CrawlSchedulerResponse(
-                    schedulerId, 1L, "updated-scheduler", "cron(0 12 * * ? *)", SchedulerStatus.ACTIVE,
-                    LocalDateTime.now(), LocalDateTime.now());
+            CrawlSchedulerResponse expectedResponse =
+                    new CrawlSchedulerResponse(
+                            schedulerId,
+                            1L,
+                            "updated-scheduler",
+                            "cron(0 12 * * ? *)",
+                            SchedulerStatus.ACTIVE,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
-            given(crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
+            given(
+                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
+                                    any(SellerId.class), anyString()))
                     .willReturn(false);
             given(crawlSchedulerAssembler.toResponse(existingScheduler))
                     .willReturn(expectedResponse);
@@ -95,11 +100,18 @@ class UpdateCrawlSchedulerServiceTest {
             CrawlScheduler existingScheduler = CrawlSchedulerFixture.anActiveScheduler();
             String sameName = existingScheduler.getSchedulerNameValue();
 
-            UpdateCrawlSchedulerCommand command = new UpdateCrawlSchedulerCommand(
-                    schedulerId, sameName, "cron(0 12 * * ? *)", false);
-            CrawlSchedulerResponse expectedResponse = new CrawlSchedulerResponse(
-                    schedulerId, 1L, sameName, "cron(0 12 * * ? *)", SchedulerStatus.INACTIVE,
-                    LocalDateTime.now(), LocalDateTime.now());
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(
+                            schedulerId, sameName, "cron(0 12 * * ? *)", false);
+            CrawlSchedulerResponse expectedResponse =
+                    new CrawlSchedulerResponse(
+                            schedulerId,
+                            1L,
+                            sameName,
+                            "cron(0 12 * * ? *)",
+                            SchedulerStatus.INACTIVE,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
 
             given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
@@ -110,7 +122,8 @@ class UpdateCrawlSchedulerServiceTest {
             service.update(command);
 
             // Then
-            then(crawlScheduleQueryPort).should(never())
+            then(crawlScheduleQueryPort)
+                    .should(never())
                     .existsBySellerIdAndSchedulerName(any(SellerId.class), anyString());
         }
 
@@ -119,8 +132,9 @@ class UpdateCrawlSchedulerServiceTest {
         void shouldThrowExceptionWhenSchedulerNotFound() {
             // Given
             Long schedulerId = 999L;
-            UpdateCrawlSchedulerCommand command = new UpdateCrawlSchedulerCommand(
-                    schedulerId, "new-name", "cron(0 0 * * ? *)", true);
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(
+                            schedulerId, "new-name", "cron(0 0 * * ? *)", true);
 
             given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.empty());
@@ -137,13 +151,16 @@ class UpdateCrawlSchedulerServiceTest {
         void shouldThrowExceptionWhenSchedulerNameDuplicated() {
             // Given
             Long schedulerId = 1L;
-            UpdateCrawlSchedulerCommand command = new UpdateCrawlSchedulerCommand(
-                    schedulerId, "duplicate-name", "cron(0 0 * * ? *)", true);
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(
+                            schedulerId, "duplicate-name", "cron(0 0 * * ? *)", true);
             CrawlScheduler existingScheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
-            given(crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
+            given(
+                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
+                                    any(SellerId.class), anyString()))
                     .willReturn(true);
 
             // When & Then

@@ -28,9 +28,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * SellerQueryController REST Docs 테스트
@@ -43,14 +43,11 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("SellerQueryController REST Docs")
 class SellerQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean
-    private GetSellerUseCase getSellerUseCase;
+    @MockitoBean private GetSellerUseCase getSellerUseCase;
 
-    @MockitoBean
-    private SearchSellersUseCase searchSellersUseCase;
+    @MockitoBean private SearchSellersUseCase searchSellersUseCase;
 
-    @MockitoBean
-    private SellerQueryApiMapper sellerQueryApiMapper;
+    @MockitoBean private SellerQueryApiMapper sellerQueryApiMapper;
 
     @Test
     @DisplayName("GET /api/v1/sellers/{id} - 셀러 단건 조회 API 문서")
@@ -156,9 +153,11 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
 
-        given(sellerQueryApiMapper.toQuery(any(
-                        com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query
-                                .SearchSellersApiRequest.class)))
+        given(
+                        sellerQueryApiMapper.toQuery(
+                                any(
+                                        com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query
+                                                .SearchSellersApiRequest.class)))
                 .willReturn(null);
         given(searchSellersUseCase.execute(any())).willReturn(pageResponse);
         given(sellerQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);

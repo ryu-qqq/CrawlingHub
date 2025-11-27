@@ -3,16 +3,16 @@ package com.ryuqq.crawlinghub.domain.task.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
-import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
+import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
+import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,12 +22,13 @@ import org.junit.jupiter.api.Test;
  * CrawlTask Aggregate Root 단위 테스트
  *
  * <p>테스트 대상:
+ *
  * <ul>
- *   <li>신규 생성 {@code forNew()} - WAITING 상태, ID 미할당</li>
- *   <li>상태 전환 메서드 - markAsPublished, markAsRunning, markAsSuccess, markAsFailed, markAsTimeout</li>
- *   <li>재시도 로직 - canRetry(), attemptRetry(), markAsPublishedAfterRetry()</li>
- *   <li>Outbox 관리 - initializeOutbox, markOutboxAsSent, markOutboxAsFailed</li>
- *   <li>도메인 이벤트 - addRegisteredEvent, clearDomainEvents</li>
+ *   <li>신규 생성 {@code forNew()} - WAITING 상태, ID 미할당
+ *   <li>상태 전환 메서드 - markAsPublished, markAsRunning, markAsSuccess, markAsFailed, markAsTimeout
+ *   <li>재시도 로직 - canRetry(), attemptRetry(), markAsPublishedAfterRetry()
+ *   <li>Outbox 관리 - initializeOutbox, markOutboxAsSent, markOutboxAsFailed
+ *   <li>도메인 이벤트 - addRegisteredEvent, clearDomainEvents
  * </ul>
  *
  * @author development-team
@@ -44,11 +45,12 @@ class CrawlTaskTest {
         @DisplayName("유효한 파라미터로 신규 태스크 생성 시 WAITING 상태, ID 미할당")
         void shouldCreateNewTaskWithWaitingStatusAndUnassignedId() {
             // given & when
-            CrawlTask task = CrawlTask.forNew(
-                    CrawlSchedulerIdFixture.anAssignedId(),
-                    SellerIdFixture.anAssignedId(),
-                    CrawlTaskTypeFixture.defaultType(),
-                    CrawlEndpointFixture.aMiniShopListEndpoint());
+            CrawlTask task =
+                    CrawlTask.forNew(
+                            CrawlSchedulerIdFixture.anAssignedId(),
+                            SellerIdFixture.anAssignedId(),
+                            CrawlTaskTypeFixture.defaultType(),
+                            CrawlEndpointFixture.aMiniShopListEndpoint());
 
             // then
             assertThat(task.getId()).isNotNull();

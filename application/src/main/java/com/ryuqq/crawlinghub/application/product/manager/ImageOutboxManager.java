@@ -1,18 +1,10 @@
 package com.ryuqq.crawlinghub.application.product.manager;
 
-import com.ryuqq.crawlinghub.application.product.port.out.command.ImageOutboxPersistencePort;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
 /**
  * 이미지 업로드 Outbox 트랜잭션 관리자
  *
  * <p><strong>책임</strong>:
+ *
  * <ul>
  *   <li>ImageOutbox 영속성 관리
  *   <li>Outbox 상태 전환 관리
@@ -20,6 +12,7 @@ import java.util.List;
  * </ul>
  *
  * <p><strong>상태 전환</strong>:
+ *
  * <pre>
  * PENDING → PROCESSING (파일서버 API 호출 시작)
  * PROCESSING → COMPLETED (웹훅 수신 - 업로드 성공)
@@ -30,7 +23,6 @@ import java.util.List;
  * @author development-team
  * @since 1.0.0
  */
-
 public class ImageOutboxManager {
 
     // private final ImageOutboxPersistencePort imageOutboxPersistencePort;

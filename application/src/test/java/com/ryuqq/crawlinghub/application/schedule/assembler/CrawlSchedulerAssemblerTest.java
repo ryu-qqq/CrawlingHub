@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.schedule.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
@@ -15,7 +15,6 @@ import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -39,14 +38,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlSchedulerAssembler 테스트")
 class CrawlSchedulerAssemblerTest {
 
-    @Mock
-    private ClockHolder clockHolder;
+    @Mock private ClockHolder clockHolder;
 
-    @Spy
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Spy private ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
-    private CrawlSchedulerAssembler assembler;
+    @InjectMocks private CrawlSchedulerAssembler assembler;
 
     @Nested
     @DisplayName("toBundle(RegisterCrawlSchedulerCommand) 테스트")
@@ -57,7 +53,8 @@ class CrawlSchedulerAssemblerTest {
         void shouldCreateBundleFromRegisterCommand() {
             // Given
             RegisterCrawlSchedulerCommand command =
-                    new RegisterCrawlSchedulerCommand(1L, "Daily Crawl Scheduler", "cron(0 0 * * ? *)");
+                    new RegisterCrawlSchedulerCommand(
+                            1L, "Daily Crawl Scheduler", "cron(0 0 * * ? *)");
             Instant now = Instant.parse("2025-11-27T12:00:00Z");
 
             given(clockHolder.clock()).willReturn(() -> now);
@@ -69,8 +66,10 @@ class CrawlSchedulerAssemblerTest {
             assertThat(result).isNotNull();
             assertThat(result.getScheduler()).isNotNull();
             assertThat(result.getScheduler().getSellerIdValue()).isEqualTo(1L);
-            assertThat(result.getScheduler().getSchedulerNameValue()).isEqualTo("Daily Crawl Scheduler");
-            assertThat(result.getScheduler().getCronExpressionValue()).isEqualTo("cron(0 0 * * ? *)");
+            assertThat(result.getScheduler().getSchedulerNameValue())
+                    .isEqualTo("Daily Crawl Scheduler");
+            assertThat(result.getScheduler().getCronExpressionValue())
+                    .isEqualTo("cron(0 0 * * ? *)");
         }
     }
 
@@ -205,10 +204,11 @@ class CrawlSchedulerAssemblerTest {
         @DisplayName("[성공] CrawlScheduler 목록 → CrawlSchedulerResponse 목록 변환")
         void shouldConvertSchedulerListToResponses() {
             // Given
-            List<CrawlScheduler> schedulers = List.of(
-                    CrawlSchedulerFixture.anActiveScheduler(1L),
-                    CrawlSchedulerFixture.anActiveScheduler(2L),
-                    CrawlSchedulerFixture.anActiveScheduler(3L));
+            List<CrawlScheduler> schedulers =
+                    List.of(
+                            CrawlSchedulerFixture.anActiveScheduler(1L),
+                            CrawlSchedulerFixture.anActiveScheduler(2L),
+                            CrawlSchedulerFixture.anActiveScheduler(3L));
 
             // When
             List<CrawlSchedulerResponse> result = assembler.toResponses(schedulers);
@@ -242,9 +242,10 @@ class CrawlSchedulerAssemblerTest {
         @DisplayName("[성공] CrawlScheduler 목록 → PageResponse 변환")
         void shouldConvertSchedulersToPageResponse() {
             // Given
-            List<CrawlScheduler> schedulers = List.of(
-                    CrawlSchedulerFixture.anActiveScheduler(1L),
-                    CrawlSchedulerFixture.anActiveScheduler(2L));
+            List<CrawlScheduler> schedulers =
+                    List.of(
+                            CrawlSchedulerFixture.anActiveScheduler(1L),
+                            CrawlSchedulerFixture.anActiveScheduler(2L));
             int page = 0;
             int size = 10;
             long totalElements = 25L;

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * REST Docs HTML 문서 제공 컨트롤러
  *
  * <p>빌드된 REST Docs HTML 문서를 제공합니다.
+ *
  * <p>/docs 경로로 접근 시 REST API 문서 페이지로 리다이렉트됩니다.
  *
  * @author development-team

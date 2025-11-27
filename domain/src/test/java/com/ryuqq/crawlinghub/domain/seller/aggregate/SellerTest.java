@@ -3,15 +3,15 @@ package com.ryuqq.crawlinghub.domain.seller.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
+import com.ryuqq.cralwinghub.domain.fixture.seller.MustItSellerNameFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerNameFixture;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
-import com.ryuqq.cralwinghub.domain.fixture.seller.MustItSellerNameFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerNameFixture;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
@@ -40,10 +40,11 @@ class SellerTest {
             FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            Seller seller = Seller.forNew(
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    clock);
+            Seller seller =
+                    Seller.forNew(
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            clock);
 
             // then
             assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
@@ -57,10 +58,11 @@ class SellerTest {
             FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            Seller seller = Seller.forNew(
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    clock);
+            Seller seller =
+                    Seller.forNew(
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            clock);
 
             // then
             assertThat(seller.getProductCount()).isZero();
@@ -73,10 +75,11 @@ class SellerTest {
             FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            Seller seller = Seller.forNew(
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    clock);
+            Seller seller =
+                    Seller.forNew(
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            clock);
 
             // then
             assertThat(seller.getSellerId()).isNull();
@@ -88,13 +91,15 @@ class SellerTest {
         void shouldSetTimestamps() {
             // given
             FixedClock clock = FixedClock.aDefaultClock();
-            LocalDateTime expectedTime = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            LocalDateTime expectedTime =
+                    LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
             // when
-            Seller seller = Seller.forNew(
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    clock);
+            Seller seller =
+                    Seller.forNew(
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            clock);
 
             // then
             assertThat(seller.getCreatedAt()).isEqualTo(expectedTime);
@@ -114,15 +119,17 @@ class SellerTest {
             LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
             // when & then
-            assertThatThrownBy(() -> Seller.of(
-                    null,
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    SellerStatus.ACTIVE,
-                    0,
-                    now,
-                    now,
-                    clock))
+            assertThatThrownBy(
+                            () ->
+                                    Seller.of(
+                                            null,
+                                            MustItSellerNameFixture.aDefaultName(),
+                                            SellerNameFixture.aDefaultName(),
+                                            SellerStatus.ACTIVE,
+                                            0,
+                                            now,
+                                            now,
+                                            clock))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("sellerId는 null일 수 없습니다");
         }
@@ -136,15 +143,16 @@ class SellerTest {
             LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
 
             // when
-            Seller seller = Seller.of(
-                    sellerId,
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    SellerStatus.ACTIVE,
-                    10,
-                    now,
-                    now,
-                    clock);
+            Seller seller =
+                    Seller.of(
+                            sellerId,
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            SellerStatus.ACTIVE,
+                            10,
+                            now,
+                            now,
+                            clock);
 
             // then
             assertThat(seller.getSellerId()).isEqualTo(sellerId);
@@ -169,15 +177,16 @@ class SellerTest {
             LocalDateTime updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0);
 
             // when
-            Seller seller = Seller.reconstitute(
-                    sellerId,
-                    mustItSellerName,
-                    sellerName,
-                    SellerStatus.INACTIVE,
-                    50,
-                    createdAt,
-                    updatedAt,
-                    clock);
+            Seller seller =
+                    Seller.reconstitute(
+                            sellerId,
+                            mustItSellerName,
+                            sellerName,
+                            SellerStatus.INACTIVE,
+                            50,
+                            createdAt,
+                            updatedAt,
+                            clock);
 
             // then
             assertThat(seller.getSellerId()).isEqualTo(sellerId);
@@ -231,24 +240,27 @@ class SellerTest {
         void shouldUpdateTimestampOnActivation() {
             // given
             FixedClock initialClock = FixedClock.at("2025-01-01T00:00:00Z");
-            LocalDateTime initialTime = LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
+            LocalDateTime initialTime =
+                    LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
 
-            Seller seller = Seller.of(
-                    SellerId.of(1L),
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    SellerStatus.INACTIVE,
-                    0,
-                    initialTime,
-                    initialTime,
-                    FixedClock.at("2025-11-27T12:00:00Z"));
+            Seller seller =
+                    Seller.of(
+                            SellerId.of(1L),
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            SellerStatus.INACTIVE,
+                            0,
+                            initialTime,
+                            initialTime,
+                            FixedClock.at("2025-11-27T12:00:00Z"));
 
             // when
             seller.activate();
 
             // then
-            LocalDateTime expectedUpdatedAt = LocalDateTime.ofInstant(
-                    FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
+            LocalDateTime expectedUpdatedAt =
+                    LocalDateTime.ofInstant(
+                            FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
             assertThat(seller.getUpdatedAt()).isEqualTo(expectedUpdatedAt);
         }
     }
@@ -423,24 +435,27 @@ class SellerTest {
         void shouldUpdateTimestamp() {
             // given
             FixedClock initialClock = FixedClock.at("2025-01-01T00:00:00Z");
-            LocalDateTime initialTime = LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
+            LocalDateTime initialTime =
+                    LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
 
-            Seller seller = Seller.of(
-                    SellerId.of(1L),
-                    MustItSellerNameFixture.aDefaultName(),
-                    SellerNameFixture.aDefaultName(),
-                    SellerStatus.ACTIVE,
-                    0,
-                    initialTime,
-                    initialTime,
-                    FixedClock.at("2025-11-27T12:00:00Z"));
+            Seller seller =
+                    Seller.of(
+                            SellerId.of(1L),
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            SellerStatus.ACTIVE,
+                            0,
+                            initialTime,
+                            initialTime,
+                            FixedClock.at("2025-11-27T12:00:00Z"));
 
             // when
             seller.updateProductCount(50);
 
             // then
-            LocalDateTime expectedUpdatedAt = LocalDateTime.ofInstant(
-                    FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
+            LocalDateTime expectedUpdatedAt =
+                    LocalDateTime.ofInstant(
+                            FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
             assertThat(seller.getUpdatedAt()).isEqualTo(expectedUpdatedAt);
         }
 

@@ -93,7 +93,14 @@ public class Seller {
             throw new IllegalArgumentException("sellerId는 null일 수 없습니다.");
         }
         return new Seller(
-                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt, clock);
+                sellerId,
+                mustItSellerName,
+                sellerName,
+                status,
+                productCount,
+                createdAt,
+                updatedAt,
+                clock);
     }
 
     /**
@@ -118,7 +125,15 @@ public class Seller {
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             Clock clock) {
-        return of(sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt, clock);
+        return of(
+                sellerId,
+                mustItSellerName,
+                sellerName,
+                status,
+                productCount,
+                createdAt,
+                updatedAt,
+                clock);
     }
 
     /** 생성자 (private) */

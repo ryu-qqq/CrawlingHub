@@ -14,6 +14,7 @@ public final class StringTruncator {
     private static final String ELLIPSIS = "...";
 
     private StringTruncator() {
+        // utility class
     }
 
     /**

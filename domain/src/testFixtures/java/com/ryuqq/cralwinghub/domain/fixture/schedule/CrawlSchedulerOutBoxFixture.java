@@ -76,9 +76,7 @@ public final class CrawlSchedulerOutBoxFixture {
                 new FixedClock());
     }
 
-    /**
-     * 테스트용 고정 시간 Clock 구현
-     */
+    /** 테스트용 고정 시간 Clock 구현 */
     private static class FixedClock implements Clock {
         @Override
         public Instant now() {

@@ -53,9 +53,7 @@ public final class ExecutionDurationFixture {
      */
     public static ExecutionDuration aCompletedDuration(Long durationMs) {
         return ExecutionDuration.reconstitute(
-                DEFAULT_START,
-                DEFAULT_START.plusNanos(durationMs * 1_000_000),
-                durationMs);
+                DEFAULT_START, DEFAULT_START.plusNanos(durationMs * 1_000_000), durationMs);
     }
 
     private ExecutionDurationFixture() {

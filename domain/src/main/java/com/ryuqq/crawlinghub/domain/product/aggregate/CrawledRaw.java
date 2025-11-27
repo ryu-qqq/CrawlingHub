@@ -3,22 +3,21 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
 import com.ryuqq.crawlinghub.domain.product.vo.RawDataStatus;
-
 import java.time.Instant;
 import java.util.Objects;
 
 /**
  * 크롤링 Raw 데이터 Aggregate Root
  *
- * <p>파싱된 크롤링 결과를 JSON 형태로 저장하는 단일 테이블 구조입니다.
- * 타입(MINI_SHOP, DETAIL, OPTION)에 따라 다른 JSON 스키마를 가집니다.
+ * <p>파싱된 크롤링 결과를 JSON 형태로 저장하는 단일 테이블 구조입니다. 타입(MINI_SHOP, DETAIL, OPTION)에 따라 다른 JSON 스키마를 가집니다.
  *
  * <p><strong>처리 흐름</strong>:
+ *
  * <ol>
- *   <li>크롤링 완료 → CrawledRaw 벌크 저장 (PENDING)</li>
- *   <li>가공 스케줄러 → MINI_SHOP 먼저 처리 → CrawledProduct 생성</li>
- *   <li>가공 스케줄러 → DETAIL/OPTION 처리 → CrawledProduct 업데이트</li>
- *   <li>처리 완료 → PROCESSED / 실패 → FAILED</li>
+ *   <li>크롤링 완료 → CrawledRaw 벌크 저장 (PENDING)
+ *   <li>가공 스케줄러 → MINI_SHOP 먼저 처리 → CrawledProduct 생성
+ *   <li>가공 스케줄러 → DETAIL/OPTION 처리 → CrawledProduct 업데이트
+ *   <li>처리 완료 → PROCESSED / 실패 → FAILED
  * </ol>
  *
  * @author development-team
@@ -95,9 +94,7 @@ public class CrawledRaw {
                 null);
     }
 
-    /**
-     * DB에서 복원
-     */
+    /** DB에서 복원 */
     public static CrawledRaw reconstitute(
             CrawledRawId id,
             long crawlSchedulerId,
@@ -110,13 +107,19 @@ public class CrawledRaw {
             Instant createdAt,
             Instant processedAt) {
         return new CrawledRaw(
-                id, crawlSchedulerId, sellerId, itemNo, crawlType,
-                rawData, status, errorMessage, createdAt, processedAt);
+                id,
+                crawlSchedulerId,
+                sellerId,
+                itemNo,
+                crawlType,
+                rawData,
+                status,
+                errorMessage,
+                createdAt,
+                processedAt);
     }
 
-    /**
-     * 처리 완료 상태로 변경
-     */
+    /** 처리 완료 상태로 변경 */
     public CrawledRaw markAsProcessed() {
         return new CrawledRaw(
                 this.id,
@@ -131,9 +134,7 @@ public class CrawledRaw {
                 Instant.now());
     }
 
-    /**
-     * 처리 실패 상태로 변경
-     */
+    /** 처리 실패 상태로 변경 */
     public CrawledRaw markAsFailed(String errorMessage) {
         return new CrawledRaw(
                 this.id,
@@ -222,8 +223,12 @@ public class CrawledRaw {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         CrawledRaw that = (CrawledRaw) o;
         return Objects.equals(id, that.id);
     }

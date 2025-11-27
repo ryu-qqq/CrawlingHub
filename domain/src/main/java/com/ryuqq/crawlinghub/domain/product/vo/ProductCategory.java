@@ -22,9 +22,7 @@ public record ProductCategory(
         String mediumCategoryCode,
         String mediumCategoryName) {
 
-    /**
-     * 팩토리 메서드
-     */
+    /** 팩토리 메서드 */
     public static ProductCategory of(
             String headerCategoryCode,
             String headerCategoryName,
@@ -52,40 +50,36 @@ public record ProductCategory(
             sb.append(headerCategoryName);
         }
         if (largeCategoryName != null) {
-            if (sb.length() > 0) sb.append(" > ");
+            if (sb.length() > 0) {
+                sb.append(" > ");
+            }
             sb.append(largeCategoryName);
         }
         if (mediumCategoryName != null) {
-            if (sb.length() > 0) sb.append(" > ");
+            if (sb.length() > 0) {
+                sb.append(" > ");
+            }
             sb.append(mediumCategoryName);
         }
         return sb.toString();
     }
 
-    /**
-     * 여성 카테고리인지 확인
-     */
+    /** 여성 카테고리인지 확인 */
     public boolean isWomen() {
         return "W".equals(headerCategoryCode);
     }
 
-    /**
-     * 남성 카테고리인지 확인
-     */
+    /** 남성 카테고리인지 확인 */
     public boolean isMen() {
         return "M".equals(headerCategoryCode);
     }
 
-    /**
-     * 키즈 카테고리인지 확인
-     */
+    /** 키즈 카테고리인지 확인 */
     public boolean isKids() {
         return "K".equals(headerCategoryCode);
     }
 
-    /**
-     * 중분류명 반환 (mediumCategoryName 별칭)
-     */
+    /** 중분류명 반환 (mediumCategoryName 별칭) */
     public String mediumCategory() {
         return mediumCategoryName;
     }

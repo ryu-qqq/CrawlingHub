@@ -25,11 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RecoverUserAgentService 테스트")
 class RecoverUserAgentServiceTest {
 
-    @Mock
-    private UserAgentPoolManager poolManager;
+    @Mock private UserAgentPoolManager poolManager;
 
-    @InjectMocks
-    private RecoverUserAgentService service;
+    @InjectMocks private RecoverUserAgentService service;
 
     @Nested
     @DisplayName("recoverAll() 전체 복구 테스트")

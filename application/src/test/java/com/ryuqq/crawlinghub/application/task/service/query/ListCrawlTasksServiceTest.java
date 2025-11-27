@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.application.task.service.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
@@ -17,7 +17,6 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -41,14 +40,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ListCrawlTasksService 테스트")
 class ListCrawlTasksServiceTest {
 
-    @Mock
-    private CrawlTaskQueryPort crawlTaskQueryPort;
+    @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
 
-    @Mock
-    private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskAssembler assembler;
 
-    @InjectMocks
-    private ListCrawlTasksService service;
+    @InjectMocks private ListCrawlTasksService service;
 
     @Nested
     @DisplayName("execute() 크롤 태스크 목록 조회 테스트")
@@ -63,11 +59,18 @@ class ListCrawlTasksServiceTest {
             List<CrawlTask> tasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
 
-            CrawlTaskResponse response = new CrawlTaskResponse(
-                    1L, 1L, 1L, "https://example.com/api",
-                    CrawlTaskStatus.WAITING, CrawlTaskType.META, 0, LocalDateTime.now());
-            PageResponse<CrawlTaskResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlTaskResponse response =
+                    new CrawlTaskResponse(
+                            1L,
+                            1L,
+                            1L,
+                            "https://example.com/api",
+                            CrawlTaskStatus.WAITING,
+                            CrawlTaskType.META,
+                            0,
+                            LocalDateTime.now());
+            PageResponse<CrawlTaskResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(tasks);
@@ -96,8 +99,8 @@ class ListCrawlTasksServiceTest {
             List<CrawlTask> emptyTasks = Collections.emptyList();
             long totalElements = 0L;
 
-            PageResponse<CrawlTaskResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), 0, 10, 0L, 0, true, true);
+            PageResponse<CrawlTaskResponse> expectedResponse =
+                    PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(emptyTasks);
@@ -117,17 +120,23 @@ class ListCrawlTasksServiceTest {
         @DisplayName("[성공] 상태 필터로 조회")
         void shouldFilterByStatus() {
             // Given
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(
-                    1L, CrawlTaskStatus.WAITING, 0, 10);
+            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, CrawlTaskStatus.WAITING, 0, 10);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> waitingTasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
 
-            CrawlTaskResponse response = new CrawlTaskResponse(
-                    1L, 1L, 1L, "https://example.com/api",
-                    CrawlTaskStatus.WAITING, CrawlTaskType.META, 0, LocalDateTime.now());
-            PageResponse<CrawlTaskResponse> expectedResponse = PageResponse.of(
-                    List.of(response), 0, 10, 1L, 1, true, true);
+            CrawlTaskResponse response =
+                    new CrawlTaskResponse(
+                            1L,
+                            1L,
+                            1L,
+                            "https://example.com/api",
+                            CrawlTaskStatus.WAITING,
+                            CrawlTaskType.META,
+                            0,
+                            LocalDateTime.now());
+            PageResponse<CrawlTaskResponse> expectedResponse =
+                    PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(waitingTasks);
@@ -154,8 +163,9 @@ class ListCrawlTasksServiceTest {
             List<CrawlTask> tasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 50L;
 
-            PageResponse<CrawlTaskResponse> expectedResponse = PageResponse.of(
-                    Collections.emptyList(), page, size, totalElements, 3, false, false);
+            PageResponse<CrawlTaskResponse> expectedResponse =
+                    PageResponse.of(
+                            Collections.emptyList(), page, size, totalElements, 3, false, false);
 
             given(assembler.toCriteria(query)).willReturn(criteria);
             given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(tasks);

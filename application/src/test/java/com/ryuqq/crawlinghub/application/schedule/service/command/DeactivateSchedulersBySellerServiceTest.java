@@ -7,11 +7,11 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -34,14 +34,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("DeactivateSchedulersBySellerService 테스트")
 class DeactivateSchedulersBySellerServiceTest {
 
-    @Mock
-    private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
 
-    @Mock
-    private CrawlerSchedulerFacade crawlerSchedulerFacade;
+    @Mock private CrawlerSchedulerFacade crawlerSchedulerFacade;
 
-    @InjectMocks
-    private DeactivateSchedulersBySellerService service;
+    @InjectMocks private DeactivateSchedulersBySellerService service;
 
     @Nested
     @DisplayName("execute() 셀러별 스케줄러 비활성화 테스트")
@@ -64,7 +61,9 @@ class DeactivateSchedulersBySellerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(2);
-            then(crawlScheduleQueryPort).should().findActiveSchedulersBySellerId(SellerId.of(sellerId));
+            then(crawlScheduleQueryPort)
+                    .should()
+                    .findActiveSchedulersBySellerId(SellerId.of(sellerId));
             then(crawlerSchedulerFacade).should(times(2)).update(any(CrawlScheduler.class));
         }
 
@@ -82,7 +81,9 @@ class DeactivateSchedulersBySellerServiceTest {
 
             // Then
             assertThat(result).isZero();
-            then(crawlScheduleQueryPort).should().findActiveSchedulersBySellerId(SellerId.of(sellerId));
+            then(crawlScheduleQueryPort)
+                    .should()
+                    .findActiveSchedulersBySellerId(SellerId.of(sellerId));
             then(crawlerSchedulerFacade).should(never()).update(any());
         }
 

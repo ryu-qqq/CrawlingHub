@@ -11,16 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
  * CrawledRaw 트랜잭션 관리자
  *
  * <p><strong>책임</strong>:
+ *
  * <ul>
- *   <li>CrawledRaw 영속성 관리 (저장)</li>
- *   <li>도메인 메서드 호출을 통한 상태 변경</li>
- *   <li>트랜잭션 경계 관리</li>
+ *   <li>CrawledRaw 영속성 관리 (저장)
+ *   <li>도메인 메서드 호출을 통한 상태 변경
+ *   <li>트랜잭션 경계 관리
  * </ul>
  *
  * <p><strong>주의</strong>:
+ *
  * <ul>
- *   <li>QueryPort는 사용하지 않음 (Facade/Scheduler에서 사용)</li>
- *   <li>외부 API 호출 금지 (트랜잭션 내)</li>
+ *   <li>QueryPort는 사용하지 않음 (Facade/Scheduler에서 사용)
+ *   <li>외부 API 호출 금지 (트랜잭션 내)
  * </ul>
  *
  * @author development-team
@@ -88,5 +90,4 @@ public class CrawledRawManager {
         CrawledRaw failed = crawledRaw.markAsFailed(errorMessage);
         return crawledRawPersistencePort.persist(failed);
     }
-
 }

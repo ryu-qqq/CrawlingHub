@@ -9,7 +9,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +18,11 @@ import java.util.List;
  * CrawledProduct Aggregate Root
  *
  * <p>크롤링된 상품 정보를 관리하는 Aggregate Root.
- * <p>MINI_SHOP, DETAIL, OPTION 크롤링 결과를 통합하여 관리하고,
- * 변경 감지, 이미지 업로드, 외부 서버 동기화 등의 비즈니스 규칙을 담당합니다.
+ *
+ * <p>MINI_SHOP, DETAIL, OPTION 크롤링 결과를 통합하여 관리하고, 변경 감지, 이미지 업로드, 외부 서버 동기화 등의 비즈니스 규칙을 담당합니다.
  *
  * <p><strong>핵심 비즈니스 규칙</strong>:
+ *
  * <ul>
  *   <li>외부 서버 동기화는 MINI_SHOP, DETAIL, OPTION이 모두 한 번 이상 크롤링된 후에만 가능
  *   <li>이름, 이미지, 브랜드, 가격 변경 시 외부 서버로 갱신 필요
@@ -164,9 +164,7 @@ public class CrawledProduct {
                 now);
     }
 
-    /**
-     * 기존 데이터로 CrawledProduct 복원 (영속성 계층 전용)
-     */
+    /** 기존 데이터로 CrawledProduct 복원 (영속성 계층 전용) */
     public static CrawledProduct reconstitute(
             CrawledProductId id,
             SellerId sellerId,
@@ -190,10 +188,27 @@ public class CrawledProduct {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new CrawledProduct(
-                id, sellerId, itemNo, itemName, brandName, price, images, freeShipping,
-                category, shippingInfo, descriptionMarkUp, itemStatus, originCountry,
-                shippingLocation, options, crawlCompletionStatus, externalProductId,
-                lastSyncedAt, needsSync, createdAt, updatedAt);
+                id,
+                sellerId,
+                itemNo,
+                itemName,
+                brandName,
+                price,
+                images,
+                freeShipping,
+                category,
+                shippingInfo,
+                descriptionMarkUp,
+                itemStatus,
+                originCountry,
+                shippingLocation,
+                options,
+                crawlCompletionStatus,
+                externalProductId,
+                lastSyncedAt,
+                needsSync,
+                createdAt,
+                updatedAt);
     }
 
     // === MINI_SHOP 업데이트 ===
@@ -222,7 +237,8 @@ public class CrawledProduct {
         this.price = price;
         this.images = images;
         this.freeShipping = freeShipping;
-        this.crawlCompletionStatus = this.crawlCompletionStatus.withMiniShopCrawled(LocalDateTime.now());
+        this.crawlCompletionStatus =
+                this.crawlCompletionStatus.withMiniShopCrawled(LocalDateTime.now());
         this.updatedAt = LocalDateTime.now();
 
         if (hasChanges && canSyncToExternalServer()) {
@@ -275,7 +291,8 @@ public class CrawledProduct {
         this.itemStatus = itemStatus;
         this.originCountry = originCountry;
         this.shippingLocation = shippingLocation;
-        this.crawlCompletionStatus = this.crawlCompletionStatus.withDetailCrawled(LocalDateTime.now());
+        this.crawlCompletionStatus =
+                this.crawlCompletionStatus.withDetailCrawled(LocalDateTime.now());
         this.updatedAt = LocalDateTime.now();
 
         // 상세 설명 이미지 추가
@@ -299,7 +316,8 @@ public class CrawledProduct {
         boolean hasChanges = this.options != null && this.options.hasChanges(options);
 
         this.options = options;
-        this.crawlCompletionStatus = this.crawlCompletionStatus.withOptionCrawled(LocalDateTime.now());
+        this.crawlCompletionStatus =
+                this.crawlCompletionStatus.withOptionCrawled(LocalDateTime.now());
         this.updatedAt = LocalDateTime.now();
 
         if (hasChanges && canSyncToExternalServer()) {
@@ -334,9 +352,7 @@ public class CrawledProduct {
         }
     }
 
-    /**
-     * 모든 이미지가 업로드 완료되었는지 확인
-     */
+    /** 모든 이미지가 업로드 완료되었는지 확인 */
     public boolean allImagesUploaded() {
         return this.images != null && this.images.allUploaded();
     }
@@ -375,9 +391,7 @@ public class CrawledProduct {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 동기화 실패 처리
-     */
+    /** 동기화 실패 처리 */
     public void markSyncFailed() {
         // needsSync는 true로 유지하여 재시도 가능
         this.updatedAt = LocalDateTime.now();
@@ -394,16 +408,12 @@ public class CrawledProduct {
 
     // === 상태 조회 ===
 
-    /**
-     * 품절 여부 확인
-     */
+    /** 품절 여부 확인 */
     public boolean isSoldOut() {
         return this.options != null && this.options.isAllSoldOut();
     }
 
-    /**
-     * 총 재고 수량
-     */
+    /** 총 재고 수량 */
     public int getTotalStock() {
         return this.options != null ? this.options.getTotalStock() : 0;
     }
@@ -411,8 +421,12 @@ public class CrawledProduct {
     // === 유틸리티 ===
 
     private boolean equalsNullSafe(String a, String b) {
-        if (a == null && b == null) return true;
-        if (a == null || b == null) return false;
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
         return a.equals(b);
     }
 

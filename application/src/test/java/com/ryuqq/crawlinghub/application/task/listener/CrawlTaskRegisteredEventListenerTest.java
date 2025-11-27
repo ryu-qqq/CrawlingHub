@@ -6,6 +6,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
+import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
@@ -16,12 +22,6 @@ import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,17 +43,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskRegisteredEventListener 테스트")
 class CrawlTaskRegisteredEventListenerTest {
 
-    @Mock
-    private CrawlTaskMessageManager crawlTaskMessageManager;
+    @Mock private CrawlTaskMessageManager crawlTaskMessageManager;
 
-    @Mock
-    private CrawlTaskOutboxQueryPort crawlTaskOutboxQueryPort;
+    @Mock private CrawlTaskOutboxQueryPort crawlTaskOutboxQueryPort;
 
-    @Mock
-    private CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
+    @Mock private CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
 
-    @InjectMocks
-    private CrawlTaskRegisteredEventListener listener;
+    @InjectMocks private CrawlTaskRegisteredEventListener listener;
 
     @Nested
     @DisplayName("handleCrawlTaskRegistered() 테스트")
@@ -70,12 +66,14 @@ class CrawlTaskRegisteredEventListenerTest {
             CrawlEndpoint endpoint = CrawlEndpointFixture.aMiniShopListEndpoint();
             String payload = "{\"payload\":\"test\"}";
 
-            CrawlTaskRegisteredEvent event = CrawlTaskRegisteredEvent.of(
-                    taskId, schedulerId, sellerId, taskType, endpoint, payload);
+            CrawlTaskRegisteredEvent event =
+                    CrawlTaskRegisteredEvent.of(
+                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
 
             CrawlTaskOutbox outbox = CrawlTaskOutboxFixture.aPendingOutbox();
 
-            given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId)).willReturn(Optional.of(outbox));
+            given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId))
+                    .willReturn(Optional.of(outbox));
 
             // When
             listener.handleCrawlTaskRegistered(event);
@@ -98,8 +96,9 @@ class CrawlTaskRegisteredEventListenerTest {
             CrawlEndpoint endpoint = CrawlEndpointFixture.aMiniShopListEndpoint();
             String payload = "{\"payload\":\"test\"}";
 
-            CrawlTaskRegisteredEvent event = CrawlTaskRegisteredEvent.of(
-                    taskId, schedulerId, sellerId, taskType, endpoint, payload);
+            CrawlTaskRegisteredEvent event =
+                    CrawlTaskRegisteredEvent.of(
+                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
 
             given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId)).willReturn(Optional.empty());
 
@@ -124,14 +123,17 @@ class CrawlTaskRegisteredEventListenerTest {
             CrawlEndpoint endpoint = CrawlEndpointFixture.aMiniShopListEndpoint();
             String payload = "{\"payload\":\"test\"}";
 
-            CrawlTaskRegisteredEvent event = CrawlTaskRegisteredEvent.of(
-                    taskId, schedulerId, sellerId, taskType, endpoint, payload);
+            CrawlTaskRegisteredEvent event =
+                    CrawlTaskRegisteredEvent.of(
+                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
 
             CrawlTaskOutbox outbox = CrawlTaskOutboxFixture.aPendingOutbox();
 
-            given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId)).willReturn(Optional.of(outbox));
+            given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId))
+                    .willReturn(Optional.of(outbox));
             doThrow(new RuntimeException("SQS publish error"))
-                    .when(crawlTaskMessageManager).publishFromEvent(event);
+                    .when(crawlTaskMessageManager)
+                    .publishFromEvent(event);
 
             // When
             listener.handleCrawlTaskRegistered(event);
