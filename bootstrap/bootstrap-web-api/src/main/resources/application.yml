@@ -215,8 +215,30 @@ management:
   endpoint:
     health:
       show-details: when-authorized  # 인증된 사용자에게만 상세 정보 노출
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
 
+  # 핵심: 서비스 식별 태그
   metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:local}
+
+    # HikariCP 메트릭 활성화
+    enable:
+      hikaricp: true
+      jvm: true
+      process: true
+      system: true
+
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
     export:
       prometheus:
         enabled: true  # Prometheus 메트릭 노출
