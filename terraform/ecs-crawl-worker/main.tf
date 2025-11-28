@@ -281,6 +281,18 @@ resource "aws_ecs_task_definition" "crawl_worker" {
         {
           name  = "REDIS_PORT"
           value = local.redis_port
+        },
+        {
+          name  = "SQS_CRAWL_TASK_QUEUE_URL"
+          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-crawling-task-prod"
+        },
+        {
+          name  = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL"
+          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-eventbridge-trigger-prod"
+        },
+        {
+          name  = "SQS_CRAWL_TASK_DLQ_URL"
+          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-crawling-task-prod-dlq"
         }
       ]
 
