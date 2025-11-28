@@ -277,6 +277,18 @@ module "ecs_task_role" {
             Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
           },
           {
+            Sid    = "XRayTracing"
+            Effect = "Allow"
+            Action = [
+              "xray:PutTraceSegments",
+              "xray:PutTelemetryRecords",
+              "xray:GetSamplingRules",
+              "xray:GetSamplingTargets",
+              "xray:GetSamplingStatisticSummaries"
+            ]
+            Resource = "*"
+          },
+          {
             Sid    = "S3ConfigAccess"
             Effect = "Allow"
             Action = [
@@ -318,139 +330,156 @@ module "web_api_logs" {
 }
 
 # ========================================
-# ADOT Sidecar (using Infrastructure module)
+# ADOT Sidecar (Custom definition with S3 URL - bypasses CDN cache)
 # ========================================
 
-module "adot_sidecar" {
-  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/adot-sidecar?ref=main"
+locals {
+  # Use S3 directly to bypass CDN cache issues
+  # ADOT requires format: s3://bucket.s3.region.amazonaws.com/path
+  otel_config_s3_url = "s3://connectly-prod.s3.ap-northeast-2.amazonaws.com/otel-config/crawlinghub-web-api/otel-config.yaml"
 
-  project_name      = var.project_name
-  service_name      = "web-api"
-  aws_region        = var.aws_region
-  amp_workspace_arn = "arn:aws:aps:${var.aws_region}:*:workspace/*"
-  log_group_name    = module.web_api_logs.log_group_name
-}
+  adot_container_definition = {
+    name      = "adot-collector"
+    image     = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
+    cpu       = 256
+    memory    = 512
+    essential = false
 
-# ========================================
-# ECS Task Definition
-# ========================================
+    command = [
+      "--config=${local.otel_config_s3_url}"
+    ]
 
-resource "aws_ecs_task_definition" "web_api" {
-  family                   = "${var.project_name}-web-api-${var.environment}"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = var.web_api_cpu
-  memory                   = var.web_api_memory
-  execution_role_arn       = module.ecs_task_execution_role.role_arn
-  task_role_arn            = module.ecs_task_role.role_arn
-
-  container_definitions = jsonencode([
-    {
-      name  = "web-api"
-      image = "${data.aws_ecr_repository.web_api.repository_url}:latest"
-
-      portMappings = [
-        {
-          containerPort = 8080
-          protocol      = "tcp"
-        }
-      ]
-
-      environment = [
-        {
-          name  = "SPRING_PROFILES_ACTIVE"
-          value = var.environment
-        },
-        {
-          name  = "DB_HOST"
-          value = local.rds_host
-        },
-        {
-          name  = "DB_PORT"
-          value = local.rds_port
-        },
-        {
-          name  = "DB_NAME"
-          value = local.rds_dbname
-        },
-        {
-          name  = "DB_USER"
-          value = local.rds_username
-        },
-        {
-          name  = "REDIS_HOST"
-          value = local.redis_host
-        },
-        {
-          name  = "REDIS_PORT"
-          value = local.redis_port
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "DB_PASSWORD"
-          valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::"
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = module.web_api_logs.log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "web-api"
-        }
+    portMappings = [
+      {
+        containerPort = 4317
+        protocol      = "tcp"
+      },
+      {
+        containerPort = 4318
+        protocol      = "tcp"
       }
+    ]
 
-      healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
+    environment = [
+      {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      },
+      {
+        name  = "AMP_ENDPOINT"
+        value = local.amp_remote_write_url
+      },
+      {
+        name  = "SERVICE_NAME"
+        value = "${var.project_name}-web-api"
+      },
+      {
+        name  = "APP_PORT"
+        value = "8080"
+      },
+      {
+        name  = "CLUSTER_NAME"
+        value = data.aws_ecs_cluster.main.cluster_name
+      },
+      {
+        name  = "ENVIRONMENT"
+        value = var.environment
       }
-    },
-    # ADOT Sidecar from module
-    module.adot_sidecar.container_definition
-  ])
+    ]
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-web-api-${var.environment}"
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = module.web_api_logs.log_group_name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "adot"
+      }
+    }
   }
 }
 
 # ========================================
-# ECS Service
+# ECS Service (using Infrastructure module)
 # ========================================
 
-resource "aws_ecs_service" "web_api" {
-  name            = "${var.project_name}-web-api-${var.environment}"
-  cluster         = data.aws_ecs_cluster.main.arn
-  task_definition = aws_ecs_task_definition.web_api.arn
-  desired_count   = var.web_api_desired_count
-  launch_type     = "FARGATE"
+module "ecs_service" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecs-service?ref=main"
 
-  network_configuration {
-    subnets          = local.private_subnets
-    security_groups  = [module.ecs_security_group.security_group_id]
-    assign_public_ip = false
-  }
+  # Service Configuration
+  name             = "${var.project_name}-web-api-${var.environment}"
+  cluster_id       = data.aws_ecs_cluster.main.arn
+  container_name   = "web-api"
+  container_image  = "${data.aws_ecr_repository.web_api.repository_url}:latest"
+  container_port   = 8080
+  cpu              = var.web_api_cpu
+  memory           = var.web_api_memory
+  desired_count    = var.web_api_desired_count
 
-  load_balancer {
+  # IAM Roles
+  execution_role_arn = module.ecs_task_execution_role.role_arn
+  task_role_arn      = module.ecs_task_role.role_arn
+
+  # Network Configuration
+  subnet_ids         = local.private_subnets
+  security_group_ids = [module.ecs_security_group.security_group_id]
+  assign_public_ip   = false
+
+  # Load Balancer Configuration
+  load_balancer_config = {
     target_group_arn = module.alb.target_group_arns["web-api"]
     container_name   = "web-api"
     container_port   = 8080
   }
+  health_check_grace_period_seconds = 60
 
-  deployment_circuit_breaker {
-    enable   = true
-    rollback = true
+  # Container Environment Variables
+  container_environment = [
+    { name = "SPRING_PROFILES_ACTIVE", value = var.environment },
+    { name = "DB_HOST", value = local.rds_host },
+    { name = "DB_PORT", value = local.rds_port },
+    { name = "DB_NAME", value = local.rds_dbname },
+    { name = "DB_USER", value = local.rds_username },
+    { name = "REDIS_HOST", value = local.redis_host },
+    { name = "REDIS_PORT", value = local.redis_port }
+  ]
+
+  # Container Secrets
+  container_secrets = [
+    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" }
+  ]
+
+  # Health Check
+  health_check_command = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+
+  # Logging (use existing log group)
+  log_configuration = {
+    log_driver = "awslogs"
+    options = {
+      "awslogs-group"         = module.web_api_logs.log_group_name
+      "awslogs-region"        = var.aws_region
+      "awslogs-stream-prefix" = "web-api"
+    }
   }
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-web-api-${var.environment}"
-  }
+  # ADOT Sidecar (using custom S3 config URL to bypass CDN cache)
+  sidecars = [local.adot_container_definition]
+
+  # Auto Scaling
+  enable_autoscaling       = true
+  autoscaling_min_capacity = 2
+  autoscaling_max_capacity = 6
+  autoscaling_target_cpu   = 70
+
+  # Deployment Configuration
+  deployment_circuit_breaker_enable   = true
+  deployment_circuit_breaker_rollback = true
+
+  # Tagging
+  environment  = var.environment
+  service_name = "${var.project_name}-web-api"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
+  project      = var.project_name
+  data_class   = "confidential"
 }

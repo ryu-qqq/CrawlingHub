@@ -14,7 +14,12 @@ output "alb_arn" {
 
 output "service_name" {
   description = "ECS service name"
-  value       = aws_ecs_service.web_api.name
+  value       = module.ecs_service.service_name
+}
+
+output "task_definition_arn" {
+  description = "ECS task definition ARN"
+  value       = module.ecs_service.task_definition_arn
 }
 
 output "fqdn" {

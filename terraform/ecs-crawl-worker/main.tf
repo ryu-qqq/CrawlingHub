@@ -154,7 +154,8 @@ module "crawl_worker_task_role" {
               "sqs:ChangeMessageVisibility"
             ]
             Resource = [
-              "arn:aws:sqs:${var.aws_region}:*:${var.project_name}-*"
+              "arn:aws:sqs:${var.aws_region}:*:${var.project_name}-*",
+              "arn:aws:sqs:${var.aws_region}:*:prod-monitoring-sqs-${var.project_name}-*"
             ]
           }
         ]
@@ -171,6 +172,18 @@ module "crawl_worker_task_role" {
               "aps:RemoteWrite"
             ]
             Resource = "arn:aws:aps:${var.aws_region}:*:workspace/*"
+          },
+          {
+            Sid    = "XRayTracing"
+            Effect = "Allow"
+            Action = [
+              "xray:PutTraceSegments",
+              "xray:PutTelemetryRecords",
+              "xray:GetSamplingRules",
+              "xray:GetSamplingTargets",
+              "xray:GetSamplingStatisticSummaries"
+            ]
+            Resource = "*"
           },
           {
             Sid    = "S3ConfigAccess"
@@ -214,170 +227,175 @@ module "crawl_worker_logs" {
 }
 
 # ========================================
-# ADOT Sidecar (using Infrastructure module)
+# ADOT Sidecar (Custom definition with S3 URL - bypasses CDN cache)
 # ========================================
 
-module "adot_sidecar" {
-  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/adot-sidecar?ref=main"
+locals {
+  # Use S3 directly to bypass CDN cache issues
+  # ADOT requires format: s3://bucket.s3.region.amazonaws.com/path
+  otel_config_s3_url = "s3://connectly-prod.s3.ap-northeast-2.amazonaws.com/otel-config/crawlinghub-crawl-worker/otel-config.yaml"
 
-  project_name      = var.project_name
-  service_name      = "crawl-worker"
-  aws_region        = var.aws_region
-  amp_workspace_arn = "arn:aws:aps:${var.aws_region}:*:workspace/*"
-  log_group_name    = module.crawl_worker_logs.log_group_name
-}
+  adot_container_definition = {
+    name      = "adot-collector"
+    image     = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
+    cpu       = 256
+    memory    = 512
+    essential = false
 
-# ========================================
-# ECS Task Definition
-# ========================================
+    command = [
+      "--config=${local.otel_config_s3_url}"
+    ]
 
-resource "aws_ecs_task_definition" "crawl_worker" {
-  family                   = "${var.project_name}-crawl-worker-${var.environment}"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = var.crawl_worker_cpu
-  memory                   = var.crawl_worker_memory
-  execution_role_arn       = module.crawl_worker_task_execution_role.role_arn
-  task_role_arn            = module.crawl_worker_task_role.role_arn
-
-  container_definitions = jsonencode([
-    {
-      name  = "crawl-worker"
-      image = "${data.aws_ecr_repository.crawl_worker.repository_url}:latest"
-
-      # Port for actuator health check
-      portMappings = [
-        {
-          containerPort = 8082
-          protocol      = "tcp"
-        }
-      ]
-
-      environment = [
-        {
-          name  = "SPRING_PROFILES_ACTIVE"
-          value = var.environment
-        },
-        {
-          name  = "DB_HOST"
-          value = local.rds_host
-        },
-        {
-          name  = "DB_PORT"
-          value = local.rds_port
-        },
-        {
-          name  = "DB_NAME"
-          value = local.rds_dbname
-        },
-        {
-          name  = "DB_USER"
-          value = local.rds_username
-        },
-        {
-          name  = "REDIS_HOST"
-          value = local.redis_host
-        },
-        {
-          name  = "REDIS_PORT"
-          value = local.redis_port
-        },
-        {
-          name  = "SQS_CRAWL_TASK_QUEUE_URL"
-          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-crawling-task-prod"
-        },
-        {
-          name  = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL"
-          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-eventbridge-trigger-prod"
-        },
-        {
-          name  = "SQS_CRAWL_TASK_DLQ_URL"
-          value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/crawlinghub-crawling-task-prod-dlq"
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "DB_PASSWORD"
-          valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::"
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = module.crawl_worker_logs.log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "crawl-worker"
-        }
+    portMappings = [
+      {
+        containerPort = 4317
+        protocol      = "tcp"
+      },
+      {
+        containerPort = 4318
+        protocol      = "tcp"
       }
+    ]
 
-      healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
+    environment = [
+      {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      },
+      {
+        name  = "AMP_ENDPOINT"
+        value = local.amp_remote_write_url
+      },
+      {
+        name  = "SERVICE_NAME"
+        value = "${var.project_name}-crawl-worker"
+      },
+      {
+        name  = "APP_PORT"
+        value = "8082"
+      },
+      {
+        name  = "CLUSTER_NAME"
+        value = data.aws_ecs_cluster.main.cluster_name
+      },
+      {
+        name  = "ENVIRONMENT"
+        value = var.environment
       }
-    },
-    # ADOT Sidecar from module
-    module.adot_sidecar.container_definition
-  ])
+    ]
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-crawl-worker-${var.environment}"
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = module.crawl_worker_logs.log_group_name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "adot"
+      }
+    }
   }
 }
 
 # ========================================
-# ECS Service (No ALB)
+# ECS Service (using Infrastructure module)
 # ========================================
 
-resource "aws_ecs_service" "crawl_worker" {
-  name            = "${var.project_name}-crawl-worker-${var.environment}"
-  cluster         = data.aws_ecs_cluster.main.arn
-  task_definition = aws_ecs_task_definition.crawl_worker.arn
-  desired_count   = var.crawl_worker_desired_count
-  launch_type     = "FARGATE"
+module "ecs_service" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecs-service?ref=main"
 
-  network_configuration {
-    subnets          = local.private_subnets
-    security_groups  = [module.ecs_security_group.security_group_id]
-    assign_public_ip = false
+  # Service Configuration
+  name             = "${var.project_name}-crawl-worker-${var.environment}"
+  cluster_id       = data.aws_ecs_cluster.main.arn
+  container_name   = "crawl-worker"
+  container_image  = "${data.aws_ecr_repository.crawl_worker.repository_url}:crawl-worker-30-c5ddc60"
+  container_port   = 8082
+  cpu              = var.crawl_worker_cpu
+  memory           = var.crawl_worker_memory
+  desired_count    = var.crawl_worker_desired_count
+
+  # IAM Roles
+  execution_role_arn = module.crawl_worker_task_execution_role.role_arn
+  task_role_arn      = module.crawl_worker_task_role.role_arn
+
+  # Network Configuration
+  subnet_ids         = local.private_subnets
+  security_group_ids = [module.ecs_security_group.security_group_id]
+  assign_public_ip   = false
+
+  # No Load Balancer for crawl-worker (background worker)
+  load_balancer_config = null
+
+  # Container Environment Variables
+  container_environment = [
+    { name = "SPRING_PROFILES_ACTIVE", value = var.environment },
+    { name = "DB_HOST", value = local.rds_host },
+    { name = "DB_PORT", value = local.rds_port },
+    { name = "DB_NAME", value = local.rds_dbname },
+    { name = "DB_USER", value = local.rds_username },
+    { name = "REDIS_HOST", value = local.redis_host },
+    { name = "REDIS_PORT", value = local.redis_port },
+    { name = "SQS_CRAWL_TASK_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task" },
+    { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger" },
+    { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" }
+  ]
+
+  # Container Secrets
+  container_secrets = [
+    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" }
+  ]
+
+  # Health Check
+  health_check_command = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+
+  # Logging (use existing log group)
+  log_configuration = {
+    log_driver = "awslogs"
+    options = {
+      "awslogs-group"         = module.crawl_worker_logs.log_group_name
+      "awslogs-region"        = var.aws_region
+      "awslogs-stream-prefix" = "crawl-worker"
+    }
   }
 
-  # Deployment configuration
-  deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 100
+  # ADOT Sidecar (using custom S3 config URL to bypass CDN cache)
+  sidecars = [local.adot_container_definition]
 
-  # Enable execute command for debugging
+  # Auto Scaling (SQS-based scaling)
+  enable_autoscaling       = true
+  autoscaling_min_capacity = 2
+  autoscaling_max_capacity = 10
+  autoscaling_target_cpu   = 70
+
+  # Enable ECS Exec for debugging
   enable_execute_command = true
 
-  deployment_circuit_breaker {
-    enable   = true
-    rollback = true
-  }
+  # Deployment Configuration
+  deployment_circuit_breaker_enable   = true
+  deployment_circuit_breaker_rollback = true
 
-  tags = {
-    Environment = var.environment
-    Service     = "${var.project_name}-crawl-worker-${var.environment}"
-  }
-
-  lifecycle {
-    ignore_changes = [task_definition]
-  }
+  # Tagging
+  environment  = var.environment
+  service_name = "${var.project_name}-crawl-worker"
+  team         = "platform-team"
+  owner        = "platform@ryuqqq.com"
+  cost_center  = "engineering"
+  project      = var.project_name
+  data_class   = "confidential"
 }
 
 # ========================================
 # Outputs
 # ========================================
-output "crawl_worker_service_name" {
+output "service_name" {
   description = "ECS Service name"
-  value       = aws_ecs_service.crawl_worker.name
+  value       = module.ecs_service.service_name
 }
 
-output "crawl_worker_task_definition_arn" {
+output "task_definition_arn" {
   description = "Task definition ARN"
-  value       = aws_ecs_task_definition.crawl_worker.arn
+  value       = module.ecs_service.task_definition_arn
+}
+
+output "log_group_name" {
+  description = "CloudWatch log group name"
+  value       = module.crawl_worker_logs.log_group_name
 }
