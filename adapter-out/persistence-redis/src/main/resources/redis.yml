@@ -11,7 +11,8 @@ spring:
       # Redis Server
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      # password는 REDIS_PASSWORD 환경변수가 설정된 경우에만 사용
+      # ElastiCache는 기본적으로 AUTH 없이 동작
       database: ${REDIS_DATABASE:0}
 
       # Connection timeout
@@ -25,7 +26,8 @@ redisson:
   # Single server mode (Production: Use Cluster or Sentinel)
   single-server-config:
     address: redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
+    # password는 REDIS_PASSWORD 환경변수가 설정된 경우에만 사용
+    # ElastiCache는 기본적으로 AUTH 없이 동작
     database: ${REDIS_DATABASE:0}
 
     # Connection Pool
