@@ -33,6 +33,7 @@ dependencies {
     implementation project(':adapter-out:persistence-redis')  // For distributed lock
     implementation project(':adapter-out:aws-sqs')            // For SQS message publishing
     implementation project(':adapter-out:http-client')        // For HTTP crawling
+    implementation project(':adapter-out:aws-eventbridge')    // For EventBridge scheduler
 
     // ========================================
     // Spring Boot Starters
