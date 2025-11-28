@@ -110,6 +110,161 @@ jobs:
             echo "✅ ECR Import 체크 완료"
           fi
 
+          # ECS-WEB-API 모듈: 기존 리소스 Import
+          if [ "${{ matrix.module.name }}" == "ecs-web-api" ]; then
+            echo "🌐 ECS Web-API 기존 리소스 확인 및 Import..."
+
+            # ALB Security Group
+            ALB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-alb-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$ALB_SG_ID" != "None" ] && [ -n "$ALB_SG_ID" ]; then
+              echo "  → ALB Security Group 존재함 (${ALB_SG_ID}). Import 시도..."
+              terraform import -input=false 'module.alb_security_group.aws_security_group.this[0]' "$ALB_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # ECS Security Group
+            ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-web-api-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$ECS_SG_ID" != "None" ] && [ -n "$ECS_SG_ID" ]; then
+              echo "  → ECS Security Group 존재함 (${ECS_SG_ID}). Import 시도..."
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$ECS_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # Target Group
+            TG_ARN=$(aws elbv2 describe-target-groups --names crawlinghub-alb-prod-web-api --query 'TargetGroups[0].TargetGroupArn' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$TG_ARN" != "None" ] && [ -n "$TG_ARN" ]; then
+              echo "  → Target Group 존재함. Import 시도..."
+              terraform import -input=false 'module.alb.aws_lb_target_group.this["web-api"]' "$TG_ARN" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # ALB
+            ALB_ARN=$(aws elbv2 describe-load-balancers --names crawlinghub-alb-prod --query 'LoadBalancers[0].LoadBalancerArn' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$ALB_ARN" != "None" ] && [ -n "$ALB_ARN" ]; then
+              echo "  → ALB 존재함. Import 시도..."
+              terraform import -input=false 'module.alb.aws_lb.this[0]' "$ALB_ARN" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+
+              # HTTPS Listener
+              HTTPS_LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" --query 'Listeners[?Port==`443`].ListenerArn' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+              if [ "$HTTPS_LISTENER_ARN" != "None" ] && [ -n "$HTTPS_LISTENER_ARN" ]; then
+                echo "  → HTTPS Listener 존재함. Import 시도..."
+                terraform import -input=false 'module.alb.aws_lb_listener.https["https"]' "$HTTPS_LISTENER_ARN" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              fi
+
+              # HTTP Listener
+              HTTP_LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" --query 'Listeners[?Port==`80`].ListenerArn' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+              if [ "$HTTP_LISTENER_ARN" != "None" ] && [ -n "$HTTP_LISTENER_ARN" ]; then
+                echo "  → HTTP Listener 존재함. Import 시도..."
+                terraform import -input=false 'module.alb.aws_lb_listener.http["http-redirect"]' "$HTTP_LISTENER_ARN" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              fi
+            fi
+
+            # IAM Roles
+            if aws iam get-role --role-name crawlinghub-web-api-execution-role-prod >/dev/null 2>&1; then
+              echo "  → Execution Role 존재함. Import 시도..."
+              terraform import -input=false 'module.ecs_task_execution_role.aws_iam_role.this[0]' crawlinghub-web-api-execution-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            if aws iam get-role --role-name crawlinghub-web-api-task-role-prod >/dev/null 2>&1; then
+              echo "  → Task Role 존재함. Import 시도..."
+              terraform import -input=false 'module.ecs_task_role.aws_iam_role.this[0]' crawlinghub-web-api-task-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # CloudWatch Log Group
+            if aws logs describe-log-groups --log-group-name-prefix "/aws/ecs/crawlinghub-web-api-prod/application" --query 'logGroups[0].logGroupName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-web-api-prod"; then
+              echo "  → CloudWatch Log Group 존재함. Import 시도..."
+              terraform import -input=false 'module.web_api_logs.aws_cloudwatch_log_group.this[0]' "/aws/ecs/crawlinghub-web-api-prod/application" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # ECS Service
+            if aws ecs describe-services --cluster crawlinghub-cluster-prod --services crawlinghub-web-api-prod --query 'services[0].serviceName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-web-api-prod"; then
+              echo "  → ECS Service 존재함. Import 시도..."
+              terraform import -input=false 'aws_ecs_service.web_api' "crawlinghub-cluster-prod/crawlinghub-web-api-prod" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # Route53 Record
+            ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name "set-of.com" --query 'HostedZones[0].Id' --output text 2>/dev/null | sed 's|/hostedzone/||')
+            if [ -n "$ZONE_ID" ] && [ "$ZONE_ID" != "None" ]; then
+              if aws route53 list-resource-record-sets --hosted-zone-id "$ZONE_ID" --query "ResourceRecordSets[?Name=='crawler.set-of.com.']" --output text 2>/dev/null | grep -q "crawler.set-of.com"; then
+                echo "  → Route53 Record 존재함. Import 시도..."
+                terraform import -input=false 'aws_route53_record.web_api' "${ZONE_ID}_crawler.set-of.com_A" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              fi
+            fi
+
+            echo "✅ ECS Web-API Import 체크 완료"
+          fi
+
+          # ECS-SCHEDULER 모듈: 기존 리소스 Import
+          if [ "${{ matrix.module.name }}" == "ecs-scheduler" ]; then
+            echo "⏰ ECS Scheduler 기존 리소스 확인 및 Import..."
+
+            # Scheduler Security Group
+            SCHEDULER_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-scheduler-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$SCHEDULER_SG_ID" != "None" ] && [ -n "$SCHEDULER_SG_ID" ]; then
+              echo "  → Scheduler Security Group 존재함 (${SCHEDULER_SG_ID}). Import 시도..."
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$SCHEDULER_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # IAM Roles
+            if aws iam get-role --role-name crawlinghub-scheduler-execution-role-prod >/dev/null 2>&1; then
+              echo "  → Scheduler Execution Role 존재함. Import 시도..."
+              terraform import -input=false 'module.scheduler_task_execution_role.aws_iam_role.this[0]' crawlinghub-scheduler-execution-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            if aws iam get-role --role-name crawlinghub-scheduler-task-role-prod >/dev/null 2>&1; then
+              echo "  → Scheduler Task Role 존재함. Import 시도..."
+              terraform import -input=false 'module.scheduler_task_role.aws_iam_role.this[0]' crawlinghub-scheduler-task-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # CloudWatch Log Group
+            if aws logs describe-log-groups --log-group-name-prefix "/aws/ecs/crawlinghub-scheduler-prod/application" --query 'logGroups[0].logGroupName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-scheduler-prod"; then
+              echo "  → CloudWatch Log Group 존재함. Import 시도..."
+              terraform import -input=false 'module.scheduler_logs.aws_cloudwatch_log_group.this[0]' "/aws/ecs/crawlinghub-scheduler-prod/application" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # ECS Service
+            if aws ecs describe-services --cluster crawlinghub-cluster-prod --services crawlinghub-scheduler-prod --query 'services[0].serviceName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-scheduler-prod"; then
+              echo "  → ECS Scheduler Service 존재함. Import 시도..."
+              terraform import -input=false 'aws_ecs_service.scheduler' "crawlinghub-cluster-prod/crawlinghub-scheduler-prod" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            echo "✅ ECS Scheduler Import 체크 완료"
+          fi
+
+          # ECS-CRAWL-WORKER 모듈: 기존 리소스 Import
+          if [ "${{ matrix.module.name }}" == "ecs-crawl-worker" ]; then
+            echo "🕷️ ECS Crawl-Worker 기존 리소스 확인 및 Import..."
+
+            # Crawl-Worker Security Group
+            WORKER_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-crawl-worker-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$WORKER_SG_ID" != "None" ] && [ -n "$WORKER_SG_ID" ]; then
+              echo "  → Crawl-Worker Security Group 존재함 (${WORKER_SG_ID}). Import 시도..."
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$WORKER_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # IAM Roles
+            if aws iam get-role --role-name crawlinghub-crawl-worker-execution-role-prod >/dev/null 2>&1; then
+              echo "  → Crawl-Worker Execution Role 존재함. Import 시도..."
+              terraform import -input=false 'module.crawl_worker_task_execution_role.aws_iam_role.this[0]' crawlinghub-crawl-worker-execution-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            if aws iam get-role --role-name crawlinghub-crawl-worker-task-role-prod >/dev/null 2>&1; then
+              echo "  → Crawl-Worker Task Role 존재함. Import 시도..."
+              terraform import -input=false 'module.crawl_worker_task_role.aws_iam_role.this[0]' crawlinghub-crawl-worker-task-role-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # CloudWatch Log Group
+            if aws logs describe-log-groups --log-group-name-prefix "/aws/ecs/crawlinghub-crawl-worker-prod/application" --query 'logGroups[0].logGroupName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-crawl-worker-prod"; then
+              echo "  → CloudWatch Log Group 존재함. Import 시도..."
+              terraform import -input=false 'module.crawl_worker_logs.aws_cloudwatch_log_group.this[0]' "/aws/ecs/crawlinghub-crawl-worker-prod/application" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # ECS Service
+            if aws ecs describe-services --cluster crawlinghub-cluster-prod --services crawlinghub-crawl-worker-prod --query 'services[0].serviceName' --output text --region ap-northeast-2 2>/dev/null | grep -q "crawlinghub-crawl-worker-prod"; then
+              echo "  → ECS Crawl-Worker Service 존재함. Import 시도..."
+              terraform import -input=false 'aws_ecs_service.crawl_worker' "crawlinghub-cluster-prod/crawlinghub-crawl-worker-prod" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            echo "✅ ECS Crawl-Worker Import 체크 완료"
+          fi
+
           # Plan 실행
           echo "📋 Terraform Plan 실행 중..."
           terraform plan -out=tfplan
