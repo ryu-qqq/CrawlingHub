@@ -117,6 +117,21 @@ data "aws_elasticache_cluster" "redis" {
 }
 
 # ========================================
+# AMP (Amazon Managed Prometheus) Reference via SSM
+# ========================================
+data "aws_ssm_parameter" "amp_workspace_id" {
+  name = "/shared/monitoring/amp-workspace-id"
+}
+
+data "aws_ssm_parameter" "amp_remote_write_url" {
+  name = "/shared/monitoring/amp-remote-write-url"
+}
+
+data "aws_ssm_parameter" "amp_workspace_arn" {
+  name = "/shared/monitoring/amp-workspace-arn"
+}
+
+# ========================================
 # Locals
 # ========================================
 locals {
@@ -137,4 +152,9 @@ locals {
   # Redis Configuration
   redis_host = data.aws_elasticache_cluster.redis.cache_nodes[0].address
   redis_port = tostring(data.aws_elasticache_cluster.redis.port)
+
+  # AMP Configuration (from SSM)
+  amp_workspace_id     = data.aws_ssm_parameter.amp_workspace_id.value
+  amp_remote_write_url = data.aws_ssm_parameter.amp_remote_write_url.value
+  amp_workspace_arn    = data.aws_ssm_parameter.amp_workspace_arn.value
 }
