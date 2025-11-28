@@ -13,6 +13,7 @@ spring:
       - classpath:redis.yml
       - classpath:sqs.yml
       - classpath:sqs-listener.yml
+      - classpath:http-client.yml
 
   # ========================================
   # Flyway Configuration

@@ -1,9 +1,9 @@
 # ========================================
-# ECS Service: scheduler
+# ECS Service: crawl-worker
 # ========================================
-# Background scheduler service
-# No ALB, no auto scaling
-# Desired count: 1 (fixed)
+# SQS message consumer for crawling task execution
+# No ALB (background worker)
+# Consumes from SQS queues, executes HTTP crawling
 # Using Infrastructure repository modules
 # ========================================
 
@@ -13,7 +13,7 @@
 locals {
   common_tags = {
     environment  = var.environment
-    service_name = "${var.project_name}-scheduler"
+    service_name = "${var.project_name}-crawl-worker"
     team         = "platform-team"
     owner        = "platform@ryuqqq.com"
     cost_center  = "engineering"
@@ -25,8 +25,8 @@ locals {
 # ========================================
 # ECR Repository Reference
 # ========================================
-data "aws_ecr_repository" "scheduler" {
-  name = "${var.project_name}-scheduler-${var.environment}"
+data "aws_ecr_repository" "crawl_worker" {
+  name = "${var.project_name}-crawl-worker-${var.environment}"
 }
 
 # ========================================
@@ -43,14 +43,14 @@ data "aws_ecs_cluster" "main" {
 module "ecs_security_group" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/security-group?ref=main"
 
-  name        = "${var.project_name}-scheduler-sg-${var.environment}"
-  description = "Security group for scheduler ECS tasks"
+  name        = "${var.project_name}-crawl-worker-sg-${var.environment}"
+  description = "Security group for crawl-worker ECS tasks"
   vpc_id      = local.vpc_id
 
-  # Custom type for scheduler (no ingress, egress only)
+  # Custom type for crawl-worker (egress only for HTTP requests)
   type = "custom"
 
-  # No ingress rules - scheduler doesn't expose any ports
+  # No ingress rules - crawl-worker doesn't expose any ports
 
   environment  = local.common_tags.environment
   service_name = local.common_tags.service_name
@@ -66,10 +66,10 @@ module "ecs_security_group" {
 # ========================================
 
 # ECS Task Execution Role
-module "scheduler_task_execution_role" {
+module "crawl_worker_task_execution_role" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
 
-  role_name = "${var.project_name}-scheduler-execution-role-${var.environment}"
+  role_name = "${var.project_name}-crawl-worker-execution-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -121,10 +121,10 @@ module "scheduler_task_execution_role" {
 }
 
 # ECS Task Role
-module "scheduler_task_role" {
+module "crawl_worker_task_role" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/iam-role-policy?ref=main"
 
-  role_name = "${var.project_name}-scheduler-task-role-${var.environment}"
+  role_name = "${var.project_name}-crawl-worker-task-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -140,20 +140,22 @@ module "scheduler_task_role" {
   })
 
   custom_inline_policies = {
-    eventbridge-access = {
+    sqs-access = {
       policy = jsonencode({
         Version = "2012-10-17"
         Statement = [
           {
             Effect = "Allow"
             Action = [
-              "events:PutEvents",
-              "events:PutRule",
-              "events:PutTargets",
-              "events:DeleteRule",
-              "events:RemoveTargets"
+              "sqs:ReceiveMessage",
+              "sqs:DeleteMessage",
+              "sqs:GetQueueAttributes",
+              "sqs:SendMessage",
+              "sqs:ChangeMessageVisibility"
             ]
-            Resource = "*"
+            Resource = [
+              "arn:aws:sqs:${var.aws_region}:*:${var.project_name}-*"
+            ]
           }
         ]
       })
@@ -196,10 +198,10 @@ module "scheduler_task_role" {
 # CloudWatch Log Group (using Infrastructure module)
 # ========================================
 
-module "scheduler_logs" {
+module "crawl_worker_logs" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/cloudwatch-log-group?ref=main"
 
-  name              = "/aws/ecs/${var.project_name}-scheduler-${var.environment}/application"
+  name              = "/aws/ecs/${var.project_name}-crawl-worker-${var.environment}/application"
   retention_in_days = 30
 
   environment  = local.common_tags.environment
@@ -219,34 +221,34 @@ module "adot_sidecar" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/adot-sidecar?ref=main"
 
   project_name      = var.project_name
-  service_name      = "scheduler"
+  service_name      = "crawl-worker"
   aws_region        = var.aws_region
   amp_workspace_arn = "arn:aws:aps:${var.aws_region}:*:workspace/*"
-  log_group_name    = module.scheduler_logs.log_group_name
+  log_group_name    = module.crawl_worker_logs.log_group_name
 }
 
 # ========================================
 # ECS Task Definition
 # ========================================
 
-resource "aws_ecs_task_definition" "scheduler" {
-  family                   = "${var.project_name}-scheduler-${var.environment}"
+resource "aws_ecs_task_definition" "crawl_worker" {
+  family                   = "${var.project_name}-crawl-worker-${var.environment}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = var.scheduler_cpu
-  memory                   = var.scheduler_memory
-  execution_role_arn       = module.scheduler_task_execution_role.role_arn
-  task_role_arn            = module.scheduler_task_role.role_arn
+  cpu                      = var.crawl_worker_cpu
+  memory                   = var.crawl_worker_memory
+  execution_role_arn       = module.crawl_worker_task_execution_role.role_arn
+  task_role_arn            = module.crawl_worker_task_role.role_arn
 
   container_definitions = jsonencode([
     {
-      name  = "scheduler"
-      image = "${data.aws_ecr_repository.scheduler.repository_url}:latest"
+      name  = "crawl-worker"
+      image = "${data.aws_ecr_repository.crawl_worker.repository_url}:latest"
 
-      # Port for actuator health check (internal only)
+      # Port for actuator health check
       portMappings = [
         {
-          containerPort = 8081
+          containerPort = 8082
           protocol      = "tcp"
         }
       ]
@@ -292,14 +294,14 @@ resource "aws_ecs_task_definition" "scheduler" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = module.scheduler_logs.log_group_name
+          "awslogs-group"         = module.crawl_worker_logs.log_group_name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "scheduler"
+          "awslogs-stream-prefix" = "crawl-worker"
         }
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -312,19 +314,19 @@ resource "aws_ecs_task_definition" "scheduler" {
 
   tags = {
     Environment = var.environment
-    Service     = "${var.project_name}-scheduler-${var.environment}"
+    Service     = "${var.project_name}-crawl-worker-${var.environment}"
   }
 }
 
 # ========================================
-# ECS Service (No ALB, No Auto Scaling)
+# ECS Service (No ALB)
 # ========================================
 
-resource "aws_ecs_service" "scheduler" {
-  name            = "${var.project_name}-scheduler-${var.environment}"
+resource "aws_ecs_service" "crawl_worker" {
+  name            = "${var.project_name}-crawl-worker-${var.environment}"
   cluster         = data.aws_ecs_cluster.main.arn
-  task_definition = aws_ecs_task_definition.scheduler.arn
-  desired_count   = 1 # Fixed at 1
+  task_definition = aws_ecs_task_definition.crawl_worker.arn
+  desired_count   = var.crawl_worker_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -340,12 +342,30 @@ resource "aws_ecs_service" "scheduler" {
   # Enable execute command for debugging
   enable_execute_command = true
 
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   tags = {
     Environment = var.environment
-    Service     = "${var.project_name}-scheduler-${var.environment}"
+    Service     = "${var.project_name}-crawl-worker-${var.environment}"
   }
 
   lifecycle {
     ignore_changes = [task_definition]
   }
+}
+
+# ========================================
+# Outputs
+# ========================================
+output "crawl_worker_service_name" {
+  description = "ECS Service name"
+  value       = aws_ecs_service.crawl_worker.name
+}
+
+output "crawl_worker_task_definition_arn" {
+  description = "Task definition ARN"
+  value       = aws_ecs_task_definition.crawl_worker.arn
 }

@@ -14,10 +14,11 @@ terraform {
 
   backend "s3" {
     bucket         = "prod-connectly"
-    key            = "crawlinghub/ecs-web-api/terraform.tfstate"
+    key            = "crawlinghub/ecs-crawl-worker/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "prod-connectly-tf-lock"
     encrypt        = true
+    kms_key_id     = "arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
   }
 }
 
@@ -54,20 +55,20 @@ variable "aws_region" {
   default     = "ap-northeast-2"
 }
 
-variable "web_api_cpu" {
-  description = "CPU units for web-api task"
+variable "crawl_worker_cpu" {
+  description = "CPU units for crawl-worker task"
   type        = number
   default     = 512
 }
 
-variable "web_api_memory" {
-  description = "Memory for web-api task"
+variable "crawl_worker_memory" {
+  description = "Memory for crawl-worker task"
   type        = number
   default     = 1024
 }
 
-variable "web_api_desired_count" {
-  description = "Desired count for web-api service"
+variable "crawl_worker_desired_count" {
+  description = "Desired count for crawl-worker service"
   type        = number
   default     = 2
 }
@@ -81,18 +82,6 @@ data "aws_ssm_parameter" "vpc_id" {
 
 data "aws_ssm_parameter" "private_subnets" {
   name = "/shared/network/private-subnets"
-}
-
-data "aws_ssm_parameter" "public_subnets" {
-  name = "/shared/network/public-subnets"
-}
-
-data "aws_ssm_parameter" "certificate_arn" {
-  name = "/shared/network/certificate-arn"
-}
-
-data "aws_ssm_parameter" "route53_zone_id" {
-  name = "/shared/network/route53-zone-id"
 }
 
 # ========================================
@@ -121,10 +110,6 @@ data "aws_elasticache_cluster" "redis" {
 locals {
   vpc_id          = data.aws_ssm_parameter.vpc_id.value
   private_subnets = split(",", data.aws_ssm_parameter.private_subnets.value)
-  public_subnets  = split(",", data.aws_ssm_parameter.public_subnets.value)
-  certificate_arn = data.aws_ssm_parameter.certificate_arn.value
-  route53_zone_id = data.aws_ssm_parameter.route53_zone_id.value
-  fqdn            = "crawler.set-of.com"
 
   # RDS Configuration (MySQL)
   rds_credentials = jsondecode(data.aws_secretsmanager_secret_version.rds.secret_string)
