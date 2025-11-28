@@ -168,18 +168,6 @@ public class JpaConfig {
     }
 
     /**
-     * Clock Bean 등록
-     *
-     * <p>시스템 시간을 제공하는 Clock 인스턴스입니다.
-     *
-     * @return Clock.systemDefaultZone() 인스턴스
-     */
-    @Bean
-    public Clock clock() {
-        return Clock.systemDefaultZone();
-    }
-
-    /**
      * AuditorAware 빈 등록 (선택 사항)
      *
      * <p>생성자/수정자 정보를 자동으로 설정하려면 AuditorAware를 구현해야 합니다.
