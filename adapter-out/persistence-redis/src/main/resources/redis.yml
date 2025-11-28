@@ -20,33 +20,16 @@ spring:
       connect-timeout: 3000ms
 
 # ========================================
-# Redisson Configuration
+# Redisson Configuration (via spring.redis.redisson)
 # ========================================
-redisson:
-  # Single server mode (Production: Use Cluster or Sentinel)
-  single-server-config:
-    address: redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}
-    # password는 REDIS_PASSWORD 환경변수가 설정된 경우에만 사용
-    # ElastiCache는 기본적으로 AUTH 없이 동작
-    database: ${REDIS_DATABASE:0}
-
-    # Connection Pool
-    connection-minimum-idle-size: 5
-    connection-pool-size: 20
-
-    # Timeout
-    connect-timeout: 3000
-    timeout: 3000
-    retry-attempts: 3
-    retry-interval: 1500
-
-    # Subscription
-    subscription-connection-minimum-idle-size: 1
-    subscription-connection-pool-size: 5
-
-  # Thread Pool
-  threads: 4
-  netty-threads: 4
+# Note: Redisson Spring Boot Starter uses spring.data.redis properties
+# for auto-configuration. The RedissonClient bean is automatically created.
+#
+# For custom configuration, use:
+# spring.redis.redisson.config: |
+#   singleServerConfig:
+#     address: "redis://localhost:6379"
+# ========================================
 
 # ========================================
 # Distributed Lock Configuration

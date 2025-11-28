@@ -18,26 +18,8 @@ spring:
 # ========================================
 # Redisson Configuration (Local)
 # ========================================
-redisson:
-  single-server-config:
-    address: redis://localhost:6379
-    # password 없음 (local Redis는 AUTH 없이 동작)
-    database: 0
-
-    # Smaller pool for local development
-    connection-minimum-idle-size: 2
-    connection-pool-size: 10
-
-    connect-timeout: 3000
-    timeout: 3000
-    retry-attempts: 3
-    retry-interval: 1500
-
-    subscription-connection-minimum-idle-size: 1
-    subscription-connection-pool-size: 2
-
-  threads: 2
-  netty-threads: 2
+# Note: Redisson Spring Boot Starter auto-configures using spring.data.redis
+# See redis.yml for custom configuration options
 
 # ========================================
 # Distributed Lock Configuration (Local)
@@ -54,6 +36,31 @@ distributed-lock:
   crawl-task:
     wait-time-ms: 5000
     lease-time-ms: 300000
+
+# ========================================
+# UserAgent Pool Configuration (Local)
+# ========================================
+useragent-pool:
+  # Rate Limiting (Sliding Window)
+  rate-limit:
+    # 시간당 최대 요청 수
+    max-tokens: 80
+    # 윈도우 지속 시간 (ISO-8601 Duration: PT1H = 1시간)
+    window-duration: PT1H
+
+  # Session Management
+  session:
+    # 선제적 세션 갱신 버퍼 (분)
+    # 세션 만료 N분 전에 갱신 시작
+    renewal-buffer-minutes: 5
+
+  # Health Score
+  health:
+    # SUSPENDED로 전환되는 최소 점수
+    suspension-threshold: 30
+
+  # Key Prefixes
+  key-prefix: "useragent:"
 
 logging:
   level:
