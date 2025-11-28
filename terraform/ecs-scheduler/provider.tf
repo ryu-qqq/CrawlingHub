@@ -64,7 +64,7 @@ variable "scheduler_cpu" {
 variable "scheduler_memory" {
   description = "Memory for scheduler task"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 # ========================================
