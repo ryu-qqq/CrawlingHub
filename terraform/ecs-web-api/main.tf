@@ -376,6 +376,14 @@ resource "aws_ecs_task_definition" "web_api" {
         {
           name  = "DB_USER"
           value = local.rds_username
+        },
+        {
+          name  = "REDIS_HOST"
+          value = local.redis_host
+        },
+        {
+          name  = "REDIS_PORT"
+          value = local.redis_port
         }
       ]
 
