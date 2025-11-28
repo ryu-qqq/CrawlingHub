@@ -115,10 +115,10 @@ public record ProductDetailInfo(
     /** 대표 이미지 URL 반환 */
     public String getMainImageUrl() {
         if (!bannerImages.isEmpty()) {
-            return bannerImages.get(0);
+            return bannerImages.getFirst();
         }
         if (!detailImages.isEmpty()) {
-            return detailImages.get(0);
+            return detailImages.getFirst();
         }
         return null;
     }

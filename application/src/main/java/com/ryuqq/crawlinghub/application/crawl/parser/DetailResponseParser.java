@@ -163,7 +163,7 @@ public class DetailResponseParser {
     private void parseShippingModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         JsonNode itemsNode = dataNode.get("items");
 
-        if (itemsNode != null && itemsNode.isArray() && itemsNode.size() > 0) {
+        if (itemsNode != null && itemsNode.isArray() && !itemsNode.isEmpty()) {
             JsonNode firstItem = itemsNode.get(0);
             JsonNode shippingDataNode = firstItem.get(DATA_FIELD);
 
