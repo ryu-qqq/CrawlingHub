@@ -4,17 +4,12 @@
 
 output "service_name" {
   description = "ECS scheduler service name"
-  value       = aws_ecs_service.scheduler.name
-}
-
-output "service_arn" {
-  description = "ECS scheduler service ARN"
-  value       = aws_ecs_service.scheduler.id
+  value       = module.ecs_service.service_name
 }
 
 output "task_definition_arn" {
   description = "Task definition ARN"
-  value       = aws_ecs_task_definition.scheduler.arn
+  value       = module.ecs_service.task_definition_arn
 }
 
 output "log_group_name" {
