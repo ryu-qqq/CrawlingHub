@@ -21,6 +21,7 @@ on:
           - elasticache
           - ecs-web-api
           - ecs-scheduler
+          - ecs-crawl-worker
           - eventbridge
 
 permissions:
@@ -51,9 +52,12 @@ jobs:
           - name: ecs-scheduler
             dir: terraform/ecs-scheduler
             order: 5
+          - name: ecs-crawl-worker
+            dir: terraform/ecs-crawl-worker
+            order: 6
           - name: eventbridge
             dir: terraform/eventbridge
-            order: 6
+            order: 7
 
     steps:
       - name: Checkout code
