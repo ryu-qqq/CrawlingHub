@@ -32,6 +32,7 @@ dependencies {
     implementation project(':adapter-out:persistence-mysql')
     implementation project(':adapter-out:persistence-redis')  // For distributed lock
     implementation project(':adapter-out:aws-sqs')            // For SQS message publishing
+    implementation project(':adapter-out:http-client')        // For HTTP crawling
 
     // ========================================
     // Spring Boot Starters
