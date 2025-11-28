@@ -128,6 +128,7 @@ spring:
       - classpath:rest-api.yml
       - classpath:persistence.yml
       - classpath:eventbridge.yml
+      - classpath:redis.yml
 
   # ===============================================
   # Flyway Migration
