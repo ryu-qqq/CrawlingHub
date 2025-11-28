@@ -46,6 +46,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  *   <li>com.ryuqq.crawlinghub.adapter.out.persistence - MySQL Persistence
  *   <li>com.ryuqq.crawlinghub.adapter.out.redis - Redis (Distributed Lock)
  *   <li>com.ryuqq.crawlinghub.adapter.out.sqs - SQS Publisher (Outbound)
+ *   <li>com.ryuqq.crawlinghub.adapter.out.http - HTTP Client (Crawling)
  * </ul>
  *
  * @author development-team
@@ -58,14 +59,16 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
             "com.ryuqq.crawlinghub.adapter.in.sqs",
             "com.ryuqq.crawlinghub.adapter.out.persistence",
             "com.ryuqq.crawlinghub.adapter.out.redis",
-            "com.ryuqq.crawlinghub.adapter.out.sqs"
+            "com.ryuqq.crawlinghub.adapter.out.sqs",
+            "com.ryuqq.crawlinghub.adapter.out.http"
         })
 @EntityScan(basePackages = {"com.ryuqq.crawlinghub.adapter.out.persistence"})
 @ConfigurationPropertiesScan(
         basePackages = {
             "com.ryuqq.crawlinghub.adapter.in.sqs.config",
             "com.ryuqq.crawlinghub.adapter.out.sqs.config",
-            "com.ryuqq.crawlinghub.adapter.out.redis.config"
+            "com.ryuqq.crawlinghub.adapter.out.redis.config",
+            "com.ryuqq.crawlinghub.adapter.out.http.config"
         })
 public class CrawlWorkerApplication {
 

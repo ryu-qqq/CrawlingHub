@@ -16,6 +16,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  *   <li>com.ryuqq.crawlinghub.adapter.in.rest - REST API Layer
  *   <li>com.ryuqq.crawlinghub.adapter.out.persistence - Persistence Layer
  *   <li>com.ryuqq.crawlinghub.adapter.out.eventbridge - EventBridge Layer
+ *   <li>com.ryuqq.crawlinghub.adapter.out.redis - Redis Layer (UserAgent Pool)
  *   <li>com.ryuqq.crawlinghub.application - Application Layer
  * </ul>
  *
@@ -28,13 +29,15 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
             "com.ryuqq.crawlinghub.adapter.in.rest",
             "com.ryuqq.crawlinghub.adapter.out.persistence",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge",
+            "com.ryuqq.crawlinghub.adapter.out.redis",
             "com.ryuqq.crawlinghub.application"
         })
 @EntityScan(basePackages = {"com.ryuqq.crawlinghub.adapter.out.persistence"})
 @ConfigurationPropertiesScan(
         basePackages = {
             "com.ryuqq.crawlinghub.adapter.in.rest.config.properties",
-            "com.ryuqq.crawlinghub.adapter.out.eventbridge.config"
+            "com.ryuqq.crawlinghub.adapter.out.eventbridge.config",
+            "com.ryuqq.crawlinghub.adapter.out.redis.config"
         })
 public class CrawlingHubApplication {
 
