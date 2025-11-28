@@ -3,6 +3,7 @@
 # ========================================
 # Multi-stage build for optimized image
 # Based on Eclipse Temurin JDK 21
+# With AWS ADOT Agent for OpenTelemetry
 # ========================================
 
 FROM eclipse-temurin:21-jre-alpine
@@ -16,6 +17,9 @@ RUN addgroup -S app && adduser -S app -G app
 
 # Set working directory
 WORKDIR /app
+
+# Download AWS ADOT Agent for Java instrumentation
+ADD https://github.com/aws-observability/aws-otel-java-instrumentation/releases/latest/download/aws-opentelemetry-agent.jar /app/aws-opentelemetry-agent.jar
 
 # Copy JAR file
 ARG JAR_FILE=bootstrap/bootstrap-web-api/build/libs/crawlinghub-web-api.jar
@@ -42,5 +46,18 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport \
     -XX:+UseStringDeduplication \
     -Djava.security.egd=file:/dev/./urandom"
 
-# Run application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# ADOT Agent options
+ENV OTEL_AGENT_OPTS="-javaagent:/app/aws-opentelemetry-agent.jar"
+
+# OpenTelemetry configuration
+# Service name will be set by ECS Task Definition
+ENV OTEL_SERVICE_NAME="crawlinghub-web-api"
+ENV OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
+ENV OTEL_METRICS_EXPORTER="otlp"
+ENV OTEL_TRACES_EXPORTER="otlp"
+ENV OTEL_LOGS_EXPORTER="none"
+ENV OTEL_PROPAGATORS="xray,tracecontext,baggage"
+ENV OTEL_RESOURCE_ATTRIBUTES="service.namespace=crawlinghub,deployment.environment=prod"
+
+# Run application with ADOT Agent
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS $OTEL_AGENT_OPTS -jar app.jar"]

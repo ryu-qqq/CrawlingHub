@@ -43,6 +43,9 @@ dependencies {
     // API Documentation (Optional)
     implementation libs.springdoc.openapi
 
+    // OpenTelemetry (for tracing MDC filter)
+    implementation libs.opentelemetry.api
+
     // ========================================
     // Test Dependencies
     // ========================================

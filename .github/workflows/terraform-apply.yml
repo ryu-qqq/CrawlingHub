@@ -19,6 +19,7 @@ on:
           - ecr
           - ecs-cluster
           - elasticache
+          - sqs
           - ecs-web-api
           - ecs-scheduler
           - ecs-crawl-worker
@@ -46,18 +47,21 @@ jobs:
           - name: elasticache
             dir: terraform/elasticache
             order: 3
+          - name: sqs
+            dir: terraform/sqs
+            order: 4
           - name: ecs-web-api
             dir: terraform/ecs-web-api
-            order: 4
+            order: 5
           - name: ecs-scheduler
             dir: terraform/ecs-scheduler
-            order: 5
+            order: 6
           - name: ecs-crawl-worker
             dir: terraform/ecs-crawl-worker
-            order: 6
+            order: 7
           - name: eventbridge
             dir: terraform/eventbridge
-            order: 7
+            order: 8
 
     steps:
       - name: Checkout code
@@ -265,6 +269,53 @@ jobs:
             echo "✅ ECS Crawl-Worker Import 체크 완료"
           fi
 
+          # SQS 모듈: 기존 리소스 Import
+          if [ "${{ matrix.module.name }}" == "sqs" ]; then
+            echo "📨 SQS 기존 리소스 확인 및 Import..."
+
+            # KMS Key for SQS
+            KMS_KEY_ID=$(aws kms describe-key --key-id alias/crawlinghub-sqs-prod --query 'KeyMetadata.KeyId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$KMS_KEY_ID" != "None" ] && [ -n "$KMS_KEY_ID" ]; then
+              echo "  → SQS KMS Key 존재함 (${KMS_KEY_ID}). Import 시도..."
+              terraform import -input=false 'aws_kms_key.sqs' "$KMS_KEY_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              terraform import -input=false 'aws_kms_alias.sqs' "alias/crawlinghub-sqs-prod" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # SQS Queues - Crawling Task
+            CRAWL_TASK_QUEUE_URL=$(aws sqs get-queue-url --queue-name crawlinghub-crawling-task-prod --query 'QueueUrl' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$CRAWL_TASK_QUEUE_URL" != "None" ] && [ -n "$CRAWL_TASK_QUEUE_URL" ]; then
+              echo "  → Crawling Task Queue 존재함. Import 시도..."
+              terraform import -input=false 'module.crawling_task_queue.aws_sqs_queue.this' "$CRAWL_TASK_QUEUE_URL" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            CRAWL_TASK_DLQ_URL=$(aws sqs get-queue-url --queue-name crawlinghub-crawling-task-prod-dlq --query 'QueueUrl' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$CRAWL_TASK_DLQ_URL" != "None" ] && [ -n "$CRAWL_TASK_DLQ_URL" ]; then
+              echo "  → Crawling Task DLQ 존재함. Import 시도..."
+              terraform import -input=false 'module.crawling_task_queue.aws_sqs_queue.dlq[0]' "$CRAWL_TASK_DLQ_URL" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # SQS Queues - EventBridge Trigger
+            EB_TRIGGER_QUEUE_URL=$(aws sqs get-queue-url --queue-name crawlinghub-eventbridge-trigger-prod --query 'QueueUrl' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$EB_TRIGGER_QUEUE_URL" != "None" ] && [ -n "$EB_TRIGGER_QUEUE_URL" ]; then
+              echo "  → EventBridge Trigger Queue 존재함. Import 시도..."
+              terraform import -input=false 'module.eventbridge_trigger_queue.aws_sqs_queue.this' "$EB_TRIGGER_QUEUE_URL" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            EB_TRIGGER_DLQ_URL=$(aws sqs get-queue-url --queue-name crawlinghub-eventbridge-trigger-prod-dlq --query 'QueueUrl' --output text --region ap-northeast-2 2>/dev/null || echo "None")
+            if [ "$EB_TRIGGER_DLQ_URL" != "None" ] && [ -n "$EB_TRIGGER_DLQ_URL" ]; then
+              echo "  → EventBridge Trigger DLQ 존재함. Import 시도..."
+              terraform import -input=false 'module.eventbridge_trigger_queue.aws_sqs_queue.dlq[0]' "$EB_TRIGGER_DLQ_URL" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # IAM Policy for SQS
+            if aws iam get-policy --policy-arn "arn:aws:iam::646886795421:policy/crawlinghub-sqs-access-prod" >/dev/null 2>&1; then
+              echo "  → SQS IAM Policy 존재함. Import 시도..."
+              terraform import -input=false 'aws_iam_policy.sqs_access' "arn:aws:iam::646886795421:policy/crawlinghub-sqs-access-prod" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            echo "✅ SQS Import 체크 완료"
+          fi
+
           # Plan 실행
           echo "📋 Terraform Plan 실행 중..."
           terraform plan -out=tfplan
@@ -311,8 +362,10 @@ jobs:
           echo "- ✅ ECR Repositories (web-api, scheduler, crawl-worker)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Cluster" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ElastiCache Redis" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SQS Queues (crawling-task, eventbridge-trigger)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Service: web-api" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Service: scheduler" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ECS Service: crawl-worker" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
           echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
