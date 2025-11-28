@@ -92,6 +92,13 @@ data "aws_secretsmanager_secret_version" "rds" {
 }
 
 # ========================================
+# ElastiCache (Redis) Configuration
+# ========================================
+data "aws_elasticache_cluster" "redis" {
+  cluster_id = "${var.project_name}-redis-${var.environment}"
+}
+
+# ========================================
 # Locals
 # ========================================
 locals {
@@ -104,4 +111,8 @@ locals {
   rds_port        = "3306"
   rds_dbname      = "crawler"
   rds_username    = local.rds_credentials.username
+
+  # Redis Configuration
+  redis_host = data.aws_elasticache_cluster.redis.cache_nodes[0].address
+  redis_port = tostring(data.aws_elasticache_cluster.redis.port)
 }
