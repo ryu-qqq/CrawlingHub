@@ -85,40 +85,34 @@ jobs:
         run: |
           echo "🔍 기존 리소스 확인 및 Import 중..."
 
-          # Plan 실행하여 충돌 확인
-          set +e
-          terraform plan -out=tfplan 2>&1 | tee plan_output.txt
-          PLAN_EXIT_CODE=$?
-          set -e
+          # ECR 모듈: Plan 전에 미리 Import 시도
+          if [ "${{ matrix.module.name }}" == "ecr" ]; then
+            echo "📦 ECR Repository 존재 여부 확인 및 Import..."
 
-          # 409 에러 또는 "already exists" 패턴 확인
-          if grep -q "EntityAlreadyExists\|already exists" plan_output.txt; then
-            echo "⚠️  기존 리소스 발견! Import 작업 시작..."
-
-            # ECR 모듈
-            if [ "${{ matrix.module.name }}" == "ecr" ]; then
-              echo "📦 ECR Repository 리소스 Import 중..."
-              if aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-web-api-prod ECR repository..."
-                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed or already in state"
-              fi
-              if aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-scheduler-prod ECR repository..."
-                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
-              fi
-              if aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-crawl-worker-prod ECR repository..."
-                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed or already in state"
-              fi
+            # web-api ECR
+            if aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
+              echo "  → crawlinghub-web-api-prod 존재함. Import 시도..."
+              terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
             fi
 
-            echo "✅ Import 완료! Plan 재실행..."
-            terraform plan -out=tfplan
-          else
-            echo "✅ 기존 리소스 없음 또는 State와 일치. 정상 진행."
+            # scheduler ECR
+            if aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
+              echo "  → crawlinghub-scheduler-prod 존재함. Import 시도..."
+              terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            # crawl-worker ECR
+            if aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
+              echo "  → crawlinghub-crawl-worker-prod 존재함. Import 시도..."
+              terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+            fi
+
+            echo "✅ ECR Import 체크 완료"
           fi
 
-          rm -f plan_output.txt
+          # Plan 실행
+          echo "📋 Terraform Plan 실행 중..."
+          terraform plan -out=tfplan
 
       - name: Terraform Apply - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
