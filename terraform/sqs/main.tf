@@ -47,7 +47,7 @@ resource "aws_kms_alias" "sqs" {
 module "crawling_task_queue" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/sqs?ref=main"
 
-  name       = "${var.project_name}-crawling-task-${var.environment}"
+  name       = "prod-monitoring-sqs-${var.project_name}-crawling-task"
   fifo_queue = false
 
   # KMS Encryption (required)
@@ -92,7 +92,7 @@ module "crawling_task_queue" {
 module "eventbridge_trigger_queue" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/sqs?ref=main"
 
-  name       = "${var.project_name}-eventbridge-trigger-${var.environment}"
+  name       = "prod-monitoring-sqs-${var.project_name}-eventbridge-trigger"
   fifo_queue = false
 
   # KMS Encryption (required)
