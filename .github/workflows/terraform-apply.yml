@@ -118,14 +118,14 @@ jobs:
             ALB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-alb-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
             if [ "$ALB_SG_ID" != "None" ] && [ -n "$ALB_SG_ID" ]; then
               echo "  → ALB Security Group 존재함 (${ALB_SG_ID}). Import 시도..."
-              terraform import -input=false 'module.alb_security_group.aws_security_group.this[0]' "$ALB_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              terraform import -input=false 'module.alb_security_group.aws_security_group.this' "$ALB_SG_ID" || echo "  ⚠️  Already in state or import skipped"
             fi
 
             # ECS Security Group
             ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-web-api-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
             if [ "$ECS_SG_ID" != "None" ] && [ -n "$ECS_SG_ID" ]; then
               echo "  → ECS Security Group 존재함 (${ECS_SG_ID}). Import 시도..."
-              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$ECS_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this' "$ECS_SG_ID" || echo "  ⚠️  Already in state or import skipped"
             fi
 
             # Target Group
@@ -199,7 +199,7 @@ jobs:
             SCHEDULER_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-scheduler-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
             if [ "$SCHEDULER_SG_ID" != "None" ] && [ -n "$SCHEDULER_SG_ID" ]; then
               echo "  → Scheduler Security Group 존재함 (${SCHEDULER_SG_ID}). Import 시도..."
-              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$SCHEDULER_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this' "$SCHEDULER_SG_ID" || echo "  ⚠️  Already in state or import skipped"
             fi
 
             # IAM Roles
@@ -236,7 +236,7 @@ jobs:
             WORKER_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=crawlinghub-crawl-worker-sg-prod" --query 'SecurityGroups[0].GroupId' --output text --region ap-northeast-2 2>/dev/null || echo "None")
             if [ "$WORKER_SG_ID" != "None" ] && [ -n "$WORKER_SG_ID" ]; then
               echo "  → Crawl-Worker Security Group 존재함 (${WORKER_SG_ID}). Import 시도..."
-              terraform import -input=false 'module.ecs_security_group.aws_security_group.this[0]' "$WORKER_SG_ID" 2>/dev/null || echo "  ⚠️  Already in state or import skipped"
+              terraform import -input=false 'module.ecs_security_group.aws_security_group.this' "$WORKER_SG_ID" || echo "  ⚠️  Already in state or import skipped"
             fi
 
             # IAM Roles
