@@ -3,10 +3,12 @@ package com.ryuqq.crawlinghub.domain.useragent.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.cralwinghub.domain.fixture.useragent.DeviceTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.HealthScoreFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.TokenFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentStringFixture;
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.LocalDateTime;
@@ -45,7 +47,10 @@ class UserAgentTest {
         @DisplayName("신규 UserAgent 생성 시 AVAILABLE 상태, Health Score 100, ID 미할당")
         void shouldCreateUserAgentWithAvailableStatusAndFullHealthScore() {
             // when
-            UserAgent userAgent = UserAgent.create(TokenFixture.aDefaultToken());
+            UserAgent userAgent =
+                    UserAgent.create(
+                            TokenFixture.aDefaultToken(),
+                            UserAgentStringFixture.aDefaultUserAgentString());
 
             // then
             assertThat(userAgent.getId()).isNotNull();
@@ -65,7 +70,10 @@ class UserAgentTest {
             LocalDateTime before = LocalDateTime.now();
 
             // when
-            UserAgent userAgent = UserAgent.create(TokenFixture.aDefaultToken());
+            UserAgent userAgent =
+                    UserAgent.create(
+                            TokenFixture.aDefaultToken(),
+                            UserAgentStringFixture.aDefaultUserAgentString());
 
             // then
             LocalDateTime after = LocalDateTime.now();
@@ -251,6 +259,8 @@ class UserAgentTest {
                     UserAgent.reconstitute(
                             UserAgentIdFixture.anAssignedId(),
                             TokenFixture.aDefaultToken(),
+                            UserAgentStringFixture.aDefaultUserAgentString(),
+                            DeviceTypeFixture.aDefaultDeviceType(),
                             UserAgentStatus.AVAILABLE,
                             HealthScoreFixture.of(32),
                             LocalDateTime.now(),
