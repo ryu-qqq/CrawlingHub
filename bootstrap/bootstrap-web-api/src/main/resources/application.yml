@@ -130,6 +130,15 @@ spring:
       - classpath:eventbridge.yml
       - classpath:redis.yml
 
+# ===============================================
+# AWS SQS Configuration
+# ===============================================
+aws:
+  sqs:
+    region: ${AWS_REGION:ap-northeast-2}
+    crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
+    message-group-id-prefix: crawl-task-
+
   # ===============================================
   # Flyway Migration
   # ===============================================
