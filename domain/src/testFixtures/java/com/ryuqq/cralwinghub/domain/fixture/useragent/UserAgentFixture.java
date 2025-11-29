@@ -22,7 +22,8 @@ public final class UserAgentFixture {
      * @return UserAgent
      */
     public static UserAgent aNewUserAgent() {
-        return UserAgent.create(TokenFixture.aDefaultToken());
+        return UserAgent.create(
+                TokenFixture.aDefaultToken(), UserAgentStringFixture.aDefaultUserAgentString());
     }
 
     /**
@@ -34,6 +35,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
@@ -51,6 +54,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.SUSPENDED,
                 HealthScoreFixture.belowThreshold(),
                 DEFAULT_TIME,
@@ -68,6 +73,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.SUSPENDED,
                 HealthScoreFixture.belowThreshold(),
                 DEFAULT_TIME.minusHours(2),
@@ -85,6 +92,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.BLOCKED,
                 HealthScoreFixture.minimum(),
                 DEFAULT_TIME,
@@ -102,6 +111,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.of(35),
                 DEFAULT_TIME,
@@ -119,6 +130,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
@@ -137,6 +150,8 @@ public final class UserAgentFixture {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(id),
                 TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
