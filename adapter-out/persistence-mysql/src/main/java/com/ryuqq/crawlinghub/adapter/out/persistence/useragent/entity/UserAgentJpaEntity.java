@@ -60,6 +60,14 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     @Column(name = "token", nullable = false, length = 500)
     private String token;
 
+    /** User-Agent 헤더 문자열 (실제 User-Agent 값) */
+    @Column(name = "user_agent_string", nullable = false, length = 500)
+    private String userAgentString;
+
+    /** 디바이스 타입 (MOBILE/TABLET/DESKTOP) */
+    @Column(name = "device_type", nullable = false, length = 20)
+    private String deviceType;
+
     /** UserAgent 상태 (AVAILABLE/SUSPENDED/BLOCKED) */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -91,6 +99,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      *
      * @param id 기본 키
      * @param token 암호화된 토큰
+     * @param userAgentString User-Agent 헤더 문자열
+     * @param deviceType 디바이스 타입
      * @param status UserAgent 상태
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
@@ -101,6 +111,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     private UserAgentJpaEntity(
             Long id,
             String token,
+            String userAgentString,
+            String deviceType,
             UserAgentStatus status,
             int healthScore,
             LocalDateTime lastUsedAt,
@@ -110,6 +122,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
         super(createdAt, updatedAt);
         this.id = id;
         this.token = token;
+        this.userAgentString = userAgentString;
+        this.deviceType = deviceType;
         this.status = status;
         this.healthScore = healthScore;
         this.lastUsedAt = lastUsedAt;
@@ -125,6 +139,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      *
      * @param id 기본 키
      * @param token 암호화된 토큰
+     * @param userAgentString User-Agent 헤더 문자열
+     * @param deviceType 디바이스 타입
      * @param status UserAgent 상태
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
@@ -136,6 +152,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     public static UserAgentJpaEntity of(
             Long id,
             String token,
+            String userAgentString,
+            String deviceType,
             UserAgentStatus status,
             int healthScore,
             LocalDateTime lastUsedAt,
@@ -143,7 +161,16 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new UserAgentJpaEntity(
-                id, token, status, healthScore, lastUsedAt, requestsPerDay, createdAt, updatedAt);
+                id,
+                token,
+                userAgentString,
+                deviceType,
+                status,
+                healthScore,
+                lastUsedAt,
+                requestsPerDay,
+                createdAt,
+                updatedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
@@ -154,6 +181,14 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
 
     public String getToken() {
         return token;
+    }
+
+    public String getUserAgentString() {
+        return userAgentString;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
     }
 
     public UserAgentStatus getStatus() {

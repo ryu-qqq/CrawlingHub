@@ -63,11 +63,10 @@ projects:
   # Event-Driven Infrastructure
   # ============================================================================
 
-  # EventBridge for scheduled crawling tasks
-  # TODO: ECS 서비스 배포 후 활성화
-  # - name: crawlinghub-eventbridge-prod
-  #   dir: terraform/eventbridge
-  #   workspace: default
-  #   autoplan:
-  #     when_modified: ["*.tf", "*.tfvars", "../*.tf"]
-  #     enabled: true
+  #EventBridge for scheduled crawling tasks
+  - name: crawlinghub-eventbridge-prod
+    dir: terraform/eventbridge
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
