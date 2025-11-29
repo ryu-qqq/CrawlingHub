@@ -2,9 +2,11 @@ package com.ryuqq.crawlinghub.domain.useragent.aggregate;
 
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import java.time.LocalDateTime;
 
 /**
@@ -39,6 +41,8 @@ public class UserAgent {
 
     private final UserAgentId id;
     private final Token token;
+    private final UserAgentString userAgentString;
+    private final DeviceType deviceType;
     private UserAgentStatus status;
     private HealthScore healthScore;
     private LocalDateTime lastUsedAt;
@@ -49,6 +53,8 @@ public class UserAgent {
     private UserAgent(
             UserAgentId id,
             Token token,
+            UserAgentString userAgentString,
+            DeviceType deviceType,
             UserAgentStatus status,
             HealthScore healthScore,
             LocalDateTime lastUsedAt,
@@ -57,6 +63,8 @@ public class UserAgent {
             LocalDateTime updatedAt) {
         this.id = id;
         this.token = token;
+        this.userAgentString = userAgentString;
+        this.deviceType = deviceType;
         this.status = status;
         this.healthScore = healthScore;
         this.lastUsedAt = lastUsedAt;
@@ -69,13 +77,17 @@ public class UserAgent {
      * 신규 UserAgent 생성
      *
      * @param token 암호화된 토큰
+     * @param userAgentString User-Agent 헤더 문자열
      * @return 새로운 UserAgent (AVAILABLE, Health Score 100)
      */
-    public static UserAgent create(Token token) {
+    public static UserAgent create(Token token, UserAgentString userAgentString) {
         LocalDateTime now = LocalDateTime.now();
+        DeviceType deviceType = DeviceType.parse(userAgentString.value());
         return new UserAgent(
                 UserAgentId.unassigned(),
                 token,
+                userAgentString,
+                deviceType,
                 UserAgentStatus.AVAILABLE,
                 HealthScore.initial(),
                 null,
@@ -89,6 +101,8 @@ public class UserAgent {
      *
      * @param id UserAgent ID
      * @param token 암호화된 토큰
+     * @param userAgentString User-Agent 헤더 문자열
+     * @param deviceType 디바이스 타입
      * @param status 현재 상태
      * @param healthScore 건강 점수
      * @param lastUsedAt 마지막 사용 시각
@@ -100,6 +114,8 @@ public class UserAgent {
     public static UserAgent reconstitute(
             UserAgentId id,
             Token token,
+            UserAgentString userAgentString,
+            DeviceType deviceType,
             UserAgentStatus status,
             HealthScore healthScore,
             LocalDateTime lastUsedAt,
@@ -107,7 +123,16 @@ public class UserAgent {
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new UserAgent(
-                id, token, status, healthScore, lastUsedAt, requestsPerDay, createdAt, updatedAt);
+                id,
+                token,
+                userAgentString,
+                deviceType,
+                status,
+                healthScore,
+                lastUsedAt,
+                requestsPerDay,
+                createdAt,
+                updatedAt);
     }
 
     // === 비즈니스 로직 ===
@@ -255,6 +280,14 @@ public class UserAgent {
 
     public Token getToken() {
         return token;
+    }
+
+    public UserAgentString getUserAgentString() {
+        return userAgentString;
+    }
+
+    public DeviceType getDeviceType() {
+        return deviceType;
     }
 
     public UserAgentStatus getStatus() {

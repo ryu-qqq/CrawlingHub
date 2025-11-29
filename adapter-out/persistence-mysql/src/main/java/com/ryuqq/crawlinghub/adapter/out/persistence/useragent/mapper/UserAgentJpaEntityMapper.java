@@ -3,8 +3,10 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJpaEntity;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,6 +66,8 @@ public class UserAgentJpaEntityMapper {
         return UserAgentJpaEntity.of(
                 domain.getId().value(),
                 domain.getToken().encryptedValue(),
+                domain.getUserAgentString().value(),
+                domain.getDeviceType().getTypeName(),
                 domain.getStatus(),
                 domain.getHealthScoreValue(),
                 domain.getLastUsedAt(),
@@ -101,6 +105,8 @@ public class UserAgentJpaEntityMapper {
         return UserAgent.reconstitute(
                 UserAgentId.of(entity.getId()),
                 Token.of(entity.getToken()),
+                UserAgentString.of(entity.getUserAgentString()),
+                DeviceType.of(entity.getDeviceType()),
                 entity.getStatus(),
                 HealthScore.of(entity.getHealthScore()),
                 entity.getLastUsedAt(),
