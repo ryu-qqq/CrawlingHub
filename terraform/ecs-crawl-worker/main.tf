@@ -345,7 +345,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
-  health_check_start_period = 180 # Worker needs more time to initialize Redisson, Redis, SQS connections
+  health_check_start_period = 240 # Worker needs more time to initialize Redisson, Redis, SQS connections (similar to scheduler)
 
   # Logging (use existing log group)
   log_configuration = {

@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
             "com.ryuqq.crawlinghub.adapter.out.persistence",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge",
             "com.ryuqq.crawlinghub.adapter.out.redis",
+            "com.ryuqq.crawlinghub.adapter.out.http",
             "com.ryuqq.crawlinghub.application"
         })
 @EntityScan(basePackages = {"com.ryuqq.crawlinghub.adapter.out.persistence"})
@@ -37,7 +38,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
         basePackages = {
             "com.ryuqq.crawlinghub.adapter.in.rest.config.properties",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge.config",
-            "com.ryuqq.crawlinghub.adapter.out.redis.config"
+            "com.ryuqq.crawlinghub.adapter.out.redis.config",
+            "com.ryuqq.crawlinghub.adapter.out.http.config"
         })
 public class CrawlingHubApplication {
 
