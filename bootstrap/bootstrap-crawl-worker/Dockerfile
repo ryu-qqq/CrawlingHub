@@ -12,6 +12,9 @@ FROM eclipse-temurin:21-jre-alpine
 LABEL maintainer="crawlinghub"
 LABEL description="Crawlinghub Crawl Worker Service"
 
+# Install wget for health checks
+RUN apk add --no-cache wget
+
 # Create non-root user
 RUN addgroup -S app && adduser -S app -G app
 
