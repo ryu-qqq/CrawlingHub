@@ -300,14 +300,14 @@ module "ecs_service" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecs-service?ref=main"
 
   # Service Configuration
-  name             = "${var.project_name}-scheduler-${var.environment}"
-  cluster_id       = data.aws_ecs_cluster.main.arn
-  container_name   = "scheduler"
-  container_image  = "${data.aws_ecr_repository.scheduler.repository_url}:latest"
-  container_port   = 8081
-  cpu              = var.scheduler_cpu
-  memory           = var.scheduler_memory
-  desired_count    = 1 # Fixed at 1 (scheduler)
+  name            = "${var.project_name}-scheduler-${var.environment}"
+  cluster_id      = data.aws_ecs_cluster.main.arn
+  container_name  = "scheduler"
+  container_image = "${data.aws_ecr_repository.scheduler.repository_url}:latest"
+  container_port  = 8081
+  cpu             = var.scheduler_cpu
+  memory          = var.scheduler_memory
+  desired_count   = 1 # Fixed at 1 (scheduler)
 
   # IAM Roles
   execution_role_arn = module.scheduler_task_execution_role.role_arn
@@ -339,7 +339,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
-  health_check_start_period = 180  # Scheduler needs more time to initialize Redisson, Redis connections, and beans
+  health_check_start_period = 180 # Scheduler needs more time to initialize Redisson, Redis connections, and beans
 
   # Logging (use existing log group)
   log_configuration = {
