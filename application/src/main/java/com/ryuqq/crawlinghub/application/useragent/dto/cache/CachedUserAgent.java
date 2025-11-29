@@ -55,7 +55,7 @@ public record CachedUserAgent(
     public static CachedUserAgent forNew(UserAgent userAgent) {
         return new CachedUserAgent(
                 userAgent.getId().value(),
-                userAgent.getToken().encryptedValue(),
+                userAgent.getUserAgentString().value(),
                 null,
                 null,
                 DEFAULT_MAX_TOKENS,

@@ -54,24 +54,24 @@ module "crawling_task_queue" {
   kms_key_id = aws_kms_key.sqs.arn
 
   # Message Configuration
-  visibility_timeout_seconds = 300  # 5 minutes - enough time to process crawling task
-  message_retention_seconds  = 345600  # 4 days
-  max_message_size           = 262144  # 256 KB
+  visibility_timeout_seconds = 300    # 5 minutes - enough time to process crawling task
+  message_retention_seconds  = 345600 # 4 days
+  max_message_size           = 262144 # 256 KB
   delay_seconds              = 0
-  receive_wait_time_seconds  = 20  # Long polling enabled
+  receive_wait_time_seconds  = 20 # Long polling enabled
 
   # DLQ Configuration
   enable_dlq                    = true
-  max_receive_count             = 3  # Move to DLQ after 3 failed attempts
-  dlq_message_retention_seconds = 1209600  # 14 days for DLQ
+  max_receive_count             = 3       # Move to DLQ after 3 failed attempts
+  dlq_message_retention_seconds = 1209600 # 14 days for DLQ
 
   # CloudWatch Alarms
   enable_cloudwatch_alarms         = true
   alarm_evaluation_periods         = 2
   alarm_period                     = 300  # 5 minutes
   alarm_message_age_threshold      = 600  # Alert if message older than 10 minutes
-  alarm_messages_visible_threshold = 1000  # Alert if queue depth exceeds 1000
-  alarm_dlq_messages_threshold     = 1  # Alert on any DLQ message
+  alarm_messages_visible_threshold = 1000 # Alert if queue depth exceeds 1000
+  alarm_dlq_messages_threshold     = 1    # Alert on any DLQ message
 
   # Required Tags
   environment = local.common_tags.environment
@@ -99,24 +99,24 @@ module "eventbridge_trigger_queue" {
   kms_key_id = aws_kms_key.sqs.arn
 
   # Message Configuration
-  visibility_timeout_seconds = 60   # 1 minute - trigger processing is fast
+  visibility_timeout_seconds = 60     # 1 minute - trigger processing is fast
   message_retention_seconds  = 86400  # 1 day
-  max_message_size           = 262144  # 256 KB
+  max_message_size           = 262144 # 256 KB
   delay_seconds              = 0
-  receive_wait_time_seconds  = 20  # Long polling enabled
+  receive_wait_time_seconds  = 20 # Long polling enabled
 
   # DLQ Configuration
   enable_dlq                    = true
-  max_receive_count             = 3  # Move to DLQ after 3 failed attempts
-  dlq_message_retention_seconds = 604800  # 7 days for DLQ
+  max_receive_count             = 3      # Move to DLQ after 3 failed attempts
+  dlq_message_retention_seconds = 604800 # 7 days for DLQ
 
   # CloudWatch Alarms
   enable_cloudwatch_alarms         = true
   alarm_evaluation_periods         = 2
-  alarm_period                     = 300  # 5 minutes
-  alarm_message_age_threshold      = 300  # Alert if message older than 5 minutes
-  alarm_messages_visible_threshold = 100  # Alert if queue depth exceeds 100
-  alarm_dlq_messages_threshold     = 1    # Alert on any DLQ message
+  alarm_period                     = 300 # 5 minutes
+  alarm_message_age_threshold      = 300 # Alert if message older than 5 minutes
+  alarm_messages_visible_threshold = 100 # Alert if queue depth exceeds 100
+  alarm_dlq_messages_threshold     = 1   # Alert on any DLQ message
 
   # Required Tags
   environment = local.common_tags.environment

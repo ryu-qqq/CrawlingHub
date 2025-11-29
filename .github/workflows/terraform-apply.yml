@@ -1,14 +1,14 @@
 name: Terraform Apply
 
+# 아틀란티스로 인프라 관리를 전환하여 자동 트리거 비활성화
+# 긴급 상황 시 수동으로만 실행 가능
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'terraform/**'
-      - '.github/workflows/terraform-*.yml'
   workflow_dispatch:
     inputs:
+      reason:
+        description: '수동 실행 사유 (긴급 상황에만 사용)'
+        required: true
+        type: string
       module:
         description: 'Terraform module to apply (leave empty for all)'
         required: false
@@ -24,6 +24,14 @@ on:
           - ecs-scheduler
           - ecs-crawl-worker
           - eventbridge
+
+  # 자동 트리거 비활성화 (아틀란티스 사용)
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'terraform/**'
+  #     - '.github/workflows/terraform-*.yml'
 
 permissions:
   contents: read

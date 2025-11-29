@@ -216,7 +216,7 @@ public class UserAgentPoolManager {
         UserAgent userAgent = userAgentOptional.get();
         userAgent.recover(); // Domain에서 비즈니스 로직 처리 (AVAILABLE 전환, Health Score 70)
 
-        String userAgentValue = userAgent.getToken().encryptedValue();
+        String userAgentValue = userAgent.getUserAgentString().value();
         cachePort.restoreToPool(userAgentId, userAgentValue);
         persistencePort.persist(userAgent);
 

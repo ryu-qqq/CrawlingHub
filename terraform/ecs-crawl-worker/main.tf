@@ -303,14 +303,14 @@ module "ecs_service" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecs-service?ref=main"
 
   # Service Configuration
-  name             = "${var.project_name}-crawl-worker-${var.environment}"
-  cluster_id       = data.aws_ecs_cluster.main.arn
-  container_name   = "crawl-worker"
-  container_image  = "${data.aws_ecr_repository.crawl_worker.repository_url}:crawl-worker-30-c5ddc60"
-  container_port   = 8082
-  cpu              = var.crawl_worker_cpu
-  memory           = var.crawl_worker_memory
-  desired_count    = var.crawl_worker_desired_count
+  name            = "${var.project_name}-crawl-worker-${var.environment}"
+  cluster_id      = data.aws_ecs_cluster.main.arn
+  container_name  = "crawl-worker"
+  container_image = "${data.aws_ecr_repository.crawl_worker.repository_url}:crawl-worker-30-c5ddc60"
+  container_port  = 8082
+  cpu             = var.crawl_worker_cpu
+  memory          = var.crawl_worker_memory
+  desired_count   = var.crawl_worker_desired_count
 
   # IAM Roles
   execution_role_arn = module.crawl_worker_task_execution_role.role_arn
@@ -345,7 +345,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
-  health_check_start_period = 180  # Worker needs more time to initialize Redisson, Redis, SQS connections
+  health_check_start_period = 180 # Worker needs more time to initialize Redisson, Redis, SQS connections
 
   # Logging (use existing log group)
   log_configuration = {
