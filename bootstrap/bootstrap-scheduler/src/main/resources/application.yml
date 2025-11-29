@@ -35,6 +35,7 @@ management:
   # Management 전용 포트 (경량 웹 서버)
   server:
     port: 8081
+    shutdown: graceful
 
   endpoints:
     web:
