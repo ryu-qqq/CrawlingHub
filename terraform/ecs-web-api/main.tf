@@ -36,6 +36,17 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ========================================
+# EventBridge Configuration (from SSM)
+# ========================================
+data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
+  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-arn"
+}
+
+data "aws_ssm_parameter" "eventbridge_role_arn" {
+  name = "/${var.project_name}/eventbridge/role-arn"
+}
+
+# ========================================
 # Security Groups (using Infrastructure module)
 # ========================================
 
@@ -260,6 +271,24 @@ module "ecs_task_role" {
               "events:RemoveTargets"
             ]
             Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "scheduler:CreateSchedule",
+              "scheduler:UpdateSchedule",
+              "scheduler:DeleteSchedule",
+              "scheduler:GetSchedule",
+              "scheduler:ListSchedules"
+            ]
+            Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "iam:PassRole"
+            ]
+            Resource = data.aws_ssm_parameter.eventbridge_role_arn.value
           }
         ]
       })
@@ -406,14 +435,14 @@ module "ecs_service" {
   source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/ecs-service?ref=main"
 
   # Service Configuration
-  name             = "${var.project_name}-web-api-${var.environment}"
-  cluster_id       = data.aws_ecs_cluster.main.arn
-  container_name   = "web-api"
-  container_image  = "${data.aws_ecr_repository.web_api.repository_url}:latest"
-  container_port   = 8080
-  cpu              = var.web_api_cpu
-  memory           = var.web_api_memory
-  desired_count    = var.web_api_desired_count
+  name            = "${var.project_name}-web-api-${var.environment}"
+  cluster_id      = data.aws_ecs_cluster.main.arn
+  container_name  = "web-api"
+  container_image = "${data.aws_ecr_repository.web_api.repository_url}:latest"
+  container_port  = 8080
+  cpu             = var.web_api_cpu
+  memory          = var.web_api_memory
+  desired_count   = var.web_api_desired_count
 
   # IAM Roles
   execution_role_arn = module.ecs_task_execution_role.role_arn
@@ -440,7 +469,9 @@ module "ecs_service" {
     { name = "DB_NAME", value = local.rds_dbname },
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
-    { name = "REDIS_PORT", value = local.redis_port }
+    { name = "REDIS_PORT", value = local.redis_port },
+    { name = "EVENTBRIDGE_TARGET_ARN", value = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value },
+    { name = "EVENTBRIDGE_ROLE_ARN", value = data.aws_ssm_parameter.eventbridge_role_arn.value }
   ]
 
   # Container Secrets
@@ -450,7 +481,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-  health_check_start_period = 120  # Web API needs time to initialize JPA, Redis, and HTTP client connections
+  health_check_start_period = 120 # Web API needs time to initialize JPA, Redis, and HTTP client connections
 
   # Logging (use existing log group)
   log_configuration = {
