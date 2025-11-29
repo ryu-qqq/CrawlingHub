@@ -4,9 +4,9 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
-  # Web server 비활성화 (Actuator만 필요)
+  # Web server 비활성화, Management 서버만 활성화 (Actuator용)
   main:
-    web-application-type: none
+    web-application-type: servlet
 
   # ========================================
   # Config Import (각 모듈의 설정 파일 로드)
