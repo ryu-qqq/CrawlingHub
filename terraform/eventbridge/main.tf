@@ -170,6 +170,21 @@ variable "enabled" {
 }
 
 # ========================================
+# SSM Parameter: EventBridge Role ARN
+# ========================================
+resource "aws_ssm_parameter" "eventbridge_role_arn" {
+  name        = "/${var.project_name}/eventbridge/role-arn"
+  description = "EventBridge IAM Role ARN for invoking SQS"
+  type        = "String"
+  value       = aws_iam_role.eventbridge_sqs.arn
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-role-arn-${var.environment}"
+    Environment = var.environment
+  }
+}
+
+# ========================================
 # Outputs
 # ========================================
 output "eventbridge_rule_arn" {
