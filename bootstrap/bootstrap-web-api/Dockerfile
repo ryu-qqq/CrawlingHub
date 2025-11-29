@@ -52,6 +52,7 @@ ENV OTEL_AGENT_OPTS="-javaagent:/app/aws-opentelemetry-agent.jar"
 # OpenTelemetry configuration
 # Service name will be set by ECS Task Definition
 ENV OTEL_SERVICE_NAME="crawlinghub-web-api"
+ENV OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
 ENV OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
 ENV OTEL_METRICS_EXPORTER="otlp"
 ENV OTEL_TRACES_EXPORTER="otlp"

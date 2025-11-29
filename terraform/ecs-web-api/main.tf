@@ -115,8 +115,8 @@ module "alb" {
         enabled             = true
         healthy_threshold   = 2
         unhealthy_threshold = 3
-        timeout             = 5
-        interval            = 30
+        timeout             = 10
+        interval            = 60
         path                = "/actuator/health"
         matcher             = "200"
       }
@@ -459,7 +459,7 @@ module "ecs_service" {
     container_name   = "web-api"
     container_port   = 8080
   }
-  health_check_grace_period_seconds = 60
+  health_check_grace_period_seconds = 180
 
   # Container Environment Variables
   container_environment = [
@@ -481,7 +481,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-  health_check_start_period = 120 # Web API needs time to initialize JPA, Redis, and HTTP client connections
+  health_check_start_period = 180 # Web API needs time to initialize JPA, Redis, and HTTP client connections
 
   # Logging (use existing log group)
   log_configuration = {
