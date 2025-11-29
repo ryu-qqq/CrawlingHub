@@ -4,6 +4,10 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
+  # Web server 비활성화 (Actuator만 필요)
+  main:
+    web-application-type: none
+
   # ========================================
   # Config Import (각 모듈의 설정 파일 로드)
   # ========================================
@@ -25,9 +29,13 @@ spring:
     validate-on-migrate: false
 
 # ========================================
-# Actuator Configuration
+# Management Configuration (Actuator 전용)
 # ========================================
 management:
+  # Management 전용 포트 (경량 웹 서버)
+  server:
+    port: 8081
+
   endpoints:
     web:
       exposure:
@@ -69,13 +77,6 @@ logging:
     org.springframework.scheduling: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-
-# ========================================
-# Server Configuration (for actuator only)
-# ========================================
-server:
-  port: 8081
-  shutdown: graceful
 
 # ========================================
 # Scheduler Feature Toggles
