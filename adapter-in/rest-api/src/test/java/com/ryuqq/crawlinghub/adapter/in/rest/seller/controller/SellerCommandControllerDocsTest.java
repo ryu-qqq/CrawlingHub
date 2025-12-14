@@ -13,6 +13,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
@@ -82,6 +83,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "seller-command/register",
+                                RestDocsSecuritySnippets.authorization("seller:create"),
                                 requestFields(
                                         fieldWithPath("mustItSellerName")
                                                 .type(JsonFieldType.STRING)
@@ -168,6 +170,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "seller-command/update",
+                                RestDocsSecuritySnippets.authorization("seller:update"),
                                 pathParameters(parameterWithName("id").description("셀러 ID (양수)")),
                                 requestFields(
                                         fieldWithPath("mustItSellerName")

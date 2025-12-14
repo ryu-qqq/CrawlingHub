@@ -13,6 +13,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
@@ -93,6 +94,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "schedule-command/register",
+                                RestDocsSecuritySnippets.authorization("scheduler:create"),
                                 requestFields(
                                         fieldWithPath("sellerId")
                                                 .type(JsonFieldType.NUMBER)
@@ -191,6 +193,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "schedule-command/update",
+                                RestDocsSecuritySnippets.authorization("scheduler:update"),
                                 pathParameters(
                                         parameterWithName("id").description("크롤 스케줄러 ID (양수)")),
                                 requestFields(

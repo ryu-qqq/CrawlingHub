@@ -11,6 +11,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
@@ -98,6 +99,7 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "schedule-query/list",
+                                RestDocsSecuritySnippets.authorization("scheduler:read"),
                                 queryParameters(
                                         parameterWithName("sellerId")
                                                 .description("셀러 ID 필터 (양수, 선택)")

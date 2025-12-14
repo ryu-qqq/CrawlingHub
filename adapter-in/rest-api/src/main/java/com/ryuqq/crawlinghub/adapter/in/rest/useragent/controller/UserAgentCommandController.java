@@ -5,7 +5,14 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(ApiPaths.UserAgents.BASE)
 @Validated
+@Tag(name = "UserAgent", description = "UserAgent 관리 API")
 public class UserAgentCommandController {
 
     private final RecoverUserAgentUseCase recoverUserAgentUseCase;
@@ -101,6 +109,29 @@ public class UserAgentCommandController {
      * @return 복구 결과 (200 OK)
      */
     @PostMapping(ApiPaths.UserAgents.RECOVER)
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "정지된 UserAgent 복구",
+            description = "정지된 UserAgent를 복구합니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "복구 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        RecoverUserAgentApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)")
+    })
     public ResponseEntity<ApiResponse<RecoverUserAgentApiResponse>> recoverUserAgents() {
         // 1. UseCase 실행 (비즈니스 로직)
         int recoveredCount = recoverUserAgentUseCase.recoverAll();

@@ -1,0 +1,78 @@
+package com.ryuqq.crawlinghub.domain.schedule.exception;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
+@Tag("unit")
+@Tag("domain")
+@Tag("exception")
+@DisplayName("CrawlSchedulerNotFoundException 단위 테스트")
+class CrawlSchedulerNotFoundExceptionTest {
+
+    @Nested
+    @DisplayName("예외 생성")
+    class ExceptionCreation {
+
+        @Test
+        @DisplayName("스케줄러 ID로 예외 생성")
+        void shouldCreateWithSchedulerId() {
+            // Given
+            long crawlSchedulerId = 12345L;
+
+            // When
+            CrawlSchedulerNotFoundException exception =
+                    new CrawlSchedulerNotFoundException(crawlSchedulerId);
+
+            // Then
+            assertThat(exception.code()).isEqualTo("SCHEDULE-001");
+            assertThat(exception.getMessage()).contains("존재하지 않는");
+            assertThat(exception.getMessage()).contains("12345");
+            assertThat(exception.args()).containsEntry("crawlSchedulerId", crawlSchedulerId);
+        }
+
+        @Test
+        @DisplayName("다른 스케줄러 ID로 예외 생성")
+        void shouldCreateWithDifferentSchedulerId() {
+            // Given
+            long crawlSchedulerId = 99999L;
+
+            // When
+            CrawlSchedulerNotFoundException exception =
+                    new CrawlSchedulerNotFoundException(crawlSchedulerId);
+
+            // Then
+            assertThat(exception.getMessage()).contains("99999");
+            assertThat(exception.args()).containsEntry("crawlSchedulerId", crawlSchedulerId);
+        }
+    }
+
+    @Nested
+    @DisplayName("DomainException 상속 검증")
+    class DomainExceptionInheritance {
+
+        @Test
+        @DisplayName("DomainException을 상속한다")
+        void shouldExtendDomainException() {
+            // Given
+            CrawlSchedulerNotFoundException exception = new CrawlSchedulerNotFoundException(1L);
+
+            // When & Then
+            assertThat(exception).isInstanceOf(DomainException.class);
+        }
+
+        @Test
+        @DisplayName("HTTP 상태 코드 404를 반환한다")
+        void shouldReturn404HttpStatus() {
+            // Given
+            CrawlSchedulerNotFoundException exception = new CrawlSchedulerNotFoundException(1L);
+
+            // When & Then
+            assertThat(exception.httpStatus()).isEqualTo(404);
+        }
+    }
+}

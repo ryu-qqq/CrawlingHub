@@ -12,6 +12,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
@@ -124,6 +125,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "task-query/list",
+                                RestDocsSecuritySnippets.authorization("task:read"),
                                 queryParameters(
                                         parameterWithName("crawlSchedulerId")
                                                 .description("크롤 스케줄러 ID 필터 (양수, 선택)"),
@@ -260,6 +262,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "task-query/get",
+                                RestDocsSecuritySnippets.authorization("task:read"),
                                 pathParameters(parameterWithName("id").description("크롤 태스크 ID")),
                                 responseFields(
                                         fieldWithPath("success")
