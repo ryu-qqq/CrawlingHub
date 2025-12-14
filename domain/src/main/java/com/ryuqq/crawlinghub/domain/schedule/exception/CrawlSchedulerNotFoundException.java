@@ -10,8 +10,8 @@ public final class CrawlSchedulerNotFoundException extends DomainException {
 
     public CrawlSchedulerNotFoundException(long crawlSchedulerId) {
         super(
-                ERROR_CODE.getCode(),
-                ERROR_CODE.getMessage(),
+                ERROR_CODE,
+                String.format("존재하지 않는 크롤 스케줄러입니다. ID: %d", crawlSchedulerId),
                 Map.of("crawlSchedulerId", crawlSchedulerId));
     }
 }

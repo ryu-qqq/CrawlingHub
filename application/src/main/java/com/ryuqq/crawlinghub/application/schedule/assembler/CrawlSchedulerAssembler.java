@@ -1,75 +1,31 @@
 package com.ryuqq.crawlinghub.application.schedule.assembler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
-import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
-import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 
-/** CrawlScheduler Aggregate ↔ Response DTO 변환기. */
+/**
+ * CrawlScheduler Assembler
+ *
+ * <p><strong>책임</strong>: Domain → Response 변환 (단방향)
+ *
+ * <p><strong>금지</strong>:
+ *
+ * <ul>
+ *   <li>Command → Domain 변환 금지 (Factory 책임)
+ *   <li>ClockHolder 의존 금지
+ * </ul>
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
 @Component
 public class CrawlSchedulerAssembler {
-
-    private final ClockHolder clockHolder;
-    private final ObjectMapper objectMapper;
-
-    public CrawlSchedulerAssembler(ClockHolder clockHolder, ObjectMapper objectMapper) {
-        this.clockHolder = clockHolder;
-        this.objectMapper = objectMapper;
-    }
-
-    /**
-     * RegisterCrawlSchedulerCommand → CrawlSchedulerBundle 변환.
-     *
-     * <p>스케줄러, 히스토리, 아웃박스를 하나의 번들로 묶어 반환
-     *
-     * @param command 등록 명령
-     * @return CrawlSchedulerBundle
-     */
-    public CrawlSchedulerBundle toBundle(RegisterCrawlSchedulerCommand command) {
-        CrawlScheduler scheduler = toCrawlScheduler(command);
-        String eventPayload = buildEventPayload(command);
-        return CrawlSchedulerBundle.of(scheduler, eventPayload, clockHolder.clock());
-    }
-
-    private String buildEventPayload(RegisterCrawlSchedulerCommand command) {
-        try {
-            Map<String, Object> payload =
-                    Map.of(
-                            "sellerId", command.sellerId(),
-                            "schedulerName", command.schedulerName(),
-                            "cronExpression", command.cronExpression(),
-                            "status", "ACTIVE");
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("이벤트 페이로드 생성 실패", e);
-        }
-    }
-
-    /**
-     * RegisterCrawlSchedulerCommand → CrawlScheduler Aggregate 변환.
-     *
-     * @param command 등록 명령
-     * @return 신규 CrawlScheduler Aggregate
-     */
-    public CrawlScheduler toCrawlScheduler(RegisterCrawlSchedulerCommand command) {
-        return CrawlScheduler.forNew(
-                SellerId.of(command.sellerId()),
-                SchedulerName.of(command.schedulerName()),
-                CronExpression.of(command.cronExpression()),
-                clockHolder.clock());
-    }
 
     /**
      * CrawlScheduler Aggregate → CrawlSchedulerResponse 변환.
@@ -86,27 +42,6 @@ public class CrawlSchedulerAssembler {
                 crawlScheduler.getStatus(),
                 crawlScheduler.getCreatedAt(),
                 crawlScheduler.getUpdatedAt());
-    }
-
-    /**
-     * CrawlScheduler Aggregate → 이벤트 페이로드 JSON 변환.
-     *
-     * @param crawlScheduler 크롤 스케줄러 Aggregate
-     * @return 이벤트 페이로드 JSON 문자열
-     */
-    public String toEventPayload(CrawlScheduler crawlScheduler) {
-        try {
-            Map<String, Object> payload =
-                    Map.of(
-                            "schedulerId", crawlScheduler.getCrawlSchedulerIdValue(),
-                            "sellerId", crawlScheduler.getSellerIdValue(),
-                            "schedulerName", crawlScheduler.getSchedulerNameValue(),
-                            "cronExpression", crawlScheduler.getCronExpressionValue(),
-                            "status", crawlScheduler.getStatus().name());
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("이벤트 페이로드 생성 실패", e);
-        }
     }
 
     /**

@@ -21,8 +21,8 @@ public final class CrawlExecutionNotFoundException extends DomainException {
      */
     public CrawlExecutionNotFoundException(Long crawlExecutionId) {
         super(
-                ERROR_CODE.getCode(),
-                ERROR_CODE.getMessage(),
+                ERROR_CODE,
+                String.format("존재하지 않는 크롤 실행입니다. ID: %d", crawlExecutionId),
                 Map.of("crawlExecutionId", crawlExecutionId));
     }
 }

@@ -3,15 +3,14 @@ package com.ryuqq.crawlinghub.domain.useragent.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.cralwinghub.domain.fixture.useragent.DeviceTypeFixture;
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.HealthScoreFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.TokenFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
-import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentStringFixture;
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.Test;
  * <p>테스트 대상:
  *
  * <ul>
- *   <li>신규 생성 {@code create()} - AVAILABLE 상태, Health Score 100
+ *   <li>신규 생성 {@code forNew()} - AVAILABLE 상태, Health Score 100
  *   <li>복원 {@code reconstitute()} - 기존 데이터 복원
  *   <li>사용 기록 {@code markAsUsed()} - lastUsedAt, requestsPerDay 업데이트
  *   <li>성공 기록 {@code recordSuccess()} - Health Score +5
@@ -40,17 +39,21 @@ import org.junit.jupiter.api.Test;
 class UserAgentTest {
 
     @Nested
-    @DisplayName("create() 신규 생성 테스트")
-    class Create {
+    @DisplayName("forNew() 신규 생성 테스트")
+    class ForNew {
 
         @Test
         @DisplayName("신규 UserAgent 생성 시 AVAILABLE 상태, Health Score 100, ID 미할당")
         void shouldCreateUserAgentWithAvailableStatusAndFullHealthScore() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+
             // when
             UserAgent userAgent =
-                    UserAgent.create(
+                    UserAgent.forNew(
                             TokenFixture.aDefaultToken(),
-                            UserAgentStringFixture.aDefaultUserAgentString());
+                            UserAgentStringFixture.aDefaultUserAgentString(),
+                            clock);
 
             // then
             assertThat(userAgent.getId()).isNotNull();
@@ -67,20 +70,19 @@ class UserAgentTest {
         @DisplayName("신규 UserAgent 생성 시 createdAt, updatedAt 설정")
         void shouldSetTimestamps() {
             // given
-            LocalDateTime before = LocalDateTime.now();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Instant expectedTime = clock.instant();
 
             // when
             UserAgent userAgent =
-                    UserAgent.create(
+                    UserAgent.forNew(
                             TokenFixture.aDefaultToken(),
-                            UserAgentStringFixture.aDefaultUserAgentString());
+                            UserAgentStringFixture.aDefaultUserAgentString(),
+                            clock);
 
             // then
-            LocalDateTime after = LocalDateTime.now();
-            assertThat(userAgent.getCreatedAt()).isNotNull();
-            assertThat(userAgent.getUpdatedAt()).isNotNull();
-            assertThat(userAgent.getCreatedAt()).isAfterOrEqualTo(before);
-            assertThat(userAgent.getCreatedAt()).isBeforeOrEqualTo(after);
+            assertThat(userAgent.getCreatedAt()).isEqualTo(expectedTime);
+            assertThat(userAgent.getUpdatedAt()).isEqualTo(expectedTime);
         }
     }
 
@@ -131,12 +133,13 @@ class UserAgentTest {
         @DisplayName("사용 시 lastUsedAt 업데이트")
         void shouldUpdateLastUsedAt() {
             // given
-            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
-            assertThat(userAgent.getLastUsedAt()).isNotNull();
-            LocalDateTime originalLastUsedAt = userAgent.getLastUsedAt();
+            FixedClock pastClock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent(pastClock);
+            Instant originalLastUsedAt = userAgent.getLastUsedAt();
+            FixedClock futureClock = FixedClock.at(originalLastUsedAt.plusSeconds(3600));
 
             // when
-            userAgent.markAsUsed();
+            userAgent.markAsUsed(futureClock);
 
             // then
             assertThat(userAgent.getLastUsedAt()).isAfter(originalLastUsedAt);
@@ -146,11 +149,12 @@ class UserAgentTest {
         @DisplayName("사용 시 requestsPerDay 증가")
         void shouldIncrementRequestsPerDay() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
             int originalRequests = userAgent.getRequestsPerDay();
 
             // when
-            userAgent.markAsUsed();
+            userAgent.markAsUsed(clock);
 
             // then
             assertThat(userAgent.getRequestsPerDay()).isEqualTo(originalRequests + 1);
@@ -165,11 +169,12 @@ class UserAgentTest {
         @DisplayName("성공 시 Health Score +5")
         void shouldIncreaseHealthScoreByFive() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAlmostSuspendedUserAgent();
             int originalScore = userAgent.getHealthScoreValue();
 
             // when
-            userAgent.recordSuccess();
+            userAgent.recordSuccess(clock);
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(originalScore + 5);
@@ -179,11 +184,12 @@ class UserAgentTest {
         @DisplayName("Health Score는 100을 초과하지 않음")
         void shouldNotExceedMaxHealthScore() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
 
             // when
-            userAgent.recordSuccess();
+            userAgent.recordSuccess(clock);
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
@@ -198,10 +204,11 @@ class UserAgentTest {
         @DisplayName("429 응답 시 Health Score -20, 즉시 SUSPENDED")
         void shouldApplyRateLimitPenaltyAndSuspend() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when
-            userAgent.recordFailure(429);
+            userAgent.recordFailure(429, clock);
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(80);
@@ -212,10 +219,11 @@ class UserAgentTest {
         @DisplayName("5xx 응답 시 Health Score -10")
         void shouldApplyServerErrorPenalty() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when
-            userAgent.recordFailure(500);
+            userAgent.recordFailure(500, clock);
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(90);
@@ -226,11 +234,12 @@ class UserAgentTest {
         @DisplayName("5xx 응답으로 Health Score < 30이 되면 자동 SUSPENDED")
         void shouldAutoSuspendWhenHealthScoreBelowThreshold() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAlmostSuspendedUserAgent();
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(35);
 
             // when
-            userAgent.recordFailure(500); // -10 → 25
+            userAgent.recordFailure(500, clock); // -10 → 25
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(25);
@@ -241,10 +250,11 @@ class UserAgentTest {
         @DisplayName("기타 응답 시 Health Score -5")
         void shouldApplyOtherErrorPenalty() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when
-            userAgent.recordFailure(400);
+            userAgent.recordFailure(400, clock);
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(95);
@@ -255,21 +265,11 @@ class UserAgentTest {
         @DisplayName("기타 응답으로 Health Score < 30이 되면 자동 SUSPENDED")
         void shouldAutoSuspendWhenHealthScoreBelowThresholdByOtherError() {
             // given
-            UserAgent userAgent =
-                    UserAgent.reconstitute(
-                            UserAgentIdFixture.anAssignedId(),
-                            TokenFixture.aDefaultToken(),
-                            UserAgentStringFixture.aDefaultUserAgentString(),
-                            DeviceTypeFixture.aDefaultDeviceType(),
-                            UserAgentStatus.AVAILABLE,
-                            HealthScoreFixture.of(32),
-                            LocalDateTime.now(),
-                            0,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+            FixedClock clock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.of(32, clock);
 
             // when
-            userAgent.recordFailure(400); // -5 → 27
+            userAgent.recordFailure(400, clock); // -5 → 27
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(27);
@@ -285,10 +285,11 @@ class UserAgentTest {
         @DisplayName("AVAILABLE → SUSPENDED 전환 성공")
         void shouldTransitionFromAvailableToSuspended() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when
-            userAgent.suspend();
+            userAgent.suspend(clock);
 
             // then
             assertThat(userAgent.isSuspended()).isTrue();
@@ -299,10 +300,11 @@ class UserAgentTest {
         @DisplayName("이미 SUSPENDED 상태에서 suspend() 호출 시 예외 발생")
         void shouldThrowExceptionWhenAlreadySuspended() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::suspend)
+            assertThatThrownBy(() -> userAgent.suspend(clock))
                     .isInstanceOf(InvalidUserAgentStateException.class);
         }
 
@@ -310,10 +312,11 @@ class UserAgentTest {
         @DisplayName("BLOCKED 상태에서 suspend() 호출 시 예외 발생")
         void shouldThrowExceptionWhenBlocked() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aBlockedUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::suspend)
+            assertThatThrownBy(() -> userAgent.suspend(clock))
                     .isInstanceOf(InvalidUserAgentStateException.class);
         }
     }
@@ -326,11 +329,12 @@ class UserAgentTest {
         @DisplayName("SUSPENDED → AVAILABLE 전환 성공, Health Score 70")
         void shouldTransitionFromSuspendedToAvailable() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(29);
 
             // when
-            userAgent.recover();
+            userAgent.recover(clock);
 
             // then
             assertThat(userAgent.isAvailable()).isTrue();
@@ -342,10 +346,11 @@ class UserAgentTest {
         @DisplayName("AVAILABLE 상태에서 recover() 호출 시 예외 발생")
         void shouldThrowExceptionWhenAlreadyAvailable() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::recover)
+            assertThatThrownBy(() -> userAgent.recover(clock))
                     .isInstanceOf(InvalidUserAgentStateException.class);
         }
 
@@ -353,10 +358,11 @@ class UserAgentTest {
         @DisplayName("BLOCKED 상태에서 recover() 호출 시 예외 발생")
         void shouldThrowExceptionWhenBlocked() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aBlockedUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::recover)
+            assertThatThrownBy(() -> userAgent.recover(clock))
                     .isInstanceOf(InvalidUserAgentStateException.class);
         }
     }
@@ -369,10 +375,11 @@ class UserAgentTest {
         @DisplayName("AVAILABLE → BLOCKED 전환 성공")
         void shouldTransitionFromAvailableToBlocked() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
             // when
-            userAgent.block();
+            userAgent.block(clock);
 
             // then
             assertThat(userAgent.isBlocked()).isTrue();
@@ -383,10 +390,11 @@ class UserAgentTest {
         @DisplayName("SUSPENDED → BLOCKED 전환 성공")
         void shouldTransitionFromSuspendedToBlocked() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
 
             // when
-            userAgent.block();
+            userAgent.block(clock);
 
             // then
             assertThat(userAgent.isBlocked()).isTrue();
@@ -397,10 +405,12 @@ class UserAgentTest {
         @DisplayName("이미 BLOCKED 상태에서 block() 호출 시 예외 발생")
         void shouldThrowExceptionWhenAlreadyBlocked() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aBlockedUserAgent();
 
             // when & then
-            assertThatThrownBy(userAgent::block).isInstanceOf(InvalidUserAgentStateException.class);
+            assertThatThrownBy(() -> userAgent.block(clock))
+                    .isInstanceOf(InvalidUserAgentStateException.class);
         }
     }
 
@@ -412,11 +422,12 @@ class UserAgentTest {
         @DisplayName("requestsPerDay가 0으로 초기화")
         void shouldResetRequestsPerDayToZero() {
             // given
+            FixedClock clock = FixedClock.aDefaultClock();
             UserAgent userAgent = UserAgentFixture.aHighUsageUserAgent();
             assertThat(userAgent.getRequestsPerDay()).isEqualTo(100);
 
             // when
-            userAgent.resetDailyRequests();
+            userAgent.resetDailyRequests(clock);
 
             // then
             assertThat(userAgent.getRequestsPerDay()).isZero();
@@ -432,7 +443,10 @@ class UserAgentTest {
         void shouldReturnTrueWhenSuspendedAndOldEnough() {
             // given
             UserAgent userAgent = UserAgentFixture.aRecoverableSuspendedUserAgent();
-            LocalDateTime threshold = LocalDateTime.now().minusHours(1);
+            // aRecoverableSuspendedUserAgent의 lastUsedAt = DEFAULT_TIME.minusSeconds(7200)
+            // DEFAULT_TIME = 2025-11-27T00:00:00Z → lastUsedAt = 2025-11-26T22:00:00Z
+            // threshold를 lastUsedAt 이후로 설정하면 복구 대상
+            Instant threshold = Instant.parse("2025-11-26T23:00:00Z");
 
             // when
             boolean result = userAgent.isRecoverable(threshold);
@@ -446,9 +460,9 @@ class UserAgentTest {
         void shouldReturnFalseWhenSuspendedButNotOldEnough() {
             // given
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
-            // aSuspendedUserAgent의 lastUsedAt = DEFAULT_TIME (2025-11-27 12:00:00)
+            // aSuspendedUserAgent의 lastUsedAt = DEFAULT_TIME (2025-11-27T00:00:00Z)
             // threshold를 lastUsedAt 이전으로 설정하면 lastUsedAt >= threshold가 됨
-            LocalDateTime threshold = LocalDateTime.of(2024, 1, 1, 11, 0, 0);
+            Instant threshold = Instant.parse("2025-11-26T23:00:00Z");
 
             // when
             boolean result = userAgent.isRecoverable(threshold);
@@ -462,7 +476,7 @@ class UserAgentTest {
         void shouldReturnFalseWhenAvailable() {
             // given
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
-            LocalDateTime threshold = LocalDateTime.now();
+            Instant threshold = Instant.parse("2025-11-28T00:00:00Z");
 
             // when
             boolean result = userAgent.isRecoverable(threshold);
@@ -476,7 +490,7 @@ class UserAgentTest {
         void shouldReturnFalseWhenBlocked() {
             // given
             UserAgent userAgent = UserAgentFixture.aBlockedUserAgent();
-            LocalDateTime threshold = LocalDateTime.now();
+            Instant threshold = Instant.parse("2025-11-28T00:00:00Z");
 
             // when
             boolean result = userAgent.isRecoverable(threshold);

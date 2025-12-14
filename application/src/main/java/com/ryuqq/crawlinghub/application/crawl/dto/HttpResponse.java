@@ -3,27 +3,25 @@ package com.ryuqq.crawlinghub.application.crawl.dto;
 import java.util.Map;
 
 /**
- * HTTP 응답 DTO
+ * HTTP 응답 DTO (Record)
  *
- * <p>크롤링 HTTP 응답 정보를 담는 DTO.
+ * <p>크롤링 HTTP 응답 정보를 담는 불변 DTO.
  *
+ * @param statusCode HTTP 상태 코드
+ * @param body 응답 바디
+ * @param headers 응답 헤더
  * @author development-team
  * @since 1.0.0
  */
-public class HttpResponse {
+public record HttpResponse(int statusCode, String body, Map<String, String> headers) {
 
-    private final int statusCode;
-    private final String body;
-    private final Map<String, String> headers;
-
-    private HttpResponse(int statusCode, String body, Map<String, String> headers) {
-        this.statusCode = statusCode;
-        this.body = body;
-        this.headers = headers == null ? Map.of() : Map.copyOf(headers);
+    /** Compact constructor - headers를 불변 맵으로 변환 */
+    public HttpResponse {
+        headers = headers == null ? Map.of() : Map.copyOf(headers);
     }
 
     /**
-     * 성공 응답 생성
+     * 응답 생성
      *
      * @param statusCode HTTP 상태 코드
      * @param body 응답 바디
@@ -34,7 +32,7 @@ public class HttpResponse {
     }
 
     /**
-     * 성공 응답 생성 (헤더 포함)
+     * 응답 생성 (헤더 포함)
      *
      * @param statusCode HTTP 상태 코드
      * @param body 응답 바디
@@ -44,6 +42,8 @@ public class HttpResponse {
     public static HttpResponse of(int statusCode, String body, Map<String, String> headers) {
         return new HttpResponse(statusCode, body, headers);
     }
+
+    // === 상태 판단 메서드 ===
 
     /**
      * 성공 여부 확인 (2xx)
@@ -80,6 +80,8 @@ public class HttpResponse {
     public boolean isRateLimited() {
         return statusCode == 429;
     }
+
+    // === Accessor aliases for backward compatibility ===
 
     public int getStatusCode() {
         return statusCode;

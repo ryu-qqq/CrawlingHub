@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiRespon
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -222,7 +222,7 @@ class SellerCommandApiMapperTest {
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             true,
-                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            Instant.parse("2024-11-27T10:00:00Z"),
                             null);
 
             // When
@@ -234,7 +234,7 @@ class SellerCommandApiMapperTest {
             assertThat(apiResponse.mustItSellerName()).isEqualTo("머스트잇 테스트 셀러");
             assertThat(apiResponse.sellerName()).isEqualTo("테스트 셀러");
             assertThat(apiResponse.status()).isEqualTo("ACTIVE");
-            assertThat(apiResponse.createdAt()).isEqualTo(LocalDateTime.of(2024, 11, 27, 10, 0, 0));
+            assertThat(apiResponse.createdAt()).isEqualTo("2024-11-27T10:00:00Z");
             assertThat(apiResponse.updatedAt()).isNull();
         }
 
@@ -248,8 +248,8 @@ class SellerCommandApiMapperTest {
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             false,
-                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                            LocalDateTime.of(2024, 11, 27, 11, 0, 0));
+                            Instant.parse("2024-11-27T10:00:00Z"),
+                            Instant.parse("2024-11-27T11:00:00Z"));
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -258,8 +258,8 @@ class SellerCommandApiMapperTest {
             assertThat(apiResponse).isNotNull();
             assertThat(apiResponse.sellerId()).isEqualTo(2L);
             assertThat(apiResponse.status()).isEqualTo("INACTIVE");
-            assertThat(apiResponse.createdAt()).isEqualTo(LocalDateTime.of(2024, 11, 27, 10, 0, 0));
-            assertThat(apiResponse.updatedAt()).isEqualTo(LocalDateTime.of(2024, 11, 27, 11, 0, 0));
+            assertThat(apiResponse.createdAt()).isEqualTo("2024-11-27T10:00:00Z");
+            assertThat(apiResponse.updatedAt()).isEqualTo("2024-11-27T11:00:00Z");
         }
 
         @Test
@@ -272,7 +272,7 @@ class SellerCommandApiMapperTest {
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             true,
-                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            Instant.parse("2024-11-27T10:00:00Z"),
                             null);
 
             // When
@@ -287,8 +287,8 @@ class SellerCommandApiMapperTest {
         @DisplayName("성공: updatedAt이 있는 경우 (수정됨)")
         void toApiResponse_UpdatedAtPresent() {
             // Given
-            LocalDateTime createdAt = LocalDateTime.of(2024, 11, 27, 10, 0, 0);
-            LocalDateTime updatedAt = LocalDateTime.of(2024, 11, 27, 15, 30, 0);
+            Instant createdAt = Instant.parse("2024-11-27T10:00:00Z");
+            Instant updatedAt = Instant.parse("2024-11-27T15:30:00Z");
 
             SellerResponse appResponse =
                     new SellerResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, createdAt, updatedAt);
@@ -298,9 +298,11 @@ class SellerCommandApiMapperTest {
 
             // Then
             assertThat(apiResponse).isNotNull();
-            assertThat(apiResponse.createdAt()).isEqualTo(createdAt);
-            assertThat(apiResponse.updatedAt()).isEqualTo(updatedAt);
-            assertThat(apiResponse.updatedAt()).isAfter(apiResponse.createdAt());
+            assertThat(apiResponse.createdAt()).isEqualTo("2024-11-27T10:00:00Z");
+            assertThat(apiResponse.updatedAt()).isEqualTo("2024-11-27T15:30:00Z");
+            // API Response는 String이므로 Instant로 파싱하여 시간 순서 검증
+            assertThat(Instant.parse(apiResponse.updatedAt()))
+                    .isAfter(Instant.parse(apiResponse.createdAt()));
         }
 
         @Test
@@ -309,7 +311,7 @@ class SellerCommandApiMapperTest {
             // Given
             SellerResponse appResponse =
                     new SellerResponse(
-                            1L, "머스트잇-테스트_셀러 (주)", "테스트@셀러#123", true, LocalDateTime.now(), null);
+                            1L, "머스트잇-테스트_셀러 (주)", "테스트@셀러#123", true, Instant.now(), null);
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);

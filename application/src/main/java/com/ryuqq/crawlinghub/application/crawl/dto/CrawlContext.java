@@ -7,61 +7,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 크롤링 컨텍스트 DTO
+ * 크롤링 컨텍스트 DTO (Record)
  *
- * <p>크롤러 실행에 필요한 컨텍스트 정보를 담는 DTO. CrawlTask 도메인 객체와 UserAgent 정보를 조합하여 크롤링에 필요한 정보를 제공.
+ * <p>크롤러 실행에 필요한 컨텍스트 정보를 담는 불변 DTO.
  *
- * <p><strong>DTO로 설계한 이유</strong>:
- *
- * <ul>
- *   <li>크롤러 실행을 위한 데이터 전달 목적
- *   <li>도메인 규칙을 표현하지 않음 (VO 아님)
- *   <li>Application 레이어 내부에서만 사용
- * </ul>
- *
- * <p><strong>UserAgent 정보 포함</strong>:
- *
- * <ul>
- *   <li>userAgentId: 결과 기록용 식별자
- *   <li>userAgentValue: User-Agent 헤더 값
- *   <li>sessionToken: 세션 토큰 (Cookie)
- * </ul>
- *
+ * @param crawlTaskId CrawlTask ID
+ * @param schedulerId Scheduler ID
+ * @param sellerId Seller ID
+ * @param taskType Task 유형
+ * @param endpoint 크롤링 대상 URL
+ * @param userAgentId UserAgent ID (결과 기록용)
+ * @param userAgentValue User-Agent 헤더 값
+ * @param sessionToken 세션 토큰 (Cookie)
  * @author development-team
  * @since 1.0.0
  */
-public class CrawlContext {
+public record CrawlContext(
+        long crawlTaskId,
+        long schedulerId,
+        long sellerId,
+        CrawlTaskType taskType,
+        String endpoint,
+        Long userAgentId,
+        String userAgentValue,
+        String sessionToken) {
 
     private static final String USER_AGENT_HEADER = "User-Agent";
     private static final String COOKIE_HEADER = "Cookie";
-
-    private final long crawlTaskId;
-    private final long schedulerId;
-    private final long sellerId;
-    private final CrawlTaskType taskType;
-    private final String endpoint;
-    private final Long userAgentId;
-    private final String userAgentValue;
-    private final String sessionToken;
-
-    private CrawlContext(
-            long crawlTaskId,
-            long schedulerId,
-            long sellerId,
-            CrawlTaskType taskType,
-            String endpoint,
-            Long userAgentId,
-            String userAgentValue,
-            String sessionToken) {
-        this.crawlTaskId = crawlTaskId;
-        this.schedulerId = schedulerId;
-        this.sellerId = sellerId;
-        this.taskType = taskType;
-        this.endpoint = endpoint;
-        this.userAgentId = userAgentId;
-        this.userAgentValue = userAgentValue;
-        this.sessionToken = sessionToken;
-    }
 
     /**
      * CrawlTask와 UserAgent 정보로부터 CrawlContext 생성
@@ -102,6 +74,8 @@ public class CrawlContext {
 
         return headers;
     }
+
+    // === Accessor aliases for backward compatibility ===
 
     public long getCrawlTaskId() {
         return crawlTaskId;

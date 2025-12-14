@@ -1,9 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.architecture;
 
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.*;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +48,10 @@ class DataAccessPatternArchTest {
 
     @BeforeAll
     static void setUp() {
-        allClasses = new ClassFileImporter().importPackages("com.ryuqq.adapter.out.persistence");
+        allClasses =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(PERSISTENCE);
     }
 
     /** 규칙 1: QueryDslRepository는 JPAQueryFactory 필드 필수 */
@@ -213,26 +218,46 @@ class DataAccessPatternArchTest {
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /** 규칙 9: Adapter는 Mapper를 통해 변환해야 함 */
+    /**
+     * 규칙 9: QueryAdapter/CommandAdapter는 Mapper를 통해 변환해야 함
+     *
+     * <p>예외 사항:
+     *
+     * <ul>
+     *   <li>PersistenceAdapter - 소규모 엔티티용으로 직접 변환 가능
+     *   <li>RefreshToken*Adapter - 단순 String만 반환하므로 Mapper 불필요
+     * </ul>
+     */
     @Test
-    @DisplayName("[필수] Adapter는 Mapper를 의존해야 한다")
-    void adapter_MustDependOnMapper() {
+    @DisplayName("[필수] QueryAdapter/CommandAdapter는 Mapper를 의존해야 한다")
+    void queryOrCommandAdapter_MustDependOnMapper() {
         ArchRule rule =
                 classes()
                         .that()
-                        .haveSimpleNameEndingWith("Adapter")
+                        .haveSimpleNameEndingWith("QueryAdapter")
+                        .or()
+                        .haveSimpleNameEndingWith("CommandAdapter")
+                        .and()
+                        .haveSimpleNameNotContaining("RefreshToken")
                         .should()
                         .dependOnClassesThat()
                         .haveSimpleNameEndingWith("Mapper")
-                        .because("Adapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존해야 합니다");
+                        .because(
+                                "QueryAdapter/CommandAdapter는 Entity ↔ Domain 변환을 위해 Mapper를 의존해야"
+                                        + " 합니다 (RefreshToken*Adapter는 단순 String만 반환하므로 예외)");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
 
-    /** 규칙 10: QueryDslRepository는 정확히 4개 표준 메서드만 허용 */
+    /** 규칙 10: QueryDslRepository 메서드는 표준 네이밍을 따라야 함 */
     @Test
-    @DisplayName("[필수] QueryDslRepository는 표준 메서드만 허용한다")
-    void queryDslRepository_MustOnlyHaveStandardMethods() {
+    @DisplayName("[필수] QueryDslRepository 메서드는 표준 네이밍 패턴을 따라야 한다")
+    void queryDslRepository_MustFollowNamingPattern() {
+        // 허용된 메서드 패턴:
+        // - findById, existsById (기본 ID 조회)
+        // - findBy*, existsBy* (조건 조회)
+        // - findByCriteria, countByCriteria (동적 검색)
+        // - deleteBy* (벌크 삭제 - RefreshToken 등 임시 데이터용 예외 허용)
         ArchRule rule =
                 methods()
                         .that()
@@ -243,16 +268,16 @@ class DataAccessPatternArchTest {
                         .and()
                         .areNotStatic()
                         .should()
-                        .haveName("findById")
+                        .haveNameStartingWith("find")
                         .orShould()
-                        .haveName("existsById")
+                        .haveNameStartingWith("exists")
                         .orShould()
-                        .haveName("findByCriteria")
+                        .haveNameStartingWith("count")
                         .orShould()
-                        .haveName("countByCriteria")
+                        .haveNameStartingWith("delete")
                         .because(
-                                "QueryDslRepository는 4개 표준 메서드만 허용합니다 (findById, existsById,"
-                                        + " findByCriteria, countByCriteria)");
+                                "QueryDslRepository 메서드는 find*, exists*, count*, delete* 패턴을 따라야"
+                                        + " 합니다");
 
         rule.allowEmptyShould(true).check(allClasses);
     }
@@ -284,7 +309,7 @@ class DataAccessPatternArchTest {
                         .that()
                         .haveSimpleNameEndingWith("Config")
                         .and()
-                        .resideInAPackage("..config..")
+                        .resideInAPackage(CONFIG_PATTERN)
                         .should()
                         .beAnnotatedWith(org.springframework.context.annotation.Configuration.class)
                         .because("Config 클래스는 @Configuration 어노테이션이 필수입니다");

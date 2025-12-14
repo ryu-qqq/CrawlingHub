@@ -3,7 +3,8 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -37,8 +38,8 @@ public class CrawledProductImageOutbox {
     private ProductOutboxStatus status;
     private int retryCount;
     private String errorMessage;
-    private final LocalDateTime createdAt;
-    private LocalDateTime processedAt;
+    private final Instant createdAt;
+    private Instant processedAt;
 
     private CrawledProductImageOutbox(
             Long id,
@@ -50,8 +51,8 @@ public class CrawledProductImageOutbox {
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         this.id = id;
         this.crawledProductId = crawledProductId;
         this.originalUrl = originalUrl;
@@ -67,8 +68,12 @@ public class CrawledProductImageOutbox {
 
     /** 신규 Outbox 생성 */
     public static CrawledProductImageOutbox forNew(
-            CrawledProductId crawledProductId, String originalUrl, ImageType imageType) {
+            CrawledProductId crawledProductId,
+            String originalUrl,
+            ImageType imageType,
+            Clock clock) {
         String idempotencyKey = generateIdempotencyKey(crawledProductId, originalUrl);
+        Instant now = clock.instant();
         return new CrawledProductImageOutbox(
                 null,
                 crawledProductId,
@@ -79,7 +84,7 @@ public class CrawledProductImageOutbox {
                 ProductOutboxStatus.PENDING,
                 0,
                 null,
-                LocalDateTime.now(),
+                now,
                 null);
     }
 
@@ -94,8 +99,8 @@ public class CrawledProductImageOutbox {
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         return new CrawledProductImageOutbox(
                 id,
                 crawledProductId,
@@ -119,28 +124,42 @@ public class CrawledProductImageOutbox {
                 UUID.randomUUID().toString().substring(0, 8));
     }
 
-    /** 처리 시작 (API 호출 시작) */
-    public void markAsProcessing() {
+    /**
+     * 처리 시작 (API 호출 시작)
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsProcessing(Clock clock) {
         this.status = ProductOutboxStatus.PROCESSING;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
-    /** 업로드 완료 (웹훅 수신) */
-    public void markAsCompleted(String s3Url) {
+    /**
+     * 업로드 완료 (웹훅 수신)
+     *
+     * @param s3Url S3 URL
+     * @param clock 시간 제어
+     */
+    public void markAsCompleted(String s3Url, Clock clock) {
         if (s3Url == null || s3Url.isBlank()) {
             throw new IllegalArgumentException("s3Url은 필수입니다.");
         }
         this.s3Url = s3Url;
         this.status = ProductOutboxStatus.COMPLETED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
-    /** 처리 실패 */
-    public void markAsFailed(String errorMessage) {
+    /**
+     * 처리 실패
+     *
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
+     */
+    public void markAsFailed(String errorMessage, Clock clock) {
         this.status = ProductOutboxStatus.FAILED;
         this.retryCount++;
         this.errorMessage = errorMessage;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */
@@ -208,11 +227,11 @@ public class CrawledProductImageOutbox {
         return errorMessage;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getProcessedAt() {
+    public Instant getProcessedAt() {
         return processedAt;
     }
 }

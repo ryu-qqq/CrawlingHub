@@ -12,12 +12,13 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
+import com.ryuqq.crawlinghub.application.task.factory.query.CrawlTaskQueryFactory;
+import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * ListCrawlTasksService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: ReadManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -40,7 +41,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ListCrawlTasksService 테스트")
 class ListCrawlTasksServiceTest {
 
-    @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
+    @Mock private CrawlTaskReadManager readManager;
+
+    @Mock private CrawlTaskQueryFactory queryFactory;
 
     @Mock private CrawlTaskAssembler assembler;
 
@@ -68,13 +71,13 @@ class ListCrawlTasksServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            LocalDateTime.now());
+                            Instant.now());
             PageResponse<CrawlTaskResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(tasks);
-            given(crawlTaskQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(tasks);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -84,9 +87,9 @@ class ListCrawlTasksServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(result.content()).hasSize(1);
-            then(assembler).should().toCriteria(query);
-            then(crawlTaskQueryPort).should().findByCriteria(criteria);
-            then(crawlTaskQueryPort).should().countByCriteria(criteria);
+            then(queryFactory).should().createCriteria(query);
+            then(readManager).should().findByCriteria(criteria);
+            then(readManager).should().countByCriteria(criteria);
             then(assembler).should().toPageResponse(tasks, 0, 10, totalElements);
         }
 
@@ -102,9 +105,9 @@ class ListCrawlTasksServiceTest {
             PageResponse<CrawlTaskResponse> expectedResponse =
                     PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(emptyTasks);
-            given(crawlTaskQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(emptyTasks);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -134,13 +137,13 @@ class ListCrawlTasksServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            LocalDateTime.now());
+                            Instant.now());
             PageResponse<CrawlTaskResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(waitingTasks);
-            given(crawlTaskQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(waitingTasks);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -167,9 +170,9 @@ class ListCrawlTasksServiceTest {
                     PageResponse.of(
                             Collections.emptyList(), page, size, totalElements, 3, false, false);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlTaskQueryPort.findByCriteria(criteria)).willReturn(tasks);
-            given(crawlTaskQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(tasks);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 

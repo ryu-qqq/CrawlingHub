@@ -3,9 +3,8 @@ package com.ryuqq.crawlinghub.application.useragent.manager;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
-import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
-import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPersistencePort;
-import com.ryuqq.crawlinghub.application.useragent.port.out.query.UserAgentQueryPort;
+import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
@@ -30,6 +29,8 @@ import org.springframework.stereotype.Component;
  *   <li>SUSPENDED UserAgent 복구
  * </ul>
  *
+ * <p><strong>리팩토링</strong>: 직접 Port 의존 대신 분리된 Manager들을 사용
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -39,17 +40,20 @@ public class UserAgentPoolManager {
     private static final Logger log = LoggerFactory.getLogger(UserAgentPoolManager.class);
     private static final double CIRCUIT_BREAKER_THRESHOLD = 20.0;
 
-    private final UserAgentPoolCachePort cachePort;
-    private final UserAgentQueryPort queryPort;
-    private final UserAgentPersistencePort persistencePort;
+    private final UserAgentPoolCacheManager cacheManager;
+    private final UserAgentReadManager readManager;
+    private final UserAgentTransactionManager transactionManager;
+    private final ClockHolder clockHolder;
 
     public UserAgentPoolManager(
-            UserAgentPoolCachePort cachePort,
-            UserAgentQueryPort queryPort,
-            UserAgentPersistencePort persistencePort) {
-        this.cachePort = cachePort;
-        this.queryPort = queryPort;
-        this.persistencePort = persistencePort;
+            UserAgentPoolCacheManager cacheManager,
+            UserAgentReadManager readManager,
+            UserAgentTransactionManager transactionManager,
+            ClockHolder clockHolder) {
+        this.cacheManager = cacheManager;
+        this.readManager = readManager;
+        this.transactionManager = transactionManager;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -67,7 +71,7 @@ public class UserAgentPoolManager {
     public CachedUserAgent consume() {
         checkCircuitBreaker();
 
-        return cachePort.consumeToken().orElseThrow(NoAvailableUserAgentException::new);
+        return cacheManager.consumeToken().orElseThrow(NoAvailableUserAgentException::new);
     }
 
     /**
@@ -85,7 +89,7 @@ public class UserAgentPoolManager {
         UserAgentId userAgentId = UserAgentId.of(command.userAgentId());
 
         if (command.success()) {
-            cachePort.recordSuccess(userAgentId);
+            cacheManager.recordSuccess(userAgentId);
             log.debug("UserAgent {} 성공 기록 완료", command.userAgentId());
         } else if (command.isRateLimited()) {
             handleRateLimited(userAgentId);
@@ -100,15 +104,15 @@ public class UserAgentPoolManager {
      * <p>Redis에서 Health Score 감소 후, SUSPENDED 되었으면 DB에도 저장
      */
     private void handleFailure(UserAgentId userAgentId, int httpStatusCode) {
-        boolean suspended = cachePort.recordFailure(userAgentId, httpStatusCode);
+        boolean suspended = cacheManager.recordFailure(userAgentId, httpStatusCode);
 
         if (suspended) {
-            queryPort
+            readManager
                     .findById(userAgentId)
                     .ifPresent(
                             userAgent -> {
-                                userAgent.recordFailure(httpStatusCode); // Domain에서 비즈니스 로직 처리
-                                persistencePort.persist(userAgent);
+                                userAgent.recordFailure(httpStatusCode, clockHolder.getClock());
+                                transactionManager.persist(userAgent);
                             });
             log.warn("UserAgent {} Health Score 부족으로 SUSPENDED 처리", userAgentId.value());
         } else {
@@ -128,19 +132,15 @@ public class UserAgentPoolManager {
      * <p>429 응답은 세션 토큰이 무효화되었음을 의미하므로 세션 재발급이 필요합니다.
      */
     private void handleRateLimited(UserAgentId userAgentId) {
-        // 세션 토큰 만료 처리 (다음 세션 발급 스케줄러에서 재발급)
-        cachePort.expireSession(userAgentId);
+        cacheManager.expireSession(userAgentId);
+        cacheManager.removeFromPool(userAgentId);
 
-        // Pool에서 제거
-        cachePort.removeFromPool(userAgentId);
-
-        // DB 상태 업데이트
-        queryPort
+        readManager
                 .findById(userAgentId)
                 .ifPresent(
                         userAgent -> {
-                            userAgent.recordFailure(429); // Domain에서 비즈니스 로직 처리 (SUSPENDED 전환 포함)
-                            persistencePort.persist(userAgent);
+                            userAgent.recordFailure(429, clockHolder.getClock());
+                            transactionManager.persist(userAgent);
                         });
 
         log.warn("UserAgent {} Rate Limited (429) - SUSPENDED 처리, 세션 만료", userAgentId.value());
@@ -152,7 +152,7 @@ public class UserAgentPoolManager {
      * @throws CircuitBreakerOpenException 가용률 < 20%일 때
      */
     private void checkCircuitBreaker() {
-        PoolStats stats = cachePort.getPoolStats();
+        PoolStats stats = cacheManager.getPoolStats();
 
         if (stats.total() == 0) {
             log.error("UserAgent Pool이 비어있습니다.");
@@ -180,7 +180,7 @@ public class UserAgentPoolManager {
      * @return 복구된 UserAgent 수
      */
     public int recoverSuspendedUserAgents() {
-        List<UserAgentId> recoverableIds = cachePort.getRecoverableUserAgents();
+        List<UserAgentId> recoverableIds = cacheManager.getRecoverableUserAgents();
 
         if (recoverableIds.isEmpty()) {
             log.debug("복구 대상 UserAgent 없음");
@@ -206,7 +206,7 @@ public class UserAgentPoolManager {
      * <p>복구 후 SESSION_REQUIRED 상태로 Pool에 추가 (세션 발급 스케줄러에서 세션 발급)
      */
     private boolean recoverSingleUserAgent(UserAgentId userAgentId) {
-        Optional<UserAgent> userAgentOptional = queryPort.findById(userAgentId);
+        Optional<UserAgent> userAgentOptional = readManager.findById(userAgentId);
 
         if (userAgentOptional.isEmpty()) {
             log.warn("복구 대상 UserAgent {} 조회 실패", userAgentId.value());
@@ -214,11 +214,11 @@ public class UserAgentPoolManager {
         }
 
         UserAgent userAgent = userAgentOptional.get();
-        userAgent.recover(); // Domain에서 비즈니스 로직 처리 (AVAILABLE 전환, Health Score 70)
+        userAgent.recover(clockHolder.getClock());
 
         String userAgentValue = userAgent.getUserAgentString().value();
-        cachePort.restoreToPool(userAgentId, userAgentValue);
-        persistencePort.persist(userAgent);
+        cacheManager.restoreToPool(userAgentId, userAgentValue);
+        transactionManager.persist(userAgent);
 
         log.debug("UserAgent {} 복구 완료 (SESSION_REQUIRED 상태)", userAgentId.value());
         return true;
@@ -230,6 +230,6 @@ public class UserAgentPoolManager {
      * @return Pool 통계
      */
     public PoolStats getPoolStats() {
-        return cachePort.getPoolStats();
+        return cacheManager.getPoolStats();
     }
 }

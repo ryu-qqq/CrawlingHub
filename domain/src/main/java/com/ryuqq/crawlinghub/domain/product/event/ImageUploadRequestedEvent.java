@@ -3,7 +3,8 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -15,9 +16,7 @@ import java.util.List;
  * @since 1.0.0
  */
 public record ImageUploadRequestedEvent(
-        CrawledProductId crawledProductId,
-        List<ImageUploadTarget> targets,
-        LocalDateTime occurredAt)
+        CrawledProductId crawledProductId, List<ImageUploadTarget> targets, Instant occurredAt)
         implements DomainEvent {
 
     public ImageUploadRequestedEvent {
@@ -28,7 +27,7 @@ public record ImageUploadRequestedEvent(
             throw new IllegalArgumentException("업로드 대상이 비어있습니다.");
         }
         if (occurredAt == null) {
-            occurredAt = LocalDateTime.now();
+            throw new IllegalArgumentException("occurredAt은 필수입니다.");
         }
         // 방어적 복사 - SpotBugs EI2 경고 수정
         targets = List.copyOf(targets);
@@ -36,16 +35,21 @@ public record ImageUploadRequestedEvent(
 
     /** 팩토리 메서드 */
     public static ImageUploadRequestedEvent of(
-            CrawledProductId crawledProductId, List<ImageUploadTarget> targets) {
-        return new ImageUploadRequestedEvent(crawledProductId, targets, LocalDateTime.now());
+            CrawledProductId crawledProductId, List<ImageUploadTarget> targets, Clock clock) {
+        Instant now = clock.instant();
+        return new ImageUploadRequestedEvent(crawledProductId, targets, now);
     }
 
     /** 단일 이미지 타입으로 생성 */
     public static ImageUploadRequestedEvent ofUrls(
-            CrawledProductId crawledProductId, List<String> imageUrls, ImageType imageType) {
+            CrawledProductId crawledProductId,
+            List<String> imageUrls,
+            ImageType imageType,
+            Clock clock) {
         List<ImageUploadTarget> targets =
                 imageUrls.stream().map(url -> new ImageUploadTarget(url, imageType)).toList();
-        return new ImageUploadRequestedEvent(crawledProductId, targets, LocalDateTime.now());
+        Instant now = clock.instant();
+        return new ImageUploadRequestedEvent(crawledProductId, targets, now);
     }
 
     /**

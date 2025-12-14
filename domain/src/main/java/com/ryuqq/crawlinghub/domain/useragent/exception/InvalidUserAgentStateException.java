@@ -12,10 +12,13 @@ import java.util.Map;
  */
 public class InvalidUserAgentStateException extends DomainException {
 
+    private static final UserAgentErrorCode ERROR_CODE =
+            UserAgentErrorCode.INVALID_USER_AGENT_STATE;
+
     public InvalidUserAgentStateException(
             UserAgentStatus currentStatus, UserAgentStatus targetStatus) {
         super(
-                UserAgentErrorCode.INVALID_USER_AGENT_STATE.getCode(),
+                ERROR_CODE,
                 String.format("상태 전환 불가: %s → %s", currentStatus, targetStatus),
                 Map.of(
                         "currentStatus", currentStatus.name(),
@@ -23,6 +26,6 @@ public class InvalidUserAgentStateException extends DomainException {
     }
 
     public InvalidUserAgentStateException(String message) {
-        super(UserAgentErrorCode.INVALID_USER_AGENT_STATE.getCode(), message);
+        super(ERROR_CODE, message);
     }
 }

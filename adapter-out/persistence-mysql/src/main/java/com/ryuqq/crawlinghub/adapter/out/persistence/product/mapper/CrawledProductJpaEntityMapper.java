@@ -15,6 +15,9 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,14 +77,20 @@ public class CrawledProductJpaEntityMapper {
                 domain.getOriginCountry(),
                 domain.getShippingLocation(),
                 toOptionsJson(domain.getOptions()),
-                completionStatus != null ? completionStatus.miniShopCrawledAt() : null,
-                completionStatus != null ? completionStatus.detailCrawledAt() : null,
-                completionStatus != null ? completionStatus.optionCrawledAt() : null,
+                completionStatus != null
+                        ? toLocalDateTime(completionStatus.miniShopCrawledAt())
+                        : null,
+                completionStatus != null
+                        ? toLocalDateTime(completionStatus.detailCrawledAt())
+                        : null,
+                completionStatus != null
+                        ? toLocalDateTime(completionStatus.optionCrawledAt())
+                        : null,
                 domain.getExternalProductId(),
-                domain.getLastSyncedAt(),
+                toLocalDateTime(domain.getLastSyncedAt()),
                 domain.isNeedsSync(),
-                domain.getCreatedAt(),
-                domain.getUpdatedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getUpdatedAt()));
     }
 
     /**
@@ -98,9 +107,9 @@ public class CrawledProductJpaEntityMapper {
         ProductOptions options = fromOptionsJson(entity.getOptionsJson());
         CrawlCompletionStatus completionStatus =
                 new CrawlCompletionStatus(
-                        entity.getMiniShopCrawledAt(),
-                        entity.getDetailCrawledAt(),
-                        entity.getOptionCrawledAt());
+                        toInstant(entity.getMiniShopCrawledAt()),
+                        toInstant(entity.getDetailCrawledAt()),
+                        toInstant(entity.getOptionCrawledAt()));
 
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(entity.getId()),
@@ -120,10 +129,10 @@ public class CrawledProductJpaEntityMapper {
                 options,
                 completionStatus,
                 entity.getExternalProductId(),
-                entity.getLastSyncedAt(),
+                toInstant(entity.getLastSyncedAt()),
                 entity.isNeedsSync(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getUpdatedAt()));
     }
 
     // === JSON 직렬화 ===
@@ -246,5 +255,19 @@ public class CrawledProductJpaEntityMapper {
         int discRate = discountRate != null ? discountRate : 0;
 
         return ProductPrice.of(discPrice, origPrice, origPrice, discPrice, discRate, discRate);
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

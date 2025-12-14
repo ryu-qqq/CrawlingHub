@@ -12,11 +12,12 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
+import com.ryuqq.crawlinghub.application.schedule.factory.query.CrawlSchedulerQueryFactory;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +40,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchCrawlSchedulersService 테스트")
 class SearchCrawlSchedulersServiceTest {
 
-    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlSchedulerReadManager readManager;
+
+    @Mock private CrawlSchedulerQueryFactory queryFactory;
 
     @Mock private CrawlSchedulerAssembler assembler;
 
@@ -67,14 +70,14 @@ class SearchCrawlSchedulersServiceTest {
                             "daily-crawl",
                             "cron(0 0 * * ? *)",
                             SchedulerStatus.ACTIVE,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
             PageResponse<CrawlSchedulerResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(schedulers);
-            given(crawlScheduleQueryPort.count(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(schedulers);
+            given(readManager.count(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -84,9 +87,9 @@ class SearchCrawlSchedulersServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(result.content()).hasSize(1);
-            then(assembler).should().toCriteria(query);
-            then(crawlScheduleQueryPort).should().findByCriteria(criteria);
-            then(crawlScheduleQueryPort).should().count(criteria);
+            then(queryFactory).should().createCriteria(query);
+            then(readManager).should().findByCriteria(criteria);
+            then(readManager).should().count(criteria);
             then(assembler).should().toPageResponse(schedulers, 0, 10, totalElements);
         }
 
@@ -103,9 +106,9 @@ class SearchCrawlSchedulersServiceTest {
             PageResponse<CrawlSchedulerResponse> expectedResponse =
                     PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(emptySchedulers);
-            given(crawlScheduleQueryPort.count(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(emptySchedulers);
+            given(readManager.count(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -134,9 +137,9 @@ class SearchCrawlSchedulersServiceTest {
                     PageResponse.of(
                             Collections.emptyList(), page, size, totalElements, 3, false, false);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlScheduleQueryPort.findByCriteria(criteria)).willReturn(schedulers);
-            given(crawlScheduleQueryPort.count(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(schedulers);
+            given(readManager.count(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 

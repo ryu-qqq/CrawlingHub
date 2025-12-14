@@ -23,7 +23,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private SellerQueryApiMapper sellerQueryApiMapper;
 
     @Test
-    @DisplayName("GET /api/v1/sellers/{id} - 셀러 단건 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/sellers/{id} - 셀러 단건 조회 API 문서")
     void getSeller() throws Exception {
         // given
         Long sellerId = 1L;
@@ -60,24 +60,19 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                         "머스트잇 셀러명",
                         "커머스 셀러명",
                         true,
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
+                        Instant.parse("2025-11-19T10:30:00Z"),
                         null);
 
         SellerApiResponse apiResponse =
                 new SellerApiResponse(
-                        1L,
-                        "머스트잇 셀러명",
-                        "커머스 셀러명",
-                        "ACTIVE",
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
-                        null);
+                        1L, "머스트잇 셀러명", "커머스 셀러명", "ACTIVE", "2025-11-19T10:30:00Z", null);
 
         given(sellerQueryApiMapper.toQuery(any(Long.class))).willReturn(null);
         given(getSellerUseCase.execute(any())).willReturn(useCaseResponse);
         given(sellerQueryApiMapper.toApiResponse(any())).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/sellers/{id}", sellerId))
+        mockMvc.perform(get("/api/v1/crawling/sellers/{id}", sellerId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sellerId").value(1))
@@ -124,7 +119,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("GET /api/v1/sellers - 셀러 목록 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/sellers - 셀러 목록 조회 API 문서")
     void listSellers() throws Exception {
         // given
         List<SellerSummaryResponse> content =
@@ -134,13 +129,13 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "머스트잇 셀러1",
                                 "커머스 셀러1",
                                 true,
-                                LocalDateTime.of(2025, 11, 19, 10, 30, 0)),
+                                Instant.parse("2025-11-19T10:30:00Z")),
                         new SellerSummaryResponse(
                                 2L,
                                 "머스트잇 셀러2",
                                 "커머스 셀러2",
                                 false,
-                                LocalDateTime.of(2025, 11, 19, 10, 30, 0)));
+                                Instant.parse("2025-11-19T10:30:00Z")));
 
         PageResponse<SellerSummaryResponse> pageResponse =
                 new PageResponse<>(content, 0, 20, 2, 1, true, true);
@@ -164,7 +159,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        get("/api/v1/sellers")
+                        get("/api/v1/crawling/sellers")
                                 .param("status", "ACTIVE")
                                 .param("page", "0")
                                 .param("size", "20"))
