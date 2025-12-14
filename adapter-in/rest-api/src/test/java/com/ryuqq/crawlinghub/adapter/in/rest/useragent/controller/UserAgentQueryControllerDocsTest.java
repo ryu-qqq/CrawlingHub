@@ -8,6 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
@@ -69,6 +70,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "useragent-query/pool-status",
+                                RestDocsSecuritySnippets.authorization("useragent:read"),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)

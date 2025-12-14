@@ -14,8 +14,17 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDe
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionResponse;
 import com.ryuqq.crawlinghub.application.execution.port.in.query.GetCrawlExecutionUseCase;
 import com.ryuqq.crawlinghub.application.execution.port.in.query.ListCrawlExecutionsUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -60,6 +69,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(ApiPaths.Executions.BASE)
 @Validated
+@Tag(name = "Execution", description = "크롤 실행 기록 API")
 public class CrawlExecutionQueryController {
 
     private final ListCrawlExecutionsUseCase listCrawlExecutionsUseCase;
@@ -108,6 +118,30 @@ public class CrawlExecutionQueryController {
      * @return CrawlExecution 목록 (200 OK)
      */
     @GetMapping
+    @PreAuthorize("@access.hasPermission('execution:read')")
+    @Operation(
+            summary = "크롤 실행 기록 목록 조회",
+            description = "크롤 실행 기록 목록을 필터링 및 페이징하여 조회합니다. execution:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(implementation = CrawlExecutionApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 파라미터"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (execution:read 권한 필요)")
+    })
     public ResponseEntity<ApiResponse<PageApiResponse<CrawlExecutionApiResponse>>>
             listCrawlExecutions(@ModelAttribute @Valid SearchCrawlExecutionsApiRequest request) {
         // 1. API Request → Application Query 변환 (Mapper)
@@ -146,8 +180,37 @@ public class CrawlExecutionQueryController {
      * @return CrawlExecution 상세 정보 (200 OK)
      */
     @GetMapping(ApiPaths.Executions.BY_ID)
+    @PreAuthorize("@access.hasPermission('execution:read')")
+    @Operation(
+            summary = "크롤 실행 기록 상세 조회",
+            description = "크롤 실행 기록 ID로 상세 정보를 조회합니다. execution:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        CrawlExecutionDetailApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (execution:read 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "실행 기록을 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<CrawlExecutionDetailApiResponse>> getCrawlExecution(
-            @PathVariable Long id) {
+            @Parameter(description = "실행 기록 ID", required = true, example = "1")
+                    @PathVariable
+                    @Positive
+                    Long id) {
         // 1. PathVariable → Application Query 변환 (Mapper)
         GetCrawlExecutionQuery query = mapper.toGetQuery(id);
 

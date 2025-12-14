@@ -12,6 +12,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
@@ -79,6 +80,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "seller-query/get",
+                                RestDocsSecuritySnippets.authorization("seller:read"),
                                 pathParameters(parameterWithName("id").description("셀러 ID (양수)")),
                                 responseFields(
                                         fieldWithPath("success")
@@ -170,6 +172,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "seller-query/list",
+                                RestDocsSecuritySnippets.authorization("seller:read"),
                                 queryParameters(
                                         parameterWithName("status")
                                                 .description("상태 필터 (ACTIVE/INACTIVE, 선택)")

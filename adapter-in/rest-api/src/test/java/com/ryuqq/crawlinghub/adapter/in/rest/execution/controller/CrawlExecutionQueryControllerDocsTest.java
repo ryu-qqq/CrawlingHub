@@ -12,6 +12,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
@@ -126,6 +127,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "execution-query/list",
+                                RestDocsSecuritySnippets.authorization("execution:read"),
                                 queryParameters(
                                         parameterWithName("crawlTaskId")
                                                 .description("태스크 ID 필터 (양수, 선택)")
@@ -263,6 +265,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "execution-query/get",
+                                RestDocsSecuritySnippets.authorization("execution:read"),
                                 pathParameters(
                                         parameterWithName("id").description("CrawlExecution ID")),
                                 responseFields(
@@ -371,6 +374,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "execution-query/get-failed",
+                                RestDocsSecuritySnippets.authorization("execution:read"),
                                 pathParameters(
                                         parameterWithName("id").description("CrawlExecution ID")),
                                 responseFields(
