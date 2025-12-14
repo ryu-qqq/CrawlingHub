@@ -124,7 +124,7 @@ class CriteriaArchTest {
                         .because(
                                 "Criteria는 Java Record로 구현해야 합니다\n"
                                         + "예시:\n"
-                                        + "  - public record OrderSearchCriteria(...) {} ✅\n"
+                                        + "  - public record OrderSearchCriteria(...) { } ✅\n"
                                         + "  - public class OrderSearchCriteria {} ❌");
 
         rule.check(classes);

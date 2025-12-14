@@ -1,6 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.architecture.openapi;
 
-import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.*;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.CONTROLLER_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.DTO_COMMAND_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.DTO_QUERY_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.DTO_RESPONSE_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.LEGACY_V1_PATTERN;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 

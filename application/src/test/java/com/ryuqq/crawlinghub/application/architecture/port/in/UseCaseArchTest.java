@@ -224,7 +224,8 @@ class UseCaseArchTest {
                                             !javaClass
                                                     .getSimpleName()
                                                     .matches(
-                                                            "(Create|Update|Delete|Place|Cancel|Confirm|Register|Remove|Modify|Approve|Reject|Send|Process|Execute).*UseCase"))
+                                                            "(Create|Update|Delete|Place|Cancel|Confirm|Register|"
+                                                                + "Remove|Modify|Approve|Reject|Send|Process|Execute).*UseCase"))
                             .count();
 
             if (violationCount > 0) {

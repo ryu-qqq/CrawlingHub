@@ -103,7 +103,7 @@ class VOArchTest {
                         .because(
                                 "Value Object는 Java 21 Record로 구현해야 합니다\n"
                                         + "  - Enum, Interface, Abstract 클래스는 제외됩니다\n"
-                                        + "  - 예시: public record Money(BigDecimal amount) {}");
+                                        + "  - 예시: public record Money(BigDecimal amount) { }");
 
         rule.check(classes);
     }
@@ -137,7 +137,7 @@ class VOArchTest {
                         .because(
                                 "Value Object는 of() 정적 팩토리 메서드로 생성해야 합니다\n"
                                         + "  - Enum, Interface, Abstract 클래스는 제외됩니다\n"
-                                        + "  - 예시: public static Money of(BigDecimal amount) {}");
+                                        + "  - 예시: public static Money of(BigDecimal amount) { }");
 
         rule.check(classes);
     }
