@@ -108,10 +108,11 @@ class UserAgentJpaEntityMapperTest {
         void shouldConvertEntityToAvailableDomain() {
             // Given
             LocalDateTime now = LocalDateTime.now();
+            String validToken = "dGhpc0lzQVZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nUHVycG9zZXM=";
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             1L,
-                            "encrypted-token",
+                            validToken,
                             "Mozilla/5.0 Test Browser",
                             "DESKTOP",
                             UserAgentStatus.AVAILABLE,
@@ -127,7 +128,7 @@ class UserAgentJpaEntityMapperTest {
             // Then
             assertThat(domain).isNotNull();
             assertThat(domain.getId().value()).isEqualTo(1L);
-            assertThat(domain.getToken().encryptedValue()).isEqualTo("encrypted-token");
+            assertThat(domain.getToken().encryptedValue()).isEqualTo(validToken);
             assertThat(domain.getUserAgentString().value()).isEqualTo("Mozilla/5.0 Test Browser");
             assertThat(domain.getDeviceType().getTypeName()).isEqualTo("DESKTOP");
             assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
@@ -139,10 +140,11 @@ class UserAgentJpaEntityMapperTest {
         void shouldConvertEntityToSuspendedDomain() {
             // Given
             LocalDateTime now = LocalDateTime.now();
+            String validToken = "YW5vdGhlclZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nT25seQ==";
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             2L,
-                            "token-2",
+                            validToken,
                             "Mozilla/5.0 Test",
                             "MOBILE",
                             UserAgentStatus.SUSPENDED,
@@ -165,10 +167,11 @@ class UserAgentJpaEntityMapperTest {
         void shouldConvertEntityWithNullLastUsedAt() {
             // Given
             LocalDateTime now = LocalDateTime.now();
+            String validToken = "dGhpcmRWYWxpZEJhc2U2NFRva2VuRm9yVGVzdGluZ1B1cnBvc2VzPQ==";
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             3L,
-                            "token-3",
+                            validToken,
                             "Mozilla/5.0",
                             "DESKTOP",
                             UserAgentStatus.AVAILABLE,

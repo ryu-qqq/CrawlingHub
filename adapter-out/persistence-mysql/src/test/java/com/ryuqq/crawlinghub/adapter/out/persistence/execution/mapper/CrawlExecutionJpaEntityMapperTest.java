@@ -113,7 +113,7 @@ class CrawlExecutionJpaEntityMapperTest {
 
             // Then
             assertThat(entity.getStatus()).isEqualTo(CrawlExecutionStatus.TIMEOUT);
-            assertThat(entity.getErrorMessage()).contains("timeout");
+            assertThat(entity.getErrorMessage()).contains("timed out");
         }
 
         @Test
