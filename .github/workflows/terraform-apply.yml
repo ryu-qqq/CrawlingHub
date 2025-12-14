@@ -91,24 +91,58 @@ jobs:
           PLAN_EXIT_CODE=$?
           set -e
 
+          # 삭제 시도 감지 (Destroying 패턴) - State 꼬임 복구
+          if grep -q "will be destroyed\|Destroying" plan_output.txt; then
+            echo "🚨 리소스 삭제 시도 감지! State 복구 시작..."
+
+            # ECR 모듈 - State 복구
+            if [ "${{ matrix.module.name }}" == "ecr" ]; then
+              echo "📦 ECR State 복구 중..."
+
+              # crawl-worker 복구
+              if grep -q "ecr_crawl_worker" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → State에서 crawl-worker 제거 후 재import..."
+                terraform state rm 'module.ecr_crawl_worker.aws_ecr_repository.this' 2>/dev/null || true
+                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed"
+              fi
+
+              # web-api 복구
+              if grep -q "ecr_web_api" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → State에서 web-api 제거 후 재import..."
+                terraform state rm 'module.ecr_web_api.aws_ecr_repository.this' 2>/dev/null || true
+                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed"
+              fi
+
+              # scheduler 복구
+              if grep -q "ecr_scheduler" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
+                echo "  → State에서 scheduler 제거 후 재import..."
+                terraform state rm 'module.ecr_scheduler.aws_ecr_repository.this' 2>/dev/null || true
+                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed"
+              fi
+            fi
+
+            echo "✅ State 복구 완료! Plan 재실행..."
+            terraform plan -out=tfplan
+          fi
+
           # 409 에러 또는 "already exists" 패턴 확인
           if grep -q "EntityAlreadyExists\|already exists" plan_output.txt; then
             echo "⚠️  기존 리소스 발견! Import 작업 시작..."
 
-            # ECR 모듈
+            # ECR 모듈 (인덱스 없이 import)
             if [ "${{ matrix.module.name }}" == "ecr" ]; then
               echo "📦 ECR Repository 리소스 Import 중..."
               if aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
                 echo "  → Importing crawlinghub-web-api-prod ECR repository..."
-                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this[0]' crawlinghub-web-api-prod || echo "  ⚠️  Import failed or already in state"
+                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed or already in state"
               fi
               if aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
                 echo "  → Importing crawlinghub-scheduler-prod ECR repository..."
-                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this[0]' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
+                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
               fi
               if aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
                 echo "  → Importing crawlinghub-crawl-worker-prod ECR repository..."
-                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this[0]' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed or already in state"
+                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed or already in state"
               fi
             fi
 
@@ -127,7 +161,7 @@ jobs:
               echo "📦 ElastiCache Redis 리소스 Import 중..."
               if aws elasticache describe-cache-clusters --cache-cluster-id crawlinghub-redis-prod --region ap-northeast-2 >/dev/null 2>&1; then
                 echo "  → Importing crawlinghub-redis-prod..."
-                terraform import -input=false 'module.redis.aws_elasticache_cluster.this[0]' crawlinghub-redis-prod || echo "  ⚠️  Import failed or already in state"
+                terraform import -input=false 'module.redis.aws_elasticache_cluster.this' crawlinghub-redis-prod || echo "  ⚠️  Import failed or already in state"
               fi
             fi
 
