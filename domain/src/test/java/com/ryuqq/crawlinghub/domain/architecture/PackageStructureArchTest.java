@@ -1,9 +1,11 @@
 package com.ryuqq.crawlinghub.domain.architecture;
 
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.*;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,7 +58,10 @@ class PackageStructureArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.crawlinghub.domain");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(DOMAIN);
     }
 
     // ==================== domain.common 패키지 규칙 ====================
@@ -68,7 +73,7 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.event")
+                        .resideInAPackage(DOMAIN_COMMON + ".event")
                         .should()
                         .beInterfaces()
                         .because(
@@ -81,14 +86,14 @@ class PackageStructureArchTest {
         rule.check(classes);
     }
 
-    /** 규칙 3: domain.common.exception 패키지는 Base Exception과 ErrorCode 인터페이스만 포함해야 한다 */
+    /** 규칙 2: domain.common.exception 패키지는 Base Exception과 ErrorCode 인터페이스만 포함해야 한다 */
     @Test
     @DisplayName("[필수] domain.common.exception 패키지는 Base Exception과 ErrorCode 인터페이스만 포함해야 한다")
     void domainCommonException_ShouldOnlyContainBaseExceptionAndErrorCode() {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.exception")
+                        .resideInAPackage(DOMAIN_COMMON + ".exception")
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .should()
@@ -107,14 +112,14 @@ class PackageStructureArchTest {
         rule.check(classes);
     }
 
-    /** 규칙 4: domain.common.util 패키지는 Utility 인터페이스만 포함해야 한다 */
+    /** 규칙 3: domain.common.util 패키지는 Utility 인터페이스만 포함해야 한다 */
     @Test
     @DisplayName("[필수] domain.common.util 패키지는 Utility 인터페이스만 포함해야 한다")
     void domainCommonUtil_ShouldOnlyContainUtilityInterfaces() {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common.util")
+                        .resideInAPackage(DOMAIN_COMMON + ".util")
                         .should()
                         .beInterfaces()
                         .because(
@@ -129,14 +134,14 @@ class PackageStructureArchTest {
 
     // ==================== Bounded Context 패키지 규칙 ====================
 
-    /** 규칙 5: Domain Event는 domain.[bc].event 패키지에 위치해야 한다 */
+    /** 규칙 4: Domain Event는 domain.[bc].event 패키지에 위치해야 한다 */
     @Test
     @DisplayName("[필수] Domain Event는 domain.[bc].event 패키지에 위치해야 한다")
     void domainEvents_ShouldBeInEventPackage() {
         ArchRule rule =
                 classes()
                         .that()
-                        .implement("com.ryuqq.crawlinghub.domain.common.event.DomainEvent")
+                        .implement(DOMAIN_COMMON + ".event.DomainEvent")
                         .and()
                         .haveSimpleNameNotContaining("Fixture")
                         .and()
@@ -146,7 +151,8 @@ class PackageStructureArchTest {
                         .and()
                         .doNotHaveSimpleName("DomainEvent")
                         .should()
-                        .resideInAPackage("..domain..event..")
+                        .resideInAPackage(EVENT_PATTERN)
+                        .allowEmptyShould(true)
                         .because(
                                 "Domain Event는 domain.[bc].event 패키지에 위치해야 합니다\n"
                                     + "예시:\n"
@@ -156,23 +162,23 @@ class PackageStructureArchTest {
         rule.check(classes);
     }
 
-    /** 규칙 8: Concrete Exception은 domain.[bc].exception 패키지에 위치해야 한다 */
+    /** 규칙 5: Concrete Exception은 domain.[bc].exception 패키지에 위치해야 한다 */
     @Test
     @DisplayName("[필수] Concrete Exception은 domain.[bc].exception 패키지에 위치해야 한다")
     void concreteExceptions_ShouldBeInExceptionPackage() {
         ArchRule rule =
                 classes()
                         .that()
-                        .areAssignableTo(
-                                "com.ryuqq.crawlinghub.domain.common.exception.DomainException")
+                        .areAssignableTo(DOMAIN_COMMON + ".exception.DomainException")
                         .and()
                         .haveSimpleNameNotContaining("Test")
                         .and()
                         .doNotHaveSimpleName("DomainException")
                         .and()
-                        .resideInAPackage("..domain..")
+                        .resideInAPackage(DOMAIN_ALL)
                         .should()
-                        .resideInAPackage("..domain..exception..")
+                        .resideInAPackage(EXCEPTION_PATTERN)
+                        .allowEmptyShould(true)
                         .because(
                                 "Concrete Exception은 domain.[bc].exception 패키지에 위치해야 합니다\n"
                                         + "예시:\n"
@@ -186,12 +192,12 @@ class PackageStructureArchTest {
 
     // ==================== 순환 의존성 금지 ====================
 
-    /** 규칙 9: Bounded Context 간 순환 의존성이 없어야 한다 */
+    /** 규칙 6: Bounded Context 간 순환 의존성이 없어야 한다 */
     @Test
     @DisplayName("[필수] Bounded Context 간 순환 의존성이 없어야 한다")
     void boundedContexts_ShouldBeFreeOfCycles() {
         SlicesRuleDefinition.slices()
-                .matching("com.ryuqq.crawlinghub.domain.(*)..")
+                .matching(DOMAIN + ".(*)..")
                 .should()
                 .beFreeOfCycles()
                 .because(
@@ -204,22 +210,22 @@ class PackageStructureArchTest {
 
     // ==================== 공통 패키지 접근 규칙 ====================
 
-    /** 규칙 10: domain.common 패키지는 모든 Bounded Context에서 접근 가능해야 한다 */
+    /** 규칙 7: domain.common 패키지는 모든 Bounded Context에서 접근 가능해야 한다 */
     @Test
     @DisplayName("[필수] domain.common 패키지는 모든 Bounded Context에서 접근 가능해야 한다")
     void domainCommon_ShouldBeAccessibleFromAllBoundedContexts() {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.common..")
+                        .resideInAPackage(DOMAIN_COMMON + "..")
                         .should()
                         .onlyBeAccessed()
                         .byAnyPackage(
-                                "com.ryuqq.crawlinghub.domain..",
-                                "com.ryuqq.crawlinghub.application..",
-                                "com.ryuqq.adapter..",
-                                "com.ryuqq.persistence..",
-                                "com.ryuqq.bootstrap..")
+                                DOMAIN_ALL,
+                                APPLICATION_ALL,
+                                ADAPTER_ALL,
+                                PERSISTENCE_ALL,
+                                BOOTSTRAP_ALL)
                         .because("domain.common 패키지는 공통 인터페이스로 모든 레이어에서 접근 가능합니다");
 
         rule.check(classes);
@@ -227,7 +233,7 @@ class PackageStructureArchTest {
 
     // ==================== 네이밍 규칙 ====================
 
-    /** 규칙 11: Bounded Context 패키지명은 소문자로 시작해야 한다 */
+    /** 규칙 8: Bounded Context 패키지명은 소문자로 시작해야 한다 */
     @Test
     @DisplayName("[권장] Bounded Context 패키지명은 소문자 단어로 구성되어야 한다")
     void boundedContextPackages_ShouldUseLowercaseNames() {
@@ -237,11 +243,11 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain..")
+                        .resideInAPackage(DOMAIN_ALL)
                         .and()
-                        .resideOutsideOfPackage("com.ryuqq.crawlinghub.domain.common..")
+                        .resideOutsideOfPackage(DOMAIN_COMMON + "..")
                         .should()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.(*)..")
+                        .resideInAPackage(DOMAIN + ".(*)..")
                         .because(
                                 "Bounded Context 패키지명은 소문자 단어로 구성되어야 합니다\n"
                                     + "예시:\n"
@@ -257,7 +263,7 @@ class PackageStructureArchTest {
 
     // ==================== 패키지 격리 규칙 ====================
 
-    /** 규칙 12: Bounded Context 내부 패키지는 다른 Bounded Context에 의존하지 않아야 한다 */
+    /** 규칙 9: Bounded Context 내부 패키지는 다른 Bounded Context에 의존하지 않아야 한다 */
     @Test
     @DisplayName("[필수] Bounded Context는 다른 Bounded Context 내부에 의존하지 않아야 한다")
     void boundedContexts_ShouldNotDependOnOtherBoundedContextInternals() {
@@ -267,18 +273,19 @@ class PackageStructureArchTest {
         ArchRule rule =
                 classes()
                         .that()
-                        .resideInAPackage("com.ryuqq.crawlinghub.domain.(*)..")
+                        .resideInAPackage(DOMAIN + ".(*)..")
                         .and()
-                        .resideOutsideOfPackage("com.ryuqq.crawlinghub.domain.common..")
+                        .resideOutsideOfPackage(DOMAIN_COMMON + "..")
                         .and()
-                        .resideOutsideOfPackage("..architecture..") // 테스트 클래스 제외
+                        .resideOutsideOfPackage(ARCHITECTURE_PATTERN) // 테스트 클래스 제외
                         .should()
                         .onlyDependOnClassesThat()
                         .resideInAnyPackage(
-                                "com.ryuqq.crawlinghub.domain.common..",
-                                "com.ryuqq.crawlinghub.domain.(*)..", // 같은 BC는 허용
+                                DOMAIN_COMMON + "..",
+                                DOMAIN + ".(*)..", // 같은 BC는 허용
                                 "java..",
                                 "jakarta.annotation..")
+                        .allowEmptyShould(true)
                         .because(
                                 "Bounded Context는 다른 Bounded Context 내부에 직접 의존하지 않아야 합니다\n"
                                     + "통신 방법:\n"

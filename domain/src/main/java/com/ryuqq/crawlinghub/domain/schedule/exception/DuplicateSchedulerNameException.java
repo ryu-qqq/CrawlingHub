@@ -10,8 +10,8 @@ public final class DuplicateSchedulerNameException extends DomainException {
 
     public DuplicateSchedulerNameException(Long sellerId, String schedulerName) {
         super(
-                ERROR_CODE.getCode(),
-                ERROR_CODE.getMessage(),
+                ERROR_CODE,
+                String.format("이미 존재하는 스케줄러 이름입니다. 셀러: %d, 이름: %s", sellerId, schedulerName),
                 Map.of("sellerId", sellerId, "schedulerName", schedulerName));
     }
 }

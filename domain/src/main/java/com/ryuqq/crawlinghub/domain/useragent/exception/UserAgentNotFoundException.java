@@ -12,14 +12,16 @@ import java.util.Map;
  */
 public class UserAgentNotFoundException extends DomainException {
 
+    private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.USER_AGENT_NOT_FOUND;
+
     public UserAgentNotFoundException(UserAgentId userAgentId) {
         super(
-                UserAgentErrorCode.USER_AGENT_NOT_FOUND.getCode(),
+                ERROR_CODE,
                 String.format("UserAgent를 찾을 수 없습니다: %d", userAgentId.value()),
                 Map.of("userAgentId", userAgentId.value()));
     }
 
     public UserAgentNotFoundException(String message) {
-        super(UserAgentErrorCode.USER_AGENT_NOT_FOUND.getCode(), message);
+        super(ERROR_CODE, message);
     }
 }

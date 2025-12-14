@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.UpdateSellerApiRequest;
@@ -30,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/sellers - 셀러 등록
- *   <li>PATCH /api/v1/sellers/{id} - 셀러 수정 (이름, 상태 등)
+ *   <li>POST /api/v1/crawling/sellers - 셀러 등록
+ *   <li>PATCH /api/v1/crawling/sellers/{id} - 셀러 수정 (이름, 상태 등)
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.seller.base}")
+@RequestMapping(ApiPaths.Sellers.BASE)
 @Validated
 public class SellerCommandController {
 

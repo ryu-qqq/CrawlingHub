@@ -1,103 +1,31 @@
 package com.ryuqq.crawlinghub.application.schedule.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
-import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * CrawlSchedulerAssembler 단위 테스트
  *
- * <p>Mockist 스타일 테스트: ClockHolder, ObjectMapper 의존성 Mocking
+ * <p>Domain → Response 변환 책임만 담당
  *
  * @author development-team
  * @since 1.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("CrawlSchedulerAssembler 테스트")
 class CrawlSchedulerAssemblerTest {
 
-    @Mock private ClockHolder clockHolder;
-
-    @Spy private ObjectMapper objectMapper = new ObjectMapper();
-
-    @InjectMocks private CrawlSchedulerAssembler assembler;
-
-    @Nested
-    @DisplayName("toBundle(RegisterCrawlSchedulerCommand) 테스트")
-    class ToBundleRegister {
-
-        @Test
-        @DisplayName("[성공] RegisterCrawlSchedulerCommand → CrawlSchedulerBundle 생성")
-        void shouldCreateBundleFromRegisterCommand() {
-            // Given
-            RegisterCrawlSchedulerCommand command =
-                    new RegisterCrawlSchedulerCommand(
-                            1L, "Daily Crawl Scheduler", "cron(0 0 * * ? *)");
-            Instant now = Instant.parse("2025-11-27T12:00:00Z");
-
-            given(clockHolder.clock()).willReturn(() -> now);
-
-            // When
-            CrawlSchedulerBundle result = assembler.toBundle(command);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getScheduler()).isNotNull();
-            assertThat(result.getScheduler().getSellerIdValue()).isEqualTo(1L);
-            assertThat(result.getScheduler().getSchedulerNameValue())
-                    .isEqualTo("Daily Crawl Scheduler");
-            assertThat(result.getScheduler().getCronExpressionValue())
-                    .isEqualTo("cron(0 0 * * ? *)");
-        }
-    }
-
-    @Nested
-    @DisplayName("toCrawlScheduler(RegisterCrawlSchedulerCommand) 테스트")
-    class ToCrawlScheduler {
-
-        @Test
-        @DisplayName("[성공] RegisterCrawlSchedulerCommand → CrawlScheduler 생성")
-        void shouldCreateCrawlSchedulerFromCommand() {
-            // Given
-            RegisterCrawlSchedulerCommand command =
-                    new RegisterCrawlSchedulerCommand(1L, "Test Scheduler", "cron(0 0 12 * ? *)");
-            Instant now = Instant.parse("2025-11-27T12:00:00Z");
-
-            given(clockHolder.clock()).willReturn(() -> now);
-
-            // When
-            CrawlScheduler result = assembler.toCrawlScheduler(command);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getSellerIdValue()).isEqualTo(1L);
-            assertThat(result.getSchedulerNameValue()).isEqualTo("Test Scheduler");
-            assertThat(result.getCronExpressionValue()).isEqualTo("cron(0 0 12 * ? *)");
-            assertThat(result.isActive()).isTrue();
-        }
-    }
+    private final CrawlSchedulerAssembler assembler = new CrawlSchedulerAssembler();
 
     @Nested
     @DisplayName("toResponse() 테스트")
@@ -133,29 +61,6 @@ class CrawlSchedulerAssemblerTest {
 
             // Then
             assertThat(result.status()).isEqualTo(SchedulerStatus.INACTIVE);
-        }
-    }
-
-    @Nested
-    @DisplayName("toEventPayload() 테스트")
-    class ToEventPayload {
-
-        @Test
-        @DisplayName("[성공] CrawlScheduler → 이벤트 페이로드 JSON 변환")
-        void shouldConvertSchedulerToEventPayload() throws JsonProcessingException {
-            // Given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-
-            // When
-            String result = assembler.toEventPayload(scheduler);
-
-            // Then
-            assertThat(result).isNotBlank();
-            assertThat(result).contains("schedulerId");
-            assertThat(result).contains("sellerId");
-            assertThat(result).contains("schedulerName");
-            assertThat(result).contains("cronExpression");
-            assertThat(result).contains("ACTIVE");
         }
     }
 

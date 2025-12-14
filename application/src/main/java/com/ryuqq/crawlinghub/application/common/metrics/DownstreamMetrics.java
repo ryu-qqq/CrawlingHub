@@ -2,9 +2,8 @@ package com.ryuqq.crawlinghub.application.common.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import org.springframework.stereotype.Component;
-
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Component;
 
 /**
  * Downstream Latency Metrics Recorder
@@ -132,7 +131,8 @@ public class DownstreamMetrics {
      * @param statusCode HTTP 상태 코드
      * @param durationMs 소요 시간 (밀리초)
      */
-    public void recordExternalApiLatency(String service, String endpoint, int statusCode, long durationMs) {
+    public void recordExternalApiLatency(
+            String service, String endpoint, int statusCode, long durationMs) {
         Timer.builder(METRIC_PREFIX + ".external.api.latency")
                 .description("External API call latency")
                 .tag("service", service)

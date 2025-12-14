@@ -11,13 +11,13 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetCrawlTaskQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
-import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
+import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * GetCrawlTaskService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Manager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -40,7 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawlTaskService 테스트")
 class GetCrawlTaskServiceTest {
 
-    @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
+    @Mock private CrawlTaskReadManager readManager;
 
     @Mock private CrawlTaskAssembler assembler;
 
@@ -69,11 +69,10 @@ class GetCrawlTaskServiceTest {
                             "/api/products",
                             Map.of("page", "1"),
                             "https://example.com/api/products?page=1",
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
-                    .willReturn(Optional.of(crawlTask));
+            given(readManager.findById(any(CrawlTaskId.class))).willReturn(Optional.of(crawlTask));
             given(assembler.toDetailResponse(crawlTask)).willReturn(expectedResponse);
 
             // When
@@ -81,7 +80,7 @@ class GetCrawlTaskServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(crawlTaskQueryPort).should().findById(CrawlTaskId.of(crawlTaskId));
+            then(readManager).should().findById(CrawlTaskId.of(crawlTaskId));
             then(assembler).should().toDetailResponse(crawlTask);
         }
 
@@ -92,7 +91,7 @@ class GetCrawlTaskServiceTest {
             Long crawlTaskId = 999L;
             GetCrawlTaskQuery query = new GetCrawlTaskQuery(crawlTaskId);
 
-            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class))).willReturn(Optional.empty());
+            given(readManager.findById(any(CrawlTaskId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(query))
@@ -120,10 +119,10 @@ class GetCrawlTaskServiceTest {
                             "/api/products",
                             Map.of("page", "1"),
                             "https://example.com/api/products?page=1",
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlTaskQueryPort.findById(any(CrawlTaskId.class)))
+            given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(runningTask));
             given(assembler.toDetailResponse(runningTask)).willReturn(expectedResponse);
 

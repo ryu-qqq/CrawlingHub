@@ -10,7 +10,8 @@ import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,8 +45,8 @@ public class CrawlTask {
     private CrawlTaskStatus status;
     private RetryCount retryCount;
     private CrawlTaskOutbox outbox;
-    private final LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Instant createdAt;
+    private Instant updatedAt;
 
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -58,8 +59,8 @@ public class CrawlTask {
             CrawlTaskStatus status,
             RetryCount retryCount,
             CrawlTaskOutbox outbox,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt) {
         this.id = id;
         this.crawlSchedulerId = crawlSchedulerId;
         this.sellerId = sellerId;
@@ -81,14 +82,16 @@ public class CrawlTask {
      * @param sellerId 셀러 ID
      * @param taskType 태스크 유형
      * @param endpoint 크롤링 엔드포인트
+     * @param clock 시간 제어
      * @return 새로운 CrawlTask (WAITING 상태)
      */
     public static CrawlTask forNew(
             CrawlSchedulerId crawlSchedulerId,
             SellerId sellerId,
             CrawlTaskType taskType,
-            CrawlEndpoint endpoint) {
-        LocalDateTime now = LocalDateTime.now();
+            CrawlEndpoint endpoint,
+            Clock clock) {
+        Instant now = clock.instant();
         return new CrawlTask(
                 CrawlTaskId.unassigned(),
                 crawlSchedulerId,
@@ -126,8 +129,8 @@ public class CrawlTask {
             CrawlTaskStatus status,
             RetryCount retryCount,
             CrawlTaskOutbox outbox,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt) {
         return new CrawlTask(
                 id,
                 crawlSchedulerId,
@@ -155,56 +158,61 @@ public class CrawlTask {
     /**
      * WAITING → PUBLISHED 상태 전환
      *
+     * @param clock 시간 제어
      * @throws InvalidCrawlTaskStateException 현재 상태가 WAITING이 아닌 경우
      */
-    public void markAsPublished() {
+    public void markAsPublished(Clock clock) {
         validateStatus(CrawlTaskStatus.WAITING, CrawlTaskStatus.PUBLISHED);
         this.status = CrawlTaskStatus.PUBLISHED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * PUBLISHED → RUNNING 상태 전환
      *
+     * @param clock 시간 제어
      * @throws InvalidCrawlTaskStateException 현재 상태가 PUBLISHED가 아닌 경우
      */
-    public void markAsRunning() {
+    public void markAsRunning(Clock clock) {
         validateStatus(CrawlTaskStatus.PUBLISHED, CrawlTaskStatus.RUNNING);
         this.status = CrawlTaskStatus.RUNNING;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * RUNNING → SUCCESS 상태 전환
      *
+     * @param clock 시간 제어
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsSuccess() {
+    public void markAsSuccess(Clock clock) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.SUCCESS);
         this.status = CrawlTaskStatus.SUCCESS;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * RUNNING → FAILED 상태 전환
      *
+     * @param clock 시간 제어
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsFailed() {
+    public void markAsFailed(Clock clock) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.FAILED);
         this.status = CrawlTaskStatus.FAILED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * RUNNING → TIMEOUT 상태 전환
      *
+     * @param clock 시간 제어
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsTimeout() {
+    public void markAsTimeout(Clock clock) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.TIMEOUT);
         this.status = CrawlTaskStatus.TIMEOUT;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
@@ -221,25 +229,30 @@ public class CrawlTask {
     /**
      * 재시도 수행
      *
+     * @param clock 시간 제어
      * @return 재시도 성공 여부
      */
-    public boolean attemptRetry() {
+    public boolean attemptRetry(Clock clock) {
         if (!canRetry()) {
             return false;
         }
         this.retryCount = this.retryCount.increment();
         this.status = CrawlTaskStatus.RETRY;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
         return true;
     }
 
-    /** 재시도 후 다시 PUBLISHED 상태로 전환 */
-    public void markAsPublishedAfterRetry() {
+    /**
+     * 재시도 후 다시 PUBLISHED 상태로 전환
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsPublishedAfterRetry(Clock clock) {
         if (this.status != CrawlTaskStatus.RETRY) {
             throw new InvalidCrawlTaskStateException(this.status, CrawlTaskStatus.PUBLISHED);
         }
         this.status = CrawlTaskStatus.PUBLISHED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
@@ -259,28 +272,37 @@ public class CrawlTask {
      * <p>Task 저장 전에 Outbox를 생성하여 같은 트랜잭션에서 저장
      *
      * @param payload SQS로 발행할 메시지 페이로드 (JSON)
+     * @param clock 시간 제어
      */
-    public void initializeOutbox(String payload) {
+    public void initializeOutbox(String payload, Clock clock) {
         if (this.outbox != null) {
             throw new IllegalStateException("Outbox가 이미 초기화되었습니다.");
         }
-        this.outbox = CrawlTaskOutbox.forNew(this.id, payload);
+        this.outbox = CrawlTaskOutbox.forNew(this.id, payload, clock);
     }
 
-    /** Outbox 발행 성공 처리 */
-    public void markOutboxAsSent() {
+    /**
+     * Outbox 발행 성공 처리
+     *
+     * @param clock 시간 제어
+     */
+    public void markOutboxAsSent(Clock clock) {
         if (this.outbox == null) {
             throw new IllegalStateException("Outbox가 초기화되지 않았습니다.");
         }
-        this.outbox.markAsSent();
+        this.outbox.markAsSent(clock);
     }
 
-    /** Outbox 발행 실패 처리 */
-    public void markOutboxAsFailed() {
+    /**
+     * Outbox 발행 실패 처리
+     *
+     * @param clock 시간 제어
+     */
+    public void markOutboxAsFailed(Clock clock) {
         if (this.outbox == null) {
             throw new IllegalStateException("Outbox가 초기화되지 않았습니다.");
         }
-        this.outbox.markAsFailed();
+        this.outbox.markAsFailed(clock);
     }
 
     /**
@@ -353,11 +375,11 @@ public class CrawlTask {
         return outbox;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
@@ -369,8 +391,9 @@ public class CrawlTask {
      * <p>ID 할당 후 호출해야 합니다.
      *
      * @param outboxPayload Outbox 페이로드 (JSON)
+     * @param clock 시간 제어
      */
-    public void addRegisteredEvent(String outboxPayload) {
+    public void addRegisteredEvent(String outboxPayload, Clock clock) {
         if (this.id == null || !this.id.isAssigned()) {
             throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
         }
@@ -381,7 +404,8 @@ public class CrawlTask {
                         this.sellerId,
                         this.taskType,
                         this.endpoint,
-                        outboxPayload));
+                        outboxPayload,
+                        clock));
     }
 
     /**

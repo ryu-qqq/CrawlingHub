@@ -1,24 +1,28 @@
 package com.ryuqq.cralwinghub.domain.fixture.common;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 
 /**
  * 테스트용 고정 시간 Clock
  *
- * <p>테스트에서 일관된 시간을 사용하기 위한 Clock 구현체
+ * <p>테스트에서 일관된 시간을 사용하기 위한 java.time.Clock 확장
  *
  * @author development-team
  * @since 1.0.0
  */
-public final class FixedClock implements Clock {
+public final class FixedClock extends Clock {
 
     private static final Instant DEFAULT_INSTANT = Instant.parse("2025-11-27T00:00:00Z");
+    private static final ZoneId DEFAULT_ZONE = ZoneId.of("UTC");
 
     private final Instant fixedInstant;
+    private final ZoneId zone;
 
-    private FixedClock(Instant fixedInstant) {
+    private FixedClock(Instant fixedInstant, ZoneId zone) {
         this.fixedInstant = fixedInstant;
+        this.zone = zone;
     }
 
     /**
@@ -27,7 +31,7 @@ public final class FixedClock implements Clock {
      * @return FixedClock
      */
     public static FixedClock aDefaultClock() {
-        return new FixedClock(DEFAULT_INSTANT);
+        return new FixedClock(DEFAULT_INSTANT, DEFAULT_ZONE);
     }
 
     /**
@@ -37,7 +41,7 @@ public final class FixedClock implements Clock {
      * @return FixedClock
      */
     public static FixedClock at(Instant instant) {
-        return new FixedClock(instant);
+        return new FixedClock(instant, DEFAULT_ZONE);
     }
 
     /**
@@ -47,11 +51,21 @@ public final class FixedClock implements Clock {
      * @return FixedClock
      */
     public static FixedClock at(String isoDateTime) {
-        return new FixedClock(Instant.parse(isoDateTime));
+        return new FixedClock(Instant.parse(isoDateTime), DEFAULT_ZONE);
     }
 
     @Override
-    public Instant now() {
+    public ZoneId getZone() {
+        return zone;
+    }
+
+    @Override
+    public Clock withZone(ZoneId zone) {
+        return new FixedClock(fixedInstant, zone);
+    }
+
+    @Override
+    public Instant instant() {
         return fixedInstant;
     }
 

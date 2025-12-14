@@ -12,11 +12,12 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.execution.assembler.CrawlExecutionAssembler;
 import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutionsQuery;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionResponse;
-import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
+import com.ryuqq.crawlinghub.application.execution.factory.query.CrawlExecutionQueryFactory;
+import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * ListCrawlExecutionsService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Manager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -40,7 +41,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ListCrawlExecutionsService 테스트")
 class ListCrawlExecutionsServiceTest {
 
-    @Mock private CrawlExecutionQueryPort crawlExecutionQueryPort;
+    @Mock private CrawlExecutionReadManager readManager;
+
+    @Mock private CrawlExecutionQueryFactory queryFactory;
 
     @Mock private CrawlExecutionAssembler assembler;
 
@@ -69,14 +72,14 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.RUNNING,
                             null,
                             null,
-                            LocalDateTime.now(),
+                            Instant.now(),
                             null);
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);
-            given(crawlExecutionQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(executions);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -86,9 +89,9 @@ class ListCrawlExecutionsServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(result.content()).hasSize(1);
-            then(assembler).should().toCriteria(query);
-            then(crawlExecutionQueryPort).should().findByCriteria(criteria);
-            then(crawlExecutionQueryPort).should().countByCriteria(criteria);
+            then(queryFactory).should().createCriteria(query);
+            then(readManager).should().findByCriteria(criteria);
+            then(readManager).should().countByCriteria(criteria);
             then(assembler).should().toPageResponse(executions, 0, 10, totalElements);
         }
 
@@ -105,9 +108,9 @@ class ListCrawlExecutionsServiceTest {
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(emptyExecutions);
-            given(crawlExecutionQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(emptyExecutions);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -140,14 +143,14 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.SUCCESS,
                             200,
                             1500L,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(successExecutions);
-            given(crawlExecutionQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(successExecutions);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -179,14 +182,14 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.RUNNING,
                             null,
                             null,
-                            LocalDateTime.now(),
+                            Instant.now(),
                             null);
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);
-            given(crawlExecutionQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(executions);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -214,9 +217,9 @@ class ListCrawlExecutionsServiceTest {
                     PageResponse.of(
                             Collections.emptyList(), page, size, totalElements, 3, false, false);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(crawlExecutionQueryPort.findByCriteria(criteria)).willReturn(executions);
-            given(crawlExecutionQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(readManager.findByCriteria(criteria)).willReturn(executions);
+            given(readManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 

@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
-import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
+import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.port.in.command.CreateCrawlTaskUseCase;
 import java.util.List;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
  * <p><strong>처리 흐름</strong>:
  *
  * <ol>
- *   <li>Assembler로 CrawlTaskBundle 생성 (Task + Outbox payload)
+ *   <li>CommandFactory로 CrawlTaskBundle 생성 (Task + Outbox payload)
  *   <li>Facade에서 persist (중복 검증 + 저장 + 이벤트 발행)
  * </ol>
  *
@@ -38,11 +38,11 @@ public class CreateCrawlTaskService implements CreateCrawlTaskUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(CreateCrawlTaskService.class);
 
-    private final CrawlTaskAssembler assembler;
+    private final CrawlTaskCommandFactory commandFactory;
     private final CrawlTaskFacade facade;
 
-    public CreateCrawlTaskService(CrawlTaskAssembler assembler, CrawlTaskFacade facade) {
-        this.assembler = assembler;
+    public CreateCrawlTaskService(CrawlTaskCommandFactory commandFactory, CrawlTaskFacade facade) {
+        this.commandFactory = commandFactory;
         this.facade = facade;
     }
 
@@ -55,8 +55,8 @@ public class CreateCrawlTaskService implements CreateCrawlTaskUseCase {
                 command.taskType(),
                 command.targetId());
 
-        // 1. CrawlTaskBundle 생성 (Assembler)
-        CrawlTaskBundle bundle = assembler.toBundle(command);
+        // 1. CrawlTaskBundle 생성 (CommandFactory)
+        CrawlTaskBundle bundle = commandFactory.createBundle(command);
 
         // 2. Facade에서 persist (중복 검증 + 저장 + 이벤트 발행)
         facade.persist(bundle);

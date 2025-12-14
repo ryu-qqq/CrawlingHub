@@ -14,12 +14,13 @@ import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
-import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
+import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,11 +41,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RegisterCrawlSchedulerService 테스트")
 class RegisterCrawlSchedulerServiceTest {
 
-    @Mock private CrawlSchedulerAssembler crawlSchedulerAssembler;
+    @Mock private CrawlSchedulerCommandFactory commandFactory;
+
+    @Mock private CrawlSchedulerAssembler assembler;
 
     @Mock private CrawlerSchedulerFacade crawlerSchedulerFacade;
 
-    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlSchedulerReadManager readManager;
 
     @Mock private CrawlSchedulerBundle mockBundle;
 
@@ -68,29 +71,26 @@ class RegisterCrawlSchedulerServiceTest {
                             "daily-crawl",
                             "cron(0 0 * * ? *)",
                             SchedulerStatus.ACTIVE,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(
-                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
-                                    any(SellerId.class), anyString()))
+            given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(false);
-            given(crawlSchedulerAssembler.toBundle(command)).willReturn(mockBundle);
-            given(crawlerSchedulerFacade.persist(mockBundle)).willReturn(mockBundle);
-            given(mockBundle.getSavedScheduler()).willReturn(scheduler);
-            given(crawlSchedulerAssembler.toResponse(scheduler)).willReturn(expectedResponse);
+            given(commandFactory.createBundle(command)).willReturn(mockBundle);
+            given(crawlerSchedulerFacade.persist(mockBundle)).willReturn(scheduler);
+            given(assembler.toResponse(scheduler)).willReturn(expectedResponse);
 
             // When
             CrawlSchedulerResponse result = service.register(command);
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(crawlScheduleQueryPort)
+            then(readManager)
                     .should()
                     .existsBySellerIdAndSchedulerName(SellerId.of(1L), "daily-crawl");
-            then(crawlSchedulerAssembler).should().toBundle(command);
+            then(commandFactory).should().createBundle(command);
             then(crawlerSchedulerFacade).should().persist(mockBundle);
-            then(crawlSchedulerAssembler).should().toResponse(scheduler);
+            then(assembler).should().toResponse(scheduler);
         }
 
         @Test
@@ -101,16 +101,14 @@ class RegisterCrawlSchedulerServiceTest {
                     new RegisterCrawlSchedulerCommand(
                             1L, "duplicate-scheduler", "cron(0 0 * * ? *)");
 
-            given(
-                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
-                                    any(SellerId.class), anyString()))
+            given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> service.register(command))
                     .isInstanceOf(DuplicateSchedulerNameException.class);
 
-            then(crawlSchedulerAssembler).should(never()).toBundle(any());
+            then(commandFactory).should(never()).createBundle(any());
             then(crawlerSchedulerFacade).should(never()).persist(any());
         }
     }

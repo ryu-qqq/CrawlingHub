@@ -22,8 +22,8 @@ public final class DuplicateCrawlTaskException extends DomainException {
      */
     public DuplicateCrawlTaskException(Long sellerId, CrawlTaskType taskType) {
         super(
-                ERROR_CODE.getCode(),
-                "중복된 크롤 태스크입니다. 셀러: " + sellerId + ", 유형: " + taskType,
+                ERROR_CODE,
+                String.format("중복된 크롤 태스크입니다. 셀러: %d, 유형: %s", sellerId, taskType),
                 Map.of("sellerId", sellerId, "taskType", taskType.name()));
     }
 }

@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -85,8 +86,12 @@ public class SellerQueryApiMapper {
                 appResponse.mustItSellerName(),
                 appResponse.sellerName(),
                 statusName,
-                appResponse.createdAt(),
-                appResponse.updatedAt());
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()));
+    }
+
+    private String toIsoString(Instant instant) {
+        return instant != null ? instant.toString() : null;
     }
 
     /**

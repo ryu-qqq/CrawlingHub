@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.execution.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.query.SearchCrawlExecutionsApiRequest;
@@ -30,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API</strong>:
  *
  * <ul>
- *   <li>GET /api/v1/executions - CrawlExecution 목록 조회 (필터링, 페이징)
- *   <li>GET /api/v1/executions/{id} - CrawlExecution 상세 조회
+ *   <li>GET /api/v1/crawling/executions - CrawlExecution 목록 조회 (필터링, 페이징)
+ *   <li>GET /api/v1/crawling/executions/{id} - CrawlExecution 상세 조회
  * </ul>
  *
  * <p><strong>Controller 책임</strong>:
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.execution.base}")
+@RequestMapping(ApiPaths.Executions.BASE)
 @Validated
 public class CrawlExecutionQueryController {
 
@@ -131,7 +132,7 @@ public class CrawlExecutionQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/executions/{id}
+     *   <li>Path: /api/v1/crawling/executions/{id}
      *   <li>Status: 200 OK
      * </ul>
      *
@@ -144,7 +145,7 @@ public class CrawlExecutionQueryController {
      * @param id CrawlExecution ID
      * @return CrawlExecution 상세 정보 (200 OK)
      */
-    @GetMapping("${api.endpoints.execution.by-id}")
+    @GetMapping(ApiPaths.Executions.BY_ID)
     public ResponseEntity<ApiResponse<CrawlExecutionDetailApiResponse>> getCrawlExecution(
             @PathVariable Long id) {
         // 1. PathVariable → Application Query 변환 (Mapper)

@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.application.seller.service.command;
 
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerProductCountUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -27,22 +28,26 @@ public class UpdateSellerProductCountService implements UpdateSellerProductCount
             LoggerFactory.getLogger(UpdateSellerProductCountService.class);
 
     private final SellerTransactionManager sellerTransactionManager;
-    private final SellerQueryPort sellerQueryPort;
+    private final SellerReadManager sellerReadManager;
+    private final ClockHolder clockHolder;
 
     public UpdateSellerProductCountService(
-            SellerTransactionManager sellerTransactionManager, SellerQueryPort sellerQueryPort) {
+            SellerTransactionManager sellerTransactionManager,
+            SellerReadManager sellerReadManager,
+            ClockHolder clockHolder) {
         this.sellerTransactionManager = sellerTransactionManager;
-        this.sellerQueryPort = sellerQueryPort;
+        this.sellerReadManager = sellerReadManager;
+        this.clockHolder = clockHolder;
     }
 
     @Override
     public void execute(Long sellerId, int productCount) {
         Seller seller =
-                sellerQueryPort
+                sellerReadManager
                         .findById(SellerId.of(sellerId))
                         .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
-        seller.updateProductCount(productCount);
+        seller.updateProductCount(productCount, clockHolder.getClock());
 
         sellerTransactionManager.persist(seller);
         log.info("셀러 상품 수 업데이트: sellerId={}, productCount={}", sellerId, productCount);

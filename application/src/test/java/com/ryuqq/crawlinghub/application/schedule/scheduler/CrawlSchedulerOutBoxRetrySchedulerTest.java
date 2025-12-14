@@ -10,7 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture;
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
@@ -38,7 +38,7 @@ class CrawlSchedulerOutBoxRetrySchedulerTest {
 
     @Mock private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
 
-    @Mock private CrawlerSchedulerOutBoxManager outBoxManager;
+    @Mock private CrawlSchedulerOutBoxTransactionManager outBoxManager;
 
     @Mock private EventBridgeClientPort eventBridgeClientPort;
 

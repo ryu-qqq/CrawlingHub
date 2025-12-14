@@ -7,6 +7,9 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,10 +73,10 @@ public class UserAgentJpaEntityMapper {
                 domain.getDeviceType().getTypeName(),
                 domain.getStatus(),
                 domain.getHealthScoreValue(),
-                domain.getLastUsedAt(),
+                toLocalDateTime(domain.getLastUsedAt()),
                 domain.getRequestsPerDay(),
-                domain.getCreatedAt(),
-                domain.getUpdatedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getUpdatedAt()));
     }
 
     /**
@@ -109,9 +112,23 @@ public class UserAgentJpaEntityMapper {
                 DeviceType.of(entity.getDeviceType()),
                 entity.getStatus(),
                 HealthScore.of(entity.getHealthScore()),
-                entity.getLastUsedAt(),
+                toInstant(entity.getLastUsedAt()),
                 entity.getRequestsPerDay(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getUpdatedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

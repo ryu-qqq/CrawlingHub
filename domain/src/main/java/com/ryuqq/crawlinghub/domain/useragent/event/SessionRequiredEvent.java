@@ -2,6 +2,8 @@ package com.ryuqq.crawlinghub.domain.useragent.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 세션 발급 필요 이벤트
@@ -16,31 +18,39 @@ import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
  *   <li>429 응답 등으로 세션이 무효화되었을 때
  * </ul>
  *
+ * @param userAgentId UserAgent ID
+ * @param userAgentValue User-Agent 문자열
+ * @param occurredAt 이벤트 발생 시각
  * @author development-team
  * @since 1.0.0
  */
-public final class SessionRequiredEvent implements DomainEvent {
+public record SessionRequiredEvent(
+        UserAgentId userAgentId, String userAgentValue, Instant occurredAt) implements DomainEvent {
 
-    private final UserAgentId userAgentId;
-    private final String userAgentValue;
-
-    public SessionRequiredEvent(UserAgentId userAgentId, String userAgentValue) {
+    /** Compact Constructor (검증 로직) */
+    public SessionRequiredEvent {
         if (userAgentId == null) {
             throw new IllegalArgumentException("userAgentId must not be null");
         }
         if (userAgentValue == null || userAgentValue.isBlank()) {
             throw new IllegalArgumentException("userAgentValue must not be null or blank");
         }
-        this.userAgentId = userAgentId;
-        this.userAgentValue = userAgentValue;
+        if (occurredAt == null) {
+            throw new IllegalArgumentException("occurredAt must not be null");
+        }
     }
 
-    public UserAgentId userAgentId() {
-        return userAgentId;
-    }
-
-    public String userAgentValue() {
-        return userAgentValue;
+    /**
+     * 팩토리 메서드
+     *
+     * @param userAgentId UserAgent ID
+     * @param userAgentValue User-Agent 문자열
+     * @param clock 시간 제어
+     * @return SessionRequiredEvent
+     */
+    public static SessionRequiredEvent of(
+            UserAgentId userAgentId, String userAgentValue, Clock clock) {
+        return new SessionRequiredEvent(userAgentId, userAgentValue, clock.instant());
     }
 
     public Long getUserAgentIdValue() {
@@ -55,6 +65,8 @@ public final class SessionRequiredEvent implements DomainEvent {
                 + ", userAgentValue='"
                 + truncateUserAgent(userAgentValue)
                 + '\''
+                + ", occurredAt="
+                + occurredAt
                 + '}';
     }
 

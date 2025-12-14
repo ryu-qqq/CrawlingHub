@@ -36,7 +36,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
     @Test
-    @DisplayName("POST /api/v1/user-agents/recover - 정지된 UserAgent 복구 API 문서")
+    @DisplayName("POST /api/v1/crawling/user-agents/recover - 정지된 UserAgent 복구 API 문서")
     void recoverUserAgents() throws Exception {
         // given
         int recoveredCount = 5;
@@ -47,7 +47,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         given(userAgentApiMapper.toRecoverApiResponse(recoveredCount)).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(post("/api/v1/user-agents/recover"))
+        mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(5))
@@ -81,7 +81,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("POST /api/v1/user-agents/recover - 복구할 UserAgent가 없는 경우 API 문서")
+    @DisplayName("POST /api/v1/crawling/user-agents/recover - 복구할 UserAgent가 없는 경우 API 문서")
     void recoverUserAgents_noAgentsToRecover() throws Exception {
         // given
         int recoveredCount = 0;
@@ -92,7 +92,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         given(userAgentApiMapper.toRecoverApiResponse(recoveredCount)).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(post("/api/v1/user-agents/recover"))
+        mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(0))

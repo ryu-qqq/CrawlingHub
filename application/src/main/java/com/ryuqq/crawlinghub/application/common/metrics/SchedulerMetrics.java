@@ -93,12 +93,13 @@ public class SchedulerMetrics {
                 .register(meterRegistry)
                 .increment();
 
-        sample.stop(Timer.builder(METRIC_PREFIX + ".job.duration")
-                .description("Job execution duration")
-                .tag("job", jobName)
-                .tag("status", "success")
-                .publishPercentiles(0.5, 0.95, 0.99)
-                .register(meterRegistry));
+        sample.stop(
+                Timer.builder(METRIC_PREFIX + ".job.duration")
+                        .description("Job execution duration")
+                        .tag("job", jobName)
+                        .tag("status", "success")
+                        .publishPercentiles(0.5, 0.95, 0.99)
+                        .register(meterRegistry));
     }
 
     /**
@@ -116,12 +117,13 @@ public class SchedulerMetrics {
                 .register(meterRegistry)
                 .increment();
 
-        sample.stop(Timer.builder(METRIC_PREFIX + ".job.duration")
-                .description("Job execution duration")
-                .tag("job", jobName)
-                .tag("status", "failure")
-                .publishPercentiles(0.5, 0.95, 0.99)
-                .register(meterRegistry));
+        sample.stop(
+                Timer.builder(METRIC_PREFIX + ".job.duration")
+                        .description("Job execution duration")
+                        .tag("job", jobName)
+                        .tag("status", "failure")
+                        .publishPercentiles(0.5, 0.95, 0.99)
+                        .register(meterRegistry));
     }
 
     /**

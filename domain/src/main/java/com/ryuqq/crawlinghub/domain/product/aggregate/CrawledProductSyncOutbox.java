@@ -3,7 +3,8 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -38,8 +39,8 @@ public class CrawledProductSyncOutbox {
     private ProductOutboxStatus status;
     private int retryCount;
     private String errorMessage;
-    private final LocalDateTime createdAt;
-    private LocalDateTime processedAt;
+    private final Instant createdAt;
+    private Instant processedAt;
 
     private CrawledProductSyncOutbox(
             Long id,
@@ -52,8 +53,8 @@ public class CrawledProductSyncOutbox {
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         this.id = id;
         this.crawledProductId = crawledProductId;
         this.sellerId = sellerId;
@@ -70,8 +71,9 @@ public class CrawledProductSyncOutbox {
 
     /** 신규 등록용 Outbox 생성 */
     public static CrawledProductSyncOutbox forCreate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
         String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.CREATE);
+        Instant now = clock.instant();
         return new CrawledProductSyncOutbox(
                 null,
                 crawledProductId,
@@ -83,7 +85,7 @@ public class CrawledProductSyncOutbox {
                 ProductOutboxStatus.PENDING,
                 0,
                 null,
-                LocalDateTime.now(),
+                now,
                 null);
     }
 
@@ -92,11 +94,13 @@ public class CrawledProductSyncOutbox {
             CrawledProductId crawledProductId,
             SellerId sellerId,
             long itemNo,
-            Long externalProductId) {
+            Long externalProductId,
+            Clock clock) {
         if (externalProductId == null) {
             throw new IllegalArgumentException("갱신 시 externalProductId는 필수입니다.");
         }
         String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.UPDATE);
+        Instant now = clock.instant();
         return new CrawledProductSyncOutbox(
                 null,
                 crawledProductId,
@@ -108,7 +112,7 @@ public class CrawledProductSyncOutbox {
                 ProductOutboxStatus.PENDING,
                 0,
                 null,
-                LocalDateTime.now(),
+                now,
                 null);
     }
 
@@ -124,8 +128,8 @@ public class CrawledProductSyncOutbox {
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         return new CrawledProductSyncOutbox(
                 id,
                 crawledProductId,
@@ -150,14 +154,23 @@ public class CrawledProductSyncOutbox {
                 UUID.randomUUID().toString().substring(0, 8));
     }
 
-    /** 처리 시작 (API 호출 시작) */
-    public void markAsProcessing() {
+    /**
+     * 처리 시작 (API 호출 시작)
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsProcessing(Clock clock) {
         this.status = ProductOutboxStatus.PROCESSING;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
-    /** 동기화 완료 (신규 등록 시 외부 ID 저장) */
-    public void markAsCompleted(Long externalProductId) {
+    /**
+     * 동기화 완료 (신규 등록 시 외부 ID 저장)
+     *
+     * @param externalProductId 외부 상품 ID
+     * @param clock 시간 제어
+     */
+    public void markAsCompleted(Long externalProductId, Clock clock) {
         if (this.syncType == SyncType.CREATE && externalProductId == null) {
             throw new IllegalArgumentException("신규 등록 완료 시 externalProductId는 필수입니다.");
         }
@@ -165,15 +178,20 @@ public class CrawledProductSyncOutbox {
             this.externalProductId = externalProductId;
         }
         this.status = ProductOutboxStatus.COMPLETED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
-    /** 처리 실패 */
-    public void markAsFailed(String errorMessage) {
+    /**
+     * 처리 실패
+     *
+     * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
+     */
+    public void markAsFailed(String errorMessage, Clock clock) {
         this.status = ProductOutboxStatus.FAILED;
         this.retryCount++;
         this.errorMessage = errorMessage;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */
@@ -259,11 +277,11 @@ public class CrawledProductSyncOutbox {
         return errorMessage;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getProcessedAt() {
+    public Instant getProcessedAt() {
         return processedAt;
     }
 

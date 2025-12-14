@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.query.SearchCrawlSchedulersApiRequest;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>GET /api/v1/schedules - 크롤 스케줄러 목록 조회
+ *   <li>GET /api/v1/crawling/schedules - 크롤 스케줄러 목록 조회
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -51,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.schedule.base}")
+@RequestMapping(ApiPaths.Schedules.BASE)
 @Validated
 public class CrawlSchedulerQueryController {
 
@@ -78,7 +79,7 @@ public class CrawlSchedulerQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/schedules
+     *   <li>Path: /api/v1/crawling/schedules
      *   <li>Status: 200 OK
      * </ul>
      *

@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -21,8 +20,8 @@ import java.util.Map;
  *   <li>path: 경로
  *   <li>queryParams: 쿼리 파라미터
  *   <li>fullUrl: 전체 URL
- *   <li>createdAt: 생성 시각
- *   <li>updatedAt: 수정 시각
+ *   <li>createdAt: 생성 시각 (ISO-8601 형식)
+ *   <li>updatedAt: 수정 시각 (ISO-8601 형식)
  * </ul>
  *
  * @param crawlTaskId 크롤 태스크 ID
@@ -35,8 +34,8 @@ import java.util.Map;
  * @param path 경로
  * @param queryParams 쿼리 파라미터
  * @param fullUrl 전체 URL
- * @param createdAt 생성 시각
- * @param updatedAt 수정 시각
+ * @param createdAt 생성 시각 (ISO-8601 형식)
+ * @param updatedAt 수정 시각 (ISO-8601 형식)
  * @author development-team
  * @since 1.0.0
  */
@@ -51,5 +50,5 @@ public record CrawlTaskDetailApiResponse(
         String path,
         Map<String, String> queryParams,
         String fullUrl,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+        String createdAt,
+        String updatedAt) {}

@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>GET /api/v1/user-agents/pool-status - UserAgent Pool 상태 조회
+ *   <li>GET /api/v1/crawling/user-agents/pool-status - UserAgent Pool 상태 조회
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -44,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.user-agent.base}")
+@RequestMapping(ApiPaths.UserAgents.BASE)
 @Validated
 public class UserAgentQueryController {
 
@@ -71,7 +72,7 @@ public class UserAgentQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/user-agents/pool-status
+     *   <li>Path: /api/v1/crawling/user-agents/pool-status
      *   <li>Status: 200 OK
      * </ul>
      *
@@ -101,7 +102,7 @@ public class UserAgentQueryController {
      *
      * @return UserAgent Pool 상태 (200 OK)
      */
-    @GetMapping("${api.endpoints.user-agent.pool-status}")
+    @GetMapping(ApiPaths.UserAgents.POOL_STATUS)
     public ResponseEntity<ApiResponse<UserAgentPoolStatusApiResponse>> getPoolStatus() {
         // 1. UseCase 실행 (비즈니스 로직)
         UserAgentPoolStatusResponse useCaseResponse = getUserAgentPoolStatusUseCase.execute();

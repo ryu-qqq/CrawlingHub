@@ -24,8 +24,9 @@ public final class InvalidCrawlTaskStateException extends DomainException {
     public InvalidCrawlTaskStateException(
             CrawlTaskStatus currentStatus, CrawlTaskStatus expectedStatus) {
         super(
-                ERROR_CODE.getCode(),
-                "유효하지 않은 상태 전환입니다. 현재 상태: " + currentStatus + ", 기대 상태: " + expectedStatus,
+                ERROR_CODE,
+                String.format(
+                        "유효하지 않은 상태 전환입니다. 현재 상태: %s, 기대 상태: %s", currentStatus, expectedStatus),
                 Map.of(
                         "currentStatus", currentStatus.name(),
                         "expectedStatus", expectedStatus.name()));

@@ -10,8 +10,10 @@ public final class SellerHasActiveSchedulersException extends DomainException {
 
     public SellerHasActiveSchedulersException(long sellerId, int activeSchedulerCount) {
         super(
-                ERROR_CODE.getCode(),
-                ERROR_CODE.getMessage(),
+                ERROR_CODE,
+                String.format(
+                        "활성화된 스케줄러가 있어 셀러를 비활성화할 수 없습니다. 셀러: %d, 활성 스케줄러: %d개",
+                        sellerId, activeSchedulerCount),
                 Map.of("sellerId", sellerId, "activeSchedulerCount", activeSchedulerCount));
     }
 }

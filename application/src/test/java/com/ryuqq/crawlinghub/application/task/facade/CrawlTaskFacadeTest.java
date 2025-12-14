@@ -5,15 +5,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,6 +41,9 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("CrawlTaskFacade 테스트")
 class CrawlTaskFacadeTest {
 
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(Instant.parse("2025-11-27T12:00:00Z"), ZoneId.of("UTC"));
+
     @Mock private CrawlTaskPersistenceValidator validator;
 
     @Mock private CrawlTaskTransactionManager transactionManager;
@@ -43,14 +52,22 @@ class CrawlTaskFacadeTest {
 
     @Mock private ApplicationEventPublisher eventPublisher;
 
+    @Mock private ClockHolder clockHolder;
+
     @InjectMocks private CrawlTaskFacade facade;
+
+    @BeforeEach
+    void setUp() {
+        Clock fixedClock = FixedClock.aDefaultClock();
+        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+    }
 
     @Nested
     @DisplayName("persist() 테스트")
     class Persist {
 
         @Test
-        @DisplayName("[성공] CrawlTaskBundle 저장 및 이벤트 발행")
+        @DisplayName("[성공] CrawlTaskBundle 저장 및 이벤트 발행 → CrawlTask 반환")
         void shouldPersistBundleAndPublishEvents() {
             // Given
             CrawlTask task = CrawlTaskFixture.aWaitingTask();
@@ -60,11 +77,11 @@ class CrawlTaskFacadeTest {
             given(transactionManager.persist(task)).willReturn(expectedId);
 
             // When
-            CrawlTaskBundle result = facade.persist(bundle);
+            CrawlTask result = facade.persist(bundle);
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getSavedTaskId()).isEqualTo(expectedId);
+            assertThat(result.getIdValue()).isEqualTo(expectedId.value());
             verify(validator)
                     .validateNoDuplicateTask(
                             bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());

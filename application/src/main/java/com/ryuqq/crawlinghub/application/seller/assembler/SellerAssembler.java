@@ -1,90 +1,34 @@
 package com.ryuqq.crawlinghub.application.seller.assembler;
 
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
  * Seller Assembler
  *
- * <p>DTO ↔ Domain 변환 전용 컴포넌트
+ * <p>Domain → Response DTO 변환 전용 컴포넌트
  *
  * <ul>
- *   <li>DTO → Domain: Command를 Domain 객체로 변환
  *   <li>Domain → DTO: Domain을 Response DTO로 변환
+ *   <li>Query → Criteria: Query DTO를 Domain 조회 조건으로 변환
  *   <li>비즈니스 로직 없음 (단순 변환만)
  * </ul>
+ *
+ * <p><strong>주의</strong>: Command → Domain 변환은 {@code SellerCommandFactory}에서 담당
  *
  * @author development-team
  * @since 1.0.0
  */
 @Component
 public class SellerAssembler {
-
-    private final ClockHolder clockHolder;
-
-    public SellerAssembler(ClockHolder clockHolder) {
-        this.clockHolder = clockHolder;
-    }
-
-    /**
-     * RegisterSellerCommand → Seller (신규 생성)
-     *
-     * @param command 셀러 등록 Command
-     * @return 신규 Seller Aggregate
-     */
-    public Seller toDomain(RegisterSellerCommand command) {
-        return Seller.forNew(
-                MustItSellerName.of(command.mustItSellerName()),
-                SellerName.of(command.sellerName()),
-                clockHolder.clock());
-    }
-
-    /**
-     * UpdateSellerCommand → Seller (비교용 임시 객체)
-     *
-     * <p>Command의 값들을 Domain 객체로 변환하여 기존 Seller와 비교 가능하게 함
-     *
-     * <p>주의: 이 객체는 영속화되지 않으며, 비교 목적으로만 사용
-     *
-     * @param command 셀러 수정 Command
-     * @return 비교용 Seller 객체
-     */
-    public Seller toDomain(UpdateSellerCommand command) {
-        MustItSellerName mustItSellerName =
-                command.mustItSellerName() != null
-                        ? MustItSellerName.of(command.mustItSellerName())
-                        : null;
-        SellerName sellerName =
-                command.sellerName() != null ? SellerName.of(command.sellerName()) : null;
-        SellerStatus status =
-                command.active() != null
-                        ? (command.active() ? SellerStatus.ACTIVE : SellerStatus.INACTIVE)
-                        : null;
-
-        // 비교용 임시 객체 (ID만 있으면 됨, 나머지는 비교 대상)
-        return Seller.of(
-                SellerId.of(command.sellerId()),
-                mustItSellerName,
-                sellerName,
-                status,
-                0, // productCount (비교 불필요)
-                null, // createdAt (비교 불필요)
-                null, // updatedAt (비교 불필요)
-                clockHolder.clock());
-    }
 
     /**
      * Seller → SellerResponse

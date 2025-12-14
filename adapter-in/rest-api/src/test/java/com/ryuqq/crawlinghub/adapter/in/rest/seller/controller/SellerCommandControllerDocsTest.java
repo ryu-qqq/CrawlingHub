@@ -22,7 +22,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerCommandApiMappe
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerUseCase;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,7 +49,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private SellerCommandApiMapper sellerCommandApiMapper;
 
     @Test
-    @DisplayName("POST /api/v1/sellers - 셀러 등록 API 문서")
+    @DisplayName("POST /api/v1/crawling/sellers - 셀러 등록 API 문서")
     void registerSeller() throws Exception {
         // given
         RegisterSellerApiRequest request = new RegisterSellerApiRequest("머스트잇 셀러명", "커머스 셀러명");
@@ -60,17 +60,12 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                         "머스트잇 셀러명",
                         "커머스 셀러명",
                         true,
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
+                        Instant.parse("2025-11-19T10:30:00Z"),
                         null);
 
         SellerApiResponse apiResponse =
                 new SellerApiResponse(
-                        1L,
-                        "머스트잇 셀러명",
-                        "커머스 셀러명",
-                        "ACTIVE",
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
-                        null);
+                        1L, "머스트잇 셀러명", "커머스 셀러명", "ACTIVE", "2025-11-19T10:30:00Z", null);
 
         given(sellerCommandApiMapper.toCommand(any())).willReturn(null);
         given(registerSellerUseCase.execute(any())).willReturn(useCaseResponse);
@@ -78,7 +73,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        post("/api/v1/sellers")
+                        post("/api/v1/crawling/sellers")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -133,7 +128,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/sellers/{id} - 셀러 수정 API 문서")
+    @DisplayName("PATCH /api/v1/crawling/sellers/{id} - 셀러 수정 API 문서")
     void updateSeller() throws Exception {
         // given
         Long sellerId = 1L;
@@ -146,8 +141,8 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                         "새 머스트잇 셀러명",
                         "새 커머스 셀러명",
                         false,
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 19, 11, 0, 0));
+                        Instant.parse("2025-11-19T10:30:00Z"),
+                        Instant.parse("2025-11-19T11:00:00Z"));
 
         SellerApiResponse apiResponse =
                 new SellerApiResponse(
@@ -155,8 +150,8 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                         "새 머스트잇 셀러명",
                         "새 커머스 셀러명",
                         "INACTIVE",
-                        LocalDateTime.of(2025, 11, 19, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 19, 11, 0, 0));
+                        "2025-11-19T10:30:00Z",
+                        "2025-11-19T11:00:00Z");
 
         given(sellerCommandApiMapper.toCommand(any(), any())).willReturn(null);
         given(updateSellerUseCase.execute(any())).willReturn(useCaseResponse);
@@ -164,7 +159,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        patch("/api/v1/sellers/{id}", sellerId)
+                        patch("/api/v1/crawling/sellers/{id}", sellerId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

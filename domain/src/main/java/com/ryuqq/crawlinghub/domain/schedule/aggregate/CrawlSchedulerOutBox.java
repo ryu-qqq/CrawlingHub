@@ -1,11 +1,10 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 크롤 스케줄러 아웃박스 Aggregate Root
@@ -32,9 +31,8 @@ public class CrawlSchedulerOutBox {
     private String errorMessage; // 실패 시 에러 메시지
     private Long version; // Optimistic Locking
 
-    private final LocalDateTime createdAt;
-    private LocalDateTime processedAt;
-    private final Clock clock;
+    private final Instant createdAt;
+    private Instant processedAt;
 
     // ==================== 생성 메서드 (3종) ====================
 
@@ -48,7 +46,7 @@ public class CrawlSchedulerOutBox {
      */
     public static CrawlSchedulerOutBox forNew(
             CrawlSchedulerHistoryId historyId, String eventPayload, Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return new CrawlSchedulerOutBox(
                 null, // Auto Increment: ID null
                 historyId,
@@ -57,8 +55,7 @@ public class CrawlSchedulerOutBox {
                 null, // errorMessage null
                 0L, // version 초기값
                 now,
-                null, // processedAt null
-                clock);
+                null); // processedAt null
     }
 
     /**
@@ -72,7 +69,6 @@ public class CrawlSchedulerOutBox {
      * @param version 버전 (Optimistic Locking)
      * @param createdAt 생성 시각
      * @param processedAt 처리 시각
-     * @param clock 시간 제어
      * @return CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox of(
@@ -82,9 +78,8 @@ public class CrawlSchedulerOutBox {
             String eventPayload,
             String errorMessage,
             Long version,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant processedAt) {
         if (outBoxId == null) {
             throw new IllegalArgumentException("outBoxId는 null일 수 없습니다.");
         }
@@ -96,8 +91,7 @@ public class CrawlSchedulerOutBox {
                 errorMessage,
                 version,
                 createdAt,
-                processedAt,
-                clock);
+                processedAt);
     }
 
     /**
@@ -111,7 +105,6 @@ public class CrawlSchedulerOutBox {
      * @param version 버전 (Optimistic Locking)
      * @param createdAt 생성 시각
      * @param processedAt 처리 시각
-     * @param clock 시간 제어
      * @return CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox reconstitute(
@@ -121,9 +114,8 @@ public class CrawlSchedulerOutBox {
             String eventPayload,
             String errorMessage,
             Long version,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant processedAt) {
         if (outBoxId == null) {
             throw new IllegalArgumentException("outBoxId는 null일 수 없습니다.");
         }
@@ -135,8 +127,7 @@ public class CrawlSchedulerOutBox {
                 errorMessage,
                 version,
                 createdAt,
-                processedAt,
-                clock);
+                processedAt);
     }
 
     /** 생성자 (private) */
@@ -147,9 +138,8 @@ public class CrawlSchedulerOutBox {
             String eventPayload,
             String errorMessage,
             Long version,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant processedAt) {
         this.outBoxId = outBoxId;
         this.historyId = historyId;
         this.status = status;
@@ -158,18 +148,21 @@ public class CrawlSchedulerOutBox {
         this.version = version;
         this.createdAt = createdAt;
         this.processedAt = processedAt;
-        this.clock = clock;
     }
 
     // ==================== 비즈니스 메서드 ====================
 
-    /** AWS EventBridge 동기화 완료 */
-    public void markAsCompleted() {
+    /**
+     * AWS EventBridge 동기화 완료
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsCompleted(Clock clock) {
         if (this.status == CrawlSchedulerOubBoxStatus.COMPLETED) {
             return; // 이미 완료 상태면 무시
         }
         this.status = CrawlSchedulerOubBoxStatus.COMPLETED;
-        this.processedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        this.processedAt = clock.instant();
         this.errorMessage = null;
     }
 
@@ -177,13 +170,14 @@ public class CrawlSchedulerOutBox {
      * AWS EventBridge 동기화 실패
      *
      * @param errorMessage 에러 메시지
+     * @param clock 시간 제어
      */
-    public void markAsFailed(String errorMessage) {
+    public void markAsFailed(String errorMessage, Clock clock) {
         if (errorMessage == null || errorMessage.isBlank()) {
             throw new IllegalArgumentException("에러 메시지는 null이거나 빈 문자열일 수 없습니다.");
         }
         this.status = CrawlSchedulerOubBoxStatus.FAILED;
-        this.processedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        this.processedAt = clock.instant();
         this.errorMessage = errorMessage;
     }
 
@@ -229,11 +223,11 @@ public class CrawlSchedulerOutBox {
         return errorMessage;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getProcessedAt() {
+    public Instant getProcessedAt() {
         return processedAt;
     }
 

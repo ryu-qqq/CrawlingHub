@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceVali
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,16 +40,19 @@ public class CrawlTaskFacade {
     private final CrawlTaskTransactionManager transactionManager;
     private final CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final ClockHolder clockHolder;
 
     public CrawlTaskFacade(
             CrawlTaskPersistenceValidator validator,
             CrawlTaskTransactionManager transactionManager,
             CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            ClockHolder clockHolder) {
         this.validator = validator;
         this.transactionManager = transactionManager;
         this.crawlTaskOutboxTransactionManager = crawlTaskOutboxTransactionManager;
         this.eventPublisher = eventPublisher;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -64,28 +68,28 @@ public class CrawlTaskFacade {
      * </ol>
      *
      * @param bundle 저장할 CrawlTask 번들
-     * @return 저장된 CrawlTask 번들 (ID 할당됨)
+     * @return 저장된 CrawlTask (ID 할당됨, ClockHolder 캡슐화)
      */
     @Transactional
-    public CrawlTaskBundle persist(CrawlTaskBundle bundle) {
+    public CrawlTask persist(CrawlTaskBundle bundle) {
         CrawlTask crawlTask = bundle.getCrawlTask();
 
         // 1. 중복 Task 검증
         validator.validateNoDuplicateTask(
                 bundle.getCrawlScheduleId(), crawlTask.getSellerId(), crawlTask.getTaskType());
 
-        // 3. CrawlTask 저장 → ID 반환 → 번들에 설정
+        // 2. CrawlTask 저장 → ID 반환 → 새 번들 반환 (Immutable)
         CrawlTaskId savedTaskId = transactionManager.persist(crawlTask);
-        bundle.withTaskId(savedTaskId);
+        bundle = bundle.withTaskId(savedTaskId);
 
-        // 4. Outbox 저장
-        crawlTaskOutboxTransactionManager.persist(bundle.createOutbox());
+        // 3. Outbox 저장
+        crawlTaskOutboxTransactionManager.persist(bundle.createOutbox(clockHolder.getClock()));
 
-        // 5. 도메인 이벤트 발행 (getSavedCrawlTask()에서 자동으로 등록 이벤트 추가)
-        CrawlTask savedTask = bundle.getSavedCrawlTask();
+        // 4. 저장된 CrawlTask 생성 + 도메인 이벤트 발행
+        CrawlTask savedTask = bundle.getSavedCrawlTask(clockHolder.getClock());
         savedTask.getDomainEvents().forEach(eventPublisher::publishEvent);
         savedTask.clearDomainEvents();
 
-        return bundle;
+        return savedTask;
     }
 }

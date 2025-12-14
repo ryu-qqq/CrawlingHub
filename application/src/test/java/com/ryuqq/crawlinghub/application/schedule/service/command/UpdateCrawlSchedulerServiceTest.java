@@ -13,14 +13,16 @@ import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssemb
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
-import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,7 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateCrawlSchedulerService 테스트")
 class UpdateCrawlSchedulerServiceTest {
 
-    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlSchedulerReadManager readManager;
 
     @Mock private CrawlerSchedulerFacade crawlerSchedulerFacade;
 
@@ -70,14 +72,12 @@ class UpdateCrawlSchedulerServiceTest {
                             "updated-scheduler",
                             "cron(0 12 * * ? *)",
                             SchedulerStatus.ACTIVE,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
+            given(readManager.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
-            given(
-                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
-                                    any(SellerId.class), anyString()))
+            given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(false);
             given(crawlSchedulerAssembler.toResponse(existingScheduler))
                     .willReturn(expectedResponse);
@@ -87,8 +87,14 @@ class UpdateCrawlSchedulerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(crawlScheduleQueryPort).should().findById(CrawlSchedulerId.of(schedulerId));
-            then(crawlerSchedulerFacade).should().update(existingScheduler);
+            then(readManager).should().findById(CrawlSchedulerId.of(schedulerId));
+            then(crawlerSchedulerFacade)
+                    .should()
+                    .updateScheduler(
+                            any(CrawlScheduler.class),
+                            any(SchedulerName.class),
+                            any(CronExpression.class),
+                            any(SchedulerStatus.class));
             then(crawlSchedulerAssembler).should().toResponse(existingScheduler);
         }
 
@@ -110,10 +116,10 @@ class UpdateCrawlSchedulerServiceTest {
                             sameName,
                             "cron(0 12 * * ? *)",
                             SchedulerStatus.INACTIVE,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
+            given(readManager.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
             given(crawlSchedulerAssembler.toResponse(existingScheduler))
                     .willReturn(expectedResponse);
@@ -122,7 +128,7 @@ class UpdateCrawlSchedulerServiceTest {
             service.update(command);
 
             // Then
-            then(crawlScheduleQueryPort)
+            then(readManager)
                     .should(never())
                     .existsBySellerIdAndSchedulerName(any(SellerId.class), anyString());
         }
@@ -136,14 +142,19 @@ class UpdateCrawlSchedulerServiceTest {
                     new UpdateCrawlSchedulerCommand(
                             schedulerId, "new-name", "cron(0 0 * * ? *)", true);
 
-            given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
-                    .willReturn(Optional.empty());
+            given(readManager.findById(any(CrawlSchedulerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.update(command))
                     .isInstanceOf(CrawlSchedulerNotFoundException.class);
 
-            then(crawlerSchedulerFacade).should(never()).update(any());
+            then(crawlerSchedulerFacade)
+                    .should(never())
+                    .updateScheduler(
+                            any(CrawlScheduler.class),
+                            any(SchedulerName.class),
+                            any(CronExpression.class),
+                            any(SchedulerStatus.class));
         }
 
         @Test
@@ -156,18 +167,22 @@ class UpdateCrawlSchedulerServiceTest {
                             schedulerId, "duplicate-name", "cron(0 0 * * ? *)", true);
             CrawlScheduler existingScheduler = CrawlSchedulerFixture.anActiveScheduler();
 
-            given(crawlScheduleQueryPort.findById(any(CrawlSchedulerId.class)))
+            given(readManager.findById(any(CrawlSchedulerId.class)))
                     .willReturn(Optional.of(existingScheduler));
-            given(
-                            crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
-                                    any(SellerId.class), anyString()))
+            given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> service.update(command))
                     .isInstanceOf(DuplicateSchedulerNameException.class);
 
-            then(crawlerSchedulerFacade).should(never()).update(any());
+            then(crawlerSchedulerFacade)
+                    .should(never())
+                    .updateScheduler(
+                            any(CrawlScheduler.class),
+                            any(SchedulerName.class),
+                            any(CronExpression.class),
+                            any(SchedulerStatus.class));
         }
     }
 }

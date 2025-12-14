@@ -12,6 +12,9 @@ import com.ryuqq.crawlinghub.application.seller.event.SellerDeactivatedEventHand
 import com.ryuqq.crawlinghub.application.seller.metrics.SellerEventMetrics;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,8 +49,9 @@ class SellerDeactivatedEventHandlerTest {
         @DisplayName("[성공] Seller 비활성화 이벤트 → 스케줄러 비활성화 및 메트릭 기록")
         void shouldDeactivateSchedulersAndRecordMetrics() {
             // Given
+            Clock clock = Clock.fixed(Instant.parse("2025-01-15T10:00:00Z"), ZoneId.of("UTC"));
             SellerId sellerId = SellerIdFixture.anAssignedId();
-            SellerDeActiveEvent event = SellerDeActiveEvent.of(sellerId);
+            SellerDeActiveEvent event = SellerDeActiveEvent.of(sellerId, clock);
             int deactivatedCount = 3;
 
             given(deactivateSchedulersBySellerUseCase.execute(sellerId.value()))
@@ -77,8 +81,9 @@ class SellerDeactivatedEventHandlerTest {
         @DisplayName("[성공] 비활성화할 스케줄러가 없는 경우에도 정상 처리")
         void shouldHandleZeroSchedulers() {
             // Given
+            Clock clock = Clock.fixed(Instant.parse("2025-01-15T10:00:00Z"), ZoneId.of("UTC"));
             SellerId sellerId = SellerIdFixture.anAssignedId();
-            SellerDeActiveEvent event = SellerDeActiveEvent.of(sellerId);
+            SellerDeActiveEvent event = SellerDeActiveEvent.of(sellerId, clock);
             int deactivatedCount = 0;
 
             given(deactivateSchedulersBySellerUseCase.execute(sellerId.value()))

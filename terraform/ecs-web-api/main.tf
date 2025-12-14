@@ -47,6 +47,18 @@ data "aws_ssm_parameter" "eventbridge_role_arn" {
 }
 
 # ========================================
+# Service Discovery Namespace (from shared infrastructure)
+# ========================================
+data "aws_ssm_parameter" "service_discovery_namespace_id" {
+  name = "/shared/service-discovery/namespace-id"
+}
+
+# VPC data source for internal communication
+data "aws_vpc" "main" {
+  id = local.vpc_id
+}
+
+# ========================================
 # Security Groups (using Infrastructure module)
 # ========================================
 
@@ -81,6 +93,17 @@ module "ecs_security_group" {
   enable_ecs_alb_ingress     = true
   ecs_ingress_from_alb_sg_id = module.alb_security_group.security_group_id
   ecs_container_port         = 8080
+
+  # Service Discovery - VPC internal communication
+  custom_ingress_rules = [
+    {
+      from_port   = 8080
+      to_port     = 8080
+      protocol    = "tcp"
+      cidr_block  = data.aws_vpc.main.cidr_block
+      description = "Service Discovery - internal VPC communication"
+    }
+  ]
 
   environment  = local.common_tags.environment
   service_name = local.common_tags.service_name
@@ -505,6 +528,11 @@ module "ecs_service" {
   # Deployment Configuration
   deployment_circuit_breaker_enable   = true
   deployment_circuit_breaker_rollback = true
+
+  # Service Discovery Configuration
+  enable_service_discovery         = true
+  service_discovery_namespace_id   = data.aws_ssm_parameter.service_discovery_namespace_id.value
+  service_discovery_namespace_name = "connectly.local"
 
   # Tagging
   environment  = var.environment

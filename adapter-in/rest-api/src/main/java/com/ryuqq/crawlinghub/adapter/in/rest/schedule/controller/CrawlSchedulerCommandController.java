@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
@@ -30,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/schedules - 크롤 스케줄러 등록
- *   <li>PATCH /api/v1/schedules/{id} - 크롤 스케줄러 수정
+ *   <li>POST /api/v1/crawling/schedules - 크롤 스케줄러 등록
+ *   <li>PATCH /api/v1/crawling/schedules/{id} - 크롤 스케줄러 수정
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.schedule.base}")
+@RequestMapping(ApiPaths.Schedules.BASE)
 @Validated
 public class CrawlSchedulerCommandController {
 
@@ -149,7 +150,7 @@ public class CrawlSchedulerCommandController {
      *
      * <ul>
      *   <li>Method: PATCH
-     *   <li>Path: /api/v1/schedules/{id}
+     *   <li>Path: /api/v1/crawling/schedules/{id}
      *   <li>Status: 200 OK
      * </ul>
      *

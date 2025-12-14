@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.response;
 
-import java.time.LocalDateTime;
-
 /**
  * CrawlExecution 목록 조회 API Response DTO
  *
@@ -14,8 +12,8 @@ import java.time.LocalDateTime;
  * @param status 상태 (RUNNING, SUCCESS, FAILED, TIMEOUT)
  * @param httpStatusCode HTTP 상태 코드 (nullable)
  * @param durationMs 실행 시간 (밀리초, nullable)
- * @param startedAt 실행 시작 시각
- * @param completedAt 실행 완료 시각 (nullable)
+ * @param startedAt 실행 시작 시각 (ISO-8601 형식)
+ * @param completedAt 실행 완료 시각 (ISO-8601 형식, nullable)
  * @author development-team
  * @since 1.0.0
  */
@@ -27,5 +25,5 @@ public record CrawlExecutionApiResponse(
         String status,
         Integer httpStatusCode,
         Long durationMs,
-        LocalDateTime startedAt,
-        LocalDateTime completedAt) {}
+        String startedAt,
+        String completedAt) {}

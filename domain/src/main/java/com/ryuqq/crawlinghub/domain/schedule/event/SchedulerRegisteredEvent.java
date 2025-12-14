@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 스케줄러 등록 이벤트
@@ -17,6 +19,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
  * @param sellerId 셀러 ID
  * @param schedulerName 스케줄러 이름
  * @param cronExpression 크론 표현식
+ * @param occurredAt 이벤트 발생 시각
  * @author development-team
  * @since 1.0.0
  */
@@ -25,7 +28,8 @@ public record SchedulerRegisteredEvent(
         CrawlSchedulerHistoryId historyId,
         SellerId sellerId,
         SchedulerName schedulerName,
-        CronExpression cronExpression)
+        CronExpression cronExpression,
+        Instant occurredAt)
         implements DomainEvent {
 
     /** Compact Constructor (검증 로직) */
@@ -45,6 +49,9 @@ public record SchedulerRegisteredEvent(
         if (cronExpression == null) {
             throw new IllegalArgumentException("cronExpression은 null일 수 없습니다.");
         }
+        if (occurredAt == null) {
+            throw new IllegalArgumentException("occurredAt은 null일 수 없습니다.");
+        }
     }
 
     /**
@@ -55,6 +62,7 @@ public record SchedulerRegisteredEvent(
      * @param sellerId 셀러 ID
      * @param schedulerName 스케줄러 이름
      * @param cronExpression 크론 표현식
+     * @param clock 시간 제어
      * @return SchedulerRegisteredEvent
      */
     public static SchedulerRegisteredEvent of(
@@ -62,9 +70,10 @@ public record SchedulerRegisteredEvent(
             CrawlSchedulerHistoryId historyId,
             SellerId sellerId,
             SchedulerName schedulerName,
-            CronExpression cronExpression) {
+            CronExpression cronExpression,
+            Clock clock) {
         return new SchedulerRegisteredEvent(
-                schedulerId, historyId, sellerId, schedulerName, cronExpression);
+                schedulerId, historyId, sellerId, schedulerName, cronExpression, clock.instant());
     }
 
     public String getScheduleNameValue() {

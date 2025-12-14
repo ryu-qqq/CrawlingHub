@@ -10,13 +10,13 @@ import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
  */
 public class NoAvailableUserAgentException extends DomainException {
 
+    private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.NO_AVAILABLE_USER_AGENT;
+
     public NoAvailableUserAgentException() {
-        super(
-                UserAgentErrorCode.NO_AVAILABLE_USER_AGENT.getCode(),
-                UserAgentErrorCode.NO_AVAILABLE_USER_AGENT.getMessage());
+        super(ERROR_CODE);
     }
 
     public NoAvailableUserAgentException(String message) {
-        super(UserAgentErrorCode.NO_AVAILABLE_USER_AGENT.getCode(), message);
+        super(ERROR_CODE, message);
     }
 }

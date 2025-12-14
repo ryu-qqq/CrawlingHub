@@ -4,23 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
-import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
-import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPersistencePort;
-import com.ryuqq.crawlinghub.application.useragent.port.out.query.UserAgentQueryPort;
+import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * UserAgentPoolManager 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Cache/Query/Persistence Port Mocking
+ * <p>Mockist 스타일 테스트: CacheManager/ReadManager/TransactionManager Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -41,13 +44,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UserAgentPoolManager 테스트")
 class UserAgentPoolManagerTest {
 
-    @Mock private UserAgentPoolCachePort cachePort;
+    @Mock private UserAgentPoolCacheManager cacheManager;
 
-    @Mock private UserAgentQueryPort queryPort;
+    @Mock private UserAgentReadManager readManager;
 
-    @Mock private UserAgentPersistencePort persistencePort;
+    @Mock private UserAgentTransactionManager transactionManager;
+
+    @Mock private ClockHolder clockHolder;
 
     @InjectMocks private UserAgentPoolManager manager;
+
+    @BeforeEach
+    void setUp() {
+        Clock fixedClock = FixedClock.aDefaultClock();
+        lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+    }
 
     @Nested
     @DisplayName("consume() 테스트")
@@ -61,25 +72,25 @@ class UserAgentPoolManagerTest {
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
             CachedUserAgent cachedUserAgent = CachedUserAgent.forNew(userAgent);
 
-            given(cachePort.getPoolStats()).willReturn(healthyStats);
-            given(cachePort.consumeToken()).willReturn(Optional.of(cachedUserAgent));
+            given(cacheManager.getPoolStats()).willReturn(healthyStats);
+            given(cacheManager.consumeToken()).willReturn(Optional.of(cachedUserAgent));
 
             // When
             CachedUserAgent result = manager.consume();
 
             // Then
             assertThat(result).isEqualTo(cachedUserAgent);
-            verify(cachePort).getPoolStats();
-            verify(cachePort).consumeToken();
+            verify(cacheManager).getPoolStats();
+            verify(cacheManager).consumeToken();
         }
 
         @Test
         @DisplayName("[실패] 가용률 부족 → CircuitBreakerOpenException")
         void shouldThrowCircuitBreakerOpenWhenLowAvailability() {
             // Given
-            PoolStats lowStats = new PoolStats(100, 10, 90, 50.0, 30, 70); // 10% 가용률
+            PoolStats lowStats = new PoolStats(100, 10, 90, 10.0, 30, 70); // 10% 가용률
 
-            given(cachePort.getPoolStats()).willReturn(lowStats);
+            given(cacheManager.getPoolStats()).willReturn(lowStats);
 
             // When & Then
             assertThatThrownBy(() -> manager.consume())
@@ -92,7 +103,7 @@ class UserAgentPoolManagerTest {
             // Given
             PoolStats emptyStats = PoolStats.empty();
 
-            given(cachePort.getPoolStats()).willReturn(emptyStats);
+            given(cacheManager.getPoolStats()).willReturn(emptyStats);
 
             // When & Then
             assertThatThrownBy(() -> manager.consume())
@@ -105,8 +116,8 @@ class UserAgentPoolManagerTest {
             // Given
             PoolStats healthyStats = new PoolStats(100, 80, 20, 85.0, 70, 100);
 
-            given(cachePort.getPoolStats()).willReturn(healthyStats);
-            given(cachePort.consumeToken()).willReturn(Optional.empty());
+            given(cacheManager.getPoolStats()).willReturn(healthyStats);
+            given(cacheManager.consumeToken()).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> manager.consume())
@@ -128,7 +139,7 @@ class UserAgentPoolManagerTest {
             manager.recordResult(command);
 
             // Then
-            verify(cachePort).recordSuccess(UserAgentId.of(1L));
+            verify(cacheManager).recordSuccess(UserAgentId.of(1L));
         }
 
         @Test
@@ -138,16 +149,16 @@ class UserAgentPoolManagerTest {
             RecordUserAgentResultCommand command = RecordUserAgentResultCommand.failure(1L, 429);
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
-            given(queryPort.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
 
             // When
             manager.recordResult(command);
 
             // Then
-            verify(cachePort).expireSession(any(UserAgentId.class));
-            verify(cachePort).removeFromPool(any(UserAgentId.class));
-            verify(queryPort).findById(any(UserAgentId.class));
-            verify(persistencePort).persist(userAgent);
+            verify(cacheManager).expireSession(any(UserAgentId.class));
+            verify(cacheManager).removeFromPool(any(UserAgentId.class));
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager).persist(userAgent);
         }
 
         @Test
@@ -156,16 +167,16 @@ class UserAgentPoolManagerTest {
             // Given
             RecordUserAgentResultCommand command = RecordUserAgentResultCommand.failure(1L, 500);
 
-            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class)))
+            given(cacheManager.recordFailure(any(UserAgentId.class), any(Integer.class)))
                     .willReturn(false);
 
             // When
             manager.recordResult(command);
 
             // Then
-            verify(cachePort).recordFailure(any(UserAgentId.class), any(Integer.class));
-            verify(queryPort, never()).findById(any(UserAgentId.class));
-            verify(persistencePort, never()).persist(any(UserAgent.class));
+            verify(cacheManager).recordFailure(any(UserAgentId.class), any(Integer.class));
+            verify(readManager, never()).findById(any(UserAgentId.class));
+            verify(transactionManager, never()).persist(any(UserAgent.class));
         }
 
         @Test
@@ -175,16 +186,16 @@ class UserAgentPoolManagerTest {
             RecordUserAgentResultCommand command = RecordUserAgentResultCommand.failure(1L, 500);
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
-            given(cachePort.recordFailure(any(UserAgentId.class), any(Integer.class)))
+            given(cacheManager.recordFailure(any(UserAgentId.class), any(Integer.class)))
                     .willReturn(true);
-            given(queryPort.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
 
             // When
             manager.recordResult(command);
 
             // Then
-            verify(queryPort).findById(any(UserAgentId.class));
-            verify(persistencePort).persist(userAgent);
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager).persist(userAgent);
         }
     }
 
@@ -196,7 +207,7 @@ class UserAgentPoolManagerTest {
         @DisplayName("[성공] 복구 대상 없음 → 0 반환")
         void shouldReturnZeroWhenNoRecoverableAgents() {
             // Given
-            given(cachePort.getRecoverableUserAgents()).willReturn(List.of());
+            given(cacheManager.getRecoverableUserAgents()).willReturn(List.of());
 
             // When
             int result = manager.recoverSuspendedUserAgents();
@@ -212,16 +223,16 @@ class UserAgentPoolManagerTest {
             UserAgentId userAgentId = UserAgentIdFixture.anAssignedId();
             UserAgent userAgent = UserAgentFixture.aSuspendedUserAgent();
 
-            given(cachePort.getRecoverableUserAgents()).willReturn(List.of(userAgentId));
-            given(queryPort.findById(userAgentId)).willReturn(Optional.of(userAgent));
+            given(cacheManager.getRecoverableUserAgents()).willReturn(List.of(userAgentId));
+            given(readManager.findById(userAgentId)).willReturn(Optional.of(userAgent));
 
             // When
             int result = manager.recoverSuspendedUserAgents();
 
             // Then
             assertThat(result).isEqualTo(1);
-            verify(cachePort).restoreToPool(any(UserAgentId.class), any(String.class));
-            verify(persistencePort).persist(userAgent);
+            verify(cacheManager).restoreToPool(any(UserAgentId.class), any(String.class));
+            verify(transactionManager).persist(userAgent);
         }
 
         @Test
@@ -230,8 +241,8 @@ class UserAgentPoolManagerTest {
             // Given
             UserAgentId userAgentId = UserAgentIdFixture.anAssignedId();
 
-            given(cachePort.getRecoverableUserAgents()).willReturn(List.of(userAgentId));
-            given(queryPort.findById(userAgentId)).willReturn(Optional.empty());
+            given(cacheManager.getRecoverableUserAgents()).willReturn(List.of(userAgentId));
+            given(readManager.findById(userAgentId)).willReturn(Optional.empty());
 
             // When
             int result = manager.recoverSuspendedUserAgents();
@@ -251,7 +262,7 @@ class UserAgentPoolManagerTest {
             // Given
             PoolStats expectedStats = new PoolStats(100, 80, 20, 85.0, 70, 100);
 
-            given(cachePort.getPoolStats()).willReturn(expectedStats);
+            given(cacheManager.getPoolStats()).willReturn(expectedStats);
 
             // When
             PoolStats result = manager.getPoolStats();

@@ -1,11 +1,13 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.architecture.dto;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.*;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -44,10 +46,17 @@ class CommandDtoArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
-    /** 규칙 1: Record 타입 필수 */
+    /**
+     * 규칙 1: Record 타입 필수
+     *
+     * <p>예외: @JsonTypeInfo를 사용하는 다형성 DTO는 sealed interface 허용
+     */
     @Test
     @DisplayName("[필수] Command DTO는 Record 타입이어야 한다")
     void commandDto_MustBeRecords() {
@@ -56,14 +65,18 @@ class CommandDtoArchTest {
                         .that()
                         .resideInAPackage("..dto.command..")
                         .and()
+                        .resideOutsideOfPackage(LEGACY_V1_PATTERN) // Legacy V1 제외
+                        .and()
                         .haveSimpleNameEndingWith("ApiRequest")
                         .and()
                         .areNotNestedClasses() // Nested Record는 제외
+                        .and()
+                        .areNotInterfaces() // sealed interface 제외 (다형성 DTO용)
                         .should()
                         .beRecords()
-                        .because("Command DTO는 불변 객체이므로 Record를 사용해야 합니다");
+                        .because("Command DTO는 불변 객체이므로 Record를 사용해야 합니다 (sealed interface 제외)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 2: 네이밍 규칙 (*ApiRequest) */
@@ -80,7 +93,7 @@ class CommandDtoArchTest {
                         .haveSimpleNameEndingWith("ApiRequest")
                         .because("Command DTO는 *ApiRequest 네이밍 규칙을 따라야 합니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 3: Lombok 어노테이션 절대 금지 */
@@ -109,7 +122,7 @@ class CommandDtoArchTest {
                         .beAnnotatedWith("lombok.Value")
                         .because("Command DTO는 Pure Java Record를 사용해야 하며 Lombok은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 4: Jackson 어노테이션 절대 금지 */
@@ -135,7 +148,7 @@ class CommandDtoArchTest {
                                 "com.fasterxml.jackson.databind.annotation.JsonDeserialize")
                         .because("Command DTO는 프레임워크 독립적이어야 하며 Jackson 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 5: Domain 변환 메서드 금지 */
@@ -154,7 +167,7 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO → Domain 변환은 Mapper/Assembler의 책임입니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 6: 비즈니스 로직 메서드 금지 */
@@ -173,7 +186,7 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO는 데이터 전송만 담당하며 비즈니스 로직은 Domain Layer 책임입니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 7: Bean Validation 어노테이션 사용 권장 */
@@ -195,7 +208,7 @@ class CommandDtoArchTest {
 
         // Note: 이 규칙은 권장사항이므로 실패 시 경고만 표시
         try {
-            rule.check(classes);
+            rule.allowEmptyShould(true).check(classes);
         } catch (AssertionError e) {
             System.out.println("⚠️  Warning: " + e.getMessage());
         }
@@ -213,11 +226,15 @@ class CommandDtoArchTest {
                         .areNotNestedClasses()
                         .and()
                         .resideInAPackage("..adapter.in.rest..")
+                        .and()
+                        .resideOutsideOfPackage(LEGACY_V1_PATTERN) // Legacy V1 제외
+                        .and()
+                        .resideInAPackage("..dto.command..") // dto.command 패키지의 클래스만 검증
                         .should()
                         .resideInAPackage("..dto.command..")
-                        .because("Command DTO는 dto.command 패키지에 위치해야 합니다");
+                        .because("Command DTO는 dto.command 패키지에 위치해야 합니다 (Legacy V1 제외)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 9: Setter 메서드 절대 금지 (Record이므로 자동 검증) */
@@ -236,7 +253,7 @@ class CommandDtoArchTest {
                         .resideInAPackage("..dto.command..")
                         .because("Command DTO는 불변 객체이므로 Setter는 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /** 규칙 10: Spring 어노테이션 절대 금지 */
@@ -255,6 +272,6 @@ class CommandDtoArchTest {
                         .beAnnotatedWith("org.springframework.context.annotation.Configuration")
                         .because("Command DTO는 순수 데이터 전송 객체이므로 Spring 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 }

@@ -39,7 +39,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
     @Test
-    @DisplayName("GET /api/v1/user-agents/pool-status - UserAgent Pool 상태 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/user-agents/pool-status - UserAgent Pool 상태 조회 API 문서")
     void getPoolStatus() throws Exception {
         // given
         UserAgentPoolStatusResponse useCaseResponse =
@@ -60,7 +60,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
         given(userAgentApiMapper.toApiResponse(useCaseResponse)).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/user-agents/pool-status"))
+        mockMvc.perform(get("/api/v1/crawling/user-agents/pool-status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalAgents").value(100))

@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,12 +19,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CrawlSchedulerOutBoxJpaEntityMapper {
-
-    private final ClockHolder clockHolder;
-
-    public CrawlSchedulerOutBoxJpaEntityMapper(ClockHolder clockHolder) {
-        this.clockHolder = clockHolder;
-    }
 
     /**
      * Domain → Entity 변환
@@ -38,8 +34,8 @@ public class CrawlSchedulerOutBoxJpaEntityMapper {
                 domain.getEventPayload(),
                 domain.getErrorMessage(),
                 domain.getVersion(),
-                domain.getCreatedAt(),
-                domain.getProcessedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getProcessedAt()));
     }
 
     /**
@@ -56,8 +52,21 @@ public class CrawlSchedulerOutBoxJpaEntityMapper {
                 entity.getEventPayload(),
                 entity.getErrorMessage(),
                 entity.getVersion(),
-                entity.getCreatedAt(),
-                entity.getProcessedAt(),
-                clockHolder.clock());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getProcessedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

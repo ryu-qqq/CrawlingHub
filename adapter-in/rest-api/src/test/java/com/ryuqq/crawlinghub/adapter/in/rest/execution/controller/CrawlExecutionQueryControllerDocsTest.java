@@ -24,7 +24,7 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionRe
 import com.ryuqq.crawlinghub.application.execution.port.in.query.GetCrawlExecutionUseCase;
 import com.ryuqq.crawlinghub.application.execution.port.in.query.ListCrawlExecutionsUseCase;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private CrawlExecutionQueryApiMapper mapper;
 
     @Test
-    @DisplayName("GET /api/v1/executions - CrawlExecution 목록 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/executions - CrawlExecution 목록 조회 API 문서")
     void listCrawlExecutions() throws Exception {
         // given
         List<CrawlExecutionResponse> content =
@@ -64,8 +64,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlExecutionStatus.SUCCESS,
                                 200,
                                 1500L,
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 1)),
+                                Instant.parse("2025-11-20T10:30:00Z"),
+                                Instant.parse("2025-11-20T10:30:01Z")),
                         new CrawlExecutionResponse(
                                 2L,
                                 2L,
@@ -74,8 +74,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlExecutionStatus.FAILED,
                                 500,
                                 3000L,
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 0),
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 3)));
+                                Instant.parse("2025-11-20T10:35:00Z"),
+                                Instant.parse("2025-11-20T10:35:03Z")));
 
         PageResponse<CrawlExecutionResponse> pageResponse =
                 new PageResponse<>(content, 0, 20, 2, 1, true, true);
@@ -90,8 +90,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 "SUCCESS",
                                 200,
                                 1500L,
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 1)),
+                                "2025-11-20T10:30:00Z",
+                                "2025-11-20T10:30:01Z"),
                         new CrawlExecutionApiResponse(
                                 2L,
                                 2L,
@@ -100,8 +100,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 "FAILED",
                                 500,
                                 3000L,
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 0),
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 3)));
+                                "2025-11-20T10:35:00Z",
+                                "2025-11-20T10:35:03Z"));
 
         PageApiResponse<CrawlExecutionApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -112,7 +112,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        get("/api/v1/executions")
+                        get("/api/v1/crawling/executions")
                                 .param("crawlTaskId", "1")
                                 .param("crawlSchedulerId", "1")
                                 .param("sellerId", "1")
@@ -218,7 +218,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("GET /api/v1/executions/{id} - CrawlExecution 상세 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/executions/{id} - CrawlExecution 상세 조회 API 문서")
     void getCrawlExecution() throws Exception {
         // given
         Long executionId = 1L;
@@ -233,8 +233,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         "{\"products\": [{\"id\": 1, \"name\": \"Product1\"}]}",
                         null,
                         1500L,
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 1));
+                        Instant.parse("2025-11-20T10:30:00Z"),
+                        Instant.parse("2025-11-20T10:30:01Z"));
 
         CrawlExecutionDetailApiResponse apiResponse =
                 new CrawlExecutionDetailApiResponse(
@@ -247,15 +247,15 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         "{\"products\": [{\"id\": 1, \"name\": \"Product1\"}]}",
                         null,
                         1500L,
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 1));
+                        "2025-11-20T10:30:00Z",
+                        "2025-11-20T10:30:01Z");
 
         given(mapper.toGetQuery(any())).willReturn(null);
         given(getCrawlExecutionUseCase.execute(any())).willReturn(useCaseResponse);
         given(mapper.toDetailApiResponse(any())).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/executions/{id}", executionId))
+        mockMvc.perform(get("/api/v1/crawling/executions/{id}", executionId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlExecutionId").value(1))
@@ -323,7 +323,7 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("GET /api/v1/executions/{id} - 실패한 CrawlExecution 상세 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/executions/{id} - 실패한 CrawlExecution 상세 조회 API 문서")
     void getCrawlExecution_failed() throws Exception {
         // given
         Long executionId = 2L;
@@ -338,8 +338,8 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         null,
                         "Internal Server Error: Connection timeout",
                         3000L,
-                        LocalDateTime.of(2025, 11, 20, 10, 35, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 35, 3));
+                        Instant.parse("2025-11-20T10:35:00Z"),
+                        Instant.parse("2025-11-20T10:35:03Z"));
 
         CrawlExecutionDetailApiResponse apiResponse =
                 new CrawlExecutionDetailApiResponse(
@@ -352,15 +352,15 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         null,
                         "Internal Server Error: Connection timeout",
                         3000L,
-                        LocalDateTime.of(2025, 11, 20, 10, 35, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 35, 3));
+                        "2025-11-20T10:35:00Z",
+                        "2025-11-20T10:35:03Z");
 
         given(mapper.toGetQuery(any())).willReturn(null);
         given(getCrawlExecutionUseCase.execute(any())).willReturn(useCaseResponse);
         given(mapper.toDetailApiResponse(any())).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/executions/{id}", executionId))
+        mockMvc.perform(get("/api/v1/crawling/executions/{id}", executionId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlExecutionId").value(2))

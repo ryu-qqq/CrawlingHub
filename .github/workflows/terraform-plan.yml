@@ -1,22 +1,7 @@
 name: Terraform Plan
 
-# 아틀란티스로 인프라 관리를 전환하여 자동 트리거 비활성화
-# 긴급 상황 시 수동으로만 실행 가능
 on:
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: '수동 실행 사유 (긴급 상황에만 사용)'
-        required: true
-        type: string
-
-  # 자동 트리거 비활성화 (아틀란티스 사용)
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'terraform/**'
-  #     - '.github/workflows/terraform-*.yml'
+  workflow_dispatch:  # 수동 트리거만 허용 (Atlantis가 PR 기반 IaC 변경 담당)
 
 permissions:
   contents: read
@@ -37,16 +22,8 @@ jobs:
             dir: terraform/ecs-cluster
           - name: elasticache
             dir: terraform/elasticache
-          - name: sqs
-            dir: terraform/sqs
           - name: ecs-web-api
             dir: terraform/ecs-web-api
-          - name: ecs-scheduler
-            dir: terraform/ecs-scheduler
-          - name: ecs-crawl-worker
-            dir: terraform/ecs-crawl-worker
-          - name: eventbridge
-            dir: terraform/eventbridge
 
     steps:
       - name: Checkout code
@@ -64,7 +41,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-northeast-2
           role-duration-seconds: 3600
-          role-session-name: GitHubActions-CrawlingHub-TerraformPlan
+          role-session-name: GitHubActions-SetOfCommerce-TerraformPlan
 
       - name: Terraform Format Check - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
@@ -117,8 +94,8 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const modules = ['ecr', 'ecs-cluster', 'elasticache', 'sqs', 'ecs-web-api', 'ecs-scheduler', 'ecs-crawl-worker', 'eventbridge'];
-            let planSummary = `#### CrawlingHub Terraform Plan 📋\n\n`;
+            const modules = ['ecr', 'ecs-cluster', 'elasticache', 'ecs-web-api'];
+            let planSummary = `#### SetOf Commerce Terraform Plan 📋\n\n`;
             planSummary += `**Environment**: Production\n`;
             planSummary += `**Modules**: ${modules.length}\n\n`;
 

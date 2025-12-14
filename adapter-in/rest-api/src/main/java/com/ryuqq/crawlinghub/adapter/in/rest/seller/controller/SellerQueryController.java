@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
@@ -31,8 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>GET /api/v1/sellers/{id} - 셀러 단건 조회
- *   <li>GET /api/v1/sellers - 셀러 목록 조회
+ *   <li>GET /api/v1/crawling/sellers/{id} - 셀러 단건 조회
+ *   <li>GET /api/v1/crawling/sellers - 셀러 목록 조회
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -58,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.seller.base}")
+@RequestMapping(ApiPaths.Sellers.BASE)
 @Validated
 public class SellerQueryController {
 
@@ -89,7 +90,7 @@ public class SellerQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/sellers/{id}
+     *   <li>Path: /api/v1/crawling/sellers/{id}
      *   <li>Status: 200 OK
      * </ul>
      *
@@ -115,7 +116,7 @@ public class SellerQueryController {
      * @param id 셀러 ID (양수, PathVariable)
      * @return 셀러 상세 정보 (200 OK)
      */
-    @GetMapping("${api.endpoints.seller.by-id}")
+    @GetMapping(ApiPaths.Sellers.BY_ID)
     public ResponseEntity<ApiResponse<SellerApiResponse>> getSeller(
             @PathVariable @Positive Long id) {
         // 1. ID → UseCase Query 변환 (Mapper)
@@ -138,7 +139,7 @@ public class SellerQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/sellers
+     *   <li>Path: /api/v1/crawling/sellers
      *   <li>Status: 200 OK
      * </ul>
      *

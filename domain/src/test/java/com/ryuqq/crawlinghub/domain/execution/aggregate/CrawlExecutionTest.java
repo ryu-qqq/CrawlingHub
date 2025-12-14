@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.domain.execution.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
@@ -39,12 +40,16 @@ class CrawlExecutionTest {
         @Test
         @DisplayName("실행 시작 시 RUNNING 상태, ID 미할당")
         void shouldStartExecutionWithRunningStatusAndUnassignedId() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+
             // when
             CrawlExecution execution =
                     CrawlExecution.start(
                             CrawlTaskIdFixture.anAssignedId(),
                             CrawlSchedulerIdFixture.anAssignedId(),
-                            SellerIdFixture.anAssignedId());
+                            SellerIdFixture.anAssignedId(),
+                            clock);
 
             // then
             assertThat(execution.getId()).isNotNull();
@@ -61,7 +66,7 @@ class CrawlExecutionTest {
         @DisplayName("실행 시작 시 createdAt이 설정됨")
         void shouldSetCreatedAt() {
             // when
-            CrawlExecution execution = CrawlExecutionFixture.aNewExecution();
+            CrawlExecution execution = CrawlExecutionFixture.forNew();
 
             // then
             assertThat(execution.getCreatedAt()).isNotNull();
@@ -71,7 +76,7 @@ class CrawlExecutionTest {
         @DisplayName("실행 시작 시 CrawlTaskId, CrawlSchedulerId, SellerId가 설정됨")
         void shouldSetRelatedIds() {
             // when
-            CrawlExecution execution = CrawlExecutionFixture.aNewExecution();
+            CrawlExecution execution = CrawlExecutionFixture.forNew();
 
             // then
             assertThat(execution.getCrawlTaskId()).isNotNull();
@@ -108,9 +113,10 @@ class CrawlExecutionTest {
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             String responseBody = "{\"data\":\"test\"}";
             Integer httpStatusCode = 200;
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            execution.completeWithSuccess(responseBody, httpStatusCode);
+            execution.completeWithSuccess(responseBody, httpStatusCode, clock);
 
             // then
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.SUCCESS);
@@ -128,9 +134,10 @@ class CrawlExecutionTest {
         void shouldThrowExceptionWhenNotInRunningStatus() {
             // given
             CrawlExecution execution = CrawlExecutionFixture.aSuccessExecution();
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when & then
-            assertThatThrownBy(() -> execution.completeWithSuccess("{}", 200))
+            assertThatThrownBy(() -> execution.completeWithSuccess("{}", 200, clock))
                     .isInstanceOf(InvalidCrawlExecutionStateException.class);
         }
     }
@@ -146,9 +153,10 @@ class CrawlExecutionTest {
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             Integer httpStatusCode = 500;
             String errorMessage = "Internal Server Error";
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            execution.completeWithFailure(httpStatusCode, errorMessage);
+            execution.completeWithFailure(httpStatusCode, errorMessage, clock);
 
             // then
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.FAILED);
@@ -167,9 +175,10 @@ class CrawlExecutionTest {
             String responseBody = "{\"error\":\"Bad Request\"}";
             Integer httpStatusCode = 400;
             String errorMessage = "Bad Request";
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            execution.completeWithFailure(responseBody, httpStatusCode, errorMessage);
+            execution.completeWithFailure(responseBody, httpStatusCode, errorMessage, clock);
 
             // then
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.FAILED);
@@ -184,9 +193,10 @@ class CrawlExecutionTest {
         void shouldThrowExceptionWhenNotInRunningStatus() {
             // given
             CrawlExecution execution = CrawlExecutionFixture.aFailedExecution();
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when & then
-            assertThatThrownBy(() -> execution.completeWithFailure(500, "Error"))
+            assertThatThrownBy(() -> execution.completeWithFailure(500, "Error", clock))
                     .isInstanceOf(InvalidCrawlExecutionStateException.class);
         }
     }
@@ -201,9 +211,10 @@ class CrawlExecutionTest {
             // given
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
             String errorMessage = "Request timed out after 30000ms";
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when
-            execution.completeWithTimeout(errorMessage);
+            execution.completeWithTimeout(errorMessage, clock);
 
             // then
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.TIMEOUT);
@@ -218,9 +229,10 @@ class CrawlExecutionTest {
         void shouldThrowExceptionWhenNotInRunningStatus() {
             // given
             CrawlExecution execution = CrawlExecutionFixture.aTimeoutExecution();
+            FixedClock clock = FixedClock.aDefaultClock();
 
             // when & then
-            assertThatThrownBy(() -> execution.completeWithTimeout("Timeout"))
+            assertThatThrownBy(() -> execution.completeWithTimeout("Timeout", clock))
                     .isInstanceOf(InvalidCrawlExecutionStateException.class);
         }
     }

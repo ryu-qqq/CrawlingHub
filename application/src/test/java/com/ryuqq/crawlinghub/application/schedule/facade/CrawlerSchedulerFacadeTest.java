@@ -9,11 +9,11 @@ import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerHistoryManager;
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerManager;
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerHistoryTransactionManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerTransactionManager;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
@@ -42,13 +42,13 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("CrawlerSchedulerFacade 테스트")
 class CrawlerSchedulerFacadeTest {
 
-    @Mock private CrawlerSchedulerManager crawlerSchedulerManager;
+    @Mock private CrawlSchedulerTransactionManager crawlerSchedulerManager;
 
-    @Mock private CrawlerSchedulerOutBoxManager crawlerSchedulerOutBoxManager;
+    @Mock private CrawlSchedulerOutBoxTransactionManager crawlerSchedulerOutBoxManager;
 
-    @Mock private CrawlerSchedulerHistoryManager crawlerSchedulerHistoryManager;
+    @Mock private CrawlSchedulerHistoryTransactionManager crawlerSchedulerHistoryManager;
 
-    @Mock private CrawlSchedulerAssembler crawlSchedulerAssembler;
+    @Mock private CrawlSchedulerCommandFactory commandFactory;
 
     @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -56,11 +56,12 @@ class CrawlerSchedulerFacadeTest {
 
     @InjectMocks private CrawlerSchedulerFacade facade;
 
-    private FixedClock fixedClock;
+    private java.time.Clock fixedClock;
 
     @BeforeEach
     void setUp() {
         fixedClock = FixedClock.aDefaultClock();
+        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
     }
 
     @Nested
@@ -68,12 +69,12 @@ class CrawlerSchedulerFacadeTest {
     class Persist {
 
         @Test
-        @DisplayName("[성공] CrawlSchedulerBundle 저장 및 이벤트 발행")
+        @DisplayName("[성공] CrawlSchedulerBundle 저장 및 이벤트 발행 → CrawlScheduler 반환")
         void shouldPersistBundleAndPublishEvents() {
             // Given
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             CrawlSchedulerBundle bundle =
-                    CrawlSchedulerBundle.of(scheduler, "{\"payload\": \"test\"}", fixedClock);
+                    CrawlSchedulerBundle.of(scheduler, "{\"payload\": \"test\"}");
             CrawlSchedulerId expectedSchedulerId = CrawlSchedulerIdFixture.anAssignedId();
             CrawlSchedulerHistoryId expectedHistoryId =
                     CrawlSchedulerHistoryIdFixture.anAssignedId();
@@ -83,12 +84,11 @@ class CrawlerSchedulerFacadeTest {
                     .willReturn(expectedHistoryId);
 
             // When
-            CrawlSchedulerBundle result = facade.persist(bundle);
+            CrawlScheduler result = facade.persist(bundle);
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getSavedSchedulerId()).isEqualTo(expectedSchedulerId);
-            assertThat(result.getSavedHistoryId()).isEqualTo(expectedHistoryId);
+            assertThat(result.getCrawlSchedulerIdValue()).isEqualTo(expectedSchedulerId.value());
             verify(crawlerSchedulerManager).persist(scheduler);
             verify(crawlerSchedulerHistoryManager).persist(any(CrawlSchedulerHistory.class));
             verify(crawlerSchedulerOutBoxManager).persist(any(CrawlSchedulerOutBox.class));

@@ -1,9 +1,7 @@
 package com.ryuqq.crawlinghub.config;
 
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
-
 import java.time.Clock;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

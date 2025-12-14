@@ -83,11 +83,17 @@ class ErrorCodeTest {
         ErrorCode errorCode = TestErrorCode.NOT_FOUND;
 
         // When
-        DomainException exception =
-                new DomainException(errorCode.getCode(), errorCode.getMessage());
+        DomainException exception = new TestDomainException(errorCode);
 
         // Then
         assertThat(exception.code()).isEqualTo("TEST-002");
         assertThat(exception.getMessage()).isEqualTo("Resource not found");
+    }
+
+    /** 테스트용 DomainException 구현체 */
+    private static class TestDomainException extends DomainException {
+        TestDomainException(ErrorCode errorCode) {
+            super(errorCode);
+        }
     }
 }

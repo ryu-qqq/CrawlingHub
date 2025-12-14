@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/user-agents/recover - 정지된 UserAgent 복구
+ *   <li>POST /api/v1/crawling/user-agents/recover - 정지된 UserAgent 복구
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -43,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.user-agent.base}")
+@RequestMapping(ApiPaths.UserAgents.BASE)
 @Validated
 public class UserAgentCommandController {
 
@@ -70,7 +71,7 @@ public class UserAgentCommandController {
      *
      * <ul>
      *   <li>Method: POST
-     *   <li>Path: /api/v1/user-agents/recover
+     *   <li>Path: /api/v1/crawling/user-agents/recover
      *   <li>Status: 200 OK
      * </ul>
      *
@@ -99,7 +100,7 @@ public class UserAgentCommandController {
      *
      * @return 복구 결과 (200 OK)
      */
-    @PostMapping("${api.endpoints.user-agent.recover}")
+    @PostMapping(ApiPaths.UserAgents.RECOVER)
     public ResponseEntity<ApiResponse<RecoverUserAgentApiResponse>> recoverUserAgents() {
         // 1. UseCase 실행 (비즈니스 로직)
         int recoveredCount = recoverUserAgentUseCase.recoverAll();
