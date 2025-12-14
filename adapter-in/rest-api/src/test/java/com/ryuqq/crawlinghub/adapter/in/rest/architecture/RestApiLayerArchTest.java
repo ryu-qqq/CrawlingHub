@@ -1,6 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.architecture;
 
-import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.*;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.DOMAIN_ALL;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.DOMAIN_EXCEPTION_ALL;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.LEGACY_V1_PATTERN;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;

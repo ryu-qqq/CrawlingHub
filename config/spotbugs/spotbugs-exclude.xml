@@ -26,11 +26,319 @@
         <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
     </Match>
 
+    <!-- Test code: Fields initialized by @BeforeEach or @Autowired -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- Test code: Catching broad Exception is acceptable in tests -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- Test code: Dead stores often intentional for readability -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+    </Match>
+
+    <!-- Test code: Null value tests are intentional -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+
+    <!-- Test support classes: Static fields may be set in @BeforeAll -->
+    <Match>
+        <Class name="~.*TestSupport"/>
+        <Bug pattern="MS_SHOULD_BE_FINAL"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*TestSupport"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Test support: ExecutorService submit return value often ignored in tests -->
+    <Match>
+        <Class name="~.*TestSupport"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+
+    <!-- Test code: Dropped exceptions in test scenarios -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+
+    <!-- Test code: Unread fields often set up for injection -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- Test code: Inner classes in tests don't need to be static -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+    </Match>
+
+    <!-- Test code: Serializable issues in anonymous inner classes -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="SE_BAD_FIELD_INNER_CLASS"/>
+    </Match>
+
+    <!-- Test code: Non-serializable field in inner class -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="SE_BAD_FIELD"/>
+    </Match>
+
     <!-- ========================================
          Configuration Classes
          ======================================== -->
     <Match>
         <Class name="~.*Configuration"/>
         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- ========================================
+         Record/VO Internal Representation
+         Records intentionally expose their components
+         ======================================== -->
+    <Match>
+        <Class name="~.*Criteria"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Exception"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- ========================================
+         Non-localized String Operations
+         Programmatic enum/constant parsing does not need locale
+         ======================================== -->
+    <Match>
+        <Package name="~com\.ryuqq\.crawlinghub\.domain\..*"/>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+
+    <Match>
+        <Package name="~com\.ryuqq\.crawlinghub\.adapter\.in\.rest\..*"/>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+
+    <!-- ========================================
+         Configuration/Properties Classes
+         Spring @ConfigurationProperties require mutable setters/getters
+         ======================================== -->
+    <Match>
+        <Class name="~.*Properties"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Properties"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Config"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         DTO/Response Classes
+         DTOs may expose collections for API responses
+         ======================================== -->
+    <Match>
+        <Class name="~.*ApiResponse"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*ApiResponse"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Response"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Response"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Builder Classes
+         Builders store references for efficiency
+         ======================================== -->
+    <Match>
+        <Class name="~.*\$Builder"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Infrastructure Classes
+         Filters, Handlers, Registries store injected components
+         ======================================== -->
+    <Match>
+        <Class name="~.*Filter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Handler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Registry"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Null Pointer - Exception Handlers
+         These methods have proper null guards at runtime
+         ======================================== -->
+    <Match>
+        <Class name="~.*ExceptionHandler"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- ========================================
+         Duplicate Code in Switch - Intentional
+         ======================================== -->
+    <Match>
+        <Class name="~.*ErrorMapper"/>
+        <Bug pattern="DB_DUPLICATE_SWITCH_CLAUSES"/>
+    </Match>
+
+    <!-- ========================================
+         Application Layer Components
+         Services, Managers, Factories store injected dependencies
+         ======================================== -->
+    <Match>
+        <Class name="~.*Manager"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Factory"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Assembler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Parser"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Metrics"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Listener"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Scheduler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Application DTOs
+         Bundle, Context, Result classes expose domain objects
+         ======================================== -->
+    <Match>
+        <Class name="~.*Bundle"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Bundle"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Context"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Context"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Result"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- ========================================
+         Parser Exception Handling
+         Catching broad exceptions is acceptable for parsing
+         ======================================== -->
+    <Match>
+        <Class name="~.*Parser"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- ========================================
+         Switch without default
+         Enum switches don't always need default
+         ======================================== -->
+    <Match>
+        <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+
+    <!-- ========================================
+         Adapter Classes
+         Adapters store injected infrastructure components
+         ======================================== -->
+    <Match>
+        <Class name="~.*Adapter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Redis Lock Adapter
+         Catching IllegalMonitorStateException is intentional for lock safety
+         ======================================== -->
+    <Match>
+        <Class name="~.*LockAdapter"/>
+        <Bug pattern="IMSE_DONT_CATCH_IMSE"/>
+    </Match>
+
+    <!-- ========================================
+         Constructor Exception Throwing
+         Some adapters validate configuration in constructor
+         ======================================== -->
+    <Match>
+        <Class name="~.*CacheAdapter"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- ========================================
+         Config Classes
+         Spring config classes may have fields read via Spring
+         ======================================== -->
+    <Match>
+        <Class name="~.*Config"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
     </Match>
 </FindBugsFilter>

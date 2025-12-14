@@ -1,6 +1,15 @@
 package com.ryuqq.crawlinghub.domain.architecture;
 
-import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.*;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.ADAPTER_ALL;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.APPLICATION_ALL;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.ARCHITECTURE_PATTERN;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.BOOTSTRAP_ALL;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.DOMAIN;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.DOMAIN_ALL;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.DOMAIN_COMMON;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.EVENT_PATTERN;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.EXCEPTION_PATTERN;
+import static com.ryuqq.crawlinghub.domain.architecture.ArchUnitPackageConstants.PERSISTENCE_ALL;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 import com.tngtech.archunit.core.domain.JavaClasses;

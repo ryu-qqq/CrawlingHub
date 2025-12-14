@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.redis.architecture.config;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.tngtech.archunit.base.DescribedPredicate;

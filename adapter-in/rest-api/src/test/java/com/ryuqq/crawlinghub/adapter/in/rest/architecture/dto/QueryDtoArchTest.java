@@ -10,7 +10,8 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 
-import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.*;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.LEGACY_V1_PATTERN;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
