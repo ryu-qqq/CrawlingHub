@@ -1,6 +1,14 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.architecture;
 
-import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.*;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.ADAPTER_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.APPLICATION_ALL;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.ARCHITECTURE_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.DOMAIN_ALL;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.ENTITY_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.MAPPER_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.PERSISTENCE;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.PERSISTENCE_ALL;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.REPOSITORY_PATTERN;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 

@@ -1,7 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.architecture;
 
-import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.*;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.CONFIG_PATTERN;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.architecture.ArchUnitPackageConstants.PERSISTENCE;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

@@ -1,7 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.out.redis.architecture.adapter.cache;
 
-import static com.ryuqq.crawlinghub.adapter.out.redis.architecture.ArchUnitPackageConstants.*;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.ryuqq.crawlinghub.adapter.out.redis.architecture.ArchUnitPackageConstants.DOMAIN_ALL;
+import static com.ryuqq.crawlinghub.adapter.out.redis.architecture.ArchUnitPackageConstants.REDIS;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
