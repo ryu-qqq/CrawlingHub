@@ -151,7 +151,7 @@ class CrawledRawJpaEntityMapperTest {
             Instant now = Instant.now();
             CrawledRaw domain =
                     CrawledRaw.reconstitute(
-                            CrawledRawId.of(null),
+                            CrawledRawId.unassigned(),
                             100L,
                             200L,
                             12345L,

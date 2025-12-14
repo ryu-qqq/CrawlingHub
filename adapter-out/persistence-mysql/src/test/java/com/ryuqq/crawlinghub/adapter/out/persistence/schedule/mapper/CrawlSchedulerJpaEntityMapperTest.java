@@ -103,7 +103,7 @@ class CrawlSchedulerJpaEntityMapperTest {
                             1L,
                             100L,
                             "test-scheduler",
-                            "0 0 * * * ?",
+                            "cron(0 0 * * ? *)",
                             SchedulerStatus.ACTIVE,
                             now,
                             now);
@@ -116,7 +116,7 @@ class CrawlSchedulerJpaEntityMapperTest {
             assertThat(domain.getCrawlSchedulerIdValue()).isEqualTo(1L);
             assertThat(domain.getSellerIdValue()).isEqualTo(100L);
             assertThat(domain.getSchedulerNameValue()).isEqualTo("test-scheduler");
-            assertThat(domain.getCronExpressionValue()).isEqualTo("0 0 * * * ?");
+            assertThat(domain.getCronExpressionValue()).isEqualTo("cron(0 0 * * ? *)");
             assertThat(domain.getStatus()).isEqualTo(SchedulerStatus.ACTIVE);
             assertThat(domain.getCreatedAt()).isNotNull();
             assertThat(domain.getUpdatedAt()).isNotNull();
@@ -132,7 +132,7 @@ class CrawlSchedulerJpaEntityMapperTest {
                             2L,
                             200L,
                             "inactive-scheduler",
-                            "0 30 * * * ?",
+                            "cron(30 0 * * ? *)",
                             SchedulerStatus.INACTIVE,
                             now,
                             now);
