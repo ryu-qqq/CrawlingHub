@@ -7,7 +7,8 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * UserAgent Aggregate Root
@@ -45,10 +46,10 @@ public class UserAgent {
     private final DeviceType deviceType;
     private UserAgentStatus status;
     private HealthScore healthScore;
-    private LocalDateTime lastUsedAt;
+    private Instant lastUsedAt;
     private int requestsPerDay;
-    private final LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Instant createdAt;
+    private Instant updatedAt;
 
     private UserAgent(
             UserAgentId id,
@@ -57,10 +58,10 @@ public class UserAgent {
             DeviceType deviceType,
             UserAgentStatus status,
             HealthScore healthScore,
-            LocalDateTime lastUsedAt,
+            Instant lastUsedAt,
             int requestsPerDay,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt) {
         this.id = id;
         this.token = token;
         this.userAgentString = userAgentString;
@@ -78,10 +79,11 @@ public class UserAgent {
      *
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
+     * @param clock 시간 제어
      * @return 새로운 UserAgent (AVAILABLE, Health Score 100)
      */
-    public static UserAgent create(Token token, UserAgentString userAgentString) {
-        LocalDateTime now = LocalDateTime.now();
+    public static UserAgent forNew(Token token, UserAgentString userAgentString, Clock clock) {
+        Instant now = clock.instant();
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
         return new UserAgent(
                 UserAgentId.unassigned(),
@@ -118,10 +120,10 @@ public class UserAgent {
             DeviceType deviceType,
             UserAgentStatus status,
             HealthScore healthScore,
-            LocalDateTime lastUsedAt,
+            Instant lastUsedAt,
             int requestsPerDay,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            Instant createdAt,
+            Instant updatedAt) {
         return new UserAgent(
                 id,
                 token,
@@ -137,18 +139,28 @@ public class UserAgent {
 
     // === 비즈니스 로직 ===
 
-    /** 사용 기록 (lastUsedAt, requestsPerDay 업데이트) */
-    public void markAsUsed() {
-        this.lastUsedAt = LocalDateTime.now();
+    /**
+     * 사용 기록 (lastUsedAt, requestsPerDay 업데이트)
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsUsed(Clock clock) {
+        Instant now = clock.instant();
+        this.lastUsedAt = now;
         this.requestsPerDay++;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = now;
     }
 
-    /** 성공 기록 (Health Score +5, 최대 100) */
-    public void recordSuccess() {
+    /**
+     * 성공 기록 (Health Score +5, 최대 100)
+     *
+     * @param clock 시간 제어
+     */
+    public void recordSuccess(Clock clock) {
+        Instant now = clock.instant();
         this.healthScore = this.healthScore.recordSuccess();
-        this.lastUsedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.lastUsedAt = now;
+        this.updatedAt = now;
     }
 
     /**
@@ -161,8 +173,9 @@ public class UserAgent {
      * </ul>
      *
      * @param httpStatusCode HTTP 응답 상태 코드
+     * @param clock 시간 제어
      */
-    public void recordFailure(int httpStatusCode) {
+    public void recordFailure(int httpStatusCode, Clock clock) {
         if (httpStatusCode == 429) {
             this.healthScore = this.healthScore.recordRateLimitFailure();
             this.status = UserAgentStatus.SUSPENDED;
@@ -174,8 +187,9 @@ public class UserAgent {
             checkAndSuspend();
         }
 
-        this.lastUsedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        Instant now = clock.instant();
+        this.lastUsedAt = now;
+        this.updatedAt = now;
     }
 
     /** Health Score < 30이면 자동 SUSPENDED */
@@ -188,47 +202,54 @@ public class UserAgent {
     /**
      * 수동 정지 (AVAILABLE → SUSPENDED)
      *
+     * @param clock 시간 제어
      * @throws InvalidUserAgentStateException 현재 상태가 AVAILABLE이 아닌 경우
      */
-    public void suspend() {
+    public void suspend(Clock clock) {
         if (!this.status.isAvailable()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.SUSPENDED);
         }
         this.status = UserAgentStatus.SUSPENDED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * 복구 (SUSPENDED → AVAILABLE, Health Score 70)
      *
+     * @param clock 시간 제어
      * @throws InvalidUserAgentStateException 복구 불가능한 상태인 경우
      */
-    public void recover() {
+    public void recover(Clock clock) {
         if (!this.status.canRecover()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.AVAILABLE);
         }
         this.status = UserAgentStatus.AVAILABLE;
         this.healthScore = HealthScore.recovered();
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     /**
      * 영구 차단 (AVAILABLE/SUSPENDED → BLOCKED)
      *
+     * @param clock 시간 제어
      * @throws InvalidUserAgentStateException 이미 BLOCKED 상태인 경우
      */
-    public void block() {
+    public void block(Clock clock) {
         if (this.status.isBlocked()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.BLOCKED);
         }
         this.status = UserAgentStatus.BLOCKED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
-    /** 일일 요청 수 초기화 (매일 자정 실행) */
-    public void resetDailyRequests() {
+    /**
+     * 일일 요청 수 초기화 (매일 자정 실행)
+     *
+     * @param clock 시간 제어
+     */
+    public void resetDailyRequests(Clock clock) {
         this.requestsPerDay = 0;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = clock.instant();
     }
 
     // === 상태 확인 메서드 ===
@@ -266,7 +287,7 @@ public class UserAgent {
      * @param threshold 복구 기준 시각
      * @return 복구 대상이면 true
      */
-    public boolean isRecoverable(LocalDateTime threshold) {
+    public boolean isRecoverable(Instant threshold) {
         return this.status.canRecover()
                 && this.lastUsedAt != null
                 && this.lastUsedAt.isBefore(threshold);
@@ -302,7 +323,7 @@ public class UserAgent {
         return healthScore.value();
     }
 
-    public LocalDateTime getLastUsedAt() {
+    public Instant getLastUsedAt() {
         return lastUsedAt;
     }
 
@@ -310,11 +331,11 @@ public class UserAgent {
         return requestsPerDay;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 }

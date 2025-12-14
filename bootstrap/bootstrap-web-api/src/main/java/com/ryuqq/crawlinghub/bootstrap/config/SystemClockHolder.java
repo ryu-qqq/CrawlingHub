@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.bootstrap.config;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 
 /**
@@ -22,7 +21,7 @@ import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 public record SystemClockHolder(java.time.Clock systemClock) implements ClockHolder {
 
     @Override
-    public Clock clock() {
-        return systemClock::instant;
+    public java.time.Clock getClock() {
+        return systemClock;
     }
 }

@@ -12,14 +12,16 @@ import java.util.Map;
  */
 public class RateLimitExceededException extends DomainException {
 
+    private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.RATE_LIMIT_EXCEEDED;
+
     public RateLimitExceededException(UserAgentId userAgentId) {
         super(
-                UserAgentErrorCode.RATE_LIMIT_EXCEEDED.getCode(),
+                ERROR_CODE,
                 String.format("Rate Limit 초과: UserAgent %d", userAgentId.value()),
                 Map.of("userAgentId", userAgentId.value()));
     }
 
     public RateLimitExceededException(String message) {
-        super(UserAgentErrorCode.RATE_LIMIT_EXCEEDED.getCode(), message);
+        super(ERROR_CODE, message);
     }
 }

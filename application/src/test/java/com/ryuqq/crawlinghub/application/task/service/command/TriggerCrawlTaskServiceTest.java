@@ -15,6 +15,7 @@ import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
+import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.InvalidSchedulerStateException;
@@ -22,7 +23,7 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TriggerCrawlTaskServiceTest {
 
     @Mock private CrawlTaskPersistenceValidator validator;
+
+    @Mock private CrawlTaskCommandFactory commandFactory;
 
     @Mock private CrawlTaskAssembler assembler;
 
@@ -74,13 +77,12 @@ class TriggerCrawlTaskServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            LocalDateTime.now());
+                            Instant.now());
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willReturn(scheduler);
-            given(assembler.toBundle(command, scheduler)).willReturn(mockBundle);
-            given(facade.persist(mockBundle)).willReturn(mockBundle);
-            given(mockBundle.getSavedCrawlTask()).willReturn(savedTask);
+            given(commandFactory.createBundle(command, scheduler)).willReturn(mockBundle);
+            given(facade.persist(mockBundle)).willReturn(savedTask);
             given(assembler.toResponse(savedTask)).willReturn(expectedResponse);
 
             // When
@@ -91,7 +93,7 @@ class TriggerCrawlTaskServiceTest {
             then(validator)
                     .should()
                     .findAndValidateScheduler(CrawlSchedulerId.of(crawlSchedulerId));
-            then(assembler).should().toBundle(command, scheduler);
+            then(commandFactory).should().createBundle(command, scheduler);
             then(facade).should().persist(mockBundle);
             then(assembler).should().toResponse(savedTask);
         }
@@ -110,7 +112,7 @@ class TriggerCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(CrawlSchedulerNotFoundException.class);
 
-            then(assembler).should(never()).toBundle(any(), any());
+            then(commandFactory).should(never()).createBundle(any(), any());
             then(facade).should(never()).persist(any());
         }
 
@@ -133,7 +135,7 @@ class TriggerCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(InvalidSchedulerStateException.class);
 
-            then(assembler).should(never()).toBundle(any(), any());
+            then(commandFactory).should(never()).createBundle(any(), any());
             then(facade).should(never()).persist(any());
         }
     }

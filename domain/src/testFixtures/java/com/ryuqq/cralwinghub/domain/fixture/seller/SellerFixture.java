@@ -1,14 +1,13 @@
 package com.ryuqq.cralwinghub.domain.fixture.seller;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * Seller Aggregate Test Fixture
@@ -21,6 +20,7 @@ import java.time.ZoneId;
 public final class SellerFixture {
 
     private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
 
     /**
      * 신규 활성 셀러 생성
@@ -63,16 +63,14 @@ public final class SellerFixture {
      * @return Seller (ID = 1L, ACTIVE)
      */
     public static Seller anActiveSeller() {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
                 SellerNameFixture.aDefaultName(),
                 SellerStatus.ACTIVE,
                 0,
-                now,
-                now,
-                DEFAULT_CLOCK);
+                DEFAULT_TIME,
+                DEFAULT_TIME);
     }
 
     /**
@@ -82,16 +80,14 @@ public final class SellerFixture {
      * @return Seller (ACTIVE)
      */
     public static Seller anActiveSeller(Long id) {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
         return Seller.of(
                 SellerId.of(id),
                 MustItSellerNameFixture.aDefaultName(),
                 SellerNameFixture.aDefaultName(),
                 SellerStatus.ACTIVE,
                 0,
-                now,
-                now,
-                DEFAULT_CLOCK);
+                DEFAULT_TIME,
+                DEFAULT_TIME);
     }
 
     /**
@@ -101,7 +97,7 @@ public final class SellerFixture {
      * @return Seller (ID = 1L, ACTIVE)
      */
     public static Seller anActiveSeller(Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
@@ -109,8 +105,7 @@ public final class SellerFixture {
                 SellerStatus.ACTIVE,
                 0,
                 now,
-                now,
-                clock);
+                now);
     }
 
     /**
@@ -119,16 +114,14 @@ public final class SellerFixture {
      * @return Seller (ID = 1L, INACTIVE)
      */
     public static Seller anInactiveSeller() {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
                 SellerNameFixture.aDefaultName(),
                 SellerStatus.INACTIVE,
                 0,
-                now,
-                now,
-                DEFAULT_CLOCK);
+                DEFAULT_TIME,
+                DEFAULT_TIME);
     }
 
     /**
@@ -138,7 +131,7 @@ public final class SellerFixture {
      * @return Seller (ID = 1L, INACTIVE)
      */
     public static Seller anInactiveSeller(Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
@@ -146,8 +139,7 @@ public final class SellerFixture {
                 SellerStatus.INACTIVE,
                 0,
                 now,
-                now,
-                clock);
+                now);
     }
 
     /**
@@ -157,7 +149,25 @@ public final class SellerFixture {
      * @return Seller (ID = 1L, ACTIVE, productCount)
      */
     public static Seller anActiveSellerWithProducts(int productCount) {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
+        return Seller.of(
+                SellerIdFixture.anAssignedId(),
+                MustItSellerNameFixture.aDefaultName(),
+                SellerNameFixture.aDefaultName(),
+                SellerStatus.ACTIVE,
+                productCount,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
+     * 상품 수가 있는 활성 셀러 생성 (특정 Clock)
+     *
+     * @param productCount 상품 수
+     * @param clock 시간 제어
+     * @return Seller (ID = 1L, ACTIVE, productCount)
+     */
+    public static Seller anActiveSellerWithProducts(int productCount, Clock clock) {
+        Instant now = clock.instant();
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
@@ -165,8 +175,7 @@ public final class SellerFixture {
                 SellerStatus.ACTIVE,
                 productCount,
                 now,
-                now,
-                DEFAULT_CLOCK);
+                now);
     }
 
     private SellerFixture() {

@@ -21,7 +21,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerUseCase;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -84,7 +84,7 @@ class SellerCommandControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/v1/sellers - 셀러 등록")
+    @DisplayName("POST /api/v1/crawling/sellers - 셀러 등록")
     class RegisterSellerTests {
 
         @Test
@@ -97,12 +97,11 @@ class SellerCommandControllerTest {
             RegisterSellerCommand command = new RegisterSellerCommand("머스트잇 테스트 셀러", "테스트 셀러");
 
             SellerResponse useCaseResponse =
-                    new SellerResponse(
-                            1L, "머스트잇 테스트 셀러", "테스트 셀러", true, LocalDateTime.now(), null);
+                    new SellerResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now(), null);
 
             SellerApiResponse apiResponse =
                     new SellerApiResponse(
-                            1L, "머스트잇 테스트 셀러", "테스트 셀러", "ACTIVE", LocalDateTime.now(), null);
+                            1L, "머스트잇 테스트 셀러", "테스트 셀러", "ACTIVE", Instant.now().toString(), null);
 
             given(sellerCommandApiMapper.toCommand(any(RegisterSellerApiRequest.class)))
                     .willReturn(command);
@@ -113,7 +112,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/sellers")
+                            post("/api/v1/crawling/sellers")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -145,7 +144,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/sellers")
+                            post("/api/v1/crawling/sellers")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest());
@@ -162,7 +161,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/sellers")
+                            post("/api/v1/crawling/sellers")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -185,7 +184,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/sellers")
+                            post("/api/v1/crawling/sellers")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(invalidRequest))
                     .andExpect(status().isBadRequest());
@@ -203,7 +202,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            post("/api/v1/sellers")
+                            post("/api/v1/crawling/sellers")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -214,7 +213,7 @@ class SellerCommandControllerTest {
     }
 
     @Nested
-    @DisplayName("PATCH /api/v1/sellers/{id} - 셀러 수정")
+    @DisplayName("PATCH /api/v1/crawling/sellers/{id} - 셀러 수정")
     class UpdateSellerTests {
 
         @Test
@@ -234,8 +233,8 @@ class SellerCommandControllerTest {
                             "수정된 머스트잇 셀러명",
                             "수정된 셀러명",
                             false,
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)),
+                            Instant.now());
 
             SellerApiResponse apiResponse =
                     new SellerApiResponse(
@@ -243,8 +242,8 @@ class SellerCommandControllerTest {
                             "수정된 머스트잇 셀러명",
                             "수정된 셀러명",
                             "INACTIVE",
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
+                            Instant.now().toString());
 
             given(
                             sellerCommandApiMapper.toCommand(
@@ -257,7 +256,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/sellers/{id}", sellerId)
+                            patch("/api/v1/crawling/sellers/{id}", sellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -292,8 +291,8 @@ class SellerCommandControllerTest {
                             "새로운 머스트잇 셀러명",
                             "기존 셀러명",
                             true,
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)),
+                            Instant.now());
 
             SellerApiResponse apiResponse =
                     new SellerApiResponse(
@@ -301,8 +300,8 @@ class SellerCommandControllerTest {
                             "새로운 머스트잇 셀러명",
                             "기존 셀러명",
                             "ACTIVE",
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
+                            Instant.now().toString());
 
             given(
                             sellerCommandApiMapper.toCommand(
@@ -315,7 +314,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/sellers/{id}", sellerId)
+                            patch("/api/v1/crawling/sellers/{id}", sellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -343,8 +342,8 @@ class SellerCommandControllerTest {
                             "기존 머스트잇 셀러명",
                             "기존 셀러명",
                             false,
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)),
+                            Instant.now());
 
             SellerApiResponse apiResponse =
                     new SellerApiResponse(
@@ -352,8 +351,8 @@ class SellerCommandControllerTest {
                             "기존 머스트잇 셀러명",
                             "기존 셀러명",
                             "INACTIVE",
-                            LocalDateTime.now().minusDays(1),
-                            LocalDateTime.now());
+                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
+                            Instant.now().toString());
 
             given(
                             sellerCommandApiMapper.toCommand(
@@ -366,7 +365,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/sellers/{id}", sellerId)
+                            patch("/api/v1/crawling/sellers/{id}", sellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -393,7 +392,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/sellers/{id}", invalidSellerId)
+                            patch("/api/v1/crawling/sellers/{id}", invalidSellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -412,7 +411,7 @@ class SellerCommandControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            patch("/api/v1/sellers/{id}", sellerId)
+                            patch("/api/v1/crawling/sellers/{id}", sellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());

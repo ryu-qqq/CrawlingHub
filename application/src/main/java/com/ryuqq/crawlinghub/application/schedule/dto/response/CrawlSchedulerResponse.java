@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.dto.response;
 
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 크롤 스케줄러 기본 응답 DTO.
@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
  * @param schedulerName 스케줄러 이름
  * @param cronExpression 크론 표현식
  * @param status 스케줄러 상태
- * @param createdAt 생성 시각
- * @param updatedAt 수정 시각
+ * @param createdAt 생성 시각 (UTC Instant)
+ * @param updatedAt 수정 시각 (UTC Instant)
  */
 public record CrawlSchedulerResponse(
         Long crawlSchedulerId,
@@ -20,5 +20,5 @@ public record CrawlSchedulerResponse(
         String schedulerName,
         String cronExpression,
         SchedulerStatus status,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+        Instant createdAt,
+        Instant updatedAt) {}

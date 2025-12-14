@@ -12,7 +12,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -187,7 +187,7 @@ class SellerQueryApiMapperTest {
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             true,
-                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
+                            Instant.parse("2024-11-27T10:00:00Z"),
                             null);
 
             // When
@@ -199,7 +199,7 @@ class SellerQueryApiMapperTest {
             assertThat(apiResponse.mustItSellerName()).isEqualTo("머스트잇 테스트 셀러");
             assertThat(apiResponse.sellerName()).isEqualTo("테스트 셀러");
             assertThat(apiResponse.status()).isEqualTo("ACTIVE");
-            assertThat(apiResponse.createdAt()).isEqualTo(LocalDateTime.of(2024, 11, 27, 10, 0, 0));
+            assertThat(apiResponse.createdAt()).isEqualTo("2024-11-27T10:00:00Z");
             assertThat(apiResponse.updatedAt()).isNull();
         }
 
@@ -213,8 +213,8 @@ class SellerQueryApiMapperTest {
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             false,
-                            LocalDateTime.of(2024, 11, 27, 10, 0, 0),
-                            LocalDateTime.of(2024, 11, 27, 11, 0, 0));
+                            Instant.parse("2024-11-27T10:00:00Z"),
+                            Instant.parse("2024-11-27T11:00:00Z"));
 
             // When
             SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
@@ -234,8 +234,7 @@ class SellerQueryApiMapperTest {
         void toSummaryApiResponse_ActiveTrue() {
             // Given
             SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(
-                            1L, "머스트잇 테스트 셀러", "테스트 셀러", true, LocalDateTime.now());
+                    new SellerSummaryResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now());
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -253,8 +252,7 @@ class SellerQueryApiMapperTest {
         void toSummaryApiResponse_ActiveFalse() {
             // Given
             SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(
-                            2L, "머스트잇 테스트 셀러", "테스트 셀러", false, LocalDateTime.now());
+                    new SellerSummaryResponse(2L, "머스트잇 테스트 셀러", "테스트 셀러", false, Instant.now());
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -276,10 +274,8 @@ class SellerQueryApiMapperTest {
             // Given
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
-                            new SellerSummaryResponse(
-                                    2L, "머스트잇 셀러2", "셀러2", true, LocalDateTime.now()));
+                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
+                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", true, Instant.now()));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 100L, 5, true, false);
@@ -309,9 +305,9 @@ class SellerQueryApiMapperTest {
             List<SellerSummaryResponse> content =
                     List.of(
                             new SellerSummaryResponse(
-                                    99L, "머스트잇 셀러99", "셀러99", true, LocalDateTime.now()),
+                                    99L, "머스트잇 셀러99", "셀러99", true, Instant.now()),
                             new SellerSummaryResponse(
-                                    100L, "머스트잇 셀러100", "셀러100", false, LocalDateTime.now()));
+                                    100L, "머스트잇 셀러100", "셀러100", false, Instant.now()));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 4, 20, 100L, 5, false, true);
@@ -353,9 +349,7 @@ class SellerQueryApiMapperTest {
         void toPageApiResponse_SinglePage() {
             // Given
             List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()));
+                    List.of(new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -379,12 +373,9 @@ class SellerQueryApiMapperTest {
             // Given
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
-                            new SellerSummaryResponse(
-                                    2L, "머스트잇 셀러2", "셀러2", false, LocalDateTime.now()),
-                            new SellerSummaryResponse(
-                                    3L, "머스트잇 셀러3", "셀러3", true, LocalDateTime.now()));
+                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
+                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", false, Instant.now()),
+                            new SellerSummaryResponse(3L, "머스트잇 셀러3", "셀러3", true, Instant.now()));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 3L, 1, true, true);

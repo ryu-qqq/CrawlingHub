@@ -2,7 +2,8 @@ package com.ryuqq.crawlinghub.domain.task.aggregate;
 
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -38,8 +39,8 @@ public class CrawlTaskOutbox {
     private final String payload;
     private OutboxStatus status;
     private int retryCount;
-    private final LocalDateTime createdAt;
-    private LocalDateTime processedAt;
+    private final Instant createdAt;
+    private Instant processedAt;
 
     private CrawlTaskOutbox(
             CrawlTaskId crawlTaskId,
@@ -47,8 +48,8 @@ public class CrawlTaskOutbox {
             String payload,
             OutboxStatus status,
             int retryCount,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         this.crawlTaskId = crawlTaskId;
         this.idempotencyKey = idempotencyKey;
         this.payload = payload;
@@ -63,18 +64,14 @@ public class CrawlTaskOutbox {
      *
      * @param crawlTaskId Task ID
      * @param payload 발행할 메시지 페이로드 (JSON)
+     * @param clock 시간 제어
      * @return 새로운 Outbox (PENDING 상태)
      */
-    public static CrawlTaskOutbox forNew(CrawlTaskId crawlTaskId, String payload) {
+    public static CrawlTaskOutbox forNew(CrawlTaskId crawlTaskId, String payload, Clock clock) {
         String idempotencyKey = generateIdempotencyKey(crawlTaskId);
+        Instant now = clock.instant();
         return new CrawlTaskOutbox(
-                crawlTaskId,
-                idempotencyKey,
-                payload,
-                OutboxStatus.PENDING,
-                0,
-                LocalDateTime.now(),
-                null);
+                crawlTaskId, idempotencyKey, payload, OutboxStatus.PENDING, 0, now, null);
     }
 
     /**
@@ -95,8 +92,8 @@ public class CrawlTaskOutbox {
             String payload,
             OutboxStatus status,
             int retryCount,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt) {
+            Instant createdAt,
+            Instant processedAt) {
         return new CrawlTaskOutbox(
                 crawlTaskId, idempotencyKey, payload, status, retryCount, createdAt, processedAt);
     }
@@ -111,17 +108,25 @@ public class CrawlTaskOutbox {
                 "outbox-%s-%s", crawlTaskId.value(), UUID.randomUUID().toString().substring(0, 8));
     }
 
-    /** 발행 성공 처리 */
-    public void markAsSent() {
+    /**
+     * 발행 성공 처리
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsSent(Clock clock) {
         this.status = OutboxStatus.SENT;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
-    /** 발행 실패 처리 */
-    public void markAsFailed() {
+    /**
+     * 발행 실패 처리
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsFailed(Clock clock) {
         this.status = OutboxStatus.FAILED;
         this.retryCount++;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = clock.instant();
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */
@@ -180,11 +185,11 @@ public class CrawlTaskOutbox {
         return retryCount;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getProcessedAt() {
+    public Instant getProcessedAt() {
         return processedAt;
     }
 }

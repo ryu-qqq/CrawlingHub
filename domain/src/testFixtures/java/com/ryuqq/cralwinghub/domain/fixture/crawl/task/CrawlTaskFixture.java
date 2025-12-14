@@ -1,11 +1,13 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * CrawlTask Aggregate Test Fixture
@@ -17,19 +19,47 @@ import java.time.LocalDateTime;
  */
 public final class CrawlTaskFixture {
 
-    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
 
     /**
      * 신규 CrawlTask 생성 (ID 미할당, WAITING 상태)
      *
      * @return CrawlTask (ID = null, WAITING)
      */
-    public static CrawlTask aNewTask() {
+    public static CrawlTask forNew() {
         return CrawlTask.forNew(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint());
+                CrawlEndpointFixture.aMiniShopListEndpoint(),
+                DEFAULT_CLOCK);
+    }
+
+    /**
+     * 신규 CrawlTask 생성 (Clock 지정)
+     *
+     * @param clock 시간 제어
+     * @return CrawlTask (ID = null, WAITING)
+     */
+    public static CrawlTask forNew(Clock clock) {
+        return CrawlTask.forNew(
+                CrawlSchedulerIdFixture.anAssignedId(),
+                SellerIdFixture.anAssignedId(),
+                CrawlTaskTypeFixture.defaultType(),
+                CrawlEndpointFixture.aMiniShopListEndpoint(),
+                clock);
+    }
+
+    /**
+     * 신규 CrawlTask 생성 (ID 미할당, WAITING 상태)
+     *
+     * @return CrawlTask (ID = null, WAITING)
+     * @deprecated Use {@link #forNew()} instead
+     */
+    @Deprecated
+    public static CrawlTask aNewTask() {
+        return forNew();
     }
 
     /**
@@ -43,7 +73,8 @@ public final class CrawlTaskFixture {
                 CrawlSchedulerIdFixture.anAssignedId(),
                 sellerId,
                 CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint());
+                CrawlEndpointFixture.aMiniShopListEndpoint(),
+                DEFAULT_CLOCK);
     }
 
     /**
@@ -52,17 +83,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, WAITING)
      */
     public static CrawlTask aWaitingTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.WAITING,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.WAITING);
     }
 
     /**
@@ -71,17 +92,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, PUBLISHED)
      */
     public static CrawlTask aPublishedTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.PUBLISHED,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.PUBLISHED);
     }
 
     /**
@@ -90,17 +101,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, RUNNING)
      */
     public static CrawlTask aRunningTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.RUNNING,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.RUNNING);
     }
 
     /**
@@ -109,17 +110,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, SUCCESS)
      */
     public static CrawlTask aSuccessTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.SUCCESS,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.SUCCESS);
     }
 
     /**
@@ -128,17 +119,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, FAILED, retryCount = 0)
      */
     public static CrawlTask aFailedTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.FAILED,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.FAILED);
     }
 
     /**
@@ -166,17 +147,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask (ID = 1L, TIMEOUT)
      */
     public static CrawlTask aTimeoutTask() {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                CrawlTaskStatus.TIMEOUT,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(CrawlTaskStatus.TIMEOUT);
     }
 
     /**
@@ -205,17 +176,7 @@ public final class CrawlTaskFixture {
      * @return CrawlTask
      */
     public static CrawlTask aTaskWithStatus(CrawlTaskStatus status) {
-        return CrawlTask.reconstitute(
-                CrawlTaskIdFixture.anAssignedId(),
-                CrawlSchedulerIdFixture.anAssignedId(),
-                SellerIdFixture.anAssignedId(),
-                CrawlTaskTypeFixture.defaultType(),
-                CrawlEndpointFixture.aMiniShopListEndpoint(),
-                status,
-                RetryCountFixture.zero(),
-                null,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(status);
     }
 
     /**
@@ -232,6 +193,26 @@ public final class CrawlTaskFixture {
                 CrawlTaskTypeFixture.defaultType(),
                 CrawlEndpointFixture.aMiniShopListEndpoint(),
                 CrawlTaskStatus.WAITING,
+                RetryCountFixture.zero(),
+                null,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
+     * 영속성 복원용 Fixture (헬퍼 메서드)
+     *
+     * @param status 상태
+     * @return CrawlTask
+     */
+    public static CrawlTask reconstitute(CrawlTaskStatus status) {
+        return CrawlTask.reconstitute(
+                CrawlTaskIdFixture.anAssignedId(),
+                CrawlSchedulerIdFixture.anAssignedId(),
+                SellerIdFixture.anAssignedId(),
+                CrawlTaskTypeFixture.defaultType(),
+                CrawlEndpointFixture.aMiniShopListEndpoint(),
+                status,
                 RetryCountFixture.zero(),
                 null,
                 DEFAULT_TIME,

@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * CrawlTask 등록 이벤트
@@ -27,7 +29,8 @@ public record CrawlTaskRegisteredEvent(
         SellerId sellerId,
         CrawlTaskType taskType,
         CrawlEndpoint endpoint,
-        String outboxPayload)
+        String outboxPayload,
+        Instant occurredAt)
         implements DomainEvent {
 
     /** Compact Constructor (검증 로직) */
@@ -50,6 +53,9 @@ public record CrawlTaskRegisteredEvent(
         if (outboxPayload == null || outboxPayload.isBlank()) {
             throw new IllegalArgumentException("outboxPayload는 null이거나 빈 값일 수 없습니다.");
         }
+        if (occurredAt == null) {
+            throw new IllegalArgumentException("occurredAt은 null일 수 없습니다.");
+        }
     }
 
     /**
@@ -61,6 +67,7 @@ public record CrawlTaskRegisteredEvent(
      * @param taskType 태스크 유형
      * @param endpoint 크롤링 엔드포인트
      * @param outboxPayload Outbox 페이로드
+     * @param clock 시간 제어
      * @return CrawlTaskRegisteredEvent
      */
     public static CrawlTaskRegisteredEvent of(
@@ -69,9 +76,16 @@ public record CrawlTaskRegisteredEvent(
             SellerId sellerId,
             CrawlTaskType taskType,
             CrawlEndpoint endpoint,
-            String outboxPayload) {
+            String outboxPayload,
+            Clock clock) {
         return new CrawlTaskRegisteredEvent(
-                crawlTaskId, crawlSchedulerId, sellerId, taskType, endpoint, outboxPayload);
+                crawlTaskId,
+                crawlSchedulerId,
+                sellerId,
+                taskType,
+                endpoint,
+                outboxPayload,
+                clock.instant());
     }
 
     public Long getCrawlTaskIdValue() {

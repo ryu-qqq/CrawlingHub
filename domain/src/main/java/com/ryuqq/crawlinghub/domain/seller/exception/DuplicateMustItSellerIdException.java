@@ -10,8 +10,8 @@ public final class DuplicateMustItSellerIdException extends DomainException {
 
     public DuplicateMustItSellerIdException(String mustItSellerName) {
         super(
-                ERROR_CODE.getCode(),
-                ERROR_CODE.getMessage(),
+                ERROR_CODE,
+                String.format("이미 존재하는 머스트잇 셀러 ID입니다: %s", mustItSellerName),
                 Map.of("mustItSellerName", mustItSellerName));
     }
 }

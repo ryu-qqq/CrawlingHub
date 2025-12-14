@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.execution.dto.response;
 
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * CrawlExecution 목록 조회 Response DTO
@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
  * @param status 상태
  * @param httpStatusCode HTTP 상태 코드 (nullable)
  * @param durationMs 실행 시간 (밀리초, nullable)
- * @param startedAt 실행 시작 시각
- * @param completedAt 실행 완료 시각 (nullable)
+ * @param startedAt 실행 시작 시각 (UTC Instant)
+ * @param completedAt 실행 완료 시각 (UTC Instant, nullable)
  * @author development-team
  * @since 1.0.0
  */
@@ -28,5 +28,5 @@ public record CrawlExecutionResponse(
         CrawlExecutionStatus status,
         Integer httpStatusCode,
         Long durationMs,
-        LocalDateTime startedAt,
-        LocalDateTime completedAt) {}
+        Instant startedAt,
+        Instant completedAt) {}

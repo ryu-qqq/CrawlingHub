@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.listener;
 
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
@@ -39,12 +39,12 @@ public class SchedulerRegisteredEventListener {
 
     private final EventBridgeClientPort eventBridgeClientPort;
     private final CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
-    private final CrawlerSchedulerOutBoxManager outBoxManager;
+    private final CrawlSchedulerOutBoxTransactionManager outBoxManager;
 
     public SchedulerRegisteredEventListener(
             EventBridgeClientPort eventBridgeClientPort,
             CrawlSchedulerOutBoxQueryPort outBoxQueryPort,
-            CrawlerSchedulerOutBoxManager outBoxManager) {
+            CrawlSchedulerOutBoxTransactionManager outBoxManager) {
         this.eventBridgeClientPort = eventBridgeClientPort;
         this.outBoxQueryPort = outBoxQueryPort;
         this.outBoxManager = outBoxManager;

@@ -9,6 +9,9 @@ public final class SellerNotFoundException extends DomainException {
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.SELLER_NOT_FOUND;
 
     public SellerNotFoundException(long sellerId) {
-        super(ERROR_CODE.getCode(), ERROR_CODE.getMessage(), Map.of("sellerId", sellerId));
+        super(
+                ERROR_CODE,
+                String.format("존재하지 않는 셀러입니다. ID: %d", sellerId),
+                Map.of("sellerId", sellerId));
     }
 }
