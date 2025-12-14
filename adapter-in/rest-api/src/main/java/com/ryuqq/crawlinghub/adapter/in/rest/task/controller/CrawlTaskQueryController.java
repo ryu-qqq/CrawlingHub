@@ -14,8 +14,17 @@ import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailRespon
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.port.in.query.GetCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.application.task.port.in.query.ListCrawlTasksUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -60,6 +69,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(ApiPaths.Tasks.BASE)
 @Validated
+@Tag(name = "Task", description = "크롤 태스크 관리 API")
 public class CrawlTaskQueryController {
 
     private final ListCrawlTasksUseCase listCrawlTasksUseCase;
@@ -139,6 +149,29 @@ public class CrawlTaskQueryController {
      * @return 크롤 태스크 목록 (페이징) (200 OK)
      */
     @GetMapping
+    @PreAuthorize("@access.hasPermission('task:read')")
+    @Operation(
+            summary = "크롤 태스크 목록 조회",
+            description = "크롤 태스크 목록을 페이징하여 조회합니다. task:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = CrawlTaskApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 파라미터"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (task:read 권한 필요)")
+    })
     public ResponseEntity<ApiResponse<PageApiResponse<CrawlTaskApiResponse>>> listCrawlTasks(
             @ModelAttribute @Valid SearchCrawlTasksApiRequest request) {
         // 1. API Request → UseCase Query 변환 (Mapper)
@@ -201,8 +234,37 @@ public class CrawlTaskQueryController {
      * @return 크롤 태스크 상세 정보 (200 OK)
      */
     @GetMapping(ApiPaths.Tasks.BY_ID)
+    @PreAuthorize("@access.hasPermission('task:read')")
+    @Operation(
+            summary = "크롤 태스크 상세 조회",
+            description = "크롤 태스크 ID로 상세 정보를 조회합니다. task:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        CrawlTaskDetailApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (task:read 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "태스크를 찾을 수 없음")
+    })
     public ResponseEntity<ApiResponse<CrawlTaskDetailApiResponse>> getCrawlTask(
-            @PathVariable Long id) {
+            @Parameter(description = "태스크 ID", required = true, example = "1")
+                    @PathVariable
+                    @Positive
+                    Long id) {
         // 1. Path Variable → UseCase Query 변환 (Mapper)
         GetCrawlTaskQuery query = crawlTaskQueryApiMapper.toGetQuery(id);
 

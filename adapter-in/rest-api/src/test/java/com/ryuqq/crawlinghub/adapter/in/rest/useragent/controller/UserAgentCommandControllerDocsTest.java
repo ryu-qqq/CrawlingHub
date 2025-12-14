@@ -8,6 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
@@ -55,6 +56,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "useragent-command/recover",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)
@@ -100,6 +102,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "useragent-command/recover-no-agents",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)

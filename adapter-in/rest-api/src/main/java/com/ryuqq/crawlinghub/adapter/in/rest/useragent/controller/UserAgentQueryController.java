@@ -6,7 +6,14 @@ import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoo
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentPoolStatusUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(ApiPaths.UserAgents.BASE)
 @Validated
+@Tag(name = "UserAgent", description = "UserAgent 관리 API")
 public class UserAgentQueryController {
 
     private final GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
@@ -103,6 +111,29 @@ public class UserAgentQueryController {
      * @return UserAgent Pool 상태 (200 OK)
      */
     @GetMapping(ApiPaths.UserAgents.POOL_STATUS)
+    @PreAuthorize("@access.hasPermission('useragent:read')")
+    @Operation(
+            summary = "UserAgent Pool 상태 조회",
+            description = "UserAgent Pool의 상태를 조회합니다. useragent:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        UserAgentPoolStatusApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:read 권한 필요)")
+    })
     public ResponseEntity<ApiResponse<UserAgentPoolStatusApiResponse>> getPoolStatus() {
         // 1. UseCase 실행 (비즈니스 로직)
         UserAgentPoolStatusResponse useCaseResponse = getUserAgentPoolStatusUseCase.execute();

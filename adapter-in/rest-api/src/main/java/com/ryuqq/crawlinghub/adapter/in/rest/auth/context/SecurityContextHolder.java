@@ -82,4 +82,81 @@ public final class SecurityContextHolder {
     public static String getCurrentTenantId() {
         return getContext().getTenantId();
     }
+
+    /**
+     * 현재 조직 ID 조회
+     *
+     * @return 조직 ID (미인증 시 null)
+     */
+    public static String getCurrentOrganizationId() {
+        return getContext().getOrganizationId();
+    }
+
+    /**
+     * 특정 권한 보유 여부 확인
+     *
+     * @param permission 확인할 권한
+     * @return 보유 여부
+     */
+    public static boolean hasPermission(String permission) {
+        return getContext().hasPermission(permission);
+    }
+
+    /**
+     * 여러 권한 중 하나라도 보유 여부 확인
+     *
+     * @param permissions 확인할 권한들
+     * @return 하나라도 있으면 true
+     */
+    public static boolean hasAnyPermission(String... permissions) {
+        SecurityContext context = getContext();
+        for (String permission : permissions) {
+            if (context.hasPermission(permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 모든 권한 보유 여부 확인
+     *
+     * @param permissions 확인할 권한들
+     * @return 모두 있으면 true
+     */
+    public static boolean hasAllPermissions(String... permissions) {
+        SecurityContext context = getContext();
+        for (String permission : permissions) {
+            if (!context.hasPermission(permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 특정 역할 보유 여부 확인
+     *
+     * @param role 확인할 역할
+     * @return 보유 여부
+     */
+    public static boolean hasRole(String role) {
+        return getContext().hasRole(role);
+    }
+
+    /**
+     * 여러 역할 중 하나라도 보유 여부 확인
+     *
+     * @param roles 확인할 역할들
+     * @return 하나라도 있으면 true
+     */
+    public static boolean hasAnyRole(String... roles) {
+        SecurityContext context = getContext();
+        for (String role : roles) {
+            if (context.hasRole(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
