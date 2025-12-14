@@ -63,7 +63,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             CrawlSchedulerId.of(100L),
                             SellerId.of(200L),
                             SchedulerName.of("test-scheduler"),
-                            CronExpression.of("0 0 * * * ?"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
                             SchedulerStatus.ACTIVE,
                             now);
 
@@ -76,7 +76,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
             assertThat(entity.getCrawlSchedulerId()).isEqualTo(100L);
             assertThat(entity.getSellerId()).isEqualTo(200L);
             assertThat(entity.getSchedulerName()).isEqualTo("test-scheduler");
-            assertThat(entity.getCronExpression()).isEqualTo("0 0 * * * ?");
+            assertThat(entity.getCronExpression()).isEqualTo("cron(0 0 * * ? *)");
             assertThat(entity.getStatus()).isEqualTo(SchedulerStatus.ACTIVE);
             assertThat(entity.getCreatedAt()).isNotNull();
         }
@@ -92,7 +92,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             CrawlSchedulerId.of(100L),
                             SellerId.of(200L),
                             SchedulerName.of("inactive-scheduler"),
-                            CronExpression.of("0 30 * * * ?"),
+                            CronExpression.of("cron(30 0 * * ? *)"),
                             SchedulerStatus.INACTIVE,
                             now);
 
@@ -110,11 +110,11 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
             Instant now = Instant.now();
             CrawlSchedulerHistory domain =
                     CrawlSchedulerHistory.reconstitute(
-                            CrawlSchedulerHistoryId.of(null),
+                            CrawlSchedulerHistoryId.forNew(),
                             CrawlSchedulerId.of(100L),
                             SellerId.of(200L),
                             SchedulerName.of("new-scheduler"),
-                            CronExpression.of("0 0 * * * ?"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
                             SchedulerStatus.ACTIVE,
                             now);
 
@@ -142,7 +142,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             100L,
                             200L,
                             "test-scheduler",
-                            "0 0 * * * ?",
+                            "cron(0 0 * * ? *)",
                             SchedulerStatus.ACTIVE,
                             now);
 
@@ -155,7 +155,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
             assertThat(domain.getCrawlSchedulerIdValue()).isEqualTo(100L);
             assertThat(domain.getSellerIdValue()).isEqualTo(200L);
             assertThat(domain.getSchedulerNameValue()).isEqualTo("test-scheduler");
-            assertThat(domain.getCronExpressionValue()).isEqualTo("0 0 * * * ?");
+            assertThat(domain.getCronExpressionValue()).isEqualTo("cron(0 0 * * ? *)");
             assertThat(domain.getStatus()).isEqualTo(SchedulerStatus.ACTIVE);
             assertThat(domain.getCreatedAt()).isNotNull();
         }
@@ -171,7 +171,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             100L,
                             200L,
                             "inactive-scheduler",
-                            "0 30 * * * ?",
+                            "cron(30 0 * * ? *)",
                             SchedulerStatus.INACTIVE,
                             now);
 
@@ -198,7 +198,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             CrawlSchedulerId.of(100L),
                             SellerId.of(200L),
                             SchedulerName.of("test-scheduler"),
-                            CronExpression.of("0 0 * * * ?"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
                             SchedulerStatus.ACTIVE,
                             now);
 
@@ -234,7 +234,7 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             CrawlSchedulerId.of(100L),
                             SellerId.of(200L),
                             SchedulerName.of("test-scheduler"),
-                            CronExpression.of("0 0 * * * ?"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
                             SchedulerStatus.ACTIVE,
                             now);
 
