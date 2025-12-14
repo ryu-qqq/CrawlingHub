@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public final class InvalidCronExpressionException extends DomainException {
 
-    private static final String ERROR_CODE = "EVENTBRIDGE-CRON-001";
+    private static final ScheduleErrorCode ERROR_CODE = ScheduleErrorCode.INVALID_CRON_EXPRESSION;
 
     private InvalidCronExpressionException(String message, String expression) {
         super(ERROR_CODE, message, Map.of("expression", expression));

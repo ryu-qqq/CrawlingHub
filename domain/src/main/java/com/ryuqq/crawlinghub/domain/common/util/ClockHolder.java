@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.common.util;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
+import java.time.Clock;
 
 /**
  * Clock 제공자 인터페이스 (DIP - Dependency Inversion Principle)
@@ -26,7 +26,7 @@ import com.ryuqq.crawlinghub.domain.common.Clock;
  *
  *     public Order toAggregate(PlaceOrderCommand command) {
  *         return Order.forNew(
- *             clockHolder.clock(),  // Clock 제공
+ *             clockHolder.getClock(),  // Clock 제공
  *             command.amount()
  *         );
  *     }
@@ -34,15 +34,16 @@ import com.ryuqq.crawlinghub.domain.common.Clock;
  *
  * // Aggregate (Domain)
  * public class Order {
- *     private final Instant createdAt;
+ *     private final Clock clock;
+ *     private final LocalDateTime createdAt;
  *
- *     private Order(Instant createdAt, ...) {
- *         this.createdAt = createdAt;
+ *     private Order(Clock clock, ...) {
+ *         this.clock = clock;
+ *         this.createdAt = LocalDateTime.now(clock);
  *     }
  *
  *     public static Order forNew(Clock clock, Money amount) {
- *         Instant now = clock.now();  // Domain Clock 사용
- *         return new Order(now, amount);
+ *         return new Order(clock, amount);
  *     }
  * }
  * }</pre>
@@ -51,11 +52,13 @@ import com.ryuqq.crawlinghub.domain.common.Clock;
  *
  * <pre>{@code
  * // FixedClockHolder (Test)
- * Instant fixedTime = Instant.parse("2025-01-01T00:00:00Z");
- * ClockHolder fixedClockHolder = () -> () -> fixedTime;
+ * ClockHolder fixedClockHolder = () -> Clock.fixed(
+ *     Instant.parse("2025-01-01T00:00:00Z"),
+ *     ZoneId.of("UTC")
+ * );
  *
- * Order order = Order.forNew(fixedClockHolder.clock(), Money.of(10000));
- * assertThat(order.createdAt()).isEqualTo(fixedTime);
+ * Order order = Order.forNew(fixedClockHolder.getClock(), Money.of(10000));
+ * assertThat(order.createdAt()).isEqualTo(LocalDateTime.of(2025, 1, 1, 0, 0));
  * }</pre>
  *
  * @author ryu-qqq
@@ -72,5 +75,5 @@ public interface ClockHolder {
      * @author ryu-qqq
      * @since 2025-11-21
      */
-    Clock clock();
+    Clock getClock();
 }

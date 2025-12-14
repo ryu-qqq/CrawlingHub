@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.task.dto.response;
 
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -20,8 +20,8 @@ import java.util.Map;
  * @param path 경로
  * @param queryParams 쿼리 파라미터
  * @param fullUrl 전체 URL
- * @param createdAt 생성 시각
- * @param updatedAt 수정 시각
+ * @param createdAt 생성 시각 (UTC Instant)
+ * @param updatedAt 수정 시각 (UTC Instant)
  * @author development-team
  * @since 1.0.0
  */
@@ -36,5 +36,5 @@ public record CrawlTaskDetailResponse(
         String path,
         Map<String, String> queryParams,
         String fullUrl,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+        Instant createdAt,
+        Instant updatedAt) {}

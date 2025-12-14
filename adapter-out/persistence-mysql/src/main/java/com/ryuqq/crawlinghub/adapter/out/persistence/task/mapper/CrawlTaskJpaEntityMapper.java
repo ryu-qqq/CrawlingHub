@@ -10,6 +10,9 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -87,8 +90,8 @@ public class CrawlTaskJpaEntityMapper {
                 serializeQueryParams(endpoint.queryParams()),
                 domain.getStatus(),
                 domain.getRetryCount().value(),
-                domain.getCreatedAt(),
-                domain.getUpdatedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getUpdatedAt()));
     }
 
     /**
@@ -129,8 +132,22 @@ public class CrawlTaskJpaEntityMapper {
                 entity.getStatus(),
                 new RetryCount(entity.getRetryCount()),
                 null, // Outbox는 별도 Entity로 관리
-                entity.getCreatedAt(),
-                entity.getUpdatedAt());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getUpdatedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 
     /**

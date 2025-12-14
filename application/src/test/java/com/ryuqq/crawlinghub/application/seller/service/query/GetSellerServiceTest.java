@@ -10,11 +10,11 @@ import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * GetSellerService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: ReadManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -36,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetSellerService 테스트")
 class GetSellerServiceTest {
 
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
 
     @Mock private SellerAssembler sellerAssembler;
 
@@ -53,16 +53,11 @@ class GetSellerServiceTest {
             Long sellerId = 1L;
             GetSellerQuery query = new GetSellerQuery(sellerId);
             Seller seller = SellerFixture.anActiveSeller();
+            Instant now = Instant.now();
             SellerResponse expectedResponse =
-                    new SellerResponse(
-                            sellerId,
-                            "mustit-seller",
-                            "seller-name",
-                            true,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                    new SellerResponse(sellerId, "mustit-seller", "seller-name", true, now, now);
 
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
             given(sellerAssembler.toResponse(seller)).willReturn(expectedResponse);
 
             // When
@@ -70,7 +65,7 @@ class GetSellerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(sellerQueryPort).should().findById(SellerId.of(sellerId));
+            then(sellerReadManager).should().findById(SellerId.of(sellerId));
             then(sellerAssembler).should().toResponse(seller);
         }
 
@@ -81,13 +76,13 @@ class GetSellerServiceTest {
             Long sellerId = 999L;
             GetSellerQuery query = new GetSellerQuery(sellerId);
 
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(query))
                     .isInstanceOf(SellerNotFoundException.class);
 
-            then(sellerQueryPort).should().findById(SellerId.of(sellerId));
+            then(sellerReadManager).should().findById(SellerId.of(sellerId));
             then(sellerAssembler).shouldHaveNoInteractions();
         }
     }

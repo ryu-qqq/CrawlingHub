@@ -11,14 +11,16 @@ import java.util.Map;
  */
 public class CircuitBreakerOpenException extends DomainException {
 
+    private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.CIRCUIT_BREAKER_OPEN;
+
     public CircuitBreakerOpenException(double availableRate) {
         super(
-                UserAgentErrorCode.CIRCUIT_BREAKER_OPEN.getCode(),
+                ERROR_CODE,
                 String.format("UserAgent Pool Circuit Breaker OPEN (가용률: %.2f%%)", availableRate),
                 Map.of("availableRate", availableRate));
     }
 
     public CircuitBreakerOpenException(String message) {
-        super(UserAgentErrorCode.CIRCUIT_BREAKER_OPEN.getCode(), message);
+        super(ERROR_CODE, message);
     }
 }

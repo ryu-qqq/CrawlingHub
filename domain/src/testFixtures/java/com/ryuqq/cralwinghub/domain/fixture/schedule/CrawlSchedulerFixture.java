@@ -2,13 +2,12 @@ package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * CrawlScheduler Aggregate Test Fixture
@@ -69,7 +68,7 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, ACTIVE)
      */
     public static CrawlScheduler anActiveScheduler() {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
+        Instant now = DEFAULT_CLOCK.instant();
         return CrawlScheduler.of(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
@@ -77,8 +76,7 @@ public final class CrawlSchedulerFixture {
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.ACTIVE,
                 now,
-                now,
-                DEFAULT_CLOCK);
+                now);
     }
 
     /**
@@ -88,7 +86,7 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ACTIVE)
      */
     public static CrawlScheduler anActiveScheduler(Long id) {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
+        Instant now = DEFAULT_CLOCK.instant();
         return CrawlScheduler.of(
                 CrawlSchedulerId.of(id),
                 SellerIdFixture.anAssignedId(),
@@ -96,8 +94,7 @@ public final class CrawlSchedulerFixture {
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.ACTIVE,
                 now,
-                now,
-                DEFAULT_CLOCK);
+                now);
     }
 
     /**
@@ -107,7 +104,7 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, ACTIVE)
      */
     public static CrawlScheduler anActiveScheduler(Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return CrawlScheduler.of(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
@@ -115,8 +112,7 @@ public final class CrawlSchedulerFixture {
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.ACTIVE,
                 now,
-                now,
-                clock);
+                now);
     }
 
     /**
@@ -125,7 +121,7 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, INACTIVE)
      */
     public static CrawlScheduler anInactiveScheduler() {
-        LocalDateTime now = LocalDateTime.ofInstant(DEFAULT_CLOCK.now(), ZoneId.systemDefault());
+        Instant now = DEFAULT_CLOCK.instant();
         return CrawlScheduler.of(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
@@ -133,8 +129,7 @@ public final class CrawlSchedulerFixture {
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.INACTIVE,
                 now,
-                now,
-                DEFAULT_CLOCK);
+                now);
     }
 
     /**
@@ -144,7 +139,7 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, INACTIVE)
      */
     public static CrawlScheduler anInactiveScheduler(Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return CrawlScheduler.of(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
@@ -152,8 +147,7 @@ public final class CrawlSchedulerFixture {
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.INACTIVE,
                 now,
-                now,
-                clock);
+                now);
     }
 
     private CrawlSchedulerFixture() {

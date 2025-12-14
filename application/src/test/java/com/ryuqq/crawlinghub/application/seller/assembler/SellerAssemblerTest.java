@@ -1,113 +1,34 @@
 package com.ryuqq.crawlinghub.application.seller.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * SellerAssembler 단위 테스트
  *
- * <p>Mockist 스타일 테스트: ClockHolder 의존성 Mocking
+ * <p>Assembler는 stateless 컴포넌트이므로 직접 인스턴스화하여 테스트
+ *
+ * <p><strong>주의</strong>: Command → Domain 변환 테스트는 {@code SellerCommandFactoryTest}에서 담당
  *
  * @author development-team
  * @since 1.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("SellerAssembler 테스트")
 class SellerAssemblerTest {
 
-    @Mock private ClockHolder clockHolder;
-
-    @InjectMocks private SellerAssembler assembler;
-
-    @Nested
-    @DisplayName("toDomain(RegisterSellerCommand) 테스트")
-    class ToDomainRegister {
-
-        @Test
-        @DisplayName("[성공] RegisterSellerCommand → Seller 신규 생성")
-        void shouldCreateNewSellerFromRegisterCommand() {
-            // Given
-            RegisterSellerCommand command =
-                    new RegisterSellerCommand("MUSTIT_SELLER_001", "테스트 셀러");
-            Instant now = Instant.parse("2025-11-27T12:00:00Z");
-
-            given(clockHolder.clock()).willReturn(() -> now);
-
-            // When
-            Seller result = assembler.toDomain(command);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getMustItSellerNameValue()).isEqualTo("MUSTIT_SELLER_001");
-            assertThat(result.getSellerNameValue()).isEqualTo("테스트 셀러");
-            assertThat(result.isActive()).isTrue();
-        }
-    }
-
-    @Nested
-    @DisplayName("toDomain(UpdateSellerCommand) 테스트")
-    class ToDomainUpdate {
-
-        @Test
-        @DisplayName("[성공] UpdateSellerCommand → Seller 비교용 객체 생성 (전체 필드)")
-        void shouldCreateComparisonSellerFromUpdateCommand() {
-            // Given
-            UpdateSellerCommand command =
-                    new UpdateSellerCommand(1L, "UPDATED_MUSTIT", "수정된 셀러", false);
-            Instant now = Instant.parse("2025-11-27T12:00:00Z");
-
-            given(clockHolder.clock()).willReturn(() -> now);
-
-            // When
-            Seller result = assembler.toDomain(command);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getSellerIdValue()).isEqualTo(1L);
-            assertThat(result.getMustItSellerNameValue()).isEqualTo("UPDATED_MUSTIT");
-            assertThat(result.getSellerNameValue()).isEqualTo("수정된 셀러");
-            assertThat(result.isActive()).isFalse();
-        }
-
-        @Test
-        @DisplayName("[성공] UpdateSellerCommand → Seller 비교용 객체 생성 (부분 필드)")
-        void shouldCreatePartialComparisonSellerFromUpdateCommand() {
-            // Given
-            UpdateSellerCommand command = new UpdateSellerCommand(1L, null, "수정된 셀러", null);
-            Instant now = Instant.parse("2025-11-27T12:00:00Z");
-
-            given(clockHolder.clock()).willReturn(() -> now);
-
-            // When
-            Seller result = assembler.toDomain(command);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getSellerIdValue()).isEqualTo(1L);
-            assertThat(result.getSellerNameValue()).isEqualTo("수정된 셀러");
-        }
-    }
+    private final SellerAssembler assembler = new SellerAssembler();
 
     @Nested
     @DisplayName("toResponse() 테스트")

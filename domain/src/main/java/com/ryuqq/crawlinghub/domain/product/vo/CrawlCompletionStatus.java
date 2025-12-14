@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product.vo;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 크롤링 완료 상태 VO
@@ -16,9 +16,7 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 public record CrawlCompletionStatus(
-        LocalDateTime miniShopCrawledAt,
-        LocalDateTime detailCrawledAt,
-        LocalDateTime optionCrawledAt) {
+        Instant miniShopCrawledAt, Instant detailCrawledAt, Instant optionCrawledAt) {
 
     /** 초기 상태 생성 (모두 미완료) */
     public static CrawlCompletionStatus initial() {
@@ -31,7 +29,7 @@ public record CrawlCompletionStatus(
      * @param crawledAt 크롤링 완료 시각
      * @return 갱신된 상태
      */
-    public CrawlCompletionStatus withMiniShopCrawled(LocalDateTime crawledAt) {
+    public CrawlCompletionStatus withMiniShopCrawled(Instant crawledAt) {
         return new CrawlCompletionStatus(crawledAt, this.detailCrawledAt, this.optionCrawledAt);
     }
 
@@ -41,7 +39,7 @@ public record CrawlCompletionStatus(
      * @param crawledAt 크롤링 완료 시각
      * @return 갱신된 상태
      */
-    public CrawlCompletionStatus withDetailCrawled(LocalDateTime crawledAt) {
+    public CrawlCompletionStatus withDetailCrawled(Instant crawledAt) {
         return new CrawlCompletionStatus(this.miniShopCrawledAt, crawledAt, this.optionCrawledAt);
     }
 
@@ -51,7 +49,7 @@ public record CrawlCompletionStatus(
      * @param crawledAt 크롤링 완료 시각
      * @return 갱신된 상태
      */
-    public CrawlCompletionStatus withOptionCrawled(LocalDateTime crawledAt) {
+    public CrawlCompletionStatus withOptionCrawled(Instant crawledAt) {
         return new CrawlCompletionStatus(this.miniShopCrawledAt, this.detailCrawledAt, crawledAt);
     }
 
@@ -141,8 +139,8 @@ public record CrawlCompletionStatus(
      *
      * @return 가장 최근 크롤링 완료 시각 (모두 null이면 null)
      */
-    public LocalDateTime getLastCrawledAt() {
-        LocalDateTime latest = null;
+    public Instant getLastCrawledAt() {
+        Instant latest = null;
         if (miniShopCrawledAt != null) {
             latest = miniShopCrawledAt;
         }
@@ -160,11 +158,11 @@ public record CrawlCompletionStatus(
      *
      * @return 가장 오래된 크롤링 완료 시각 (하나라도 null이면 null)
      */
-    public LocalDateTime getOldestCrawledAt() {
+    public Instant getOldestCrawledAt() {
         if (!isAllCrawled()) {
             return null;
         }
-        LocalDateTime oldest = miniShopCrawledAt;
+        Instant oldest = miniShopCrawledAt;
         if (detailCrawledAt.isBefore(oldest)) {
             oldest = detailCrawledAt;
         }

@@ -5,20 +5,18 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.UUID;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.UUID;
-
 /**
  * Tracing MDC Filter
  *
- * <p>HTTP 요청에 대해 traceId, spanId, requestId를 MDC에 설정하여
- * 로그에서 분산 추적 컨텍스트를 확인할 수 있게 합니다.
+ * <p>HTTP 요청에 대해 traceId, spanId, requestId를 MDC에 설정하여 로그에서 분산 추적 컨텍스트를 확인할 수 있게 합니다.
  *
  * <h3>MDC에 설정되는 키</h3>
  *
@@ -55,9 +53,8 @@ public class TracingMdcFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         try {
             setupMdc(request);

@@ -10,6 +10,9 @@ import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -35,8 +38,8 @@ public class CrawlExecutionAssembler {
                         ? CrawlSchedulerId.of(query.crawlSchedulerId())
                         : null,
                 query.status(),
-                query.from(),
-                query.to(),
+                toInstant(query.from()),
+                toInstant(query.to()),
                 query.page(),
                 query.size());
     }
@@ -125,5 +128,14 @@ public class CrawlExecutionAssembler {
         boolean last = (page >= totalPages - 1) || totalElements == 0;
 
         return PageResponse.of(content, page, size, totalElements, totalPages, first, last);
+    }
+
+    // === Private Helper Methods ===
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

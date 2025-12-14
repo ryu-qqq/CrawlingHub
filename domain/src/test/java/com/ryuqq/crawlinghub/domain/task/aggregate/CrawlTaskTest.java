@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.domain.task.aggregate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
@@ -44,13 +45,17 @@ class CrawlTaskTest {
         @Test
         @DisplayName("유효한 파라미터로 신규 태스크 생성 시 WAITING 상태, ID 미할당")
         void shouldCreateNewTaskWithWaitingStatusAndUnassignedId() {
-            // given & when
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+
+            // when
             CrawlTask task =
                     CrawlTask.forNew(
                             CrawlSchedulerIdFixture.anAssignedId(),
                             SellerIdFixture.anAssignedId(),
                             CrawlTaskTypeFixture.defaultType(),
-                            CrawlEndpointFixture.aMiniShopListEndpoint());
+                            CrawlEndpointFixture.aMiniShopListEndpoint(),
+                            clock);
 
             // then
             assertThat(task.getId()).isNotNull();
@@ -65,7 +70,7 @@ class CrawlTaskTest {
         @DisplayName("신규 생성 시 createdAt과 updatedAt이 설정됨")
         void shouldSetCreatedAtAndUpdatedAt() {
             // when
-            CrawlTask task = CrawlTaskFixture.aNewTask();
+            CrawlTask task = CrawlTaskFixture.forNew();
 
             // then
             assertThat(task.getCreatedAt()).isNotNull();
@@ -102,9 +107,10 @@ class CrawlTaskTest {
             void shouldTransitionFromWaitingToPublished() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsPublished();
+                task.markAsPublished(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.PUBLISHED);
@@ -115,9 +121,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInWaitingStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aRunningTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsPublished)
+                assertThatThrownBy(() -> task.markAsPublished(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -131,9 +138,10 @@ class CrawlTaskTest {
             void shouldTransitionFromPublishedToRunning() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aPublishedTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsRunning();
+                task.markAsRunning(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.RUNNING);
@@ -144,9 +152,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInPublishedStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsRunning)
+                assertThatThrownBy(() -> task.markAsRunning(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -160,9 +169,10 @@ class CrawlTaskTest {
             void shouldTransitionFromRunningToSuccess() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aRunningTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsSuccess();
+                task.markAsSuccess(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.SUCCESS);
@@ -173,9 +183,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInRunningStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aPublishedTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsSuccess)
+                assertThatThrownBy(() -> task.markAsSuccess(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -189,9 +200,10 @@ class CrawlTaskTest {
             void shouldTransitionFromRunningToFailed() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aRunningTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsFailed();
+                task.markAsFailed(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.FAILED);
@@ -202,9 +214,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInRunningStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsFailed)
+                assertThatThrownBy(() -> task.markAsFailed(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -218,9 +231,10 @@ class CrawlTaskTest {
             void shouldTransitionFromRunningToTimeout() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aRunningTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsTimeout();
+                task.markAsTimeout(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.TIMEOUT);
@@ -231,9 +245,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInRunningStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aPublishedTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsTimeout)
+                assertThatThrownBy(() -> task.markAsTimeout(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -298,9 +313,10 @@ class CrawlTaskTest {
                 // given
                 CrawlTask task = CrawlTaskFixture.aFailedTask();
                 int originalRetryCount = task.getRetryCount().value();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                boolean result = task.attemptRetry();
+                boolean result = task.attemptRetry(clock);
 
                 // then
                 assertThat(result).isTrue();
@@ -313,9 +329,10 @@ class CrawlTaskTest {
             void shouldFailWhenCannotRetry() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aFailedTaskWithMaxRetry();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                boolean result = task.attemptRetry();
+                boolean result = task.attemptRetry(clock);
 
                 // then
                 assertThat(result).isFalse();
@@ -332,9 +349,10 @@ class CrawlTaskTest {
             void shouldTransitionFromRetryToPublished() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aRetryTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.markAsPublishedAfterRetry();
+                task.markAsPublishedAfterRetry(clock);
 
                 // then
                 assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.PUBLISHED);
@@ -345,9 +363,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenNotInRetryStatus() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aFailedTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markAsPublishedAfterRetry)
+                assertThatThrownBy(() -> task.markAsPublishedAfterRetry(clock))
                         .isInstanceOf(InvalidCrawlTaskStateException.class);
             }
         }
@@ -422,9 +441,10 @@ class CrawlTaskTest {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
                 String payload = "{\"taskId\":1}";
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.initializeOutbox(payload);
+                task.initializeOutbox(payload, clock);
 
                 // then
                 assertThat(task.hasOutbox()).isTrue();
@@ -437,10 +457,11 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenOutboxAlreadyInitialized() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                task.initializeOutbox("{\"taskId\":1}");
+                FixedClock clock = FixedClock.aDefaultClock();
+                task.initializeOutbox("{\"taskId\":1}", clock);
 
                 // when & then
-                assertThatThrownBy(() -> task.initializeOutbox("{\"taskId\":2}"))
+                assertThatThrownBy(() -> task.initializeOutbox("{\"taskId\":2}", clock))
                         .isInstanceOf(IllegalStateException.class)
                         .hasMessage("Outbox가 이미 초기화되었습니다.");
             }
@@ -455,10 +476,11 @@ class CrawlTaskTest {
             void shouldMarkOutboxAsSent() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                task.initializeOutbox("{\"taskId\":1}");
+                FixedClock clock = FixedClock.aDefaultClock();
+                task.initializeOutbox("{\"taskId\":1}", clock);
 
                 // when
-                task.markOutboxAsSent();
+                task.markOutboxAsSent(clock);
 
                 // then
                 assertThat(task.getOutbox().isSent()).isTrue();
@@ -470,9 +492,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenOutboxNotInitialized() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markOutboxAsSent)
+                assertThatThrownBy(() -> task.markOutboxAsSent(clock))
                         .isInstanceOf(IllegalStateException.class)
                         .hasMessage("Outbox가 초기화되지 않았습니다.");
             }
@@ -487,10 +510,11 @@ class CrawlTaskTest {
             void shouldMarkOutboxAsFailed() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                task.initializeOutbox("{\"taskId\":1}");
+                FixedClock clock = FixedClock.aDefaultClock();
+                task.initializeOutbox("{\"taskId\":1}", clock);
 
                 // when
-                task.markOutboxAsFailed();
+                task.markOutboxAsFailed(clock);
 
                 // then
                 assertThat(task.getOutbox().getRetryCount()).isEqualTo(1);
@@ -501,9 +525,10 @@ class CrawlTaskTest {
             void shouldThrowExceptionWhenOutboxNotInitialized() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(task::markOutboxAsFailed)
+                assertThatThrownBy(() -> task.markOutboxAsFailed(clock))
                         .isInstanceOf(IllegalStateException.class)
                         .hasMessage("Outbox가 초기화되지 않았습니다.");
             }
@@ -540,9 +565,10 @@ class CrawlTaskTest {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
                 String payload = "{\"taskId\":1}";
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when
-                task.addRegisteredEvent(payload);
+                task.addRegisteredEvent(payload, clock);
 
                 // then
                 List<DomainEvent> events = task.getDomainEvents();
@@ -554,10 +580,11 @@ class CrawlTaskTest {
             @DisplayName("ID 미할당 상태에서 등록 이벤트 발행 시 예외 발생")
             void shouldThrowExceptionWhenIdNotAssigned() {
                 // given
-                CrawlTask task = CrawlTaskFixture.aNewTask();
+                CrawlTask task = CrawlTaskFixture.forNew();
+                FixedClock clock = FixedClock.aDefaultClock();
 
                 // when & then
-                assertThatThrownBy(() -> task.addRegisteredEvent("{\"taskId\":1}"))
+                assertThatThrownBy(() -> task.addRegisteredEvent("{\"taskId\":1}", clock))
                         .isInstanceOf(IllegalStateException.class)
                         .hasMessage("등록 이벤트는 ID 할당 후 발행해야 합니다.");
             }
@@ -572,7 +599,8 @@ class CrawlTaskTest {
             void shouldClearAllDomainEvents() {
                 // given
                 CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                task.addRegisteredEvent("{\"taskId\":1}");
+                FixedClock clock = FixedClock.aDefaultClock();
+                task.addRegisteredEvent("{\"taskId\":1}", clock);
                 assertThat(task.getDomainEvents()).isNotEmpty();
 
                 // when
@@ -588,7 +616,8 @@ class CrawlTaskTest {
         void shouldReturnUnmodifiableEventList() {
             // given
             CrawlTask task = CrawlTaskFixture.aWaitingTask();
-            task.addRegisteredEvent("{\"taskId\":1}");
+            FixedClock clock = FixedClock.aDefaultClock();
+            task.addRegisteredEvent("{\"taskId\":1}", clock);
 
             // when
             List<DomainEvent> events = task.getDomainEvents();
