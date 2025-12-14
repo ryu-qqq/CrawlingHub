@@ -4,52 +4,49 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import java.time.Clock;
 
 /**
- * CrawlTask 번들 DTO
+ * CrawlTask 번들 DTO (Immutable)
  *
  * <p><strong>용도</strong>: CrawlTask와 Outbox를 하나로 묶어 관리
+ *
+ * <p><strong>불변 설계</strong>: with* 메서드는 새 인스턴스를 반환합니다.
  *
  * <p><strong>저장 흐름</strong>:
  *
  * <ol>
- *   <li>CrawlTask 저장 → ID 반환 → withTaskId()
+ *   <li>CrawlTask 저장 → ID 반환 → withTaskId() → 새 번들 반환
  *   <li>Outbox 저장 (Task ID 참조)
  * </ol>
  *
+ * @param crawlTask CrawlTask Aggregate
+ * @param outboxPayload Outbox 페이로드 (JSON)
+ * @param savedTaskId 저장된 Task ID (nullable)
  * @author development-team
  * @since 1.0.0
  */
-public class CrawlTaskBundle {
-
-    private final CrawlTask crawlTask;
-    private final String outboxPayload;
-
-    private CrawlTaskId savedTaskId;
-
-    private CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload) {
-        this.crawlTask = crawlTask;
-        this.outboxPayload = outboxPayload;
-    }
+public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTaskId savedTaskId) {
 
     /**
-     * 번들 생성
+     * 번들 생성 (ID 미할당 상태)
      *
      * @param crawlTask CrawlTask Aggregate
      * @param outboxPayload Outbox 페이로드 (JSON)
      * @return CrawlTaskBundle
      */
     public static CrawlTaskBundle of(CrawlTask crawlTask, String outboxPayload) {
-        return new CrawlTaskBundle(crawlTask, outboxPayload);
+        return new CrawlTaskBundle(crawlTask, outboxPayload, null);
     }
 
     /**
-     * Task ID 설정 (저장 후 호출)
+     * Task ID 설정 (새 인스턴스 반환)
      *
      * @param taskId 저장된 Task ID
+     * @return 새 CrawlTaskBundle (ID 할당됨)
      */
-    public void withTaskId(CrawlTaskId taskId) {
-        this.savedTaskId = taskId;
+    public CrawlTaskBundle withTaskId(CrawlTaskId taskId) {
+        return new CrawlTaskBundle(crawlTask, outboxPayload, taskId);
     }
 
     /**
@@ -61,6 +58,11 @@ public class CrawlTaskBundle {
         return crawlTask;
     }
 
+    /**
+     * CrawlScheduler ID 반환
+     *
+     * @return CrawlSchedulerId
+     */
     public CrawlSchedulerId getCrawlScheduleId() {
         return crawlTask.getCrawlSchedulerId();
     }
@@ -70,10 +72,11 @@ public class CrawlTaskBundle {
      *
      * <p><strong>주의</strong>: 이 메서드는 등록 이벤트를 자동 발행합니다.
      *
+     * @param clock 시간 제어
      * @return CrawlTask with ID (이벤트 발행됨)
      * @throws IllegalStateException ID가 아직 할당되지 않은 경우
      */
-    public CrawlTask getSavedCrawlTask() {
+    public CrawlTask getSavedCrawlTask(Clock clock) {
         if (savedTaskId == null) {
             throw new IllegalStateException("CrawlTask ID가 아직 할당되지 않았습니다.");
         }
@@ -90,28 +93,28 @@ public class CrawlTaskBundle {
                         crawlTask.getCreatedAt(),
                         crawlTask.getUpdatedAt());
 
-        // ID 할당 후 자동으로 등록 이벤트 발행
-        savedTask.addRegisteredEvent(outboxPayload);
+        savedTask.addRegisteredEvent(outboxPayload, clock);
         return savedTask;
     }
 
     /**
      * Outbox 생성 (Task ID 할당 후)
      *
+     * @param clock 시간 제어
      * @return CrawlTaskOutbox
      * @throws IllegalStateException Task ID가 아직 할당되지 않은 경우
      */
-    public CrawlTaskOutbox createOutbox() {
+    public CrawlTaskOutbox createOutbox(Clock clock) {
         if (savedTaskId == null) {
             throw new IllegalStateException("CrawlTask ID가 아직 할당되지 않았습니다.");
         }
-        return CrawlTaskOutbox.forNew(savedTaskId, outboxPayload);
+        return CrawlTaskOutbox.forNew(savedTaskId, outboxPayload, clock);
     }
 
     /**
      * 저장된 Task ID 반환
      *
-     * @return CrawlTaskId
+     * @return CrawlTaskId (nullable)
      */
     public CrawlTaskId getSavedTaskId() {
         return savedTaskId;

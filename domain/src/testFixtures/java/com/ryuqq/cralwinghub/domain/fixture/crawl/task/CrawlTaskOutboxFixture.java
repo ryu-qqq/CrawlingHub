@@ -1,9 +1,11 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * CrawlTaskOutbox 테스트 Fixture
@@ -14,6 +16,9 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 public final class CrawlTaskOutboxFixture {
+
+    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
 
     private CrawlTaskOutboxFixture() {
         throw new UnsupportedOperationException("Fixture 클래스입니다.");
@@ -31,7 +36,7 @@ public final class CrawlTaskOutboxFixture {
                 "{\"taskId\": 1, \"sellerId\": 100}",
                 OutboxStatus.PENDING,
                 0,
-                LocalDateTime.now(),
+                DEFAULT_TIME,
                 null);
     }
 
@@ -41,14 +46,15 @@ public final class CrawlTaskOutboxFixture {
      * @return SENT 상태 CrawlTaskOutbox
      */
     public static CrawlTaskOutbox aSentOutbox() {
+        Instant fiveMinutesAgo = DEFAULT_TIME.minusSeconds(300);
         return CrawlTaskOutbox.reconstitute(
                 CrawlTaskId.of(2L),
                 "outbox-2-efgh5678",
                 "{\"taskId\": 2, \"sellerId\": 100}",
                 OutboxStatus.SENT,
                 0,
-                LocalDateTime.now().minusMinutes(5),
-                LocalDateTime.now());
+                fiveMinutesAgo,
+                DEFAULT_TIME);
     }
 
     /**
@@ -57,14 +63,16 @@ public final class CrawlTaskOutboxFixture {
      * @return FAILED 상태 CrawlTaskOutbox
      */
     public static CrawlTaskOutbox aFailedOutbox() {
+        Instant tenMinutesAgo = DEFAULT_TIME.minusSeconds(600);
+        Instant fiveMinutesAgo = DEFAULT_TIME.minusSeconds(300);
         return CrawlTaskOutbox.reconstitute(
                 CrawlTaskId.of(3L),
                 "outbox-3-ijkl9012",
                 "{\"taskId\": 3, \"sellerId\": 100}",
                 OutboxStatus.FAILED,
                 1,
-                LocalDateTime.now().minusMinutes(10),
-                LocalDateTime.now().minusMinutes(5));
+                tenMinutesAgo,
+                fiveMinutesAgo);
     }
 
     /**
@@ -73,14 +81,16 @@ public final class CrawlTaskOutboxFixture {
      * @return 재시도 가능한 FAILED 상태 CrawlTaskOutbox
      */
     public static CrawlTaskOutbox aRetryableFailedOutbox() {
+        Instant fifteenMinutesAgo = DEFAULT_TIME.minusSeconds(900);
+        Instant tenMinutesAgo = DEFAULT_TIME.minusSeconds(600);
         return CrawlTaskOutbox.reconstitute(
                 CrawlTaskId.of(4L),
                 "outbox-4-mnop3456",
                 "{\"taskId\": 4, \"sellerId\": 100}",
                 OutboxStatus.FAILED,
                 2,
-                LocalDateTime.now().minusMinutes(15),
-                LocalDateTime.now().minusMinutes(10));
+                fifteenMinutesAgo,
+                tenMinutesAgo);
     }
 
     /**
@@ -89,13 +99,15 @@ public final class CrawlTaskOutboxFixture {
      * @return 재시도 불가 FAILED 상태 CrawlTaskOutbox
      */
     public static CrawlTaskOutbox aMaxRetriedFailedOutbox() {
+        Instant twentyMinutesAgo = DEFAULT_TIME.minusSeconds(1200);
+        Instant fifteenMinutesAgo = DEFAULT_TIME.minusSeconds(900);
         return CrawlTaskOutbox.reconstitute(
                 CrawlTaskId.of(5L),
                 "outbox-5-qrst7890",
                 "{\"taskId\": 5, \"sellerId\": 100}",
                 OutboxStatus.FAILED,
                 3,
-                LocalDateTime.now().minusMinutes(20),
-                LocalDateTime.now().minusMinutes(15));
+                twentyMinutesAgo,
+                fifteenMinutesAgo);
     }
 }

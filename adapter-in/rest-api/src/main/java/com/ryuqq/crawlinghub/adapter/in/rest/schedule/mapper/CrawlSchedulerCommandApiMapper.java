@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedule
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,7 +80,11 @@ public class CrawlSchedulerCommandApiMapper {
                 appResponse.schedulerName(),
                 appResponse.cronExpression(),
                 appResponse.status().name(),
-                appResponse.createdAt(),
-                appResponse.updatedAt());
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()));
+    }
+
+    private String toIsoString(Instant instant) {
+        return instant != null ? instant.toString() : null;
     }
 }

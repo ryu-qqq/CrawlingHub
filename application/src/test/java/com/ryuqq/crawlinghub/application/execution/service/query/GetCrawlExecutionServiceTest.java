@@ -11,12 +11,12 @@ import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.execution.assembler.CrawlExecutionAssembler;
 import com.ryuqq.crawlinghub.application.execution.dto.query.GetCrawlExecutionQuery;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDetailResponse;
-import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
+import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * GetCrawlExecutionService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Manager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawlExecutionService 테스트")
 class GetCrawlExecutionServiceTest {
 
-    @Mock private CrawlExecutionQueryPort crawlExecutionQueryPort;
+    @Mock private CrawlExecutionReadManager readManager;
 
     @Mock private CrawlExecutionAssembler assembler;
 
@@ -66,10 +66,10 @@ class GetCrawlExecutionServiceTest {
                             null,
                             null,
                             null,
-                            LocalDateTime.now(),
+                            Instant.now(),
                             null);
 
-            given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
+            given(readManager.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(execution));
             given(assembler.toDetailResponse(execution)).willReturn(expectedResponse);
 
@@ -78,7 +78,7 @@ class GetCrawlExecutionServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(crawlExecutionQueryPort).should().findById(CrawlExecutionId.of(crawlExecutionId));
+            then(readManager).should().findById(CrawlExecutionId.of(crawlExecutionId));
             then(assembler).should().toDetailResponse(execution);
         }
 
@@ -89,8 +89,7 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 999L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
 
-            given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
-                    .willReturn(Optional.empty());
+            given(readManager.findById(any(CrawlExecutionId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(query))
@@ -117,10 +116,10 @@ class GetCrawlExecutionServiceTest {
                             "{\"products\": []}",
                             null,
                             1500L,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
+            given(readManager.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(successExecution));
             given(assembler.toDetailResponse(successExecution)).willReturn(expectedResponse);
 
@@ -151,10 +150,10 @@ class GetCrawlExecutionServiceTest {
                             null,
                             "Internal Server Error",
                             500L,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                            Instant.now(),
+                            Instant.now());
 
-            given(crawlExecutionQueryPort.findById(any(CrawlExecutionId.class)))
+            given(readManager.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(failedExecution));
             given(assembler.toDetailResponse(failedExecution)).willReturn(expectedResponse);
 

@@ -3,9 +3,10 @@ package com.ryuqq.crawlinghub.application.seller.service.command;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <ul>
  *   <li>비즈니스 규칙: MustItSellerName, SellerName 중복 불가
- *   <li>Service에서 QueryPort로 중복 검사 수행
+ *   <li>Service에서 ReadManager로 중복 검사 수행
  *   <li>Manager는 영속화만 담당
  * </ul>
  *
@@ -32,15 +33,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterSellerService implements RegisterSellerUseCase {
 
     private final SellerTransactionManager transactionManager;
-    private final SellerQueryPort sellerQueryPort;
+    private final SellerReadManager sellerReadManager;
+    private final SellerCommandFactory commandFactory;
     private final SellerAssembler assembler;
 
     public RegisterSellerService(
             SellerTransactionManager transactionManager,
-            SellerQueryPort sellerQueryPort,
+            SellerReadManager sellerReadManager,
+            SellerCommandFactory commandFactory,
             SellerAssembler assembler) {
         this.transactionManager = transactionManager;
-        this.sellerQueryPort = sellerQueryPort;
+        this.sellerReadManager = sellerReadManager;
+        this.commandFactory = commandFactory;
         this.assembler = assembler;
     }
 
@@ -51,8 +55,8 @@ public class RegisterSellerService implements RegisterSellerUseCase {
         validateMustItSellerNameDuplicate(command.mustItSellerName());
         validateSellerNameDuplicate(command.sellerName());
 
-        // 2. Domain 생성 (Assembler)
-        Seller seller = assembler.toDomain(command);
+        // 2. Domain 생성 (CommandFactory)
+        Seller seller = commandFactory.create(command);
 
         // 3. 영속화 (Manager 책임)
         transactionManager.persist(seller);
@@ -68,7 +72,7 @@ public class RegisterSellerService implements RegisterSellerUseCase {
      * @throws DuplicateMustItSellerIdException 중복 시
      */
     private void validateMustItSellerNameDuplicate(String mustItSellerName) {
-        if (sellerQueryPort.existsByMustItSellerName(MustItSellerName.of(mustItSellerName))) {
+        if (sellerReadManager.existsByMustItSellerName(MustItSellerName.of(mustItSellerName))) {
             throw new DuplicateMustItSellerIdException(mustItSellerName);
         }
     }
@@ -80,7 +84,7 @@ public class RegisterSellerService implements RegisterSellerUseCase {
      * @throws DuplicateSellerNameException 중복 시
      */
     private void validateSellerNameDuplicate(String sellerName) {
-        if (sellerQueryPort.existsBySellerName(SellerName.of(sellerName))) {
+        if (sellerReadManager.existsBySellerName(SellerName.of(sellerName))) {
             throw new DuplicateSellerNameException(sellerName);
         }
     }

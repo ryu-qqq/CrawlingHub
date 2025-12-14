@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -21,8 +22,8 @@ public class DocsController {
      *
      * @return index.html로 리다이렉트
      */
-    @GetMapping("/docs")
+    @GetMapping(ApiPaths.Docs.BASE)
     public String docs() {
-        return "redirect:/docs/index.html";
+        return "redirect:" + ApiPaths.Docs.INDEX;
     }
 }

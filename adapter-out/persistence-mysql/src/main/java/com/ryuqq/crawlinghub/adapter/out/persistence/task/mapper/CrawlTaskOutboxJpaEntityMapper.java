@@ -3,6 +3,9 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,8 +54,8 @@ public class CrawlTaskOutboxJpaEntityMapper {
                 domain.getPayload(),
                 domain.getStatus(),
                 domain.getRetryCount(),
-                domain.getCreatedAt(),
-                domain.getProcessedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getProcessedAt()));
     }
 
     /**
@@ -75,7 +78,21 @@ public class CrawlTaskOutboxJpaEntityMapper {
                 entity.getPayload(),
                 entity.getStatus(),
                 entity.getRetryCount(),
-                entity.getCreatedAt(),
-                entity.getProcessedAt());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getProcessedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

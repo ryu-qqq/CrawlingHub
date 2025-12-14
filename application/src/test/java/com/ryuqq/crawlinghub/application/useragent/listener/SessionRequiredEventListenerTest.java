@@ -49,7 +49,9 @@ class SessionRequiredEventListenerTest {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             String userAgentValue = "Mozilla/5.0 Test Agent";
-            SessionRequiredEvent event = new SessionRequiredEvent(userAgentId, userAgentValue);
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
+            SessionRequiredEvent event =
+                    new SessionRequiredEvent(userAgentId, userAgentValue, occurredAt);
 
             String token = "session-token-abc123";
             Instant expiresAt = Instant.now().plusSeconds(3600);
@@ -72,7 +74,9 @@ class SessionRequiredEventListenerTest {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             String userAgentValue = "Mozilla/5.0 Test Agent";
-            SessionRequiredEvent event = new SessionRequiredEvent(userAgentId, userAgentValue);
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
+            SessionRequiredEvent event =
+                    new SessionRequiredEvent(userAgentId, userAgentValue, occurredAt);
 
             given(sessionTokenPort.issueSessionToken(userAgentValue)).willReturn(Optional.empty());
 
@@ -90,7 +94,9 @@ class SessionRequiredEventListenerTest {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             String userAgentValue = "Mozilla/5.0 Test Agent";
-            SessionRequiredEvent event = new SessionRequiredEvent(userAgentId, userAgentValue);
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
+            SessionRequiredEvent event =
+                    new SessionRequiredEvent(userAgentId, userAgentValue, occurredAt);
 
             given(sessionTokenPort.issueSessionToken(userAgentValue))
                     .willThrow(new RuntimeException("External service error"));

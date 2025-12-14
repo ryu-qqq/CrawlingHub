@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.domain.execution.vo;
 
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * CrawlExecution 조회 조건 Value Object
@@ -46,8 +46,8 @@ public record CrawlExecutionCriteria(
         CrawlTaskId crawlTaskId,
         CrawlSchedulerId crawlSchedulerId,
         CrawlExecutionStatus status,
-        LocalDateTime from,
-        LocalDateTime to,
+        Instant from,
+        Instant to,
         int page,
         int size) {
 
@@ -88,11 +88,7 @@ public record CrawlExecutionCriteria(
      * @return CrawlExecutionCriteria
      */
     public static CrawlExecutionCriteria bySchedulerIdAndPeriod(
-            CrawlSchedulerId crawlSchedulerId,
-            LocalDateTime from,
-            LocalDateTime to,
-            int page,
-            int size) {
+            CrawlSchedulerId crawlSchedulerId, Instant from, Instant to, int page, int size) {
         return new CrawlExecutionCriteria(null, crawlSchedulerId, null, from, to, page, size);
     }
 
@@ -110,8 +106,8 @@ public record CrawlExecutionCriteria(
     public static CrawlExecutionCriteria bySchedulerIdAndStatusAndPeriod(
             CrawlSchedulerId crawlSchedulerId,
             CrawlExecutionStatus status,
-            LocalDateTime from,
-            LocalDateTime to,
+            Instant from,
+            Instant to,
             int page,
             int size) {
         return new CrawlExecutionCriteria(null, crawlSchedulerId, status, from, to, page, size);

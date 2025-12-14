@@ -1,35 +1,19 @@
 package com.ryuqq.crawlinghub.application.crawl.dto;
 
 /**
- * 크롤링 결과 DTO
+ * 크롤링 결과 DTO (Record)
  *
- * <p>크롤러 실행 결과를 담는 DTO. HTTP 응답 정보와 성공/실패 상태를 포함.
+ * <p>크롤러 실행 결과를 담는 불변 DTO. HTTP 응답 정보와 성공/실패 상태를 포함.
  *
- * <p><strong>DTO로 설계한 이유</strong>:
- *
- * <ul>
- *   <li>크롤링 실행 결과 데이터 전달 목적
- *   <li>도메인 규칙을 표현하지 않음 (VO 아님)
- *   <li>Application 레이어 내부에서만 사용
- * </ul>
- *
+ * @param success 성공 여부
+ * @param responseBody HTTP 응답 바디
+ * @param httpStatusCode HTTP 상태 코드
+ * @param errorMessage 에러 메시지 (실패 시)
  * @author development-team
  * @since 1.0.0
  */
-public class CrawlResult {
-
-    private final boolean success;
-    private final String responseBody;
-    private final Integer httpStatusCode;
-    private final String errorMessage;
-
-    private CrawlResult(
-            boolean success, String responseBody, Integer httpStatusCode, String errorMessage) {
-        this.success = success;
-        this.responseBody = responseBody;
-        this.httpStatusCode = httpStatusCode;
-        this.errorMessage = errorMessage;
-    }
+public record CrawlResult(
+        boolean success, String responseBody, Integer httpStatusCode, String errorMessage) {
 
     /**
      * 성공 결과 생성
@@ -73,10 +57,10 @@ public class CrawlResult {
      */
     public static CrawlResult from(HttpResponse response) {
         if (response.isSuccess()) {
-            return success(response.getBody(), response.getStatusCode());
+            return success(response.body(), response.statusCode());
         } else {
             String errorMessage = buildErrorMessage(response);
-            return failure(response.getStatusCode(), errorMessage);
+            return failure(response.statusCode(), errorMessage);
         }
     }
 
@@ -85,13 +69,15 @@ public class CrawlResult {
         if (response.isRateLimited()) {
             return "Rate limited (429)";
         } else if (response.isServerError()) {
-            return "Server error: " + response.getStatusCode();
+            return "Server error: " + response.statusCode();
         } else if (response.isClientError()) {
-            return "Client error: " + response.getStatusCode();
+            return "Client error: " + response.statusCode();
         } else {
-            return "HTTP error: " + response.getStatusCode();
+            return "HTTP error: " + response.statusCode();
         }
     }
+
+    // === Accessor aliases for backward compatibility ===
 
     public boolean isSuccess() {
         return success;

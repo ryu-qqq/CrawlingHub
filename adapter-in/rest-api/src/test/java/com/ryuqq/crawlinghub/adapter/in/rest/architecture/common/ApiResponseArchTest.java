@@ -1,11 +1,15 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.architecture.common;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.*;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -49,17 +53,39 @@ class ApiResponseArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter().importPackages("com.ryuqq.adapter.in.rest");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
-    /** 규칙 1: Common Response DTOs는 common.dto 패키지에 위치 */
+    /** Common Response DTO 이름 목록 (공통 응답 래퍼만 포함) */
+    private static final DescribedPredicate<JavaClass> COMMON_RESPONSE_DTO_NAMES =
+            DescribedPredicate.describe(
+                    "Common Response DTOs (ApiResponse, PageApiResponse, SliceApiResponse,"
+                            + " ErrorInfo)",
+                    javaClass -> {
+                        String simpleName = javaClass.getSimpleName();
+                        return simpleName.equals("ApiResponse")
+                                || simpleName.equals("PageApiResponse")
+                                || simpleName.equals("SliceApiResponse")
+                                || simpleName.equals("ErrorInfo");
+                    });
+
+    /**
+     * 규칙 1: Common Response DTOs는 common.dto 패키지에 위치
+     *
+     * <p>검증 대상: ApiResponse, PageApiResponse, SliceApiResponse, ErrorInfo (공통 응답 래퍼)
+     *
+     * <p>검증 제외: *ApiResponse 형태의 도메인 응답 DTO (TokenApiResponse, MemberApiResponse 등)
+     */
     @Test
     @DisplayName("[필수] Common Response DTOs는 common.dto 패키지에 위치해야 한다")
     void commonResponseDtos_MustBeInCommonDtoPackage() {
+        // 공통 응답 래퍼만 검증 (도메인별 *ApiResponse는 각 dto.response 패키지에 위치)
         ArchRule rule =
                 classes()
-                        .that()
-                        .haveNameMatching(".*ApiResponse|.*ErrorInfo")
+                        .that(COMMON_RESPONSE_DTO_NAMES)
                         .and()
                         .resideInAPackage("..adapter.in.rest..")
                         .and()

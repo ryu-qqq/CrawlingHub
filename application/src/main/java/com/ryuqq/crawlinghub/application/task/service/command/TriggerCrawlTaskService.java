@@ -6,9 +6,11 @@ import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
+import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.port.in.command.TriggerCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,15 +20,16 @@ import org.springframework.stereotype.Service;
  *
  * <ul>
  *   <li>EventBridge에서 호출되어 CrawlTask 생성
- *   <li>Assembler로 번들 생성
+ *   <li>CommandFactory로 번들 생성
  *   <li>Facade에 위임하여 트랜잭션 처리
+ *   <li>ClockHolder 의존성 없음 (Facade가 관리)
  * </ul>
  *
  * <p><strong>처리 흐름</strong>:
  *
  * <ol>
  *   <li>Validator로 스케줄러 조회 및 검증 (ACTIVE 상태만)
- *   <li>Assembler로 CrawlTaskBundle 생성 (Task + Outbox payload)
+ *   <li>CommandFactory로 CrawlTaskBundle 생성 (Task + Outbox payload)
  *   <li>Facade에서 persist (검증 + 저장)
  *   <li>Assembler로 응답 변환
  * </ol>
@@ -38,14 +41,17 @@ import org.springframework.stereotype.Service;
 public class TriggerCrawlTaskService implements TriggerCrawlTaskUseCase {
 
     private final CrawlTaskPersistenceValidator validator;
+    private final CrawlTaskCommandFactory commandFactory;
     private final CrawlTaskAssembler assembler;
     private final CrawlTaskFacade facade;
 
     public TriggerCrawlTaskService(
             CrawlTaskPersistenceValidator validator,
+            CrawlTaskCommandFactory commandFactory,
             CrawlTaskAssembler assembler,
             CrawlTaskFacade facade) {
         this.validator = validator;
+        this.commandFactory = commandFactory;
         this.assembler = assembler;
         this.facade = facade;
     }
@@ -57,13 +63,13 @@ public class TriggerCrawlTaskService implements TriggerCrawlTaskUseCase {
         // 1. 스케줄러 조회 및 검증 (ACTIVE 상태만)
         CrawlScheduler scheduler = validator.findAndValidateScheduler(crawlSchedulerId);
 
-        // 2. CrawlTaskBundle 생성 (Assembler)
-        CrawlTaskBundle bundle = assembler.toBundle(command, scheduler);
+        // 2. CrawlTaskBundle 생성 (CommandFactory)
+        CrawlTaskBundle bundle = commandFactory.createBundle(command, scheduler);
 
-        // 3. Facade에서 persist (중복 검증 + 저장)
-        CrawlTaskBundle savedBundle = facade.persist(bundle);
+        // 3. Facade에서 persist (중복 검증 + 저장) → CrawlTask 반환
+        CrawlTask savedTask = facade.persist(bundle);
 
         // 4. 응답 변환 (Assembler)
-        return assembler.toResponse(savedBundle.getSavedCrawlTask());
+        return assembler.toResponse(savedTask);
     }
 }

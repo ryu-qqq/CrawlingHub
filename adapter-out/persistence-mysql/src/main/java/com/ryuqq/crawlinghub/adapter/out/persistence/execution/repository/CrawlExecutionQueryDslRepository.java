@@ -5,6 +5,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.QCrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -144,14 +147,22 @@ public class CrawlExecutionQueryDslRepository {
         BooleanExpression condition = null;
 
         if (criteria.from() != null) {
-            condition = qExecution.createdAt.goe(criteria.from());
+            condition = qExecution.createdAt.goe(toLocalDateTime(criteria.from()));
         }
 
         if (criteria.to() != null) {
-            BooleanExpression toCondition = qExecution.createdAt.loe(criteria.to());
+            BooleanExpression toCondition =
+                    qExecution.createdAt.loe(toLocalDateTime(criteria.to()));
             condition = condition != null ? condition.and(toCondition) : toCondition;
         }
 
         return condition;
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

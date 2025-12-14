@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.seller.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Seller Summary Response
@@ -20,4 +20,4 @@ public record SellerSummaryResponse(
         String mustItSellerName,
         String sellerName,
         boolean active,
-        LocalDateTime createdAt) {}
+        Instant createdAt) {}

@@ -6,10 +6,11 @@ import com.ryuqq.crawlinghub.application.crawl.processor.CrawlResultProcessorPro
 import com.ryuqq.crawlinghub.application.crawl.processor.ProcessingResult;
 import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.CreateCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -45,23 +46,26 @@ public class CrawlTaskExecutionFacade {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlTaskExecutionFacade.class);
 
-    private final CrawlTaskQueryPort crawlTaskQueryPort;
+    private final CrawlTaskReadManager crawlTaskReadManager;
     private final CrawlTaskTransactionManager crawlTaskTransactionManager;
-    private final CrawlExecutionManager crawlExecutionManager;
+    private final CrawlExecutionTransactionManager crawlExecutionManager;
     private final CrawlResultProcessorProvider processorProvider;
     private final CreateCrawlTaskUseCase createCrawlTaskUseCase;
+    private final ClockHolder clockHolder;
 
     public CrawlTaskExecutionFacade(
-            CrawlTaskQueryPort crawlTaskQueryPort,
+            CrawlTaskReadManager crawlTaskReadManager,
             CrawlTaskTransactionManager crawlTaskTransactionManager,
-            CrawlExecutionManager crawlExecutionManager,
+            CrawlExecutionTransactionManager crawlExecutionManager,
             CrawlResultProcessorProvider processorProvider,
-            CreateCrawlTaskUseCase createCrawlTaskUseCase) {
-        this.crawlTaskQueryPort = crawlTaskQueryPort;
+            CreateCrawlTaskUseCase createCrawlTaskUseCase,
+            ClockHolder clockHolder) {
+        this.crawlTaskReadManager = crawlTaskReadManager;
         this.crawlTaskTransactionManager = crawlTaskTransactionManager;
         this.crawlExecutionManager = crawlExecutionManager;
         this.processorProvider = processorProvider;
         this.createCrawlTaskUseCase = createCrawlTaskUseCase;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -89,7 +93,7 @@ public class CrawlTaskExecutionFacade {
         CrawlTask crawlTask = findCrawlTaskOrThrow(taskId);
 
         // 2. CrawlTask 상태 → RUNNING
-        crawlTask.markAsRunning();
+        crawlTask.markAsRunning(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.debug("CrawlTask 상태 업데이트: taskId={}, status=RUNNING", taskId);
@@ -132,7 +136,7 @@ public class CrawlTaskExecutionFacade {
                 execution, crawlResult.getResponseBody(), crawlResult.getHttpStatusCode());
 
         // 2. CrawlTask 상태 → SUCCESS
-        crawlTask.markAsSuccess();
+        crawlTask.markAsSuccess(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
 
         // 3. 크롤링 결과 처리 (파싱 + 저장 + 후속 Task 생성)
@@ -199,7 +203,7 @@ public class CrawlTaskExecutionFacade {
         crawlExecutionManager.completeWithFailure(execution, httpStatusCode, errorMessage);
 
         // 2. CrawlTask 상태 → FAILED
-        crawlTask.markAsFailed();
+        crawlTask.markAsFailed(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.warn(
@@ -234,7 +238,7 @@ public class CrawlTaskExecutionFacade {
         crawlExecutionManager.completeWithTimeout(execution, errorMessage);
 
         // 2. CrawlTask 상태 → FAILED
-        crawlTask.markAsFailed();
+        crawlTask.markAsFailed(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.warn(
@@ -253,7 +257,7 @@ public class CrawlTaskExecutionFacade {
      */
     private CrawlTask findCrawlTaskOrThrow(Long taskId) {
         CrawlTaskId crawlTaskId = CrawlTaskId.of(taskId);
-        return crawlTaskQueryPort
+        return crawlTaskReadManager
                 .findById(crawlTaskId)
                 .orElseThrow(
                         () -> {

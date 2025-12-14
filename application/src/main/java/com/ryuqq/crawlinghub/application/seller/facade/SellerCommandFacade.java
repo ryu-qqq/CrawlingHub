@@ -2,6 +2,9 @@ package com.ryuqq.crawlinghub.application.seller.facade;
 
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +22,27 @@ public class SellerCommandFacade {
 
     public Seller persist(Seller seller) {
         transactionManager.persist(seller);
+        publishDomainEvents(seller);
+        return seller;
+    }
+
+    /**
+     * Seller 정보 수정 + 영속화 + 이벤트 발행
+     *
+     * <p>TransactionManager에 위임하여 ClockHolder 의존성 캡슐화
+     *
+     * @param seller 수정 대상 Seller
+     * @param newMustItSellerName 새로운 머스트잇 셀러명
+     * @param newSellerName 새로운 셀러명
+     * @param newStatus 새로운 상태
+     * @return 수정된 Seller
+     */
+    public Seller update(
+            Seller seller,
+            MustItSellerName newMustItSellerName,
+            SellerName newSellerName,
+            SellerStatus newStatus) {
+        transactionManager.update(seller, newMustItSellerName, newSellerName, newStatus);
         publishDomainEvents(seller);
         return seller;
     }

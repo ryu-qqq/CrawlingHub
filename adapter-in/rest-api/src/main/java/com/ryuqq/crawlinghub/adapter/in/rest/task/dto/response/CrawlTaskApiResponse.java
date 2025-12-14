@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response;
 
-import java.time.LocalDateTime;
-
 /**
  * CrawlTask API Response
  *
@@ -17,7 +15,7 @@ import java.time.LocalDateTime;
  *   <li>status: 상태 (PENDING, RUNNING, SUCCESS, FAILED, CANCELLED)
  *   <li>taskType: 태스크 유형 (META, MINI_SHOP, DETAIL, OPTION)
  *   <li>retryCount: 재시도 횟수
- *   <li>createdAt: 생성 시각
+ *   <li>createdAt: 생성 시각 (ISO-8601 형식)
  * </ul>
  *
  * @param crawlTaskId 크롤 태스크 ID
@@ -27,7 +25,7 @@ import java.time.LocalDateTime;
  * @param status 상태
  * @param taskType 태스크 유형
  * @param retryCount 재시도 횟수
- * @param createdAt 생성 시각
+ * @param createdAt 생성 시각 (ISO-8601 형식)
  * @author development-team
  * @since 1.0.0
  */
@@ -39,4 +37,4 @@ public record CrawlTaskApiResponse(
         String status,
         String taskType,
         int retryCount,
-        LocalDateTime createdAt) {}
+        String createdAt) {}

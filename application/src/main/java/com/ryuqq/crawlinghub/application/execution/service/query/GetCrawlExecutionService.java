@@ -3,18 +3,19 @@ package com.ryuqq.crawlinghub.application.execution.service.query;
 import com.ryuqq.crawlinghub.application.execution.assembler.CrawlExecutionAssembler;
 import com.ryuqq.crawlinghub.application.execution.dto.query.GetCrawlExecutionQuery;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDetailResponse;
+import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.execution.port.in.query.GetCrawlExecutionUseCase;
-import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * CrawlExecution 단건 조회 Service
  *
  * <p>GetCrawlExecutionUseCase 구현체
+ *
+ * <p><strong>트랜잭션</strong>: QueryService는 @Transactional 금지 (읽기 전용, 불필요)
  *
  * @author development-team
  * @since 1.0.0
@@ -22,21 +23,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class GetCrawlExecutionService implements GetCrawlExecutionUseCase {
 
-    private final CrawlExecutionQueryPort crawlExecutionQueryPort;
+    private final CrawlExecutionReadManager readManager;
     private final CrawlExecutionAssembler assembler;
 
     public GetCrawlExecutionService(
-            CrawlExecutionQueryPort crawlExecutionQueryPort, CrawlExecutionAssembler assembler) {
-        this.crawlExecutionQueryPort = crawlExecutionQueryPort;
+            CrawlExecutionReadManager readManager, CrawlExecutionAssembler assembler) {
+        this.readManager = readManager;
         this.assembler = assembler;
     }
 
     @Override
-    @Transactional(readOnly = true)
     public CrawlExecutionDetailResponse execute(GetCrawlExecutionQuery query) {
-        // 1. CrawlExecution 조회 (Port)
+        // 1. CrawlExecution 조회 (ReadManager)
         CrawlExecution execution =
-                crawlExecutionQueryPort
+                readManager
                         .findById(CrawlExecutionId.of(query.crawlExecutionId()))
                         .orElseThrow(
                                 () ->

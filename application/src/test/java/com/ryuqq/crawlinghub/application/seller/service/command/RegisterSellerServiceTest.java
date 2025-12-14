@@ -11,15 +11,16 @@ import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * RegisterSellerService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Manager/Factory 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -42,7 +43,9 @@ class RegisterSellerServiceTest {
 
     @Mock private SellerTransactionManager transactionManager;
 
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
+
+    @Mock private SellerCommandFactory commandFactory;
 
     @Mock private SellerAssembler assembler;
 
@@ -59,19 +62,14 @@ class RegisterSellerServiceTest {
             RegisterSellerCommand command =
                     new RegisterSellerCommand("mustit-seller", "seller-name");
             Seller newSeller = SellerFixture.aNewActiveSeller();
+            Instant now = Instant.now();
             SellerResponse expectedResponse =
-                    new SellerResponse(
-                            1L,
-                            "mustit-seller",
-                            "seller-name",
-                            true,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                    new SellerResponse(1L, "mustit-seller", "seller-name", true, now, now);
 
-            given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
+            given(sellerReadManager.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(false);
-            given(sellerQueryPort.existsBySellerName(any(SellerName.class))).willReturn(false);
-            given(assembler.toDomain(command)).willReturn(newSeller);
+            given(sellerReadManager.existsBySellerName(any(SellerName.class))).willReturn(false);
+            given(commandFactory.create(command)).willReturn(newSeller);
             given(transactionManager.persist(newSeller)).willReturn(SellerId.of(1L));
             given(assembler.toResponse(newSeller)).willReturn(expectedResponse);
 
@@ -80,9 +78,9 @@ class RegisterSellerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(sellerQueryPort).should().existsByMustItSellerName(any(MustItSellerName.class));
-            then(sellerQueryPort).should().existsBySellerName(any(SellerName.class));
-            then(assembler).should().toDomain(command);
+            then(sellerReadManager).should().existsByMustItSellerName(any(MustItSellerName.class));
+            then(sellerReadManager).should().existsBySellerName(any(SellerName.class));
+            then(commandFactory).should().create(command);
             then(transactionManager).should().persist(newSeller);
             then(assembler).should().toResponse(newSeller);
         }
@@ -94,15 +92,15 @@ class RegisterSellerServiceTest {
             RegisterSellerCommand command =
                     new RegisterSellerCommand("duplicate-mustit", "seller-name");
 
-            given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
+            given(sellerReadManager.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateMustItSellerIdException.class);
 
-            then(sellerQueryPort).should().existsByMustItSellerName(any(MustItSellerName.class));
-            then(sellerQueryPort).should(never()).existsBySellerName(any(SellerName.class));
+            then(sellerReadManager).should().existsByMustItSellerName(any(MustItSellerName.class));
+            then(sellerReadManager).should(never()).existsBySellerName(any(SellerName.class));
             then(transactionManager).should(never()).persist(any());
         }
 
@@ -113,16 +111,16 @@ class RegisterSellerServiceTest {
             RegisterSellerCommand command =
                     new RegisterSellerCommand("mustit-seller", "duplicate-name");
 
-            given(sellerQueryPort.existsByMustItSellerName(any(MustItSellerName.class)))
+            given(sellerReadManager.existsByMustItSellerName(any(MustItSellerName.class)))
                     .willReturn(false);
-            given(sellerQueryPort.existsBySellerName(any(SellerName.class))).willReturn(true);
+            given(sellerReadManager.existsBySellerName(any(SellerName.class))).willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateSellerNameException.class);
 
-            then(sellerQueryPort).should().existsByMustItSellerName(any(MustItSellerName.class));
-            then(sellerQueryPort).should().existsBySellerName(any(SellerName.class));
+            then(sellerReadManager).should().existsByMustItSellerName(any(MustItSellerName.class));
+            then(sellerReadManager).should().existsBySellerName(any(SellerName.class));
             then(transactionManager).should(never()).persist(any());
         }
     }

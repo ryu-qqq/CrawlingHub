@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.domain.execution.vo;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 실행 시간 Value Object
@@ -11,8 +12,8 @@ import java.time.LocalDateTime;
  * <p><strong>생명주기</strong>:
  *
  * <ol>
- *   <li>{@code start()} - 실행 시작 (startedAt만 기록)
- *   <li>{@code complete()} - 실행 완료 (completedAt, durationMs 계산)
+ *   <li>{@code start(Clock)} - 실행 시작 (startedAt만 기록)
+ *   <li>{@code complete(Clock)} - 실행 완료 (completedAt, durationMs 계산)
  * </ol>
  *
  * @param startedAt 실행 시작 시간
@@ -21,8 +22,7 @@ import java.time.LocalDateTime;
  * @author development-team
  * @since 1.0.0
  */
-public record ExecutionDuration(
-        LocalDateTime startedAt, LocalDateTime completedAt, Long durationMs) {
+public record ExecutionDuration(Instant startedAt, Instant completedAt, Long durationMs) {
 
     /** Compact Constructor (검증 로직) */
     public ExecutionDuration {
@@ -40,10 +40,11 @@ public record ExecutionDuration(
     /**
      * 실행 시작
      *
+     * @param clock 시간 제어
      * @return 시작 상태의 ExecutionDuration
      */
-    public static ExecutionDuration start() {
-        return new ExecutionDuration(LocalDateTime.now(), null, null);
+    public static ExecutionDuration start(Clock clock) {
+        return new ExecutionDuration(clock.instant(), null, null);
     }
 
     /**
@@ -52,7 +53,7 @@ public record ExecutionDuration(
      * @param startedAt 시작 시간
      * @return 시작 상태의 ExecutionDuration
      */
-    public static ExecutionDuration startAt(LocalDateTime startedAt) {
+    public static ExecutionDuration startAt(Instant startedAt) {
         return new ExecutionDuration(startedAt, null, null);
     }
 
@@ -65,17 +66,18 @@ public record ExecutionDuration(
      * @return 복원된 ExecutionDuration
      */
     public static ExecutionDuration reconstitute(
-            LocalDateTime startedAt, LocalDateTime completedAt, Long durationMs) {
+            Instant startedAt, Instant completedAt, Long durationMs) {
         return new ExecutionDuration(startedAt, completedAt, durationMs);
     }
 
     /**
      * 실행 완료 처리
      *
+     * @param clock 시간 제어
      * @return 완료 상태의 ExecutionDuration (새 인스턴스)
      */
-    public ExecutionDuration complete() {
-        LocalDateTime now = LocalDateTime.now();
+    public ExecutionDuration complete(Clock clock) {
+        Instant now = clock.instant();
         long duration = Duration.between(this.startedAt, now).toMillis();
         return new ExecutionDuration(this.startedAt, now, duration);
     }
@@ -86,7 +88,7 @@ public record ExecutionDuration(
      * @param completedAt 완료 시간
      * @return 완료 상태의 ExecutionDuration (새 인스턴스)
      */
-    public ExecutionDuration completeAt(LocalDateTime completedAt) {
+    public ExecutionDuration completeAt(Instant completedAt) {
         long duration = Duration.between(this.startedAt, completedAt).toMillis();
         return new ExecutionDuration(this.startedAt, completedAt, duration);
     }

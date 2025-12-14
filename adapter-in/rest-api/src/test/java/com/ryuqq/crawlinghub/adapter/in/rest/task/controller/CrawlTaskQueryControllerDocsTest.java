@@ -25,7 +25,7 @@ import com.ryuqq.crawlinghub.application.task.port.in.query.GetCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.application.task.port.in.query.ListCrawlTasksUseCase;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +53,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private CrawlTaskQueryApiMapper crawlTaskQueryApiMapper;
 
     @Test
-    @DisplayName("GET /api/v1/tasks - 크롤 태스크 목록 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/tasks - 크롤 태스크 목록 조회 API 문서")
     void listCrawlTasks() throws Exception {
         // given
         List<CrawlTaskResponse> content =
@@ -66,7 +66,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlTaskStatus.WAITING,
                                 CrawlTaskType.META,
                                 0,
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 0)),
+                                Instant.parse("2025-11-20T10:30:00Z")),
                         new CrawlTaskResponse(
                                 2L,
                                 1L,
@@ -75,7 +75,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlTaskStatus.SUCCESS,
                                 CrawlTaskType.DETAIL,
                                 1,
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 0)));
+                                Instant.parse("2025-11-20T10:35:00Z")));
 
         PageResponse<CrawlTaskResponse> pageResponse =
                 new PageResponse<>(content, 0, 20, 2, 1, true, true);
@@ -90,7 +90,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 "PENDING",
                                 "META",
                                 0,
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 0)),
+                                "2025-11-20T10:30:00Z"),
                         new CrawlTaskApiResponse(
                                 2L,
                                 1L,
@@ -99,7 +99,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 "SUCCESS",
                                 "DETAIL",
                                 1,
-                                LocalDateTime.of(2025, 11, 20, 10, 35, 0)));
+                                "2025-11-20T10:35:00Z"));
 
         PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -110,7 +110,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        get("/api/v1/tasks")
+                        get("/api/v1/crawling/tasks")
                                 .param("crawlSchedulerId", "1")
                                 .param("sellerId", "1")
                                 .param("status", "PENDING")
@@ -214,7 +214,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("GET /api/v1/tasks/{id} - 크롤 태스크 상세 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/tasks/{id} - 크롤 태스크 상세 조회 API 문서")
     void getCrawlTask() throws Exception {
         // given
         Long taskId = 1L;
@@ -230,8 +230,8 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                         "/products",
                         Map.of("page", "1", "size", "100"),
                         "https://api.example.com/products?page=1&size=100",
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0));
+                        Instant.parse("2025-11-20T10:30:00Z"),
+                        Instant.parse("2025-11-20T10:30:00Z"));
 
         CrawlTaskDetailApiResponse apiResponse =
                 new CrawlTaskDetailApiResponse(
@@ -245,15 +245,15 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                         "/products",
                         Map.of("page", "1", "size", "100"),
                         "https://api.example.com/products?page=1&size=100",
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0));
+                        "2025-11-20T10:30:00Z",
+                        "2025-11-20T10:30:00Z");
 
         given(crawlTaskQueryApiMapper.toGetQuery(any())).willReturn(null);
         given(getCrawlTaskUseCase.execute(any())).willReturn(useCaseResponse);
         given(crawlTaskQueryApiMapper.toDetailApiResponse(any())).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/tasks/{id}", taskId))
+        mockMvc.perform(get("/api/v1/crawling/tasks/{id}", taskId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(1))

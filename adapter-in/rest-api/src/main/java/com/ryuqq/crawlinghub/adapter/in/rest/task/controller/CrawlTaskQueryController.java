@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.controller;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
@@ -30,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p><strong>제공하는 API:</strong>
  *
  * <ul>
- *   <li>GET /api/v1/tasks - 크롤 태스크 목록 조회 (페이징)
- *   <li>GET /api/v1/tasks/{id} - 크롤 태스크 상세 조회
+ *   <li>GET /api/v1/crawling/tasks - 크롤 태스크 목록 조회 (페이징)
+ *   <li>GET /api/v1/crawling/tasks/{id} - 크롤 태스크 상세 조회
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("${api.endpoints.base-v1}${api.endpoints.task.base}")
+@RequestMapping(ApiPaths.Tasks.BASE)
 @Validated
 public class CrawlTaskQueryController {
 
@@ -161,7 +162,7 @@ public class CrawlTaskQueryController {
      *
      * <ul>
      *   <li>Method: GET
-     *   <li>Path: /api/v1/tasks/{id}
+     *   <li>Path: /api/v1/crawling/tasks/{id}
      *   <li>Status: 200 OK
      * </ul>
      *
@@ -199,7 +200,7 @@ public class CrawlTaskQueryController {
      * @param id 크롤 태스크 ID
      * @return 크롤 태스크 상세 정보 (200 OK)
      */
-    @GetMapping("${api.endpoints.task.by-id}")
+    @GetMapping(ApiPaths.Tasks.BY_ID)
     public ResponseEntity<ApiResponse<CrawlTaskDetailApiResponse>> getCrawlTask(
             @PathVariable Long id) {
         // 1. Path Variable → UseCase Query 변환 (Mapper)

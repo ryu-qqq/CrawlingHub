@@ -22,7 +22,7 @@ import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerRes
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.RegisterCrawlSchedulerUseCase;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.UpdateCrawlSchedulerUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,7 +49,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private CrawlSchedulerCommandApiMapper crawlSchedulerCommandApiMapper;
 
     @Test
-    @DisplayName("POST /api/v1/schedules - 크롤 스케줄러 등록 API 문서")
+    @DisplayName("POST /api/v1/crawling/schedules - 크롤 스케줄러 등록 API 문서")
     void registerCrawlScheduler() throws Exception {
         // given
         RegisterCrawlSchedulerApiRequest request =
@@ -62,7 +62,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                         "daily-crawl",
                         "0 0 9 * * ?",
                         SchedulerStatus.ACTIVE,
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
+                        Instant.parse("2025-11-20T10:30:00Z"),
                         null);
 
         given(crawlSchedulerCommandApiMapper.toCommand(any())).willReturn(null);
@@ -78,13 +78,13 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                     resp.schedulerName(),
                                     resp.cronExpression(),
                                     resp.status().name(),
-                                    resp.createdAt(),
-                                    resp.updatedAt());
+                                    resp.createdAt() != null ? resp.createdAt().toString() : null,
+                                    resp.updatedAt() != null ? resp.updatedAt().toString() : null);
                         });
 
         // when & then
         mockMvc.perform(
-                        post("/api/v1/schedules")
+                        post("/api/v1/crawling/schedules")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -146,7 +146,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/schedules/{id} - 크롤 스케줄러 수정 API 문서")
+    @DisplayName("PATCH /api/v1/crawling/schedules/{id} - 크롤 스케줄러 수정 API 문서")
     void updateCrawlScheduler() throws Exception {
         // given
         Long schedulerId = 1L;
@@ -160,8 +160,8 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                         "new-daily-crawl",
                         "0 0 10 * * ?",
                         SchedulerStatus.INACTIVE,
-                        LocalDateTime.of(2025, 11, 20, 10, 30, 0),
-                        LocalDateTime.of(2025, 11, 20, 11, 0, 0));
+                        Instant.parse("2025-11-20T10:30:00Z"),
+                        Instant.parse("2025-11-20T11:00:00Z"));
 
         given(crawlSchedulerCommandApiMapper.toCommand(any(), any())).willReturn(null);
         given(updateCrawlSchedulerUseCase.update(any())).willReturn(useCaseResponse);
@@ -176,13 +176,13 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                     resp.schedulerName(),
                                     resp.cronExpression(),
                                     resp.status().name(),
-                                    resp.createdAt(),
-                                    resp.updatedAt());
+                                    resp.createdAt() != null ? resp.createdAt().toString() : null,
+                                    resp.updatedAt() != null ? resp.updatedAt().toString() : null);
                         });
 
         // when & then
         mockMvc.perform(
-                        patch("/api/v1/schedules/{id}", schedulerId)
+                        patch("/api/v1/crawling/schedules/{id}", schedulerId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

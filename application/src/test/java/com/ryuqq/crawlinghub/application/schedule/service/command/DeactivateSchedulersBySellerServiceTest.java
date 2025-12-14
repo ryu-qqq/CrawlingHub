@@ -2,14 +2,14 @@ package com.ryuqq.crawlinghub.application.schedule.service.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
-import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.Collections;
@@ -34,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("DeactivateSchedulersBySellerService 테스트")
 class DeactivateSchedulersBySellerServiceTest {
 
-    @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
+    @Mock private CrawlSchedulerReadManager readManager;
 
     @Mock private CrawlerSchedulerFacade crawlerSchedulerFacade;
 
@@ -53,7 +53,7 @@ class DeactivateSchedulersBySellerServiceTest {
             CrawlScheduler scheduler2 = CrawlSchedulerFixture.anActiveScheduler(2L);
             List<CrawlScheduler> activeSchedulers = List.of(scheduler1, scheduler2);
 
-            given(crawlScheduleQueryPort.findActiveSchedulersBySellerId(any(SellerId.class)))
+            given(readManager.findActiveSchedulersBySellerId(any(SellerId.class)))
                     .willReturn(activeSchedulers);
 
             // When
@@ -61,10 +61,8 @@ class DeactivateSchedulersBySellerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(2);
-            then(crawlScheduleQueryPort)
-                    .should()
-                    .findActiveSchedulersBySellerId(SellerId.of(sellerId));
-            then(crawlerSchedulerFacade).should(times(2)).update(any(CrawlScheduler.class));
+            then(readManager).should().findActiveSchedulersBySellerId(SellerId.of(sellerId));
+            then(crawlerSchedulerFacade).should().deactivateSchedulers(anyList());
         }
 
         @Test
@@ -73,7 +71,7 @@ class DeactivateSchedulersBySellerServiceTest {
             // Given
             Long sellerId = 1L;
 
-            given(crawlScheduleQueryPort.findActiveSchedulersBySellerId(any(SellerId.class)))
+            given(readManager.findActiveSchedulersBySellerId(any(SellerId.class)))
                     .willReturn(Collections.emptyList());
 
             // When
@@ -81,10 +79,8 @@ class DeactivateSchedulersBySellerServiceTest {
 
             // Then
             assertThat(result).isZero();
-            then(crawlScheduleQueryPort)
-                    .should()
-                    .findActiveSchedulersBySellerId(SellerId.of(sellerId));
-            then(crawlerSchedulerFacade).should(never()).update(any());
+            then(readManager).should().findActiveSchedulersBySellerId(SellerId.of(sellerId));
+            then(crawlerSchedulerFacade).should(never()).deactivateSchedulers(anyList());
         }
 
         @Test
@@ -95,7 +91,7 @@ class DeactivateSchedulersBySellerServiceTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             List<CrawlScheduler> activeSchedulers = List.of(scheduler);
 
-            given(crawlScheduleQueryPort.findActiveSchedulersBySellerId(any(SellerId.class)))
+            given(readManager.findActiveSchedulersBySellerId(any(SellerId.class)))
                     .willReturn(activeSchedulers);
 
             // When
@@ -103,7 +99,7 @@ class DeactivateSchedulersBySellerServiceTest {
 
             // Then
             assertThat(result).isEqualTo(1);
-            then(crawlerSchedulerFacade).should().update(scheduler);
+            then(crawlerSchedulerFacade).should().deactivateSchedulers(activeSchedulers);
         }
     }
 }

@@ -19,6 +19,9 @@ public final class CrawlTaskNotFoundException extends DomainException {
      * @param crawlTaskId 조회 시도한 CrawlTask ID
      */
     public CrawlTaskNotFoundException(Long crawlTaskId) {
-        super(ERROR_CODE.getCode(), ERROR_CODE.getMessage(), Map.of("crawlTaskId", crawlTaskId));
+        super(
+                ERROR_CODE,
+                String.format("존재하지 않는 크롤 태스크입니다. ID: %d", crawlTaskId),
+                Map.of("crawlTaskId", crawlTaskId));
     }
 }

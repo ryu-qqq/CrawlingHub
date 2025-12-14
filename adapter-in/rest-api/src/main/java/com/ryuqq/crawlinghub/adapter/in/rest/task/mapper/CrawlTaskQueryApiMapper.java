@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -86,7 +87,7 @@ public class CrawlTaskQueryApiMapper {
                 appResponse.status().name(),
                 appResponse.taskType().name(),
                 appResponse.retryCount(),
-                appResponse.createdAt());
+                toIsoString(appResponse.createdAt()));
     }
 
     /**
@@ -107,8 +108,8 @@ public class CrawlTaskQueryApiMapper {
                 appResponse.path(),
                 appResponse.queryParams(),
                 appResponse.fullUrl(),
-                appResponse.createdAt(),
-                appResponse.updatedAt());
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()));
     }
 
     /**
@@ -122,5 +123,18 @@ public class CrawlTaskQueryApiMapper {
     public PageApiResponse<CrawlTaskApiResponse> toPageApiResponse(
             PageResponse<CrawlTaskResponse> appPageResponse) {
         return PageApiResponse.from(appPageResponse, this::toApiResponse);
+    }
+
+    /**
+     * Instant → ISO-8601 String 변환
+     *
+     * @param instant Instant 시각
+     * @return ISO-8601 형식 문자열 (null 안전)
+     */
+    private String toIsoString(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return instant.toString();
     }
 }

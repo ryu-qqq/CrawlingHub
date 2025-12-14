@@ -24,8 +24,9 @@ public final class InvalidCrawlExecutionStateException extends DomainException {
      */
     public InvalidCrawlExecutionStateException(CrawlExecutionStatus currentStatus) {
         super(
-                ERROR_CODE.getCode(),
-                "유효하지 않은 상태 전환입니다. 현재 상태: " + currentStatus + " (RUNNING 상태에서만 완료 처리 가능)",
+                ERROR_CODE,
+                String.format(
+                        "유효하지 않은 상태 전환입니다. 현재 상태: %s (RUNNING 상태에서만 완료 처리 가능)", currentStatus),
                 Map.of(
                         "currentStatus", currentStatus.name(),
                         "expectedStatus", CrawlExecutionStatus.RUNNING.name()));

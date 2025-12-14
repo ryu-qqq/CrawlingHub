@@ -5,27 +5,38 @@ import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
+import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.RegisterCrawlSchedulerUseCase;
-import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
+import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
-/** 크롤 스케줄러 등록 UseCase 구현체. */
+/**
+ * 크롤 스케줄러 등록 UseCase 구현체.
+ *
+ * <p><strong>트랜잭션</strong>: CommandService는 @Transactional 금지 (Facade 책임)
+ *
+ * <p><strong>ClockHolder</strong>: Facade가 관리 (Service는 시간 의존성 없음)
+ */
 @Service
 public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseCase {
 
-    private final CrawlSchedulerAssembler crawlSchedulerAssembler;
-    private final CrawlerSchedulerFacade crawlerSchedulerFacade;
-    private final CrawlScheduleQueryPort crawlScheduleQueryPort;
+    private final CrawlSchedulerCommandFactory commandFactory;
+    private final CrawlSchedulerAssembler assembler;
+    private final CrawlerSchedulerFacade facade;
+    private final CrawlSchedulerReadManager readManager;
 
     public RegisterCrawlSchedulerService(
-            CrawlSchedulerAssembler crawlSchedulerAssembler,
-            CrawlerSchedulerFacade crawlerSchedulerFacade,
-            CrawlScheduleQueryPort crawlScheduleQueryPort) {
-        this.crawlSchedulerAssembler = crawlSchedulerAssembler;
-        this.crawlerSchedulerFacade = crawlerSchedulerFacade;
-        this.crawlScheduleQueryPort = crawlScheduleQueryPort;
+            CrawlSchedulerCommandFactory commandFactory,
+            CrawlSchedulerAssembler assembler,
+            CrawlerSchedulerFacade facade,
+            CrawlSchedulerReadManager readManager) {
+        this.commandFactory = commandFactory;
+        this.assembler = assembler;
+        this.facade = facade;
+        this.readManager = readManager;
     }
 
     /**
@@ -34,9 +45,10 @@ public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseC
      * <p><strong>처리 흐름</strong>:
      *
      * <ol>
-     *   <li>Assembler를 통해 CrawlSchedulerBundle 생성
+     *   <li>중복 검증 (sellerId + schedulerName)
+     *   <li>CommandFactory를 통해 CrawlSchedulerBundle 생성
      *   <li>Facade를 통해 저장 (스케줄러 + 히스토리 + 아웃박스, 단일 트랜잭션)
-     *   <li>Facade에서 이벤트 발행 (AfterCommit 리스너에서 EventBridge 호출)
+     *   <li>Assembler로 Response 변환
      * </ol>
      *
      * @param command 등록 명령 (sellerId, schedulerName, cronExpression)
@@ -47,19 +59,19 @@ public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseC
         // 1. 중복 검증 (sellerId + schedulerName)
         validateDuplicateScheduler(command);
 
-        // 2. Assembler를 통해 CrawlSchedulerBundle 생성
-        CrawlSchedulerBundle bundle = crawlSchedulerAssembler.toBundle(command);
+        // 2. CommandFactory를 통해 CrawlSchedulerBundle 생성
+        CrawlSchedulerBundle bundle = commandFactory.createBundle(command);
 
         // 3. Facade를 통해 저장 (스케줄러 + 히스토리 + 아웃박스, 단일 트랜잭션)
-        CrawlSchedulerBundle savedBundle = crawlerSchedulerFacade.persist(bundle);
+        CrawlScheduler savedScheduler = facade.persist(bundle);
 
-        // 4. Response 변환
-        return crawlSchedulerAssembler.toResponse(savedBundle.getSavedScheduler());
+        // 4. Assembler로 Response 변환
+        return assembler.toResponse(savedScheduler);
     }
 
     private void validateDuplicateScheduler(RegisterCrawlSchedulerCommand command) {
         boolean exists =
-                crawlScheduleQueryPort.existsBySellerIdAndSchedulerName(
+                readManager.existsBySellerIdAndSchedulerName(
                         SellerId.of(command.sellerId()), command.schedulerName());
         if (exists) {
             throw new DuplicateSchedulerNameException(command.sellerId(), command.schedulerName());
