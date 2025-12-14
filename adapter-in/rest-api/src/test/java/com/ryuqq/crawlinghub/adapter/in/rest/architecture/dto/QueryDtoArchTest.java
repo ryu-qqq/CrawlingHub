@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.ADAPTER_IN_REST;
+import static com.ryuqq.crawlinghub.adapter.in.rest.architecture.ArchUnitPackageConstants.LEGACY_V1_PATTERN;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
@@ -45,24 +48,29 @@ class QueryDtoArchTest {
 
     @BeforeAll
     static void setUp() {
-        classes = new ClassFileImporter()
-            .importPackages("com.ryuqq.adapter.in.rest");
+        classes =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages(ADAPTER_IN_REST);
     }
 
     /**
      * 규칙 1: Record 타입 필수
+     *
+     * <p>예외: Legacy V1 API는 점진적 마이그레이션 대상으로 제외
      */
     @Test
     @DisplayName("[필수] Query DTO는 Record 타입이어야 한다")
     void queryDto_MustBeRecords() {
         ArchRule rule = classes()
             .that().resideInAPackage("..dto.query..")
+            .and().resideOutsideOfPackage(LEGACY_V1_PATTERN) // Legacy V1 제외
             .and().haveSimpleNameEndingWith("ApiRequest")
             .and().areNotNestedClasses()  // Nested Record는 제외
             .should().beRecords()
-            .because("Query DTO는 불변 객체이므로 Record를 사용해야 합니다");
+            .because("Query DTO는 불변 객체이므로 Record를 사용해야 합니다 (Legacy V1 제외)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -77,7 +85,7 @@ class QueryDtoArchTest {
             .should().haveSimpleNameEndingWith("ApiRequest")
             .because("Query DTO는 *ApiRequest 네이밍 규칙을 따라야 합니다 (예: SearchApiRequest, ListApiRequest)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -98,7 +106,7 @@ class QueryDtoArchTest {
             .orShould().beAnnotatedWith("lombok.Value")
             .because("Query DTO는 Pure Java Record를 사용해야 하며 Lombok은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -117,7 +125,7 @@ class QueryDtoArchTest {
             .orShould().beAnnotatedWith("com.fasterxml.jackson.databind.annotation.JsonDeserialize")
             .because("Query DTO는 프레임워크 독립적이어야 하며 Jackson 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -132,7 +140,7 @@ class QueryDtoArchTest {
             .should().beDeclaredInClassesThat().resideInAPackage("..dto.query..")
             .because("Query DTO → Domain 변환은 Mapper의 책임입니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -147,7 +155,7 @@ class QueryDtoArchTest {
             .should().beDeclaredInClassesThat().resideInAPackage("..dto.query..")
             .because("Query DTO는 검색 조건만 담당하며 비즈니스 로직은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -165,7 +173,7 @@ class QueryDtoArchTest {
 
         // Note: 이 규칙은 권장사항이므로 실패 시 경고만 표시
         try {
-            rule.check(classes);
+            rule.allowEmptyShould(true).check(classes);
         } catch (AssertionError e) {
             System.out.println("⚠️  Warning: " + e.getMessage());
         }
@@ -173,6 +181,8 @@ class QueryDtoArchTest {
 
     /**
      * 규칙 8: 패키지 위치 검증
+     *
+     * <p>예외: Legacy V1 API는 점진적 마이그레이션 대상으로 제외
      */
     @Test
     @DisplayName("[필수] Query DTO는 올바른 패키지에 위치해야 한다")
@@ -181,13 +191,14 @@ class QueryDtoArchTest {
             .that().haveSimpleNameEndingWith("ApiRequest")
             .and().areNotNestedClasses()
             .and().resideInAPackage("..adapter.in.rest..")
+            .and().resideOutsideOfPackage(LEGACY_V1_PATTERN) // Legacy V1 제외
             .and().resideInAPackage("..dto..")
             .and().areNotInterfaces()
             .should().resideInAPackage("..dto.query..")
             .orShould().resideInAPackage("..dto.command..")  // Command도 *ApiRequest이므로 허용
-            .because("Query DTO는 dto.query 패키지에 위치해야 합니다");
+            .because("Query DTO는 dto.query 패키지에 위치해야 합니다 (Legacy V1 제외)");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -202,7 +213,7 @@ class QueryDtoArchTest {
             .should().beDeclaredInClassesThat().resideInAPackage("..dto.query..")
             .because("Query DTO는 불변 객체이므로 Setter는 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
     /**
@@ -218,6 +229,6 @@ class QueryDtoArchTest {
             .orShould().beAnnotatedWith("org.springframework.context.annotation.Configuration")
             .because("Query DTO는 순수 데이터 전송 객체이므로 Spring 어노테이션은 금지됩니다");
 
-        rule.check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 }

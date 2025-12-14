@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
@@ -10,8 +9,8 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,9 +39,8 @@ public class CrawlScheduler {
     private CronExpression cronExpression;
     private SchedulerStatus status;
 
-    private final LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private final Clock clock;
+    private final Instant createdAt;
+    private Instant updatedAt;
 
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -62,7 +60,7 @@ public class CrawlScheduler {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         // Auto Increment: ID null
 
         // 등록 이벤트는 ID 할당 후 발행 (영속화 후 처리)
@@ -73,8 +71,7 @@ public class CrawlScheduler {
                 cronExpression,
                 SchedulerStatus.ACTIVE,
                 now,
-                now,
-                clock);
+                now);
     }
 
     /**
@@ -87,7 +84,6 @@ public class CrawlScheduler {
      * @param status 스케줄러 상태
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
-     * @param clock 시간 제어
      * @return CrawlScheduler
      */
     public static CrawlScheduler of(
@@ -96,9 +92,8 @@ public class CrawlScheduler {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         if (crawlSchedulerId == null) {
             throw new IllegalArgumentException("crawlSchedulerId는 null일 수 없습니다.");
         }
@@ -109,8 +104,7 @@ public class CrawlScheduler {
                 cronExpression,
                 status,
                 createdAt,
-                updatedAt,
-                clock);
+                updatedAt);
     }
 
     /**
@@ -123,7 +117,6 @@ public class CrawlScheduler {
      * @param status 스케줄러 상태
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
-     * @param clock 시간 제어
      * @return CrawlScheduler
      */
     public static CrawlScheduler reconstitute(
@@ -132,9 +125,8 @@ public class CrawlScheduler {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         return of(
                 crawlSchedulerId,
                 sellerId,
@@ -142,8 +134,7 @@ public class CrawlScheduler {
                 cronExpression,
                 status,
                 createdAt,
-                updatedAt,
-                clock);
+                updatedAt);
     }
 
     /** 생성자 (private) */
@@ -153,9 +144,8 @@ public class CrawlScheduler {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         this.crawlSchedulerId = crawlSchedulerId;
         this.sellerId = sellerId;
         this.schedulerName = schedulerName;
@@ -163,7 +153,6 @@ public class CrawlScheduler {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.clock = clock;
     }
 
     // ==================== 비즈니스 메서드 ====================
@@ -174,8 +163,9 @@ public class CrawlScheduler {
      * <p>ID 할당 후 호출해야 합니다.
      *
      * @param historyId 히스토리 ID (Outbox 조회용)
+     * @param clock 시간 제어
      */
-    public void addRegisteredEvent(CrawlSchedulerHistoryId historyId) {
+    public void addRegisteredEvent(CrawlSchedulerHistoryId historyId, Clock clock) {
         if (this.crawlSchedulerId == null || this.crawlSchedulerId.isNew()) {
             throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
         }
@@ -188,7 +178,8 @@ public class CrawlScheduler {
                         historyId,
                         this.sellerId,
                         this.schedulerName,
-                        this.cronExpression));
+                        this.cronExpression,
+                        clock));
     }
 
     /**
@@ -206,11 +197,13 @@ public class CrawlScheduler {
      * @param newSchedulerName 새로운 스케줄러 이름 (셀러별 중복 검증은 외부에서)
      * @param newCronExpression 새로운 크론 표현식
      * @param newStatus 새로운 상태
+     * @param clock 시간 제어
      */
     public void update(
             SchedulerName newSchedulerName,
             CronExpression newCronExpression,
-            SchedulerStatus newStatus) {
+            SchedulerStatus newStatus,
+            Clock clock) {
         if (newSchedulerName == null) {
             throw new IllegalArgumentException("스케줄러 이름은 null일 수 없습니다.");
         }
@@ -227,7 +220,7 @@ public class CrawlScheduler {
         this.schedulerName = newSchedulerName;
         this.cronExpression = newCronExpression;
         this.status = newStatus;
-        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        this.updatedAt = clock.instant();
 
         // 2. 이벤트 발행 판단
         // - 최종 상태가 ACTIVE → EventBridge 동기화 필요 (enable + cron 업데이트)
@@ -245,7 +238,8 @@ public class CrawlScheduler {
                             this.sellerId,
                             this.schedulerName,
                             this.cronExpression,
-                            this.status));
+                            this.status,
+                            clock));
         }
     }
 
@@ -301,11 +295,11 @@ public class CrawlScheduler {
         return status;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 

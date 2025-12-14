@@ -11,6 +11,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
@@ -20,7 +21,7 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulesUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper;
 
     @Test
-    @DisplayName("GET /api/v1/schedules - 크롤 스케줄러 목록 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/schedules - 크롤 스케줄러 목록 조회 API 문서")
     void listCrawlSchedulers() throws Exception {
         // given
         List<CrawlSchedulerResponse> content =
@@ -56,7 +57,7 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "daily-crawl",
                                 "0 0 9 * * ?",
                                 SchedulerStatus.ACTIVE,
-                                LocalDateTime.of(2025, 11, 20, 10, 30, 0),
+                                Instant.parse("2025-11-20T10:30:00Z"),
                                 null),
                         new CrawlSchedulerResponse(
                                 2L,
@@ -64,8 +65,8 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "hourly-crawl",
                                 "0 0 * * * ?",
                                 SchedulerStatus.INACTIVE,
-                                LocalDateTime.of(2025, 11, 19, 15, 0, 0),
-                                LocalDateTime.of(2025, 11, 20, 9, 0, 0)));
+                                Instant.parse("2025-11-19T15:00:00Z"),
+                                Instant.parse("2025-11-20T09:00:00Z")));
 
         PageResponse<CrawlSchedulerResponse> pageResponse =
                 new PageResponse<>(content, 0, 20, 2, 1, true, true);
@@ -86,7 +87,7 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
 
         // when & then
         mockMvc.perform(
-                        get("/api/v1/schedules")
+                        get("/api/v1/crawling/schedules")
                                 .param("sellerId", "1")
                                 .param("status", "ACTIVE")
                                 .param("page", "0")
@@ -98,6 +99,7 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "schedule-query/list",
+                                RestDocsSecuritySnippets.authorization("scheduler:read"),
                                 queryParameters(
                                         parameterWithName("sellerId")
                                                 .description("셀러 ID 필터 (양수, 선택)")

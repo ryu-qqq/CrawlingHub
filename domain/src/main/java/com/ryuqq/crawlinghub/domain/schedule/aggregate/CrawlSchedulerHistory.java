@@ -1,14 +1,13 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 크롤 스케줄러 히스토리 Aggregate Root
@@ -34,7 +33,7 @@ public class CrawlSchedulerHistory {
     private final SchedulerName schedulerName;
     private final CronExpression cronExpression;
     private final SchedulerStatus status;
-    private final LocalDateTime createdAt;
+    private final Instant createdAt;
 
     // ==================== 생성 메서드 (3종) ====================
 
@@ -56,7 +55,7 @@ public class CrawlSchedulerHistory {
             CronExpression cronExpression,
             SchedulerStatus status,
             Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return new CrawlSchedulerHistory(
                 null, // Auto Increment: ID null
                 crawlSchedulerId,
@@ -86,7 +85,7 @@ public class CrawlSchedulerHistory {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt) {
+            Instant createdAt) {
         if (historyId == null) {
             throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
         }
@@ -119,7 +118,7 @@ public class CrawlSchedulerHistory {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt) {
+            Instant createdAt) {
         if (historyId == null) {
             throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
         }
@@ -158,7 +157,7 @@ public class CrawlSchedulerHistory {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            LocalDateTime createdAt) {
+            Instant createdAt) {
         this.historyId = historyId;
         this.crawlSchedulerId = crawlSchedulerId;
         this.sellerId = sellerId;
@@ -219,7 +218,7 @@ public class CrawlSchedulerHistory {
         return status;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 }

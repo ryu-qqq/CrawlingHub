@@ -1,7 +1,9 @@
 package com.ryuqq.cralwinghub.domain.fixture.execution;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * ExecutionDuration Test Fixture
@@ -13,8 +15,9 @@ import java.time.LocalDateTime;
  */
 public final class ExecutionDurationFixture {
 
-    private static final LocalDateTime DEFAULT_START = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
-    private static final LocalDateTime DEFAULT_END = LocalDateTime.of(2024, 1, 1, 12, 0, 5);
+    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_START = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_END = DEFAULT_START.plusSeconds(5);
     private static final Long DEFAULT_DURATION_MS = 5000L;
 
     /**
@@ -41,7 +44,7 @@ public final class ExecutionDurationFixture {
      * @param startedAt 시작 시간
      * @return ExecutionDuration (running)
      */
-    public static ExecutionDuration aRunningDuration(LocalDateTime startedAt) {
+    public static ExecutionDuration aRunningDuration(Instant startedAt) {
         return ExecutionDuration.startAt(startedAt);
     }
 
@@ -52,8 +55,8 @@ public final class ExecutionDurationFixture {
      * @return ExecutionDuration (completed)
      */
     public static ExecutionDuration aCompletedDuration(Long durationMs) {
-        return ExecutionDuration.reconstitute(
-                DEFAULT_START, DEFAULT_START.plusNanos(durationMs * 1_000_000), durationMs);
+        Instant completedAt = DEFAULT_START.plusNanos(durationMs * 1_000_000);
+        return ExecutionDuration.reconstitute(DEFAULT_START, completedAt, durationMs);
     }
 
     private ExecutionDurationFixture() {

@@ -1,8 +1,12 @@
 package com.ryuqq.crawlinghub.application.seller.manager;
 
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Seller Aggregate 트랜잭션 경계 관리
  *
  * <ul>
- *   <li>비즈니스 로직 없음 (Service에서 처리)
+ *   <li>상태 변경 + 영속화 캡슐화
+ *   <li>ClockHolder 의존성 관리
  *   <li>QueryPort 의존성 없음 (Service에서 조회)
  *   <li>단일 PersistencePort 의존성만 보유
- *   <li>persist() 단일 메서드로 생성/수정 모두 처리
  * </ul>
  *
  * @author development-team
@@ -25,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SellerTransactionManager {
 
     private final SellerPersistencePort sellerPersistencePort;
+    private final ClockHolder clockHolder;
 
-    public SellerTransactionManager(SellerPersistencePort sellerPersistencePort) {
+    public SellerTransactionManager(
+            SellerPersistencePort sellerPersistencePort, ClockHolder clockHolder) {
         this.sellerPersistencePort = sellerPersistencePort;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -41,5 +48,39 @@ public class SellerTransactionManager {
     @Transactional
     public SellerId persist(Seller seller) {
         return sellerPersistencePort.persist(seller);
+    }
+
+    /**
+     * Seller 정보 수정 + 영속화
+     *
+     * <p>ClockHolder를 사용하여 updatedAt 자동 설정
+     *
+     * @param seller 수정 대상 Seller
+     * @param newMustItSellerName 새로운 머스트잇 셀러명 (null이면 변경 안 함)
+     * @param newSellerName 새로운 셀러명 (null이면 변경 안 함)
+     * @param newStatus 새로운 상태 (null이면 변경 안 함)
+     */
+    @Transactional
+    public void update(
+            Seller seller,
+            MustItSellerName newMustItSellerName,
+            SellerName newSellerName,
+            SellerStatus newStatus) {
+        seller.update(newMustItSellerName, newSellerName, newStatus, clockHolder.getClock());
+        sellerPersistencePort.persist(seller);
+    }
+
+    /**
+     * Seller 상품 수 업데이트 + 영속화
+     *
+     * <p>META 크롤링 결과에서 파싱된 총 상품 수를 업데이트합니다.
+     *
+     * @param seller 수정 대상 Seller
+     * @param productCount 새로운 상품 수
+     */
+    @Transactional
+    public void updateProductCount(Seller seller, int productCount) {
+        seller.updateProductCount(productCount, clockHolder.getClock());
+        sellerPersistencePort.persist(seller);
     }
 }

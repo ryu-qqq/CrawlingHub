@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.manager;
 
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskOutboxPersistencePort;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CrawlTaskOutboxTransactionManager {
 
     private final CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort;
+    private final ClockHolder clockHolder;
 
     public CrawlTaskOutboxTransactionManager(
-            CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort) {
+            CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort,
+            ClockHolder clockHolder) {
         this.crawlTaskOutboxPersistencePort = crawlTaskOutboxPersistencePort;
+        this.clockHolder = clockHolder;
     }
 
     /**
@@ -50,7 +54,7 @@ public class CrawlTaskOutboxTransactionManager {
      */
     @Transactional
     public void markAsSent(CrawlTaskOutbox outbox) {
-        outbox.markAsSent();
+        outbox.markAsSent(clockHolder.getClock());
         crawlTaskOutboxPersistencePort.persist(outbox);
     }
 
@@ -63,7 +67,7 @@ public class CrawlTaskOutboxTransactionManager {
      */
     @Transactional
     public void markAsFailed(CrawlTaskOutbox outbox) {
-        outbox.markAsFailed();
+        outbox.markAsFailed(clockHolder.getClock());
         crawlTaskOutboxPersistencePort.persist(outbox);
     }
 }

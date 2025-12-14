@@ -1,14 +1,13 @@
 package com.ryuqq.crawlinghub.domain.seller.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,9 +36,8 @@ public class Seller {
     private SellerStatus status;
     private int productCount;
 
-    private final LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private final Clock clock;
+    private final Instant createdAt;
+    private Instant updatedAt;
 
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -55,7 +53,7 @@ public class Seller {
      */
     public static Seller forNew(
             MustItSellerName mustItSellerName, SellerName sellerName, Clock clock) {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        Instant now = clock.instant();
         return new Seller(
                 null, // Auto Increment: ID null
                 mustItSellerName,
@@ -63,8 +61,7 @@ public class Seller {
                 SellerStatus.ACTIVE,
                 0, // 신규 셀러는 상품 수 0
                 now,
-                now,
-                clock);
+                now);
     }
 
     /**
@@ -77,7 +74,6 @@ public class Seller {
      * @param productCount 상품 수
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
-     * @param clock 시간 제어
      * @return Seller
      */
     public static Seller of(
@@ -86,21 +82,13 @@ public class Seller {
             SellerName sellerName,
             SellerStatus status,
             int productCount,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         if (sellerId == null) {
             throw new IllegalArgumentException("sellerId는 null일 수 없습니다.");
         }
         return new Seller(
-                sellerId,
-                mustItSellerName,
-                sellerName,
-                status,
-                productCount,
-                createdAt,
-                updatedAt,
-                clock);
+                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
     }
 
     /**
@@ -113,7 +101,6 @@ public class Seller {
      * @param productCount 상품 수
      * @param createdAt 생성 시각
      * @param updatedAt 수정 시각
-     * @param clock 시간 제어
      * @return Seller
      */
     public static Seller reconstitute(
@@ -122,18 +109,10 @@ public class Seller {
             SellerName sellerName,
             SellerStatus status,
             int productCount,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         return of(
-                sellerId,
-                mustItSellerName,
-                sellerName,
-                status,
-                productCount,
-                createdAt,
-                updatedAt,
-                clock);
+                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
     }
 
     /** 생성자 (private) */
@@ -143,9 +122,8 @@ public class Seller {
             SellerName sellerName,
             SellerStatus status,
             int productCount,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            Clock clock) {
+            Instant createdAt,
+            Instant updatedAt) {
         this.sellerId = sellerId;
         this.mustItSellerName = mustItSellerName;
         this.sellerName = sellerName;
@@ -153,35 +131,40 @@ public class Seller {
         this.productCount = productCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.clock = clock;
     }
 
     // ==================== 비즈니스 메서드 ====================
 
-    /** 셀러 활성화 */
-    public void activate() {
+    /**
+     * 셀러 활성화
+     *
+     * @param clock 시간 제어
+     */
+    public void activate(Clock clock) {
         if (this.status == SellerStatus.ACTIVE) {
             return; // 이미 활성 상태면 무시
         }
         this.status = SellerStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        this.updatedAt = clock.instant();
     }
 
     /**
      * 셀러 비활성화
      *
      * <p><strong>중요</strong>: 비활성화 시 SellerDeActiveEvent를 발행하여 크롤링 스케줄 중지
+     *
+     * @param clock 시간 제어
      */
-    public void deactivate() {
+    public void deactivate(Clock clock) {
         if (this.status == SellerStatus.INACTIVE) {
             return; // 이미 비활성 상태면 무시
         }
 
         this.status = SellerStatus.INACTIVE;
-        this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+        this.updatedAt = clock.instant();
 
         // 이벤트 발행: 크롤링 스케줄 중지
-        this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId));
+        this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId, clock));
     }
 
     /**
@@ -192,29 +175,31 @@ public class Seller {
      * @param newMustItSellerName 새로운 머스트잇 셀러명 (null이면 변경 안 함)
      * @param newSellerName 새로운 셀러명 (null이면 변경 안 함)
      * @param newStatus 새로운 상태 (null이면 변경 안 함)
+     * @param clock 시간 제어
      */
     public void update(
             MustItSellerName newMustItSellerName,
             SellerName newSellerName,
-            SellerStatus newStatus) {
+            SellerStatus newStatus,
+            Clock clock) {
         // 머스트잇 셀러명 변경 (자기 자신이 판단)
         if (newMustItSellerName != null && !this.mustItSellerName.equals(newMustItSellerName)) {
             this.mustItSellerName = newMustItSellerName;
-            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            this.updatedAt = clock.instant();
         }
 
         // 셀러명 변경 (자기 자신이 판단)
         if (newSellerName != null && !this.sellerName.equals(newSellerName)) {
             this.sellerName = newSellerName;
-            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            this.updatedAt = clock.instant();
         }
 
         // 상태 변경 (자기 자신이 판단)
         if (newStatus != null && this.status != newStatus) {
             if (newStatus == SellerStatus.ACTIVE) {
-                activate();
+                activate(clock);
             } else if (newStatus == SellerStatus.INACTIVE) {
-                deactivate();
+                deactivate(clock);
             }
         }
     }
@@ -245,14 +230,15 @@ public class Seller {
      * <p>META 크롤링 결과에서 파싱된 총 상품 수를 업데이트합니다.
      *
      * @param newProductCount 새로운 상품 수 (0 이상)
+     * @param clock 시간 제어
      */
-    public void updateProductCount(int newProductCount) {
+    public void updateProductCount(int newProductCount, Clock clock) {
         if (newProductCount < 0) {
             throw new IllegalArgumentException("상품 수는 0 이상이어야 합니다: " + newProductCount);
         }
         if (this.productCount != newProductCount) {
             this.productCount = newProductCount;
-            this.updatedAt = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            this.updatedAt = clock.instant();
         }
     }
 
@@ -293,11 +279,11 @@ public class Seller {
         return productCount;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 

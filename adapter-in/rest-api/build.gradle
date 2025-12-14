@@ -36,6 +36,9 @@ dependencies {
     implementation libs.spring.boot.starter.web
     implementation libs.spring.boot.starter.validation
 
+    // Spring Security
+    implementation libs.spring.boot.starter.security
+
     // JSON Processing
     implementation libs.jackson.databind
     implementation libs.jackson.datatype.jsr310
@@ -53,6 +56,8 @@ dependencies {
     testImplementation libs.rest.assured
     testImplementation libs.spring.restdocs.mockmvc
     testImplementation libs.archunit.junit5
+    testImplementation libs.spring.boot.starter.security
+    testImplementation libs.spring.security.test
 
     // Asciidoctor Extension
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.1'

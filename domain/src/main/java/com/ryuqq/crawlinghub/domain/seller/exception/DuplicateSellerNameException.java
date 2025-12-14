@@ -9,6 +9,9 @@ public final class DuplicateSellerNameException extends DomainException {
     private static final SellerErrorCode ERROR_CODE = SellerErrorCode.DUPLICATE_SELLER_NAME;
 
     public DuplicateSellerNameException(String sellerName) {
-        super(ERROR_CODE.getCode(), ERROR_CODE.getMessage(), Map.of("sellerName", sellerName));
+        super(
+                ERROR_CODE,
+                String.format("이미 존재하는 셀러 이름입니다: %s", sellerName),
+                Map.of("sellerName", sellerName));
     }
 }

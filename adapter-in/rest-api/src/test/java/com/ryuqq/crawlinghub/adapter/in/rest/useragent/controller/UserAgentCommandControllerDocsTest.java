@@ -8,6 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
@@ -36,7 +37,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
     @Test
-    @DisplayName("POST /api/v1/user-agents/recover - 정지된 UserAgent 복구 API 문서")
+    @DisplayName("POST /api/v1/crawling/user-agents/recover - 정지된 UserAgent 복구 API 문서")
     void recoverUserAgents() throws Exception {
         // given
         int recoveredCount = 5;
@@ -47,7 +48,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         given(userAgentApiMapper.toRecoverApiResponse(recoveredCount)).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(post("/api/v1/user-agents/recover"))
+        mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(5))
@@ -55,6 +56,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "useragent-command/recover",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)
@@ -81,7 +83,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
     }
 
     @Test
-    @DisplayName("POST /api/v1/user-agents/recover - 복구할 UserAgent가 없는 경우 API 문서")
+    @DisplayName("POST /api/v1/crawling/user-agents/recover - 복구할 UserAgent가 없는 경우 API 문서")
     void recoverUserAgents_noAgentsToRecover() throws Exception {
         // given
         int recoveredCount = 0;
@@ -92,7 +94,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         given(userAgentApiMapper.toRecoverApiResponse(recoveredCount)).willReturn(apiResponse);
 
         // when & then
-        mockMvc.perform(post("/api/v1/user-agents/recover"))
+        mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(0))
@@ -100,6 +102,7 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                 .andDo(
                         document(
                                 "useragent-command/recover-no-agents",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)

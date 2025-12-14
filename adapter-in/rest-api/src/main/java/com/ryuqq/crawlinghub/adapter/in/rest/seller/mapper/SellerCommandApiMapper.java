@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiRespon
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -74,7 +75,11 @@ public class SellerCommandApiMapper {
                 appResponse.mustItSellerName(),
                 appResponse.sellerName(),
                 statusName,
-                appResponse.createdAt(),
-                appResponse.updatedAt());
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()));
+    }
+
+    private String toIsoString(Instant instant) {
+        return instant != null ? instant.toString() : null;
     }
 }

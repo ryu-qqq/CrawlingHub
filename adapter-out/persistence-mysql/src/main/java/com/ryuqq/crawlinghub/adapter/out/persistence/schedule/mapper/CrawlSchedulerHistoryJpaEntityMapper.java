@@ -7,6 +7,9 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +37,7 @@ public class CrawlSchedulerHistoryJpaEntityMapper {
                 domain.getSchedulerNameValue(),
                 domain.getCronExpressionValue(),
                 domain.getStatus(),
-                domain.getCreatedAt());
+                toLocalDateTime(domain.getCreatedAt()));
     }
 
     /**
@@ -51,6 +54,20 @@ public class CrawlSchedulerHistoryJpaEntityMapper {
                 SchedulerName.of(entity.getSchedulerName()),
                 CronExpression.of(entity.getCronExpression()),
                 entity.getStatus(),
-                entity.getCreatedAt());
+                toInstant(entity.getCreatedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

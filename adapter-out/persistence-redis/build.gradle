@@ -28,6 +28,10 @@ dependencies {
     // Test Dependencies
     // ========================================
     testImplementation libs.spring.boot.starter.test
+    testImplementation libs.testcontainers.junit
+
+    // Test Fixtures from domain
+    testImplementation(testFixtures(project(':domain')))
 
     // ArchUnit for architecture validation
     testImplementation libs.archunit.junit5
@@ -51,9 +55,5 @@ tasks.test {
 
     useJUnitPlatform {
         excludeTags 'arch-test'
-    }
-    filter {
-        excludeTestsMatching '*ArchTest'
-        failOnNoMatchingTests = false
     }
 }

@@ -1,0 +1,100 @@
+version: '3.8'
+name: setof-commerce
+
+# ===============================================
+# SetOf Commerce - AWS 리소스 연결용 로컬 개발 환경
+# ===============================================
+# 사용법:
+# 1. AWS SSM Session Manager로 RDS 포트 포워딩 설정
+#    ./scripts/aws-port-forward.sh
+# 2. docker-compose --env-file .env.aws -f docker-compose.aws.yml up -d
+# ===============================================
+
+services:
+  # ===============================================
+  # Infrastructure Services (Local)
+  # ===============================================
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: setof-redis-local
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - setof-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ===============================================
+  # Application Services (AWS RDS 연결)
+  # ===============================================
+
+  web-api:
+    build:
+      context: ..
+      dockerfile: bootstrap/bootstrap-web-api/Dockerfile
+    container_name: setof-web-api-aws
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+
+      # Database (AWS RDS via SSM Port Forwarding)
+      # SSM으로 localhost:13307 -> RDS:3306 포워딩 필요
+      DB_HOST: host.docker.internal
+      DB_PORT: 13307
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Redis (Local Docker)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Kakao OAuth
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800}
+
+      # AWS Credentials (실제 AWS 리소스 접근)
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - setof-network
+    restart: unless-stopped
+
+# ===============================================
+# Networks
+# ===============================================
+networks:
+  setof-network:
+    driver: bridge
+
+# ===============================================
+# Volumes
+# ===============================================
+volumes:
+  redis-data:

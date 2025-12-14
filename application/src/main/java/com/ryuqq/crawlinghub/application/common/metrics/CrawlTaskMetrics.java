@@ -4,11 +4,10 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import org.springframework.stereotype.Component;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.stereotype.Component;
 
 /**
  * Crawl Task Business Metrics Recorder
@@ -56,7 +55,9 @@ public class CrawlTaskMetrics {
         this.inProgressCounters = new ConcurrentHashMap<>();
 
         // 기본 in-progress gauge 등록
-        Gauge.builder(METRIC_PREFIX + ".in.progress.total", inProgressCounters,
+        Gauge.builder(
+                        METRIC_PREFIX + ".in.progress.total",
+                        inProgressCounters,
                         map -> map.values().stream().mapToInt(AtomicInteger::get).sum())
                 .description("Total crawl tasks currently in progress")
                 .register(meterRegistry);
@@ -116,7 +117,8 @@ public class CrawlTaskMetrics {
      * @param errorType 에러 유형
      * @param durationMs 소요 시간 (밀리초)
      */
-    public void recordTaskFailed(String siteName, String taskType, String errorType, long durationMs) {
+    public void recordTaskFailed(
+            String siteName, String taskType, String errorType, long durationMs) {
         Counter.builder(METRIC_PREFIX + ".failed.total")
                 .description("Total crawl tasks failed")
                 .tag("site", siteName)
@@ -206,14 +208,16 @@ public class CrawlTaskMetrics {
     }
 
     private AtomicInteger getOrCreateInProgressCounter(String siteName) {
-        return inProgressCounters.computeIfAbsent(siteName, key -> {
-            AtomicInteger counter = new AtomicInteger(0);
-            Gauge.builder(METRIC_PREFIX + ".in.progress", counter, AtomicInteger::get)
-                    .description("Crawl tasks currently in progress")
-                    .tag("site", key)
-                    .register(meterRegistry);
-            return counter;
-        });
+        return inProgressCounters.computeIfAbsent(
+                siteName,
+                key -> {
+                    AtomicInteger counter = new AtomicInteger(0);
+                    Gauge.builder(METRIC_PREFIX + ".in.progress", counter, AtomicInteger::get)
+                            .description("Crawl tasks currently in progress")
+                            .tag("site", key)
+                            .register(meterRegistry);
+                    return counter;
+                });
     }
 
     private String getStatusGroup(int statusCode) {

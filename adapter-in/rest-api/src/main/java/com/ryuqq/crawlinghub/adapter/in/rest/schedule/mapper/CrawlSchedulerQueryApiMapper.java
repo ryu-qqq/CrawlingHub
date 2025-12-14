@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -72,8 +73,8 @@ public class CrawlSchedulerQueryApiMapper {
                 appResponse.schedulerName(),
                 appResponse.cronExpression(),
                 appResponse.status().name(),
-                appResponse.createdAt(),
-                appResponse.updatedAt());
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()));
     }
 
     /**
@@ -103,5 +104,18 @@ public class CrawlSchedulerQueryApiMapper {
     public PageApiResponse<CrawlSchedulerSummaryApiResponse> toPageApiResponse(
             PageResponse<CrawlSchedulerResponse> appPageResponse) {
         return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+    }
+
+    /**
+     * Instant → ISO-8601 String 변환
+     *
+     * @param instant Instant 시각
+     * @return ISO-8601 형식 문자열 (null 안전)
+     */
+    private String toIsoString(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return instant.toString();
     }
 }

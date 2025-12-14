@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response;
 
-import java.time.LocalDateTime;
-
 /**
  * Seller API Response
  *
@@ -14,16 +12,16 @@ import java.time.LocalDateTime;
  *   <li>mustItSellerName: 머스트잇 셀러명
  *   <li>sellerName: 커머스 셀러명
  *   <li>status: 셀러 상태 (ACTIVE/INACTIVE)
- *   <li>createdAt: 생성 일시
- *   <li>updatedAt: 수정 일시
+ *   <li>createdAt: 생성 일시 (ISO-8601 형식)
+ *   <li>updatedAt: 수정 일시 (ISO-8601 형식)
  * </ul>
  *
  * @param sellerId 셀러 ID
  * @param mustItSellerName 머스트잇 셀러명
  * @param sellerName 커머스 셀러명
  * @param status 셀러 상태
- * @param createdAt 생성 일시
- * @param updatedAt 수정 일시
+ * @param createdAt 생성 일시 (ISO-8601 형식)
+ * @param updatedAt 수정 일시 (ISO-8601 형식)
  * @author development-team
  * @since 1.0.0
  */
@@ -32,5 +30,5 @@ public record SellerApiResponse(
         String mustItSellerName,
         String sellerName,
         String status,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+        String createdAt,
+        String updatedAt) {}

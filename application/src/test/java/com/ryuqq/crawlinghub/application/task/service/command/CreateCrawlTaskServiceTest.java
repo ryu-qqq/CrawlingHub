@@ -6,10 +6,10 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 
-import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
+import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CreateCrawlTaskService 테스트")
 class CreateCrawlTaskServiceTest {
 
-    @Mock private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskCommandFactory commandFactory;
 
     @Mock private CrawlTaskFacade facade;
 
@@ -49,13 +49,13 @@ class CreateCrawlTaskServiceTest {
             // Given
             CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMeta(1L, 1L);
 
-            given(assembler.toBundle(command)).willReturn(mockBundle);
+            given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
             // When
             service.execute(command);
 
             // Then
-            then(assembler).should().toBundle(command);
+            then(commandFactory).should().createBundle(command);
             then(facade).should().persist(mockBundle);
         }
 
@@ -65,13 +65,13 @@ class CreateCrawlTaskServiceTest {
             // Given
             CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMiniShop(1L, 1L, 1L);
 
-            given(assembler.toBundle(command)).willReturn(mockBundle);
+            given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
             // When
             service.execute(command);
 
             // Then
-            then(assembler).should().toBundle(command);
+            then(commandFactory).should().createBundle(command);
             then(facade).should().persist(mockBundle);
         }
 
@@ -81,13 +81,13 @@ class CreateCrawlTaskServiceTest {
             // Given
             CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forDetail(1L, 1L, 12345L);
 
-            given(assembler.toBundle(command)).willReturn(mockBundle);
+            given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
             // When
             service.execute(command);
 
             // Then
-            then(assembler).should().toBundle(command);
+            then(commandFactory).should().createBundle(command);
             then(facade).should().persist(mockBundle);
         }
 
@@ -97,13 +97,13 @@ class CreateCrawlTaskServiceTest {
             // Given
             CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forOption(1L, 1L, 12345L);
 
-            given(assembler.toBundle(command)).willReturn(mockBundle);
+            given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
             // When
             service.execute(command);
 
             // Then
-            then(assembler).should().toBundle(command);
+            then(commandFactory).should().createBundle(command);
             then(facade).should().persist(mockBundle);
         }
     }
@@ -122,13 +122,14 @@ class CreateCrawlTaskServiceTest {
                             CreateCrawlTaskCommand.forDetail(1L, 1L, 101L),
                             CreateCrawlTaskCommand.forOption(1L, 1L, 100L));
 
-            given(assembler.toBundle(any(CreateCrawlTaskCommand.class))).willReturn(mockBundle);
+            given(commandFactory.createBundle(any(CreateCrawlTaskCommand.class)))
+                    .willReturn(mockBundle);
 
             // When
             service.executeBatch(commands);
 
             // Then
-            then(assembler).should(times(3)).toBundle(any(CreateCrawlTaskCommand.class));
+            then(commandFactory).should(times(3)).createBundle(any(CreateCrawlTaskCommand.class));
             then(facade).should(times(3)).persist(mockBundle);
         }
 
@@ -145,9 +146,9 @@ class CreateCrawlTaskServiceTest {
             CrawlTaskBundle bundle2 = org.mockito.Mockito.mock(CrawlTaskBundle.class);
             CrawlTaskBundle bundle3 = org.mockito.Mockito.mock(CrawlTaskBundle.class);
 
-            given(assembler.toBundle(command1)).willReturn(bundle1);
-            given(assembler.toBundle(command2)).willReturn(bundle2);
-            given(assembler.toBundle(command3)).willReturn(bundle3);
+            given(commandFactory.createBundle(command1)).willReturn(bundle1);
+            given(commandFactory.createBundle(command2)).willReturn(bundle2);
+            given(commandFactory.createBundle(command3)).willReturn(bundle3);
 
             // 두 번째 태스크 실패
             doThrow(new RuntimeException("Duplicate task")).when(facade).persist(bundle2);
@@ -171,7 +172,7 @@ class CreateCrawlTaskServiceTest {
             service.executeBatch(commands);
 
             // Then
-            then(assembler).shouldHaveNoInteractions();
+            then(commandFactory).shouldHaveNoInteractions();
             then(facade).shouldHaveNoInteractions();
         }
     }

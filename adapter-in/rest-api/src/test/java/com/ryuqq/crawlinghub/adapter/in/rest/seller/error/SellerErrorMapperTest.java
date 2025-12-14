@@ -112,7 +112,8 @@ class SellerErrorMapperTest {
         assertThat(result.status()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(result.type())
                 .isEqualTo(URI.create("https://api.example.com/problems/seller/seller-004"));
-        assertThat(result.detail()).isEqualTo("존재하지 않는 셀러입니다.");
+        assertThat(result.detail()).contains("존재하지 않는 셀러입니다");
+        assertThat(result.detail()).contains("999");
     }
 
     @Test
@@ -166,7 +167,8 @@ class SellerErrorMapperTest {
         assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(result.type())
                 .isEqualTo(URI.create("https://api.example.com/problems/seller/seller-001"));
-        assertThat(result.detail()).isEqualTo("이미 등록된 머스트잇 셀러 ID입니다.");
+        assertThat(result.detail()).contains("머스트잇 셀러");
+        assertThat(result.detail()).contains("무신사");
     }
 
     @Test
@@ -204,7 +206,8 @@ class SellerErrorMapperTest {
         assertThat(result.status()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(result.type())
                 .isEqualTo(URI.create("https://api.example.com/problems/seller/seller-002"));
-        assertThat(result.detail()).isEqualTo("이미 등록된 셀러 이름입니다.");
+        assertThat(result.detail()).contains("셀러 이름");
+        assertThat(result.detail()).contains("스마트스토어");
     }
 
     @Test
@@ -243,7 +246,9 @@ class SellerErrorMapperTest {
         assertThat(result.status()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(result.type())
                 .isEqualTo(URI.create("https://api.example.com/problems/seller/seller-003"));
-        assertThat(result.detail()).isEqualTo("활성 상태의 스케줄러가 존재하여 셀러를 비활성화할 수 없습니다.");
+        assertThat(result.detail()).contains("스케줄러");
+        assertThat(result.detail()).contains("123");
+        assertThat(result.detail()).contains("5");
     }
 
     @Test

@@ -35,7 +35,7 @@ public class ExternalSyncEventListener {
     // 필요한 의존성:
     // - CrawledProductQueryPort
     // - SyncOutboxQueryPort
-    // - CrawledProductManager
+    // - CrawledProductTransactionManager
     // - SyncOutboxManager
     // - ExternalProductServerClient
     // - ExternalSyncRequestedEvent (도메인 이벤트 완성 필요)

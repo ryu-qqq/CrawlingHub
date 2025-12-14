@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
@@ -22,6 +23,7 @@ import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.time.Clock;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -51,6 +53,8 @@ class CrawlTaskRegisteredEventListenerTest {
 
     @InjectMocks private CrawlTaskRegisteredEventListener listener;
 
+    private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
+
     @Nested
     @DisplayName("handleCrawlTaskRegistered() 테스트")
     class HandleCrawlTaskRegistered {
@@ -68,7 +72,13 @@ class CrawlTaskRegisteredEventListenerTest {
 
             CrawlTaskRegisteredEvent event =
                     CrawlTaskRegisteredEvent.of(
-                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
+                            taskId,
+                            schedulerId,
+                            sellerId,
+                            taskType,
+                            endpoint,
+                            payload,
+                            FIXED_CLOCK);
 
             CrawlTaskOutbox outbox = CrawlTaskOutboxFixture.aPendingOutbox();
 
@@ -98,7 +108,13 @@ class CrawlTaskRegisteredEventListenerTest {
 
             CrawlTaskRegisteredEvent event =
                     CrawlTaskRegisteredEvent.of(
-                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
+                            taskId,
+                            schedulerId,
+                            sellerId,
+                            taskType,
+                            endpoint,
+                            payload,
+                            FIXED_CLOCK);
 
             given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId)).willReturn(Optional.empty());
 
@@ -125,7 +141,13 @@ class CrawlTaskRegisteredEventListenerTest {
 
             CrawlTaskRegisteredEvent event =
                     CrawlTaskRegisteredEvent.of(
-                            taskId, schedulerId, sellerId, taskType, endpoint, payload);
+                            taskId,
+                            schedulerId,
+                            sellerId,
+                            taskType,
+                            endpoint,
+                            payload,
+                            FIXED_CLOCK);
 
             CrawlTaskOutbox outbox = CrawlTaskOutboxFixture.aPendingOutbox();
 

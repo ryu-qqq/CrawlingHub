@@ -12,11 +12,12 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.factory.query.SellerQueryFactory;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * SearchSellersService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: ReadManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -39,7 +40,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchSellersService 테스트")
 class SearchSellersServiceTest {
 
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
+
+    @Mock private SellerQueryFactory queryFactory;
 
     @Mock private SellerAssembler assembler;
 
@@ -61,13 +64,13 @@ class SearchSellersServiceTest {
 
             SellerSummaryResponse summaryResponse =
                     new SellerSummaryResponse(
-                            1L, "mustit-seller", "seller-name", true, LocalDateTime.now());
+                            1L, "mustit-seller", "seller-name", true, Instant.now());
             PageResponse<SellerSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(summaryResponse), 0, 10, 1L, 1, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(sellerQueryPort.findByCriteria(criteria)).willReturn(sellers);
-            given(sellerQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(sellerReadManager.findByCriteria(criteria)).willReturn(sellers);
+            given(sellerReadManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -77,9 +80,9 @@ class SearchSellersServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(result.content()).hasSize(1);
-            then(assembler).should().toCriteria(query);
-            then(sellerQueryPort).should().findByCriteria(criteria);
-            then(sellerQueryPort).should().countByCriteria(criteria);
+            then(queryFactory).should().createCriteria(query);
+            then(sellerReadManager).should().findByCriteria(criteria);
+            then(sellerReadManager).should().countByCriteria(criteria);
             then(assembler).should().toPageResponse(sellers, 0, 10, totalElements);
         }
 
@@ -95,9 +98,9 @@ class SearchSellersServiceTest {
             PageResponse<SellerSummaryResponse> expectedResponse =
                     PageResponse.of(Collections.emptyList(), 0, 10, 0L, 0, true, true);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(sellerQueryPort.findByCriteria(criteria)).willReturn(emptySellers);
-            given(sellerQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(sellerReadManager.findByCriteria(criteria)).willReturn(emptySellers);
+            given(sellerReadManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 
@@ -107,8 +110,8 @@ class SearchSellersServiceTest {
             // Then
             assertThat(result.content()).isEmpty();
             assertThat(result.totalElements()).isZero();
-            then(sellerQueryPort).should().findByCriteria(criteria);
-            then(sellerQueryPort).should().countByCriteria(criteria);
+            then(sellerReadManager).should().findByCriteria(criteria);
+            then(sellerReadManager).should().countByCriteria(criteria);
         }
 
         @Test
@@ -126,9 +129,9 @@ class SearchSellersServiceTest {
                     PageResponse.of(
                             Collections.emptyList(), page, size, totalElements, 3, false, false);
 
-            given(assembler.toCriteria(query)).willReturn(criteria);
-            given(sellerQueryPort.findByCriteria(criteria)).willReturn(sellers);
-            given(sellerQueryPort.countByCriteria(criteria)).willReturn(totalElements);
+            given(queryFactory.createCriteria(query)).willReturn(criteria);
+            given(sellerReadManager.findByCriteria(criteria)).willReturn(sellers);
+            given(sellerReadManager.countByCriteria(criteria)).willReturn(totalElements);
             given(assembler.toPageResponse(anyList(), anyInt(), anyInt(), anyLong()))
                     .willReturn(expectedResponse);
 

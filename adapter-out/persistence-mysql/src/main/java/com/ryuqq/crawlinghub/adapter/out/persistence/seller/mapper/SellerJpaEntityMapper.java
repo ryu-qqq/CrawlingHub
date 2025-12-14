@@ -1,11 +1,13 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,12 +36,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SellerJpaEntityMapper {
-
-    private final ClockHolder clockHolder;
-
-    public SellerJpaEntityMapper(ClockHolder clockHolder) {
-        this.clockHolder = clockHolder;
-    }
 
     /**
      * Domain → Entity 변환
@@ -73,8 +69,8 @@ public class SellerJpaEntityMapper {
                 domain.getSellerNameValue(),
                 domain.getStatus(),
                 domain.getProductCount(),
-                domain.getCreatedAt(),
-                domain.getUpdatedAt());
+                toLocalDateTime(domain.getCreatedAt()),
+                toLocalDateTime(domain.getUpdatedAt()));
     }
 
     /**
@@ -108,8 +104,21 @@ public class SellerJpaEntityMapper {
                 SellerName.of(entity.getSellerName()),
                 entity.getStatus(),
                 entity.getProductCount(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt(),
-                clockHolder.clock());
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getUpdatedAt()));
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

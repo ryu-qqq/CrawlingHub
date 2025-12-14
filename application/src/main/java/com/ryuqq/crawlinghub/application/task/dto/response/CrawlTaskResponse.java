@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.task.dto.response;
 
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * CrawlTask Response DTO
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @param status 상태
  * @param taskType 태스크 유형
  * @param retryCount 재시도 횟수
- * @param createdAt 생성 시각
+ * @param createdAt 생성 시각 (UTC Instant)
  * @author development-team
  * @since 1.0.0
  */
@@ -28,4 +28,4 @@ public record CrawlTaskResponse(
         CrawlTaskStatus status,
         CrawlTaskType taskType,
         int retryCount,
-        LocalDateTime createdAt) {}
+        Instant createdAt) {}

@@ -10,7 +10,9 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionRe
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,11 +49,14 @@ class CrawlExecutionAssemblerTest {
             CrawlExecutionCriteria result = assembler.toCriteria(query);
 
             // Then
+            Instant expectedFrom = from.atZone(ZoneId.systemDefault()).toInstant();
+            Instant expectedTo = to.atZone(ZoneId.systemDefault()).toInstant();
+
             assertThat(result.crawlTaskId().value()).isEqualTo(1L);
             assertThat(result.crawlSchedulerId().value()).isEqualTo(10L);
             assertThat(result.status()).isEqualTo(CrawlExecutionStatus.SUCCESS);
-            assertThat(result.from()).isEqualTo(from);
-            assertThat(result.to()).isEqualTo(to);
+            assertThat(result.from()).isEqualTo(expectedFrom);
+            assertThat(result.to()).isEqualTo(expectedTo);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
         }

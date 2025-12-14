@@ -22,7 +22,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,7 +86,7 @@ class SellerQueryControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/v1/sellers/{id} - 셀러 단건 조회")
+    @DisplayName("GET /api/v1/crawling/sellers/{id} - 셀러 단건 조회")
     class GetSellerTests {
 
         @Test
@@ -99,11 +99,16 @@ class SellerQueryControllerTest {
 
             SellerResponse useCaseResponse =
                     new SellerResponse(
-                            sellerId, "머스트잇 테스트 셀러", "테스트 셀러", true, LocalDateTime.now(), null);
+                            sellerId, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now(), null);
 
             SellerApiResponse apiResponse =
                     new SellerApiResponse(
-                            sellerId, "머스트잇 테스트 셀러", "테스트 셀러", "ACTIVE", LocalDateTime.now(), null);
+                            sellerId,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            "ACTIVE",
+                            Instant.now().toString(),
+                            null);
 
             given(sellerQueryApiMapper.toQuery(any(Long.class))).willReturn(query);
             given(getSellerUseCase.execute(any(GetSellerQuery.class))).willReturn(useCaseResponse);
@@ -112,7 +117,7 @@ class SellerQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers/{id}", sellerId)
+                            get("/api/v1/crawling/sellers/{id}", sellerId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -142,7 +147,7 @@ class SellerQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers/{id}", invalidSellerId)
+                            get("/api/v1/crawling/sellers/{id}", invalidSellerId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -160,14 +165,14 @@ class SellerQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers/{id}", negativeSellerId)
+                            get("/api/v1/crawling/sellers/{id}", negativeSellerId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/v1/sellers - 셀러 목록 조회")
+    @DisplayName("GET /api/v1/crawling/sellers - 셀러 목록 조회")
     class ListSellersTests {
 
         @Test
@@ -180,10 +185,8 @@ class SellerQueryControllerTest {
 
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()),
-                            new SellerSummaryResponse(
-                                    2L, "머스트잇 셀러2", "셀러2", true, LocalDateTime.now()));
+                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
+                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", true, Instant.now()));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 100L, 5, true, false);
@@ -205,7 +208,7 @@ class SellerQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("status", "ACTIVE")
                                     .param("page", "0")
                                     .param("size", "20")
@@ -238,9 +241,7 @@ class SellerQueryControllerTest {
             SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
 
             List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    1L, "머스트잇 셀러1", "셀러1", true, LocalDateTime.now()));
+                    List.of(new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -259,7 +260,7 @@ class SellerQueryControllerTest {
                     .willReturn(apiPageResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/sellers").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/crawling/sellers").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.page").value(0))
@@ -277,9 +278,7 @@ class SellerQueryControllerTest {
             SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
 
             List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    3L, "머스트잇 셀러3", "셀러3", false, LocalDateTime.now()));
+                    List.of(new SellerSummaryResponse(3L, "머스트잇 셀러3", "셀러3", false, Instant.now()));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -299,7 +298,7 @@ class SellerQueryControllerTest {
 
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("status", "INACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -331,7 +330,7 @@ class SellerQueryControllerTest {
                     .willReturn(apiPageResponse);
 
             // When & Then
-            mockMvc.perform(get("/api/v1/sellers").accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/v1/crawling/sellers").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -348,7 +347,7 @@ class SellerQueryControllerTest {
         void listSellers_InvalidStatus_BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("status", "INVALID_STATUS")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -359,7 +358,7 @@ class SellerQueryControllerTest {
         void listSellers_NegativePage_BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("page", "-1")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -370,7 +369,7 @@ class SellerQueryControllerTest {
         void listSellers_InvalidSize_BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("size", "0")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -381,7 +380,7 @@ class SellerQueryControllerTest {
         void listSellers_SizeTooLarge_BadRequest() throws Exception {
             // When & Then
             mockMvc.perform(
-                            get("/api/v1/sellers")
+                            get("/api/v1/crawling/sellers")
                                     .param("size", "101")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());

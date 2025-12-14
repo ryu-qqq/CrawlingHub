@@ -27,7 +27,7 @@ public class CrawledProductFacade {
 
     // private final CrawledProductQueryPort crawledProductQueryPort;
     // private final ImageOutboxQueryPort imageOutboxQueryPort;
-    // private final CrawledProductManager crawledProductManager;
+    // private final CrawledProductTransactionManager crawledProductManager;
     // private final ImageOutboxManager imageOutboxManager;
     // private final SyncOutboxManager syncOutboxManager;
     // private final ApplicationEventPublisher eventPublisher;
@@ -35,7 +35,7 @@ public class CrawledProductFacade {
     // public CrawledProductFacade(
     //         CrawledProductQueryPort crawledProductQueryPort,
     //         ImageOutboxQueryPort imageOutboxQueryPort,
-    //         CrawledProductManager crawledProductManager,
+    //         CrawledProductTransactionManager crawledProductManager,
     //         ImageOutboxManager imageOutboxManager,
     //         SyncOutboxManager syncOutboxManager,
     //         ApplicationEventPublisher eventPublisher) {

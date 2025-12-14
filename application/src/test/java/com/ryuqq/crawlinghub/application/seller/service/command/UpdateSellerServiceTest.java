@@ -12,7 +12,8 @@ import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.facade.SellerCommandFacade;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
@@ -20,7 +21,8 @@ import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import java.time.LocalDateTime;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * UpdateSellerService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Manager/Factory 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -44,7 +46,9 @@ class UpdateSellerServiceTest {
 
     @Mock private SellerCommandFacade sellerCommandFacade;
 
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
+
+    @Mock private SellerCommandFactory commandFactory;
 
     @Mock private SellerAssembler assembler;
 
@@ -63,30 +67,37 @@ class UpdateSellerServiceTest {
                     new UpdateSellerCommand(sellerId, "new-mustit", "new-name", true);
             Seller existingSeller = SellerFixture.anActiveSeller();
             Seller requestedSeller = SellerFixture.anActiveSeller();
+            Instant now = Instant.now();
             SellerResponse expectedResponse =
-                    new SellerResponse(
-                            sellerId,
-                            "new-mustit",
-                            "new-name",
-                            true,
-                            LocalDateTime.now(),
-                            LocalDateTime.now());
+                    new SellerResponse(sellerId, "new-mustit", "new-name", true, now, now);
 
-            given(assembler.toDomain(command)).willReturn(requestedSeller);
-            given(sellerQueryPort.findById(any(SellerId.class)))
+            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
+            given(sellerReadManager.findById(any(SellerId.class)))
                     .willReturn(Optional.of(existingSeller));
-            given(sellerCommandFacade.persist(existingSeller)).willReturn(existingSeller);
-            given(assembler.toResponse(existingSeller)).willReturn(expectedResponse);
+            given(
+                            sellerCommandFacade.update(
+                                    any(Seller.class),
+                                    any(MustItSellerName.class),
+                                    any(SellerName.class),
+                                    any(SellerStatus.class)))
+                    .willReturn(existingSeller);
+            given(assembler.toResponse(any(Seller.class))).willReturn(expectedResponse);
 
             // When
             SellerResponse result = service.execute(command);
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
-            then(assembler).should().toDomain(command);
-            then(sellerQueryPort).should().findById(SellerId.of(sellerId));
-            then(sellerCommandFacade).should().persist(existingSeller);
-            then(assembler).should().toResponse(existingSeller);
+            then(commandFactory).should().createForComparison(command);
+            then(sellerReadManager).should().findById(SellerId.of(sellerId));
+            then(sellerCommandFacade)
+                    .should()
+                    .update(
+                            any(Seller.class),
+                            any(MustItSellerName.class),
+                            any(SellerName.class),
+                            any(SellerStatus.class));
+            then(assembler).should().toResponse(any(Seller.class));
         }
 
         @Test
@@ -98,14 +109,14 @@ class UpdateSellerServiceTest {
                     new UpdateSellerCommand(sellerId, "new-mustit", "new-name", true);
             Seller requestedSeller = SellerFixture.anActiveSeller();
 
-            given(assembler.toDomain(command)).willReturn(requestedSeller);
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(SellerNotFoundException.class);
 
-            then(sellerCommandFacade).should(never()).persist(any());
+            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
         }
 
         @Test
@@ -118,11 +129,11 @@ class UpdateSellerServiceTest {
             Seller existingSeller = SellerFixture.anActiveSeller();
             Seller requestedSeller = SellerFixture.aNewActiveSeller("duplicate-mustit", "seller");
 
-            given(assembler.toDomain(command)).willReturn(requestedSeller);
-            given(sellerQueryPort.findById(any(SellerId.class)))
+            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
+            given(sellerReadManager.findById(any(SellerId.class)))
                     .willReturn(Optional.of(existingSeller));
             given(
-                            sellerQueryPort.existsByMustItSellerNameExcludingId(
+                            sellerReadManager.existsByMustItSellerNameExcludingId(
                                     any(MustItSellerName.class), any(SellerId.class)))
                     .willReturn(true);
 
@@ -130,7 +141,7 @@ class UpdateSellerServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateMustItSellerIdException.class);
 
-            then(sellerCommandFacade).should(never()).persist(any());
+            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
         }
 
         @Test
@@ -143,11 +154,11 @@ class UpdateSellerServiceTest {
             Seller existingSeller = SellerFixture.anActiveSeller();
             Seller requestedSeller = SellerFixture.aNewActiveSeller("mustit", "duplicate-name");
 
-            given(assembler.toDomain(command)).willReturn(requestedSeller);
-            given(sellerQueryPort.findById(any(SellerId.class)))
+            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
+            given(sellerReadManager.findById(any(SellerId.class)))
                     .willReturn(Optional.of(existingSeller));
             given(
-                            sellerQueryPort.existsBySellerNameExcludingId(
+                            sellerReadManager.existsBySellerNameExcludingId(
                                     any(SellerName.class), any(SellerId.class)))
                     .willReturn(true);
 
@@ -155,7 +166,7 @@ class UpdateSellerServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateSellerNameException.class);
 
-            then(sellerCommandFacade).should(never()).persist(any());
+            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
         }
     }
 }

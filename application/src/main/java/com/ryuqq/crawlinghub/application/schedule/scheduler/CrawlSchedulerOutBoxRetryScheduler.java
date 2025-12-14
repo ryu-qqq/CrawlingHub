@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.scheduler;
 
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
@@ -33,12 +33,12 @@ public class CrawlSchedulerOutBoxRetryScheduler {
     private static final int BATCH_SIZE = 100;
 
     private final CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
-    private final CrawlerSchedulerOutBoxManager outBoxManager;
+    private final CrawlSchedulerOutBoxTransactionManager outBoxManager;
     private final EventBridgeClientPort eventBridgeClientPort;
 
     public CrawlSchedulerOutBoxRetryScheduler(
             CrawlSchedulerOutBoxQueryPort outBoxQueryPort,
-            CrawlerSchedulerOutBoxManager outBoxManager,
+            CrawlSchedulerOutBoxTransactionManager outBoxManager,
             EventBridgeClientPort eventBridgeClientPort) {
         this.outBoxQueryPort = outBoxQueryPort;
         this.outBoxManager = outBoxManager;

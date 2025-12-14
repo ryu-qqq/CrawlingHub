@@ -1,12 +1,12 @@
 package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
-import com.ryuqq.crawlinghub.domain.common.Clock;
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
+import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 /**
  * CrawlSchedulerOutBox 테스트 Fixture
@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
  */
 public final class CrawlSchedulerOutBoxFixture {
 
+    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+
     private CrawlSchedulerOutBoxFixture() {
         throw new UnsupportedOperationException("Fixture 클래스입니다.");
     }
@@ -28,6 +30,7 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return PENDING 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aPendingOutBox() {
+        Instant now = DEFAULT_CLOCK.instant();
         return CrawlSchedulerOutBox.of(
                 CrawlSchedulerOutBoxId.of(1L),
                 CrawlSchedulerHistoryId.of(1L),
@@ -35,9 +38,8 @@ public final class CrawlSchedulerOutBoxFixture {
                 "{\"schedulerId\": 1, \"action\": \"CREATE\"}",
                 null,
                 0L,
-                LocalDateTime.now(),
-                null,
-                new FixedClock());
+                now,
+                null);
     }
 
     /**
@@ -46,6 +48,8 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return COMPLETED 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aCompletedOutBox() {
+        Instant now = DEFAULT_CLOCK.instant();
+        Instant fiveMinutesAgo = now.minusSeconds(300);
         return CrawlSchedulerOutBox.of(
                 CrawlSchedulerOutBoxId.of(2L),
                 CrawlSchedulerHistoryId.of(2L),
@@ -53,9 +57,8 @@ public final class CrawlSchedulerOutBoxFixture {
                 "{\"schedulerId\": 2, \"action\": \"CREATE\"}",
                 null,
                 1L,
-                LocalDateTime.now().minusMinutes(5),
-                LocalDateTime.now(),
-                new FixedClock());
+                fiveMinutesAgo,
+                now);
     }
 
     /**
@@ -64,6 +67,9 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return FAILED 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aFailedOutBox() {
+        Instant now = DEFAULT_CLOCK.instant();
+        Instant tenMinutesAgo = now.minusSeconds(600);
+        Instant fiveMinutesAgo = now.minusSeconds(300);
         return CrawlSchedulerOutBox.of(
                 CrawlSchedulerOutBoxId.of(3L),
                 CrawlSchedulerHistoryId.of(3L),
@@ -71,16 +77,7 @@ public final class CrawlSchedulerOutBoxFixture {
                 "{\"schedulerId\": 3, \"action\": \"CREATE\"}",
                 "EventBridge connection failed",
                 1L,
-                LocalDateTime.now().minusMinutes(10),
-                LocalDateTime.now().minusMinutes(5),
-                new FixedClock());
-    }
-
-    /** 테스트용 고정 시간 Clock 구현 */
-    private static class FixedClock implements Clock {
-        @Override
-        public Instant now() {
-            return Instant.now();
-        }
+                tenMinutesAgo,
+                fiveMinutesAgo);
     }
 }

@@ -13,7 +13,7 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
-import com.ryuqq.crawlinghub.application.schedule.manager.CrawlerSchedulerOutBoxManager;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
@@ -23,6 +23,7 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,7 +49,7 @@ class SchedulerRegisteredEventListenerTest {
 
     @Mock private CrawlSchedulerOutBoxQueryPort outBoxQueryPort;
 
-    @Mock private CrawlerSchedulerOutBoxManager outBoxManager;
+    @Mock private CrawlSchedulerOutBoxTransactionManager outBoxManager;
 
     @InjectMocks private SchedulerRegisteredEventListener listener;
 
@@ -66,9 +67,15 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
             SchedulerRegisteredEvent event =
                     new SchedulerRegisteredEvent(
-                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
+                            schedulerId,
+                            historyId,
+                            sellerId,
+                            schedulerName,
+                            cronExpression,
+                            occurredAt);
 
             CrawlSchedulerOutBox outBox = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
@@ -94,9 +101,15 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
             SchedulerRegisteredEvent event =
                     new SchedulerRegisteredEvent(
-                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
+                            schedulerId,
+                            historyId,
+                            sellerId,
+                            schedulerName,
+                            cronExpression,
+                            occurredAt);
 
             given(outBoxQueryPort.findByHistoryId(historyId)).willReturn(Optional.empty());
 
@@ -120,9 +133,15 @@ class SchedulerRegisteredEventListenerTest {
             SchedulerName schedulerName = SchedulerNameFixture.aDefaultName();
             CronExpression cronExpression = CronExpressionFixture.aDefaultCron();
 
+            Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
             SchedulerRegisteredEvent event =
                     new SchedulerRegisteredEvent(
-                            schedulerId, historyId, sellerId, schedulerName, cronExpression);
+                            schedulerId,
+                            historyId,
+                            sellerId,
+                            schedulerName,
+                            cronExpression,
+                            occurredAt);
 
             CrawlSchedulerOutBox outBox = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 

@@ -1,8 +1,10 @@
 package com.ryuqq.cralwinghub.domain.fixture.useragent;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * UserAgent Aggregate Test Fixture
@@ -14,16 +16,32 @@ import java.time.LocalDateTime;
  */
 public final class UserAgentFixture {
 
-    private static final LocalDateTime DEFAULT_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
 
     /**
      * 신규 UserAgent 생성 (ID 미할당, AVAILABLE, Health Score 100)
      *
      * @return UserAgent
      */
-    public static UserAgent aNewUserAgent() {
-        return UserAgent.create(
-                TokenFixture.aDefaultToken(), UserAgentStringFixture.aDefaultUserAgentString());
+    public static UserAgent forNew() {
+        return UserAgent.forNew(
+                TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DEFAULT_CLOCK);
+    }
+
+    /**
+     * 신규 UserAgent 생성 (Clock 지정)
+     *
+     * @param clock 시간 제어
+     * @return UserAgent
+     */
+    public static UserAgent forNew(Clock clock) {
+        return UserAgent.forNew(
+                TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                clock);
     }
 
     /**
@@ -32,6 +50,17 @@ public final class UserAgentFixture {
      * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)
      */
     public static UserAgent anAvailableUserAgent() {
+        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.initial());
+    }
+
+    /**
+     * ID가 할당된 AVAILABLE 상태 UserAgent 생성 (Clock 지정)
+     *
+     * @param clock 시간 제어
+     * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)
+     */
+    public static UserAgent anAvailableUserAgent(Clock clock) {
+        Instant now = clock.instant();
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
@@ -39,10 +68,10 @@ public final class UserAgentFixture {
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.initial(),
-                DEFAULT_TIME,
+                now,
                 0,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+                now,
+                now);
     }
 
     /**
@@ -51,17 +80,7 @@ public final class UserAgentFixture {
      * @return UserAgent (ID = 1L, SUSPENDED, Health Score 29)
      */
     public static UserAgent aSuspendedUserAgent() {
-        return UserAgent.reconstitute(
-                UserAgentIdFixture.anAssignedId(),
-                TokenFixture.aDefaultToken(),
-                UserAgentStringFixture.aDefaultUserAgentString(),
-                DeviceTypeFixture.aDefaultDeviceType(),
-                UserAgentStatus.SUSPENDED,
-                HealthScoreFixture.belowThreshold(),
-                DEFAULT_TIME,
-                0,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(UserAgentStatus.SUSPENDED, HealthScoreFixture.belowThreshold());
     }
 
     /**
@@ -70,6 +89,8 @@ public final class UserAgentFixture {
      * @return UserAgent (SUSPENDED, lastUsedAt = 2시간 전)
      */
     public static UserAgent aRecoverableSuspendedUserAgent() {
+        Instant twoHoursAgo = DEFAULT_TIME.minusSeconds(7200);
+        Instant threeHoursAgo = DEFAULT_TIME.minusSeconds(10800);
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
@@ -77,10 +98,10 @@ public final class UserAgentFixture {
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.SUSPENDED,
                 HealthScoreFixture.belowThreshold(),
-                DEFAULT_TIME.minusHours(2),
+                twoHoursAgo,
                 0,
-                DEFAULT_TIME.minusHours(3),
-                DEFAULT_TIME.minusHours(2));
+                threeHoursAgo,
+                twoHoursAgo);
     }
 
     /**
@@ -89,17 +110,7 @@ public final class UserAgentFixture {
      * @return UserAgent (ID = 1L, BLOCKED)
      */
     public static UserAgent aBlockedUserAgent() {
-        return UserAgent.reconstitute(
-                UserAgentIdFixture.anAssignedId(),
-                TokenFixture.aDefaultToken(),
-                UserAgentStringFixture.aDefaultUserAgentString(),
-                DeviceTypeFixture.aDefaultDeviceType(),
-                UserAgentStatus.BLOCKED,
-                HealthScoreFixture.minimum(),
-                DEFAULT_TIME,
-                0,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(UserAgentStatus.BLOCKED, HealthScoreFixture.minimum());
     }
 
     /**
@@ -108,17 +119,7 @@ public final class UserAgentFixture {
      * @return UserAgent (AVAILABLE, Health Score 35)
      */
     public static UserAgent anAlmostSuspendedUserAgent() {
-        return UserAgent.reconstitute(
-                UserAgentIdFixture.anAssignedId(),
-                TokenFixture.aDefaultToken(),
-                UserAgentStringFixture.aDefaultUserAgentString(),
-                DeviceTypeFixture.aDefaultDeviceType(),
-                UserAgentStatus.AVAILABLE,
-                HealthScoreFixture.of(35),
-                DEFAULT_TIME,
-                0,
-                DEFAULT_TIME,
-                DEFAULT_TIME);
+        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.of(35));
     }
 
     /**
@@ -154,6 +155,51 @@ public final class UserAgentFixture {
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentStatus.AVAILABLE,
                 HealthScoreFixture.initial(),
+                DEFAULT_TIME,
+                0,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
+     * 특정 Health Score를 가진 AVAILABLE UserAgent 생성 (Clock 지정)
+     *
+     * @param healthScoreValue 건강 점수
+     * @param clock 시간 제어
+     * @return UserAgent
+     */
+    public static UserAgent of(int healthScoreValue, Clock clock) {
+        Instant now = clock.instant();
+        return UserAgent.reconstitute(
+                UserAgentIdFixture.anAssignedId(),
+                TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
+                UserAgentStatus.AVAILABLE,
+                HealthScoreFixture.of(healthScoreValue),
+                now,
+                0,
+                now,
+                now);
+    }
+
+    /**
+     * 영속성 복원용 Fixture
+     *
+     * @param status 상태
+     * @param healthScore 건강 점수
+     * @return UserAgent
+     */
+    public static UserAgent reconstitute(
+            UserAgentStatus status,
+            com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore healthScore) {
+        return UserAgent.reconstitute(
+                UserAgentIdFixture.anAssignedId(),
+                TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
+                status,
+                healthScore,
                 DEFAULT_TIME,
                 0,
                 DEFAULT_TIME,

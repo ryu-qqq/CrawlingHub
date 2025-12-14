@@ -6,7 +6,7 @@ import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 /**
  * CrawledProduct 저장 Port (Port Out - Command)
  *
- * <p>CrawledProductManager에서만 사용됩니다.
+ * <p>CrawledProductTransactionManager에서만 사용됩니다.
  *
  * <p>트랜잭션 경계 내에서 CrawledProduct Aggregate의 저장을 담당합니다.
  *

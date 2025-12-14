@@ -6,13 +6,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Clock;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,9 +39,17 @@ class UpdateSellerProductCountServiceTest {
 
     @Mock private SellerTransactionManager sellerTransactionManager;
 
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
+
+    @Mock private ClockHolder clockHolder;
 
     @InjectMocks private UpdateSellerProductCountService service;
+
+    @BeforeEach
+    void setUp() {
+        Clock fixedClock = FixedClock.aDefaultClock();
+        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+    }
 
     @Nested
     @DisplayName("execute() 상품 수 업데이트 테스트")
@@ -51,14 +63,14 @@ class UpdateSellerProductCountServiceTest {
             int productCount = 100;
             Seller seller = SellerFixture.anActiveSeller();
 
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
             given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
 
             // When
             service.execute(sellerId, productCount);
 
             // Then
-            then(sellerQueryPort).should().findById(SellerId.of(sellerId));
+            then(sellerReadManager).should().findById(SellerId.of(sellerId));
             then(sellerTransactionManager).should().persist(seller);
         }
 
@@ -70,14 +82,14 @@ class UpdateSellerProductCountServiceTest {
             int productCount = 0;
             Seller seller = SellerFixture.anActiveSellerWithProducts(50);
 
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
             given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
 
             // When
             service.execute(sellerId, productCount);
 
             // Then
-            then(sellerQueryPort).should().findById(SellerId.of(sellerId));
+            then(sellerReadManager).should().findById(SellerId.of(sellerId));
             then(sellerTransactionManager).should().persist(seller);
         }
 
@@ -88,7 +100,7 @@ class UpdateSellerProductCountServiceTest {
             Long sellerId = 999L;
             int productCount = 100;
 
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(sellerId, productCount))

@@ -12,8 +12,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -91,8 +90,7 @@ class SellerTest {
         void shouldSetTimestamps() {
             // given
             FixedClock clock = FixedClock.aDefaultClock();
-            LocalDateTime expectedTime =
-                    LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            Instant expectedTime = clock.instant();
 
             // when
             Seller seller =
@@ -116,7 +114,7 @@ class SellerTest {
         void shouldThrowWhenSellerIdIsNull() {
             // given
             FixedClock clock = FixedClock.aDefaultClock();
-            LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            Instant now = clock.instant();
 
             // when & then
             assertThatThrownBy(
@@ -128,8 +126,7 @@ class SellerTest {
                                             SellerStatus.ACTIVE,
                                             0,
                                             now,
-                                            now,
-                                            clock))
+                                            now))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("sellerId는 null일 수 없습니다");
         }
@@ -140,7 +137,7 @@ class SellerTest {
             // given
             FixedClock clock = FixedClock.aDefaultClock();
             SellerId sellerId = SellerId.of(1L);
-            LocalDateTime now = LocalDateTime.ofInstant(clock.now(), ZoneId.systemDefault());
+            Instant now = clock.instant();
 
             // when
             Seller seller =
@@ -151,8 +148,7 @@ class SellerTest {
                             SellerStatus.ACTIVE,
                             10,
                             now,
-                            now,
-                            clock);
+                            now);
 
             // then
             assertThat(seller.getSellerId()).isEqualTo(sellerId);
@@ -169,12 +165,11 @@ class SellerTest {
         @DisplayName("[성공] 모든 필드가 정상 복원됨")
         void shouldRestoreAllFields() {
             // given
-            FixedClock clock = FixedClock.aDefaultClock();
             SellerId sellerId = SellerId.of(99L);
             MustItSellerName mustItSellerName = MustItSellerName.of("mustit-seller");
             SellerName sellerName = SellerName.of("commerce-seller");
-            LocalDateTime createdAt = LocalDateTime.of(2025, 1, 1, 0, 0);
-            LocalDateTime updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0);
+            Instant createdAt = Instant.parse("2025-01-01T00:00:00Z");
+            Instant updatedAt = Instant.parse("2024-01-01T12:00:00Z");
 
             // when
             Seller seller =
@@ -185,8 +180,7 @@ class SellerTest {
                             SellerStatus.INACTIVE,
                             50,
                             createdAt,
-                            updatedAt,
-                            clock);
+                            updatedAt);
 
             // then
             assertThat(seller.getSellerId()).isEqualTo(sellerId);
@@ -212,7 +206,7 @@ class SellerTest {
             assertThat(seller.isInactive()).isTrue();
 
             // when
-            seller.activate();
+            seller.activate(clock);
 
             // then
             assertThat(seller.isActive()).isTrue();
@@ -225,10 +219,10 @@ class SellerTest {
             // given
             FixedClock clock = FixedClock.aDefaultClock();
             Seller seller = SellerFixture.anActiveSeller(clock);
-            LocalDateTime originalUpdatedAt = seller.getUpdatedAt();
+            Instant originalUpdatedAt = seller.getUpdatedAt();
 
             // when
-            seller.activate();
+            seller.activate(clock);
 
             // then
             assertThat(seller.isActive()).isTrue();
@@ -240,8 +234,8 @@ class SellerTest {
         void shouldUpdateTimestampOnActivation() {
             // given
             FixedClock initialClock = FixedClock.at("2025-01-01T00:00:00Z");
-            LocalDateTime initialTime =
-                    LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
+            Instant initialTime = initialClock.instant();
+            FixedClock activationClock = FixedClock.at("2025-11-27T12:00:00Z");
 
             Seller seller =
                     Seller.of(
@@ -251,16 +245,13 @@ class SellerTest {
                             SellerStatus.INACTIVE,
                             0,
                             initialTime,
-                            initialTime,
-                            FixedClock.at("2025-11-27T12:00:00Z"));
+                            initialTime);
 
             // when
-            seller.activate();
+            seller.activate(activationClock);
 
             // then
-            LocalDateTime expectedUpdatedAt =
-                    LocalDateTime.ofInstant(
-                            FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
+            Instant expectedUpdatedAt = activationClock.instant();
             assertThat(seller.getUpdatedAt()).isEqualTo(expectedUpdatedAt);
         }
     }
@@ -273,11 +264,12 @@ class SellerTest {
         @DisplayName("[성공] ACTIVE → INACTIVE 전환")
         void shouldDeactivateFromActive() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             assertThat(seller.isActive()).isTrue();
 
             // when
-            seller.deactivate();
+            seller.deactivate(clock);
 
             // then
             assertThat(seller.isInactive()).isTrue();
@@ -288,10 +280,11 @@ class SellerTest {
         @DisplayName("[성공] 비활성화 시 SellerDeActiveEvent 발행")
         void shouldPublishDeActiveEvent() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when
-            seller.deactivate();
+            seller.deactivate(clock);
 
             // then
             assertThat(seller.getDomainEvents()).hasSize(1);
@@ -305,10 +298,11 @@ class SellerTest {
         @DisplayName("[성공] 이미 INACTIVE면 무시됨 (이벤트 발행 안 함)")
         void shouldIgnoreWhenAlreadyInactive() {
             // given
-            Seller seller = SellerFixture.anInactiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anInactiveSeller(clock);
 
             // when
-            seller.deactivate();
+            seller.deactivate(clock);
 
             // then
             assertThat(seller.isInactive()).isTrue();
@@ -324,11 +318,12 @@ class SellerTest {
         @DisplayName("[성공] MustItSellerName 변경")
         void shouldUpdateMustItSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             MustItSellerName newName = MustItSellerName.of("new-mustit-name");
 
             // when
-            seller.update(newName, null, null);
+            seller.update(newName, null, null, clock);
 
             // then
             assertThat(seller.getMustItSellerName()).isEqualTo(newName);
@@ -338,11 +333,12 @@ class SellerTest {
         @DisplayName("[성공] SellerName 변경")
         void shouldUpdateSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             SellerName newName = SellerName.of("new-seller-name");
 
             // when
-            seller.update(null, newName, null);
+            seller.update(null, newName, null, clock);
 
             // then
             assertThat(seller.getSellerName()).isEqualTo(newName);
@@ -352,10 +348,11 @@ class SellerTest {
         @DisplayName("[성공] 상태 ACTIVE → INACTIVE 변경 시 이벤트 발행")
         void shouldPublishEventWhenDeactivating() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when
-            seller.update(null, null, SellerStatus.INACTIVE);
+            seller.update(null, null, SellerStatus.INACTIVE, clock);
 
             // then
             assertThat(seller.isInactive()).isTrue();
@@ -367,10 +364,11 @@ class SellerTest {
         @DisplayName("[성공] 상태 INACTIVE → ACTIVE 변경")
         void shouldActivateWhenStatusChangedToActive() {
             // given
-            Seller seller = SellerFixture.anInactiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anInactiveSeller(clock);
 
             // when
-            seller.update(null, null, SellerStatus.ACTIVE);
+            seller.update(null, null, SellerStatus.ACTIVE, clock);
 
             // then
             assertThat(seller.isActive()).isTrue();
@@ -384,10 +382,10 @@ class SellerTest {
             Seller seller = SellerFixture.anActiveSeller(clock);
             MustItSellerName sameMustItName = seller.getMustItSellerName();
             SellerName sameName = seller.getSellerName();
-            LocalDateTime originalUpdatedAt = seller.getUpdatedAt();
+            Instant originalUpdatedAt = seller.getUpdatedAt();
 
             // when
-            seller.update(sameMustItName, sameName, SellerStatus.ACTIVE);
+            seller.update(sameMustItName, sameName, SellerStatus.ACTIVE, clock);
 
             // then
             assertThat(seller.getUpdatedAt()).isEqualTo(originalUpdatedAt);
@@ -398,13 +396,14 @@ class SellerTest {
         @DisplayName("[성공] null 파라미터는 해당 필드를 변경하지 않음")
         void shouldNotChangeWhenParameterIsNull() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             MustItSellerName originalMustItName = seller.getMustItSellerName();
             SellerName originalName = seller.getSellerName();
             SellerStatus originalStatus = seller.getStatus();
 
             // when
-            seller.update(null, null, null);
+            seller.update(null, null, null, clock);
 
             // then
             assertThat(seller.getMustItSellerName()).isEqualTo(originalMustItName);
@@ -421,10 +420,11 @@ class SellerTest {
         @DisplayName("[성공] 상품 수 업데이트")
         void shouldUpdateProductCount() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when
-            seller.updateProductCount(100);
+            seller.updateProductCount(100, clock);
 
             // then
             assertThat(seller.getProductCount()).isEqualTo(100);
@@ -435,8 +435,8 @@ class SellerTest {
         void shouldUpdateTimestamp() {
             // given
             FixedClock initialClock = FixedClock.at("2025-01-01T00:00:00Z");
-            LocalDateTime initialTime =
-                    LocalDateTime.ofInstant(initialClock.now(), ZoneId.systemDefault());
+            Instant initialTime = initialClock.instant();
+            FixedClock updateClock = FixedClock.at("2025-11-27T12:00:00Z");
 
             Seller seller =
                     Seller.of(
@@ -446,16 +446,13 @@ class SellerTest {
                             SellerStatus.ACTIVE,
                             0,
                             initialTime,
-                            initialTime,
-                            FixedClock.at("2025-11-27T12:00:00Z"));
+                            initialTime);
 
             // when
-            seller.updateProductCount(50);
+            seller.updateProductCount(50, updateClock);
 
             // then
-            LocalDateTime expectedUpdatedAt =
-                    LocalDateTime.ofInstant(
-                            FixedClock.at("2025-11-27T12:00:00Z").now(), ZoneId.systemDefault());
+            Instant expectedUpdatedAt = updateClock.instant();
             assertThat(seller.getUpdatedAt()).isEqualTo(expectedUpdatedAt);
         }
 
@@ -463,11 +460,12 @@ class SellerTest {
         @DisplayName("[성공] 동일한 상품 수로 업데이트 시 updatedAt 변경 없음")
         void shouldNotUpdateTimestampWhenSameCount() {
             // given
-            Seller seller = SellerFixture.anActiveSellerWithProducts(100);
-            LocalDateTime originalUpdatedAt = seller.getUpdatedAt();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSellerWithProducts(100, clock);
+            Instant originalUpdatedAt = seller.getUpdatedAt();
 
             // when
-            seller.updateProductCount(100);
+            seller.updateProductCount(100, clock);
 
             // then
             assertThat(seller.getUpdatedAt()).isEqualTo(originalUpdatedAt);
@@ -477,10 +475,11 @@ class SellerTest {
         @DisplayName("[실패] 음수 상품 수 업데이트 시 예외 발생")
         void shouldThrowWhenNegativeCount() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when & then
-            assertThatThrownBy(() -> seller.updateProductCount(-1))
+            assertThatThrownBy(() -> seller.updateProductCount(-1, clock))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("상품 수는 0 이상");
         }
@@ -489,10 +488,11 @@ class SellerTest {
         @DisplayName("[성공] 0으로 업데이트 가능")
         void shouldAllowZeroCount() {
             // given
-            Seller seller = SellerFixture.anActiveSellerWithProducts(100);
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSellerWithProducts(100, clock);
 
             // when
-            seller.updateProductCount(0);
+            seller.updateProductCount(0, clock);
 
             // then
             assertThat(seller.getProductCount()).isZero();
@@ -507,8 +507,9 @@ class SellerTest {
         @DisplayName("[성공] 이벤트 목록이 비워짐")
         void shouldClearEvents() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
-            seller.deactivate(); // 이벤트 발행
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
+            seller.deactivate(clock); // 이벤트 발행
             assertThat(seller.getDomainEvents()).hasSize(1);
 
             // when
@@ -522,7 +523,8 @@ class SellerTest {
         @DisplayName("[성공] 이벤트가 없어도 예외 없이 동작")
         void shouldNotThrowWhenNoEvents() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             assertThat(seller.getDomainEvents()).isEmpty();
 
             // when & then (예외 없이 동작)
@@ -539,7 +541,8 @@ class SellerTest {
         @DisplayName("[성공] 다른 MustItSellerName이면 true 반환")
         void shouldReturnTrueWhenDifferentMustItSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             MustItSellerName newName = MustItSellerName.of("different-name");
 
             // when & then
@@ -550,7 +553,8 @@ class SellerTest {
         @DisplayName("[성공] 동일한 MustItSellerName이면 false 반환")
         void shouldReturnFalseWhenSameMustItSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             MustItSellerName sameName = seller.getMustItSellerName();
 
             // when & then
@@ -561,7 +565,8 @@ class SellerTest {
         @DisplayName("[성공] null MustItSellerName이면 false 반환")
         void shouldReturnFalseWhenNullMustItSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when & then
             assertThat(seller.needsUpdateMustItSellerName(null)).isFalse();
@@ -571,7 +576,8 @@ class SellerTest {
         @DisplayName("[성공] 다른 SellerName이면 true 반환")
         void shouldReturnTrueWhenDifferentSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             SellerName newName = SellerName.of("different-name");
 
             // when & then
@@ -582,7 +588,8 @@ class SellerTest {
         @DisplayName("[성공] 동일한 SellerName이면 false 반환")
         void shouldReturnFalseWhenSameSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
             SellerName sameName = seller.getSellerName();
 
             // when & then
@@ -593,7 +600,8 @@ class SellerTest {
         @DisplayName("[성공] null SellerName이면 false 반환")
         void shouldReturnFalseWhenNullSellerName() {
             // given
-            Seller seller = SellerFixture.anActiveSeller();
+            FixedClock clock = FixedClock.aDefaultClock();
+            Seller seller = SellerFixture.anActiveSeller(clock);
 
             // when & then
             assertThat(seller.needsUpdateSellerName(null)).isFalse();

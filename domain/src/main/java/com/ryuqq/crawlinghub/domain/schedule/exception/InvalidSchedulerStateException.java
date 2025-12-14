@@ -25,8 +25,8 @@ public final class InvalidSchedulerStateException extends DomainException {
     public InvalidSchedulerStateException(
             SchedulerStatus currentStatus, SchedulerStatus expectedStatus) {
         super(
-                ERROR_CODE.getCode(),
-                "스케줄러 상태가 유효하지 않습니다. 현재: " + currentStatus + ", 기대: " + expectedStatus,
+                ERROR_CODE,
+                String.format("스케줄러 상태가 유효하지 않습니다. 현재: %s, 기대: %s", currentStatus, expectedStatus),
                 Map.of(
                         "currentStatus", currentStatus.name(),
                         "expectedStatus", expectedStatus.name()));

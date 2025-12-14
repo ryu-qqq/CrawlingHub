@@ -6,6 +6,8 @@ import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 스케줄러 수정 이벤트
@@ -17,6 +19,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
  * @param schedulerName 스케줄러 이름
  * @param cronExpression 크론 표현식
  * @param status 스케줄러 상태
+ * @param occurredAt 이벤트 발생 시각
  * @author development-team
  * @since 1.0.0
  */
@@ -25,7 +28,8 @@ public record SchedulerUpdatedEvent(
         SellerId sellerId,
         SchedulerName schedulerName,
         CronExpression cronExpression,
-        SchedulerStatus status)
+        SchedulerStatus status,
+        Instant occurredAt)
         implements DomainEvent {
 
     /** Compact Constructor (검증 로직) */
@@ -45,6 +49,9 @@ public record SchedulerUpdatedEvent(
         if (status == null) {
             throw new IllegalArgumentException("status는 null일 수 없습니다.");
         }
+        if (occurredAt == null) {
+            throw new IllegalArgumentException("occurredAt은 null일 수 없습니다.");
+        }
     }
 
     /**
@@ -55,6 +62,7 @@ public record SchedulerUpdatedEvent(
      * @param schedulerName 스케줄러 이름
      * @param cronExpression 크론 표현식
      * @param status 스케줄러 상태
+     * @param clock 시간 제어
      * @return SchedulerUpdatedEvent
      */
     public static SchedulerUpdatedEvent of(
@@ -62,8 +70,9 @@ public record SchedulerUpdatedEvent(
             SellerId sellerId,
             SchedulerName schedulerName,
             CronExpression cronExpression,
-            SchedulerStatus status) {
+            SchedulerStatus status,
+            Clock clock) {
         return new SchedulerUpdatedEvent(
-                schedulerId, sellerId, schedulerName, cronExpression, status);
+                schedulerId, sellerId, schedulerName, cronExpression, status, clock.instant());
     }
 }

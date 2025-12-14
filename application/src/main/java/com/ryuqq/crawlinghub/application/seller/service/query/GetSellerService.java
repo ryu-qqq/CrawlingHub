@@ -3,8 +3,8 @@ package com.ryuqq.crawlinghub.application.seller.service.query;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -14,18 +14,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetSellerService implements GetSellerUseCase {
 
-    private final SellerQueryPort sellerQueryPort;
+    private final SellerReadManager sellerReadManager;
     private final SellerAssembler sellerAssembler;
 
-    public GetSellerService(SellerQueryPort sellerQueryPort, SellerAssembler sellerAssembler) {
-        this.sellerQueryPort = sellerQueryPort;
+    public GetSellerService(SellerReadManager sellerReadManager, SellerAssembler sellerAssembler) {
+        this.sellerReadManager = sellerReadManager;
         this.sellerAssembler = sellerAssembler;
     }
 
     @Override
     public SellerResponse execute(GetSellerQuery query) {
         Seller seller =
-                sellerQueryPort
+                sellerReadManager
                         .findById(SellerId.of(query.sellerId()))
                         .orElseThrow(() -> new SellerNotFoundException(query.sellerId()));
 

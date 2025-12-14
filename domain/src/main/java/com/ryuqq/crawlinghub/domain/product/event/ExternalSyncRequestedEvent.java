@@ -3,7 +3,8 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 
 /**
  * 외부 상품 서버 동기화 요청 이벤트
@@ -18,7 +19,7 @@ public record ExternalSyncRequestedEvent(
         SellerId sellerId,
         long itemNo,
         SyncType syncType,
-        LocalDateTime occurredAt)
+        Instant occurredAt)
         implements DomainEvent {
 
     public ExternalSyncRequestedEvent {
@@ -35,22 +36,24 @@ public record ExternalSyncRequestedEvent(
             throw new IllegalArgumentException("syncType은 필수입니다.");
         }
         if (occurredAt == null) {
-            occurredAt = LocalDateTime.now();
+            throw new IllegalArgumentException("occurredAt은 필수입니다.");
         }
     }
 
     /** 신규 등록용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forCreate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
+        Instant now = clock.instant();
         return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, SyncType.CREATE, LocalDateTime.now());
+                crawledProductId, sellerId, itemNo, SyncType.CREATE, now);
     }
 
     /** 갱신용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forUpdate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
+        Instant now = clock.instant();
         return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, SyncType.UPDATE, LocalDateTime.now());
+                crawledProductId, sellerId, itemNo, SyncType.UPDATE, now);
     }
 
     /** 동기화 타입 */
