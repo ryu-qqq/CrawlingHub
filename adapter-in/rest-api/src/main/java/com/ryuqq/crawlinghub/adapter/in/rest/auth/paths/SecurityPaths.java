@@ -81,10 +81,10 @@ public final class SecurityPaths {
         /** 조직 ID 헤더 - Gateway에서 JWT organizationId 클레임 추출 */
         public static final String ORGANIZATION_ID = "X-Organization-Id";
 
-        /** 역할 헤더 - JSON 배열 형식 (예: ["ROLE_ADMIN", "ROLE_USER"]) */
-        public static final String ROLES = "X-Roles";
+        /** 역할 헤더 - 콤마 구분 형식 (예: SUPER_ADMIN,ADMIN) */
+        public static final String ROLES = "X-User-Roles";
 
-        /** 권한 헤더 - JSON 배열 형식 (예: ["READ", "WRITE"]) */
+        /** 권한 헤더 - 콤마 구분 형식 (예: crawling:read,crawling:write) */
         public static final String PERMISSIONS = "X-Permissions";
 
         /** 추적 ID 헤더 - 분산 추적용 */
