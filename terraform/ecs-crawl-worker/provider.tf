@@ -73,6 +73,17 @@ variable "crawl_worker_desired_count" {
   default     = 2
 }
 
+variable "image_tag" {
+  description = "Docker image tag to deploy. Auto-set by GitHub Actions build-and-deploy.yml. Format: {component}-{build-number}-{git-sha}"
+  type        = string
+  default     = "latest"  # Fallback only - GitHub Actions will override this
+
+  validation {
+    condition     = can(regex("^(latest|crawl-worker-[0-9]+-[a-f0-9]+)$", var.image_tag))
+    error_message = "Image tag must be 'latest' or follow format: crawl-worker-{build-number}-{git-sha} (e.g., crawl-worker-46-cd5bdb2)"
+  }
+}
+
 # ========================================
 # Shared Resource References (SSM)
 # ========================================

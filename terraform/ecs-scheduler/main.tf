@@ -303,7 +303,7 @@ module "ecs_service" {
   name            = "${var.project_name}-scheduler-${var.environment}"
   cluster_id      = data.aws_ecs_cluster.main.arn
   container_name  = "scheduler"
-  container_image = "${data.aws_ecr_repository.scheduler.repository_url}:latest"
+  container_image = "${data.aws_ecr_repository.scheduler.repository_url}:${var.image_tag}"
   container_port  = 8081
   cpu             = var.scheduler_cpu
   memory          = var.scheduler_memory
