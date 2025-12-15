@@ -461,7 +461,7 @@ module "ecs_service" {
   name            = "${var.project_name}-web-api-${var.environment}"
   cluster_id      = data.aws_ecs_cluster.main.arn
   container_name  = "web-api"
-  container_image = "${data.aws_ecr_repository.web_api.repository_url}:latest"
+  container_image = "${data.aws_ecr_repository.web_api.repository_url}:${var.image_tag}"
   container_port  = 8080
   cpu             = var.web_api_cpu
   memory          = var.web_api_memory

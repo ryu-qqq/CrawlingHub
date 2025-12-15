@@ -73,6 +73,17 @@ variable "web_api_desired_count" {
   default     = 2
 }
 
+variable "image_tag" {
+  description = "Docker image tag to deploy. Auto-set by GitHub Actions build-and-deploy.yml. Format: {component}-{build-number}-{git-sha}"
+  type        = string
+  default     = "latest"  # Fallback only - GitHub Actions will override this
+
+  validation {
+    condition     = can(regex("^(latest|web-api-[0-9]+-[a-f0-9]+)$", var.image_tag))
+    error_message = "Image tag must be 'latest' or follow format: web-api-{build-number}-{git-sha} (e.g., web-api-46-cd5bdb2)"
+  }
+}
+
 # ========================================
 # Shared Resource References (SSM)
 # ========================================
