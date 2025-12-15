@@ -42,7 +42,7 @@ server:
 # ===============================================
 spring:
   application:
-    name: spring-standards-rest-api
+    name: crawlinghub-web-api
 
   # Profile 설정
   profiles:
