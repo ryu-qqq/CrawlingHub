@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.auth.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContext;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContextHolder;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.SecurityPaths;
@@ -13,6 +11,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,8 +35,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>하이브리드 권한 체계:
  *
  * <ul>
- *   <li>X-Roles: 역할 기반 권한 (JSON 배열, 예: ["ROLE_ADMIN"])
+ *   <li>X-User-Roles: 역할 기반 권한 (콤마 구분, 예: SUPER_ADMIN,ADMIN)
  *   <li>X-Permissions: 리소스 기반 권한 (콤마 구분, 예: crawling:read,crawling:write)
+ * </ul>
+ *
+ * <p>역할 처리:
+ *
+ * <ul>
+ *   <li>ROLE_ 접두사가 없으면 자동 추가 (ADMIN → ROLE_ADMIN)
+ *   <li>Spring Security hasRole() 호환
  * </ul>
  *
  * @author development-team
@@ -45,11 +52,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
-    private final ObjectMapper objectMapper;
+    private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
 
-    public GatewayAuthenticationFilter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    private static final String ROLE_PREFIX = "ROLE_";
 
     @Override
     protected void doFilterInternal(
@@ -62,6 +67,13 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
             if (context.isAuthenticated()) {
                 synchronizeWithSpringSecurityContext(context);
+                log.debug(
+                        "Gateway 인증 완료 - userId: {}, roles: {}, permissions: {}",
+                        context.getUserId(),
+                        context.getRoles(),
+                        context.getPermissions());
+            } else {
+                log.debug("Anonymous 요청 - URI: {}", request.getRequestURI());
             }
 
             filterChain.doFilter(request, response);
@@ -119,16 +131,37 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         return StringUtils.hasText(header) ? header : null;
     }
 
+    /**
+     * X-User-Roles 헤더 파싱
+     *
+     * <p>콤마로 구분된 역할 문자열을 파싱합니다. ROLE_ 접두사가 없으면 자동 추가합니다.
+     *
+     * <p>예: "SUPER_ADMIN,ADMIN" → ["ROLE_SUPER_ADMIN", "ROLE_ADMIN"]
+     *
+     * @param rolesHeader 역할 헤더 값
+     * @return 역할 Set (ROLE_ 접두사 포함)
+     */
     private Set<String> parseRoles(String rolesHeader) {
         if (!StringUtils.hasText(rolesHeader)) {
             return Set.of();
         }
-        try {
-            String[] roles = objectMapper.readValue(rolesHeader, String[].class);
-            return Set.of(roles);
-        } catch (JsonProcessingException e) {
-            return Set.of();
-        }
+        return Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .map(this::normalizeRole)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 역할명 정규화
+     *
+     * <p>ROLE_ 접두사가 없으면 자동 추가합니다.
+     *
+     * @param role 원본 역할명
+     * @return ROLE_ 접두사가 포함된 역할명
+     */
+    private String normalizeRole(String role) {
+        return role.startsWith(ROLE_PREFIX) ? role : ROLE_PREFIX + role;
     }
 
     /**
