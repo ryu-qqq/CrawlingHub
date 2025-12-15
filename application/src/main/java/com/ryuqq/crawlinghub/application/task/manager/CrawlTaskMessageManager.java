@@ -6,12 +6,15 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 /**
  * CrawlTask 메시지 관리자
  *
  * <p><strong>책임</strong>: CrawlTask SQS 메시지 발행 관리
+ *
+ * <p><strong>조건</strong>: CrawlTaskMessagePort 구현체가 있을 때만 활성화 (aws-sqs 모듈 의존 시)
  *
  * <p><strong>발행 방식</strong>:
  *
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Component
+@ConditionalOnBean(CrawlTaskMessagePort.class)
 public class CrawlTaskMessageManager {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlTaskMessageManager.class);
