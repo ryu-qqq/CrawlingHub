@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -16,6 +17,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * CrawlTask 등록 이벤트 리스너
  *
  * <p><strong>용도</strong>: 트랜잭션 커밋 후 SQS 발행 및 Outbox 상태 업데이트
+ *
+ * <p><strong>조건</strong>: CrawlTaskMessageManager가 있을 때만 활성화 (aws-sqs 모듈 의존 시)
  *
  * <p><strong>트랜잭션 단계</strong>: AFTER_COMMIT - 데이터 저장 확정 후 외부 시스템 호출
  *
@@ -32,6 +35,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @since 1.0.0
  */
 @Component
+@ConditionalOnBean(CrawlTaskMessageManager.class)
 public class CrawlTaskRegisteredEventListener {
 
     private static final Logger log =
