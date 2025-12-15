@@ -29,6 +29,14 @@ spring:
     validate-on-migrate: false
 
 # ========================================
+# Application Configuration
+# ========================================
+app:
+  messaging:
+    sqs:
+      enabled: true  # SQS 메시징 컴포넌트 활성화 (CrawlTaskMessageManager, EventListener)
+
+# ========================================
 # Management Configuration (Actuator 전용)
 # ========================================
 management:
