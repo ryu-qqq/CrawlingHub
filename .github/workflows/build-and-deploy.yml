@@ -1,8 +1,8 @@
 # ============================================================================
-# SetOf Commerce Build & Deploy
+# CrawlingHub Build & Deploy
 #
 # Reusable Workflows 사용하여 단순화
-# web-api만 빌드/배포
+# web-api, scheduler, crawl-worker 병렬 빌드/배포
 # ============================================================================
 
 name: Build and Deploy to ECS
@@ -24,7 +24,7 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECS_CLUSTER: setof-commerce-cluster-prod
+  ECS_CLUSTER: crawlinghub-cluster-prod
 
 jobs:
   # ============================================================================
@@ -52,14 +52,14 @@ jobs:
           ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon
 
   # ============================================================================
-  # 빌드 Job
+  # 빌드 Jobs (병렬 실행)
   # ============================================================================
   build-web-api:
     name: Build web-api
     needs: test
     uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
     with:
-      ecr-repository: setof-commerce-web-api-prod
+      ecr-repository: crawlinghub-web-api-prod
       component: web-api
       dockerfile: bootstrap/bootstrap-web-api/Dockerfile
       gradle-task: ":bootstrap:bootstrap-web-api:bootJar"
@@ -67,17 +67,65 @@ jobs:
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
+  build-scheduler:
+    name: Build scheduler
+    needs: test
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-scheduler-prod
+      component: scheduler
+      dockerfile: bootstrap/bootstrap-scheduler/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-scheduler:bootJar"
+      timeout-minutes: 30
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  build-crawl-worker:
+    name: Build crawl-worker
+    needs: test
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-crawl-worker-prod
+      component: crawl-worker
+      dockerfile: bootstrap/bootstrap-crawl-worker/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-crawl-worker:bootJar"
+      timeout-minutes: 30
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
   # ============================================================================
-  # 배포 Job
+  # 배포 Jobs (병렬 실행)
   # ============================================================================
   deploy-web-api:
     name: Deploy web-api
     needs: build-web-api
     uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
     with:
-      ecs-cluster: setof-commerce-cluster-prod
-      ecs-service: setof-commerce-web-api-prod
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-web-api-prod
       image-uri: ${{ needs.build-web-api.outputs.image-uri }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  deploy-scheduler:
+    name: Deploy scheduler
+    needs: build-scheduler
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
+    with:
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-scheduler-prod
+      image-uri: ${{ needs.build-scheduler.outputs.image-uri }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  deploy-crawl-worker:
+    name: Deploy crawl-worker
+    needs: build-crawl-worker
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-deploy-ecs.yml@main
+    with:
+      ecs-cluster: crawlinghub-cluster-prod
+      ecs-service: crawlinghub-crawl-worker-prod
+      image-uri: ${{ needs.build-crawl-worker.outputs.image-uri }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -86,10 +134,12 @@ jobs:
   # ============================================================================
   update-terraform-tags:
     name: Update Terraform Image Tags
-    needs: [build-web-api]
+    needs: [build-web-api, build-scheduler, build-crawl-worker]
     uses: ./.github/workflows/terraform-apply.yml
     with:
       web-api-image-tag: ${{ needs.build-web-api.outputs.image-tag }}
+      scheduler-image-tag: ${{ needs.build-scheduler.outputs.image-tag }}
+      crawl-worker-image-tag: ${{ needs.build-crawl-worker.outputs.image-tag }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -98,16 +148,18 @@ jobs:
   # ============================================================================
   notify:
     name: Deployment Notification
-    needs: [deploy-web-api, update-terraform-tags]
+    needs: [deploy-web-api, deploy-scheduler, deploy-crawl-worker, update-terraform-tags]
     if: always()
     uses: ryu-qqq/Infrastructure/.github/workflows/reusable-notify-slack.yml@main
     with:
-      project-name: SetOf Commerce
+      project-name: CrawlingHub
       environment: prod
-      status: ${{ (needs.deploy-web-api.result == 'success' && needs.update-terraform-tags.result == 'success') && 'success' || 'failure' }}
+      status: ${{ (needs.deploy-web-api.result == 'success' && needs.deploy-scheduler.result == 'success' && needs.deploy-crawl-worker.result == 'success' && needs.update-terraform-tags.result == 'success') && 'success' || 'failure' }}
       components: |
         [
           {"name": "web-api", "status": "${{ needs.deploy-web-api.result }}"},
+          {"name": "scheduler", "status": "${{ needs.deploy-scheduler.result }}"},
+          {"name": "crawl-worker", "status": "${{ needs.deploy-crawl-worker.result }}"},
           {"name": "terraform-tags", "status": "${{ needs.update-terraform-tags.result }}"}
         ]
       mention-on-failure: "@here"
