@@ -341,12 +341,12 @@ module "ecs_task_role" {
             Resource = "*"
           },
           {
-            Sid    = "S3ConfigAccess"
+            Sid    = "S3OtelConfigAccess"
             Effect = "Allow"
             Action = [
               "s3:GetObject"
             ]
-            Resource = "arn:aws:s3:::connectly-prod/*"
+            Resource = "arn:aws:s3:::prod-connectly/otel-config/*"
           }
         ]
       })
@@ -388,7 +388,7 @@ module "web_api_logs" {
 locals {
   # Use S3 directly to bypass CDN cache issues
   # ADOT requires format: s3://bucket.s3.region.amazonaws.com/path
-  otel_config_s3_url = "s3://connectly-prod.s3.ap-northeast-2.amazonaws.com/otel-config/crawlinghub-web-api/otel-config.yaml"
+  otel_config_s3_url = "s3://prod-connectly.s3.ap-northeast-2.amazonaws.com/otel-config/crawlinghub-web-api/otel-config.yaml"
 
   adot_container_definition = {
     name      = "adot-collector"
