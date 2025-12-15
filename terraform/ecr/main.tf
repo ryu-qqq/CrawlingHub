@@ -54,7 +54,9 @@ module "ecr_crawl_worker" {
 
   # KMS encryption: Use existing KMS key from the imported repository
   # This repository was created with KMS encryption, so we must match it
-  kms_key_arn = "arn:aws:kms:ap-northeast-2:646886795421:key/71a789da-813c-4a95-a36f-a7a7259c5015"
+  # IMPORTANT: encryption_type must be "KMS" when using kms_key_arn
+  encryption_type = "KMS"
+  kms_key_arn     = "arn:aws:kms:ap-northeast-2:646886795421:key/71a789da-813c-4a95-a36f-a7a7259c5015"
 
   environment  = var.environment
   service_name = "${var.project_name}-crawl-worker"
