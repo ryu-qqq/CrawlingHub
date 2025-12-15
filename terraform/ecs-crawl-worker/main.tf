@@ -306,7 +306,7 @@ module "ecs_service" {
   name            = "${var.project_name}-crawl-worker-${var.environment}"
   cluster_id      = data.aws_ecs_cluster.main.arn
   container_name  = "crawl-worker"
-  container_image = "${data.aws_ecr_repository.crawl_worker.repository_url}:crawl-worker-30-c5ddc60"
+  container_image = "${data.aws_ecr_repository.crawl_worker.repository_url}:${var.image_tag}"
   container_port  = 8082
   cpu             = var.crawl_worker_cpu
   memory          = var.crawl_worker_memory
