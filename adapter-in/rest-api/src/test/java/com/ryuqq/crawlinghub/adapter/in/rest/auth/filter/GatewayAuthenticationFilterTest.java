@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContext;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContextHolder;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.SecurityPaths;
@@ -36,14 +35,12 @@ import org.springframework.security.core.Authentication;
 class GatewayAuthenticationFilterTest {
 
     private GatewayAuthenticationFilter filter;
-    private ObjectMapper objectMapper;
 
     @Mock private FilterChain filterChain;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        filter = new GatewayAuthenticationFilter(objectMapper);
+        filter = new GatewayAuthenticationFilter();
     }
 
     @AfterEach
@@ -116,7 +113,7 @@ class GatewayAuthenticationFilterTest {
             request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
             request.addHeader(SecurityPaths.Headers.TENANT_ID, "tenant-456");
             request.addHeader(SecurityPaths.Headers.ORGANIZATION_ID, "org-789");
-            request.addHeader(SecurityPaths.Headers.ROLES, "[\"ROLE_ADMIN\",\"ROLE_USER\"]");
+            request.addHeader(SecurityPaths.Headers.ROLES, "ADMIN,USER");
             request.addHeader(SecurityPaths.Headers.PERMISSIONS, "crawling:read,crawling:write");
             request.addHeader(SecurityPaths.Headers.TRACE_ID, "trace-abc");
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -192,16 +189,16 @@ class GatewayAuthenticationFilterTest {
     }
 
     @Nested
-    @DisplayName("X-Roles 헤더 파싱")
+    @DisplayName("X-User-Roles 헤더 파싱")
     class RolesHeaderParsing {
 
         @Test
-        @DisplayName("JSON 배열 형식의 역할을 파싱한다")
-        void shouldParseJsonArrayRoles() throws ServletException, IOException {
+        @DisplayName("콤마로 구분된 역할을 파싱한다")
+        void shouldParseCommaSeparatedRoles() throws ServletException, IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
-            request.addHeader(SecurityPaths.Headers.ROLES, "[\"ROLE_ADMIN\",\"ROLE_USER\"]");
+            request.addHeader(SecurityPaths.Headers.ROLES, "ADMIN,USER");
             MockHttpServletResponse response = new MockHttpServletResponse();
 
             AtomicReference<SecurityContext> capturedContext = new AtomicReference<>();
@@ -222,12 +219,12 @@ class GatewayAuthenticationFilterTest {
         }
 
         @Test
-        @DisplayName("잘못된 JSON 형식이면 빈 Set을 반환한다")
-        void shouldReturnEmptySetOnInvalidJson() throws ServletException, IOException {
+        @DisplayName("ROLE_ 접두사가 없으면 자동으로 추가한다")
+        void shouldAddRolePrefixAutomatically() throws ServletException, IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
-            request.addHeader(SecurityPaths.Headers.ROLES, "invalid-json");
+            request.addHeader(SecurityPaths.Headers.ROLES, "SUPER_ADMIN,ADMIN");
             MockHttpServletResponse response = new MockHttpServletResponse();
 
             AtomicReference<SecurityContext> capturedContext = new AtomicReference<>();
@@ -243,11 +240,64 @@ class GatewayAuthenticationFilterTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            assertThat(capturedContext.get().getRoles()).isEmpty();
+            assertThat(capturedContext.get().getRoles())
+                    .containsExactlyInAnyOrder("ROLE_SUPER_ADMIN", "ROLE_ADMIN");
         }
 
         @Test
-        @DisplayName("X-Roles 헤더가 없으면 빈 Set을 반환한다")
+        @DisplayName("ROLE_ 접두사가 이미 있으면 중복 추가하지 않는다")
+        void shouldNotDuplicateRolePrefix() throws ServletException, IOException {
+            // Given
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
+            request.addHeader(SecurityPaths.Headers.ROLES, "ROLE_ADMIN,USER");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            AtomicReference<SecurityContext> capturedContext = new AtomicReference<>();
+            doAnswer(
+                            inv -> {
+                                capturedContext.set(SecurityContextHolder.getContext());
+                                return null;
+                            })
+                    .when(filterChain)
+                    .doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
+
+            // When
+            filter.doFilterInternal(request, response, filterChain);
+
+            // Then
+            assertThat(capturedContext.get().getRoles())
+                    .containsExactlyInAnyOrder("ROLE_ADMIN", "ROLE_USER");
+        }
+
+        @Test
+        @DisplayName("공백이 있는 역할 문자열을 트림하여 파싱한다")
+        void shouldTrimRoles() throws ServletException, IOException {
+            // Given
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
+            request.addHeader(SecurityPaths.Headers.ROLES, " ADMIN , USER ");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            AtomicReference<SecurityContext> capturedContext = new AtomicReference<>();
+            doAnswer(
+                            inv -> {
+                                capturedContext.set(SecurityContextHolder.getContext());
+                                return null;
+                            })
+                    .when(filterChain)
+                    .doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
+
+            // When
+            filter.doFilterInternal(request, response, filterChain);
+
+            // Then
+            assertThat(capturedContext.get().getRoles())
+                    .containsExactlyInAnyOrder("ROLE_ADMIN", "ROLE_USER");
+        }
+
+        @Test
+        @DisplayName("X-User-Roles 헤더가 없으면 빈 Set을 반환한다")
         void shouldReturnEmptySetWhenNoRolesHeader() throws ServletException, IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
@@ -366,7 +416,7 @@ class GatewayAuthenticationFilterTest {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader(SecurityPaths.Headers.USER_ID, "user-123");
-            request.addHeader(SecurityPaths.Headers.ROLES, "[\"ROLE_ADMIN\"]");
+            request.addHeader(SecurityPaths.Headers.ROLES, "ADMIN");
             request.addHeader(SecurityPaths.Headers.PERMISSIONS, "crawling:read");
             MockHttpServletResponse response = new MockHttpServletResponse();
 
