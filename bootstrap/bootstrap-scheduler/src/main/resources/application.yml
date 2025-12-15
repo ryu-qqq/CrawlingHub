@@ -29,6 +29,14 @@ spring:
     validate-on-migrate: false
 
 # ========================================
+# App Configuration
+# ========================================
+app:
+  messaging:
+    sqs:
+      enabled: true  # SQS 메시징 컴포넌트 활성화 (CrawlTaskMessageManager, CrawlTaskRegisteredEventListener)
+
+# ========================================
 # Management Configuration (Actuator 전용)
 # ========================================
 management:
@@ -103,6 +111,11 @@ spring:
   config:
     activate:
       on-profile: local
+
+app:
+  messaging:
+    sqs:
+      enabled: false  # 로컬에서는 SQS 컴포넌트 비활성화
 
 scheduler:
   outbox:
