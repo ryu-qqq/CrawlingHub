@@ -79,28 +79,28 @@ RESTful 서비스에서 사용하는 HTTP 메서드:
 [[resources-seller-register]]
 === 셀러 등록
 
-`POST /api/v1/sellers`
+`POST /api/v1/crawling/sellers`
 
 operation::seller-command/register[snippets='request-fields,response-fields,http-request,http-response']
 
 [[resources-seller-update]]
 === 셀러 수정
 
-`PATCH /api/v1/sellers/{id}`
+`PATCH /api/v1/crawling/sellers/{id}`
 
 operation::seller-command/update[snippets='path-parameters,request-fields,response-fields,http-request,http-response']
 
 [[resources-seller-get]]
 === 셀러 단건 조회
 
-`GET /api/v1/sellers/{id}`
+`GET /api/v1/crawling/sellers/{id}`
 
 operation::seller-query/get[snippets='path-parameters,response-fields,http-request,http-response']
 
 [[resources-seller-list]]
 === 셀러 목록 조회
 
-`GET /api/v1/sellers`
+`GET /api/v1/crawling/sellers`
 
 operation::seller-query/list[snippets='query-parameters,response-fields,http-request,http-response']
 
@@ -112,40 +112,77 @@ operation::seller-query/list[snippets='query-parameters,response-fields,http-req
 [[resources-schedule-register]]
 === 스케줄러 등록
 
-`POST /api/v1/schedules`
+`POST /api/v1/crawling/schedules`
 
 operation::schedule-command/register[snippets='request-fields,response-fields,http-request,http-response']
 
 [[resources-schedule-update]]
 === 스케줄러 수정
 
-`PATCH /api/v1/schedules/{id}`
+`PATCH /api/v1/crawling/schedules/{id}`
 
 operation::schedule-command/update[snippets='path-parameters,request-fields,response-fields,http-request,http-response']
+
+[[resources-schedule-update-status]]
+=== 스케줄러 상태 변경
+
+`PATCH /api/v1/crawling/schedules/{id}/status`
+
+스케줄러를 활성화/비활성화합니다.
+
+* `active: true` → ACTIVE 상태로 변경
+* `active: false` → INACTIVE 상태로 변경
+
+operation::schedule-command/update-status[snippets='path-parameters,request-fields,response-fields,http-request,http-response']
+
+[[resources-schedule-trigger]]
+=== 스케줄러 수동 트리거
+
+`POST /api/v1/crawling/schedules/{id}/trigger`
+
+스케줄러를 수동으로 트리거하여 즉시 크롤 태스크를 생성합니다.
+
+NOTE: ACTIVE 상태의 스케줄러만 트리거할 수 있습니다.
+
+operation::schedule-command/trigger[snippets='path-parameters,response-fields,http-request,http-response']
 
 [[resources-schedule-list]]
 === 스케줄러 목록 조회
 
-`GET /api/v1/schedules`
+`GET /api/v1/crawling/schedules`
 
 operation::schedule-query/list[snippets='query-parameters,response-fields,http-request,http-response']
 
 [[resources-task]]
 == CrawlTask API
 
-크롤 태스크 조회 API입니다.
+크롤 태스크 관리 API입니다.
+
+[[resources-task-retry]]
+=== 태스크 재시도
+
+`POST /api/v1/crawling/tasks/{id}/retry`
+
+실패한 크롤 태스크를 재시도합니다.
+
+재시도 조건:
+
+* FAILED 또는 TIMEOUT 상태의 태스크만 재시도 가능
+* 최대 재시도 횟수(3회) 미만
+
+operation::task-command/retry[snippets='path-parameters,response-fields,http-request,http-response']
 
 [[resources-task-list]]
 === 태스크 목록 조회
 
-`GET /api/v1/tasks`
+`GET /api/v1/crawling/tasks`
 
 operation::task-query/list[snippets='query-parameters,response-fields,http-request,http-response']
 
 [[resources-task-get]]
 === 태스크 상세 조회
 
-`GET /api/v1/tasks/{id}`
+`GET /api/v1/crawling/tasks/{id}`
 
 operation::task-query/get[snippets='path-parameters,response-fields,http-request,http-response']
 
@@ -157,21 +194,21 @@ operation::task-query/get[snippets='path-parameters,response-fields,http-request
 [[resources-execution-list]]
 === 실행 결과 목록 조회
 
-`GET /api/v1/executions`
+`GET /api/v1/crawling/executions`
 
 operation::execution-query/list[snippets='query-parameters,response-fields,http-request,http-response']
 
 [[resources-execution-get]]
 === 실행 결과 상세 조회
 
-`GET /api/v1/executions/{id}`
+`GET /api/v1/crawling/executions/{id}`
 
 operation::execution-query/get[snippets='path-parameters,response-fields,http-request,http-response']
 
 [[resources-execution-get-failed]]
 === 실패한 실행 결과 조회
 
-`GET /api/v1/executions/{id}` (실패 케이스)
+`GET /api/v1/crawling/executions/{id}` (실패 케이스)
 
 operation::execution-query/get-failed[snippets='path-parameters,response-fields,http-request,http-response']
 
@@ -183,14 +220,14 @@ UserAgent Pool 관리 API입니다.
 [[resources-useragent-pool-status]]
 === Pool 상태 조회
 
-`GET /api/v1/user-agents/pool-status`
+`GET /api/v1/crawling/user-agents/pool-status`
 
 operation::useragent-query/pool-status[snippets='response-fields,http-request,http-response']
 
 [[resources-useragent-recover]]
 === UserAgent 복구
 
-`POST /api/v1/user-agents/recover`
+`POST /api/v1/crawling/user-agents/recover`
 
 정지된 UserAgent를 복구합니다.
 
@@ -205,6 +242,6 @@ operation::useragent-command/recover[snippets='response-fields,http-request,http
 [[resources-useragent-recover-no-agents]]
 === UserAgent 복구 (복구 대상 없음)
 
-`POST /api/v1/user-agents/recover` (복구 대상이 없는 경우)
+`POST /api/v1/crawling/user-agents/recover` (복구 대상이 없는 경우)
 
 operation::useragent-command/recover-no-agents[snippets='response-fields,http-request,http-response']

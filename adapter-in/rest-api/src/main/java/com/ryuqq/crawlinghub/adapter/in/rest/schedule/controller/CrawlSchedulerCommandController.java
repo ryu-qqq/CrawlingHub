@@ -4,13 +4,18 @@ import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateSchedulerStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper.CrawlSchedulerCommandApiMapper;
+import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.RegisterCrawlSchedulerUseCase;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.UpdateCrawlSchedulerUseCase;
+import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
+import com.ryuqq.crawlinghub.application.task.port.in.command.TriggerCrawlTaskUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,14 +52,17 @@ public class CrawlSchedulerCommandController {
 
     private final RegisterCrawlSchedulerUseCase registerCrawlSchedulerUseCase;
     private final UpdateCrawlSchedulerUseCase updateCrawlSchedulerUseCase;
+    private final TriggerCrawlTaskUseCase triggerCrawlTaskUseCase;
     private final CrawlSchedulerCommandApiMapper crawlSchedulerCommandApiMapper;
 
     public CrawlSchedulerCommandController(
             RegisterCrawlSchedulerUseCase registerCrawlSchedulerUseCase,
             UpdateCrawlSchedulerUseCase updateCrawlSchedulerUseCase,
+            TriggerCrawlTaskUseCase triggerCrawlTaskUseCase,
             CrawlSchedulerCommandApiMapper crawlSchedulerCommandApiMapper) {
         this.registerCrawlSchedulerUseCase = registerCrawlSchedulerUseCase;
         this.updateCrawlSchedulerUseCase = updateCrawlSchedulerUseCase;
+        this.triggerCrawlTaskUseCase = triggerCrawlTaskUseCase;
         this.crawlSchedulerCommandApiMapper = crawlSchedulerCommandApiMapper;
     }
 
@@ -137,5 +145,89 @@ public class CrawlSchedulerCommandController {
         CrawlSchedulerApiResponse apiResponse =
                 crawlSchedulerCommandApiMapper.toApiResponse(useCaseResponse);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("@access.hasPermission('scheduler:update')")
+    @Operation(
+            summary = "크롤 스케줄러 상태 변경",
+            description = "크롤 스케줄러를 활성화/비활성화합니다. scheduler:update 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "상태 변경 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(implementation = CrawlSchedulerApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (scheduler:update 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "스케줄러를 찾을 수 없음")
+    })
+    public ResponseEntity<ApiResponse<CrawlSchedulerApiResponse>> updateSchedulerStatus(
+            @Parameter(description = "스케줄러 ID", required = true, example = "1")
+                    @PathVariable
+                    @Positive
+                    Long id,
+            @RequestBody @Valid UpdateSchedulerStatusApiRequest request) {
+        UpdateCrawlSchedulerCommand command =
+                crawlSchedulerCommandApiMapper.toStatusCommand(id, request);
+        CrawlSchedulerResponse useCaseResponse = updateCrawlSchedulerUseCase.update(command);
+        CrawlSchedulerApiResponse apiResponse =
+                crawlSchedulerCommandApiMapper.toApiResponse(useCaseResponse);
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    @PostMapping("/{id}/trigger")
+    @PreAuthorize("@access.hasPermission('scheduler:update')")
+    @Operation(
+            summary = "크롤 스케줄러 수동 트리거",
+            description = "크롤 스케줄러를 수동으로 트리거하여 CrawlTask를 생성합니다. scheduler:update 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "201",
+                description = "트리거 성공 (CrawlTask 생성)",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = CrawlTaskApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 (스케줄러가 비활성 상태)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (scheduler:update 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "스케줄러를 찾을 수 없음"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "409",
+                description = "이미 실행 중인 태스크가 존재")
+    })
+    public ResponseEntity<ApiResponse<CrawlTaskApiResponse>> triggerScheduler(
+            @Parameter(description = "스케줄러 ID", required = true, example = "1")
+                    @PathVariable
+                    @Positive
+                    Long id) {
+        TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(id);
+        CrawlTaskResponse useCaseResponse = triggerCrawlTaskUseCase.execute(command);
+        CrawlTaskApiResponse apiResponse =
+                crawlSchedulerCommandApiMapper.toTaskApiResponse(useCaseResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ofSuccess(apiResponse));
     }
 }

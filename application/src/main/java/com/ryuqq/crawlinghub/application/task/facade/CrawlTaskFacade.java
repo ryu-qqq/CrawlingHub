@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransaction
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -91,5 +92,32 @@ public class CrawlTaskFacade {
         savedTask.clearDomainEvents();
 
         return savedTask;
+    }
+
+    /**
+     * CrawlTask 재시도를 하나의 트랜잭션으로 처리
+     *
+     * <p><strong>트랜잭션 범위</strong>:
+     *
+     * <ol>
+     *   <li>CrawlTask 업데이트 (상태 변경 → RETRY)
+     *   <li>Outbox 저장 (SQS 재발행용)
+     * </ol>
+     *
+     * @param crawlTask 재시도할 CrawlTask (attemptRetry 호출 완료 상태)
+     * @param outboxPayload SQS 재발행용 페이로드
+     * @return 업데이트된 CrawlTask
+     */
+    @Transactional
+    public CrawlTask retry(CrawlTask crawlTask, String outboxPayload) {
+        // 1. CrawlTask 업데이트 저장
+        transactionManager.persist(crawlTask);
+
+        // 2. Outbox 저장 (SQS 재발행용)
+        CrawlTaskOutbox outbox =
+                CrawlTaskOutbox.forNew(crawlTask.getId(), outboxPayload, clockHolder.getClock());
+        crawlTaskOutboxTransactionManager.persist(outbox);
+
+        return crawlTask;
     }
 }
