@@ -67,6 +67,17 @@ variable "scheduler_memory" {
   default     = 1024
 }
 
+variable "image_tag" {
+  description = "Docker image tag to deploy. Auto-set by GitHub Actions build-and-deploy.yml. Format: {component}-{build-number}-{git-sha}"
+  type        = string
+  default     = "latest"  # Fallback only - GitHub Actions will override this
+
+  validation {
+    condition     = can(regex("^(latest|scheduler-[0-9]+-[a-f0-9]+)$", var.image_tag))
+    error_message = "Image tag must be 'latest' or follow format: scheduler-{build-number}-{git-sha} (e.g., scheduler-46-cd5bdb2)"
+  }
+}
+
 # ========================================
 # Shared Resource References (SSM)
 # ========================================
