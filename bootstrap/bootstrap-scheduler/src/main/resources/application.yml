@@ -4,10 +4,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
-  # Actuator용 최소 웹 서버 활성화 (health check 필요)
-  main:
-    web-application-type: servlet
-
   # ========================================
   # Config Import (각 모듈의 설정 파일 로드)
   # ========================================
