@@ -3,6 +3,9 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.DetailCrawlData;
+import com.ryuqq.crawlinghub.domain.product.vo.MiniShopCrawlData;
+import com.ryuqq.crawlinghub.domain.product.vo.OptionCrawlData;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
@@ -167,6 +170,38 @@ public class CrawledProduct {
                 now);
     }
 
+    /**
+     * MINI_SHOP 크롤링 데이터 VO로 신규 상품 생성
+     *
+     * @param crawlData MINI_SHOP 크롤링 데이터 VO
+     * @return 새로운 CrawledProduct
+     */
+    public static CrawledProduct fromMiniShopCrawlData(MiniShopCrawlData crawlData) {
+        Instant now = crawlData.createdAt();
+        return new CrawledProduct(
+                CrawledProductId.unassigned(),
+                crawlData.sellerId(),
+                crawlData.itemNo(),
+                crawlData.itemName(),
+                crawlData.brandName(),
+                crawlData.price(),
+                crawlData.images(),
+                crawlData.freeShipping(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ProductOptions.empty(),
+                CrawlCompletionStatus.initial().withMiniShopCrawled(now),
+                null,
+                null,
+                false,
+                now,
+                now);
+    }
+
     /** 기존 데이터로 CrawledProduct 복원 (영속성 계층 전용) */
     public static CrawledProduct reconstitute(
             CrawledProductId id,
@@ -274,6 +309,8 @@ public class CrawledProduct {
     /**
      * DETAIL 크롤링 결과로 업데이트
      *
+     * <p>상세 설명 HTML이 변경되면 기존 상세 이미지를 교체합니다. 변경되지 않았으면 기존 상태를 유지합니다.
+     *
      * @param category 카테고리 정보
      * @param shippingInfo 배송 정보
      * @param descriptionMarkUp 상세 설명 HTML
@@ -282,8 +319,9 @@ public class CrawledProduct {
      * @param shippingLocation 배송 출발지
      * @param descriptionImages 상세 설명 내 이미지 URL 목록
      * @param clock 시간 제어
+     * @return 새로 업로드가 필요한 이미지 URL 목록
      */
-    public void updateFromDetail(
+    public List<String> updateFromDetail(
             ProductCategory category,
             ShippingInfo shippingInfo,
             String descriptionMarkUp,
@@ -295,21 +333,83 @@ public class CrawledProduct {
         Instant now = clock.instant();
         this.category = category;
         this.shippingInfo = shippingInfo;
-        this.descriptionMarkUp = descriptionMarkUp;
         this.itemStatus = itemStatus;
         this.originCountry = originCountry;
         this.shippingLocation = shippingLocation;
         this.crawlCompletionStatus = this.crawlCompletionStatus.withDetailCrawled(now);
         this.updatedAt = now;
 
-        // 상세 설명 이미지 추가
-        if (descriptionImages != null && !descriptionImages.isEmpty()) {
-            this.images = this.images.addDescriptionImages(descriptionImages);
+        List<String> newImageUrls = Collections.emptyList();
+
+        // 상세 설명 변경 감지 및 이미지 교체
+        boolean descriptionChanged = hasDescriptionChanged(descriptionMarkUp);
+        if (descriptionChanged) {
+            this.descriptionMarkUp = descriptionMarkUp;
+
+            // 상세 이미지가 변경되었으면 교체
+            if (descriptionImages != null && !descriptionImages.isEmpty()) {
+                newImageUrls = this.images.getNewDescriptionImageUrls(descriptionImages);
+                this.images = this.images.replaceDescriptionImages(descriptionImages);
+            }
         }
 
         if (canSyncToExternalServer()) {
             this.needsSync = true;
         }
+
+        return newImageUrls;
+    }
+
+    /**
+     * DETAIL 크롤링 데이터 VO로 업데이트
+     *
+     * @param crawlData DETAIL 크롤링 데이터 VO
+     * @return 새로 업로드가 필요한 이미지 URL 목록
+     */
+    public List<String> updateFromDetailCrawlData(DetailCrawlData crawlData) {
+        Instant now = crawlData.updatedAt();
+        this.category = crawlData.category();
+        this.shippingInfo = crawlData.shippingInfo();
+        this.itemStatus = crawlData.itemStatus();
+        this.originCountry = crawlData.originCountry();
+        this.shippingLocation = crawlData.shippingLocation();
+        this.crawlCompletionStatus = this.crawlCompletionStatus.withDetailCrawled(now);
+        this.updatedAt = now;
+
+        List<String> newImageUrls = Collections.emptyList();
+
+        boolean descriptionChanged = hasDescriptionChanged(crawlData.descriptionMarkUp());
+        if (descriptionChanged) {
+            this.descriptionMarkUp = crawlData.descriptionMarkUp();
+
+            List<String> descriptionImages = crawlData.descriptionImages();
+            if (descriptionImages != null && !descriptionImages.isEmpty()) {
+                newImageUrls = this.images.getNewDescriptionImageUrls(descriptionImages);
+                this.images = this.images.replaceDescriptionImages(descriptionImages);
+            }
+        }
+
+        if (canSyncToExternalServer()) {
+            this.needsSync = true;
+        }
+
+        return newImageUrls;
+    }
+
+    /**
+     * 상세 설명 변경 여부 확인
+     *
+     * @param newDescriptionMarkUp 새 상세 설명 HTML
+     * @return 변경되었으면 true
+     */
+    private boolean hasDescriptionChanged(String newDescriptionMarkUp) {
+        if (this.descriptionMarkUp == null && newDescriptionMarkUp == null) {
+            return false;
+        }
+        if (this.descriptionMarkUp == null || newDescriptionMarkUp == null) {
+            return true;
+        }
+        return !this.descriptionMarkUp.equals(newDescriptionMarkUp);
     }
 
     // === OPTION 업데이트 ===
@@ -325,6 +425,24 @@ public class CrawledProduct {
 
         Instant now = clock.instant();
         this.options = options;
+        this.crawlCompletionStatus = this.crawlCompletionStatus.withOptionCrawled(now);
+        this.updatedAt = now;
+
+        if (hasChanges && canSyncToExternalServer()) {
+            this.needsSync = true;
+        }
+    }
+
+    /**
+     * OPTION 크롤링 데이터 VO로 업데이트
+     *
+     * @param crawlData OPTION 크롤링 데이터 VO
+     */
+    public void updateFromOptionCrawlData(OptionCrawlData crawlData) {
+        boolean hasChanges = this.options != null && this.options.hasChanges(crawlData.options());
+
+        Instant now = crawlData.updatedAt();
+        this.options = crawlData.options();
         this.crawlCompletionStatus = this.crawlCompletionStatus.withOptionCrawled(now);
         this.updatedAt = now;
 
@@ -350,6 +468,8 @@ public class CrawledProduct {
     /**
      * 이미지 S3 업로드 완료 처리
      *
+     * <p>이미지 컬렉션과 상세 설명 HTML 내의 URL을 동시에 교체합니다.
+     *
      * @param originalUrl 원본 URL
      * @param s3Url S3 URL
      * @param clock 시간 제어
@@ -357,8 +477,14 @@ public class CrawledProduct {
     public void markImageAsUploaded(String originalUrl, String s3Url, Clock clock) {
         if (this.images != null) {
             this.images = this.images.updateS3Url(originalUrl, s3Url);
-            this.updatedAt = clock.instant();
         }
+
+        // 상세 설명 HTML 내의 URL도 교체
+        if (this.descriptionMarkUp != null && !this.descriptionMarkUp.isEmpty()) {
+            this.descriptionMarkUp = this.descriptionMarkUp.replace(originalUrl, s3Url);
+        }
+
+        this.updatedAt = clock.instant();
     }
 
     /** 모든 이미지가 업로드 완료되었는지 확인 */

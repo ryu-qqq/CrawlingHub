@@ -6,10 +6,12 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.MiniShopResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.ArrayList;
@@ -43,14 +45,17 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
     private final MiniShopResponseParser miniShopResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
     private final CrawledRawManager crawledRawManager;
+    private final ProcessMiniShopItemUseCase processMiniShopItemUseCase;
 
     public MiniShopCrawlResultProcessor(
             MiniShopResponseParser miniShopResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager) {
+            CrawledRawManager crawledRawManager,
+            ProcessMiniShopItemUseCase processMiniShopItemUseCase) {
         this.miniShopResponseParser = miniShopResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
         this.crawledRawManager = crawledRawManager;
+        this.processMiniShopItemUseCase = processMiniShopItemUseCase;
     }
 
     @Override
@@ -96,7 +101,27 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
                 parsedCount,
                 savedCount);
 
-        // 4. 후속 DETAIL + OPTION Task 생성 (상품별)
+        // 4. CrawledProduct 처리 (정제된 도메인 객체 저장 + 이미지 Outbox 생성)
+        SellerId sellerIdVO = SellerId.of(sellerId);
+        int productProcessedCount = 0;
+        for (MiniShopItem item : items) {
+            try {
+                processMiniShopItemUseCase.process(sellerIdVO, item);
+                productProcessedCount++;
+            } catch (Exception e) {
+                log.warn(
+                        "CrawledProduct 처리 실패: sellerId={}, itemNo={}, error={}",
+                        sellerId,
+                        item.itemNo(),
+                        e.getMessage());
+            }
+        }
+        log.info(
+                "MINI_SHOP CrawledProduct 처리 완료: sellerId={}, processedCount={}",
+                sellerId,
+                productProcessedCount);
+
+        // 5. 후속 DETAIL + OPTION Task 생성 (상품별)
         List<CreateCrawlTaskCommand> followUpCommands =
                 createDetailAndOptionTaskCommands(crawlTask, items);
 

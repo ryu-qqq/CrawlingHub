@@ -6,9 +6,11 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessDetailInfoUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.Optional;
@@ -40,14 +42,17 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
     private final DetailResponseParser detailResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
     private final CrawledRawManager crawledRawManager;
+    private final ProcessDetailInfoUseCase processDetailInfoUseCase;
 
     public DetailCrawlResultProcessor(
             DetailResponseParser detailResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager) {
+            CrawledRawManager crawledRawManager,
+            ProcessDetailInfoUseCase processDetailInfoUseCase) {
         this.detailResponseParser = detailResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
         this.crawledRawManager = crawledRawManager;
+        this.processDetailInfoUseCase = processDetailInfoUseCase;
     }
 
     @Override
@@ -98,7 +103,20 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
                 detailInfo.itemNo(),
                 detailInfo.itemName());
 
-        // 4. 후속 Task 없음
+        // 4. CrawledProduct 상세 정보 업데이트 (+ 이미지 Outbox 생성)
+        try {
+            SellerId sellerIdVO = SellerId.of(sellerId);
+            processDetailInfoUseCase.process(sellerIdVO, itemNo, detailInfo);
+            log.info("DETAIL CrawledProduct 처리 완료: sellerId={}, itemNo={}", sellerId, itemNo);
+        } catch (Exception e) {
+            log.warn(
+                    "CrawledProduct DETAIL 처리 실패: sellerId={}, itemNo={}, error={}",
+                    sellerId,
+                    itemNo,
+                    e.getMessage());
+        }
+
+        // 5. 후속 Task 없음
         return ProcessingResult.completed(1, savedCount);
     }
 
