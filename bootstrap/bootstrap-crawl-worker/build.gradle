@@ -34,6 +34,7 @@ dependencies {
     implementation project(':adapter-out:aws-sqs')            // For SQS message publishing
     implementation project(':adapter-out:http-client')        // For HTTP crawling
     implementation project(':adapter-out:aws-eventbridge')    // For EventBridge scheduler
+    implementation project(':adapter-out:fileflow-client')    // For Fileflow image upload
 
     // ========================================
     // Spring Boot Starters

@@ -35,7 +35,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @since 1.0.0
  */
 @Component
-@ConditionalOnProperty(name = "app.messaging.sqs.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+        name = "app.messaging.sqs.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 public class CrawlTaskRegisteredEventListener {
 
     private static final Logger log =

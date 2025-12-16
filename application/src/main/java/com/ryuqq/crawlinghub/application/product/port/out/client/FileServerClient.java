@@ -32,13 +32,16 @@ public interface FileServerClient {
      */
     Optional<ImageUploadResult> getUploadStatus(String idempotencyKey);
 
-    /** 이미지 업로드 요청 정보 */
-    record ImageUploadRequest(
-            String idempotencyKey, String originalUrl, String imageType, String callbackUrl) {
+    /**
+     * 이미지 업로드 요청 정보
+     *
+     * <p>callbackUrl은 Adapter 설정(Properties)에서 관리합니다.
+     */
+    record ImageUploadRequest(String idempotencyKey, String originalUrl, String imageType) {
 
         public static ImageUploadRequest of(
-                String idempotencyKey, String originalUrl, String imageType, String callbackUrl) {
-            return new ImageUploadRequest(idempotencyKey, originalUrl, imageType, callbackUrl);
+                String idempotencyKey, String originalUrl, String imageType) {
+            return new ImageUploadRequest(idempotencyKey, originalUrl, imageType);
         }
     }
 
