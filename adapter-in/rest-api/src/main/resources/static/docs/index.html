@@ -510,6 +510,23 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#resources-schedule-update_http_response">HTTP response</a></li>
 </ul>
 </li>
+<li><a href="#resources-schedule-update-status">스케줄러 상태 변경</a>
+<ul class="sectlevel3">
+<li><a href="#resources-schedule-update-status_path_parameters">Path parameters</a></li>
+<li><a href="#resources-schedule-update-status_request_fields">Request fields</a></li>
+<li><a href="#resources-schedule-update-status_response_fields">Response fields</a></li>
+<li><a href="#resources-schedule-update-status_http_request">HTTP request</a></li>
+<li><a href="#resources-schedule-update-status_http_response">HTTP response</a></li>
+</ul>
+</li>
+<li><a href="#resources-schedule-trigger">스케줄러 수동 트리거</a>
+<ul class="sectlevel3">
+<li><a href="#resources-schedule-trigger_path_parameters">Path parameters</a></li>
+<li><a href="#resources-schedule-trigger_response_fields">Response fields</a></li>
+<li><a href="#resources-schedule-trigger_http_request">HTTP request</a></li>
+<li><a href="#resources-schedule-trigger_http_response">HTTP response</a></li>
+</ul>
+</li>
 <li><a href="#resources-schedule-list">스케줄러 목록 조회</a>
 <ul class="sectlevel3">
 <li><a href="#resources-schedule-list_query_parameters">Query parameters</a></li>
@@ -522,6 +539,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#resources-task">CrawlTask API</a>
 <ul class="sectlevel2">
+<li><a href="#resources-task-retry">태스크 재시도</a>
+<ul class="sectlevel3">
+<li><a href="#resources-task-retry_path_parameters">Path parameters</a></li>
+<li><a href="#resources-task-retry_response_fields">Response fields</a></li>
+<li><a href="#resources-task-retry_http_request">HTTP request</a></li>
+<li><a href="#resources-task-retry_http_response">HTTP response</a></li>
+</ul>
+</li>
 <li><a href="#resources-task-list">태스크 목록 조회</a>
 <ul class="sectlevel3">
 <li><a href="#resources-task-list_query_parameters">Query parameters</a></li>
@@ -705,7 +730,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="resources-seller-register"><a class="link" href="#resources-seller-register">셀러 등록</a></h3>
 <div class="paragraph">
-<p><code>POST /api/v1/sellers</code></p>
+<p><code>POST /api/v1/crawling/sellers</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-seller-register_request_fields"><a class="link" href="#resources-seller-register_request_fields">Request fields</a></h4>
@@ -845,8 +870,8 @@ Content-Length: 344
     "updatedAt" : null
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:49.525953",
-  "requestId" : "req-1765718869525"
+  "timestamp" : "2025-12-16T15:41:59.600287",
+  "requestId" : "req-1765867319600"
 }</code></pre>
 </div>
 </div>
@@ -855,7 +880,7 @@ Content-Length: 344
 <div class="sect2">
 <h3 id="resources-seller-update"><a class="link" href="#resources-seller-update">셀러 수정</a></h3>
 <div class="paragraph">
-<p><code>PATCH /api/v1/sellers/{id}</code></p>
+<p><code>PATCH /api/v1/crawling/sellers/{id}</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-seller-update_path_parameters"><a class="link" href="#resources-seller-update_path_parameters">Path parameters</a></h4>
@@ -1010,7 +1035,7 @@ Host: localhost:8080
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 372
+Content-Length: 371
 
 {
   "success" : true,
@@ -1023,8 +1048,8 @@ Content-Length: 372
     "updatedAt" : "2025-11-19T11:00:00Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:49.486311",
-  "requestId" : "req-1765718869486"
+  "timestamp" : "2025-12-16T15:41:59.57875",
+  "requestId" : "req-1765867319578"
 }</code></pre>
 </div>
 </div>
@@ -1033,7 +1058,7 @@ Content-Length: 372
 <div class="sect2">
 <h3 id="resources-seller-get"><a class="link" href="#resources-seller-get">셀러 단건 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/sellers/{id}</code></p>
+<p><code>GET /api/v1/crawling/sellers/{id}</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-seller-get_path_parameters"><a class="link" href="#resources-seller-get_path_parameters">Path parameters</a></h4>
@@ -1146,7 +1171,7 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 344
+Content-Length: 343
 
 {
   "success" : true,
@@ -1159,8 +1184,8 @@ Content-Length: 344
     "updatedAt" : null
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.142386",
-  "requestId" : "req-1765718870142"
+  "timestamp" : "2025-12-16T15:42:00.10513",
+  "requestId" : "req-1765867320105"
 }</code></pre>
 </div>
 </div>
@@ -1169,7 +1194,7 @@ Content-Length: 344
 <div class="sect2">
 <h3 id="resources-seller-list"><a class="link" href="#resources-seller-list">셀러 목록 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/sellers</code></p>
+<p><code>GET /api/v1/crawling/sellers</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-seller-list_query_parameters"><a class="link" href="#resources-seller-list_query_parameters">Query parameters</a></h4>
@@ -1338,8 +1363,8 @@ Content-Length: 581
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.118614",
-  "requestId" : "req-1765718870118"
+  "timestamp" : "2025-12-16T15:42:00.084629",
+  "requestId" : "req-1765867320084"
 }</code></pre>
 </div>
 </div>
@@ -1356,7 +1381,7 @@ Content-Length: 581
 <div class="sect2">
 <h3 id="resources-schedule-register"><a class="link" href="#resources-schedule-register">스케줄러 등록</a></h3>
 <div class="paragraph">
-<p><code>POST /api/v1/schedules</code></p>
+<p><code>POST /api/v1/crawling/schedules</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-schedule-register_request_fields"><a class="link" href="#resources-schedule-register_request_fields">Request fields</a></h4>
@@ -1508,8 +1533,8 @@ Content-Length: 354
     "updatedAt" : null
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:48.173625",
-  "requestId" : "req-1765718868173"
+  "timestamp" : "2025-12-16T15:41:59.001939",
+  "requestId" : "req-1765867319001"
 }</code></pre>
 </div>
 </div>
@@ -1518,7 +1543,7 @@ Content-Length: 354
 <div class="sect2">
 <h3 id="resources-schedule-update"><a class="link" href="#resources-schedule-update">스케줄러 수정</a></h3>
 <div class="paragraph">
-<p><code>PATCH /api/v1/schedules/{id}</code></p>
+<p><code>PATCH /api/v1/crawling/schedules/{id}</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-schedule-update_path_parameters"><a class="link" href="#resources-schedule-update_path_parameters">Path parameters</a></h4>
@@ -1692,8 +1717,357 @@ Content-Length: 379
     "updatedAt" : "2025-11-20T11:00:00Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:48.119349",
-  "requestId" : "req-1765718868119"
+  "timestamp" : "2025-12-16T15:41:58.946407",
+  "requestId" : "req-1765867318946"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-schedule-update-status"><a class="link" href="#resources-schedule-update-status">스케줄러 상태 변경</a></h3>
+<div class="paragraph">
+<p><code>PATCH /api/v1/crawling/schedules/{id}/status</code></p>
+</div>
+<div class="paragraph">
+<p>스케줄러를 활성화/비활성화합니다.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>active: true</code> → ACTIVE 상태로 변경</p>
+</li>
+<li>
+<p><code>active: false</code> → INACTIVE 상태로 변경</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-update-status_path_parameters"><a class="link" href="#resources-schedule-update-status_path_parameters">Path parameters</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. /api/v1/crawling/schedules/{id}/status</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 스케줄러 ID (양수)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-update-status_request_fields"><a class="link" href="#resources-schedule-update-status_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>active</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">활성화 여부 (true=ACTIVE, false=INACTIVE, 필수)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-update-status_response_fields"><a class="link" href="#resources-schedule-update-status_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.crawlSchedulerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 스케줄러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.sellerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">셀러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.schedulerName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">스케줄러 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.cronExpression</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크론 표현식</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상태 (ACTIVE/INACTIVE)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.updatedAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">수정 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시각</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-update-status_http_request"><a class="link" href="#resources-schedule-update-status_http_request">HTTP request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/crawling/schedules/1/status HTTP/1.1
+Content-Type: application/json
+Content-Length: 22
+Host: localhost:8080
+
+{
+  "active" : false
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-update-status_http_response"><a class="link" href="#resources-schedule-update-status_http_response">HTTP response</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 374
+
+{
+  "success" : true,
+  "data" : {
+    "crawlSchedulerId" : 1,
+    "sellerId" : 1,
+    "schedulerName" : "daily-crawl",
+    "cronExpression" : "0 0 9 * * ?",
+    "status" : "INACTIVE",
+    "createdAt" : "2025-11-20T10:30:00Z",
+    "updatedAt" : "2025-11-20T11:00:00Z"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-16T15:41:59.027802",
+  "requestId" : "req-1765867319027"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-schedule-trigger"><a class="link" href="#resources-schedule-trigger">스케줄러 수동 트리거</a></h3>
+<div class="paragraph">
+<p><code>POST /api/v1/crawling/schedules/{id}/trigger</code></p>
+</div>
+<div class="paragraph">
+<p>스케줄러를 수동으로 트리거하여 즉시 크롤 태스크를 생성합니다.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+ACTIVE 상태의 스케줄러만 트리거할 수 있습니다.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-trigger_path_parameters"><a class="link" href="#resources-schedule-trigger_path_parameters">Path parameters</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. /api/v1/crawling/schedules/{id}/trigger</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 스케줄러 ID (양수)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-trigger_response_fields"><a class="link" href="#resources-schedule-trigger_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.crawlTaskId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성된 크롤 태스크 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.crawlSchedulerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 스케줄러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.sellerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">셀러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.requestUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상태 (PENDING)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.taskType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">태스크 유형 (META)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.retryCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">재시도 횟수</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시각</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-trigger_http_request"><a class="link" href="#resources-schedule-trigger_http_request">HTTP request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/crawling/schedules/1/trigger HTTP/1.1
+Host: localhost:8080
+Content-Type: application/x-www-form-urlencoded</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-schedule-trigger_http_response"><a class="link" href="#resources-schedule-trigger_http_response">HTTP response</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 201 Created
+Content-Type: application/json
+Content-Length: 389
+
+{
+  "success" : true,
+  "data" : {
+    "crawlTaskId" : 100,
+    "crawlSchedulerId" : 1,
+    "sellerId" : 1,
+    "requestUrl" : "https://api.example.com/sellers/1/meta",
+    "status" : "WAITING",
+    "taskType" : "META",
+    "retryCount" : 0,
+    "createdAt" : "2025-11-20T10:30:00Z"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-16T15:41:58.971164",
+  "requestId" : "req-1765867318971"
 }</code></pre>
 </div>
 </div>
@@ -1702,7 +2076,7 @@ Content-Length: 379
 <div class="sect2">
 <h3 id="resources-schedule-list"><a class="link" href="#resources-schedule-list">스케줄러 목록 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/schedules</code></p>
+<p><code>GET /api/v1/crawling/schedules</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-schedule-list_query_parameters"><a class="link" href="#resources-schedule-list_query_parameters">Query parameters</a></h4>
@@ -1882,8 +2256,8 @@ Content-Length: 614
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:48.627339",
-  "requestId" : "req-1765718868627"
+  "timestamp" : "2025-12-16T15:41:59.298187",
+  "requestId" : "req-1765867319298"
 }</code></pre>
 </div>
 </div>
@@ -1895,12 +2269,177 @@ Content-Length: 614
 <h2 id="resources-task"><a class="link" href="#resources-task">CrawlTask API</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>크롤 태스크 조회 API입니다.</p>
+<p>크롤 태스크 관리 API입니다.</p>
+</div>
+<div class="sect2">
+<h3 id="resources-task-retry"><a class="link" href="#resources-task-retry">태스크 재시도</a></h3>
+<div class="paragraph">
+<p><code>POST /api/v1/crawling/tasks/{id}/retry</code></p>
+</div>
+<div class="paragraph">
+<p>실패한 크롤 태스크를 재시도합니다.</p>
+</div>
+<div class="paragraph">
+<p>재시도 조건:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>FAILED 또는 TIMEOUT 상태의 태스크만 재시도 가능</p>
+</li>
+<li>
+<p>최대 재시도 횟수(3회) 미만</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="resources-task-retry_path_parameters"><a class="link" href="#resources-task-retry_path_parameters">Path parameters</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. /api/v1/crawling/tasks/{id}/retry</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 태스크 ID (양수)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-task-retry_response_fields"><a class="link" href="#resources-task-retry_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.crawlTaskId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 태스크 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.crawlSchedulerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">크롤 스케줄러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.sellerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">셀러 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.requestUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상태 (RETRY)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.taskType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">태스크 유형 (META/MINI_SHOP/DETAIL/OPTION)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.retryCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">재시도 횟수</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createdAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생성 일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">에러 정보</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 시각</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청 ID</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-task-retry_http_request"><a class="link" href="#resources-task-retry_http_request">HTTP request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">POST /api/v1/crawling/tasks/100/retry HTTP/1.1
+Host: localhost:8080
+Content-Type: application/x-www-form-urlencoded</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-task-retry_http_response"><a class="link" href="#resources-task-retry_http_response">HTTP response</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 387
+
+{
+  "success" : true,
+  "data" : {
+    "crawlTaskId" : 100,
+    "crawlSchedulerId" : 1,
+    "sellerId" : 1,
+    "requestUrl" : "https://api.example.com/sellers/1/meta",
+    "status" : "RETRY",
+    "taskType" : "META",
+    "retryCount" : 1,
+    "createdAt" : "2025-11-20T10:30:00Z"
+  },
+  "error" : null,
+  "timestamp" : "2025-12-16T15:42:00.536682",
+  "requestId" : "req-1765867320536"
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="resources-task-list"><a class="link" href="#resources-task-list">태스크 목록 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/tasks</code></p>
+<p><code>GET /api/v1/crawling/tasks</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-task-list_query_parameters"><a class="link" href="#resources-task-list_query_parameters">Query parameters</a></h4>
@@ -2109,8 +2648,8 @@ Content-Length: 818
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.581162",
-  "requestId" : "req-1765718870581"
+  "timestamp" : "2025-12-16T15:42:00.845251",
+  "requestId" : "req-1765867320845"
 }</code></pre>
 </div>
 </div>
@@ -2119,7 +2658,7 @@ Content-Length: 818
 <div class="sect2">
 <h3 id="resources-task-get"><a class="link" href="#resources-task-get">태스크 상세 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/tasks/{id}</code></p>
+<p><code>GET /api/v1/crawling/tasks/{id}</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-task-get_path_parameters"><a class="link" href="#resources-task-get_path_parameters">Path parameters</a></h4>
@@ -2294,8 +2833,8 @@ Content-Length: 575
     "updatedAt" : "2025-11-20T10:30:00Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.603606",
-  "requestId" : "req-1765718870603"
+  "timestamp" : "2025-12-16T15:42:00.866194",
+  "requestId" : "req-1765867320866"
 }</code></pre>
 </div>
 </div>
@@ -2312,7 +2851,7 @@ Content-Length: 575
 <div class="sect2">
 <h3 id="resources-execution-list"><a class="link" href="#resources-execution-list">실행 결과 목록 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/executions</code></p>
+<p><code>GET /api/v1/crawling/executions</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-execution-list_query_parameters"><a class="link" href="#resources-execution-list_query_parameters">Query parameters</a></h4>
@@ -2528,8 +3067,8 @@ Content-Length: 858
     "last" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:47.500428",
-  "requestId" : "req-1765718867500"
+  "timestamp" : "2025-12-16T15:41:58.529169",
+  "requestId" : "req-1765867318529"
 }</code></pre>
 </div>
 </div>
@@ -2538,7 +3077,7 @@ Content-Length: 858
 <div class="sect2">
 <h3 id="resources-execution-get"><a class="link" href="#resources-execution-get">실행 결과 상세 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/executions/{id}</code></p>
+<p><code>GET /api/v1/crawling/executions/{id}</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-execution-get_path_parameters"><a class="link" href="#resources-execution-get_path_parameters">Path parameters</a></h4>
@@ -2694,8 +3233,8 @@ Content-Length: 508
     "completedAt" : "2025-11-20T10:30:01Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:47.20935",
-  "requestId" : "req-1765718867209"
+  "timestamp" : "2025-12-16T15:41:58.33177",
+  "requestId" : "req-1765867318331"
 }</code></pre>
 </div>
 </div>
@@ -2704,7 +3243,7 @@ Content-Length: 508
 <div class="sect2">
 <h3 id="resources-execution-get-failed"><a class="link" href="#resources-execution-get-failed">실패한 실행 결과 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/executions/{id}</code> (실패 케이스)</p>
+<p><code>GET /api/v1/crawling/executions/{id}</code> (실패 케이스)</p>
 </div>
 <div class="sect3">
 <h4 id="resources-execution-get-failed_path_parameters"><a class="link" href="#resources-execution-get-failed_path_parameters">Path parameters</a></h4>
@@ -2860,8 +3399,8 @@ Content-Length: 496
     "completedAt" : "2025-11-20T10:35:03Z"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:47.433238",
-  "requestId" : "req-1765718867433"
+  "timestamp" : "2025-12-16T15:41:58.469375",
+  "requestId" : "req-1765867318469"
 }</code></pre>
 </div>
 </div>
@@ -2878,7 +3417,7 @@ Content-Length: 496
 <div class="sect2">
 <h3 id="resources-useragent-pool-status"><a class="link" href="#resources-useragent-pool-status">Pool 상태 조회</a></h3>
 <div class="paragraph">
-<p><code>GET /api/v1/user-agents/pool-status</code></p>
+<p><code>GET /api/v1/crawling/user-agents/pool-status</code></p>
 </div>
 <div class="sect3">
 <h4 id="resources-useragent-pool-status_response_fields"><a class="link" href="#resources-useragent-pool-status_response_fields">Response fields</a></h4>
@@ -2989,7 +3528,7 @@ Host: localhost:8080</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 398
+Content-Length: 399
 
 {
   "success" : true,
@@ -3007,8 +3546,8 @@ Content-Length: 398
     "isHealthy" : true
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:51.05843",
-  "requestId" : "req-1765718871058"
+  "timestamp" : "2025-12-16T15:42:01.294796",
+  "requestId" : "req-1765867321294"
 }</code></pre>
 </div>
 </div>
@@ -3017,7 +3556,7 @@ Content-Length: 398
 <div class="sect2">
 <h3 id="resources-useragent-recover"><a class="link" href="#resources-useragent-recover">UserAgent 복구</a></h3>
 <div class="paragraph">
-<p><code>POST /api/v1/user-agents/recover</code></p>
+<p><code>POST /api/v1/crawling/user-agents/recover</code></p>
 </div>
 <div class="paragraph">
 <p>정지된 UserAgent를 복구합니다.</p>
@@ -3117,8 +3656,8 @@ Content-Length: 222
     "message" : "5 user agents recovered successfully"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.854288",
-  "requestId" : "req-1765718870854"
+  "timestamp" : "2025-12-16T15:42:01.078151",
+  "requestId" : "req-1765867321078"
 }</code></pre>
 </div>
 </div>
@@ -3127,7 +3666,7 @@ Content-Length: 222
 <div class="sect2">
 <h3 id="resources-useragent-recover-no-agents"><a class="link" href="#resources-useragent-recover-no-agents">UserAgent 복구 (복구 대상 없음)</a></h3>
 <div class="paragraph">
-<p><code>POST /api/v1/user-agents/recover</code> (복구 대상이 없는 경우)</p>
+<p><code>POST /api/v1/crawling/user-agents/recover</code> (복구 대상이 없는 경우)</p>
 </div>
 <div class="sect3">
 <h4 id="resources-useragent-recover-no-agents_response_fields"><a class="link" href="#resources-useragent-recover-no-agents_response_fields">Response fields</a></h4>
@@ -3208,8 +3747,8 @@ Content-Length: 211
     "message" : "No user agents to recover"
   },
   "error" : null,
-  "timestamp" : "2025-12-14T22:27:50.874392",
-  "requestId" : "req-1765718870874"
+  "timestamp" : "2025-12-16T15:42:01.090114",
+  "requestId" : "req-1765867321090"
 }</code></pre>
 </div>
 </div>
@@ -3221,7 +3760,7 @@ Content-Length: 211
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0-SNAPSHOT<br>
-Last updated 2025-11-27 17:05:57 +0900
+Last updated 2025-12-16 11:16:19 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
