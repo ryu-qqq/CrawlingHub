@@ -1,5 +1,12 @@
 package com.ryuqq.crawlinghub.application.product.manager;
 
+import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
+import com.ryuqq.crawlinghub.application.product.port.out.command.SyncOutboxPersistencePort;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import java.time.Clock;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * 외부 동기화 Outbox 트랜잭션 관리자
  *
@@ -23,103 +30,78 @@ package com.ryuqq.crawlinghub.application.product.manager;
  * @author development-team
  * @since 1.0.0
  */
+@Component
 public class SyncOutboxManager {
 
-    // private final SyncOutboxPersistencePort syncOutboxPersistencePort;
-    //
-    // public SyncOutboxManager(SyncOutboxPersistencePort syncOutboxPersistencePort) {
-    //     this.syncOutboxPersistencePort = syncOutboxPersistencePort;
-    // }
-    //
-    // // === 생성 ===
-    //
-    // /**
-    //  * 신규 등록용 SyncOutbox 생성 및 저장
-    //  *
-    //  * @param crawledProductId CrawledProduct ID
-    //  * @param sellerId 판매자 ID
-    //  * @param itemNo 상품 번호
-    //  * @return 저장된 SyncOutbox
-    //  */
-    // @Transactional
-    // public CrawledProductSyncOutbox createForCreate(
-    //         CrawledProductId crawledProductId,
-    //         SellerId sellerId,
-    //         long itemNo) {
-    //     CrawledProductSyncOutbox outbox = CrawledProductSyncOutbox.forCreate(
-    //             crawledProductId, sellerId, itemNo);
-    //     syncOutboxPersistencePort.persist(outbox);
-    //     return outbox;
-    // }
-    //
-    // /**
-    //  * 갱신용 SyncOutbox 생성 및 저장
-    //  *
-    //  * @param crawledProductId CrawledProduct ID
-    //  * @param sellerId 판매자 ID
-    //  * @param itemNo 상품 번호
-    //  * @param externalProductId 외부 상품 ID
-    //  * @return 저장된 SyncOutbox
-    //  */
-    // @Transactional
-    // public CrawledProductSyncOutbox createForUpdate(
-    //         CrawledProductId crawledProductId,
-    //         SellerId sellerId,
-    //         long itemNo,
-    //         Long externalProductId) {
-    //     CrawledProductSyncOutbox outbox = CrawledProductSyncOutbox.forUpdate(
-    //             crawledProductId, sellerId, itemNo, externalProductId);
-    //     syncOutboxPersistencePort.persist(outbox);
-    //     return outbox;
-    // }
-    //
-    // // === 상태 전환 ===
-    //
-    // /**
-    //  * 처리 시작 (외부 서버 API 호출 시작)
-    //  *
-    //  * @param outbox 처리 시작할 Outbox
-    //  */
-    // @Transactional
-    // public void markAsProcessing(CrawledProductSyncOutbox outbox) {
-    //     outbox.markAsProcessing();
-    //     syncOutboxPersistencePort.update(outbox);
-    // }
-    //
-    // /**
-    //  * 동기화 완료 (신규 등록 시 외부 ID 저장)
-    //  *
-    //  * @param outbox 완료할 Outbox
-    //  * @param externalProductId 외부 상품 ID (신규 등록 시)
-    //  */
-    // @Transactional
-    // public void markAsCompleted(CrawledProductSyncOutbox outbox, Long externalProductId) {
-    //     outbox.markAsCompleted(externalProductId);
-    //     syncOutboxPersistencePort.update(outbox);
-    // }
-    //
-    // /**
-    //  * 처리 실패
-    //  *
-    //  * @param outbox 실패한 Outbox
-    //  * @param errorMessage 오류 메시지
-    //  */
-    // @Transactional
-    // public void markAsFailed(CrawledProductSyncOutbox outbox, String errorMessage) {
-    //     outbox.markAsFailed(errorMessage);
-    //     syncOutboxPersistencePort.update(outbox);
-    // }
-    //
-    // /**
-    //  * 재시도를 위해 PENDING으로 복귀
-    //  *
-    //  * @param outbox 재시도할 Outbox
-    //  */
-    // @Transactional
-    // public void resetToPending(CrawledProductSyncOutbox outbox) {
-    //     if (outbox.canRetry()) {
-    //         outbox.resetToPending();
-    //         syncOutboxPersistencePort.update(outbox);
-    //     }
-    // }
+    private final SyncOutboxPersistencePort syncOutboxPersistencePort;
+    private final Clock clock;
+
+    public SyncOutboxManager(SyncOutboxPersistencePort syncOutboxPersistencePort, Clock clock) {
+        this.syncOutboxPersistencePort = syncOutboxPersistencePort;
+        this.clock = clock;
+    }
+
+    // === 영속화 ===
+
+    /**
+     * SyncOutboxBundle의 Outbox 영속화
+     *
+     * <p>Factory에서 생성한 Bundle의 Outbox를 저장합니다.
+     *
+     * @param bundle Factory에서 생성한 SyncOutboxBundle
+     */
+    @Transactional
+    public void persist(SyncOutboxBundle bundle) {
+        syncOutboxPersistencePort.persist(bundle.outbox());
+    }
+
+    // === 상태 전환 ===
+
+    /**
+     * 처리 시작 (외부 서버 API 호출 시작)
+     *
+     * @param outbox 처리 시작할 Outbox
+     */
+    @Transactional
+    public void markAsProcessing(CrawledProductSyncOutbox outbox) {
+        outbox.markAsProcessing(clock);
+        syncOutboxPersistencePort.update(outbox);
+    }
+
+    /**
+     * 동기화 완료 (신규 등록 시 외부 ID 저장)
+     *
+     * @param outbox 완료할 Outbox
+     * @param externalProductId 외부 상품 ID (신규 등록 시)
+     */
+    @Transactional
+    public void markAsCompleted(CrawledProductSyncOutbox outbox, Long externalProductId) {
+        outbox.markAsCompleted(externalProductId, clock);
+        syncOutboxPersistencePort.update(outbox);
+    }
+
+    /**
+     * 처리 실패
+     *
+     * @param outbox 실패한 Outbox
+     * @param errorMessage 오류 메시지
+     */
+    @Transactional
+    public void markAsFailed(CrawledProductSyncOutbox outbox, String errorMessage) {
+        outbox.markAsFailed(errorMessage, clock);
+        syncOutboxPersistencePort.update(outbox);
+    }
+
+    /**
+     * 재시도를 위해 PENDING으로 복귀
+     *
+     * @param outbox 재시도할 Outbox
+     */
+    @Transactional
+    public void resetToPending(CrawledProductSyncOutbox outbox) {
+        if (outbox.canRetry()) {
+            outbox.resetToPending();
+            syncOutboxPersistencePort.update(outbox);
+        }
+    }
 }

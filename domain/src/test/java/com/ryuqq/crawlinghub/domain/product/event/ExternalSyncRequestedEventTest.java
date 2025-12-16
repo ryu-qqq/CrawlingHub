@@ -27,6 +27,7 @@ class ExternalSyncRequestedEventTest {
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
+    private static final String IDEMPOTENCY_KEY = "sync-1-create-abc12345";
 
     @Nested
     @DisplayName("SyncType Enum")
@@ -63,12 +64,18 @@ class ExternalSyncRequestedEventTest {
             // When
             ExternalSyncRequestedEvent event =
                     new ExternalSyncRequestedEvent(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, SyncType.CREATE, FIXED_INSTANT);
+                            PRODUCT_ID,
+                            SELLER_ID,
+                            ITEM_NO,
+                            IDEMPOTENCY_KEY,
+                            SyncType.CREATE,
+                            FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
             assertThat(event.sellerId()).isEqualTo(SELLER_ID);
             assertThat(event.itemNo()).isEqualTo(ITEM_NO);
+            assertThat(event.idempotencyKey()).isEqualTo(IDEMPOTENCY_KEY);
             assertThat(event.syncType()).isEqualTo(SyncType.CREATE);
             assertThat(event.occurredAt()).isEqualTo(FIXED_INSTANT);
         }
@@ -83,6 +90,7 @@ class ExternalSyncRequestedEventTest {
                                             null,
                                             SELLER_ID,
                                             ITEM_NO,
+                                            IDEMPOTENCY_KEY,
                                             SyncType.CREATE,
                                             FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -99,6 +107,7 @@ class ExternalSyncRequestedEventTest {
                                             PRODUCT_ID,
                                             null,
                                             ITEM_NO,
+                                            IDEMPOTENCY_KEY,
                                             SyncType.CREATE,
                                             FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -116,10 +125,45 @@ class ExternalSyncRequestedEventTest {
                                             PRODUCT_ID,
                                             SELLER_ID,
                                             itemNo,
+                                            IDEMPOTENCY_KEY,
                                             SyncType.CREATE,
                                             FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("itemNo");
+        }
+
+        @Test
+        @DisplayName("idempotencyKey가 null이면 예외를 던진다")
+        void shouldThrowWhenIdempotencyKeyIsNull() {
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    new ExternalSyncRequestedEvent(
+                                            PRODUCT_ID,
+                                            SELLER_ID,
+                                            ITEM_NO,
+                                            null,
+                                            SyncType.CREATE,
+                                            FIXED_INSTANT))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("idempotencyKey");
+        }
+
+        @Test
+        @DisplayName("idempotencyKey가 빈 문자열이면 예외를 던진다")
+        void shouldThrowWhenIdempotencyKeyIsBlank() {
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    new ExternalSyncRequestedEvent(
+                                            PRODUCT_ID,
+                                            SELLER_ID,
+                                            ITEM_NO,
+                                            "   ",
+                                            SyncType.CREATE,
+                                            FIXED_INSTANT))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("idempotencyKey");
         }
 
         @Test
@@ -129,7 +173,12 @@ class ExternalSyncRequestedEventTest {
             assertThatThrownBy(
                             () ->
                                     new ExternalSyncRequestedEvent(
-                                            PRODUCT_ID, SELLER_ID, ITEM_NO, null, FIXED_INSTANT))
+                                            PRODUCT_ID,
+                                            SELLER_ID,
+                                            ITEM_NO,
+                                            IDEMPOTENCY_KEY,
+                                            null,
+                                            FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("syncType");
         }
@@ -141,7 +190,12 @@ class ExternalSyncRequestedEventTest {
             assertThatThrownBy(
                             () ->
                                     new ExternalSyncRequestedEvent(
-                                            PRODUCT_ID, SELLER_ID, ITEM_NO, SyncType.CREATE, null))
+                                            PRODUCT_ID,
+                                            SELLER_ID,
+                                            ITEM_NO,
+                                            IDEMPOTENCY_KEY,
+                                            SyncType.CREATE,
+                                            null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("occurredAt");
         }
@@ -157,12 +211,13 @@ class ExternalSyncRequestedEventTest {
             // When
             ExternalSyncRequestedEvent event =
                     ExternalSyncRequestedEvent.forCreate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, FIXED_CLOCK);
+                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_CLOCK);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
             assertThat(event.sellerId()).isEqualTo(SELLER_ID);
             assertThat(event.itemNo()).isEqualTo(ITEM_NO);
+            assertThat(event.idempotencyKey()).isEqualTo(IDEMPOTENCY_KEY);
             assertThat(event.syncType()).isEqualTo(SyncType.CREATE);
             assertThat(event.occurredAt()).isEqualTo(FIXED_INSTANT);
         }
@@ -178,12 +233,13 @@ class ExternalSyncRequestedEventTest {
             // When
             ExternalSyncRequestedEvent event =
                     ExternalSyncRequestedEvent.forUpdate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, FIXED_CLOCK);
+                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_CLOCK);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
             assertThat(event.sellerId()).isEqualTo(SELLER_ID);
             assertThat(event.itemNo()).isEqualTo(ITEM_NO);
+            assertThat(event.idempotencyKey()).isEqualTo(IDEMPOTENCY_KEY);
             assertThat(event.syncType()).isEqualTo(SyncType.UPDATE);
             assertThat(event.occurredAt()).isEqualTo(FIXED_INSTANT);
         }
@@ -199,7 +255,12 @@ class ExternalSyncRequestedEventTest {
             // Given
             ExternalSyncRequestedEvent event =
                     new ExternalSyncRequestedEvent(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, SyncType.CREATE, FIXED_INSTANT);
+                            PRODUCT_ID,
+                            SELLER_ID,
+                            ITEM_NO,
+                            IDEMPOTENCY_KEY,
+                            SyncType.CREATE,
+                            FIXED_INSTANT);
 
             // When & Then
             assertThat(event)

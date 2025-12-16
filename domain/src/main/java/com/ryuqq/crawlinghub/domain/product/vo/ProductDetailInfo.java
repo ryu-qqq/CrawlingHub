@@ -25,6 +25,7 @@ import java.util.List;
  * @param shipping 배송 정보
  * @param bannerImages 배너 이미지 URL 목록
  * @param detailImages 상세 이미지 URL 목록 (descriptionMarkUp에서 추출)
+ * @param descriptionMarkUp 상세 설명 HTML 원본 (이미지 URL 교체용)
  * @param originCountry 원산지
  * @param itemStatus 상품 상태 (새상품, 중고 등)
  * @author development-team
@@ -48,6 +49,7 @@ public record ProductDetailInfo(
         ShippingInfo shipping,
         List<String> bannerImages,
         List<String> detailImages,
+        String descriptionMarkUp,
         String originCountry,
         String itemStatus) {
 
@@ -89,6 +91,9 @@ public record ProductDetailInfo(
             detailImages = List.of();
         } else {
             detailImages = List.copyOf(detailImages);
+        }
+        if (descriptionMarkUp == null) {
+            descriptionMarkUp = "";
         }
         if (originCountry == null) {
             originCountry = "";
@@ -172,6 +177,7 @@ public record ProductDetailInfo(
         private ShippingInfo shipping;
         private List<String> bannerImages = List.of();
         private List<String> detailImages = List.of();
+        private String descriptionMarkUp = "";
         private String originCountry = "";
         private String itemStatus = "";
 
@@ -262,6 +268,11 @@ public record ProductDetailInfo(
             return this;
         }
 
+        public Builder descriptionMarkUp(String descriptionMarkUp) {
+            this.descriptionMarkUp = descriptionMarkUp != null ? descriptionMarkUp : "";
+            return this;
+        }
+
         public Builder originCountry(String originCountry) {
             this.originCountry = originCountry;
             return this;
@@ -291,6 +302,7 @@ public record ProductDetailInfo(
                     shipping,
                     bannerImages,
                     detailImages,
+                    descriptionMarkUp,
                     originCountry,
                     itemStatus);
         }
