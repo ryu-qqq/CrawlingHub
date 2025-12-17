@@ -2,11 +2,13 @@ package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
 import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.RetryImageUploadUseCase;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,21 +38,21 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
     private static final int MAX_RETRY_COUNT = 3;
 
     private final ImageOutboxReadManager imageOutboxReadManager;
-    private final ImageOutboxManager imageOutboxManager;
+    private final ProductImageOutboxTransactionManager outboxTransactionManager;
     private final FileServerClient fileServerClient;
 
     public RetryImageUploadService(
             ImageOutboxReadManager imageOutboxReadManager,
-            ImageOutboxManager imageOutboxManager,
+            ProductImageOutboxTransactionManager outboxTransactionManager,
             FileServerClient fileServerClient) {
         this.imageOutboxReadManager = imageOutboxReadManager;
-        this.imageOutboxManager = imageOutboxManager;
+        this.outboxTransactionManager = outboxTransactionManager;
         this.fileServerClient = fileServerClient;
     }
 
     @Override
     public ImageUploadRetryResult execute() {
-        List<CrawledProductImageOutbox> retryableOutboxes =
+        List<ProductImageOutbox> retryableOutboxes =
                 imageOutboxReadManager.findRetryableOutboxes(MAX_RETRY_COUNT, BATCH_SIZE);
 
         if (retryableOutboxes.isEmpty()) {
@@ -62,7 +64,7 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
         int succeeded = 0;
         int failed = 0;
 
-        for (CrawledProductImageOutbox outbox : retryableOutboxes) {
+        for (ProductImageOutbox outbox : retryableOutboxes) {
             try {
                 processOutbox(outbox);
                 succeeded++;
@@ -76,20 +78,34 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
         return ImageUploadRetryResult.of(retryableOutboxes.size(), succeeded, failed, hasMore);
     }
 
-    private void processOutbox(CrawledProductImageOutbox outbox) {
+    private void processOutbox(ProductImageOutbox outbox) {
+        // 이미지 정보 조회
+        Optional<CrawledProductImage> imageOpt =
+                imageOutboxReadManager.findImageById(outbox.getCrawledProductImageId());
+        if (imageOpt.isEmpty()) {
+            log.warn(
+                    "이미지를 찾을 수 없음: outboxId={}, imageId={}",
+                    outbox.getId(),
+                    outbox.getCrawledProductImageId());
+            outboxTransactionManager.markAsFailed(outbox, "이미지를 찾을 수 없음");
+            throw new RuntimeException("Image not found");
+        }
+
+        CrawledProductImage image = imageOpt.get();
+
         FileServerClient.ImageUploadRequest request =
                 FileServerClient.ImageUploadRequest.of(
                         outbox.getIdempotencyKey(),
-                        outbox.getOriginalUrl(),
-                        outbox.getImageType().name());
+                        image.getOriginalUrl(),
+                        image.getImageType().name());
 
         boolean requestSuccess = fileServerClient.requestImageUpload(request);
 
         if (requestSuccess) {
-            imageOutboxManager.markAsProcessing(outbox);
+            outboxTransactionManager.markAsProcessing(outbox);
             log.debug("이미지 업로드 재요청 성공: outboxId={}", outbox.getId());
         } else {
-            imageOutboxManager.markAsFailed(outbox, "FileServer 요청 실패 (재시도)");
+            outboxTransactionManager.markAsFailed(outbox, "FileServer 요청 실패 (재시도)");
             throw new RuntimeException("FileServer 요청 실패");
         }
     }

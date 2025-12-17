@@ -27,8 +27,13 @@ public class FileflowClientConfig {
         this.properties = properties;
     }
 
+    private static final String HEADER_SERVICE_TOKEN = "X-Service-Token";
+    private static final String HEADER_SERVICE_NAME = "X-Service-Name";
+
     /**
      * Fileflow 전용 WebClient Bean 생성
+     *
+     * <p>Service Token 및 Service Name 헤더를 기본으로 포함합니다. 서버 간 내부 통신 인증에 사용됩니다.
      *
      * @return WebClient instance
      */
@@ -41,9 +46,16 @@ public class FileflowClientConfig {
                                 properties.getConnectTimeout())
                         .responseTimeout(Duration.ofMillis(properties.getReadTimeout()));
 
-        return WebClient.builder()
-                .baseUrl(properties.getBaseUrl())
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .build();
+        WebClient.Builder builder =
+                WebClient.builder()
+                        .baseUrl(properties.getBaseUrl())
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
+                        .defaultHeader(HEADER_SERVICE_NAME, properties.getServiceName());
+
+        if (properties.hasServiceToken()) {
+            builder.defaultHeader(HEADER_SERVICE_TOKEN, properties.getServiceToken());
+        }
+
+        return builder.build();
     }
 }

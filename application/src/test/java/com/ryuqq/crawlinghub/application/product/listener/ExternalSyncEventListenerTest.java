@@ -262,6 +262,7 @@ class ExternalSyncEventListenerTest {
                 null,
                 null,
                 null,
+                null,
                 "ACTIVE",
                 "Korea",
                 "Seoul",

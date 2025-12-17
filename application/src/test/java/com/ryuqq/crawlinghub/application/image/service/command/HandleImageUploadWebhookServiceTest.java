@@ -8,9 +8,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
+import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
+import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
@@ -37,20 +39,26 @@ class HandleImageUploadWebhookServiceTest {
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final Long OUTBOX_ID = 100L;
-    private static final String IDEMPOTENCY_KEY = "idempotency-key-123";
+    private static final Long IMAGE_ID = 1L;
+    private static final String EXTERNAL_DOWNLOAD_ID = "img-12345-abc";
     private static final String ORIGINAL_URL = "https://example.com/original.jpg";
-    private static final String S3_URL = "https://s3.amazonaws.com/bucket/uploaded.jpg";
+    private static final String FILE_URL = "https://cdn.set-of.com/bucket/uploaded.jpg";
+    private static final String FILE_ASSET_ID = "asset-uuid-123";
     private static final String ERROR_MESSAGE = "Upload failed: network error";
 
     @Mock private ImageOutboxReadManager imageOutboxReadManager;
 
-    @Mock private ImageOutboxManager imageOutboxManager;
+    @Mock private CrawledProductImageTransactionManager imageTransactionManager;
+
+    @Mock private ProductImageOutboxTransactionManager outboxTransactionManager;
 
     private HandleImageUploadWebhookService service;
 
     @BeforeEach
     void setUp() {
-        service = new HandleImageUploadWebhookService(imageOutboxReadManager, imageOutboxManager);
+        service =
+                new HandleImageUploadWebhookService(
+                        imageOutboxReadManager, imageTransactionManager, outboxTransactionManager);
     }
 
     @Nested
@@ -58,22 +66,27 @@ class HandleImageUploadWebhookServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] COMPLETED 이벤트 → markAsCompleted 호출")
+        @DisplayName("[성공] COMPLETED 이벤트 → markAsCompleted 호출 + 이미지 S3 URL 업데이트")
         void shouldMarkAsCompletedWhenEventTypeIsCompleted() {
             // Given
             ImageUploadWebhookCommand command =
-                    ImageUploadWebhookCommand.completed(IDEMPOTENCY_KEY, S3_URL);
-            CrawledProductImageOutbox outbox = createMockOutbox();
+                    ImageUploadWebhookCommand.completed(
+                            EXTERNAL_DOWNLOAD_ID, FILE_URL, FILE_ASSET_ID, FIXED_INSTANT);
+            ProductImageOutbox outbox = createMockOutbox();
+            CrawledProductImage image = createMockImage();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(IDEMPOTENCY_KEY))
+            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
+            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.of(image));
 
             // When
             service.execute(command);
 
             // Then
-            verify(imageOutboxManager, times(1)).markAsCompleted(eq(outbox), eq(S3_URL));
-            verify(imageOutboxManager, never())
+            verify(outboxTransactionManager, times(1)).markAsCompleted(eq(outbox));
+            verify(imageTransactionManager, times(1))
+                    .completeUpload(eq(image), eq(FILE_URL), eq(FILE_ASSET_ID));
+            verify(outboxTransactionManager, never())
                     .markAsFailed(
                             org.mockito.ArgumentMatchers.any(),
                             org.mockito.ArgumentMatchers.anyString());
@@ -84,21 +97,20 @@ class HandleImageUploadWebhookServiceTest {
         void shouldMarkAsFailedWhenEventTypeIsFailed() {
             // Given
             ImageUploadWebhookCommand command =
-                    ImageUploadWebhookCommand.failed(IDEMPOTENCY_KEY, ERROR_MESSAGE);
-            CrawledProductImageOutbox outbox = createMockOutbox();
+                    ImageUploadWebhookCommand.failed(
+                            EXTERNAL_DOWNLOAD_ID, ERROR_MESSAGE, FIXED_INSTANT);
+            ProductImageOutbox outbox = createMockOutbox();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(IDEMPOTENCY_KEY))
+            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
 
             // When
             service.execute(command);
 
             // Then
-            verify(imageOutboxManager, times(1)).markAsFailed(eq(outbox), eq(ERROR_MESSAGE));
-            verify(imageOutboxManager, never())
-                    .markAsCompleted(
-                            org.mockito.ArgumentMatchers.any(),
-                            org.mockito.ArgumentMatchers.anyString());
+            verify(outboxTransactionManager, times(1)).markAsFailed(eq(outbox), eq(ERROR_MESSAGE));
+            verify(outboxTransactionManager, never())
+                    .markAsCompleted(org.mockito.ArgumentMatchers.any());
         }
 
         @Test
@@ -106,9 +118,10 @@ class HandleImageUploadWebhookServiceTest {
         void shouldThrowExceptionWhenOutboxNotFound() {
             // Given
             ImageUploadWebhookCommand command =
-                    ImageUploadWebhookCommand.completed(IDEMPOTENCY_KEY, S3_URL);
+                    ImageUploadWebhookCommand.completed(
+                            EXTERNAL_DOWNLOAD_ID, FILE_URL, FILE_ASSET_ID, FIXED_INSTANT);
 
-            given(imageOutboxReadManager.findByIdempotencyKey(IDEMPOTENCY_KEY))
+            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.empty());
 
             // When & Then
@@ -122,21 +135,20 @@ class HandleImageUploadWebhookServiceTest {
         void shouldDoNothingWhenEventTypeIsUnknown() {
             // Given
             ImageUploadWebhookCommand command =
-                    new ImageUploadWebhookCommand(IDEMPOTENCY_KEY, "UNKNOWN", null, null);
-            CrawledProductImageOutbox outbox = createMockOutbox();
+                    new ImageUploadWebhookCommand(
+                            EXTERNAL_DOWNLOAD_ID, "UNKNOWN", null, null, null, FIXED_INSTANT);
+            ProductImageOutbox outbox = createMockOutbox();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(IDEMPOTENCY_KEY))
+            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
 
             // When
             service.execute(command);
 
             // Then
-            verify(imageOutboxManager, never())
-                    .markAsCompleted(
-                            org.mockito.ArgumentMatchers.any(),
-                            org.mockito.ArgumentMatchers.anyString());
-            verify(imageOutboxManager, never())
+            verify(outboxTransactionManager, never())
+                    .markAsCompleted(org.mockito.ArgumentMatchers.any());
+            verify(outboxTransactionManager, never())
                     .markAsFailed(
                             org.mockito.ArgumentMatchers.any(),
                             org.mockito.ArgumentMatchers.anyString());
@@ -145,18 +157,28 @@ class HandleImageUploadWebhookServiceTest {
 
     // === Helper Methods ===
 
-    private CrawledProductImageOutbox createMockOutbox() {
-        return CrawledProductImageOutbox.reconstitute(
+    private ProductImageOutbox createMockOutbox() {
+        return ProductImageOutbox.reconstitute(
                 OUTBOX_ID,
-                PRODUCT_ID,
-                ORIGINAL_URL,
-                ImageType.THUMBNAIL,
-                IDEMPOTENCY_KEY,
-                null,
+                IMAGE_ID,
+                EXTERNAL_DOWNLOAD_ID,
                 ProductOutboxStatus.PROCESSING,
                 0,
                 null,
                 FIXED_INSTANT,
                 FIXED_INSTANT);
+    }
+
+    private CrawledProductImage createMockImage() {
+        return CrawledProductImage.reconstitute(
+                IMAGE_ID,
+                PRODUCT_ID,
+                ORIGINAL_URL,
+                ImageType.THUMBNAIL,
+                0,
+                null,
+                null,
+                FIXED_INSTANT,
+                null);
     }
 }

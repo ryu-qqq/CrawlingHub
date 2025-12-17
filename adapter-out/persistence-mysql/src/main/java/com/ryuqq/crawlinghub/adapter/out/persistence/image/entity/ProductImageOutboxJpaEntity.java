@@ -1,6 +1,5 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.image.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.image.entity;
 
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,27 +16,13 @@ import java.time.LocalDateTime;
  *
  * <p>Persistence Layer의 JPA Entity로서 product_image_outbox 테이블과 매핑됩니다.
  *
- * <p><strong>Outbox 패턴:</strong>
+ * <p><strong>Outbox 패턴</strong>:
  *
  * <ul>
- *   <li>CrawledProduct와 같은 트랜잭션에서 저장
+ *   <li>CrawledProductImage와 같은 트랜잭션에서 저장
  *   <li>별도 스케줄러/이벤트 리스너가 PENDING 상태 Outbox 조회 후 이미지 업로드 실행
  *   <li>업로드 성공 시 COMPLETED로 변경, 실패 시 FAILED로 변경 후 재시도
- * </ul>
- *
- * <p><strong>Long FK 전략:</strong>
- *
- * <ul>
- *   <li>JPA 관계 어노테이션 사용 금지
- *   <li>crawledProductId는 Long 타입으로 직접 관리
- * </ul>
- *
- * <p><strong>Lombok 금지:</strong>
- *
- * <ul>
- *   <li>Plain Java getter 사용
- *   <li>Setter 제공 금지
- *   <li>명시적 생성자 제공
+ *   <li>완료된 Outbox는 정리/삭제 가능
  * </ul>
  *
  * @author development-team
@@ -47,32 +32,18 @@ import java.time.LocalDateTime;
 @Table(name = "product_image_outbox")
 public class ProductImageOutboxJpaEntity {
 
-    /** 기본 키 (AUTO_INCREMENT) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    /** CrawledProduct ID (Long FK 전략) */
-    @Column(name = "crawled_product_id", nullable = false)
-    private Long crawledProductId;
-
-    /** 이미지 타입 (THUMBNAIL/DESCRIPTION) */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "image_type", nullable = false, length = 20)
-    private ImageType imageType;
-
-    /** 원본 이미지 URL */
-    @Column(name = "original_url", nullable = false, length = 2000)
-    private String originalUrl;
+    /** CrawledProductImage ID (새로운 FK) */
+    @Column(name = "crawled_product_image_id")
+    private Long crawledProductImageId;
 
     /** 멱등성 키 (중복 방지) */
     @Column(name = "idempotency_key", nullable = false, unique = true, length = 100)
     private String idempotencyKey;
-
-    /** 업로드된 S3 URL (완료 시 설정) */
-    @Column(name = "s3_url", length = 2000)
-    private String s3Url;
 
     /** 현재 상태 */
     @Enumerated(EnumType.STRING)
@@ -95,28 +66,50 @@ public class ProductImageOutboxJpaEntity {
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
-    /** JPA 기본 생성자 (protected) */
+    // ===== Legacy 필드 (V9 마이그레이션 중 유지, 추후 삭제 예정) =====
+
+    /**
+     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
+     */
+    @Deprecated
+    @Column(name = "crawled_product_id")
+    private Long crawledProductId;
+
+    /**
+     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
+     */
+    @Deprecated
+    @Column(name = "original_url", length = 2000)
+    private String originalUrl;
+
+    /**
+     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
+     */
+    @Deprecated
+    @Column(name = "s3_url", length = 2000)
+    private String s3Url;
+
+    /**
+     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
+     */
+    @Deprecated
+    @Column(name = "image_type", length = 20)
+    private String imageType;
+
     protected ProductImageOutboxJpaEntity() {}
 
-    /** 전체 필드 생성자 (private) */
     private ProductImageOutboxJpaEntity(
             Long id,
-            Long crawledProductId,
-            ImageType imageType,
-            String originalUrl,
+            Long crawledProductImageId,
             String idempotencyKey,
-            String s3Url,
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
             LocalDateTime createdAt,
             LocalDateTime processedAt) {
         this.id = id;
-        this.crawledProductId = crawledProductId;
-        this.imageType = imageType;
-        this.originalUrl = originalUrl;
+        this.crawledProductImageId = crawledProductImageId;
         this.idempotencyKey = idempotencyKey;
-        this.s3Url = s3Url;
         this.status = status;
         this.retryCount = retryCount;
         this.errorMessage = errorMessage;
@@ -125,32 +118,22 @@ public class ProductImageOutboxJpaEntity {
     }
 
     /**
-     * of() 스태틱 팩토리 메서드 (Mapper 전용)
+     * 스태틱 팩토리 메서드 (Mapper 전용)
      *
-     * <p>Entity 생성은 반드시 이 메서드를 통해서만 가능합니다.
-     *
-     * <p>Mapper에서 Domain -> Entity 변환 시 사용합니다.
-     *
-     * @param id ID (null이면 신규)
-     * @param crawledProductId CrawledProduct ID
-     * @param imageType 이미지 타입
-     * @param originalUrl 원본 URL
+     * @param id ID
+     * @param crawledProductImageId 이미지 ID
      * @param idempotencyKey 멱등성 키
-     * @param s3Url S3 URL
      * @param status 상태
      * @param retryCount 재시도 횟수
      * @param errorMessage 에러 메시지
      * @param createdAt 생성 일시
      * @param processedAt 처리 일시
-     * @return ProductImageOutboxJpaEntity 인스턴스
+     * @return ProductImageOutboxJpaEntity
      */
     public static ProductImageOutboxJpaEntity of(
             Long id,
-            Long crawledProductId,
-            ImageType imageType,
-            String originalUrl,
+            Long crawledProductImageId,
             String idempotencyKey,
-            String s3Url,
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
@@ -158,11 +141,8 @@ public class ProductImageOutboxJpaEntity {
             LocalDateTime processedAt) {
         return new ProductImageOutboxJpaEntity(
                 id,
-                crawledProductId,
-                imageType,
-                originalUrl,
+                crawledProductImageId,
                 idempotencyKey,
-                s3Url,
                 status,
                 retryCount,
                 errorMessage,
@@ -170,30 +150,18 @@ public class ProductImageOutboxJpaEntity {
                 processedAt);
     }
 
-    // ===== Getters (Setter 제공 금지) =====
+    // Getters
 
     public Long getId() {
         return id;
     }
 
-    public Long getCrawledProductId() {
-        return crawledProductId;
-    }
-
-    public ImageType getImageType() {
-        return imageType;
-    }
-
-    public String getOriginalUrl() {
-        return originalUrl;
+    public Long getCrawledProductImageId() {
+        return crawledProductImageId;
     }
 
     public String getIdempotencyKey() {
         return idempotencyKey;
-    }
-
-    public String getS3Url() {
-        return s3Url;
     }
 
     public ProductOutboxStatus getStatus() {
@@ -214,5 +182,39 @@ public class ProductImageOutboxJpaEntity {
 
     public LocalDateTime getProcessedAt() {
         return processedAt;
+    }
+
+    // Legacy Getters (deprecated)
+
+    /**
+     * @deprecated
+     */
+    @Deprecated
+    public Long getCrawledProductId() {
+        return crawledProductId;
+    }
+
+    /**
+     * @deprecated
+     */
+    @Deprecated
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    /**
+     * @deprecated
+     */
+    @Deprecated
+    public String getS3Url() {
+        return s3Url;
+    }
+
+    /**
+     * @deprecated
+     */
+    @Deprecated
+    public String getImageType() {
+        return imageType;
     }
 }

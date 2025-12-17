@@ -181,6 +181,7 @@ class ProcessMiniShopItemServiceTest {
                 null,
                 null,
                 null,
+                null,
                 "ACTIVE",
                 "Korea",
                 "Seoul",
