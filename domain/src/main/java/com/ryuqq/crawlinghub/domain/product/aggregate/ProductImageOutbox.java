@@ -1,64 +1,61 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * 이미지 업로드 Outbox
+ * 이미지 업로드 Outbox (작업 큐)
  *
  * <p>파일서버로 이미지 업로드 요청 상태를 관리합니다.
  *
  * <p><strong>Outbox 패턴 흐름</strong>:
  *
  * <pre>
- * 1. CrawledProduct 저장 시 ImageOutbox 함께 저장 (같은 트랜잭션)
+ * 1. CrawledProductImage 저장 시 ProductImageOutbox 함께 저장 (같은 트랜잭션)
  * 2. 이벤트 리스너 또는 스케줄러가 PENDING 상태 조회
  * 3. FileServer API 호출 성공 시 PROCESSING으로 변경
- * 4. 웹훅 수신 시 COMPLETED로 변경
- * 5. 실패 시 FAILED로 변경 후 재시도
+ * 4. 웹훅 수신 시 CrawledProductImage.s3Url 업데이트 + Outbox COMPLETED
+ * 5. 완료된 Outbox는 정리/삭제 가능
+ * </pre>
+ *
+ * <p><strong>CrawledProductImage와의 관계</strong>:
+ *
+ * <pre>
+ * ProductImageOutbox (N) ──→ (1) CrawledProductImage
+ * - crawledProductImageId로 참조
+ * - 재시도 시 새 Outbox 생성 가능
  * </pre>
  *
  * @author development-team
  * @since 1.0.0
  */
-public class CrawledProductImageOutbox {
+public class ProductImageOutbox {
 
     private static final int MAX_RETRY_COUNT = 3;
 
     private final Long id;
-    private final CrawledProductId crawledProductId;
-    private final String originalUrl;
-    private final ImageType imageType;
+    private final Long crawledProductImageId;
     private final String idempotencyKey;
-    private String s3Url;
     private ProductOutboxStatus status;
     private int retryCount;
     private String errorMessage;
     private final Instant createdAt;
     private Instant processedAt;
 
-    private CrawledProductImageOutbox(
+    private ProductImageOutbox(
             Long id,
-            CrawledProductId crawledProductId,
-            String originalUrl,
-            ImageType imageType,
+            Long crawledProductImageId,
             String idempotencyKey,
-            String s3Url,
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
             Instant createdAt,
             Instant processedAt) {
         this.id = id;
-        this.crawledProductId = crawledProductId;
-        this.originalUrl = originalUrl;
-        this.imageType = imageType;
+        this.crawledProductImageId = crawledProductImageId;
         this.idempotencyKey = idempotencyKey;
-        this.s3Url = s3Url;
         this.status = status;
         this.retryCount = retryCount;
         this.errorMessage = errorMessage;
@@ -66,21 +63,23 @@ public class CrawledProductImageOutbox {
         this.processedAt = processedAt;
     }
 
-    /** 신규 Outbox 생성 */
-    public static CrawledProductImageOutbox forNew(
-            CrawledProductId crawledProductId,
-            String originalUrl,
-            ImageType imageType,
-            Clock clock) {
-        String idempotencyKey = generateIdempotencyKey(crawledProductId, originalUrl);
+    /**
+     * 신규 Outbox 생성
+     *
+     * @param crawledProductImage 대상 이미지
+     * @param clock 시간 제어
+     * @return 새로운 ProductImageOutbox
+     */
+    public static ProductImageOutbox forNew(CrawledProductImage crawledProductImage, Clock clock) {
+        if (crawledProductImage.getId() == null) {
+            throw new IllegalArgumentException("CrawledProductImage는 먼저 저장되어야 합니다.");
+        }
+        String idempotencyKey = generateIdempotencyKey(crawledProductImage);
         Instant now = clock.instant();
-        return new CrawledProductImageOutbox(
+        return new ProductImageOutbox(
                 null,
-                crawledProductId,
-                originalUrl,
-                imageType,
+                crawledProductImage.getId(),
                 idempotencyKey,
-                null,
                 ProductOutboxStatus.PENDING,
                 0,
                 null,
@@ -88,26 +87,55 @@ public class CrawledProductImageOutbox {
                 null);
     }
 
-    /** 기존 데이터로 복원 (영속성 계층 전용) */
-    public static CrawledProductImageOutbox reconstitute(
+    /**
+     * 신규 Outbox 생성 (이미지 ID 직접 지정)
+     *
+     * @param crawledProductImageId 대상 이미지 ID
+     * @param originalUrl 원본 URL (멱등성 키 생성용)
+     * @param clock 시간 제어
+     * @return 새로운 ProductImageOutbox
+     */
+    public static ProductImageOutbox forNewWithImageId(
+            Long crawledProductImageId, String originalUrl, Clock clock) {
+        String idempotencyKey = generateIdempotencyKeyFromUrl(crawledProductImageId, originalUrl);
+        Instant now = clock.instant();
+        return new ProductImageOutbox(
+                null,
+                crawledProductImageId,
+                idempotencyKey,
+                ProductOutboxStatus.PENDING,
+                0,
+                null,
+                now,
+                null);
+    }
+
+    /**
+     * 기존 데이터로 복원 (영속성 계층 전용)
+     *
+     * @param id Outbox ID
+     * @param crawledProductImageId 이미지 ID
+     * @param idempotencyKey 멱등성 키
+     * @param status 상태
+     * @param retryCount 재시도 횟수
+     * @param errorMessage 에러 메시지
+     * @param createdAt 생성 일시
+     * @param processedAt 처리 일시
+     * @return 복원된 ProductImageOutbox
+     */
+    public static ProductImageOutbox reconstitute(
             Long id,
-            CrawledProductId crawledProductId,
-            String originalUrl,
-            ImageType imageType,
+            Long crawledProductImageId,
             String idempotencyKey,
-            String s3Url,
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
             Instant createdAt,
             Instant processedAt) {
-        return new CrawledProductImageOutbox(
+        return new ProductImageOutbox(
                 id,
-                crawledProductId,
-                originalUrl,
-                imageType,
+                crawledProductImageId,
                 idempotencyKey,
-                s3Url,
                 status,
                 retryCount,
                 errorMessage,
@@ -115,13 +143,18 @@ public class CrawledProductImageOutbox {
                 processedAt);
     }
 
-    private static String generateIdempotencyKey(
-            CrawledProductId crawledProductId, String originalUrl) {
+    private static String generateIdempotencyKey(CrawledProductImage image) {
         return String.format(
                 "img-%s-%s-%s",
-                crawledProductId.value(),
-                originalUrl.hashCode(),
+                image.getId(),
+                image.getOriginalUrl().hashCode(),
                 UUID.randomUUID().toString().substring(0, 8));
+    }
+
+    private static String generateIdempotencyKeyFromUrl(Long imageId, String originalUrl) {
+        return String.format(
+                "img-%s-%s-%s",
+                imageId, originalUrl.hashCode(), UUID.randomUUID().toString().substring(0, 8));
     }
 
     /**
@@ -137,14 +170,9 @@ public class CrawledProductImageOutbox {
     /**
      * 업로드 완료 (웹훅 수신)
      *
-     * @param s3Url S3 URL
      * @param clock 시간 제어
      */
-    public void markAsCompleted(String s3Url, Clock clock) {
-        if (s3Url == null || s3Url.isBlank()) {
-            throw new IllegalArgumentException("s3Url은 필수입니다.");
-        }
-        this.s3Url = s3Url;
+    public void markAsCompleted(Clock clock) {
         this.status = ProductOutboxStatus.COMPLETED;
         this.processedAt = clock.instant();
     }
@@ -185,34 +213,23 @@ public class CrawledProductImageOutbox {
         return this.status.isCompleted();
     }
 
+    /** 실패 상태인지 확인 */
+    public boolean isFailed() {
+        return this.status.isFailed();
+    }
+
     // Getters
 
     public Long getId() {
         return id;
     }
 
-    public CrawledProductId getCrawledProductId() {
-        return crawledProductId;
-    }
-
-    public Long getCrawledProductIdValue() {
-        return crawledProductId.value();
-    }
-
-    public String getOriginalUrl() {
-        return originalUrl;
-    }
-
-    public ImageType getImageType() {
-        return imageType;
+    public Long getCrawledProductImageId() {
+        return crawledProductImageId;
     }
 
     public String getIdempotencyKey() {
         return idempotencyKey;
-    }
-
-    public String getS3Url() {
-        return s3Url;
     }
 
     public ProductOutboxStatus getStatus() {

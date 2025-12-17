@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.image.repository;
+package com.ryuqq.crawlinghub.adapter.out.persistence.image.repository;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.image.entity.ProductImageOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

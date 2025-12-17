@@ -209,8 +209,8 @@ class CrawledProductQueryAdapterTest {
         LocalDateTime now = LocalDateTime.now();
         return CrawledProductJpaEntity.of(
                 id, sellerId, itemNo, "테스트 상품", "테스트 브랜드", 100000L, 90000L, 10, null, false, null,
-                null, null, "NORMAL", "대한민국", null, null, now, now, now, null, null, true, now,
-                now);
+                null, null, null, "NORMAL", "대한민국", null, null, now, now, now, null, null, true,
+                now, now);
     }
 
     private CrawledProduct createTestDomain(long id, long sellerId, long itemNo) {
@@ -227,6 +227,7 @@ class CrawledProductQueryAdapterTest {
                 price,
                 ProductImages.empty(),
                 false,
+                null,
                 null,
                 null,
                 null,

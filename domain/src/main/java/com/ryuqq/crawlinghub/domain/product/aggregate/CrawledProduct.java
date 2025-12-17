@@ -53,7 +53,8 @@ public class CrawledProduct {
     // DETAIL 데이터
     private ProductCategory category;
     private ShippingInfo shippingInfo;
-    private String descriptionMarkUp;
+    private String originalDescriptionMarkUp; // 비교 기준 (원본 URL 유지)
+    private String descriptionMarkUp; // 실제 사용 (S3 URL로 치환됨)
     private String itemStatus;
     private String originCountry;
     private String shippingLocation;
@@ -87,6 +88,7 @@ public class CrawledProduct {
             boolean freeShipping,
             ProductCategory category,
             ShippingInfo shippingInfo,
+            String originalDescriptionMarkUp,
             String descriptionMarkUp,
             String itemStatus,
             String originCountry,
@@ -108,6 +110,7 @@ public class CrawledProduct {
         this.freeShipping = freeShipping;
         this.category = category;
         this.shippingInfo = shippingInfo;
+        this.originalDescriptionMarkUp = originalDescriptionMarkUp;
         this.descriptionMarkUp = descriptionMarkUp;
         this.itemStatus = itemStatus;
         this.originCountry = originCountry;
@@ -157,7 +160,8 @@ public class CrawledProduct {
                 freeShipping,
                 null,
                 null,
-                null,
+                null, // originalDescriptionMarkUp
+                null, // descriptionMarkUp
                 null,
                 null,
                 null,
@@ -189,7 +193,8 @@ public class CrawledProduct {
                 crawlData.freeShipping(),
                 null,
                 null,
-                null,
+                null, // originalDescriptionMarkUp
+                null, // descriptionMarkUp
                 null,
                 null,
                 null,
@@ -214,6 +219,7 @@ public class CrawledProduct {
             boolean freeShipping,
             ProductCategory category,
             ShippingInfo shippingInfo,
+            String originalDescriptionMarkUp,
             String descriptionMarkUp,
             String itemStatus,
             String originCountry,
@@ -236,6 +242,7 @@ public class CrawledProduct {
                 freeShipping,
                 category,
                 shippingInfo,
+                originalDescriptionMarkUp,
                 descriptionMarkUp,
                 itemStatus,
                 originCountry,
@@ -344,6 +351,9 @@ public class CrawledProduct {
         // 상세 설명 변경 감지 및 이미지 교체
         boolean descriptionChanged = hasDescriptionChanged(descriptionMarkUp);
         if (descriptionChanged) {
+            // 비교 기준: 원본 URL 유지
+            this.originalDescriptionMarkUp = descriptionMarkUp;
+            // 실제 사용: 나중에 S3 URL로 치환됨
             this.descriptionMarkUp = descriptionMarkUp;
 
             // 상세 이미지가 변경되었으면 교체
@@ -380,6 +390,9 @@ public class CrawledProduct {
 
         boolean descriptionChanged = hasDescriptionChanged(crawlData.descriptionMarkUp());
         if (descriptionChanged) {
+            // 비교 기준: 원본 URL 유지
+            this.originalDescriptionMarkUp = crawlData.descriptionMarkUp();
+            // 실제 사용: 나중에 S3 URL로 치환됨
             this.descriptionMarkUp = crawlData.descriptionMarkUp();
 
             List<String> descriptionImages = crawlData.descriptionImages();
@@ -399,17 +412,20 @@ public class CrawledProduct {
     /**
      * 상세 설명 변경 여부 확인
      *
-     * @param newDescriptionMarkUp 새 상세 설명 HTML
+     * <p>원본 디스크립션(originalDescriptionMarkUp)과 비교합니다. 저장된 descriptionMarkUp은 S3 URL로 치환되어 있으므로 비교
+     * 기준으로 사용하면 안 됩니다.
+     *
+     * @param newDescriptionMarkUp 새 상세 설명 HTML (크롤링된 원본)
      * @return 변경되었으면 true
      */
     private boolean hasDescriptionChanged(String newDescriptionMarkUp) {
-        if (this.descriptionMarkUp == null && newDescriptionMarkUp == null) {
+        if (this.originalDescriptionMarkUp == null && newDescriptionMarkUp == null) {
             return false;
         }
-        if (this.descriptionMarkUp == null || newDescriptionMarkUp == null) {
+        if (this.originalDescriptionMarkUp == null || newDescriptionMarkUp == null) {
             return true;
         }
-        return !this.descriptionMarkUp.equals(newDescriptionMarkUp);
+        return !this.originalDescriptionMarkUp.equals(newDescriptionMarkUp);
     }
 
     // === OPTION 업데이트 ===
@@ -619,6 +635,10 @@ public class CrawledProduct {
 
     public ShippingInfo getShippingInfo() {
         return shippingInfo;
+    }
+
+    public String getOriginalDescriptionMarkUp() {
+        return originalDescriptionMarkUp;
     }
 
     public String getDescriptionMarkUp() {

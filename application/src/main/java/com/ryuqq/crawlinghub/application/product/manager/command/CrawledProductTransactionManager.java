@@ -75,6 +75,7 @@ public class CrawledProductTransactionManager {
                 product.isFreeShipping(),
                 product.getCategory(),
                 product.getShippingInfo(),
+                product.getOriginalDescriptionMarkUp(),
                 product.getDescriptionMarkUp(),
                 product.getItemStatus(),
                 product.getOriginCountry(),

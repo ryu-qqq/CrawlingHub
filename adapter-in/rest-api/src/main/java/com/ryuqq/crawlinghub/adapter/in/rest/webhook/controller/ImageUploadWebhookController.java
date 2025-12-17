@@ -75,9 +75,9 @@ public class ImageUploadWebhookController {
             @RequestBody @Valid ImageUploadWebhookApiRequest request) {
 
         log.info(
-                "이미지 업로드 웹훅 수신: idempotencyKey={}, eventType={}",
-                request.idempotencyKey(),
-                request.eventType());
+                "이미지 업로드 웹훅 수신: externalDownloadId={}, status={}",
+                request.externalDownloadId(),
+                request.status());
 
         ImageUploadWebhookCommand command = webhookApiMapper.toCommand(request);
         handleImageUploadWebhookUseCase.execute(command);

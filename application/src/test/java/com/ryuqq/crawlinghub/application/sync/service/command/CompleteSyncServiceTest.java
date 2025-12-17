@@ -107,6 +107,7 @@ class CompleteSyncServiceTest {
                 null,
                 null,
                 null,
+                null,
                 "ACTIVE",
                 "Korea",
                 "Seoul",

@@ -2,11 +2,10 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.product.image.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductImageOutboxFixture;
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.image.entity.ProductImageOutboxJpaEntity;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
+import com.ryuqq.cralwinghub.domain.fixture.product.ProductImageOutboxFixture;
+import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.image.mapper.ProductImageOutboxJpaEntityMapper;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,7 @@ class ProductImageOutboxJpaEntityMapperTest {
     @DisplayName("성공 - Domain -> Entity 변환 (PENDING 상태)")
     void shouldConvertDomainToEntityWithPendingStatus() {
         // Given
-        CrawledProductImageOutbox domain = CrawledProductImageOutboxFixture.aReconstitutedPending();
+        ProductImageOutbox domain = ProductImageOutboxFixture.aReconstitutedPending();
 
         // When
         ProductImageOutboxJpaEntity entity = mapper.toEntity(domain);
@@ -45,11 +44,8 @@ class ProductImageOutboxJpaEntityMapperTest {
         // Then
         assertThat(entity).isNotNull();
         assertThat(entity.getId()).isEqualTo(domain.getId());
-        assertThat(entity.getCrawledProductId()).isEqualTo(domain.getCrawledProductIdValue());
-        assertThat(entity.getImageType()).isEqualTo(domain.getImageType());
-        assertThat(entity.getOriginalUrl()).isEqualTo(domain.getOriginalUrl());
+        assertThat(entity.getCrawledProductImageId()).isEqualTo(domain.getCrawledProductImageId());
         assertThat(entity.getIdempotencyKey()).isEqualTo(domain.getIdempotencyKey());
-        assertThat(entity.getS3Url()).isNull();
         assertThat(entity.getStatus()).isEqualTo(ProductOutboxStatus.PENDING);
         assertThat(entity.getRetryCount()).isEqualTo(0);
     }
@@ -58,8 +54,7 @@ class ProductImageOutboxJpaEntityMapperTest {
     @DisplayName("성공 - Domain -> Entity 변환 (COMPLETED 상태)")
     void shouldConvertDomainToEntityWithCompletedStatus() {
         // Given
-        CrawledProductImageOutbox domain =
-                CrawledProductImageOutboxFixture.aReconstitutedCompleted();
+        ProductImageOutbox domain = ProductImageOutboxFixture.aReconstitutedCompleted();
 
         // When
         ProductImageOutboxJpaEntity entity = mapper.toEntity(domain);
@@ -67,15 +62,13 @@ class ProductImageOutboxJpaEntityMapperTest {
         // Then
         assertThat(entity).isNotNull();
         assertThat(entity.getStatus()).isEqualTo(ProductOutboxStatus.COMPLETED);
-        assertThat(entity.getS3Url())
-                .isEqualTo("https://s3.amazonaws.com/bucket/uploaded-image.jpg");
     }
 
     @Test
     @DisplayName("성공 - Domain -> Entity 변환 (FAILED 상태)")
     void shouldConvertDomainToEntityWithFailedStatus() {
         // Given
-        CrawledProductImageOutbox domain = CrawledProductImageOutboxFixture.aReconstitutedFailed();
+        ProductImageOutbox domain = ProductImageOutboxFixture.aReconstitutedFailed();
 
         // When
         ProductImageOutboxJpaEntity entity = mapper.toEntity(domain);
@@ -95,11 +88,8 @@ class ProductImageOutboxJpaEntityMapperTest {
         ProductImageOutboxJpaEntity entity =
                 ProductImageOutboxJpaEntity.of(
                         1L,
-                        1L,
-                        ImageType.THUMBNAIL,
-                        "https://example.com/image.jpg",
+                        1L, // crawledProductImageId
                         "img-1-12345-abc123",
-                        null,
                         ProductOutboxStatus.PENDING,
                         0,
                         null,
@@ -107,14 +97,12 @@ class ProductImageOutboxJpaEntityMapperTest {
                         null);
 
         // When
-        CrawledProductImageOutbox domain = mapper.toDomain(entity);
+        ProductImageOutbox domain = mapper.toDomain(entity);
 
         // Then
         assertThat(domain).isNotNull();
         assertThat(domain.getId()).isEqualTo(1L);
-        assertThat(domain.getCrawledProductId()).isEqualTo(CrawledProductId.of(1L));
-        assertThat(domain.getImageType()).isEqualTo(ImageType.THUMBNAIL);
-        assertThat(domain.getOriginalUrl()).isEqualTo("https://example.com/image.jpg");
+        assertThat(domain.getCrawledProductImageId()).isEqualTo(1L);
         assertThat(domain.getIdempotencyKey()).isEqualTo("img-1-12345-abc123");
         assertThat(domain.getStatus()).isEqualTo(ProductOutboxStatus.PENDING);
         assertThat(domain.isPending()).isTrue();
@@ -129,10 +117,7 @@ class ProductImageOutboxJpaEntityMapperTest {
                 ProductImageOutboxJpaEntity.of(
                         1L,
                         1L,
-                        ImageType.DESCRIPTION,
-                        "https://example.com/detail-image.jpg",
                         "img-1-67890-def456",
-                        "https://s3.amazonaws.com/bucket/uploaded.jpg",
                         ProductOutboxStatus.COMPLETED,
                         0,
                         null,
@@ -140,13 +125,11 @@ class ProductImageOutboxJpaEntityMapperTest {
                         now);
 
         // When
-        CrawledProductImageOutbox domain = mapper.toDomain(entity);
+        ProductImageOutbox domain = mapper.toDomain(entity);
 
         // Then
         assertThat(domain).isNotNull();
         assertThat(domain.getStatus()).isEqualTo(ProductOutboxStatus.COMPLETED);
-        assertThat(domain.getS3Url()).isEqualTo("https://s3.amazonaws.com/bucket/uploaded.jpg");
-        assertThat(domain.getImageType()).isEqualTo(ImageType.DESCRIPTION);
         assertThat(domain.isCompleted()).isTrue();
     }
 
@@ -159,10 +142,7 @@ class ProductImageOutboxJpaEntityMapperTest {
                 ProductImageOutboxJpaEntity.of(
                         1L,
                         1L,
-                        ImageType.THUMBNAIL,
-                        "https://example.com/image.jpg",
                         "img-1-12345-abc123",
-                        null,
                         ProductOutboxStatus.FAILED,
                         2,
                         "Upload timeout",
@@ -170,7 +150,7 @@ class ProductImageOutboxJpaEntityMapperTest {
                         now);
 
         // When
-        CrawledProductImageOutbox domain = mapper.toDomain(entity);
+        ProductImageOutbox domain = mapper.toDomain(entity);
 
         // Then
         assertThat(domain).isNotNull();

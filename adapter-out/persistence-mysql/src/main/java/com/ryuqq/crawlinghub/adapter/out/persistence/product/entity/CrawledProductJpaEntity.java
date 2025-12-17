@@ -99,7 +99,12 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
     @Column(name = "shipping_info_json", length = 1000)
     private String shippingInfoJson;
 
-    /** 상세 설명 HTML */
+    /** 원본 상세 설명 HTML (비교 기준, 원본 URL 유지) */
+    @Lob
+    @Column(name = "original_description_mark_up", columnDefinition = "LONGTEXT")
+    private String originalDescriptionMarkUp;
+
+    /** 상세 설명 HTML (실제 사용, S3 URL로 치환됨) */
     @Lob
     @Column(name = "description_mark_up", columnDefinition = "LONGTEXT")
     private String descriptionMarkUp;
@@ -168,6 +173,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
             boolean freeShipping,
             String categoryJson,
             String shippingInfoJson,
+            String originalDescriptionMarkUp,
             String descriptionMarkUp,
             String itemStatus,
             String originCountry,
@@ -194,6 +200,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
         this.freeShipping = freeShipping;
         this.categoryJson = categoryJson;
         this.shippingInfoJson = shippingInfoJson;
+        this.originalDescriptionMarkUp = originalDescriptionMarkUp;
         this.descriptionMarkUp = descriptionMarkUp;
         this.itemStatus = itemStatus;
         this.originCountry = originCountry;
@@ -221,6 +228,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
             boolean freeShipping,
             String categoryJson,
             String shippingInfoJson,
+            String originalDescriptionMarkUp,
             String descriptionMarkUp,
             String itemStatus,
             String originCountry,
@@ -247,6 +255,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
                 freeShipping,
                 categoryJson,
                 shippingInfoJson,
+                originalDescriptionMarkUp,
                 descriptionMarkUp,
                 itemStatus,
                 originCountry,
@@ -310,6 +319,10 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
 
     public String getShippingInfoJson() {
         return shippingInfoJson;
+    }
+
+    public String getOriginalDescriptionMarkUp() {
+        return originalDescriptionMarkUp;
     }
 
     public String getDescriptionMarkUp() {
