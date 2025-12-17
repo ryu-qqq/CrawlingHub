@@ -343,6 +343,9 @@ module "ecs_service" {
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task" },
     { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger" },
     { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" },
+    # Fileflow Client 설정 (이미지 업로드 서비스)
+    { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
+    { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" },
     # Service Token 인증 활성화 (서버 간 내부 통신용)
     { name = "SECURITY_SERVICE_TOKEN_ENABLED", value = "true" }
   ]
