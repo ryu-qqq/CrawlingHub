@@ -97,6 +97,24 @@
         <Bug pattern="SE_BAD_FIELD"/>
     </Match>
 
+    <!-- Test code: Null passed for non-null parameter (intentional for edge case testing) -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NP_NONNULL_PARAM_VIOLATION"/>
+    </Match>
+
+    <!-- Test code: Inner classes named *Exception for test organization (not actual exceptions) -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+    </Match>
+
+    <!-- Test code: Possible null pointer dereference from method returns (intentional in tests) -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
     <!-- ========================================
          Configuration Classes
          ======================================== -->
@@ -257,6 +275,16 @@
 
     <Match>
         <Class name="~.*Scheduler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Facade"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Service"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 

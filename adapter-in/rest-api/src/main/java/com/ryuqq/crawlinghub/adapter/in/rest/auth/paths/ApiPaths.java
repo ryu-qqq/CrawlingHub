@@ -94,6 +94,18 @@ public final class ApiPaths {
         private UserAgents() {}
     }
 
+    /**
+     * CrawledProduct 관련 API 경로
+     *
+     * <p>크롤링된 상품 관리 API입니다. @PreAuthorize로 권한 검사를 수행합니다.
+     */
+    public static final class CrawledProducts {
+        public static final String BASE = CRAWLING_SERVICE_BASE + "/crawled-products";
+        public static final String BY_ID = "/{id}";
+
+        private CrawledProducts() {}
+    }
+
     /** 헬스체크 및 모니터링 API 경로 */
     public static final class Actuator {
         public static final String BASE = "/actuator";

@@ -1,22 +1,34 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
+import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse.HealthScoreStats;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentPoolStatusUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentsUseCase;
+import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -36,6 +48,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
+
+    @MockitoBean private GetUserAgentsUseCase getUserAgentsUseCase;
 
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
@@ -110,6 +124,175 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.isHealthy")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("Pool 상태 건강 여부 (가용률 >= 50%일 때 true)"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/crawling/user-agents - UserAgent 목록 조회 API 문서")
+    void getUserAgents() throws Exception {
+        // given
+        Instant now = Instant.parse("2025-11-20T10:30:00Z");
+
+        List<UserAgentSummaryResponse> content =
+                List.of(
+                        UserAgentSummaryResponse.of(
+                                1L,
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                DeviceType.of("DESKTOP"),
+                                UserAgentStatus.AVAILABLE,
+                                95,
+                                150,
+                                now,
+                                now),
+                        UserAgentSummaryResponse.of(
+                                2L,
+                                "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0)",
+                                DeviceType.of("MOBILE"),
+                                UserAgentStatus.SUSPENDED,
+                                60,
+                                80,
+                                now,
+                                now));
+
+        PageResponse<UserAgentSummaryResponse> useCaseResponse =
+                new PageResponse<>(content, 0, 20, 2, 1, true, true);
+
+        List<UserAgentSummaryApiResponse> apiContent =
+                List.of(
+                        new UserAgentSummaryApiResponse(
+                                1L,
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                DeviceType.of("DESKTOP"),
+                                UserAgentStatus.AVAILABLE,
+                                95,
+                                150,
+                                now,
+                                now),
+                        new UserAgentSummaryApiResponse(
+                                2L,
+                                "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0)",
+                                DeviceType.of("MOBILE"),
+                                UserAgentStatus.SUSPENDED,
+                                60,
+                                80,
+                                now,
+                                now));
+
+        PageApiResponse<UserAgentSummaryApiResponse> apiResponse =
+                new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
+
+        given(getUserAgentsUseCase.execute(any())).willReturn(useCaseResponse);
+        given(userAgentApiMapper.toSummaryApiResponse(any(UserAgentSummaryResponse.class)))
+                .willReturn(apiContent.get(0), apiContent.get(1));
+
+        // when & then
+        mockMvc.perform(
+                        get("/api/v1/crawling/user-agents")
+                                .param("status", "AVAILABLE")
+                                .param("page", "0")
+                                .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.totalElements").value(2))
+                .andDo(
+                        document(
+                                "useragent-query/list",
+                                RestDocsSecuritySnippets.authorization("useragent:read"),
+                                queryParameters(
+                                        parameterWithName("status")
+                                                .description(
+                                                        "UserAgent 상태 필터 (AVAILABLE, SUSPENDED,"
+                                                                + " BLOCKED, 선택)")
+                                                .optional(),
+                                        parameterWithName("page")
+                                                .description("페이지 번호 (0부터 시작, 기본값: 0)")
+                                                .optional(),
+                                        parameterWithName("size")
+                                                .description("페이지 크기 (기본값: 20, 최대: 100)")
+                                                .optional()),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.content")
+                                                .type(JsonFieldType.ARRAY)
+                                                .description("UserAgent 목록"),
+                                        fieldWithPath("data.content[].id")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("UserAgent ID"),
+                                        fieldWithPath("data.content[].userAgentValue")
+                                                .type(JsonFieldType.STRING)
+                                                .description("User-Agent 문자열 (최대 100자)"),
+                                        fieldWithPath("data.content[].deviceType")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("디바이스 타입"),
+                                        fieldWithPath("data.content[].deviceType.type")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "디바이스 타입 Enum 값 (DESKTOP, MOBILE, TABLET)"),
+                                        fieldWithPath("data.content[].deviceType.typeName")
+                                                .type(JsonFieldType.STRING)
+                                                .description("디바이스 타입 이름"),
+                                        fieldWithPath("data.content[].deviceType.displayName")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "디바이스 표시 이름 (Desktop, Mobile, Tablet)"),
+                                        fieldWithPath("data.content[].deviceType.mobile")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("모바일 디바이스 여부"),
+                                        fieldWithPath("data.content[].deviceType.tablet")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("태블릿 디바이스 여부"),
+                                        fieldWithPath("data.content[].deviceType.desktop")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("데스크톱 디바이스 여부"),
+                                        fieldWithPath("data.content[].status")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "현재 상태 (AVAILABLE, SUSPENDED, BLOCKED)"),
+                                        fieldWithPath("data.content[].healthScore")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("건강 점수 (0-100)"),
+                                        fieldWithPath("data.content[].requestsPerDay")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("일일 요청 수"),
+                                        fieldWithPath("data.content[].lastUsedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("마지막 사용 시각"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.page")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("현재 페이지 번호"),
+                                        fieldWithPath("data.size")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("페이지 크기"),
+                                        fieldWithPath("data.totalElements")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("전체 데이터 개수"),
+                                        fieldWithPath("data.totalPages")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("전체 페이지 수"),
+                                        fieldWithPath("data.first")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("첫 페이지 여부"),
+                                        fieldWithPath("data.last")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("마지막 페이지 여부"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

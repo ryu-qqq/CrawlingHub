@@ -37,6 +37,13 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ========================================
+# Service Token Secret (for internal service communication)
+# ========================================
+data "aws_ssm_parameter" "service_token_secret" {
+  name = "/shared/security/service-token-secret"
+}
+
+# ========================================
 # Security Group (using Infrastructure module)
 # ========================================
 
@@ -335,12 +342,16 @@ module "ecs_service" {
     { name = "REDIS_PORT", value = local.redis_port },
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task" },
     { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger" },
-    { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" }
+    { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" },
+    # Service Token 인증 활성화 (서버 간 내부 통신용)
+    { name = "SECURITY_SERVICE_TOKEN_ENABLED", value = "true" }
   ]
 
   # Container Secrets
   container_secrets = [
-    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" }
+    { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" },
+    # Service Token Secret (서버 간 내부 통신 인증용)
+    { name = "SECURITY_SERVICE_TOKEN_SECRET", valueFrom = data.aws_ssm_parameter.service_token_secret.arn }
   ]
 
   # Health Check

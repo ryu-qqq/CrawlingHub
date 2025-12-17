@@ -75,4 +75,36 @@ public interface ImageOutboxQueryPort {
      */
     boolean existsByCrawledProductIdAndOriginalUrl(
             CrawledProductId crawledProductId, String originalUrl);
+
+    /**
+     * 이미 존재하는 원본 URL 목록 조회 (IN 절 배치 쿼리)
+     *
+     * <p>N+1 문제 해결을 위해 한 번의 쿼리로 존재하는 URL 목록을 반환합니다.
+     *
+     * @param crawledProductId CrawledProduct ID
+     * @param originalUrls 확인할 원본 URL 목록
+     * @return 이미 존재하는 원본 URL 목록
+     */
+    List<String> findExistingOriginalUrls(
+            CrawledProductId crawledProductId, List<String> originalUrls);
+
+    /**
+     * CrawledProduct ID와 원본 URL로 ImageOutbox 조회
+     *
+     * @param crawledProductId CrawledProduct ID
+     * @param originalUrl 원본 URL
+     * @return ImageOutbox (Optional)
+     */
+    Optional<CrawledProductImageOutbox> findByCrawledProductIdAndOriginalUrl(
+            CrawledProductId crawledProductId, String originalUrl);
+
+    /**
+     * CrawledProduct ID와 원본 URL 목록으로 ImageOutbox 배치 조회
+     *
+     * @param crawledProductId CrawledProduct ID
+     * @param originalUrls 원본 URL 목록
+     * @return ImageOutbox 목록
+     */
+    List<CrawledProductImageOutbox> findByCrawledProductIdAndOriginalUrls(
+            CrawledProductId crawledProductId, List<String> originalUrls);
 }

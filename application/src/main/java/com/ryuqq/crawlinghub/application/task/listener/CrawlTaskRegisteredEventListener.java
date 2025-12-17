@@ -9,9 +9,8 @@ import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * CrawlTask 등록 이벤트 리스너
@@ -35,7 +34,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @since 1.0.0
  */
 @Component
-@ConditionalOnProperty(name = "app.messaging.sqs.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+        name = "app.messaging.sqs.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 public class CrawlTaskRegisteredEventListener {
 
     private static final Logger log =
@@ -61,7 +63,7 @@ public class CrawlTaskRegisteredEventListener {
      *
      * @param event CrawlTask 등록 이벤트
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleCrawlTaskRegistered(CrawlTaskRegisteredEvent event) {
         log.info(
                 "CrawlTask 등록 이벤트 처리 시작: taskId={}, schedulerId={}, sellerId={}, taskType={}",

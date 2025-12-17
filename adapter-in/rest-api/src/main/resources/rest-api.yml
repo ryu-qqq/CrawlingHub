@@ -9,6 +9,26 @@
 # ===============================================
 
 # ===============================================
+# Security Configuration
+# ===============================================
+# Gateway 및 서비스 간 내부 통신 보안 설정
+security:
+  # Gateway 헤더 설정
+  gateway:
+    user-id-header: X-User-Id
+    user-roles-header: X-User-Roles
+    tenant-id-header: X-Tenant-Id
+    organization-id-header: X-Organization-Id
+    permissions-header: X-Permissions
+
+  # Service Token 인증 설정 (서버 간 내부 통신용)
+  # SSM Parameter Store에서 환경변수로 주입됨
+  # @see ServiceTokenProperties
+  service-token:
+    enabled: ${SECURITY_SERVICE_TOKEN_ENABLED:false}
+    secret: ${SECURITY_SERVICE_TOKEN_SECRET:}
+
+# ===============================================
 # API Endpoint Configuration
 # ===============================================
 # REST API 엔드포인트 경로 중앙 관리

@@ -1,0 +1,43 @@
+# ========================================
+# Fileflow Client Configuration
+# ========================================
+# Fileflow 서버 연동 설정
+# 이미지 업로드 요청 및 상태 조회 API 호출
+# ========================================
+
+fileflow:
+  client:
+    base-url: ${FILEFLOW_BASE_URL:http://localhost:8090}
+    callback-url: ${FILEFLOW_CALLBACK_URL:http://localhost:8080/api/v1/webhook/image-upload}
+    connect-timeout: 5000
+    read-timeout: 30000
+
+---
+# ========================================
+# Local Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+fileflow:
+  client:
+    base-url: http://localhost:8090
+    callback-url: http://localhost:8080/api/v1/webhook/image-upload
+
+---
+# ========================================
+# Production Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+fileflow:
+  client:
+    base-url: ${FILEFLOW_BASE_URL}
+    callback-url: ${FILEFLOW_CALLBACK_URL}
+    connect-timeout: 10000
+    read-timeout: 60000

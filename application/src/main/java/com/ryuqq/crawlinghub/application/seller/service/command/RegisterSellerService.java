@@ -13,7 +13,6 @@ import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameExceptio
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Register Seller Service
@@ -49,7 +48,6 @@ public class RegisterSellerService implements RegisterSellerUseCase {
     }
 
     @Override
-    @Transactional
     public SellerResponse execute(RegisterSellerCommand command) {
         // 1. 비즈니스 검증 (Service 책임)
         validateMustItSellerNameDuplicate(command.mustItSellerName());

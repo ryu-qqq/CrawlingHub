@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
+import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -225,6 +226,35 @@ public class CrawledProductSyncOutbox {
     /** 갱신 요청인지 확인 */
     public boolean isUpdateRequest() {
         return this.syncType == SyncType.UPDATE;
+    }
+
+    // === Event 생성 ===
+
+    /**
+     * 동기화 요청 이벤트 생성
+     *
+     * <p>Outbox의 데이터를 기반으로 ExternalSyncRequestedEvent를 생성합니다. 이벤트 발행은 TransactionEventRegistry를 통해
+     * 트랜잭션 커밋 후에 수행되어야 합니다.
+     *
+     * @param clock 시간 제어
+     * @return 동기화 요청 이벤트
+     */
+    public ExternalSyncRequestedEvent createSyncRequestedEvent(Clock clock) {
+        ExternalSyncRequestedEvent.SyncType eventSyncType = mapToEventSyncType();
+        return new ExternalSyncRequestedEvent(
+                this.crawledProductId,
+                this.sellerId,
+                this.itemNo,
+                this.idempotencyKey,
+                eventSyncType,
+                clock.instant());
+    }
+
+    private ExternalSyncRequestedEvent.SyncType mapToEventSyncType() {
+        return switch (this.syncType) {
+            case CREATE -> ExternalSyncRequestedEvent.SyncType.CREATE;
+            case UPDATE -> ExternalSyncRequestedEvent.SyncType.UPDATE;
+        };
     }
 
     // Getters

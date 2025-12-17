@@ -3,7 +3,9 @@ package com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,5 +63,23 @@ public class UserAgentApiMapper {
      */
     public RecoverUserAgentApiResponse toRecoverApiResponse(int recoveredCount) {
         return RecoverUserAgentApiResponse.of(recoveredCount);
+    }
+
+    /**
+     * UserAgentSummaryResponse → UserAgentSummaryApiResponse 변환
+     *
+     * @param appResponse Application Layer 요약 응답
+     * @return REST API 요약 응답
+     */
+    public UserAgentSummaryApiResponse toSummaryApiResponse(UserAgentSummaryResponse appResponse) {
+        return new UserAgentSummaryApiResponse(
+                appResponse.id(),
+                appResponse.userAgentValue(),
+                appResponse.deviceType(),
+                appResponse.status(),
+                appResponse.healthScore(),
+                appResponse.requestsPerDay(),
+                appResponse.lastUsedAt(),
+                appResponse.createdAt());
     }
 }
