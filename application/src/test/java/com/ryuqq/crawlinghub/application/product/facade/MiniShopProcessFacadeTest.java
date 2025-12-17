@@ -8,15 +8,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.MiniShopProcessBundle;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
-import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
@@ -59,13 +56,9 @@ class MiniShopProcessFacadeTest {
 
     @Mock private ImageOutboxReadManager imageOutboxReadManager;
 
-    @Mock private ImageOutboxManager imageOutboxManager;
+    @Mock private ImageUploadBundleFactory imageUploadBundleFactory;
 
-    @Mock private TransactionEventRegistry eventRegistry;
-
-    @Captor private ArgumentCaptor<List<CrawledProductImageOutbox>> outboxListCaptor;
-
-    @Captor private ArgumentCaptor<ImageUploadRequestedEvent> eventCaptor;
+    @Captor private ArgumentCaptor<ImageUploadData> imageUploadDataCaptor;
 
     private MiniShopProcessFacade facade;
 
@@ -73,11 +66,7 @@ class MiniShopProcessFacadeTest {
     void setUp() {
         facade =
                 new MiniShopProcessFacade(
-                        crawledProductManager,
-                        imageOutboxReadManager,
-                        imageOutboxManager,
-                        eventRegistry,
-                        FIXED_CLOCK);
+                        crawledProductManager, imageOutboxReadManager, imageUploadBundleFactory);
     }
 
     @Nested
@@ -85,8 +74,8 @@ class MiniShopProcessFacadeTest {
     class CreateAndRequestImageUpload {
 
         @Test
-        @DisplayName("[성공] 이미지가 있는 경우 → Product 생성 + Outbox 저장 + Event 등록")
-        void shouldCreateProductAndSaveOutboxAndRegisterEventWhenImagesExist() {
+        @DisplayName("[성공] 이미지가 있는 경우 → Product 생성 + Factory로 이미지 처리 위임")
+        void shouldCreateProductAndDelegateToFactoryWhenImagesExist() {
             // Given
             List<String> imageUrls =
                     List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg");
@@ -103,19 +92,16 @@ class MiniShopProcessFacadeTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
-            // Outbox 저장 검증
-            verify(imageOutboxManager, times(1)).persistAll(outboxListCaptor.capture());
-            List<CrawledProductImageOutbox> savedOutboxes = outboxListCaptor.getValue();
-            assertThat(savedOutboxes).hasSize(2);
-
-            // Event 등록 검증
-            verify(eventRegistry, times(1)).registerForPublish(eventCaptor.capture());
-            ImageUploadRequestedEvent event = eventCaptor.getValue();
-            assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
+            // Factory 호출 검증
+            verify(imageUploadBundleFactory, times(1))
+                    .processImageUpload(imageUploadDataCaptor.capture());
+            ImageUploadData capturedData = imageUploadDataCaptor.getValue();
+            assertThat(capturedData.crawledProductId()).isEqualTo(PRODUCT_ID);
+            assertThat(capturedData.imageUrls()).hasSize(2);
         }
 
         @Test
-        @DisplayName("[성공] 이미지가 없는 경우 → Product 생성만 수행 (Outbox/Event 생략)")
+        @DisplayName("[성공] 이미지가 없는 경우 → Product 생성만 수행 (Factory 호출 안 함)")
         void shouldOnlyCreateProductWhenNoImages() {
             // Given
             MiniShopProcessBundle bundle = createBundleWithoutImages();
@@ -131,11 +117,8 @@ class MiniShopProcessFacadeTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
-            // Outbox 저장 안 함 검증
-            verify(imageOutboxManager, never()).persistAll(anyList());
-
-            // Event 등록 안 함 검증
-            verify(eventRegistry, never()).registerForPublish(any());
+            // Factory 호출 안 함 검증
+            verify(imageUploadBundleFactory, never()).processImageUpload(any());
         }
     }
 
@@ -144,8 +127,8 @@ class MiniShopProcessFacadeTest {
     class UpdateAndRequestImageUpload {
 
         @Test
-        @DisplayName("[성공] 새로운 이미지가 있는 경우 → Product 업데이트 + Outbox 저장 + Event 등록")
-        void shouldUpdateProductAndSaveOutboxAndRegisterEventWhenNewImagesExist() {
+        @DisplayName("[성공] 새로운 이미지가 있는 경우 → Product 업데이트 + Factory로 이미지 처리 위임")
+        void shouldUpdateProductAndDelegateToFactoryWhenNewImagesExist() {
             // Given
             List<String> imageUrls =
                     List.of(
@@ -176,20 +159,17 @@ class MiniShopProcessFacadeTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
-            // Outbox 저장 검증
-            verify(imageOutboxManager, times(1)).persistAll(outboxListCaptor.capture());
-            List<CrawledProductImageOutbox> savedOutboxes = outboxListCaptor.getValue();
-            assertThat(savedOutboxes).hasSize(2);
-
-            // Event 등록 검증
-            verify(eventRegistry, times(1)).registerForPublish(eventCaptor.capture());
-            ImageUploadRequestedEvent event = eventCaptor.getValue();
-            assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
+            // Factory 호출 검증
+            verify(imageUploadBundleFactory, times(1))
+                    .processImageUpload(imageUploadDataCaptor.capture());
+            ImageUploadData capturedData = imageUploadDataCaptor.getValue();
+            assertThat(capturedData.crawledProductId()).isEqualTo(PRODUCT_ID);
+            assertThat(capturedData.imageUrls()).hasSize(2);
         }
 
         @Test
-        @DisplayName("[성공] 기존 URL 필터링 → 새로운 URL만 Outbox 저장")
-        void shouldFilterExistingUrlsAndSaveOnlyNewUrls() {
+        @DisplayName("[성공] 기존 URL 필터링 → 새로운 URL만 Factory에 전달")
+        void shouldFilterExistingUrlsAndPassOnlyNewUrlsToFactory() {
             // Given
             List<String> allUrls =
                     List.of("https://example.com/existing.jpg", "https://example.com/new.jpg");
@@ -219,18 +199,17 @@ class MiniShopProcessFacadeTest {
             // Then
             assertThat(result).isNotNull();
 
-            // Outbox는 새로운 URL 1개만 저장
-            verify(imageOutboxManager, times(1)).persistAll(outboxListCaptor.capture());
-            List<CrawledProductImageOutbox> savedOutboxes = outboxListCaptor.getValue();
-            assertThat(savedOutboxes).hasSize(1);
-
-            // Event 등록 검증
-            verify(eventRegistry, times(1)).registerForPublish(any());
+            // Factory에 새로운 URL 1개만 전달 검증
+            verify(imageUploadBundleFactory, times(1))
+                    .processImageUpload(imageUploadDataCaptor.capture());
+            ImageUploadData capturedData = imageUploadDataCaptor.getValue();
+            assertThat(capturedData.imageUrls()).hasSize(1);
+            assertThat(capturedData.imageUrls()).containsExactly("https://example.com/new.jpg");
         }
 
         @Test
-        @DisplayName("[성공] 모든 URL이 기존에 존재 → Outbox/Event 생략")
-        void shouldSkipOutboxAndEventWhenAllUrlsExist() {
+        @DisplayName("[성공] 모든 URL이 기존에 존재 → Factory 호출 안 함")
+        void shouldSkipFactoryWhenAllUrlsExist() {
             // Given
             List<String> allUrls =
                     List.of(
@@ -261,11 +240,8 @@ class MiniShopProcessFacadeTest {
             // Then
             assertThat(result).isNotNull();
 
-            // Outbox 저장 안 함 검증
-            verify(imageOutboxManager, never()).persistAll(anyList());
-
-            // Event 등록 안 함 검증
-            verify(eventRegistry, never()).registerForPublish(any());
+            // Factory 호출 안 함 검증
+            verify(imageUploadBundleFactory, never()).processImageUpload(any());
         }
 
         @Test
@@ -296,11 +272,8 @@ class MiniShopProcessFacadeTest {
             verify(imageOutboxReadManager, never())
                     .filterNewImageUrls(any(CrawledProductId.class), anyList());
 
-            // Outbox 저장 안 함 검증
-            verify(imageOutboxManager, never()).persistAll(anyList());
-
-            // Event 등록 안 함 검증
-            verify(eventRegistry, never()).registerForPublish(any());
+            // Factory 호출 안 함 검증
+            verify(imageUploadBundleFactory, never()).processImageUpload(any());
         }
     }
 
@@ -351,6 +324,7 @@ class MiniShopProcessFacadeTest {
                 ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,
+                null,
                 null,
                 null,
                 null,

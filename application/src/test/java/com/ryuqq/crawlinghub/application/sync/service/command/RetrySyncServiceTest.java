@@ -251,6 +251,7 @@ class RetrySyncServiceTest {
                 null,
                 null,
                 null,
+                null,
                 "ACTIVE",
                 "Korea",
                 "Seoul",

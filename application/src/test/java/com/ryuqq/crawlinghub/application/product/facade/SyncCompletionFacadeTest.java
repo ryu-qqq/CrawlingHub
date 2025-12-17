@@ -200,6 +200,7 @@ class SyncCompletionFacadeTest {
                 ProductCategory.of("100", "Women", "110", "Clothing", "111", "Dresses"),
                 null,
                 "<p>Test Description</p>",
+                "<p>Test Description</p>",
                 "ACTIVE",
                 "Korea",
                 "Seoul",

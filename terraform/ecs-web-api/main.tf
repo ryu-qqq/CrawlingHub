@@ -383,7 +383,10 @@ module "ecs_service" {
     { name = "EVENTBRIDGE_TARGET_ARN", value = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value },
     { name = "EVENTBRIDGE_ROLE_ARN", value = data.aws_ssm_parameter.eventbridge_role_arn.value },
     # Service Token 인증 활성화 (서버 간 내부 통신용)
-    { name = "SECURITY_SERVICE_TOKEN_ENABLED", value = "true" }
+    { name = "SECURITY_SERVICE_TOKEN_ENABLED", value = "true" },
+    # Fileflow Client 설정 (내부 VPC Service Discovery 통신)
+    { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
+    { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" }
   ]
 
   # Container Secrets

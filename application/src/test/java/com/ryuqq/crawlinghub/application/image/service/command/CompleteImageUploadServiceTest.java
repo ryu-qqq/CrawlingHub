@@ -8,9 +8,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
+import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadCompletedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
@@ -43,12 +45,16 @@ class CompleteImageUploadServiceTest {
     private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final Long OUTBOX_ID = 100L;
+    private static final Long IMAGE_ID = 1L;
     private static final String ORIGINAL_URL = "https://example.com/original.jpg";
     private static final String S3_URL = "https://s3.amazonaws.com/bucket/uploaded.jpg";
+    private static final String FILE_ASSET_ID = "asset-uuid-123";
 
     @Mock private ImageOutboxReadManager imageOutboxReadManager;
 
-    @Mock private ImageOutboxManager imageOutboxManager;
+    @Mock private CrawledProductImageTransactionManager imageTransactionManager;
+
+    @Mock private ProductImageOutboxTransactionManager outboxTransactionManager;
 
     @Mock private TransactionEventRegistry eventRegistry;
 
@@ -60,7 +66,11 @@ class CompleteImageUploadServiceTest {
     void setUp() {
         service =
                 new CompleteImageUploadService(
-                        imageOutboxReadManager, imageOutboxManager, eventRegistry, FIXED_CLOCK);
+                        imageOutboxReadManager,
+                        imageTransactionManager,
+                        outboxTransactionManager,
+                        eventRegistry,
+                        FIXED_CLOCK);
     }
 
     @Nested
@@ -71,15 +81,19 @@ class CompleteImageUploadServiceTest {
         @DisplayName("[성공] Outbox 존재 → markAsCompleted + 이벤트 등록")
         void shouldMarkAsCompletedAndRegisterEventWhenOutboxExists() {
             // Given
-            CrawledProductImageOutbox outbox = createMockOutbox();
+            ProductImageOutbox outbox = createMockOutbox();
+            CrawledProductImage image = createMockImage();
 
             given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
+            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.of(image));
 
             // When
-            service.complete(OUTBOX_ID, S3_URL);
+            service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);
 
             // Then
-            verify(imageOutboxManager, times(1)).markAsCompleted(eq(outbox), eq(S3_URL));
+            verify(outboxTransactionManager, times(1)).markAsCompleted(eq(outbox));
+            verify(imageTransactionManager, times(1))
+                    .completeUpload(eq(image), eq(S3_URL), eq(FILE_ASSET_ID));
             verify(eventRegistry, times(1)).registerForPublish(eventCaptor.capture());
 
             ImageUploadCompletedEvent event = eventCaptor.getValue();
@@ -96,28 +110,57 @@ class CompleteImageUploadServiceTest {
             given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.empty());
 
             // When
-            service.complete(OUTBOX_ID, S3_URL);
+            service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);
 
             // Then
-            verify(imageOutboxManager, never()).markAsCompleted(any(), any());
+            verify(outboxTransactionManager, never()).markAsCompleted(any());
+            verify(imageTransactionManager, never()).completeUpload(any(), any(), any());
+            verify(eventRegistry, never()).registerForPublish(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 이미지 미존재 → 아무 작업 안 함")
+        void shouldDoNothingWhenImageNotExists() {
+            // Given
+            ProductImageOutbox outbox = createMockOutbox();
+
+            given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
+            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.empty());
+
+            // When
+            service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);
+
+            // Then
+            verify(outboxTransactionManager, never()).markAsCompleted(any());
+            verify(imageTransactionManager, never()).completeUpload(any(), any(), any());
             verify(eventRegistry, never()).registerForPublish(any());
         }
     }
 
     // === Helper Methods ===
 
-    private CrawledProductImageOutbox createMockOutbox() {
-        return CrawledProductImageOutbox.reconstitute(
+    private ProductImageOutbox createMockOutbox() {
+        return ProductImageOutbox.reconstitute(
                 OUTBOX_ID,
-                PRODUCT_ID,
-                ORIGINAL_URL,
-                ImageType.THUMBNAIL,
+                IMAGE_ID,
                 "idempotency-key-123",
-                null,
                 ProductOutboxStatus.PROCESSING,
                 0,
                 null,
                 FIXED_INSTANT,
                 FIXED_INSTANT);
+    }
+
+    private CrawledProductImage createMockImage() {
+        return CrawledProductImage.reconstitute(
+                IMAGE_ID,
+                PRODUCT_ID,
+                ORIGINAL_URL,
+                ImageType.THUMBNAIL,
+                0,
+                null,
+                null,
+                FIXED_INSTANT,
+                null);
     }
 }

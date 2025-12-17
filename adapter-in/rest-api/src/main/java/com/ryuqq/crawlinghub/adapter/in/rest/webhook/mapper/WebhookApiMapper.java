@@ -23,9 +23,11 @@ public class WebhookApiMapper {
      */
     public ImageUploadWebhookCommand toCommand(ImageUploadWebhookApiRequest request) {
         return new ImageUploadWebhookCommand(
-                request.idempotencyKey(),
-                request.eventType(),
-                request.s3Url(),
-                request.errorMessage());
+                request.externalDownloadId(),
+                request.status(),
+                request.fileUrl(),
+                request.fileAssetId(),
+                request.errorMessage(),
+                request.completedAt());
     }
 }

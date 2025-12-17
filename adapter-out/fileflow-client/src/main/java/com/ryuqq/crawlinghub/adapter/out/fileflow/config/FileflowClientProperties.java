@@ -28,6 +28,8 @@ public class FileflowClientProperties {
     private String callbackUrl;
     private int connectTimeout = 5000;
     private int readTimeout = 30000;
+    private String serviceToken;
+    private String serviceName = "crawlinghub";
 
     public FileflowClientProperties() {}
 
@@ -61,6 +63,31 @@ public class FileflowClientProperties {
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public String getServiceToken() {
+        return serviceToken;
+    }
+
+    public void setServiceToken(String serviceToken) {
+        this.serviceToken = serviceToken;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    /**
+     * Service Token이 설정되어 있는지 확인합니다.
+     *
+     * @return Service Token이 설정되어 있으면 true
+     */
+    public boolean hasServiceToken() {
+        return serviceToken != null && !serviceToken.isBlank();
     }
 
     /**

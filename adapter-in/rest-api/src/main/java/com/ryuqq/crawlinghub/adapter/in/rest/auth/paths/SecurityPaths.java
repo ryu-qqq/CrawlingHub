@@ -40,7 +40,10 @@ public final class SecurityPaths {
         public static final List<String> PATTERNS =
                 List.of(
                         // 헬스체크
-                        ApiPaths.Actuator.BASE + "/**", ApiPaths.Health.CHECK);
+                        ApiPaths.Actuator.BASE + "/**",
+                        ApiPaths.Health.CHECK,
+                        // 외부 서비스 웹훅 (내부 VPC 통신, Gateway 경유 시에만 접근 가능)
+                        "/api/v1/webhook/**");
 
         private Public() {}
     }
