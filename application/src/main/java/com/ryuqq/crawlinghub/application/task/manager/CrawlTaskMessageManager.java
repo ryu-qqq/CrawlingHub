@@ -28,7 +28,10 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Component
-@ConditionalOnProperty(name = "app.messaging.sqs.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+        name = "app.messaging.sqs.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 public class CrawlTaskMessageManager {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlTaskMessageManager.class);

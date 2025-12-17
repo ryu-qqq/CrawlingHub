@@ -6,9 +6,11 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.OptionResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessOptionsUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
@@ -40,14 +42,17 @@ public class OptionCrawlResultProcessor implements CrawlResultProcessor {
     private final OptionResponseParser optionResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
     private final CrawledRawManager crawledRawManager;
+    private final ProcessOptionsUseCase processOptionsUseCase;
 
     public OptionCrawlResultProcessor(
             OptionResponseParser optionResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager) {
+            CrawledRawManager crawledRawManager,
+            ProcessOptionsUseCase processOptionsUseCase) {
         this.optionResponseParser = optionResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
         this.crawledRawManager = crawledRawManager;
+        this.processOptionsUseCase = processOptionsUseCase;
     }
 
     @Override
@@ -103,7 +108,20 @@ public class OptionCrawlResultProcessor implements CrawlResultProcessor {
                 parsedCount,
                 availableCount);
 
-        // 4. 후속 Task 없음 (최종 단계)
+        // 4. CrawledProduct 옵션 정보 업데이트 (+ 동기화 Outbox 생성 가능)
+        try {
+            SellerId sellerIdVO = SellerId.of(sellerId);
+            processOptionsUseCase.process(sellerIdVO, itemNo, options);
+            log.info("OPTION CrawledProduct 처리 완료: sellerId={}, itemNo={}", sellerId, itemNo);
+        } catch (Exception e) {
+            log.warn(
+                    "CrawledProduct OPTION 처리 실패: sellerId={}, itemNo={}, error={}",
+                    sellerId,
+                    itemNo,
+                    e.getMessage());
+        }
+
+        // 5. 후속 Task 없음 (최종 단계)
         return ProcessingResult.completed(parsedCount, savedCount);
     }
 

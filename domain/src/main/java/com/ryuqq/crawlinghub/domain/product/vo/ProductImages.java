@@ -49,7 +49,7 @@ public class ProductImages {
         return fromThumbnailUrls(urls);
     }
 
-    /** 상세 설명 URL 목록 추가 */
+    /** 상세 설명 URL 목록 추가 (기존 상세 이미지에 추가) */
     public ProductImages addDescriptionImages(List<String> urls) {
         if (urls == null || urls.isEmpty()) {
             return this;
@@ -60,6 +60,76 @@ public class ProductImages {
             newImages.add(ProductImage.description(urls.get(i), startOrder + i));
         }
         return new ProductImages(newImages);
+    }
+
+    /**
+     * 상세 설명 이미지 교체 (기존 DESCRIPTION 이미지 제거 후 새로 추가)
+     *
+     * @param urls 새 상세 이미지 URL 목록
+     * @return 교체된 ProductImages
+     */
+    public ProductImages replaceDescriptionImages(List<String> urls) {
+        // 썸네일만 유지
+        List<ProductImage> thumbnailsOnly =
+                this.images.stream().filter(ProductImage::isThumbnail).collect(Collectors.toList());
+
+        if (urls == null || urls.isEmpty()) {
+            return new ProductImages(thumbnailsOnly);
+        }
+
+        List<ProductImage> newImages = new ArrayList<>(thumbnailsOnly);
+        for (int i = 0; i < urls.size(); i++) {
+            newImages.add(ProductImage.description(urls.get(i), i));
+        }
+        return new ProductImages(newImages);
+    }
+
+    /**
+     * 상세 설명 이미지 변경 여부 확인
+     *
+     * @param newUrls 새 이미지 URL 목록
+     * @return 변경이 있으면 true
+     */
+    public boolean hasDescriptionImageChanges(List<String> newUrls) {
+        List<String> currentUrls =
+                getDescriptionImages().stream()
+                        .map(ProductImage::originalUrl)
+                        .collect(Collectors.toList());
+
+        List<String> newUrlList = newUrls != null ? newUrls : List.of();
+
+        if (currentUrls.size() != newUrlList.size()) {
+            return true;
+        }
+
+        // 순서까지 비교
+        for (int i = 0; i < currentUrls.size(); i++) {
+            if (!currentUrls.get(i).equals(newUrlList.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 새로 추가된 상세 설명 이미지 URL 반환
+     *
+     * @param newUrls 새 이미지 URL 목록
+     * @return 기존에 없던 URL 목록
+     */
+    public List<String> getNewDescriptionImageUrls(List<String> newUrls) {
+        if (newUrls == null || newUrls.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> currentUrls =
+                getDescriptionImages().stream()
+                        .map(ProductImage::originalUrl)
+                        .collect(Collectors.toList());
+
+        return newUrls.stream()
+                .filter(url -> !currentUrls.contains(url))
+                .collect(Collectors.toList());
     }
 
     /** 모든 이미지 반환 (불변) */

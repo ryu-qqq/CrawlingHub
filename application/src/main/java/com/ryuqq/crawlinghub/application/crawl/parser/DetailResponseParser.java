@@ -188,14 +188,14 @@ public class DetailResponseParser {
         }
     }
 
-    /** ProductDetailInfoModule 파싱 - 상세 정보 (원산지, 상태, 상세 이미지) */
+    /** ProductDetailInfoModule 파싱 - 상세 정보 (원산지, 상태, 상세 이미지, 상세 설명 HTML) */
     private void parseDetailInfoModule(JsonNode dataNode, ProductDetailInfo.Builder builder) {
         builder.originCountry(getAsTextOrDefault(dataNode, "originCountry", ""))
                 .itemStatus(getAsTextOrDefault(dataNode, "itemStatus", ""));
 
         String descriptionMarkUp = getAsTextOrDefault(dataNode, "descriptionMarkUp", "");
         List<String> detailImages = extractImageUrlsFromHtml(descriptionMarkUp);
-        builder.detailImages(detailImages);
+        builder.detailImages(detailImages).descriptionMarkUp(descriptionMarkUp);
     }
 
     /** HTML에서 이미지 URL 추출 */

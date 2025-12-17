@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.port.out.query;
 
+import com.ryuqq.crawlinghub.application.product.dto.query.SearchCrawledProductsQuery;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -9,7 +10,7 @@ import java.util.Optional;
 /**
  * CrawledProduct 조회 Port (Port Out - Query)
  *
- * <p>CrawledProductFacade에서 사용됩니다.
+ * <p>Application Service에서 사용됩니다.
  *
  * <p>조회 전용 Port로, 트랜잭션 없이 읽기 작업만 수행합니다.
  *
@@ -61,4 +62,20 @@ public interface CrawledProductQueryPort {
      * @return 존재하면 true
      */
     boolean existsBySellerIdAndItemNo(SellerId sellerId, long itemNo);
+
+    /**
+     * 검색 조건에 따른 CrawledProduct 목록 조회 (페이징)
+     *
+     * @param query 검색 조건
+     * @return CrawledProduct 목록
+     */
+    List<CrawledProduct> search(SearchCrawledProductsQuery query);
+
+    /**
+     * 검색 조건에 따른 CrawledProduct 개수 조회
+     *
+     * @param query 검색 조건
+     * @return 총 개수
+     */
+    long count(SearchCrawledProductsQuery query);
 }

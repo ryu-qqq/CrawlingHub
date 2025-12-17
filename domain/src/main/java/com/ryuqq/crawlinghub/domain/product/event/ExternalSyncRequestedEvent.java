@@ -18,6 +18,7 @@ public record ExternalSyncRequestedEvent(
         CrawledProductId crawledProductId,
         SellerId sellerId,
         long itemNo,
+        String idempotencyKey,
         SyncType syncType,
         Instant occurredAt)
         implements DomainEvent {
@@ -32,6 +33,9 @@ public record ExternalSyncRequestedEvent(
         if (itemNo <= 0) {
             throw new IllegalArgumentException("itemNo는 양수여야 합니다.");
         }
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("idempotencyKey는 필수입니다.");
+        }
         if (syncType == null) {
             throw new IllegalArgumentException("syncType은 필수입니다.");
         }
@@ -42,18 +46,26 @@ public record ExternalSyncRequestedEvent(
 
     /** 신규 등록용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forCreate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
+            CrawledProductId crawledProductId,
+            SellerId sellerId,
+            long itemNo,
+            String idempotencyKey,
+            Clock clock) {
         Instant now = clock.instant();
         return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, SyncType.CREATE, now);
+                crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.CREATE, now);
     }
 
     /** 갱신용 이벤트 생성 */
     public static ExternalSyncRequestedEvent forUpdate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
+            CrawledProductId crawledProductId,
+            SellerId sellerId,
+            long itemNo,
+            String idempotencyKey,
+            Clock clock) {
         Instant now = clock.instant();
         return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, SyncType.UPDATE, now);
+                crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.UPDATE, now);
     }
 
     /** 동기화 타입 */

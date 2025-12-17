@@ -5,9 +5,8 @@ import com.ryuqq.crawlinghub.application.seller.metrics.SellerEventMetrics;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Seller 비활성화 이벤트 핸들러
@@ -80,7 +79,7 @@ public class SellerDeactivatedEventHandler {
      *
      * @param event Seller 비활성화 이벤트
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handle(SellerDeActiveEvent event) {
         Long sellerId = event.getSellerIdValue();
 

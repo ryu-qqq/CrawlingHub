@@ -8,9 +8,8 @@ import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * 스케줄러 등록 이벤트 리스너
@@ -57,7 +56,7 @@ public class SchedulerRegisteredEventListener {
      *
      * @param event 스케줄러 등록 이벤트
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleSchedulerRegistered(SchedulerRegisteredEvent event) {
         log.info(
                 "스케줄러 등록 이벤트 처리 시작: schedulerId={}, historyId={}, sellerId={}, schedulerName={}",

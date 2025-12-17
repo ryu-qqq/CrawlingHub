@@ -19,6 +19,8 @@ include 'adapter-out:persistence-redis'
 include 'adapter-out:aws-eventbridge'
 include 'adapter-out:aws-sqs'
 include 'adapter-out:http-client'
+include 'adapter-out:fileflow-client'
+include 'adapter-out:marketplace-client'
 
 // ========================================
 // Bootstrap Modules (Runnable Applications)
@@ -39,6 +41,8 @@ project(':adapter-out:persistence-redis').projectDir = file('adapter-out/persist
 project(':adapter-out:aws-eventbridge').projectDir = file('adapter-out/aws-eventbridge')
 project(':adapter-out:aws-sqs').projectDir = file('adapter-out/aws-sqs')
 project(':adapter-out:http-client').projectDir = file('adapter-out/http-client')
+project(':adapter-out:fileflow-client').projectDir = file('adapter-out/fileflow-client')
+project(':adapter-out:marketplace-client').projectDir = file('adapter-out/marketplace-client')
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
 project(':bootstrap:bootstrap-scheduler').projectDir = file('bootstrap/bootstrap-scheduler')
 project(':bootstrap:bootstrap-crawl-worker').projectDir = file('bootstrap/bootstrap-crawl-worker')

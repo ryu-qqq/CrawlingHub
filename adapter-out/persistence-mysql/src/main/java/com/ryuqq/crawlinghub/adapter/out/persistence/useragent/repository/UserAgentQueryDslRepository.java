@@ -1,8 +1,10 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.QUserAgentJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJpaEntity;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.List;
 import java.util.Optional;
@@ -115,5 +117,50 @@ public class UserAgentQueryDslRepository {
         Long count = queryFactory.select(qUserAgent.count()).from(qUserAgent).fetchOne();
 
         return count != null ? count : 0L;
+    }
+
+    /**
+     * 상태 필터 + 페이징 조회
+     *
+     * @param status UserAgent 상태 (null이면 전체 조회)
+     * @param pageRequest 페이징 정보
+     * @return UserAgentJpaEntity 목록
+     */
+    public List<UserAgentJpaEntity> findByStatusWithPaging(
+            UserAgentStatus status, PageRequest pageRequest) {
+        return queryFactory
+                .selectFrom(qUserAgent)
+                .where(statusEq(status))
+                .orderBy(qUserAgent.id.desc())
+                .offset(pageRequest.offset())
+                .limit(pageRequest.size())
+                .fetch();
+    }
+
+    /**
+     * 상태 필터 + 전체 개수 조회
+     *
+     * @param status UserAgent 상태 (null이면 전체 조회)
+     * @return UserAgent 개수
+     */
+    public long countByStatusOrAll(UserAgentStatus status) {
+        Long count =
+                queryFactory
+                        .select(qUserAgent.count())
+                        .from(qUserAgent)
+                        .where(statusEq(status))
+                        .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * 상태 필터 BooleanExpression
+     *
+     * @param status UserAgent 상태 (null이면 필터 없음)
+     * @return BooleanExpression (null이면 조건 없음)
+     */
+    private BooleanExpression statusEq(UserAgentStatus status) {
+        return status != null ? qUserAgent.status.eq(status) : null;
     }
 }
