@@ -35,6 +35,7 @@ dependencies {
     implementation project(':adapter-out:aws-eventbridge')
     implementation project(':adapter-out:http-client')
     implementation project(':adapter-out:marketplace-client')
+    implementation project(':adapter-out:fileflow-client')
 
     // ========================================
     // Spring Boot Starters
