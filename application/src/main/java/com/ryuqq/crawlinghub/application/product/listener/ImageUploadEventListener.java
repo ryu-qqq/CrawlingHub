@@ -11,9 +11,8 @@ import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * 이미지 업로드 요청 이벤트 리스너
@@ -60,7 +59,7 @@ public class ImageUploadEventListener {
      *
      * @param event 이미지 업로드 요청 이벤트
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleImageUploadRequested(ImageUploadRequestedEvent event) {
         CrawledProductId productId = event.crawledProductId();
         List<ImageUploadTarget> targets = event.targets();

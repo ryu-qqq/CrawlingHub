@@ -7,7 +7,6 @@ import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 외부 서버 동기화 요청 Service
@@ -49,7 +48,6 @@ public class RequestSyncService implements RequestSyncUseCase {
     }
 
     @Override
-    @Transactional
     public void requestIfReady(CrawledProduct product) {
         if (!product.needsExternalSync()) {
             return;

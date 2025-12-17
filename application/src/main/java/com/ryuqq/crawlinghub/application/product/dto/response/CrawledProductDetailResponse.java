@@ -81,7 +81,13 @@ public record CrawledProductDetailResponse(
             List<ImageInfo> thumbnails,
             List<ImageInfo> descriptionImages,
             int totalCount,
-            int uploadedCount) {}
+            int uploadedCount) {
+        public ImagesInfo {
+            thumbnails = thumbnails == null ? List.of() : List.copyOf(thumbnails);
+            descriptionImages =
+                    descriptionImages == null ? List.of() : List.copyOf(descriptionImages);
+        }
+    }
 
     /**
      * 개별 이미지 정보
@@ -145,7 +151,13 @@ public record CrawledProductDetailResponse(
             int inStockCount,
             int soldOutCount,
             List<String> distinctColors,
-            List<String> distinctSizes) {}
+            List<String> distinctSizes) {
+        public OptionsInfo {
+            options = options == null ? List.of() : List.copyOf(options);
+            distinctColors = distinctColors == null ? List.of() : List.copyOf(distinctColors);
+            distinctSizes = distinctSizes == null ? List.of() : List.copyOf(distinctSizes);
+        }
+    }
 
     /**
      * 개별 옵션 정보
@@ -171,7 +183,11 @@ public record CrawledProductDetailResponse(
             Instant detailCrawledAt,
             Instant optionCrawledAt,
             int completedCount,
-            List<String> pendingTypes) {}
+            List<String> pendingTypes) {
+        public CrawlStatusInfo {
+            pendingTypes = pendingTypes == null ? List.of() : List.copyOf(pendingTypes);
+        }
+    }
 
     /**
      * 동기화 상태

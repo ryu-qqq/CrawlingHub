@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.client;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 
 /**
  * 외부 상품 서버 연동 Port (Port Out - External)
@@ -40,17 +41,4 @@ public interface ExternalProductServerClient {
      * @return 존재하면 true
      */
     boolean existsProduct(Long externalProductId);
-
-    /** 상품 동기화 결과 */
-    record ProductSyncResult(
-            boolean success, Long externalProductId, String errorCode, String errorMessage) {
-
-        public static ProductSyncResult success(Long externalProductId) {
-            return new ProductSyncResult(true, externalProductId, null, null);
-        }
-
-        public static ProductSyncResult failure(String errorCode, String errorMessage) {
-            return new ProductSyncResult(false, null, errorCode, errorMessage);
-        }
-    }
 }

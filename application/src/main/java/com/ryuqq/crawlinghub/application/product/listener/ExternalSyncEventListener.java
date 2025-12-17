@@ -4,18 +4,17 @@ import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
 import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
-import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient.ProductSyncResult;
 import com.ryuqq.crawlinghub.application.sync.manager.SyncOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * 외부 서버 동기화 요청 이벤트 리스너
@@ -67,7 +66,7 @@ public class ExternalSyncEventListener {
      *
      * @param event 외부 서버 동기화 요청 이벤트
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleExternalSyncRequested(ExternalSyncRequestedEvent event) {
         CrawledProductId productId = event.crawledProductId();
         String idempotencyKey = event.idempotencyKey();

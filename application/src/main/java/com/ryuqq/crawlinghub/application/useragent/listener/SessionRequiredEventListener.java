@@ -8,10 +8,9 @@ import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * 세션 발급 필요 이벤트 리스너
@@ -55,7 +54,7 @@ public class SessionRequiredEventListener {
      * @param event 세션 발급 필요 이벤트
      */
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleSessionRequired(SessionRequiredEvent event) {
         UserAgentId userAgentId = event.userAgentId();
         String userAgentValue = event.userAgentValue();
