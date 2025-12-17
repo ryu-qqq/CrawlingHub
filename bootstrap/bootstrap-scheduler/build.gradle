@@ -32,6 +32,7 @@ dependencies {
     implementation project(':adapter-out:aws-sqs')
     implementation project(':adapter-out:http-client')
     implementation project(':adapter-out:fileflow-client')
+    implementation project(':adapter-out:marketplace-client')
 
     // ========================================
     // Spring Boot Starters
