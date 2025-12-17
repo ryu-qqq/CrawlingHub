@@ -231,8 +231,8 @@ class CrawledProductJpaEntityMapperTest {
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
                             1L, 100L, 12345L, "상품명", "브랜드", null, null, null, // 가격 필드 null
-                            null, true, null, null, null, null, null, null, null, now, null, null,
-                            null, null, false, now, now);
+                            null, true, null, null, null, null, null, null, null, null, now, null,
+                            null, null, null, false, now, now);
 
             // When
             CrawledProduct domain = mapper.toDomain(entity);
@@ -270,6 +270,7 @@ class CrawledProductJpaEntityMapperTest {
                             null,
                             null,
                             null,
+                            null,
                             now,
                             null,
                             null,
@@ -295,8 +296,8 @@ class CrawledProductJpaEntityMapperTest {
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
                             1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
-                            null, null, null, null, null, null, now, null, null, null, null, false,
-                            now, now);
+                            null, null, null, null, null, null, null, now, null, null, null, null,
+                            false, now, now);
 
             // When
             CrawledProduct domain = mapper.toDomain(entity);
@@ -504,6 +505,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 null,
+                null,
                 ProductOptions.empty(),
                 status,
                 null,
@@ -530,6 +532,7 @@ class CrawledProductJpaEntityMapperTest {
                 true,
                 null,
                 null,
+                "<p>상세설명</p>",
                 "<p>상세설명</p>",
                 "ACTIVE",
                 "대한민국",
@@ -565,6 +568,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 null,
+                null,
                 ProductOptions.empty(),
                 status,
                 999L,
@@ -591,6 +595,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 null,
+                null,
                 ProductOptions.empty(),
                 status,
                 null,
@@ -611,6 +616,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 ProductImages.empty(),
                 true,
+                null,
                 null,
                 null,
                 null,
@@ -647,6 +653,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 null,
+                null,
                 ProductOptions.empty(),
                 status,
                 null,
@@ -676,6 +683,7 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 null,
+                null,
                 ProductOptions.empty(),
                 status,
                 null,
@@ -688,7 +696,7 @@ class CrawledProductJpaEntityMapperTest {
     private CrawledProductJpaEntity createBasicEntity(LocalDateTime now) {
         return CrawledProductJpaEntity.of(
                 1L, 100L, 12345L, "테스트 상품", "테스트 브랜드", 20000L, 15000L, 25, null, true, null, null,
-                null, null, null, null, null, now, null, null, null, null, false, now, now);
+                null, null, null, null, null, null, now, null, null, null, null, false, now, now);
     }
 
     private CrawledProductJpaEntity createEntityWithCompletionStatus(
@@ -705,6 +713,7 @@ class CrawledProductJpaEntityMapperTest {
                 25,
                 null,
                 true,
+                null,
                 null,
                 null,
                 null,

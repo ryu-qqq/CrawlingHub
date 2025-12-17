@@ -182,6 +182,7 @@ class GetCrawledProductServiceTest {
                 null,
                 null,
                 null,
+                null,
                 "ACTIVE",
                 "Korea",
                 "Seoul",

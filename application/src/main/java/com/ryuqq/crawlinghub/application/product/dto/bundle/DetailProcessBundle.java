@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.dto.bundle;
 
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.DetailCrawlData;
@@ -20,7 +21,7 @@ import java.util.Optional;
  * <pre>
  * 1. Factory에서 DetailProcessBundle 생성 (crawledProductId 없음)
  * 2. Facade에서 CrawledProduct 업데이트 후 enrichWithProductId() 호출
- * 3. Bundle 내부에서 Outbox 생성 및 Event 생성
+ * 3. Bundle에서 이미지 생성 → 저장 → Outbox 생성
  * </pre>
  *
  * @author development-team
@@ -48,16 +49,31 @@ public record DetailProcessBundle(DetailCrawlData crawlData, ImageUploadData ima
     }
 
     /**
-     * Outbox 목록 생성
+     * CrawledProductImage 목록 생성
      *
      * @param clock 시간 제어
-     * @return CrawledProductImageOutbox 목록 (이미지가 없으면 빈 리스트)
+     * @return CrawledProductImage 목록 (이미지가 없으면 빈 리스트)
      */
-    public List<CrawledProductImageOutbox> createOutboxes(Clock clock) {
+    public List<CrawledProductImage> createImages(Clock clock) {
         if (!hasImageUpload()) {
             return List.of();
         }
-        return imageUploadData.createOutboxes(clock);
+        return imageUploadData.createImages(clock);
+    }
+
+    /**
+     * ProductImageOutbox 목록 생성 (저장된 이미지 기반)
+     *
+     * @param savedImages 저장된 이미지 목록 (ID 포함)
+     * @param clock 시간 제어
+     * @return ProductImageOutbox 목록 (이미지가 없으면 빈 리스트)
+     */
+    public List<ProductImageOutbox> createOutboxes(
+            List<CrawledProductImage> savedImages, Clock clock) {
+        if (savedImages == null || savedImages.isEmpty()) {
+            return List.of();
+        }
+        return imageUploadData.createOutboxes(savedImages, clock);
     }
 
     /**
@@ -97,7 +113,7 @@ public record DetailProcessBundle(DetailCrawlData crawlData, ImageUploadData ima
     /**
      * 필터링된 이미지 URL로 새 Bundle 생성
      *
-     * <p>이미 Outbox에 존재하는 URL을 제외한 새로운 URL만으로 Bundle을 생성합니다.
+     * <p>이미 저장된 URL을 제외한 새로운 URL만으로 Bundle을 생성합니다.
      *
      * @param filteredUrls 필터링된 URL 목록
      * @return 필터링된 URL이 설정된 새 Bundle

@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
+import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageUploadWebhookUseCase;
-import com.ryuqq.crawlinghub.application.product.manager.ImageOutboxManager;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
+import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,9 @@ import org.springframework.stereotype.Service;
  * <p><strong>처리 흐름</strong>:
  *
  * <ol>
- *   <li>idempotencyKey로 Outbox 조회
- *   <li>이벤트 타입에 따라 상태 업데이트
- *   <li>COMPLETED: s3Url 저장 + 상태 COMPLETED
+ *   <li>externalDownloadId(idempotencyKey)로 Outbox 조회
+ *   <li>상태에 따라 처리
+ *   <li>COMPLETED: fileUrl, fileAssetId 저장 + 상태 COMPLETED
  *   <li>FAILED: errorMessage 저장 + 상태 FAILED
  * </ol>
  *
@@ -33,52 +35,78 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
             LoggerFactory.getLogger(HandleImageUploadWebhookService.class);
 
     private final ImageOutboxReadManager imageOutboxReadManager;
-    private final ImageOutboxManager imageOutboxManager;
+    private final CrawledProductImageTransactionManager imageTransactionManager;
+    private final ProductImageOutboxTransactionManager outboxTransactionManager;
 
     public HandleImageUploadWebhookService(
-            ImageOutboxReadManager imageOutboxReadManager, ImageOutboxManager imageOutboxManager) {
+            ImageOutboxReadManager imageOutboxReadManager,
+            CrawledProductImageTransactionManager imageTransactionManager,
+            ProductImageOutboxTransactionManager outboxTransactionManager) {
         this.imageOutboxReadManager = imageOutboxReadManager;
-        this.imageOutboxManager = imageOutboxManager;
+        this.imageTransactionManager = imageTransactionManager;
+        this.outboxTransactionManager = outboxTransactionManager;
     }
 
     @Override
     public void execute(ImageUploadWebhookCommand command) {
         log.info(
-                "이미지 업로드 웹훅 수신: idempotencyKey={}, eventType={}",
-                command.idempotencyKey(),
-                command.eventType());
+                "이미지 업로드 웹훅 수신: externalDownloadId={}, status={}",
+                command.externalDownloadId(),
+                command.status());
 
-        CrawledProductImageOutbox outbox =
+        ProductImageOutbox outbox =
                 imageOutboxReadManager
-                        .findByIdempotencyKey(command.idempotencyKey())
+                        .findByIdempotencyKey(command.externalDownloadId())
                         .orElseThrow(
                                 () -> {
                                     log.warn(
-                                            "Outbox를 찾을 수 없음: idempotencyKey={}",
-                                            command.idempotencyKey());
+                                            "Outbox를 찾을 수 없음: externalDownloadId={}",
+                                            command.externalDownloadId());
                                     return new IllegalArgumentException(
-                                            "Outbox not found: " + command.idempotencyKey());
+                                            "Outbox not found: " + command.externalDownloadId());
                                 });
 
         if (command.isCompleted()) {
-            handleCompleted(outbox, command.s3Url());
+            handleCompleted(outbox, command.fileUrl(), command.fileAssetId());
         } else if (command.isFailed()) {
             handleFailed(outbox, command.errorMessage());
         } else {
             log.warn(
-                    "알 수 없는 이벤트 타입: idempotencyKey={}, eventType={}",
-                    command.idempotencyKey(),
-                    command.eventType());
+                    "알 수 없는 상태: externalDownloadId={}, status={}",
+                    command.externalDownloadId(),
+                    command.status());
         }
     }
 
-    private void handleCompleted(CrawledProductImageOutbox outbox, String s3Url) {
-        imageOutboxManager.markAsCompleted(outbox, s3Url);
-        log.info("이미지 업로드 완료: outboxId={}, s3Url={}", outbox.getId(), s3Url);
+    private void handleCompleted(ProductImageOutbox outbox, String fileUrl, String fileAssetId) {
+        // Outbox 상태 갱신
+        outboxTransactionManager.markAsCompleted(outbox);
+
+        // 이미지 조회 및 업로드 완료 처리
+        CrawledProductImage image =
+                imageOutboxReadManager
+                        .findImageById(outbox.getCrawledProductImageId())
+                        .orElseThrow(
+                                () -> {
+                                    log.error(
+                                            "이미지를 찾을 수 없음: outboxId={}, imageId={}",
+                                            outbox.getId(),
+                                            outbox.getCrawledProductImageId());
+                                    return new IllegalStateException(
+                                            "Image not found: "
+                                                    + outbox.getCrawledProductImageId());
+                                });
+
+        imageTransactionManager.completeUpload(image, fileUrl, fileAssetId);
+        log.info(
+                "이미지 업로드 완료: outboxId={}, fileUrl={}, fileAssetId={}",
+                outbox.getId(),
+                fileUrl,
+                fileAssetId);
     }
 
-    private void handleFailed(CrawledProductImageOutbox outbox, String errorMessage) {
-        imageOutboxManager.markAsFailed(outbox, errorMessage);
+    private void handleFailed(ProductImageOutbox outbox, String errorMessage) {
+        outboxTransactionManager.markAsFailed(outbox, errorMessage);
         log.warn("이미지 업로드 실패: outboxId={}, error={}", outbox.getId(), errorMessage);
     }
 }

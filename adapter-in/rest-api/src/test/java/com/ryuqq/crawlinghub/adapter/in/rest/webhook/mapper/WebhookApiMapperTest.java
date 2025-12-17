@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.webhook.dto.command.ImageUploadWebhookApiRequest;
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,21 +40,26 @@ class WebhookApiMapperTest {
         @DisplayName("성공 웹훅 요청을 Command로 변환한다")
         void toCommand_WithCompleted_ShouldConvertCorrectly() {
             // given
+            Instant completedAt = Instant.parse("2025-12-17T10:30:00Z");
             ImageUploadWebhookApiRequest request =
                     new ImageUploadWebhookApiRequest(
                             "img-12345-abc",
                             "COMPLETED",
-                            "https://s3.amazonaws.com/bucket/image.jpg",
-                            null);
+                            "https://cdn.set-of.com/bucket/image.jpg",
+                            "asset-uuid-123",
+                            null,
+                            completedAt);
 
             // when
             ImageUploadWebhookCommand result = mapper.toCommand(request);
 
             // then
-            assertThat(result.idempotencyKey()).isEqualTo("img-12345-abc");
-            assertThat(result.eventType()).isEqualTo("COMPLETED");
-            assertThat(result.s3Url()).isEqualTo("https://s3.amazonaws.com/bucket/image.jpg");
+            assertThat(result.externalDownloadId()).isEqualTo("img-12345-abc");
+            assertThat(result.status()).isEqualTo("COMPLETED");
+            assertThat(result.fileUrl()).isEqualTo("https://cdn.set-of.com/bucket/image.jpg");
+            assertThat(result.fileAssetId()).isEqualTo("asset-uuid-123");
             assertThat(result.errorMessage()).isNull();
+            assertThat(result.completedAt()).isEqualTo(completedAt);
             assertThat(result.isCompleted()).isTrue();
             assertThat(result.isFailed()).isFalse();
         }
@@ -62,18 +68,21 @@ class WebhookApiMapperTest {
         @DisplayName("실패 웹훅 요청을 Command로 변환한다")
         void toCommand_WithFailed_ShouldConvertCorrectly() {
             // given
+            Instant completedAt = Instant.parse("2025-12-17T10:30:00Z");
             ImageUploadWebhookApiRequest request =
                     new ImageUploadWebhookApiRequest(
-                            "img-12345-def", "FAILED", null, "Download timeout");
+                            "img-12345-def", "FAILED", null, null, "Download timeout", completedAt);
 
             // when
             ImageUploadWebhookCommand result = mapper.toCommand(request);
 
             // then
-            assertThat(result.idempotencyKey()).isEqualTo("img-12345-def");
-            assertThat(result.eventType()).isEqualTo("FAILED");
-            assertThat(result.s3Url()).isNull();
+            assertThat(result.externalDownloadId()).isEqualTo("img-12345-def");
+            assertThat(result.status()).isEqualTo("FAILED");
+            assertThat(result.fileUrl()).isNull();
+            assertThat(result.fileAssetId()).isNull();
             assertThat(result.errorMessage()).isEqualTo("Download timeout");
+            assertThat(result.completedAt()).isEqualTo(completedAt);
             assertThat(result.isCompleted()).isFalse();
             assertThat(result.isFailed()).isTrue();
         }
@@ -82,21 +91,26 @@ class WebhookApiMapperTest {
         @DisplayName("모든 필드가 있는 요청을 변환한다")
         void toCommand_WithAllFields_ShouldConvertCorrectly() {
             // given
+            Instant completedAt = Instant.parse("2025-12-17T10:30:00Z");
             ImageUploadWebhookApiRequest request =
                     new ImageUploadWebhookApiRequest(
                             "img-99999-xyz",
                             "COMPLETED",
-                            "https://s3.amazonaws.com/bucket/another.png",
-                            "partial failure occurred");
+                            "https://cdn.set-of.com/bucket/another.png",
+                            "asset-uuid-456",
+                            "partial failure occurred",
+                            completedAt);
 
             // when
             ImageUploadWebhookCommand result = mapper.toCommand(request);
 
             // then
-            assertThat(result.idempotencyKey()).isEqualTo("img-99999-xyz");
-            assertThat(result.eventType()).isEqualTo("COMPLETED");
-            assertThat(result.s3Url()).isEqualTo("https://s3.amazonaws.com/bucket/another.png");
+            assertThat(result.externalDownloadId()).isEqualTo("img-99999-xyz");
+            assertThat(result.status()).isEqualTo("COMPLETED");
+            assertThat(result.fileUrl()).isEqualTo("https://cdn.set-of.com/bucket/another.png");
+            assertThat(result.fileAssetId()).isEqualTo("asset-uuid-456");
             assertThat(result.errorMessage()).isEqualTo("partial failure occurred");
+            assertThat(result.completedAt()).isEqualTo(completedAt);
         }
 
         @Test
@@ -104,13 +118,14 @@ class WebhookApiMapperTest {
         void toCommand_WithVariousEventTypes_ShouldConvertCorrectly() {
             // given - unknown event type
             ImageUploadWebhookApiRequest request =
-                    new ImageUploadWebhookApiRequest("img-unknown", "PROCESSING", null, null);
+                    new ImageUploadWebhookApiRequest(
+                            "img-unknown", "PROCESSING", null, null, null, null);
 
             // when
             ImageUploadWebhookCommand result = mapper.toCommand(request);
 
             // then
-            assertThat(result.eventType()).isEqualTo("PROCESSING");
+            assertThat(result.status()).isEqualTo("PROCESSING");
             assertThat(result.isCompleted()).isFalse();
             assertThat(result.isFailed()).isFalse();
         }
