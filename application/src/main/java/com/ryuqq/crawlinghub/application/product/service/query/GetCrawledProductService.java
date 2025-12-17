@@ -8,7 +8,6 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * CrawledProduct 조회 Service
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 1.0.0
  */
 @Service
-@Transactional(readOnly = true)
 public class GetCrawledProductService implements GetCrawledProductUseCase {
 
     private final CrawledProductQueryPort crawledProductQueryPort;

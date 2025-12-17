@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 이미지 업로드 완료 이벤트 리스너
@@ -46,7 +45,6 @@ public class ImageUploadCompletedEventListener {
      * @param event 이미지 업로드 완료 이벤트
      */
     @EventListener
-    @Transactional
     public void handleImageUploadCompleted(ImageUploadCompletedEvent event) {
         Optional<CrawledProduct> productOpt =
                 crawledProductReadManager.findById(event.crawledProductId());

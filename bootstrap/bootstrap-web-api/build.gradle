@@ -34,6 +34,7 @@ dependencies {
     implementation project(':adapter-out:persistence-redis')
     implementation project(':adapter-out:aws-eventbridge')
     implementation project(':adapter-out:http-client')
+    implementation project(':adapter-out:marketplace-client')
 
     // ========================================
     // Spring Boot Starters

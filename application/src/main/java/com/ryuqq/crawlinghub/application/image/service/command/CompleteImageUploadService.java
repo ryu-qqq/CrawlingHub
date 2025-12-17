@@ -9,7 +9,6 @@ import com.ryuqq.crawlinghub.domain.product.event.ImageUploadCompletedEvent;
 import java.time.Clock;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 이미지 업로드 완료 처리 Service
@@ -42,7 +41,6 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
     }
 
     @Override
-    @Transactional
     public void complete(Long outboxId, String s3Url) {
         Optional<CrawledProductImageOutbox> outboxOpt = imageOutboxReadManager.findById(outboxId);
         if (outboxOpt.isEmpty()) {

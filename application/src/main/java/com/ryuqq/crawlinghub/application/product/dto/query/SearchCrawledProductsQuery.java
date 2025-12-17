@@ -28,8 +28,8 @@ public record SearchCrawledProductsQuery(
         Integer page,
         Integer size) {
 
-    private static final int DEFAULT_PAGE = 0;
-    private static final int DEFAULT_SIZE = 20;
+    private static final Integer DEFAULT_PAGE = Integer.valueOf(0);
+    private static final Integer DEFAULT_SIZE = Integer.valueOf(20);
 
     public SearchCrawledProductsQuery {
         page = (page == null) ? DEFAULT_PAGE : page;

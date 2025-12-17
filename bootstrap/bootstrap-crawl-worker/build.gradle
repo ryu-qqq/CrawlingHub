@@ -35,6 +35,7 @@ dependencies {
     implementation project(':adapter-out:http-client')        // For HTTP crawling
     implementation project(':adapter-out:aws-eventbridge')    // For EventBridge scheduler
     implementation project(':adapter-out:fileflow-client')    // For Fileflow image upload
+    implementation project(':adapter-out:marketplace-client')  // For External product sync
 
     // ========================================
     // Spring Boot Starters

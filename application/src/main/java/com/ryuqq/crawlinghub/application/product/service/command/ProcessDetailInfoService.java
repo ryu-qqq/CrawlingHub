@@ -10,7 +10,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * DETAIL 크롤링 결과 처리 Service
@@ -44,7 +43,6 @@ public class ProcessDetailInfoService implements ProcessDetailInfoUseCase {
     }
 
     @Override
-    @Transactional
     public Optional<CrawledProduct> process(
             SellerId sellerId, long itemNo, ProductDetailInfo detailInfo) {
         Optional<CrawledProduct> productOpt =

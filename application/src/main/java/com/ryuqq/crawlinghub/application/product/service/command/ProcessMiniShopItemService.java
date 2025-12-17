@@ -10,7 +10,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * MINI_SHOP 크롤링 결과 처리 Service
@@ -44,7 +43,6 @@ public class ProcessMiniShopItemService implements ProcessMiniShopItemUseCase {
     }
 
     @Override
-    @Transactional
     public CrawledProduct process(SellerId sellerId, MiniShopItem item) {
         // Factory로 Bundle 생성 후 Facade로 처리
         MiniShopProcessBundle bundle =

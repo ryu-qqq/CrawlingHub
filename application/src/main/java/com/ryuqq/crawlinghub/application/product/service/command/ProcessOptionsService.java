@@ -11,7 +11,6 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * OPTION 크롤링 결과 처리 Service
@@ -38,7 +37,6 @@ public class ProcessOptionsService implements ProcessOptionsUseCase {
     }
 
     @Override
-    @Transactional
     public Optional<CrawledProduct> process(
             SellerId sellerId, long itemNo, List<ProductOption> options) {
         Optional<CrawledProduct> productOpt =

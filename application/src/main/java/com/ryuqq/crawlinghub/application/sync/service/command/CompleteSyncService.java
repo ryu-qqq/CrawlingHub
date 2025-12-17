@@ -7,7 +7,6 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 외부 서버 동기화 완료 처리 Service
@@ -29,7 +28,6 @@ public class CompleteSyncService implements CompleteSyncUseCase {
     }
 
     @Override
-    @Transactional
     public void complete(CrawledProductId crawledProductId, Long externalProductId) {
         Optional<CrawledProduct> productOpt = crawledProductQueryPort.findById(crawledProductId);
         productOpt.ifPresent(
