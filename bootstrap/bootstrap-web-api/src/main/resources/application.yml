@@ -129,6 +129,7 @@ spring:
       - classpath:persistence.yml
       - classpath:eventbridge.yml
       - classpath:redis.yml
+      - classpath:fileflow.yml
 
   # ===============================================
   # Flyway Migration
