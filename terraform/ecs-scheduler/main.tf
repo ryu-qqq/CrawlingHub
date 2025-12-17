@@ -337,6 +337,9 @@ module "ecs_service" {
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
     { name = "REDIS_PORT", value = local.redis_port },
+    # Fileflow Client 설정 (이미지 업로드 서비스)
+    { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
+    { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" },
     # Service Token 인증 활성화 (서버 간 내부 통신용)
     { name = "SECURITY_SERVICE_TOKEN_ENABLED", value = "true" }
   ]
