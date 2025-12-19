@@ -51,17 +51,18 @@ public final class SecurityPaths {
     /**
      * API 문서 경로 (Swagger, REST Docs)
      *
-     * <p>인증된 사용자면 접근 가능한 API 문서 경로입니다.
+     * <p>인증된 사용자면 접근 가능한 API 문서 경로입니다. Gateway 라우팅 패턴(/api/v1/crawling/**)에 맞춤.
      */
     public static final class Docs {
 
         /** API 문서 경로 목록 */
         public static final List<String> PATTERNS =
                 List.of(
-                        ApiPaths.OpenApi.SWAGGER_REDIRECT,
+                        ApiPaths.OpenApi.DOCS,
+                        ApiPaths.OpenApi.DOCS_ALL,
                         ApiPaths.OpenApi.SWAGGER_UI,
                         ApiPaths.OpenApi.SWAGGER_UI_HTML,
-                        ApiPaths.OpenApi.DOCS,
+                        ApiPaths.OpenApi.SWAGGER_CONFIG,
                         ApiPaths.Docs.BASE,
                         ApiPaths.Docs.ALL);
 

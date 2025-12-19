@@ -115,21 +115,22 @@ public final class ApiPaths {
         private Actuator() {}
     }
 
-    /** OpenAPI (Swagger) 문서 경로 */
+    /** OpenAPI (Swagger) 문서 경로 - Gateway 라우팅 패턴에 맞춤 */
     public static final class OpenApi {
-        public static final String DOCS = "/v3/api-docs/**";
-        public static final String SWAGGER_UI = "/swagger-ui/**";
-        public static final String SWAGGER_UI_HTML = "/swagger-ui.html";
-        public static final String SWAGGER_REDIRECT = "/swagger";
+        public static final String DOCS = CRAWLING_SERVICE_BASE + "/api-docs";
+        public static final String DOCS_ALL = CRAWLING_SERVICE_BASE + "/api-docs/**";
+        public static final String SWAGGER_UI = CRAWLING_SERVICE_BASE + "/swagger-ui/**";
+        public static final String SWAGGER_UI_HTML = CRAWLING_SERVICE_BASE + "/swagger-ui.html";
+        public static final String SWAGGER_CONFIG = CRAWLING_SERVICE_BASE + "/swagger-config";
 
         private OpenApi() {}
     }
 
-    /** REST Docs 문서 경로 */
+    /** REST Docs 문서 경로 - Gateway 라우팅 패턴에 맞춤 */
     public static final class Docs {
-        public static final String BASE = "/docs";
-        public static final String ALL = "/docs/**";
-        public static final String INDEX = "/docs/index.html";
+        public static final String BASE = CRAWLING_SERVICE_BASE + "/docs";
+        public static final String ALL = CRAWLING_SERVICE_BASE + "/docs/**";
+        public static final String INDEX = CRAWLING_SERVICE_BASE + "/docs/index.html";
 
         private Docs() {}
     }
