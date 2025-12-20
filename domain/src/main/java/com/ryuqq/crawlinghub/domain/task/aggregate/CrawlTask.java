@@ -363,6 +363,17 @@ public class CrawlTask {
         return endpoint;
     }
 
+    /**
+     * 머스트잇 셀러명 조회
+     *
+     * <p>endpoint에서 mustItSellerName을 조회합니다. META, MINI_SHOP 타입에서만 유효한 값입니다.
+     *
+     * @return 머스트잇 셀러명 (DETAIL, OPTION 타입은 null)
+     */
+    public String getMustItSellerName() {
+        return endpoint.getMustItSellerName();
+    }
+
     public CrawlTaskStatus getStatus() {
         return status;
     }

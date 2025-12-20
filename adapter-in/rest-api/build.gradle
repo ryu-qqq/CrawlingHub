@@ -116,6 +116,11 @@ tasks.named('build') {
     dependsOn copyDocument
 }
 
+// processResources must run after copyDocument (Gradle 8.x requirement)
+tasks.named('processResources') {
+    dependsOn copyDocument
+}
+
 // ========================================
 // SpotBugs must run before copyDocument to avoid task conflicts
 // ========================================

@@ -28,6 +28,9 @@ public class HttpClientProperties {
     /** 기본 세션 유지 시간 (시간, expires가 없을 때) */
     private int defaultSessionDurationHours = 2;
 
+    /** 최대 응답 버퍼 크기 (bytes) - 기본 5MB */
+    private int maxInMemorySize = 5 * 1024 * 1024;
+
     public String getTargetUrl() {
         return targetUrl;
     }
@@ -66,5 +69,13 @@ public class HttpClientProperties {
 
     public void setDefaultSessionDurationHours(int defaultSessionDurationHours) {
         this.defaultSessionDurationHours = defaultSessionDurationHours;
+    }
+
+    public int getMaxInMemorySize() {
+        return maxInMemorySize;
+    }
+
+    public void setMaxInMemorySize(int maxInMemorySize) {
+        this.maxInMemorySize = maxInMemorySize;
     }
 }

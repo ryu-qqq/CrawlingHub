@@ -47,7 +47,7 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] META 태스크 생성")
         void shouldCreateMetaTask() {
             // Given
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMeta(1L, 1L);
+            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMeta(1L, 1L, "test-seller");
 
             given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
@@ -63,7 +63,8 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] MINI_SHOP 태스크 생성")
         void shouldCreateMiniShopTask() {
             // Given
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMiniShop(1L, 1L, 1L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forMiniShop(1L, 1L, "test-seller", 1L);
 
             given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
@@ -79,7 +80,8 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] DETAIL 태스크 생성")
         void shouldCreateDetailTask() {
             // Given
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forDetail(1L, 1L, 12345L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 12345L);
 
             given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
@@ -95,7 +97,8 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] OPTION 태스크 생성")
         void shouldCreateOptionTask() {
             // Given
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forOption(1L, 1L, 12345L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forOption(1L, 1L, "test-seller", 12345L);
 
             given(commandFactory.createBundle(command)).willReturn(mockBundle);
 
@@ -118,9 +121,9 @@ class CreateCrawlTaskServiceTest {
             // Given
             List<CreateCrawlTaskCommand> commands =
                     List.of(
-                            CreateCrawlTaskCommand.forDetail(1L, 1L, 100L),
-                            CreateCrawlTaskCommand.forDetail(1L, 1L, 101L),
-                            CreateCrawlTaskCommand.forOption(1L, 1L, 100L));
+                            CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 100L),
+                            CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 101L),
+                            CreateCrawlTaskCommand.forOption(1L, 1L, "test-seller", 100L));
 
             given(commandFactory.createBundle(any(CreateCrawlTaskCommand.class)))
                     .willReturn(mockBundle);
@@ -137,9 +140,12 @@ class CreateCrawlTaskServiceTest {
         @DisplayName("[성공] 일부 태스크 실패해도 나머지 계속 처리")
         void shouldContinueOnIndividualFailure() {
             // Given
-            CreateCrawlTaskCommand command1 = CreateCrawlTaskCommand.forDetail(1L, 1L, 100L);
-            CreateCrawlTaskCommand command2 = CreateCrawlTaskCommand.forDetail(1L, 1L, 101L);
-            CreateCrawlTaskCommand command3 = CreateCrawlTaskCommand.forDetail(1L, 1L, 102L);
+            CreateCrawlTaskCommand command1 =
+                    CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 100L);
+            CreateCrawlTaskCommand command2 =
+                    CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 101L);
+            CreateCrawlTaskCommand command3 =
+                    CreateCrawlTaskCommand.forDetail(1L, 1L, "test-seller", 102L);
             List<CreateCrawlTaskCommand> commands = List.of(command1, command2, command3);
 
             CrawlTaskBundle bundle1 = org.mockito.Mockito.mock(CrawlTaskBundle.class);

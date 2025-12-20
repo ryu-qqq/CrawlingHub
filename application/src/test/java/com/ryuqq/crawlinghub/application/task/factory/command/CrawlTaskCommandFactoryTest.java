@@ -8,11 +8,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Clock;
@@ -49,19 +51,20 @@ class CrawlTaskCommandFactoryTest {
     }
 
     @Nested
-    @DisplayName("createBundle(TriggerCrawlTaskCommand, CrawlScheduler) 메서드는")
+    @DisplayName("createBundle(TriggerCrawlTaskCommand, CrawlScheduler, Seller) 메서드는")
     class CreateBundleFromTriggerCommand {
 
         @Test
-        @DisplayName("TriggerCrawlTaskCommand와 CrawlScheduler로 CrawlTaskBundle을 생성한다")
+        @DisplayName("TriggerCrawlTaskCommand와 CrawlScheduler, Seller로 CrawlTaskBundle을 생성한다")
         void shouldCreateBundleFromTriggerCommandAndScheduler() {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(100L);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler(100L);
+            Seller seller = SellerFixture.anActiveSeller();
 
             // When
-            CrawlTaskBundle bundle = factory.createBundle(command, scheduler);
+            CrawlTaskBundle bundle = factory.createBundle(command, scheduler, seller);
 
             // Then
             assertThat(bundle).isNotNull();
@@ -80,9 +83,10 @@ class CrawlTaskCommandFactoryTest {
             given(clockHolder.getClock()).willReturn(fixedClock);
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(100L);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler(100L);
+            Seller seller = SellerFixture.anActiveSeller();
 
             // When
-            CrawlTaskBundle bundle = factory.createBundle(command, scheduler);
+            CrawlTaskBundle bundle = factory.createBundle(command, scheduler, seller);
 
             // Then
             assertThat(bundle.outboxPayload()).isNotBlank();
@@ -101,7 +105,8 @@ class CrawlTaskCommandFactoryTest {
         void shouldCreateBundleForMetaTask() {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMeta(100L, 200L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forMeta(100L, 200L, "test-seller");
 
             // When
             CrawlTaskBundle bundle = factory.createBundle(command);
@@ -117,7 +122,8 @@ class CrawlTaskCommandFactoryTest {
         void shouldCreateBundleForMiniShopTask() {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMiniShop(100L, 200L, 1L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forMiniShop(100L, 200L, "test-seller", 1L);
 
             // When
             CrawlTaskBundle bundle = factory.createBundle(command);
@@ -131,7 +137,8 @@ class CrawlTaskCommandFactoryTest {
         void shouldCreateBundleForDetailTask() {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forDetail(100L, 200L, 12345L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forDetail(100L, 200L, "test-seller", 12345L);
 
             // When
             CrawlTaskBundle bundle = factory.createBundle(command);
@@ -145,7 +152,8 @@ class CrawlTaskCommandFactoryTest {
         void shouldCreateBundleForOptionTask() {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forOption(100L, 200L, 12345L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forOption(100L, 200L, "test-seller", 12345L);
 
             // When
             CrawlTaskBundle bundle = factory.createBundle(command);
@@ -159,7 +167,8 @@ class CrawlTaskCommandFactoryTest {
         void shouldCreateBundleWithRequiredFieldsInPayload() throws JsonProcessingException {
             // Given
             given(clockHolder.getClock()).willReturn(fixedClock);
-            CreateCrawlTaskCommand command = CreateCrawlTaskCommand.forMeta(100L, 200L);
+            CreateCrawlTaskCommand command =
+                    CreateCrawlTaskCommand.forMeta(100L, 200L, "test-seller");
 
             // When
             CrawlTaskBundle bundle = factory.createBundle(command);

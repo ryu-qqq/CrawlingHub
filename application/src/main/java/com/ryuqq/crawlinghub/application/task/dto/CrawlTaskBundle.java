@@ -100,6 +100,8 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
     /**
      * Outbox 생성 (Task ID 할당 후)
      *
+     * <p>페이로드에 taskId를 자동으로 추가합니다.
+     *
      * @param clock 시간 제어
      * @return CrawlTaskOutbox
      * @throws IllegalStateException Task ID가 아직 할당되지 않은 경우
@@ -108,7 +110,19 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
         if (savedTaskId == null) {
             throw new IllegalStateException("CrawlTask ID가 아직 할당되지 않았습니다.");
         }
-        return CrawlTaskOutbox.forNew(savedTaskId, outboxPayload, clock);
+        String enrichedPayload = enrichPayloadWithTaskId(outboxPayload, savedTaskId.value());
+        return CrawlTaskOutbox.forNew(savedTaskId, enrichedPayload, clock);
+    }
+
+    /**
+     * 페이로드에 taskId 추가
+     *
+     * @param payload 원본 페이로드 (JSON)
+     * @param taskId Task ID
+     * @return taskId가 포함된 페이로드
+     */
+    private String enrichPayloadWithTaskId(String payload, Long taskId) {
+        return payload.replaceFirst("\\{", "{\"taskId\":" + taskId + ",");
     }
 
     /**
