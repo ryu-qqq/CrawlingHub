@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
+import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
@@ -10,6 +11,8 @@ import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFa
 import com.ryuqq.crawlinghub.application.task.port.in.command.TriggerCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import org.springframework.stereotype.Service;
 
@@ -44,16 +47,19 @@ public class TriggerCrawlTaskService implements TriggerCrawlTaskUseCase {
     private final CrawlTaskCommandFactory commandFactory;
     private final CrawlTaskAssembler assembler;
     private final CrawlTaskFacade facade;
+    private final SellerQueryPort sellerQueryPort;
 
     public TriggerCrawlTaskService(
             CrawlTaskPersistenceValidator validator,
             CrawlTaskCommandFactory commandFactory,
             CrawlTaskAssembler assembler,
-            CrawlTaskFacade facade) {
+            CrawlTaskFacade facade,
+            SellerQueryPort sellerQueryPort) {
         this.validator = validator;
         this.commandFactory = commandFactory;
         this.assembler = assembler;
         this.facade = facade;
+        this.sellerQueryPort = sellerQueryPort;
     }
 
     @Override
@@ -63,13 +69,20 @@ public class TriggerCrawlTaskService implements TriggerCrawlTaskUseCase {
         // 1. 스케줄러 조회 및 검증 (ACTIVE 상태만)
         CrawlScheduler scheduler = validator.findAndValidateScheduler(crawlSchedulerId);
 
-        // 2. CrawlTaskBundle 생성 (CommandFactory)
-        CrawlTaskBundle bundle = commandFactory.createBundle(command, scheduler);
+        // 2. Seller 조회 (mustItSellerName 조회용)
+        Seller seller =
+                sellerQueryPort
+                        .findById(scheduler.getSellerId())
+                        .orElseThrow(
+                                () -> new SellerNotFoundException(scheduler.getSellerIdValue()));
 
-        // 3. Facade에서 persist (중복 검증 + 저장) → CrawlTask 반환
+        // 3. CrawlTaskBundle 생성 (CommandFactory)
+        CrawlTaskBundle bundle = commandFactory.createBundle(command, scheduler, seller);
+
+        // 4. Facade에서 persist (중복 검증 + 저장) → CrawlTask 반환
         CrawlTask savedTask = facade.persist(bundle);
 
-        // 4. 응답 변환 (Assembler)
+        // 5. 응답 변환 (Assembler)
         return assembler.toResponse(savedTask);
     }
 }

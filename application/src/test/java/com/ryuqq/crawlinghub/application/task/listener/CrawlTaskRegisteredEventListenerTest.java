@@ -15,7 +15,9 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
+import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
@@ -51,6 +53,10 @@ class CrawlTaskRegisteredEventListenerTest {
 
     @Mock private CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
 
+    @Mock private CrawlTaskTransactionManager crawlTaskTransactionManager;
+
+    @Mock private ClockHolder clockHolder;
+
     @InjectMocks private CrawlTaskRegisteredEventListener listener;
 
     private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
@@ -84,12 +90,14 @@ class CrawlTaskRegisteredEventListenerTest {
 
             given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId))
                     .willReturn(Optional.of(outbox));
+            given(clockHolder.getClock()).willReturn(FIXED_CLOCK);
 
             // When
             listener.handleCrawlTaskRegistered(event);
 
             // Then
             verify(crawlTaskOutboxQueryPort).findByCrawlTaskId(taskId);
+            verify(crawlTaskTransactionManager).markAsPublished(taskId, FIXED_CLOCK);
             verify(crawlTaskMessageManager).publishFromEvent(event);
             verify(crawlTaskOutboxTransactionManager).markAsSent(outbox);
             verify(crawlTaskOutboxTransactionManager, never()).markAsFailed(any());
@@ -153,6 +161,7 @@ class CrawlTaskRegisteredEventListenerTest {
 
             given(crawlTaskOutboxQueryPort.findByCrawlTaskId(taskId))
                     .willReturn(Optional.of(outbox));
+            given(clockHolder.getClock()).willReturn(FIXED_CLOCK);
             doThrow(new RuntimeException("SQS publish error"))
                     .when(crawlTaskMessageManager)
                     .publishFromEvent(event);
@@ -162,6 +171,7 @@ class CrawlTaskRegisteredEventListenerTest {
 
             // Then
             verify(crawlTaskOutboxQueryPort).findByCrawlTaskId(taskId);
+            verify(crawlTaskTransactionManager).markAsPublished(taskId, FIXED_CLOCK);
             verify(crawlTaskMessageManager).publishFromEvent(event);
             verify(crawlTaskOutboxTransactionManager, never()).markAsSent(any());
             verify(crawlTaskOutboxTransactionManager).markAsFailed(outbox);

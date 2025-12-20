@@ -9,6 +9,8 @@ import static org.mockito.Mockito.never;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
+import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
@@ -20,10 +22,13 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.InvalidSchedulerStateException;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,6 +57,8 @@ class TriggerCrawlTaskServiceTest {
 
     @Mock private CrawlTaskFacade facade;
 
+    @Mock private SellerQueryPort sellerQueryPort;
+
     @Mock private CrawlTaskBundle mockBundle;
 
     @InjectMocks private TriggerCrawlTaskService service;
@@ -67,6 +74,7 @@ class TriggerCrawlTaskServiceTest {
             Long crawlSchedulerId = 1L;
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(crawlSchedulerId);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
+            Seller seller = SellerFixture.anActiveSeller();
             CrawlTask savedTask = CrawlTaskFixture.aWaitingTask();
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
@@ -81,7 +89,8 @@ class TriggerCrawlTaskServiceTest {
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willReturn(scheduler);
-            given(commandFactory.createBundle(command, scheduler)).willReturn(mockBundle);
+            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(commandFactory.createBundle(command, scheduler, seller)).willReturn(mockBundle);
             given(facade.persist(mockBundle)).willReturn(savedTask);
             given(assembler.toResponse(savedTask)).willReturn(expectedResponse);
 
@@ -93,7 +102,8 @@ class TriggerCrawlTaskServiceTest {
             then(validator)
                     .should()
                     .findAndValidateScheduler(CrawlSchedulerId.of(crawlSchedulerId));
-            then(commandFactory).should().createBundle(command, scheduler);
+            then(sellerQueryPort).should().findById(any(SellerId.class));
+            then(commandFactory).should().createBundle(command, scheduler, seller);
             then(facade).should().persist(mockBundle);
             then(assembler).should().toResponse(savedTask);
         }
@@ -112,7 +122,7 @@ class TriggerCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(CrawlSchedulerNotFoundException.class);
 
-            then(commandFactory).should(never()).createBundle(any(), any());
+            then(commandFactory).should(never()).createBundle(any(), any(), any());
             then(facade).should(never()).persist(any());
         }
 
@@ -135,7 +145,7 @@ class TriggerCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(InvalidSchedulerStateException.class);
 
-            then(commandFactory).should(never()).createBundle(any(), any());
+            then(commandFactory).should(never()).createBundle(any(), any(), any());
             then(facade).should(never()).persist(any());
         }
     }

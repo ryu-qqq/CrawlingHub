@@ -36,30 +36,37 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     /**
      * 미니샵 상품 목록(메타데이터) 엔드포인트 생성
      *
-     * @param sellerId 셀러 ID
+     * @param mustItSellerName 머스트잇 셀러명 (API 조회 시 필요)
      * @return CrawlEndpoint
      */
-    public static CrawlEndpoint forMeta(Long sellerId) {
-        return forMiniShopList(sellerId, 1, 1);
+    public static CrawlEndpoint forMeta(String mustItSellerName) {
+        return forMiniShopList(mustItSellerName, 1, 1);
     }
 
     /**
      * 미니샵 상품 목록 엔드포인트 생성
      *
-     * @param sellerId 셀러 ID
+     * @param mustItSellerName 머스트잇 셀러명 (API 조회 시 필요)
      * @param page 페이지 번호
      * @param pageSize 페이지 크기
      * @return CrawlEndpoint
      */
-    public static CrawlEndpoint forMiniShopList(Long sellerId, int page, int pageSize) {
+    public static CrawlEndpoint forMiniShopList(String mustItSellerName, int page, int pageSize) {
+        if (mustItSellerName == null || mustItSellerName.isBlank()) {
+            throw new IllegalArgumentException("mustItSellerName은 null이거나 빈 값일 수 없습니다.");
+        }
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
                 "/mustit-api/facade-api/v1/searchmini-shop-search",
                 Map.of(
-                        "sellerId", String.valueOf(sellerId),
-                        "pageNo", String.valueOf(page),
-                        "pageSize", String.valueOf(pageSize),
-                        "order", "LATEST"));
+                        "sellerId",
+                        mustItSellerName,
+                        "pageNo",
+                        String.valueOf(page),
+                        "pageSize",
+                        String.valueOf(pageSize),
+                        "order",
+                        "LATEST"));
     }
 
     /**
@@ -104,5 +111,16 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
                         .collect(Collectors.joining("&"));
 
         return baseUrl + path + "?" + queryString;
+    }
+
+    /**
+     * 머스트잇 셀러명 조회
+     *
+     * <p>queryParams에서 sellerId 값을 조회합니다. META, MINI_SHOP 타입에서만 사용됩니다.
+     *
+     * @return 머스트잇 셀러명 (없으면 null)
+     */
+    public String getMustItSellerName() {
+        return queryParams.get("sellerId");
     }
 }

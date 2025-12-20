@@ -109,6 +109,7 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
 
         Long schedulerId = crawlTask.getCrawlSchedulerId().value();
         Long sellerId = crawlTask.getSellerId().value();
+        String mustItSellerName = crawlTask.getMustItSellerName();
 
         log.info(
                 "MINI_SHOP Task 생성 예정: sellerId={}, totalPages={} (0~{})",
@@ -121,7 +122,7 @@ public class MetaCrawlResultProcessor implements CrawlResultProcessor {
                 .mapToObj(
                         page ->
                                 CreateCrawlTaskCommand.forMiniShop(
-                                        schedulerId, sellerId, (long) page))
+                                        schedulerId, sellerId, mustItSellerName, (long) page))
                 .toList();
     }
 }
