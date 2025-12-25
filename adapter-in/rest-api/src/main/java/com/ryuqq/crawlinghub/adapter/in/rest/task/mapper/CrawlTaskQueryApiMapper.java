@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +59,13 @@ public class CrawlTaskQueryApiMapper {
                         ? CrawlTaskStatus.valueOf(request.status())
                         : null;
 
+        CrawlTaskType taskType =
+                (request.taskType() != null && !request.taskType().isBlank())
+                        ? CrawlTaskType.valueOf(request.taskType())
+                        : null;
+
         return new ListCrawlTasksQuery(
-                request.crawlSchedulerId(), status, request.page(), request.size());
+                request.crawlSchedulerId(), status, taskType, request.page(), request.size());
     }
 
     /**

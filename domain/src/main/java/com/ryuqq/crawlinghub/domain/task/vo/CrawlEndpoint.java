@@ -96,6 +96,54 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     }
 
     /**
+     * Search API 엔드포인트 생성 (전체 URL 직접 지정)
+     *
+     * <p>무한스크롤 방식의 Search API는 nextApiUrl을 그대로 사용합니다.
+     *
+     * @param fullUrl 전체 URL (nextApiUrl)
+     * @return CrawlEndpoint
+     */
+    public static CrawlEndpoint forSearchApi(String fullUrl) {
+        if (fullUrl == null || fullUrl.isBlank()) {
+            throw new IllegalArgumentException("Search API URL은 null이거나 빈 값일 수 없습니다.");
+        }
+        // URL 파싱하여 baseUrl과 path 분리
+        int pathStart = fullUrl.indexOf("/", fullUrl.indexOf("://") + 3);
+        if (pathStart == -1) {
+            return new CrawlEndpoint(fullUrl, "/", Map.of());
+        }
+        String baseUrl = fullUrl.substring(0, pathStart);
+        String pathWithQuery = fullUrl.substring(pathStart);
+        int queryStart = pathWithQuery.indexOf("?");
+        if (queryStart == -1) {
+            return new CrawlEndpoint(baseUrl, pathWithQuery, Map.of());
+        }
+        String path = pathWithQuery.substring(0, queryStart);
+        String queryString = pathWithQuery.substring(queryStart + 1);
+        Map<String, String> queryParams = parseQueryString(queryString);
+        return new CrawlEndpoint(baseUrl, path, queryParams);
+    }
+
+    /**
+     * 쿼리 문자열 파싱
+     *
+     * @param queryString 쿼리 문자열 (key1=value1&key2=value2)
+     * @return 파싱된 쿼리 파라미터 맵
+     */
+    private static Map<String, String> parseQueryString(String queryString) {
+        if (queryString == null || queryString.isBlank()) {
+            return Map.of();
+        }
+        return java.util.Arrays.stream(queryString.split("&"))
+                .filter(param -> param.contains("="))
+                .collect(
+                        Collectors.toMap(
+                                param -> param.substring(0, param.indexOf("=")),
+                                param -> param.substring(param.indexOf("=") + 1),
+                                (v1, v2) -> v2));
+    }
+
+    /**
      * 전체 URL 생성
      *
      * @return baseUrl + path + queryString

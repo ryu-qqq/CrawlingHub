@@ -102,8 +102,36 @@ public final class ApiPaths {
     public static final class CrawledProducts {
         public static final String BASE = CRAWLING_SERVICE_BASE + "/crawled-products";
         public static final String BY_ID = "/{id}";
+        public static final String SYNC = "/{id}/sync";
 
         private CrawledProducts() {}
+    }
+
+    /**
+     * Outbox 관련 API 경로
+     *
+     * <p>Outbox 메시지 관리 API입니다. @PreAuthorize로 권한 검사를 수행합니다.
+     */
+    public static final class Outbox {
+        public static final String BASE = CRAWLING_SERVICE_BASE + "/outbox";
+        public static final String REPUBLISH = "/republish";
+
+        private Outbox() {}
+    }
+
+    /**
+     * ProductOutbox 관련 API 경로
+     *
+     * <p>상품 동기화/이미지 Outbox 관리 API입니다. @PreAuthorize로 권한 검사를 수행합니다.
+     */
+    public static final class ProductOutbox {
+        public static final String BASE = CRAWLING_SERVICE_BASE + "/product-outbox";
+        public static final String SYNC = "/sync";
+        public static final String IMAGE = "/image";
+        public static final String SYNC_RETRY = "/sync/{id}/retry";
+        public static final String IMAGE_RETRY = "/image/{id}/retry";
+
+        private ProductOutbox() {}
     }
 
     /** 헬스체크 및 모니터링 API 경로 */

@@ -26,7 +26,7 @@ class ProcessingResultTest {
         void shouldCreateWithFollowUp() {
             // Given
             List<CreateCrawlTaskCommand> commands =
-                    List.of(CreateCrawlTaskCommand.forMiniShop(1L, 100L, "seller", 0L));
+                    List.of(CreateCrawlTaskCommand.forMiniShop(1L, 100L, 0L));
 
             // When
             ProcessingResult result = ProcessingResult.withFollowUp(commands, 10, 5);
@@ -86,8 +86,8 @@ class ProcessingResultTest {
             // Given
             List<CreateCrawlTaskCommand> commands =
                     List.of(
-                            CreateCrawlTaskCommand.forMiniShop(1L, 100L, "seller1", 0L),
-                            CreateCrawlTaskCommand.forMiniShop(1L, 100L, "seller1", 1L));
+                            CreateCrawlTaskCommand.forMiniShop(1L, 100L, 0L),
+                            CreateCrawlTaskCommand.forMiniShop(1L, 100L, 1L));
 
             ProcessingResult result = ProcessingResult.withFollowUp(commands, 10, 10);
 

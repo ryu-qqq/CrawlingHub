@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryRespons
 import com.ryuqq.crawlinghub.application.product.port.in.command.RetryImageOutboxUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.exception.ImageOutboxNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import org.springframework.stereotype.Service;
 
@@ -43,10 +44,7 @@ public class RetryImageOutboxService implements RetryImageOutboxUseCase {
     private ProductImageOutbox findOutboxOrThrow(Long outboxId) {
         return imageOutboxQueryPort
                 .findById(outboxId)
-                .orElseThrow(
-                        () ->
-                                new IllegalArgumentException(
-                                        "ImageOutbox를 찾을 수 없습니다. ID: " + outboxId));
+                .orElseThrow(() -> new ImageOutboxNotFoundException(outboxId));
     }
 
     private void validateCanRetry(ProductImageOutbox outbox) {

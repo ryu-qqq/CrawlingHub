@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.RetrySyncOutboxUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import com.ryuqq.crawlinghub.domain.product.exception.SyncOutboxNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import org.springframework.stereotype.Service;
 
@@ -42,10 +43,7 @@ public class RetrySyncOutboxService implements RetrySyncOutboxUseCase {
     private CrawledProductSyncOutbox findOutboxOrThrow(Long outboxId) {
         return syncOutboxQueryPort
                 .findById(outboxId)
-                .orElseThrow(
-                        () ->
-                                new IllegalArgumentException(
-                                        "SyncOutbox를 찾을 수 없습니다. ID: " + outboxId));
+                .orElseThrow(() -> new SyncOutboxNotFoundException(outboxId));
     }
 
     private void validateCanRetry(CrawledProductSyncOutbox outbox) {

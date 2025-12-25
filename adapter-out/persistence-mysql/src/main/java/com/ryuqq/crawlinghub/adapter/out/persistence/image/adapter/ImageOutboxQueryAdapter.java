@@ -68,4 +68,33 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
                 queryDslRepository.findRetryableOutboxes(maxRetryCount, limit);
         return entities.stream().map(mapper::toDomain).toList();
     }
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return ImageOutbox 목록
+     */
+    @Override
+    public List<ProductImageOutbox> search(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+        List<ProductImageOutboxJpaEntity> entities =
+                queryDslRepository.search(crawledProductImageId, status, offset, size);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * 조건으로 ImageOutbox 개수 조회
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    @Override
+    public long count(Long crawledProductImageId, ProductOutboxStatus status) {
+        return queryDslRepository.count(crawledProductImageId, status);
+    }
 }

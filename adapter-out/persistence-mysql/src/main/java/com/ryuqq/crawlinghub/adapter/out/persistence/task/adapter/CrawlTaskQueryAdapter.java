@@ -8,8 +8,11 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -100,5 +103,27 @@ public class CrawlTaskQueryAdapter implements CrawlTaskQueryPort {
     @Override
     public long countByCriteria(CrawlTaskCriteria criteria) {
         return queryDslRepository.countByCriteria(criteria);
+    }
+
+    /**
+     * 상태별 CrawlTask 개수 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 상태별 개수
+     */
+    @Override
+    public Map<CrawlTaskStatus, Long> countByStatus(CrawlTaskStatisticsCriteria criteria) {
+        return queryDslRepository.countByStatus(criteria);
+    }
+
+    /**
+     * 타입별 CrawlTask 통계 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 타입별 통계
+     */
+    @Override
+    public Map<CrawlTaskType, TaskTypeCount> countByTaskType(CrawlTaskStatisticsCriteria criteria) {
+        return queryDslRepository.countByTaskType(criteria);
     }
 }

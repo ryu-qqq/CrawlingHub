@@ -105,6 +105,7 @@ public class CrawlTaskCommandFactory {
             case MINI_SHOP -> CrawlEndpoint.forMiniShopList(command.mustItSellerName(), 1, 100);
             case DETAIL -> CrawlEndpoint.forProductDetail(command.targetId());
             case OPTION -> CrawlEndpoint.forProductOption(command.targetId());
+            case SEARCH -> CrawlEndpoint.forSearchApi(command.endpoint());
         };
     }
 

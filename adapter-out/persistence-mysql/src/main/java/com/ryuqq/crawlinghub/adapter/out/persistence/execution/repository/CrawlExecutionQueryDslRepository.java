@@ -1,13 +1,17 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.execution.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.QCrawlExecutionJpaEntity;
+import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -120,13 +124,20 @@ public class CrawlExecutionQueryDslRepository {
                             : schedulerIdCondition;
         }
 
-        // 조건 3: 상태 필터
+        // 조건 3: Seller ID 필터
+        if (criteria.hasSellerIdFilter()) {
+            BooleanExpression sellerIdCondition =
+                    qExecution.sellerId.eq(criteria.sellerId().value());
+            expression = expression != null ? expression.and(sellerIdCondition) : sellerIdCondition;
+        }
+
+        // 조건 4: 상태 필터
         if (criteria.hasStatusFilter()) {
             BooleanExpression statusCondition = qExecution.status.eq(criteria.status());
             expression = expression != null ? expression.and(statusCondition) : statusCondition;
         }
 
-        // 조건 4: 기간 필터
+        // 조건 5: 기간 필터
         if (criteria.hasPeriodFilter()) {
             BooleanExpression periodCondition = buildPeriodCondition(criteria);
             if (periodCondition != null) {
@@ -164,5 +175,66 @@ public class CrawlExecutionQueryDslRepository {
             return null;
         }
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    /**
+     * 상위 에러 메시지 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @param limit 조회할 에러 개수
+     * @return 에러 메시지별 발생 횟수 목록
+     */
+    public List<CrawlExecutionQueryPort.ErrorCount> getTopErrors(
+            CrawlExecutionStatisticsCriteria criteria, int limit) {
+        var query =
+                queryFactory
+                        .select(qExecution.errorMessage, qExecution.count())
+                        .from(qExecution)
+                        .where(
+                                qExecution.errorMessage.isNotNull(),
+                                buildStatisticsConditions(criteria))
+                        .groupBy(qExecution.errorMessage)
+                        .orderBy(qExecution.count().desc())
+                        .limit(limit);
+
+        List<Tuple> results = query.fetch();
+
+        List<CrawlExecutionQueryPort.ErrorCount> errorCounts = new ArrayList<>();
+        for (Tuple tuple : results) {
+            String errorMessage = tuple.get(qExecution.errorMessage);
+            Long count = tuple.get(qExecution.count());
+            errorCounts.add(
+                    new CrawlExecutionQueryPort.ErrorCount(
+                            errorMessage, count != null ? count : 0L));
+        }
+
+        return errorCounts;
+    }
+
+    private BooleanExpression buildStatisticsConditions(CrawlExecutionStatisticsCriteria criteria) {
+        BooleanExpression expression = null;
+
+        if (criteria.crawlSchedulerId() != null) {
+            expression = qExecution.crawlSchedulerId.eq(criteria.crawlSchedulerId().value());
+        }
+
+        if (criteria.sellerId() != null) {
+            BooleanExpression sellerCondition = qExecution.sellerId.eq(criteria.sellerId().value());
+            expression = expression != null ? expression.and(sellerCondition) : sellerCondition;
+        }
+
+        if (criteria.from() != null) {
+            BooleanExpression fromCondition =
+                    qExecution.createdAt.goe(toLocalDateTime(criteria.from()));
+            expression = expression != null ? expression.and(fromCondition) : fromCondition;
+        }
+
+        if (criteria.to() != null) {
+            BooleanExpression toCondition =
+                    qExecution.createdAt.loe(toLocalDateTime(criteria.to()));
+            expression = expression != null ? expression.and(toCondition) : toCondition;
+        }
+
+        return expression;
     }
 }

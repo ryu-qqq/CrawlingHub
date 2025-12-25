@@ -80,18 +80,19 @@ class CrawlExecutionAssemblerTest {
         }
 
         @Test
-        @DisplayName("[성공] toCriteriaWithSeller() - 기본 Criteria 생성")
-        void shouldReturnBasicCriteriaForSellerExtension() {
+        @DisplayName("[성공] toCriteria() - sellerId 포함 Criteria 생성")
+        void shouldConvertQueryToCriteriaWithSellerId() {
             // Given
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
                             1L, 10L, 100L, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
 
             // When
-            CrawlExecutionCriteria result = assembler.toCriteriaWithSeller(query);
+            CrawlExecutionCriteria result = assembler.toCriteria(query);
 
             // Then
             assertThat(result.crawlTaskId().value()).isEqualTo(1L);
+            assertThat(result.sellerId().value()).isEqualTo(100L);
             assertThat(result.status()).isEqualTo(CrawlExecutionStatus.RUNNING);
         }
     }

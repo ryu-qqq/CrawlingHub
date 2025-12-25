@@ -66,36 +66,6 @@ public class ProductImageOutboxJpaEntity {
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
-    // ===== Legacy 필드 (V9 마이그레이션 중 유지, 추후 삭제 예정) =====
-
-    /**
-     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
-     */
-    @Deprecated
-    @Column(name = "crawled_product_id")
-    private Long crawledProductId;
-
-    /**
-     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
-     */
-    @Deprecated
-    @Column(name = "original_url", length = 2000)
-    private String originalUrl;
-
-    /**
-     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
-     */
-    @Deprecated
-    @Column(name = "s3_url", length = 2000)
-    private String s3Url;
-
-    /**
-     * @deprecated V10에서 삭제 예정 - crawled_product_image 테이블로 이동
-     */
-    @Deprecated
-    @Column(name = "image_type", length = 20)
-    private String imageType;
-
     protected ProductImageOutboxJpaEntity() {}
 
     private ProductImageOutboxJpaEntity(
@@ -182,39 +152,5 @@ public class ProductImageOutboxJpaEntity {
 
     public LocalDateTime getProcessedAt() {
         return processedAt;
-    }
-
-    // Legacy Getters (deprecated)
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public Long getCrawledProductId() {
-        return crawledProductId;
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public String getOriginalUrl() {
-        return originalUrl;
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public String getS3Url() {
-        return s3Url;
-    }
-
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    public String getImageType() {
-        return imageType;
     }
 }

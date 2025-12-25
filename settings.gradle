@@ -30,6 +30,11 @@ include 'bootstrap:bootstrap-scheduler'
 include 'bootstrap:bootstrap-crawl-worker'
 
 // ========================================
+// Integration Test Module
+// ========================================
+include 'integration-test'
+
+// ========================================
 // Project Structure
 // ========================================
 project(':domain').projectDir = file('domain')
@@ -46,3 +51,4 @@ project(':adapter-out:marketplace-client').projectDir = file('adapter-out/market
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
 project(':bootstrap:bootstrap-scheduler').projectDir = file('bootstrap/bootstrap-scheduler')
 project(':bootstrap:bootstrap-crawl-worker').projectDir = file('bootstrap/bootstrap-crawl-worker')
+project(':integration-test').projectDir = file('integration-test')
