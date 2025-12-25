@@ -149,15 +149,13 @@ public class SearchCrawlResultProcessor implements CrawlResultProcessor {
 
         Long schedulerId = crawlTask.getCrawlSchedulerId().value();
         Long sellerId = crawlTask.getSellerId().value();
-        String mustItSellerName = crawlTask.getMustItSellerName();
 
         List<CreateCrawlTaskCommand> commands = new ArrayList<>();
 
         // 다음 SEARCH 페이지 태스크 생성 (무한스크롤)
         if (nextApiUrl != null && !nextApiUrl.isBlank()) {
             commands.add(
-                    CreateCrawlTaskCommand.forSearchNextPage(
-                            schedulerId, sellerId, mustItSellerName, nextApiUrl));
+                    CreateCrawlTaskCommand.forSearchNextPage(schedulerId, sellerId, nextApiUrl));
             log.debug("다음 SEARCH 페이지 태스크 생성: nextApiUrl={}", nextApiUrl);
         }
 
@@ -165,12 +163,8 @@ public class SearchCrawlResultProcessor implements CrawlResultProcessor {
         if (!items.isEmpty()) {
             for (MiniShopItem item : items) {
                 Long itemNo = item.itemNo();
-                commands.add(
-                        CreateCrawlTaskCommand.forDetail(
-                                schedulerId, sellerId, mustItSellerName, itemNo));
-                commands.add(
-                        CreateCrawlTaskCommand.forOption(
-                                schedulerId, sellerId, mustItSellerName, itemNo));
+                commands.add(CreateCrawlTaskCommand.forDetail(schedulerId, sellerId, itemNo));
+                commands.add(CreateCrawlTaskCommand.forOption(schedulerId, sellerId, itemNo));
             }
             log.debug("후속 Task 생성: DETAIL={}, OPTION={}", items.size(), items.size());
         }

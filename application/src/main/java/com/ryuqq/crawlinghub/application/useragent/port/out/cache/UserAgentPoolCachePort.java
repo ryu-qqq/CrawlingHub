@@ -189,4 +189,27 @@ public interface UserAgentPoolCachePort {
      * <p>테스트 또는 전체 리셋 용도
      */
     void clearPool();
+
+    /**
+     * Health Score 업데이트
+     *
+     * @param userAgentId UserAgent ID
+     * @param healthScore 새 Health Score 값
+     */
+    void updateHealthScore(UserAgentId userAgentId, int healthScore);
+
+    /**
+     * Pool에 여러 UserAgent 추가 (WarmUp)
+     *
+     * @param cachedUserAgents 추가할 UserAgent 목록
+     * @return 추가된 개수
+     */
+    int warmUp(List<CachedUserAgent> cachedUserAgents);
+
+    /**
+     * 모든 SUSPENDED 상태의 UserAgent ID 목록 조회
+     *
+     * @return SUSPENDED 상태 UserAgent ID 목록
+     */
+    List<UserAgentId> getAllSuspendedUserAgents();
 }

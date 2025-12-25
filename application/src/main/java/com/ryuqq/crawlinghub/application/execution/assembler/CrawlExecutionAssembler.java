@@ -9,6 +9,7 @@ import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -37,22 +38,12 @@ public class CrawlExecutionAssembler {
                 query.crawlSchedulerId() != null
                         ? CrawlSchedulerId.of(query.crawlSchedulerId())
                         : null,
+                query.sellerId() != null ? SellerId.of(query.sellerId()) : null,
                 query.status(),
                 toInstant(query.from()),
                 toInstant(query.to()),
                 query.page(),
                 query.size());
-    }
-
-    /**
-     * 셀러 ID 필터용 Criteria 생성 (확장용)
-     *
-     * @param query 목록 조회 쿼리
-     * @return Domain 조회 조건 객체
-     */
-    public CrawlExecutionCriteria toCriteriaWithSeller(ListCrawlExecutionsQuery query) {
-        // 기본 Criteria 생성 (sellerId 필터는 별도 처리 필요 시 확장)
-        return toCriteria(query);
     }
 
     /**

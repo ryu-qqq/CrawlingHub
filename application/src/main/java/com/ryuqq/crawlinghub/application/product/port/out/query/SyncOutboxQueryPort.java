@@ -65,4 +65,31 @@ public interface SyncOutboxQueryPort {
      * @return 재시도 가능한 SyncOutbox 목록
      */
     List<CrawledProductSyncOutbox> findRetryableOutboxes(int maxRetryCount, int limit);
+
+    /**
+     * 조건으로 SyncOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return SyncOutbox 목록
+     */
+    List<CrawledProductSyncOutbox> search(
+            Long crawledProductId,
+            Long sellerId,
+            ProductOutboxStatus status,
+            long offset,
+            int size);
+
+    /**
+     * 조건으로 SyncOutbox 개수 조회
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status);
 }

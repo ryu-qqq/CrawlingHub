@@ -126,7 +126,7 @@ class MetaCrawlerTest {
                 1L,
                 "Mozilla/5.0",
                 "session-token-123",
-                null,
-                null);
+                null, // nid
+                null); // mustitUid
     }
 }

@@ -124,4 +124,39 @@ public class SyncOutboxQueryAdapter implements SyncOutboxQueryPort {
                 queryDslRepository.findRetryableOutboxes(maxRetryCount, limit);
         return entities.stream().map(mapper::toDomain).toList();
     }
+
+    /**
+     * 조건으로 SyncOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return SyncOutbox 목록
+     */
+    @Override
+    public List<CrawledProductSyncOutbox> search(
+            Long crawledProductId,
+            Long sellerId,
+            ProductOutboxStatus status,
+            long offset,
+            int size) {
+        List<ProductSyncOutboxJpaEntity> entities =
+                queryDslRepository.search(crawledProductId, sellerId, status, offset, size);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * 조건으로 SyncOutbox 개수 조회
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    @Override
+    public long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
+        return queryDslRepository.count(crawledProductId, sellerId, status);
+    }
 }

@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.execution.vo;
 
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.time.Instant;
 
@@ -12,6 +13,7 @@ import java.time.Instant;
  * <ul>
  *   <li>crawlTaskId: 태스크 ID 필터 (optional)
  *   <li>crawlSchedulerId: 스케줄러 ID 필터 (optional)
+ *   <li>sellerId: 셀러 ID 필터 (optional)
  *   <li>status: 상태 필터 (optional)
  *   <li>from: 조회 시작 시간 (optional)
  *   <li>to: 조회 종료 시간 (optional)
@@ -34,6 +36,7 @@ import java.time.Instant;
  *
  * @param crawlTaskId 태스크 ID (optional)
  * @param crawlSchedulerId 스케줄러 ID (optional)
+ * @param sellerId 셀러 ID (optional)
  * @param status 상태 필터 (optional)
  * @param from 조회 시작 시간 (optional)
  * @param to 조회 종료 시간 (optional)
@@ -45,6 +48,7 @@ import java.time.Instant;
 public record CrawlExecutionCriteria(
         CrawlTaskId crawlTaskId,
         CrawlSchedulerId crawlSchedulerId,
+        SellerId sellerId,
         CrawlExecutionStatus status,
         Instant from,
         Instant to,
@@ -74,7 +78,7 @@ public record CrawlExecutionCriteria(
      * @return CrawlExecutionCriteria
      */
     public static CrawlExecutionCriteria byTaskId(CrawlTaskId crawlTaskId, int page, int size) {
-        return new CrawlExecutionCriteria(crawlTaskId, null, null, null, null, page, size);
+        return new CrawlExecutionCriteria(crawlTaskId, null, null, null, null, null, page, size);
     }
 
     /**
@@ -89,7 +93,7 @@ public record CrawlExecutionCriteria(
      */
     public static CrawlExecutionCriteria bySchedulerIdAndPeriod(
             CrawlSchedulerId crawlSchedulerId, Instant from, Instant to, int page, int size) {
-        return new CrawlExecutionCriteria(null, crawlSchedulerId, null, from, to, page, size);
+        return new CrawlExecutionCriteria(null, crawlSchedulerId, null, null, from, to, page, size);
     }
 
     /**
@@ -110,7 +114,8 @@ public record CrawlExecutionCriteria(
             Instant to,
             int page,
             int size) {
-        return new CrawlExecutionCriteria(null, crawlSchedulerId, status, from, to, page, size);
+        return new CrawlExecutionCriteria(
+                null, crawlSchedulerId, null, status, from, to, page, size);
     }
 
     // ===== Helper Methods =====
@@ -140,6 +145,15 @@ public record CrawlExecutionCriteria(
      */
     public boolean hasSchedulerIdFilter() {
         return crawlSchedulerId != null;
+    }
+
+    /**
+     * Seller ID 필터 여부
+     *
+     * @return Seller ID 필터가 있으면 true
+     */
+    public boolean hasSellerIdFilter() {
+        return sellerId != null;
     }
 
     /**

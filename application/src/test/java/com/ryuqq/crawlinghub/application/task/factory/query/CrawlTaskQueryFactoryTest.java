@@ -33,7 +33,7 @@ class CrawlTaskQueryFactoryTest {
         void shouldConvertQueryWithAllFields() {
             // Given
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(100L, CrawlTaskStatus.WAITING, 1, 20);
+                    new ListCrawlTasksQuery(100L, CrawlTaskStatus.WAITING, null, 1, 20);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -49,7 +49,7 @@ class CrawlTaskQueryFactoryTest {
         @DisplayName("status가 null이어도 Criteria로 변환한다")
         void shouldConvertQueryWithNullStatus() {
             // Given
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(100L, null, 2, 50);
+            ListCrawlTasksQuery query = new ListCrawlTasksQuery(100L, null, null, 2, 50);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -66,7 +66,7 @@ class CrawlTaskQueryFactoryTest {
         void shouldConvertQueryWithRunningStatus() {
             // Given
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(200L, CrawlTaskStatus.RUNNING, 0, 10);
+                    new ListCrawlTasksQuery(200L, CrawlTaskStatus.RUNNING, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -80,7 +80,7 @@ class CrawlTaskQueryFactoryTest {
         void shouldConvertQueryWithSuccessStatus() {
             // Given
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(300L, CrawlTaskStatus.SUCCESS, 0, 10);
+                    new ListCrawlTasksQuery(300L, CrawlTaskStatus.SUCCESS, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -94,7 +94,7 @@ class CrawlTaskQueryFactoryTest {
         void shouldConvertQueryWithFailedStatus() {
             // Given
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(400L, CrawlTaskStatus.FAILED, 0, 10);
+                    new ListCrawlTasksQuery(400L, CrawlTaskStatus.FAILED, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);

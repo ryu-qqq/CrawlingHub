@@ -252,6 +252,18 @@ public class UserAgent {
         this.updatedAt = clock.instant();
     }
 
+    /**
+     * Health Score 초기화 (100으로 리셋)
+     *
+     * <p>관리자가 수동으로 Health Score를 초기화할 때 사용합니다.
+     *
+     * @param clock 시간 제어
+     */
+    public void resetHealth(Clock clock) {
+        this.healthScore = HealthScore.initial();
+        this.updatedAt = clock.instant();
+    }
+
     // === 상태 확인 메서드 ===
 
     /**

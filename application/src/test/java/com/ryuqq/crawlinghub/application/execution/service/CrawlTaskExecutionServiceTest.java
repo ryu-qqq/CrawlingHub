@@ -207,6 +207,8 @@ class CrawlTaskExecutionServiceTest {
                     1L,
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                     "session-token-123",
+                    null, // nid
+                    null, // mustitUid
                     Instant.now().plusSeconds(3600),
                     80,
                     80,

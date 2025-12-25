@@ -57,7 +57,7 @@ class ListCrawlTasksServiceTest {
         @DisplayName("[성공] 조건에 맞는 태스크 목록 조회 시 PageResponse 반환")
         void shouldReturnPageResponseWhenTasksExist() {
             // Given
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, null, 0, 10);
+            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, null, null, 0, 10);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> tasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
@@ -97,7 +97,7 @@ class ListCrawlTasksServiceTest {
         @DisplayName("[성공] 조건에 맞는 태스크 없을 시 빈 PageResponse 반환")
         void shouldReturnEmptyPageResponseWhenNoTasksFound() {
             // Given
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(999L, null, 0, 10);
+            ListCrawlTasksQuery query = new ListCrawlTasksQuery(999L, null, null, 0, 10);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> emptyTasks = Collections.emptyList();
             long totalElements = 0L;
@@ -123,7 +123,8 @@ class ListCrawlTasksServiceTest {
         @DisplayName("[성공] 상태 필터로 조회")
         void shouldFilterByStatus() {
             // Given
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, CrawlTaskStatus.WAITING, 0, 10);
+            ListCrawlTasksQuery query =
+                    new ListCrawlTasksQuery(1L, CrawlTaskStatus.WAITING, null, 0, 10);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> waitingTasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
@@ -161,7 +162,7 @@ class ListCrawlTasksServiceTest {
             // Given
             int page = 2;
             int size = 20;
-            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, null, page, size);
+            ListCrawlTasksQuery query = new ListCrawlTasksQuery(1L, null, null, page, size);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> tasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 50L;

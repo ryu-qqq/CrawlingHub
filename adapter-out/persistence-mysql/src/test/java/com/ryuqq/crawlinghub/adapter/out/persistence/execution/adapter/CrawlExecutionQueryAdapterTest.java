@@ -110,7 +110,7 @@ class CrawlExecutionQueryAdapterTest {
             // Given
             CrawlExecutionCriteria criteria =
                     new CrawlExecutionCriteria(
-                            null, null, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
+                            null, null, null, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
             LocalDateTime now = LocalDateTime.now();
             CrawlExecutionJpaEntity entity =
                     CrawlExecutionJpaEntity.of(
@@ -149,7 +149,7 @@ class CrawlExecutionQueryAdapterTest {
             // Given
             CrawlExecutionCriteria criteria =
                     new CrawlExecutionCriteria(
-                            null, null, CrawlExecutionStatus.SUCCESS, null, null, 0, 10);
+                            null, null, null, CrawlExecutionStatus.SUCCESS, null, null, 0, 10);
             given(queryDslRepository.countByCriteria(criteria)).willReturn(10L);
 
             // When

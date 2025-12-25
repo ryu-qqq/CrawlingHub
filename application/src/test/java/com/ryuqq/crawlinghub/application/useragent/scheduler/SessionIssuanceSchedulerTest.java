@@ -67,6 +67,8 @@ class SessionIssuanceSchedulerTest {
                             userAgentId.value(),
                             "Mozilla/5.0 Test Agent",
                             null, // sessionToken
+                            null, // nid
+                            null, // mustitUid
                             null, // sessionExpiresAt
                             80, // remainingTokens
                             80, // maxTokens
@@ -146,6 +148,8 @@ class SessionIssuanceSchedulerTest {
                             userAgentId.value(),
                             "Mozilla/5.0 Test Agent",
                             "old-token", // sessionToken
+                            null, // nid
+                            null, // mustitUid
                             Instant.now().plusSeconds(120), // sessionExpiresAt (만료 임박)
                             80, // remainingTokens
                             80, // maxTokens

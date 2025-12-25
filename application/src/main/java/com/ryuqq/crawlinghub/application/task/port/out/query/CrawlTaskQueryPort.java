@@ -4,8 +4,11 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -15,6 +18,15 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public interface CrawlTaskQueryPort {
+
+    /**
+     * 태스크 유형별 통계 DTO
+     *
+     * @param total 전체 개수
+     * @param success 성공 개수
+     * @param failed 실패 개수
+     */
+    record TaskTypeCount(long total, long success, long failed) {}
 
     /**
      * CrawlTask ID로 단건 조회
@@ -51,4 +63,20 @@ public interface CrawlTaskQueryPort {
      * @return 총 개수
      */
     long countByCriteria(CrawlTaskCriteria criteria);
+
+    /**
+     * 통계 조건으로 상태별 개수 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 상태별 개수 맵
+     */
+    Map<CrawlTaskStatus, Long> countByStatus(CrawlTaskStatisticsCriteria criteria);
+
+    /**
+     * 통계 조건으로 태스크 유형별 통계 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 태스크 유형별 통계 맵
+     */
+    Map<CrawlTaskType, TaskTypeCount> countByTaskType(CrawlTaskStatisticsCriteria criteria);
 }

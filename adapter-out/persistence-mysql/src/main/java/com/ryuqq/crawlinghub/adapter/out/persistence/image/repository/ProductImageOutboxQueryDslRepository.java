@@ -156,4 +156,66 @@ public class ProductImageOutboxQueryDslRepository {
                         .fetchFirst();
         return result != null;
     }
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Entity 목록
+     */
+    public List<ProductImageOutboxJpaEntity> search(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+        var query = queryFactory.selectFrom(productImageOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductImageId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        return query.orderBy(productImageOutboxJpaEntity.createdAt.desc())
+                .offset(offset)
+                .limit(size)
+                .fetch();
+    }
+
+    /**
+     * 조건으로 ImageOutbox 개수 조회
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    public long count(Long crawledProductImageId, ProductOutboxStatus status) {
+        var query =
+                queryFactory
+                        .select(productImageOutboxJpaEntity.count())
+                        .from(productImageOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductImageId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        Long result = query.fetchOne();
+        return result != null ? result : 0L;
+    }
+
+    private com.querydsl.core.types.dsl.BooleanExpression buildSearchCondition(
+            Long crawledProductImageId, ProductOutboxStatus status) {
+        com.querydsl.core.types.dsl.BooleanExpression condition = null;
+
+        if (crawledProductImageId != null) {
+            condition = productImageOutboxJpaEntity.crawledProductImageId.eq(crawledProductImageId);
+        }
+
+        if (status != null) {
+            var statusCondition = productImageOutboxJpaEntity.status.eq(status);
+            condition = condition != null ? condition.and(statusCondition) : statusCondition;
+        }
+
+        return condition;
+    }
 }
