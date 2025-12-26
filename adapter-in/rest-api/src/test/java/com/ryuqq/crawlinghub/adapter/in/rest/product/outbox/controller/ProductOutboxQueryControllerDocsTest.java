@@ -240,6 +240,9 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
+                                        fieldWithPath("data.first")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("첫 번째 페이지 여부"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")
@@ -394,6 +397,9 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
+                                        fieldWithPath("data.first")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("첫 번째 페이지 여부"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

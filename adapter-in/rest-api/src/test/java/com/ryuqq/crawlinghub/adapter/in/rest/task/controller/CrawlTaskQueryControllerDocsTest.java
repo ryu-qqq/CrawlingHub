@@ -114,7 +114,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                         get("/api/v1/crawling/tasks")
                                 .param("crawlSchedulerId", "1")
                                 .param("sellerId", "1")
-                                .param("status", "PENDING")
+                                .param("status", "WAITING")
                                 .param("taskType", "META")
                                 .param("page", "0")
                                 .param("size", "20"))
@@ -135,7 +135,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("status")
                                                 .description(
                                                         "상태 필터"
-                                                            + " (PENDING/RUNNING/SUCCESS/FAILED/CANCELLED,"
+                                                            + " (WAITING/PUBLISHED/RUNNING/SUCCESS/FAILED/RETRY/TIMEOUT,"
                                                             + " 선택)")
                                                 .optional(),
                                         parameterWithName("taskType")
@@ -174,7 +174,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
                                                 .description(
-                                                        "상태 (PENDING/RUNNING/SUCCESS/FAILED/CANCELLED)"),
+                                                        "상태 (WAITING/PUBLISHED/RUNNING/SUCCESS/FAILED/RETRY/TIMEOUT)"),
                                         fieldWithPath("data.content[].taskType")
                                                 .type(JsonFieldType.STRING)
                                                 .description(
@@ -283,7 +283,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.status")
                                                 .type(JsonFieldType.STRING)
                                                 .description(
-                                                        "상태 (PENDING/RUNNING/SUCCESS/FAILED/CANCELLED)"),
+                                                        "상태 (WAITING/PUBLISHED/RUNNING/SUCCESS/FAILED/RETRY/TIMEOUT)"),
                                         fieldWithPath("data.taskType")
                                                 .type(JsonFieldType.STRING)
                                                 .description(
