@@ -83,7 +83,9 @@ tasks.named('test') {
 // ========================================
 tasks.named('asciidoctor') {
     dependsOn test
-    inputs.dir snippetsDir
+    // Only add inputs.dir if snippetsDir exists (allows -x test to skip doc generation)
+    onlyIf { snippetsDir.exists() }
+    inputs.dir(snippetsDir).optional()
 
     configurations 'asciidoctorExt'
     baseDirFollowsSourceFile()
@@ -108,12 +110,21 @@ tasks.named('asciidoctor') {
 // ========================================
 tasks.register('copyDocument', Copy) {
     dependsOn asciidoctor
+    // Only copy if asciidoc output exists
+    onlyIf { file("build/docs/asciidoc").exists() }
     from file("build/docs/asciidoc")
     into file("src/main/resources/static/docs")
 }
 
+// Only add copyDocument dependency when not skipping tests
 tasks.named('build') {
     dependsOn copyDocument
+}
+
+// processResources should only depend on copyDocument when docs exist
+tasks.named('processResources') {
+    // Remove hard dependency, use mustRunAfter instead
+    mustRunAfter copyDocument
 }
 
 // ========================================

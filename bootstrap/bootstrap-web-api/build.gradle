@@ -91,6 +91,14 @@ dependencies {
 tasks.bootJar {
     archiveFileName = "${project.rootProject.name}-web-api.jar"
 
+    // REST Docs 빌드 의존성 추가
+    dependsOn ':adapter-in:rest-api:copyDocument'
+
+    // REST Docs static 파일을 JAR에 포함
+    from("${project(':adapter-in:rest-api').buildDir}/resources/main/static") {
+        into 'BOOT-INF/classes/static'
+    }
+
     manifest {
         attributes(
             'Implementation-Title': project.rootProject.name,

@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskComman
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
@@ -48,14 +49,16 @@ public class CrawlTaskCommandFactory {
     }
 
     /**
-     * TriggerCrawlTaskCommand + CrawlScheduler → CrawlTaskBundle 변환
+     * TriggerCrawlTaskCommand + CrawlScheduler + Seller → CrawlTaskBundle 변환
      *
      * @param command 트리거 명령
      * @param scheduler 검증된 스케줄러
+     * @param seller 셀러 (mustItSellerName 조회용)
      * @return CrawlTask 번들
      */
-    public CrawlTaskBundle createBundle(TriggerCrawlTaskCommand command, CrawlScheduler scheduler) {
-        CrawlEndpoint endpoint = CrawlEndpoint.forMeta(scheduler.getSellerIdValue());
+    public CrawlTaskBundle createBundle(
+            TriggerCrawlTaskCommand command, CrawlScheduler scheduler, Seller seller) {
+        CrawlEndpoint endpoint = CrawlEndpoint.forMeta(seller.getMustItSellerNameValue());
         CrawlTask crawlTask =
                 CrawlTask.forNew(
                         scheduler.getCrawlSchedulerId(),
@@ -98,8 +101,8 @@ public class CrawlTaskCommandFactory {
      */
     private CrawlEndpoint createEndpoint(CreateCrawlTaskCommand command) {
         return switch (command.taskType()) {
-            case META -> CrawlEndpoint.forMeta(command.sellerId());
-            case MINI_SHOP -> CrawlEndpoint.forMiniShopList(command.sellerId(), 1, 100);
+            case META -> CrawlEndpoint.forMeta(command.mustItSellerName());
+            case MINI_SHOP -> CrawlEndpoint.forMiniShopList(command.mustItSellerName(), 1, 100);
             case DETAIL -> CrawlEndpoint.forProductDetail(command.targetId());
             case OPTION -> CrawlEndpoint.forProductOption(command.targetId());
         };

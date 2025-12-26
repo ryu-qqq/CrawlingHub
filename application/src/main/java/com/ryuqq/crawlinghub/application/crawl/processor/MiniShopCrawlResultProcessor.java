@@ -137,13 +137,18 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
 
         Long schedulerId = crawlTask.getCrawlSchedulerId().value();
         Long sellerId = crawlTask.getSellerId().value();
+        String mustItSellerName = crawlTask.getMustItSellerName();
 
         List<CreateCrawlTaskCommand> commands = new ArrayList<>();
 
         for (MiniShopItem item : items) {
             Long itemNo = item.itemNo();
-            commands.add(CreateCrawlTaskCommand.forDetail(schedulerId, sellerId, itemNo));
-            commands.add(CreateCrawlTaskCommand.forOption(schedulerId, sellerId, itemNo));
+            commands.add(
+                    CreateCrawlTaskCommand.forDetail(
+                            schedulerId, sellerId, mustItSellerName, itemNo));
+            commands.add(
+                    CreateCrawlTaskCommand.forOption(
+                            schedulerId, sellerId, mustItSellerName, itemNo));
         }
 
         log.debug("후속 Task 생성: DETAIL={}, OPTION={}", items.size(), items.size());

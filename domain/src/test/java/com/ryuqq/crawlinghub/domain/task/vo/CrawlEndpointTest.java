@@ -58,18 +58,19 @@ class CrawlEndpointTest {
         @DisplayName("forMiniShopList로 생성")
         void shouldCreateForMiniShopList() {
             // given
-            Long sellerId = 12345L;
+            String mustItSellerName = "test-seller";
             int page = 1;
             int pageSize = 20;
 
             // when
-            CrawlEndpoint endpoint = CrawlEndpoint.forMiniShopList(sellerId, page, pageSize);
+            CrawlEndpoint endpoint =
+                    CrawlEndpoint.forMiniShopList(mustItSellerName, page, pageSize);
 
             // then
             assertThat(endpoint.baseUrl()).isEqualTo(MUSTIT_BASE_URL);
             assertThat(endpoint.path())
                     .isEqualTo("/mustit-api/facade-api/v1/searchmini-shop-search");
-            assertThat(endpoint.queryParams()).containsEntry("sellerId", "12345");
+            assertThat(endpoint.queryParams()).containsEntry("sellerId", "test-seller");
             assertThat(endpoint.queryParams()).containsEntry("pageNo", "1");
             assertThat(endpoint.queryParams()).containsEntry("pageSize", "20");
             assertThat(endpoint.queryParams()).containsEntry("order", "LATEST");
@@ -115,13 +116,13 @@ class CrawlEndpointTest {
         @Test
         @DisplayName("queryParams가 있을 때 전체 URL 생성")
         void shouldBuildFullUrlWithQueryParams() {
-            CrawlEndpoint endpoint = CrawlEndpoint.forMiniShopList(12345L, 1, 20);
+            CrawlEndpoint endpoint = CrawlEndpoint.forMiniShopList("test-seller", 1, 20);
             String fullUrl = endpoint.toFullUrl();
 
             assertThat(fullUrl)
                     .startsWith(
                             MUSTIT_BASE_URL + "/mustit-api/facade-api/v1/searchmini-shop-search?");
-            assertThat(fullUrl).contains("sellerId=12345");
+            assertThat(fullUrl).contains("sellerId=test-seller");
             assertThat(fullUrl).contains("pageNo=1");
             assertThat(fullUrl).contains("pageSize=20");
             assertThat(fullUrl).contains("order=LATEST");
