@@ -22,7 +22,6 @@ on:
           - ecs-web-api
           - ecs-scheduler
           - ecs-crawl-worker
-          - eventbridge
   workflow_call:      # 다른 워크플로우에서 호출 가능
     inputs:
       web-api-image-tag:
@@ -72,9 +71,6 @@ jobs:
           - name: ecs-crawl-worker
             dir: terraform/ecs-crawl-worker
             order: 6
-          - name: eventbridge
-            dir: terraform/eventbridge
-            order: 7
 
     steps:
       - name: Checkout code
@@ -299,7 +295,6 @@ jobs:
           echo "- ✅ ECS Service: web-api" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Service: scheduler" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ ECS Service: crawl-worker" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ EventBridge Rules" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
           echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
