@@ -100,7 +100,22 @@ else
     echo -e "${GREEN}✅ RDS 엔드포인트: ${RDS_ENDPOINT}${NC}"
 fi
 
-echo -e "${YELLOW}ℹ️  Redis는 로컬 Docker 컨테이너를 사용합니다 (포트 포워딩 생략)${NC}"
+# ElastiCache 엔드포인트 찾기
+echo "ElastiCache(Redis) 엔드포인트 검색 중..."
+REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters \
+    --region $AWS_REGION \
+    --cache-cluster-id crawlinghub-redis-prod \
+    --show-cache-node-info \
+    --query 'CacheClusters[0].CacheNodes[0].Endpoint.Address' \
+    --output text 2>/dev/null || echo "")
+
+if [ -z "$REDIS_ENDPOINT" ] || [ "$REDIS_ENDPOINT" == "None" ]; then
+    echo -e "${YELLOW}⚠️  ElastiCache(crawlinghub-redis-prod)를 찾을 수 없습니다. Redis 포트 포워딩을 건너뜁니다.${NC}"
+    REDIS_ENDPOINT=""
+else
+    echo -e "${GREEN}✅ ElastiCache 엔드포인트: ${REDIS_ENDPOINT}${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}포트 포워딩 시작${NC}"
@@ -119,6 +134,11 @@ cleanup() {
     if [ -f "$PID_DIR/rds.pid" ]; then
         kill $(cat $PID_DIR/rds.pid) 2>/dev/null || true
         rm -f $PID_DIR/rds.pid
+    fi
+
+    if [ -f "$PID_DIR/redis.pid" ]; then
+        kill $(cat $PID_DIR/redis.pid) 2>/dev/null || true
+        rm -f $PID_DIR/redis.pid
     fi
 
     echo -e "${GREEN}✅ 포트 포워딩 종료 완료${NC}"
@@ -142,6 +162,22 @@ if [ -n "$RDS_ENDPOINT" ]; then
     echo $RDS_PID > $PID_DIR/rds.pid
     echo -e "${GREEN}✅ RDS 포트 포워딩 시작 (PID: ${RDS_PID})${NC}"
     echo "   로컬 접속: mysql -h 127.0.0.1 -P 13307 -u admin -p"
+fi
+
+# Redis 포트 포워딩
+if [ -n "$REDIS_ENDPOINT" ]; then
+    echo "Redis 포트 포워딩 시작 (localhost:16379 -> ${REDIS_ENDPOINT}:6379)..."
+    aws ssm start-session \
+        --region $AWS_REGION \
+        --target $BASTION_INSTANCE_ID \
+        --document-name AWS-StartPortForwardingSessionToRemoteHost \
+        --parameters "{\"host\":[\"${REDIS_ENDPOINT}\"],\"portNumber\":[\"6379\"],\"localPortNumber\":[\"16379\"]}" \
+        > /dev/null 2>&1 &
+
+    REDIS_PID=$!
+    echo $REDIS_PID > $PID_DIR/redis.pid
+    echo -e "${GREEN}✅ Redis 포트 포워딩 시작 (PID: ${REDIS_PID})${NC}"
+    echo "   로컬 접속: redis-cli -h 127.0.0.1 -p 16379"
 fi
 
 echo ""

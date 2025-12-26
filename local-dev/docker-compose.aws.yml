@@ -31,11 +31,15 @@ services:
       SERVER_PORT: 8080
       DB_HOST: host.docker.internal
       DB_PORT: 13307
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
+      DB_NAME: ${DB_NAME:-crawler}
+      DB_USERNAME: ${DB_USERNAME:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
+      # NOTE: web-api에서는 SQS 직접 발행 비활성화
+      # aws-sqs 모듈이 bootstrap-web-api에 포함되어 있지 않음
+      # OutboxRetryScheduler(scheduler)가 PENDING 상태 Outbox를 처리함
+      APP_MESSAGING_SQS_ENABLED: false
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8080:8080"
@@ -60,14 +64,22 @@ services:
       SERVER_PORT: 8081
       DB_HOST: host.docker.internal
       DB_PORT: 13307
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
+      DB_NAME: ${DB_NAME:-crawler}
+      DB_USERNAME: ${DB_USERNAME:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
-      # SQS Queue URLs
+      # SQS Queue URLs (Listener)
       AWS_SQS_LISTENER_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
       AWS_SQS_LISTENER_EVENT_BRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
+      # SQS Queue URLs (Publisher)
+      SQS_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
+      # Enable SQS messaging for CrawlTaskRegisteredEventListener
+      APP_MESSAGING_SQS_ENABLED: true
+      # Enable CrawlTask Outbox Retry Scheduler
+      SCHEDULER_CRAWL_TASK_OUTBOX_ENABLED: true
+      # Enable Session Issuance Scheduler (실제 세션 토큰 발급)
+      SCHEDULER_SESSION_ISSUANCE_ENABLED: true
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8081:8081"
@@ -92,15 +104,15 @@ services:
       SERVER_PORT: 8082
       DB_HOST: host.docker.internal
       DB_PORT: 13307
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
+      DB_NAME: ${DB_NAME:-crawler}
+      DB_USERNAME: ${DB_USERNAME:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
-      # SQS Queue URLs
-      AWS_SQS_LISTENER_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
-      AWS_SQS_LISTENER_CRAWL_TASK_DLQ_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq
-      AWS_SQS_LISTENER_EVENT_BRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
+      # SQS Queue URLs (sqs-listener.yml property naming convention)
+      SQS_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
+      SQS_CRAWL_TASK_DLQ_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq
+      SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8082:8082"

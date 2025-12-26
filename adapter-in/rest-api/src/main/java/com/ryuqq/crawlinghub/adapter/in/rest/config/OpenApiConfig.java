@@ -100,10 +100,12 @@ public class OpenApiConfig {
     /**
      * 서버 정보 설정
      *
+     * <p>Gateway 라우팅 패턴에 맞춰 서버 URL을 설정합니다. API 호출 시 /api/v1/crawling prefix가 자동으로 적용됩니다.
+     *
      * @return 서버 목록
      */
     private List<Server> servers() {
-        return List.of(new Server().url("/").description("Current Server"));
+        return List.of(new Server().url("/").description("CrawlingHub API Server (via Gateway)"));
     }
 
     /**

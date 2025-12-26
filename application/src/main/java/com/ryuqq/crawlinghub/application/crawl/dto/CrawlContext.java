@@ -18,7 +18,7 @@ import java.util.Map;
  * @param endpoint 크롤링 대상 URL
  * @param userAgentId UserAgent ID (결과 기록용)
  * @param userAgentValue User-Agent 헤더 값
- * @param sessionToken 세션 토큰 (Cookie)
+ * @param sessionToken 세션 토큰 (Authorization Bearer)
  * @author development-team
  * @since 1.0.0
  */
@@ -33,7 +33,8 @@ public record CrawlContext(
         String sessionToken) {
 
     private static final String USER_AGENT_HEADER = "User-Agent";
-    private static final String COOKIE_HEADER = "Cookie";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     /**
      * CrawlTask와 UserAgent 정보로부터 CrawlContext 생성
@@ -57,7 +58,7 @@ public record CrawlContext(
     /**
      * HTTP 요청에 필요한 헤더 맵 생성
      *
-     * <p>User-Agent 헤더와 세션 토큰(Cookie)을 포함한 헤더 맵을 반환합니다.
+     * <p>User-Agent 헤더와 Authorization Bearer 토큰을 포함한 헤더 맵을 반환합니다.
      *
      * @return HTTP 헤더 맵
      */
@@ -69,7 +70,7 @@ public record CrawlContext(
         }
 
         if (sessionToken != null && !sessionToken.isBlank()) {
-            headers.put(COOKIE_HEADER, sessionToken);
+            headers.put(AUTHORIZATION_HEADER, BEARER_PREFIX + sessionToken);
         }
 
         return headers;
