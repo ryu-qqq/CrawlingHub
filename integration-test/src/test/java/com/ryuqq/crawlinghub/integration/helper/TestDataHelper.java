@@ -82,7 +82,10 @@ VALUES
     public void insertTasks() {
         jdbcTemplate.execute(
                 """
-INSERT INTO crawl_task (id, crawl_scheduler_id, seller_id, task_type, endpoint_base_url, endpoint_path, endpoint_query_params, status, retry_count, created_at, updated_at)
+INSERT INTO crawl_task (
+    id, crawl_scheduler_id, seller_id, task_type, endpoint_base_url,
+    endpoint_path, endpoint_query_params, status, retry_count, created_at, updated_at
+)
 VALUES
     (1, 1, 1, 'META', 'https://api.example.com', '/products', '{"page": "1", "size": "100"}', 'PUBLISHED', 0, NOW(), NOW()),
     (2, 1, 1, 'DETAIL', 'https://api.example.com', '/products/123', '{}', 'PUBLISHED', 0, NOW(), NOW()),
@@ -106,14 +109,27 @@ VALUES
     public void insertExecutions() {
         jdbcTemplate.execute(
                 """
-INSERT INTO crawl_execution (id, crawl_task_id, crawl_scheduler_id, seller_id, status, response_body, http_status_code, error_message, started_at, completed_at, duration_ms, created_at)
+INSERT INTO crawl_execution (
+    id, crawl_task_id, crawl_scheduler_id, seller_id, status, response_body,
+    http_status_code, error_message, started_at, completed_at, duration_ms, created_at
+)
 VALUES
-    (1, 1, 1, 1, 'SUCCESS', '{"products": []}', 200, NULL, DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR), 1500, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+    (1, 1, 1, 1, 'SUCCESS', '{"products": []}', 200, NULL,
+        DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR),
+        1500, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
     (2, 2, 1, 1, 'RUNNING', NULL, NULL, NULL, NOW(), NULL, NULL, NOW()),
-    (3, 3, 1, 1, 'SUCCESS', '{"options": []}', 200, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_SUB(NOW(), INTERVAL 1 HOUR), 800, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-    (4, 4, 2, 1, 'FAILED', NULL, 500, 'Connection timeout', DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE), 30000, DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
-    (5, 5, 2, 1, 'TIMEOUT', NULL, NULL, 'Request timeout after 30s', DATE_SUB(NOW(), INTERVAL 15 MINUTE), DATE_SUB(NOW(), INTERVAL 15 MINUTE), 30000, DATE_SUB(NOW(), INTERVAL 15 MINUTE)),
-    (6, 6, 3, 2, 'SUCCESS', '{"inventory": []}', 200, NULL, DATE_SUB(NOW(), INTERVAL 3 HOUR), DATE_SUB(NOW(), INTERVAL 3 HOUR), 2000, DATE_SUB(NOW(), INTERVAL 3 HOUR))
+    (3, 3, 1, 1, 'SUCCESS', '{"options": []}', 200, NULL,
+        DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_SUB(NOW(), INTERVAL 1 HOUR),
+        800, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+    (4, 4, 2, 1, 'FAILED', NULL, 500, 'Connection timeout',
+        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE),
+        30000, DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
+    (5, 5, 2, 1, 'TIMEOUT', NULL, NULL, 'Request timeout after 30s',
+        DATE_SUB(NOW(), INTERVAL 15 MINUTE), DATE_SUB(NOW(), INTERVAL 15 MINUTE),
+        30000, DATE_SUB(NOW(), INTERVAL 15 MINUTE)),
+    (6, 6, 3, 2, 'SUCCESS', '{"inventory": []}', 200, NULL,
+        DATE_SUB(NOW(), INTERVAL 3 HOUR), DATE_SUB(NOW(), INTERVAL 3 HOUR),
+        2000, DATE_SUB(NOW(), INTERVAL 3 HOUR))
 """);
     }
 
@@ -127,12 +143,20 @@ VALUES
     public void insertUserAgents() {
         jdbcTemplate.execute(
                 """
-INSERT INTO user_agent (id, token, user_agent_string, device_type, status, health_score, last_used_at, requests_per_day, created_at, updated_at)
+INSERT INTO user_agent (
+    id, token, user_agent_string, device_type, status,
+    health_score, last_used_at, requests_per_day, created_at, updated_at
+)
 VALUES
-    (1, 'test-token-001', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'DESKTOP', 'AVAILABLE', 100, NULL, 0, NOW(), NOW()),
-    (2, 'test-token-002', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'DESKTOP', 'AVAILABLE', 95, NULL, 0, NOW(), NOW()),
-    (3, 'test-token-003', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0', 'DESKTOP', 'SUSPENDED', 50, NOW(), 100, NOW(), NOW()),
-    (4, 'test-token-004', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15', 'DESKTOP', 'BLOCKED', 0, NOW(), 500, NOW(), NOW())
+    (1, 'test-token-001', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'DESKTOP', 'AVAILABLE', 100, NULL, 0, NOW(), NOW()),
+    (2, 'test-token-002', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'DESKTOP', 'AVAILABLE', 95, NULL, 0, NOW(), NOW()),
+    (3, 'test-token-003',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
+        'DESKTOP', 'SUSPENDED', 50, NOW(), 100, NOW(), NOW()),
+    (4, 'test-token-004', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
+        'DESKTOP', 'BLOCKED', 0, NOW(), 500, NOW(), NOW())
 """);
     }
 
@@ -245,13 +269,23 @@ VALUES
     public void insertProductSyncOutbox() {
         jdbcTemplate.execute(
                 """
-INSERT INTO product_sync_outbox (id, crawled_product_id, seller_id, item_no, sync_type, idempotency_key, external_product_id, status, retry_count, error_message, created_at, processed_at)
+INSERT INTO product_sync_outbox (
+    id, crawled_product_id, seller_id, item_no, sync_type, idempotency_key,
+    external_product_id, status, retry_count, error_message, created_at, processed_at
+)
 VALUES
-    (1, 1, 1, 10001, 'CREATE', 'sync-1-10001-1000', NULL, 'PENDING', 0, NULL, NOW(), NULL),
-    (2, 2, 1, 10002, 'CREATE', 'sync-1-10002-1001', NULL, 'PROCESSING', 0, NULL, NOW(), NULL),
-    (3, 4, 2, 20001, 'CREATE', 'sync-2-20001-1002', 99001, 'COMPLETED', 0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 1, 1, 10001, 'UPDATE', 'sync-1-10001-1003', NULL, 'FAILED', 1, 'Connection timeout', DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
-    (5, 4, 2, 20001, 'UPDATE', 'sync-2-20001-1004', NULL, 'FAILED', 3, 'Max retry exceeded', DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
+    (1, 1, 1, 10001, 'CREATE', 'sync-1-10001-1000',
+        NULL, 'PENDING', 0, NULL, NOW(), NULL),
+    (2, 2, 1, 10002, 'CREATE', 'sync-1-10002-1001',
+        NULL, 'PROCESSING', 0, NULL, NOW(), NULL),
+    (3, 4, 2, 20001, 'CREATE', 'sync-2-20001-1002',
+        99001, 'COMPLETED', 0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
+    (4, 1, 1, 10001, 'UPDATE', 'sync-1-10001-1003',
+        NULL, 'FAILED', 1, 'Connection timeout',
+        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
+    (5, 4, 2, 20001, 'UPDATE', 'sync-2-20001-1004',
+        NULL, 'FAILED', 3, 'Max retry exceeded',
+        DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
 """);
     }
 
@@ -271,13 +305,21 @@ VALUES
     public void insertCrawledProductImages() {
         jdbcTemplate.execute(
                 """
-INSERT INTO crawled_product_image (id, crawled_product_id, original_url, s3_url, file_asset_id, image_type, display_order, created_at, updated_at)
+INSERT INTO crawled_product_image (
+    id, crawled_product_id, original_url, s3_url, file_asset_id,
+    image_type, display_order, created_at, updated_at
+)
 VALUES
-    (1, 1, 'https://example.com/img1.jpg', NULL, NULL, 'THUMBNAIL', 0, NOW(), NOW()),
-    (2, 1, 'https://example.com/desc1.jpg', NULL, NULL, 'DESCRIPTION', 0, NOW(), NOW()),
-    (3, 2, 'https://example.com/img2.jpg', 'https://s3.example.com/img2.jpg', 'asset-001', 'THUMBNAIL', 0, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 1, 'https://example.com/img3.jpg', NULL, NULL, 'THUMBNAIL', 1, NOW(), NOW()),
-    (5, 4, 'https://example.com/desc4.jpg', NULL, NULL, 'DESCRIPTION', 0, NOW(), NOW())
+    (1, 1, 'https://example.com/img1.jpg', NULL, NULL,
+        'THUMBNAIL', 0, NOW(), NOW()),
+    (2, 1, 'https://example.com/desc1.jpg', NULL, NULL,
+        'DESCRIPTION', 0, NOW(), NOW()),
+    (3, 2, 'https://example.com/img2.jpg', 'https://s3.example.com/img2.jpg', 'asset-001',
+        'THUMBNAIL', 0, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
+    (4, 1, 'https://example.com/img3.jpg', NULL, NULL,
+        'THUMBNAIL', 1, NOW(), NOW()),
+    (5, 4, 'https://example.com/desc4.jpg', NULL, NULL,
+        'DESCRIPTION', 0, NOW(), NOW())
 """);
     }
 
@@ -297,13 +339,21 @@ VALUES
     public void insertProductImageOutbox() {
         jdbcTemplate.execute(
                 """
-INSERT INTO product_image_outbox (id, crawled_product_image_id, idempotency_key, status, retry_count, error_message, created_at, processed_at)
+INSERT INTO product_image_outbox (
+    id, crawled_product_image_id, idempotency_key, status,
+    retry_count, error_message, created_at, processed_at
+)
 VALUES
     (1, 1, 'img-1-thumb-1000', 'PENDING', 0, NULL, NOW(), NULL),
     (2, 2, 'img-1-desc-1001', 'PROCESSING', 0, NULL, NOW(), NULL),
-    (3, 3, 'img-2-thumb-1002', 'COMPLETED', 0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 4, 'img-1-thumb-1003', 'FAILED', 1, 'Upload failed', DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
-    (5, 5, 'img-4-desc-1004', 'FAILED', 3, 'Max retry exceeded', DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
+    (3, 3, 'img-2-thumb-1002', 'COMPLETED',
+        0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
+    (4, 4, 'img-1-thumb-1003', 'FAILED',
+        1, 'Upload failed',
+        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
+    (5, 5, 'img-4-desc-1004', 'FAILED',
+        3, 'Max retry exceeded',
+        DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
 """);
     }
 
