@@ -87,4 +87,15 @@ public interface ImageOutboxQueryPort {
      * @return 총 개수
      */
     long count(Long crawledProductImageId, ProductOutboxStatus status);
+
+    /**
+     * PROCESSING 상태이고 타임아웃된 ImageOutbox 조회
+     *
+     * <p>processedAt 기준으로 지정된 시간(초)이 지난 PROCESSING 상태의 Outbox를 조회합니다.
+     *
+     * @param timeoutSeconds 타임아웃 기준 시간(초)
+     * @param limit 조회 개수 제한
+     * @return 타임아웃된 ImageOutbox 목록
+     */
+    List<ProductImageOutbox> findTimedOutProcessingOutboxes(int timeoutSeconds, int limit);
 }

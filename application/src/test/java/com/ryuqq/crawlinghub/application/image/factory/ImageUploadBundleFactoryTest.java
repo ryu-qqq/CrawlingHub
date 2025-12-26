@@ -11,6 +11,7 @@ import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
+import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
@@ -44,6 +45,7 @@ class ImageUploadBundleFactoryTest {
 
     @Mock private CrawledProductImageTransactionManager imageTransactionManager;
     @Mock private ProductImageOutboxTransactionManager outboxTransactionManager;
+    @Mock private ImageOutboxQueryPort imageOutboxQueryPort;
     @Mock private TransactionEventRegistry eventRegistry;
 
     private Clock fixedClock;
@@ -56,6 +58,7 @@ class ImageUploadBundleFactoryTest {
                 new ImageUploadBundleFactory(
                         imageTransactionManager,
                         outboxTransactionManager,
+                        imageOutboxQueryPort,
                         eventRegistry,
                         fixedClock);
     }
