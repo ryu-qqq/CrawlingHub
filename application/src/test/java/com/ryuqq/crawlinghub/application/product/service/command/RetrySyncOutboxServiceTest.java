@@ -11,6 +11,7 @@ import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
+import com.ryuqq.crawlinghub.domain.product.exception.SyncOutboxNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -73,7 +74,7 @@ class RetrySyncOutboxServiceTest {
         }
 
         @Test
-        @DisplayName("[실패] 존재하지 않는 Outbox → IllegalArgumentException")
+        @DisplayName("[실패] 존재하지 않는 Outbox → SyncOutboxNotFoundException")
         void shouldThrowExceptionWhenOutboxNotFound() {
             // Given
             RetrySyncOutboxCommand command = new RetrySyncOutboxCommand(999L);
@@ -81,8 +82,8 @@ class RetrySyncOutboxServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("SyncOutbox를 찾을 수 없습니다");
+                    .isInstanceOf(SyncOutboxNotFoundException.class)
+                    .hasMessageContaining("존재하지 않는 SyncOutbox입니다");
         }
 
         @Test

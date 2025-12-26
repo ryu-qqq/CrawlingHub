@@ -114,7 +114,7 @@ public final class ApiPaths {
      */
     public static final class Outbox {
         public static final String BASE = CRAWLING_SERVICE_BASE + "/outbox";
-        public static final String REPUBLISH = "/republish";
+        public static final String REPUBLISH = "/{crawlTaskId}/republish";
 
         private Outbox() {}
     }

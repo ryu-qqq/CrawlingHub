@@ -20,7 +20,7 @@ class CrawledProductErrorCodeTest {
     @DisplayName("모든 에러 코드는 code, httpStatus, message를 가짐")
     void shouldHaveCorrectCodeAndMessage(CrawledProductErrorCode errorCode) {
         // given & when & then
-        assertThat(errorCode.getCode()).startsWith("PRODUCT-");
+        assertThat(errorCode.getCode()).matches("(PRODUCT|OUTBOX)-\\d+");
         assertThat(errorCode.getHttpStatus()).isGreaterThan(0);
         assertThat(errorCode.getMessage()).isNotBlank();
     }

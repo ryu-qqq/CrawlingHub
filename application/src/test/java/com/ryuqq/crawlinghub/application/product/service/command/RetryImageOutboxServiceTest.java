@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.application.product.dto.command.RetryImageOutboxCom
 import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryResponse;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.exception.ImageOutboxNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
 import java.util.Optional;
@@ -69,7 +70,7 @@ class RetryImageOutboxServiceTest {
         }
 
         @Test
-        @DisplayName("[실패] 존재하지 않는 Outbox → IllegalArgumentException")
+        @DisplayName("[실패] 존재하지 않는 Outbox → ImageOutboxNotFoundException")
         void shouldThrowExceptionWhenOutboxNotFound() {
             // Given
             RetryImageOutboxCommand command = new RetryImageOutboxCommand(999L);
@@ -77,8 +78,8 @@ class RetryImageOutboxServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ImageOutbox를 찾을 수 없습니다");
+                    .isInstanceOf(ImageOutboxNotFoundException.class)
+                    .hasMessageContaining("존재하지 않는 ImageOutbox입니다");
         }
 
         @Test

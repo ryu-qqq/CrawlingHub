@@ -50,8 +50,7 @@ public record CreateCrawlTaskCommand(
     /** 기존 4-arg 생성자 호환성 유지용 팩토리 */
     public static CreateCrawlTaskCommand of(
             Long crawlSchedulerId, Long sellerId, CrawlTaskType taskType, Long targetId) {
-        return new CreateCrawlTaskCommand(
-                crawlSchedulerId, sellerId, "", taskType, targetId, null);
+        return new CreateCrawlTaskCommand(crawlSchedulerId, sellerId, "", taskType, targetId, null);
     }
 
     /**
@@ -132,6 +131,11 @@ public record CreateCrawlTaskCommand(
     public static CreateCrawlTaskCommand forSearchNextPage(
             Long crawlSchedulerId, Long sellerId, String mustItSellerName, String nextApiUrl) {
         return new CreateCrawlTaskCommand(
-                crawlSchedulerId, sellerId, mustItSellerName, CrawlTaskType.SEARCH, null, nextApiUrl);
+                crawlSchedulerId,
+                sellerId,
+                mustItSellerName,
+                CrawlTaskType.SEARCH,
+                null,
+                nextApiUrl);
     }
 }
