@@ -196,6 +196,8 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         map.put("userAgentId", idStr);
         map.put("userAgentValue", cachedUserAgent.userAgentValue());
         map.put("sessionToken", "");
+        map.put("nid", "");
+        map.put("mustitUid", "");
         map.put("sessionExpiresAt", "0");
         map.put("remainingTokens", String.valueOf(cachedUserAgent.remainingTokens()));
         map.put("maxTokens", String.valueOf(cachedUserAgent.maxTokens()));
@@ -223,6 +225,8 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         map.put("cacheStatus", CacheStatus.SUSPENDED.name());
         map.put("suspendedAt", String.valueOf(nowMillis));
         map.put("sessionToken", "");
+        map.put("nid", "");
+        map.put("mustitUid", "");
         map.put("sessionExpiresAt", "0");
 
         // Set 이동: READY → SUSPENDED
@@ -261,6 +265,8 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
 
         RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
         map.put("sessionToken", "");
+        map.put("nid", "");
+        map.put("mustitUid", "");
         map.put("sessionExpiresAt", "0");
         map.put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
 
@@ -281,6 +287,8 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         map.put("healthScore", "70");
         map.put("remainingTokens", String.valueOf(maxTokens));
         map.put("sessionToken", "");
+        map.put("nid", "");
+        map.put("mustitUid", "");
         map.put("sessionExpiresAt", "0");
         map.put("windowStart", "0");
         map.put("windowEnd", "0");
@@ -447,10 +455,44 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         log.info("UserAgent Pool 전체 삭제 완료");
     }
 
+    @Override
+    public void updateHealthScore(UserAgentId userAgentId, int healthScore) {
+        String poolKey = poolKeyPrefix + userAgentId.value();
+        RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
+        map.put("healthScore", String.valueOf(healthScore));
+        log.debug("UserAgent {} Health Score 업데이트: {}", userAgentId.value(), healthScore);
+    }
+
+    @Override
+    public int warmUp(List<CachedUserAgent> cachedUserAgents) {
+        int addedCount = 0;
+        for (CachedUserAgent cachedUserAgent : cachedUserAgents) {
+            addToPool(cachedUserAgent);
+            addedCount++;
+        }
+        log.info("WarmUp 완료: {} UserAgent Pool에 추가", addedCount);
+        return addedCount;
+    }
+
+    @Override
+    public List<UserAgentId> getAllSuspendedUserAgents() {
+        List<UserAgentId> result = new ArrayList<>();
+        var suspendedSet = redissonClient.getSet(suspendedSetKey, StringCodec.INSTANCE);
+
+        for (Object idObj : suspendedSet.readAll()) {
+            Long id = Long.parseLong(idObj.toString());
+            result.add(UserAgentId.of(id));
+        }
+
+        return result;
+    }
+
     private CachedUserAgent mapToCachedUserAgent(Map<String, String> data) {
         Long userAgentId = Long.parseLong(data.get("userAgentId"));
         String userAgentValue = data.get("userAgentValue");
         String sessionToken = data.get("sessionToken");
+        String nid = data.get("nid");
+        String mustitUid = data.get("mustitUid");
         int remainingTokens = Integer.parseInt(data.getOrDefault("remainingTokens", "80"));
         int maxTokens = Integer.parseInt(data.getOrDefault("maxTokens", "80"));
         int healthScore = Integer.parseInt(data.getOrDefault("healthScore", "100"));
@@ -472,11 +514,19 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         if (sessionToken != null && sessionToken.isEmpty()) {
             sessionToken = null;
         }
+        if (nid != null && nid.isEmpty()) {
+            nid = null;
+        }
+        if (mustitUid != null && mustitUid.isEmpty()) {
+            mustitUid = null;
+        }
 
         return new CachedUserAgent(
                 userAgentId,
                 userAgentValue,
                 sessionToken,
+                nid,
+                mustitUid,
                 sessionExpiresAt,
                 remainingTokens,
                 maxTokens,

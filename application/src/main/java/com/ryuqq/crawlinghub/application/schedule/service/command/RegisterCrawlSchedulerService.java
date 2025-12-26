@@ -8,8 +8,10 @@ import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
 import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
 import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.RegisterCrawlSchedulerUseCase;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +29,19 @@ public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseC
     private final CrawlSchedulerAssembler assembler;
     private final CrawlerSchedulerFacade facade;
     private final CrawlSchedulerReadManager readManager;
+    private final SellerReadManager sellerReadManager;
 
     public RegisterCrawlSchedulerService(
             CrawlSchedulerCommandFactory commandFactory,
             CrawlSchedulerAssembler assembler,
             CrawlerSchedulerFacade facade,
-            CrawlSchedulerReadManager readManager) {
+            CrawlSchedulerReadManager readManager,
+            SellerReadManager sellerReadManager) {
         this.commandFactory = commandFactory;
         this.assembler = assembler;
         this.facade = facade;
         this.readManager = readManager;
+        this.sellerReadManager = sellerReadManager;
     }
 
     /**
@@ -45,6 +50,7 @@ public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseC
      * <p><strong>처리 흐름</strong>:
      *
      * <ol>
+     *   <li>셀러 존재 검증
      *   <li>중복 검증 (sellerId + schedulerName)
      *   <li>CommandFactory를 통해 CrawlSchedulerBundle 생성
      *   <li>Facade를 통해 저장 (스케줄러 + 히스토리 + 아웃박스, 단일 트랜잭션)
@@ -56,17 +62,26 @@ public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseC
      */
     @Override
     public CrawlSchedulerResponse register(RegisterCrawlSchedulerCommand command) {
-        // 1. 중복 검증 (sellerId + schedulerName)
+        // 1. 셀러 존재 검증
+        validateSellerExists(command.sellerId());
+
+        // 2. 중복 검증 (sellerId + schedulerName)
         validateDuplicateScheduler(command);
 
-        // 2. CommandFactory를 통해 CrawlSchedulerBundle 생성
+        // 3. CommandFactory를 통해 CrawlSchedulerBundle 생성
         CrawlSchedulerBundle bundle = commandFactory.createBundle(command);
 
-        // 3. Facade를 통해 저장 (스케줄러 + 히스토리 + 아웃박스, 단일 트랜잭션)
+        // 4. Facade를 통해 저장 (스케줄러 + 히스토리 + 아웃박스, 단일 트랜잭션)
         CrawlScheduler savedScheduler = facade.persist(bundle);
 
-        // 4. Assembler로 Response 변환
+        // 5. Assembler로 Response 변환
         return assembler.toResponse(savedScheduler);
+    }
+
+    private void validateSellerExists(Long sellerId) {
+        if (!sellerReadManager.existsById(SellerId.of(sellerId))) {
+            throw new SellerNotFoundException(sellerId);
+        }
     }
 
     private void validateDuplicateScheduler(RegisterCrawlSchedulerCommand command) {

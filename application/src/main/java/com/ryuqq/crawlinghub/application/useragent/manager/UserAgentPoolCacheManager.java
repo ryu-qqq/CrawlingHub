@@ -101,4 +101,43 @@ public class UserAgentPoolCacheManager {
     public void restoreToPool(UserAgentId userAgentId, String userAgentValue) {
         cachePort.restoreToPool(userAgentId, userAgentValue);
     }
+
+    /**
+     * Health Score 업데이트
+     *
+     * @param userAgentId UserAgent ID
+     * @param healthScore 새 Health Score 값
+     */
+    public void updateHealthScore(UserAgentId userAgentId, int healthScore) {
+        cachePort.updateHealthScore(userAgentId, healthScore);
+    }
+
+    /**
+     * Pool에 여러 UserAgent 추가 (WarmUp)
+     *
+     * @param cachedUserAgents 추가할 UserAgent 목록
+     * @return 추가된 개수
+     */
+    public int warmUp(List<CachedUserAgent> cachedUserAgents) {
+        return cachePort.warmUp(cachedUserAgents);
+    }
+
+    /**
+     * 모든 SUSPENDED 상태의 UserAgent ID 목록 조회
+     *
+     * @return SUSPENDED 상태 UserAgent ID 목록
+     */
+    public List<UserAgentId> getAllSuspendedUserAgents() {
+        return cachePort.getAllSuspendedUserAgents();
+    }
+
+    /**
+     * 특정 UserAgent 조회
+     *
+     * @param userAgentId UserAgent ID
+     * @return CachedUserAgent (없으면 empty)
+     */
+    public Optional<CachedUserAgent> findById(UserAgentId userAgentId) {
+        return cachePort.findById(userAgentId);
+    }
 }

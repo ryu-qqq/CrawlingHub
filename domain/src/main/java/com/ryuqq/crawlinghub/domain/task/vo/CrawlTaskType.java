@@ -10,6 +10,7 @@ package com.ryuqq.crawlinghub.domain.task.vo;
  *   <li>{@code MINI_SHOP} - 미니샵 상품 목록 크롤링
  *   <li>{@code DETAIL} - 상품 상세 정보 크롤링
  *   <li>{@code OPTION} - 상품 옵션 정보 크롤링
+ *   <li>{@code SEARCH} - 검색 결과 크롤링
  * </ul>
  *
  * @author development-team
@@ -27,7 +28,10 @@ public enum CrawlTaskType {
     DETAIL("상품 상세 정보"),
 
     /** 상품 옵션 정보 크롤링 */
-    OPTION("상품 옵션 정보");
+    OPTION("상품 옵션 정보"),
+
+    /** 검색 결과 크롤링 */
+    SEARCH("검색 결과");
 
     private final String description;
 

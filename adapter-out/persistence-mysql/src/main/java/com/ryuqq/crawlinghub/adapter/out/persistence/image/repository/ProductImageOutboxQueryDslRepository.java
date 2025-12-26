@@ -5,6 +5,7 @@ import static com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.QProduc
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -155,5 +156,90 @@ public class ProductImageOutboxQueryDslRepository {
                                         crawledProductImageId))
                         .fetchFirst();
         return result != null;
+    }
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Entity 목록
+     */
+    public List<ProductImageOutboxJpaEntity> search(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+        var query = queryFactory.selectFrom(productImageOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductImageId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        return query.orderBy(productImageOutboxJpaEntity.createdAt.desc())
+                .offset(offset)
+                .limit(size)
+                .fetch();
+    }
+
+    /**
+     * 조건으로 ImageOutbox 개수 조회
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    public long count(Long crawledProductImageId, ProductOutboxStatus status) {
+        var query =
+                queryFactory
+                        .select(productImageOutboxJpaEntity.count())
+                        .from(productImageOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductImageId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        Long result = query.fetchOne();
+        return result != null ? result : 0L;
+    }
+
+    private com.querydsl.core.types.dsl.BooleanExpression buildSearchCondition(
+            Long crawledProductImageId, ProductOutboxStatus status) {
+        com.querydsl.core.types.dsl.BooleanExpression condition = null;
+
+        if (crawledProductImageId != null) {
+            condition = productImageOutboxJpaEntity.crawledProductImageId.eq(crawledProductImageId);
+        }
+
+        if (status != null) {
+            var statusCondition = productImageOutboxJpaEntity.status.eq(status);
+            condition = condition != null ? condition.and(statusCondition) : statusCondition;
+        }
+
+        return condition;
+    }
+
+    /**
+     * PROCESSING 상태이고 타임아웃된 Outbox 조회
+     *
+     * <p>processedAt 기준으로 지정된 시간(초)이 지난 PROCESSING 상태의 Outbox를 조회합니다.
+     *
+     * @param timeoutSeconds 타임아웃 기준 시간(초)
+     * @param limit 조회 개수 제한
+     * @return Entity 목록
+     */
+    public List<ProductImageOutboxJpaEntity> findTimedOutProcessingOutboxes(
+            int timeoutSeconds, int limit) {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusSeconds(timeoutSeconds);
+
+        return queryFactory
+                .selectFrom(productImageOutboxJpaEntity)
+                .where(
+                        productImageOutboxJpaEntity.status.eq(ProductOutboxStatus.PROCESSING),
+                        productImageOutboxJpaEntity.processedAt.lt(cutoffTime))
+                .orderBy(productImageOutboxJpaEntity.processedAt.asc())
+                .limit(limit)
+                .fetch();
     }
 }

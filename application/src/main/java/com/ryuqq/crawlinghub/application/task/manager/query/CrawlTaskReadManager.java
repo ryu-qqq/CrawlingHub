@@ -5,8 +5,11 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -69,5 +72,26 @@ public class CrawlTaskReadManager {
      */
     public long countByCriteria(CrawlTaskCriteria criteria) {
         return crawlTaskQueryPort.countByCriteria(criteria);
+    }
+
+    /**
+     * 통계 조건으로 상태별 개수 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 상태별 개수 맵
+     */
+    public Map<CrawlTaskStatus, Long> countByStatus(CrawlTaskStatisticsCriteria criteria) {
+        return crawlTaskQueryPort.countByStatus(criteria);
+    }
+
+    /**
+     * 통계 조건으로 태스크 유형별 통계 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @return 태스크 유형별 통계 맵
+     */
+    public Map<CrawlTaskType, CrawlTaskQueryPort.TaskTypeCount> countByTaskType(
+            CrawlTaskStatisticsCriteria criteria) {
+        return crawlTaskQueryPort.countByTaskType(criteria);
     }
 }

@@ -29,7 +29,10 @@ public enum UserAgentErrorCode implements ErrorCode {
     USER_AGENT_BLOCKED("USER-AGENT-006", 403, "차단된 UserAgent입니다."),
 
     /** 유효하지 않은 토큰 */
-    INVALID_TOKEN("USER-AGENT-007", 400, "유효하지 않은 토큰 형식입니다.");
+    INVALID_TOKEN("USER-AGENT-007", 400, "유효하지 않은 토큰 형식입니다."),
+
+    /** 세션 발급 실패 */
+    SESSION_ISSUANCE_FAILED("USER-AGENT-008", 503, "세션 토큰 발급에 실패했습니다.");
 
     private final String code;
     private final int httpStatus;

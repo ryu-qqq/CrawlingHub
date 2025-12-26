@@ -16,6 +16,7 @@ import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerRes
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
 import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
 import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
+import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
@@ -49,6 +50,8 @@ class RegisterCrawlSchedulerServiceTest {
 
     @Mock private CrawlSchedulerReadManager readManager;
 
+    @Mock private SellerReadManager sellerReadManager;
+
     @Mock private CrawlSchedulerBundle mockBundle;
 
     @InjectMocks private RegisterCrawlSchedulerService service;
@@ -74,6 +77,7 @@ class RegisterCrawlSchedulerServiceTest {
                             Instant.now(),
                             Instant.now());
 
+            given(sellerReadManager.existsById(any(SellerId.class))).willReturn(true);
             given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(false);
             given(commandFactory.createBundle(command)).willReturn(mockBundle);
@@ -101,6 +105,7 @@ class RegisterCrawlSchedulerServiceTest {
                     new RegisterCrawlSchedulerCommand(
                             1L, "duplicate-scheduler", "cron(0 0 * * ? *)");
 
+            given(sellerReadManager.existsById(any(SellerId.class))).willReturn(true);
             given(readManager.existsBySellerIdAndSchedulerName(any(SellerId.class), anyString()))
                     .willReturn(true);
 

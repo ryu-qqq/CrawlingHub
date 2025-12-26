@@ -55,6 +55,18 @@ public class SyncOutboxManager {
         syncOutboxPersistencePort.persist(bundle.outbox());
     }
 
+    /**
+     * SyncOutbox 영속화 (수동 동기화 트리거용)
+     *
+     * <p>수동 동기화 시 Event 없이 Outbox만 저장합니다.
+     *
+     * @param outbox 저장할 SyncOutbox
+     */
+    @Transactional
+    public void persist(CrawledProductSyncOutbox outbox) {
+        syncOutboxPersistencePort.persist(outbox);
+    }
+
     // === 상태 전환 ===
 
     /**

@@ -24,6 +24,9 @@ dependencies {
     implementation libs.spring.tx
     implementation libs.spring.data.commons
 
+    // AOP for metrics aspects
+    implementation libs.spring.boot.starter.aop
+
     // Validation
     implementation libs.spring.boot.starter.validation
 

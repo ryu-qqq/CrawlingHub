@@ -10,7 +10,9 @@ import java.time.Instant;
  *
  * <ul>
  *   <li>userAgentValue: User-Agent 헤더 값
- *   <li>sessionToken: 발급받은 세션 토큰 (Cookie)
+ *   <li>sessionToken: 발급받은 세션 토큰
+ *   <li>nid: nid 쿠키 값 (Search API용)
+ *   <li>mustitUid: mustit_uid 쿠키 값 (Search API용)
  *   <li>sessionExpiresAt: 세션 만료 시간
  *   <li>remainingTokens: 남은 요청 토큰 수 (초기 80)
  *   <li>healthScore: 건강 점수 (0-100)
@@ -34,6 +36,8 @@ public record CachedUserAgent(
         Long userAgentId,
         String userAgentValue,
         String sessionToken,
+        String nid,
+        String mustitUid,
         Instant sessionExpiresAt,
         int remainingTokens,
         int maxTokens,
@@ -56,6 +60,8 @@ public record CachedUserAgent(
         return new CachedUserAgent(
                 userAgent.getId().value(),
                 userAgent.getUserAgentString().value(),
+                null,
+                null,
                 null,
                 null,
                 DEFAULT_MAX_TOKENS,
@@ -82,6 +88,8 @@ public record CachedUserAgent(
                 userAgentValue,
                 null,
                 null,
+                null,
+                null,
                 DEFAULT_MAX_TOKENS,
                 DEFAULT_MAX_TOKENS,
                 null,
@@ -103,6 +111,35 @@ public record CachedUserAgent(
                 this.userAgentId,
                 this.userAgentValue,
                 sessionToken,
+                this.nid,
+                this.mustitUid,
+                sessionExpiresAt,
+                this.remainingTokens,
+                this.maxTokens,
+                this.windowStart,
+                this.windowEnd,
+                this.healthScore,
+                CacheStatus.READY,
+                null);
+    }
+
+    /**
+     * 세션 및 쿠키 발급 후 READY 상태로 전환
+     *
+     * @param sessionToken 발급받은 세션 토큰
+     * @param nid nid 쿠키 값
+     * @param mustitUid mustit_uid 쿠키 값
+     * @param sessionExpiresAt 세션 만료 시간
+     * @return 새로운 CachedUserAgent (READY 상태)
+     */
+    public CachedUserAgent withSession(
+            String sessionToken, String nid, String mustitUid, Instant sessionExpiresAt) {
+        return new CachedUserAgent(
+                this.userAgentId,
+                this.userAgentValue,
+                sessionToken,
+                nid,
+                mustitUid,
                 sessionExpiresAt,
                 this.remainingTokens,
                 this.maxTokens,
@@ -181,5 +218,14 @@ public record CachedUserAgent(
                 && suspendedAt != null
                 && suspendedAt.isBefore(threshold)
                 && healthScore >= 30;
+    }
+
+    /**
+     * Search API용 쿠키가 있는지 확인
+     *
+     * @return nid와 mustitUid가 모두 있으면 true
+     */
+    public boolean hasSearchCookies() {
+        return nid != null && !nid.isBlank() && mustitUid != null && !mustitUid.isBlank();
     }
 }

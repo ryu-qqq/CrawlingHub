@@ -61,9 +61,20 @@ class CrawlTaskTypeTest {
     }
 
     @Test
-    @DisplayName("모든 유형은 4개")
-    void shouldHaveFourTypes() {
+    @DisplayName("SEARCH 유형은 설명을 가짐")
+    void shouldHaveDescriptionForSearch() {
+        // given & when
+        String description = CrawlTaskType.SEARCH.getDescription();
+
+        // then
+        assertThat(description).isNotBlank();
+        assertThat(description).contains("검색");
+    }
+
+    @Test
+    @DisplayName("모든 유형은 5개")
+    void shouldHaveFiveTypes() {
         // given & when & then
-        assertThat(CrawlTaskType.values()).hasSize(4);
+        assertThat(CrawlTaskType.values()).hasSize(5);
     }
 }

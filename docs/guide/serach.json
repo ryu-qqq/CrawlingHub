@@ -1,0 +1,106 @@
+{
+  "moduleList": [
+    {
+      "type": "SearchItemV2",
+      "data": {
+        "itemNo": 103446837,
+        "imageUrlList": [
+          "https://image.mustit.co.kr/lib/upload/product/dmont/2025/02/7167570affab3296afd4da1e9526a61a.jpeg/_dims_/resize/300x300/extent/300x400",
+          "https://image.mustit.co.kr/lib/upload/product/dmont/2025/02/99553321afadf49d2427d46a56969b95.jpeg/_dims_/resize/300x300/extent/300x400"
+        ],
+        "brandName": "STONE ISLAND",
+        "brandCode": 133,
+        "shippingType": "DOMESTIC",
+        "name": "디몬트 스톤 남성 와펜 패치  코튼 플리스 맨투맨(더스티핑크) K1S15 6100044 S0051 V0082",
+        "price": "286,100",
+        "originalPrice": "682,000",
+        "discountRate": "58",
+        "tagList": [
+          {
+            "title": "무료배송",
+            "textColor": "#888888",
+            "bgColor": "#ffffff",
+            "borderColor": "#dddddd"
+          }
+        ],
+        "badgeList": [],
+        "landingUrl": "https://m.web.mustit.co.kr/v2/m/product/product_detail/103446837?from_keyword=dmont&isNewTab=Y",
+        "likeCount": "1",
+        "likeStatus": false,
+        "reviewScore": "0",
+        "isLastItem": false,
+        "isLowestPrice": true,
+        "catalogItemCount": 25,
+        "trackingInfo": {
+          "eventType": "select_content",
+          "parameters": "{\"content_type\":\"click_item\",\"item_id\":\"item_List\"}"
+        },
+        "catalogNo": 11108346,
+        "catalogMainImageUrl": "https://image.mustit.co.kr/lib/upload/product/s-project/2025/07/43a2297dfb6f70e8f8d323f670b86923.jpeg",
+        "amplitudeInfo": {
+          "eventType": "click_product_in_search_result",
+          "parameters": {
+            "brand_id": 133,
+            "brand_name": "STONE ISLAND",
+            "category_1_id": "15",
+            "category_1_name": "남성의류",
+            "category_2_id": "15r02",
+            "category_2_name": "탑",
+            "category_3_id": "15r02r02",
+            "category_3_name": "스웨트셔츠",
+            "product_id": 103446837,
+            "product_name": "디몬트 스톤 남성 와펜 패치  코튼 플리스 맨투맨(더스티핑크) K1S15 6100044 S0051 V0082",
+            "list_price": 682000,
+            "selling_price": 304000,
+            "discount_price": 286100,
+            "discount_rate": 58,
+            "is_lowest_price": true,
+            "is_price_comparison": true,
+            "catalog_id": 11108346,
+            "sorting_name": "머스트잇 랭킹순",
+            "product_count": 2089,
+            "is_filtered_lowest_price": true
+          }
+        },
+        "ga4Info": {
+          "SRP": {
+            "item_id": 103446837,
+            "item_name": "디몬트 스톤 남성 와펜 패치  코튼 플리스 맨투맨(더스티핑크) K1S15 6100044 S0051 V0082",
+            "link": "https://m.web.mustit.co.kr/v2/m/product/product_detail/103446837?from_keyword=dmont",
+            "AD_product": "N"
+          },
+          "BLP": {
+            "item_id": 103446837,
+            "item_name": "디몬트 스톤 남성 와펜 패치  코튼 플리스 맨투맨(더스티핑크) K1S15 6100044 S0051 V0082",
+            "link": "https://m.web.mustit.co.kr/v2/m/product/product_detail/103446837?from_keyword=dmont",
+            "AD_product": "N",
+            "item_brand": "133_STONE ISLAND"
+          },
+          "LP": {
+            "item_id": 103446837,
+            "item_name": "디몬트 스톤 남성 와펜 패치  코튼 플리스 맨투맨(더스티핑크) K1S15 6100044 S0051 V0082",
+            "link": "https://m.web.mustit.co.kr/v2/m/product/product_detail/103446837?from_keyword=dmont",
+            "AD_product": "N",
+            "category_id": "M_15_15r02_15r02r02",
+            "item_category": "남성",
+            "item_category2": "의류",
+            "item_category3": "탑",
+            "item_category4": "스웨트셔츠"
+          }
+        },
+        "isAd": false
+      }
+    }
+  ],
+  "nextApiUrl": "/v1/search/items?keyword=dmont&sort=POPULAR2&f=us:NEW,lwp:Y&pageNo=3&beforeItemType=Normal&previousIdx=0%2C0",
+  "trackingInfos": [
+    {
+      "eventType": "rtb_house",
+      "parameters": "{\"item_no\":\"103446837,111589802,106508745,115460751,114179863\"}"
+    },
+    {
+      "eventType": "braze",
+      "parameters": "{\"keyword\":\"dmont\",\"search_date\":\"2025-12-20\"}"
+    }
+  ]
+}
