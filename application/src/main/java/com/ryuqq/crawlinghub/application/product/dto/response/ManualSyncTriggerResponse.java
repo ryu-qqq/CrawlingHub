@@ -16,4 +16,15 @@ public record ManualSyncTriggerResponse(
         return new ManualSyncTriggerResponse(
                 crawledProductId, syncOutboxId, syncType, "동기화 요청이 등록되었습니다.");
     }
+
+    /**
+     * 중복 요청으로 스킵된 경우
+     *
+     * @param crawledProductId CrawledProduct ID
+     * @param reason 스킵 사유
+     * @return 스킵 응답
+     */
+    public static ManualSyncTriggerResponse skipped(Long crawledProductId, String reason) {
+        return new ManualSyncTriggerResponse(crawledProductId, null, null, reason);
+    }
 }

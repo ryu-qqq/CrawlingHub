@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * 이미지 업로드 Outbox (작업 큐)
@@ -143,18 +142,29 @@ public class ProductImageOutbox {
                 processedAt);
     }
 
+    /**
+     * 멱등성 키 생성
+     *
+     * <p>동일한 이미지 ID와 원본 URL에 대해 항상 동일한 키를 생성합니다. 이를 통해 중복 Outbox 생성을 방지할 수 있습니다.
+     *
+     * @param image 크롤링 상품 이미지
+     * @return 멱등성 키 (format: img-{imageId}-{urlHash})
+     */
     private static String generateIdempotencyKey(CrawledProductImage image) {
-        return String.format(
-                "img-%s-%s-%s",
-                image.getId(),
-                image.getOriginalUrl().hashCode(),
-                UUID.randomUUID().toString().substring(0, 8));
+        return String.format("img-%s-%s", image.getId(), image.getOriginalUrl().hashCode());
     }
 
-    private static String generateIdempotencyKeyFromUrl(Long imageId, String originalUrl) {
-        return String.format(
-                "img-%s-%s-%s",
-                imageId, originalUrl.hashCode(), UUID.randomUUID().toString().substring(0, 8));
+    /**
+     * 멱등성 키 생성 (이미지 ID와 URL에서 직접 생성)
+     *
+     * <p>동일한 이미지 ID와 원본 URL에 대해 항상 동일한 키를 생성합니다.
+     *
+     * @param imageId 이미지 ID
+     * @param originalUrl 원본 URL
+     * @return 멱등성 키 (format: img-{imageId}-{urlHash})
+     */
+    public static String generateIdempotencyKeyFromUrl(Long imageId, String originalUrl) {
+        return String.format("img-%s-%s", imageId, originalUrl.hashCode());
     }
 
     /**

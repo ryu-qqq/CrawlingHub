@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.application.sync.service.command;
 
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
 import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;
@@ -53,8 +52,12 @@ public class RequestSyncService implements RequestSyncUseCase {
             return;
         }
 
-        SyncOutboxBundle bundle = syncOutboxFactory.createBundle(product);
-        syncOutboxManager.persist(bundle);
-        eventRegistry.registerForPublish(bundle.event());
+        syncOutboxFactory
+                .createBundle(product)
+                .ifPresent(
+                        bundle -> {
+                            syncOutboxManager.persist(bundle);
+                            eventRegistry.registerForPublish(bundle.event());
+                        });
     }
 }

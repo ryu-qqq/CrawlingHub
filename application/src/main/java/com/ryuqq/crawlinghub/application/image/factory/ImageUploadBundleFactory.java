@@ -4,11 +4,13 @@ import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
+import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import java.time.Clock;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,16 +42,19 @@ public class ImageUploadBundleFactory {
 
     private final CrawledProductImageTransactionManager imageTransactionManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
+    private final ImageOutboxQueryPort imageOutboxQueryPort;
     private final TransactionEventRegistry eventRegistry;
     private final Clock clock;
 
     public ImageUploadBundleFactory(
             CrawledProductImageTransactionManager imageTransactionManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
+            ImageOutboxQueryPort imageOutboxQueryPort,
             TransactionEventRegistry eventRegistry,
             Clock clock) {
         this.imageTransactionManager = imageTransactionManager;
         this.outboxTransactionManager = outboxTransactionManager;
+        this.imageOutboxQueryPort = imageOutboxQueryPort;
         this.eventRegistry = eventRegistry;
         this.clock = clock;
     }
@@ -57,7 +62,8 @@ public class ImageUploadBundleFactory {
     /**
      * 이미지 업로드 처리
      *
-     * <p>ImageUploadData를 받아 이미지 생성/저장, Outbox 생성/저장, Event 등록을 수행합니다.
+     * <p>ImageUploadData를 받아 이미지 생성/저장, Outbox 생성/저장, Event 등록을 수행합니다. 이미 PENDING 또는 PROCESSING 상태의
+     * Outbox가 존재하는 이미지는 중복 생성을 방지합니다.
      *
      * @param imageUploadData 이미지 업로드 데이터 (enrichWithProductId 호출 후)
      */
@@ -70,13 +76,49 @@ public class ImageUploadBundleFactory {
         List<CrawledProductImage> images = imageUploadData.createImages(clock);
         List<CrawledProductImage> savedImages = imageTransactionManager.saveAll(images);
 
-        // 2. Outbox 생성 및 저장 (저장된 이미지 ID 사용)
-        List<ProductImageOutbox> outboxes = imageUploadData.createOutboxes(savedImages, clock);
-        outboxTransactionManager.persistAll(outboxes);
+        // 2. 중복 PENDING/PROCESSING Outbox 필터링 후 Outbox 생성 및 저장
+        List<CrawledProductImage> imagesWithoutPendingOutbox =
+                filterImagesWithoutPendingOutbox(savedImages);
 
-        // 3. Event 생성 및 등록 (커밋 후 발행)
-        ImageUploadRequestedEvent event = imageUploadData.createEvent(clock);
-        eventRegistry.registerForPublish(event);
+        if (!imagesWithoutPendingOutbox.isEmpty()) {
+            List<ProductImageOutbox> outboxes =
+                    imageUploadData.createOutboxes(imagesWithoutPendingOutbox, clock);
+            outboxTransactionManager.persistAll(outboxes);
+
+            // 3. Event 생성 및 등록 (커밋 후 발행)
+            ImageUploadRequestedEvent event = imageUploadData.createEvent(clock);
+            eventRegistry.registerForPublish(event);
+        }
+    }
+
+    /**
+     * PENDING 또는 PROCESSING 상태의 Outbox가 없는 이미지만 필터링
+     *
+     * @param savedImages 저장된 이미지 목록
+     * @return PENDING/PROCESSING Outbox가 없는 이미지 목록
+     */
+    private List<CrawledProductImage> filterImagesWithoutPendingOutbox(
+            List<CrawledProductImage> savedImages) {
+        return savedImages.stream().filter(image -> !hasPendingOrProcessingOutbox(image)).toList();
+    }
+
+    /**
+     * 이미지에 대해 PENDING 또는 PROCESSING 상태의 Outbox가 존재하는지 확인
+     *
+     * @param image 확인할 이미지
+     * @return PENDING/PROCESSING Outbox가 있으면 true
+     */
+    private boolean hasPendingOrProcessingOutbox(CrawledProductImage image) {
+        String idempotencyKey =
+                ProductImageOutbox.generateIdempotencyKeyFromUrl(
+                        image.getId(), image.getOriginalUrl());
+
+        Optional<ProductImageOutbox> existingOutbox =
+                imageOutboxQueryPort.findByIdempotencyKey(idempotencyKey);
+
+        return existingOutbox
+                .map(outbox -> outbox.isPending() || outbox.getStatus().isProcessing())
+                .orElse(false);
     }
 
     /**

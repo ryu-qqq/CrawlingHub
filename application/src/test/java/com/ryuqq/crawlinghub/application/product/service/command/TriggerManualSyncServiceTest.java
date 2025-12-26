@@ -2,15 +2,21 @@ package com.ryuqq.crawlinghub.application.product.service.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
+import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.dto.command.TriggerManualSyncCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.ManualSyncTriggerResponse;
+import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
 import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.exception.CrawledProductNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
@@ -21,9 +27,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +35,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,12 +49,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TriggerManualSyncServiceTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
 
     @Mock private CrawledProductQueryPort crawledProductQueryPort;
+    @Mock private SyncOutboxFactory syncOutboxFactory;
     @Mock private SyncOutboxManager syncOutboxManager;
 
     private TriggerManualSyncService service;
@@ -60,7 +63,7 @@ class TriggerManualSyncServiceTest {
     void setUp() {
         service =
                 new TriggerManualSyncService(
-                        crawledProductQueryPort, syncOutboxManager, FIXED_CLOCK);
+                        crawledProductQueryPort, syncOutboxFactory, syncOutboxManager);
     }
 
     @Nested
@@ -73,7 +76,19 @@ class TriggerManualSyncServiceTest {
             // Given
             TriggerManualSyncCommand command = new TriggerManualSyncCommand(1L);
             CrawledProduct product = createSyncableProduct(false);
+            CrawledProductSyncOutbox outbox = CrawledProductSyncOutboxFixture.aPendingForCreate();
+            ExternalSyncRequestedEvent event =
+                    new ExternalSyncRequestedEvent(
+                            outbox.getCrawledProductId(),
+                            outbox.getSellerId(),
+                            outbox.getItemNo(),
+                            outbox.getIdempotencyKey(),
+                            ExternalSyncRequestedEvent.SyncType.CREATE,
+                            FIXED_INSTANT);
+            SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
+
             given(crawledProductQueryPort.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
 
             // When
             ManualSyncTriggerResponse response = service.execute(command);
@@ -83,10 +98,7 @@ class TriggerManualSyncServiceTest {
             assertThat(response.syncType()).isEqualTo("CREATE");
             assertThat(response.message()).isEqualTo("동기화 요청이 등록되었습니다.");
 
-            ArgumentCaptor<CrawledProductSyncOutbox> captor =
-                    ArgumentCaptor.forClass(CrawledProductSyncOutbox.class);
-            verify(syncOutboxManager).persist(captor.capture());
-            assertThat(captor.getValue().getSyncType().name()).isEqualTo("CREATE");
+            verify(syncOutboxManager).persist(bundle);
         }
 
         @Test
@@ -95,18 +107,49 @@ class TriggerManualSyncServiceTest {
             // Given
             TriggerManualSyncCommand command = new TriggerManualSyncCommand(1L);
             CrawledProduct product = createSyncableProduct(true);
+            CrawledProductSyncOutbox outbox = CrawledProductSyncOutboxFixture.aPendingForUpdate();
+            ExternalSyncRequestedEvent event =
+                    new ExternalSyncRequestedEvent(
+                            outbox.getCrawledProductId(),
+                            outbox.getSellerId(),
+                            outbox.getItemNo(),
+                            outbox.getIdempotencyKey(),
+                            ExternalSyncRequestedEvent.SyncType.UPDATE,
+                            FIXED_INSTANT);
+            SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
+
             given(crawledProductQueryPort.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
 
             // When
             ManualSyncTriggerResponse response = service.execute(command);
 
             // Then
             assertThat(response.syncType()).isEqualTo("UPDATE");
+            assertThat(response.message()).isEqualTo("동기화 요청이 등록되었습니다.");
 
-            ArgumentCaptor<CrawledProductSyncOutbox> captor =
-                    ArgumentCaptor.forClass(CrawledProductSyncOutbox.class);
-            verify(syncOutboxManager).persist(captor.capture());
-            assertThat(captor.getValue().getSyncType().name()).isEqualTo("UPDATE");
+            verify(syncOutboxManager).persist(bundle);
+        }
+
+        @Test
+        @DisplayName("[스킵] 중복 Outbox 존재 시 스킵 응답 반환")
+        void shouldReturnSkippedResponseWhenDuplicateOutbox() {
+            // Given
+            TriggerManualSyncCommand command = new TriggerManualSyncCommand(1L);
+            CrawledProduct product = createSyncableProduct(false);
+
+            given(crawledProductQueryPort.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.empty());
+
+            // When
+            ManualSyncTriggerResponse response = service.execute(command);
+
+            // Then
+            assertThat(response.crawledProductId()).isEqualTo(1L);
+            assertThat(response.syncType()).isNull();
+            assertThat(response.message()).contains("이미 PENDING 또는 PROCESSING 상태");
+
+            verifyNoInteractions(syncOutboxManager);
         }
 
         @Test

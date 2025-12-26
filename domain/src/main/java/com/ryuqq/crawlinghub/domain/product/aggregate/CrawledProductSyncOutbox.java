@@ -6,7 +6,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * 외부 상품 서버 동기화 Outbox
@@ -146,13 +145,18 @@ public class CrawledProductSyncOutbox {
                 processedAt);
     }
 
-    private static String generateIdempotencyKey(
+    /**
+     * 멱등성 키 생성
+     *
+     * <p>동일한 상품과 동기화 타입에 대해 항상 동일한 키를 생성합니다. 이를 통해 중복 Outbox 생성을 방지할 수 있습니다.
+     *
+     * @param crawledProductId 크롤링 상품 ID
+     * @param syncType 동기화 타입
+     * @return 멱등성 키 (format: sync-{productId}-{syncType})
+     */
+    public static String generateIdempotencyKey(
             CrawledProductId crawledProductId, SyncType syncType) {
-        return String.format(
-                "sync-%s-%s-%s",
-                crawledProductId.value(),
-                syncType.name().toLowerCase(),
-                UUID.randomUUID().toString().substring(0, 8));
+        return String.format("sync-%s-%s", crawledProductId.value(), syncType.name().toLowerCase());
     }
 
     /**
