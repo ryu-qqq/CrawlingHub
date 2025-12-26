@@ -1,0 +1,97 @@
+// ========================================
+// Integration Test Module
+// ========================================
+// E2E integration tests for all bootstrap modules
+// Uses TestContainers, WireMock, LocalStack
+// NO Lombok allowed
+// ========================================
+
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+// Disable bootJar - this is a test-only module
+tasks.bootJar {
+    enabled = false
+}
+
+tasks.jar {
+    enabled = true
+}
+
+dependencies {
+    // ========================================
+    // Bootstrap Modules (Test Targets)
+    // ========================================
+    testImplementation project(':bootstrap:bootstrap-web-api')
+    testImplementation project(':bootstrap:bootstrap-crawl-worker')
+    testImplementation project(':bootstrap:bootstrap-scheduler')
+
+    // ========================================
+    // testFixtures from Core Modules
+    // ========================================
+    testImplementation testFixtures(project(':domain'))
+    testImplementation testFixtures(project(':application'))
+
+    // ========================================
+    // Persistence Module (for Repository access in tests)
+    // ========================================
+    testImplementation project(':adapter-out:persistence-mysql')
+
+    // ========================================
+    // Spring Boot Test
+    // ========================================
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.spring.boot.starter.web
+    testImplementation libs.spring.boot.starter.data.jpa
+
+    // ========================================
+    // TestContainers
+    // ========================================
+    testImplementation libs.testcontainers.junit
+    testImplementation libs.testcontainers.mysql
+    testImplementation libs.testcontainers.localstack
+    testImplementation libs.testcontainers.redis
+
+    // ========================================
+    // WireMock
+    // ========================================
+    testImplementation libs.wiremock
+
+    // ========================================
+    // REST Assured
+    // ========================================
+    testImplementation libs.rest.assured
+
+    // ========================================
+    // Awaitility (Async Testing)
+    // ========================================
+    testImplementation libs.awaitility
+
+    // ========================================
+    // AWS SDK (LocalStack Integration)
+    // ========================================
+    testImplementation platform(libs.aws.bom)
+    testImplementation libs.aws.sqs
+    testImplementation 'software.amazon.awssdk:scheduler'
+
+    // ========================================
+    // Database
+    // ========================================
+    testRuntimeOnly libs.mysql
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
+
+    // TestContainers reuse
+    systemProperty 'testcontainers.reuse.enable', 'true'
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}

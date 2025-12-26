@@ -66,4 +66,36 @@ public interface ImageOutboxQueryPort {
      * @return 재시도 가능한 ImageOutbox 목록
      */
     List<ProductImageOutbox> findRetryableOutboxes(int maxRetryCount, int limit);
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return ImageOutbox 목록
+     */
+    List<ProductImageOutbox> search(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size);
+
+    /**
+     * 조건으로 ImageOutbox 개수 조회
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    long count(Long crawledProductImageId, ProductOutboxStatus status);
+
+    /**
+     * PROCESSING 상태이고 타임아웃된 ImageOutbox 조회
+     *
+     * <p>processedAt 기준으로 지정된 시간(초)이 지난 PROCESSING 상태의 Outbox를 조회합니다.
+     *
+     * @param timeoutSeconds 타임아웃 기준 시간(초)
+     * @param limit 조회 개수 제한
+     * @return 타임아웃된 ImageOutbox 목록
+     */
+    List<ProductImageOutbox> findTimedOutProcessingOutboxes(int timeoutSeconds, int limit);
 }

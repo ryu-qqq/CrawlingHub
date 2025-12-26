@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.application.product.factory;
 
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
+import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import java.time.Clock;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,39 +29,62 @@ import org.springframework.stereotype.Component;
 @Component
 public class SyncOutboxFactory {
 
+    private final SyncOutboxQueryPort syncOutboxQueryPort;
     private final Clock clock;
 
-    public SyncOutboxFactory(Clock clock) {
+    public SyncOutboxFactory(SyncOutboxQueryPort syncOutboxQueryPort, Clock clock) {
+        this.syncOutboxQueryPort = syncOutboxQueryPort;
         this.clock = clock;
     }
 
     /**
      * CrawledProduct 기반 SyncOutboxBundle 생성
      *
-     * <p>CrawledProduct의 externalProductId 존재 여부로 CREATE/UPDATE를 판단합니다.
+     * <p>CrawledProduct의 externalProductId 존재 여부로 CREATE/UPDATE를 판단합니다. 이미 PENDING 또는 PROCESSING
+     * 상태의 동일 Outbox가 존재하면 중복 생성을 방지하기 위해 Optional.empty()를 반환합니다.
      *
-     * @param product CrawledProduct (동기화 준비 완료된 상태여야 함)
-     * @return Outbox와 Event가 포함된 Bundle
-     * @throws IllegalStateException 동기화 조건이 충족되지 않은 경우
+     * <p><strong>중요</strong>: 호출자가 동기화 가능 여부를 사전에 검증해야 합니다.
+     *
+     * <ul>
+     *   <li>자동 동기화: {@code product.needsExternalSync()} 확인
+     *   <li>수동 동기화: {@code product.canSyncToExternalServer()} 확인
+     * </ul>
+     *
+     * @param product CrawledProduct (호출자가 동기화 가능 여부를 사전 검증해야 함)
+     * @return Outbox와 Event가 포함된 Bundle (중복인 경우 Optional.empty())
      */
-    public SyncOutboxBundle createBundle(CrawledProduct product) {
-        validateSyncReady(product);
+    public Optional<SyncOutboxBundle> createBundle(CrawledProduct product) {
+        // 중복 PENDING/PROCESSING Outbox 확인
+        CrawledProductSyncOutbox.SyncType syncType = determineSyncType(product);
+        String idempotencyKey =
+                CrawledProductSyncOutbox.generateIdempotencyKey(product.getId(), syncType);
 
-        CrawledProductSyncOutbox outbox = createOutbox(product);
+        Optional<CrawledProductSyncOutbox> existingOutbox =
+                syncOutboxQueryPort.findByIdempotencyKey(idempotencyKey);
+
+        if (existingOutbox.isPresent() && isInProgressOrPending(existingOutbox.get())) {
+            return Optional.empty();
+        }
+
+        CrawledProductSyncOutbox outbox = createOutbox(product, syncType);
         ExternalSyncRequestedEvent event = outbox.createSyncRequestedEvent(clock);
 
-        return new SyncOutboxBundle(outbox, event);
+        return Optional.of(new SyncOutboxBundle(outbox, event));
     }
 
-    private void validateSyncReady(CrawledProduct product) {
-        if (!product.needsExternalSync()) {
-            throw new IllegalStateException(
-                    "CrawledProduct is not ready for sync: " + product.getId());
-        }
+    private CrawledProductSyncOutbox.SyncType determineSyncType(CrawledProduct product) {
+        return product.isRegisteredToExternalServer()
+                ? CrawledProductSyncOutbox.SyncType.UPDATE
+                : CrawledProductSyncOutbox.SyncType.CREATE;
     }
 
-    private CrawledProductSyncOutbox createOutbox(CrawledProduct product) {
-        if (product.isRegisteredToExternalServer()) {
+    private boolean isInProgressOrPending(CrawledProductSyncOutbox outbox) {
+        return outbox.isPending() || outbox.getStatus().isProcessing();
+    }
+
+    private CrawledProductSyncOutbox createOutbox(
+            CrawledProduct product, CrawledProductSyncOutbox.SyncType syncType) {
+        if (syncType == CrawledProductSyncOutbox.SyncType.UPDATE) {
             return CrawledProductSyncOutbox.forUpdate(
                     product.getId(),
                     product.getSellerId(),

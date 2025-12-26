@@ -45,7 +45,7 @@ public class UpdateCrawlSchedulerService implements UpdateCrawlSchedulerUseCase 
      * <ol>
      *   <li>스케줄러 조회
      *   <li>중복 검증 (이름 변경 시)
-     *   <li>Aggregate에서 비즈니스 로직 수행
+     *   <li>부분 업데이트 지원: null 필드는 현재 값 유지
      *   <li>Facade를 통해 저장 + 이벤트 발행
      * </ol>
      *
@@ -63,20 +63,30 @@ public class UpdateCrawlSchedulerService implements UpdateCrawlSchedulerUseCase 
                                         new CrawlSchedulerNotFoundException(
                                                 command.crawlSchedulerId()));
 
-        // 2. 중복 검증 (이름 변경 시)
-        validateDuplicateSchedulerName(crawlScheduler, command.schedulerName());
+        // 2. 부분 업데이트 지원: null 필드는 현재 값 유지
+        SchedulerName newName =
+                command.schedulerName() != null
+                        ? SchedulerName.of(command.schedulerName())
+                        : crawlScheduler.getSchedulerName();
 
-        // 3. Facade에서 상태 변경 + 저장 + 이벤트 발행 (ClockHolder 캡슐화)
+        CronExpression newCronExpression =
+                command.cronExpression() != null
+                        ? CronExpression.of(command.cronExpression())
+                        : crawlScheduler.getCronExpression();
+
         SchedulerStatus newStatus =
-                command.active() ? SchedulerStatus.ACTIVE : SchedulerStatus.INACTIVE;
+                command.active() != null
+                        ? (command.active() ? SchedulerStatus.ACTIVE : SchedulerStatus.INACTIVE)
+                        : crawlScheduler.getStatus();
 
+        // 3. 중복 검증 (이름 변경 시)
+        validateDuplicateSchedulerName(crawlScheduler, newName.value());
+
+        // 4. Facade에서 상태 변경 + 저장 + 이벤트 발행 (ClockHolder 캡슐화)
         crawlerSchedulerFacade.updateScheduler(
-                crawlScheduler,
-                SchedulerName.of(command.schedulerName()),
-                CronExpression.of(command.cronExpression()),
-                newStatus);
+                crawlScheduler, newName, newCronExpression, newStatus);
 
-        // 4. Response 변환
+        // 5. Response 변환
         return crawlSchedulerAssembler.toResponse(crawlScheduler);
     }
 

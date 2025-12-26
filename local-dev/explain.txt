@@ -1,0 +1,24 @@
+ docker-compose.aws.yml로 로컬에 crawlinghub-aws가 띄워져있어 운영에 있는 aws 자원에는 aws-port-forward.sh로 접근하고있고
+
+각 엔드포인트를 호출할때 인증이 필요하면 아래 요청으로 토큰을 얻으면 되
+
+https://api.set-of.com/api/v1/auth/login POST
+{
+    "identifier": "rsw2@connectly.co.kr",
+    "password": "Ff@20122104"
+}
+
+이렇게 요청하면
+
+{
+    "success": true,
+    "data": {
+        "userId": "019b350c-71cb-766e-b960-553157f76456",
+        "accessToken": "eyJraWQiOiJhdXRoaHViLWtleS0xIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMTliMzUwYy03MWNiLTc2NmUtYjk2MC01NTMxNTdmNzY0NTYiLCJpc3MiOiJhdXRoaHViIiwiaWF0IjoxNzY2MjE4NzYxLCJleHAiOjE3NjYyMjIzNjEsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJ0aWQiOiIwMTliMzUwYy03MWNhLTc0MWQtODk4Yi00ZGY0ZThjMDJiY2EiLCJ0ZW5hbnRfbmFtZSI6ImNvbm5lY3RseSIsIm9pZCI6IjAxOWIzNTBjLTcxY2ItNzY2ZS1iOTVlLTAzYjY3MmI5YWJkYSIsIm9yZ19uYW1lIjoi6rCc67Cc7YyAIiwiZW1haWwiOiJyc3cyQGNvbm5lY3RseS5jby5rciIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sInBlcm1pc3Npb25zIjpbXSwicGVybWlzc2lvbl9oYXNoIjoiIiwibWZhX3ZlcmlmaWVkIjpmYWxzZX0.UwZdhnREuRE1QNd_XwrAIYM_rgb0DWd-u7sV25YYPlopCwLZS66bnjUFBBpBiRQ8eJy6vxUZ4SAQfv0qljlbvIWhLSTKTX2XbGgCQnVIr38BJQ5_hLbGiAVljPFjgZeTesW8DZdcufF4gdr6UX-kMVya406Vt40dHcqdaS-J8D1uevlC_6OK5uJpt7VNBctKXODXfqd0WzWb3RNDKVQ5AuOEHAwCeYCptRT890E6KwDzBEKESup5S-iw-ZCnPprCD2vG67TmSBtfYDJ4l9hkRuKw6zzKos_GwKEmo5sAhd6NUQjeMhL0j3AkUQfKfmYd_P0qw_rOTT4WKDeWOFMyDA",
+        "refreshToken": "eyJraWQiOiJhdXRoaHViLWtleS0xIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMTliMzUwYy03MWNiLTc2NmUtYjk2MC01NTMxNTdmNzY0NTYiLCJpc3MiOiJhdXRoaHViIiwiaWF0IjoxNzY2MjE4NzYxLCJleHAiOjE3NjY4MjM1NjEsInRva2VuX3R5cGUiOiJyZWZyZXNoIn0.JgGIWViZcTHM3XsQVRHig1OrxvMiI3F_dmmtEkOCHLjh0o0e3KUeGVisiMs3H6rzy68amq2OZR7xc8i27EwamVQraw22ZQi-IHcGjIlcnpA3oe6_8fEyU0drN2R_Q-glX9ceG9P1SZUF8gtq34XpMHeLuFf0iYrJf0DcWrc-KhG9Y7_scPDvEF9h9AydwvedD0ytRmpbzBTMdDPXWQYO3L1w1YA5jWux9CT08kFCZ-AJo8VyBpCCGgu8DDnORQpAEjWhJiraxyGu7W98GUiSq9rLyRnFhp6STHOG_8KX9IC88rDJI7CvBUTzjJMrOXOnSVelRH_5z_YrgRNUKw3rgw",
+        "expiresIn": 3600,
+        "tokenType": "Bearer"
+    },
+    "timestamp": "2025-12-20T08:19:21.825714174",
+    "requestId": "req-1766218761825"
+}

@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecution
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -55,5 +56,17 @@ public class CrawlExecutionReadManager {
      */
     public long countByCriteria(CrawlExecutionCriteria criteria) {
         return crawlExecutionQueryPort.countByCriteria(criteria);
+    }
+
+    /**
+     * 상위 에러 메시지 조회
+     *
+     * @param criteria 통계 조회 조건
+     * @param limit 조회할 에러 개수
+     * @return 에러 메시지별 발생 횟수 목록
+     */
+    public List<CrawlExecutionQueryPort.ErrorCount> getTopErrors(
+            CrawlExecutionStatisticsCriteria criteria, int limit) {
+        return crawlExecutionQueryPort.getTopErrors(criteria, limit);
     }
 }

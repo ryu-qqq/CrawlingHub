@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.application.product.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
+import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
@@ -16,6 +19,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,11 +37,13 @@ class SyncOutboxFactoryTest {
     private static final Clock FIXED_CLOCK =
             Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
 
+    private SyncOutboxQueryPort syncOutboxQueryPort;
     private SyncOutboxFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new SyncOutboxFactory(FIXED_CLOCK);
+        syncOutboxQueryPort = mock(SyncOutboxQueryPort.class);
+        factory = new SyncOutboxFactory(syncOutboxQueryPort, FIXED_CLOCK);
     }
 
     @Nested
@@ -49,12 +55,15 @@ class SyncOutboxFactoryTest {
         void shouldCreateBundleWithCreateTypeForNewProduct() {
             // Given
             CrawledProduct product = createSyncReadyProduct(null);
+            given(syncOutboxQueryPort.findByIdempotencyKey(anyString()))
+                    .willReturn(Optional.empty());
 
             // When
-            SyncOutboxBundle bundle = factory.createBundle(product);
+            Optional<SyncOutboxBundle> result = factory.createBundle(product);
 
             // Then
-            assertThat(bundle).isNotNull();
+            assertThat(result).isPresent();
+            SyncOutboxBundle bundle = result.get();
             assertThat(bundle.isCreateRequest()).isTrue();
             assertThat(bundle.isUpdateRequest()).isFalse();
 
@@ -78,12 +87,15 @@ class SyncOutboxFactoryTest {
             // Given
             Long externalProductId = 99999L;
             CrawledProduct product = createSyncReadyProduct(externalProductId);
+            given(syncOutboxQueryPort.findByIdempotencyKey(anyString()))
+                    .willReturn(Optional.empty());
 
             // When
-            SyncOutboxBundle bundle = factory.createBundle(product);
+            Optional<SyncOutboxBundle> result = factory.createBundle(product);
 
             // Then
-            assertThat(bundle).isNotNull();
+            assertThat(result).isPresent();
+            SyncOutboxBundle bundle = result.get();
             assertThat(bundle.isCreateRequest()).isFalse();
             assertThat(bundle.isUpdateRequest()).isTrue();
 
@@ -97,27 +109,20 @@ class SyncOutboxFactoryTest {
         }
 
         @Test
-        @DisplayName("[실패] needsSync=false인 경우 예외 발생")
-        void shouldThrowExceptionWhenNeedsSyncIsFalse() {
+        @DisplayName("[스킵] 이미 존재하는 Outbox → Optional.empty 반환")
+        void shouldReturnEmptyWhenDuplicateOutboxExists() {
             // Given
-            CrawledProduct product = createNotNeedsSyncProduct();
+            CrawledProduct product = createSyncReadyProduct(null);
+            CrawledProductSyncOutbox existingOutbox = mock(CrawledProductSyncOutbox.class);
+            given(existingOutbox.isPending()).willReturn(true);
+            given(syncOutboxQueryPort.findByIdempotencyKey(anyString()))
+                    .willReturn(Optional.of(existingOutbox));
 
-            // When & Then
-            assertThatThrownBy(() -> factory.createBundle(product))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("not ready for sync");
-        }
+            // When
+            Optional<SyncOutboxBundle> result = factory.createBundle(product);
 
-        @Test
-        @DisplayName("[실패] 크롤링 미완료 시 예외 발생")
-        void shouldThrowExceptionWhenCrawlingNotCompleted() {
-            // Given
-            CrawledProduct product = createCrawlingIncompleteProduct();
-
-            // When & Then
-            assertThatThrownBy(() -> factory.createBundle(product))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("not ready for sync");
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 
@@ -144,60 +149,6 @@ class SyncOutboxFactoryTest {
                 ProductOptions.empty(),
                 createAllCrawledStatus(now),
                 externalProductId,
-                null,
-                true,
-                now,
-                now);
-    }
-
-    private CrawledProduct createNotNeedsSyncProduct() {
-        Instant now = FIXED_CLOCK.instant();
-        return CrawledProduct.reconstitute(
-                CrawledProductId.of(2L),
-                SellerId.of(100L),
-                12346L,
-                "Test Product 2",
-                "Test Brand",
-                ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
-                ProductImages.empty(),
-                true,
-                null,
-                null,
-                null,
-                null,
-                "ACTIVE",
-                "Korea",
-                "Seoul",
-                ProductOptions.empty(),
-                createAllCrawledStatus(now),
-                null,
-                null,
-                false,
-                now,
-                now);
-    }
-
-    private CrawledProduct createCrawlingIncompleteProduct() {
-        Instant now = FIXED_CLOCK.instant();
-        return CrawledProduct.reconstitute(
-                CrawledProductId.of(3L),
-                SellerId.of(100L),
-                12347L,
-                "Test Product 3",
-                "Test Brand",
-                ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
-                ProductImages.empty(),
-                true,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                ProductOptions.empty(),
-                CrawlCompletionStatus.initial().withMiniShopCrawled(now),
-                null,
                 null,
                 true,
                 now,

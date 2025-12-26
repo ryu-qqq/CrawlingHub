@@ -118,8 +118,10 @@ class UserAgentPoolCacheAdapterTest {
                     new CachedUserAgent(
                             1L,
                             "Mozilla/5.0",
-                            null,
-                            null,
+                            null, // sessionToken
+                            null, // nid
+                            null, // mustitUid
+                            null, // sessionExpiresAt
                             80,
                             80,
                             null,

@@ -19,6 +19,8 @@ import java.util.Map;
  * @param userAgentId UserAgent ID (결과 기록용)
  * @param userAgentValue User-Agent 헤더 값
  * @param sessionToken 세션 토큰 (Authorization Bearer)
+ * @param nid nid 쿠키 값 (Search API용)
+ * @param mustitUid mustit_uid 쿠키 값 (Search API용)
  * @author development-team
  * @since 1.0.0
  */
@@ -30,9 +32,12 @@ public record CrawlContext(
         String endpoint,
         Long userAgentId,
         String userAgentValue,
-        String sessionToken) {
+        String sessionToken,
+        String nid,
+        String mustitUid) {
 
     private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String COOKIE_HEADER = "Cookie";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -52,7 +57,9 @@ public record CrawlContext(
                 crawlTask.getEndpoint().toFullUrl(),
                 userAgent.userAgentId(),
                 userAgent.userAgentValue(),
-                userAgent.sessionToken());
+                userAgent.sessionToken(),
+                userAgent.nid(),
+                userAgent.mustitUid());
     }
 
     /**
@@ -71,6 +78,11 @@ public record CrawlContext(
 
         if (sessionToken != null && !sessionToken.isBlank()) {
             headers.put(AUTHORIZATION_HEADER, BEARER_PREFIX + sessionToken);
+        }
+
+        if (hasSearchCookies()) {
+            String cookieValue = "nid=" + nid + "; mustit_uid=" + mustitUid;
+            headers.put(COOKIE_HEADER, cookieValue);
         }
 
         return headers;
@@ -108,5 +120,48 @@ public record CrawlContext(
 
     public String getSessionToken() {
         return sessionToken;
+    }
+
+    public String getNid() {
+        return nid;
+    }
+
+    public String getMusitUid() {
+        return mustitUid;
+    }
+
+    /**
+     * Search API용 엔드포인트 반환
+     *
+     * <p>Search 타입의 경우 nid, uid, adId, beforeItemType 파라미터를 추가합니다.
+     *
+     * @return Search API 엔드포인트 URL
+     */
+    public String buildSearchEndpoint() {
+        if (!hasSearchCookies()) {
+            return endpoint;
+        }
+
+        StringBuilder sb = new StringBuilder(endpoint);
+        String separator = endpoint.contains("?") ? "&" : "?";
+
+        sb.append(separator);
+        sb.append("nid=").append(nid);
+        sb.append("&uid=").append(mustitUid);
+        sb.append("&adId=").append(mustitUid);
+        sb.append("&beforeItemType=Normal");
+
+        return sb.toString();
+    }
+
+    /**
+     * Search API 호출에 필요한 쿠키 존재 여부 확인
+     *
+     * <p>Search API는 nid, mustit_uid 쿠키가 필요합니다.
+     *
+     * @return 필수 쿠키 존재 여부
+     */
+    public boolean hasSearchCookies() {
+        return nid != null && !nid.isBlank() && mustitUid != null && !mustitUid.isBlank();
     }
 }

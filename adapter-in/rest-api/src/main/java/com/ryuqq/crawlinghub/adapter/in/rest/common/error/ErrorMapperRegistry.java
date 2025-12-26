@@ -23,9 +23,21 @@ public class ErrorMapperRegistry {
     }
 
     public ErrorMapper.MappedError defaultMapping(DomainException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.httpStatus());
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        String title = status.is4xxClientError() ? "Client Error" : "Server Error";
+        if (status == HttpStatus.NOT_FOUND) {
+            title = "Not Found";
+        } else if (status == HttpStatus.BAD_REQUEST) {
+            title = "Bad Request";
+        } else if (status == HttpStatus.CONFLICT) {
+            title = "Conflict";
+        }
         return new ErrorMapper.MappedError(
-                HttpStatus.BAD_REQUEST,
-                "Bad Request",
+                status,
+                title,
                 ex.getMessage() != null ? ex.getMessage() : "Invalid request",
                 URI.create("about:blank"));
     }

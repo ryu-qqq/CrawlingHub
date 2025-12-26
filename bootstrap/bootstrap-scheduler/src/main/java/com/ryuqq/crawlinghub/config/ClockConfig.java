@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ryu-qqq
  * @since 2025-11-21
  */
-@Configuration
+@Configuration("schedulerClockConfig")
 public class ClockConfig {
 
     /**
@@ -43,7 +43,7 @@ public class ClockConfig {
      * @author ryu-qqq
      * @since 2025-11-21
      */
-    @Bean
+    @Bean("schedulerClock")
     public Clock clock() {
         return Clock.systemDefaultZone();
     }
@@ -60,7 +60,7 @@ public class ClockConfig {
      * @author ryu-qqq
      * @since 2025-11-21
      */
-    @Bean
+    @Bean("schedulerClockHolder")
     public ClockHolder clockHolder(Clock clock) {
         return new SystemClockHolder(clock);
     }

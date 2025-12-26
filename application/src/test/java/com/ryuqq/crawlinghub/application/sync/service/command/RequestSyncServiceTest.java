@@ -23,6 +23,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -75,7 +76,7 @@ class RequestSyncServiceTest {
                             FIXED_CLOCK.instant());
             SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
 
-            given(syncOutboxFactory.createBundle(any())).willReturn(bundle);
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
 
             // When
             service.requestIfReady(product);
@@ -113,7 +114,7 @@ class RequestSyncServiceTest {
                             FIXED_CLOCK.instant());
             SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
 
-            given(syncOutboxFactory.createBundle(any())).willReturn(bundle);
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
 
             // When
             service.requestIfReady(product);
@@ -129,6 +130,21 @@ class RequestSyncServiceTest {
             ExternalSyncRequestedEvent capturedEvent = eventCaptor.getValue();
             assertThat(capturedEvent.syncType())
                     .isEqualTo(ExternalSyncRequestedEvent.SyncType.UPDATE);
+        }
+
+        @Test
+        @DisplayName("[스킵] 중복 Outbox 존재 시 persist/이벤트 발행 안 함")
+        void shouldSkipWhenDuplicateOutboxExists() {
+            // Given
+            CrawledProduct product = createSyncReadyProduct(null);
+            given(syncOutboxFactory.createBundle(any())).willReturn(Optional.empty());
+
+            // When
+            service.requestIfReady(product);
+
+            // Then
+            then(syncOutboxFactory).should().createBundle(product);
+            verifyNoInteractions(syncOutboxManager, eventRegistry);
         }
 
         @Test

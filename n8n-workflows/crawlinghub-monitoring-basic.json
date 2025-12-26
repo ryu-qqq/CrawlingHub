@@ -1,0 +1,298 @@
+{
+  "name": "CrawlingHub - UserAgent Pool Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $vars.CRAWLINGHUB_API_URL }}/actuator/prometheus",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-prometheus",
+      "name": "Get Prometheus Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prometheus 텍스트 포맷 파싱\nconst prometheusText = $input.first().json.data;\n\nfunction parsePrometheusMetric(text, metricName) {\n  const regex = new RegExp(`^${metricName}(?:\\\\{[^}]*\\\\})?\\\\s+([0-9.]+)`, 'gm');\n  const matches = [...text.matchAll(regex)];\n  if (matches.length === 0) return null;\n  \n  // 가장 마지막 값 반환 (label 없는 기본값 우선)\n  return parseFloat(matches[matches.length - 1][1]);\n}\n\nfunction parsePrometheusCounter(text, metricName) {\n  // Counter는 _total 접미사 확인\n  return parsePrometheusMetric(text, metricName + '_total') || parsePrometheusMetric(text, metricName);\n}\n\n// UserAgent Pool 메트릭 추출\nconst poolAvailable = parsePrometheusMetric(prometheusText, 'useragent_pool_available') || 0;\nconst poolTotal = parsePrometheusMetric(prometheusText, 'useragent_pool_total') || 0;\nconst poolAvailableRate = parsePrometheusMetric(prometheusText, 'useragent_pool_available_rate') || 0;\n\n// Counter 메트릭 추출\nconst circuitBreakerTotal = parsePrometheusCounter(prometheusText, 'useragent_circuit_breaker') || 0;\nconst rateLimitedTotal = parsePrometheusCounter(prometheusText, 'useragent_rate_limited') || 0;\nconst suspendedTotal = parsePrometheusCounter(prometheusText, 'useragent_suspended') || 0;\nconst consumeTotal = parsePrometheusCounter(prometheusText, 'useragent_consume') || 0;\nconst successTotal = parsePrometheusCounter(prometheusText, 'useragent_success') || 0;\nconst failureTotal = parsePrometheusCounter(prometheusText, 'useragent_failure') || 0;\n\n// 성공률 계산\nconst successRate = consumeTotal > 0 \n  ? ((successTotal / consumeTotal) * 100).toFixed(2) \n  : 100;\n\n// Alert 조건 체크\nconst alerts = [];\n\nif (poolAvailableRate < 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'pool_available_rate',\n    value: poolAvailableRate,\n    message: `🚨 UserAgent Pool 가용률 위험: ${poolAvailableRate.toFixed(1)}% (임계값: 20%)`\n  });\n}\n\nif (poolAvailable < 3) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'pool_available',\n    value: poolAvailable,\n    message: `🚨 가용 UserAgent 부족: ${poolAvailable}개 (임계값: 3개)`\n  });\n}\n\nif (poolAvailableRate < 50 && poolAvailableRate >= 20) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'pool_available_rate',\n    value: poolAvailableRate,\n    message: `⚠️ UserAgent Pool 가용률 주의: ${poolAvailableRate.toFixed(1)}%`\n  });\n}\n\nreturn {\n  timestamp: new Date().toISOString(),\n  metrics: {\n    pool: {\n      available: poolAvailable,\n      total: poolTotal,\n      availableRate: poolAvailableRate\n    },\n    counters: {\n      circuitBreaker: circuitBreakerTotal,\n      rateLimited: rateLimitedTotal,\n      suspended: suspendedTotal,\n      consume: consumeTotal,\n      success: successTotal,\n      failure: failureTotal\n    },\n    calculated: {\n      successRate: parseFloat(successRate)\n    }\n  },\n  alerts: alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL')\n};"
+      },
+      "id": "code-parse",
+      "name": "Parse Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst alerts = data.alerts;\nconst metrics = data.metrics;\n\n// Slack 메시지 구성\nconst criticalAlerts = alerts.filter(a => a.type === 'CRITICAL');\nconst warningAlerts = alerts.filter(a => a.type === 'WARNING');\n\nlet emoji = criticalAlerts.length > 0 ? '🚨' : '⚠️';\nlet color = criticalAlerts.length > 0 ? '#ff0000' : '#ffcc00';\n\nlet alertText = alerts.map(a => a.message).join('\\n');\n\nlet slackMessage = {\n  text: `${emoji} CrawlingHub Alert`,\n  attachments: [\n    {\n      color: color,\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `${emoji} CrawlingHub UserAgent Pool Alert`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: alertText\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*Pool 상태*\\n${metrics.pool.available}/${metrics.pool.total} (${metrics.pool.availableRate.toFixed(1)}%)`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*성공률*\\n${metrics.calculated.successRate}%`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*Circuit Breaker*\\n${metrics.counters.circuitBreaker}회`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*Rate Limited (429)*\\n${metrics.counters.rateLimited}회`\n            }\n          ]\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ ${data.timestamp}`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { slackMessage, hasCritical: data.hasCritical };"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-critical",
+              "leftValue": "={{ $json.hasCritical }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-critical",
+      "name": "Is Critical?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1320, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.CRAWLINGHUB_API_URL }}/api/v1/crawling/user-agents/recover",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-reset-cb",
+      "name": "Auto Recover UserAgents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, -200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔄 자동 복구 시도\",\n  \"attachments\": [\n    {\n      \"color\": \"#36a64f\",\n      \"text\": \"SUSPENDED UserAgent 복구를 자동으로 시도했습니다.\\n결과: {{ $json.message || 'completed' }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-slack-recovery",
+      "name": "Notify Recovery Attempt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, -200]
+    },
+    {
+      "parameters": {},
+      "id": "noop-no-alert",
+      "name": "No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [880, 100]
+    }
+  ],
+  "connections": {
+    "Every 5 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get Prometheus Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prometheus Metrics": {
+      "main": [
+        [
+          {
+            "node": "Parse Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Metrics": {
+      "main": [
+        [
+          {
+            "node": "Has Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Is Critical?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Critical?": {
+      "main": [
+        [
+          {
+            "node": "Auto Recover UserAgents",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Auto Recover UserAgents": {
+      "main": [
+        [
+          {
+            "node": "Notify Recovery Attempt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-monitoring"
+  },
+  "pinData": {},
+  "versionId": "1.0.0",
+  "tags": [
+    {
+      "name": "monitoring"
+    },
+    {
+      "name": "crawlinghub"
+    }
+  ]
+}

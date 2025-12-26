@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.execution.factory.query;
 import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutionsQuery;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ public class CrawlExecutionQueryFactory {
                 query.crawlSchedulerId() != null
                         ? CrawlSchedulerId.of(query.crawlSchedulerId())
                         : null,
+                query.sellerId() != null ? SellerId.of(query.sellerId()) : null,
                 query.status(),
                 toInstant(query.from()),
                 toInstant(query.to()),

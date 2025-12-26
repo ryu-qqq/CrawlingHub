@@ -151,6 +151,20 @@
         <Bug pattern="DM_CONVERT_CASE"/>
     </Match>
 
+    <Match>
+        <Package name="~com\.ryuqq\.crawlinghub\.application\..*"/>
+        <Bug pattern="DM_CONVERT_CASE"/>
+    </Match>
+
+    <!-- ========================================
+         Aspect Classes
+         Metric aspects catching broad exceptions for resilience
+         ======================================== -->
+    <Match>
+        <Class name="~.*Aspect"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
     <!-- ========================================
          Configuration/Properties Classes
          Spring @ConfigurationProperties require mutable setters/getters
@@ -181,6 +195,17 @@
 
     <Match>
         <Class name="~.*ApiResponse"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ApiRequest classes may expose collections for API binding -->
+    <Match>
+        <Class name="~.*ApiRequest"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*ApiRequest"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 
@@ -368,5 +393,65 @@
     <Match>
         <Class name="~.*Config"/>
         <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- ========================================
+         Response Nested Classes
+         Response inner classes may expose internal representation
+         ======================================== -->
+    <Match>
+        <Class name="~.*Response\$.*"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Response\$.*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Integration Test Classes
+         Integration test infrastructure code
+         ======================================== -->
+    <Match>
+        <Class name="~.*IntegrationTest"/>
+        <Bug pattern="MS_SHOULD_BE_FINAL"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*IntegrationTest"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*IntegrationTest"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Test Helper classes -->
+    <Match>
+        <Class name="~.*Helper"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- TestContainersConfig: unchecked casts from GenericContainer -->
+    <Match>
+        <Class name="~.*ContainersConfig"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+    </Match>
+
+    <!-- DatabaseCleaner: field initialized lazily -->
+    <Match>
+        <Class name="~.*Cleaner"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- ========================================
+         Scanner Classes
+         Scanner utility classes may ignore file operation results
+         ======================================== -->
+    <Match>
+        <Class name="~.*Scanner"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
     </Match>
 </FindBugsFilter>

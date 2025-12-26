@@ -134,4 +134,77 @@ public class ProductSyncOutboxQueryDslRepository {
                 .limit(limit)
                 .fetch();
     }
+
+    /**
+     * 조건으로 SyncOutbox 목록 검색 (페이징)
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Entity 목록
+     */
+    public List<ProductSyncOutboxJpaEntity> search(
+            Long crawledProductId,
+            Long sellerId,
+            ProductOutboxStatus status,
+            long offset,
+            int size) {
+        var query = queryFactory.selectFrom(productSyncOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductId, sellerId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        return query.orderBy(productSyncOutboxJpaEntity.createdAt.desc())
+                .offset(offset)
+                .limit(size)
+                .fetch();
+    }
+
+    /**
+     * 조건으로 SyncOutbox 개수 조회
+     *
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param sellerId 셀러 ID (nullable)
+     * @param status 상태 (nullable)
+     * @return 총 개수
+     */
+    public long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
+        var query =
+                queryFactory
+                        .select(productSyncOutboxJpaEntity.count())
+                        .from(productSyncOutboxJpaEntity);
+
+        var condition = buildSearchCondition(crawledProductId, sellerId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        Long result = query.fetchOne();
+        return result != null ? result : 0L;
+    }
+
+    private com.querydsl.core.types.dsl.BooleanExpression buildSearchCondition(
+            Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
+        com.querydsl.core.types.dsl.BooleanExpression condition = null;
+
+        if (crawledProductId != null) {
+            condition = productSyncOutboxJpaEntity.crawledProductId.eq(crawledProductId);
+        }
+
+        if (sellerId != null) {
+            var sellerCondition = productSyncOutboxJpaEntity.sellerId.eq(sellerId);
+            condition = condition != null ? condition.and(sellerCondition) : sellerCondition;
+        }
+
+        if (status != null) {
+            var statusCondition = productSyncOutboxJpaEntity.status.eq(status);
+            condition = condition != null ? condition.and(statusCondition) : statusCondition;
+        }
+
+        return condition;
+    }
 }
