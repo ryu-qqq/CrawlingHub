@@ -1,0 +1,386 @@
+{
+  "name": "CrawlingHub - Outbox Backlog Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 10 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox?status=PENDING&limit=500",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-pending-outbox",
+      "name": "Get Pending Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, -100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox?status=FAILED&limit=500",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-failed-outbox",
+      "name": "Get Failed Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-outbox",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const pendingResponse = $input.all()[0]?.json;\nconst failedResponse = $input.all()[1]?.json;\n\nconst pendingList = pendingResponse?.data || [];\nconst failedList = failedResponse?.data || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 30;\n\n// 30분 이상 적체된 PENDING 항목 필터링\nconst staleItems = pendingList.filter(item => {\n  const createdAt = new Date(item.createdAt);\n  const diffMinutes = (now - createdAt) / (1000 * 60);\n  return diffMinutes >= STALE_THRESHOLD_MINUTES;\n});\n\n// 알림 조건 체크\nconst alerts = [];\n\nif (staleItems.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'stale_pending_outbox',\n    count: staleItems.length,\n    message: `⚠️ ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 PENDING 상태입니다.`\n  });\n}\n\nif (staleItems.length >= 50) {\n  alerts[0].type = 'CRITICAL';\n  alerts[0].message = `🚨 ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 적체되었습니다! SQS/EventBridge 장애 의심`;\n}\n\nif (failedList.length > 0) {\n  alerts.push({\n    type: failedList.length >= 10 ? 'CRITICAL' : 'WARNING',\n    metric: 'failed_outbox',\n    count: failedList.length,\n    message: failedList.length >= 10 \n      ? `🚨 ${failedList.length}개의 Outbox가 FAILED 상태입니다! 즉시 확인 필요`\n      : `⚠️ ${failedList.length}개의 Outbox가 FAILED 상태입니다.`\n  });\n}\n\n// 자동 재발행 대상 (최대 10개)\nconst autoRepublishTargets = [\n  ...staleItems.slice(0, 5),\n  ...failedList.slice(0, 5)\n].map(item => ({\n  crawlTaskId: item.crawlTaskId,\n  status: item.status,\n  createdAt: item.createdAt\n}));\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    totalPending: pendingList.length,\n    stalePending: staleItems.length,\n    totalFailed: failedList.length,\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  autoRepublishTargets,\n  shouldAutoRepublish: autoRepublishTargets.length > 0 && alerts.some(a => a.type === 'CRITICAL')\n};"
+      },
+      "id": "code-analyze",
+      "name": "Analyze Backlog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst alerts = data.alerts;\nconst summary = data.summary;\n\nconst hasCritical = data.hasCritical;\nconst emoji = hasCritical ? '🚨' : '⚠️';\nconst color = hasCritical ? '#ff0000' : '#ffcc00';\nconst alertText = alerts.map(a => a.message).join('\\n');\n\nconst slackMessage = {\n  text: `${emoji} CrawlingHub Outbox Alert`,\n  attachments: [\n    {\n      color: color,\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `${emoji} CrawlingHub Outbox 적체 알림`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: alertText\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*총 PENDING*\\n${summary.totalPending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*적체 PENDING (>${summary.staleThresholdMinutes}분)*\\n${summary.stalePending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*FAILED*\\n${summary.totalFailed}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*자동 재발행 대상*\\n${data.autoRepublishTargets.length}개`\n            }\n          ]\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ ${data.timestamp}`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { \n  slackMessage, \n  shouldAutoRepublish: data.shouldAutoRepublish,\n  autoRepublishTargets: data.autoRepublishTargets\n};"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-republish",
+              "leftValue": "={{ $json.shouldAutoRepublish }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-should-republish",
+      "name": "Should Auto Republish?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1540, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const targets = $input.first().json.autoRepublishTargets;\nreturn targets.map(t => ({ json: t }));"
+      },
+      "id": "code-split-targets",
+      "name": "Split Targets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, -200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox/{{ $json.crawlTaskId }}/republish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-republish",
+      "name": "Auto Republish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, -200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔄 Outbox 자동 재발행 완료\",\n  \"attachments\": [\n    {\n      \"color\": \"#36a64f\",\n      \"text\": \"적체된 Outbox {{ $runIndex + 1 }}개에 대해 자동 재발행을 시도했습니다.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-slack-republish-result",
+      "name": "Notify Republish Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, -200]
+    },
+    {
+      "parameters": {},
+      "id": "noop-no-alert",
+      "name": "No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1100, 100]
+    }
+  ],
+  "connections": {
+    "Every 10 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Outbox",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Failed Outbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Failed Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Analyze Backlog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Backlog": {
+      "main": [
+        [
+          {
+            "node": "Has Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Should Auto Republish?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Auto Republish?": {
+      "main": [
+        [
+          {
+            "node": "Split Targets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Split Targets": {
+      "main": [
+        [
+          {
+            "node": "Auto Republish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Republish": {
+      "main": [
+        [
+          {
+            "node": "Notify Republish Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-outbox-monitor"
+  },
+  "pinData": {},
+  "versionId": "1.0.0",
+  "tags": [
+    {
+      "name": "monitoring"
+    },
+    {
+      "name": "crawlinghub"
+    },
+    {
+      "name": "outbox"
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "name": "CrawlingHub - Seller Daily Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every Day 09:00 KST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 어제 00:00 ~ 23:59:59 (KST 기준)\nconst now = new Date();\nconst yesterday = new Date(now);\nyesterday.setDate(yesterday.getDate() - 1);\nyesterday.setHours(0, 0, 0, 0);\n\nconst yesterdayEnd = new Date(yesterday);\nyesterdayEnd.setHours(23, 59, 59, 999);\n\nreturn {\n  fromISO: yesterday.toISOString(),\n  toISO: yesterdayEnd.toISOString(),\n  reportDate: yesterday.toISOString().split('T')[0]\n};"
+      },
+      "id": "code-time-range",
+      "name": "Calculate Yesterday Range",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/sellers?size=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-sellers",
+      "name": "Get All Sellers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, -100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?from={{ $('Calculate Yesterday Range').item.json.fromISO }}&to={{ $('Calculate Yesterday Range').item.json.toISO }}&size=2000",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-get-executions",
+      "name": "Get All Executions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "crawlinghub-api-key",
+          "name": "CrawlingHub API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-data",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst sellersResponse = items[0]?.json;\nconst executionsResponse = items[1]?.json;\n\nconst sellers = sellersResponse?.data?.content || [];\nconst executions = executionsResponse?.data?.content || [];\n\n// Seller ID → Name 매핑\nconst sellerMap = {};\nsellers.forEach(s => {\n  sellerMap[s.sellerId] = s.sellerName || s.mustItSellerName || `Seller ${s.sellerId}`;\n});\n\n// Seller별 통계 집계\nconst sellerStats = {};\n\nsellers.forEach(s => {\n  sellerStats[s.sellerId] = {\n    sellerId: s.sellerId,\n    sellerName: sellerMap[s.sellerId],\n    status: s.status,\n    productCount: s.productCount || 0,\n    success: 0,\n    failed: 0,\n    timeout: 0,\n    running: 0,\n    totalDurationMs: 0,\n    executionCount: 0\n  };\n});\n\nexecutions.forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = {\n      sellerId,\n      sellerName: `Unknown (${sellerId})`,\n      status: 'UNKNOWN',\n      productCount: 0,\n      success: 0,\n      failed: 0,\n      timeout: 0,\n      running: 0,\n      totalDurationMs: 0,\n      executionCount: 0\n    };\n  }\n  \n  const stats = sellerStats[sellerId];\n  stats.executionCount++;\n  \n  switch (exec.status) {\n    case 'SUCCESS': stats.success++; break;\n    case 'FAILED': stats.failed++; break;\n    case 'TIMEOUT': stats.timeout++; break;\n    case 'RUNNING': stats.running++; break;\n  }\n  \n  if (exec.durationMs) {\n    stats.totalDurationMs += exec.durationMs;\n  }\n});\n\n// 결과 정리\nconst sellerReports = Object.values(sellerStats)\n  .map(s => {\n    const total = s.success + s.failed + s.timeout;\n    const successRate = total > 0 ? (s.success / total * 100).toFixed(1) : 'N/A';\n    const avgDuration = s.executionCount > 0 \n      ? (s.totalDurationMs / s.executionCount / 1000).toFixed(2) \n      : 'N/A';\n    \n    return {\n      ...s,\n      totalExecutions: total,\n      successRate,\n      avgDurationSec: avgDuration\n    };\n  })\n  .filter(s => s.totalExecutions > 0 || s.status === 'ACTIVE')\n  .sort((a, b) => b.totalExecutions - a.totalExecutions);\n\n// 전체 요약\nconst totalSuccess = sellerReports.reduce((sum, s) => sum + s.success, 0);\nconst totalFailed = sellerReports.reduce((sum, s) => sum + s.failed, 0);\nconst totalTimeout = sellerReports.reduce((sum, s) => sum + s.timeout, 0);\nconst totalExecutions = totalSuccess + totalFailed + totalTimeout;\nconst overallSuccessRate = totalExecutions > 0 \n  ? (totalSuccess / totalExecutions * 100).toFixed(1) \n  : 'N/A';\n\n// Top 5 성공률 Seller\nconst topSellers = sellerReports\n  .filter(s => s.totalExecutions >= 10)\n  .sort((a, b) => parseFloat(b.successRate) - parseFloat(a.successRate))\n  .slice(0, 5);\n\n// 문제 Seller (실패율 20% 이상)\nconst problematicSellers = sellerReports\n  .filter(s => s.totalExecutions >= 5 && parseFloat(s.successRate) < 80)\n  .sort((a, b) => parseFloat(a.successRate) - parseFloat(b.successRate))\n  .slice(0, 5);\n\n// 비활성 Seller (ACTIVE인데 실행 없음)\nconst inactiveSellers = sellerReports\n  .filter(s => s.status === 'ACTIVE' && s.totalExecutions === 0);\n\nconst reportDate = $('Calculate Yesterday Range').item.json.reportDate;\n\nreturn {\n  reportDate,\n  summary: {\n    totalSellers: sellers.length,\n    activeSellers: sellers.filter(s => s.status === 'ACTIVE').length,\n    totalExecutions,\n    totalSuccess,\n    totalFailed,\n    totalTimeout,\n    overallSuccessRate\n  },\n  topSellers,\n  problematicSellers,\n  inactiveSellers: inactiveSellers.slice(0, 5),\n  sellerReports: sellerReports.slice(0, 20)\n};"
+      },
+      "id": "code-analyze",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst summary = data.summary;\nconst topSellers = data.topSellers;\nconst problematicSellers = data.problematicSellers;\nconst inactiveSellers = data.inactiveSellers;\n\n// Top Sellers 텍스트\nlet topSellersText = topSellers.length > 0\n  ? topSellers.map((s, i) => `${i + 1}. ${s.sellerName}: ${s.successRate}% (${s.totalExecutions}건)`).join('\\n')\n  : '해당 없음';\n\n// 문제 Sellers 텍스트\nlet problemText = problematicSellers.length > 0\n  ? problematicSellers.map(s => `• ${s.sellerName}: ${s.successRate}% (실패 ${s.failed + s.timeout}건)`).join('\\n')\n  : '✅ 모든 Seller 정상';\n\n// 비활성 Sellers 텍스트\nlet inactiveText = inactiveSellers.length > 0\n  ? inactiveSellers.map(s => `• ${s.sellerName}`).join('\\n')\n  : '해당 없음';\n\nconst slackMessage = {\n  text: `📊 CrawlingHub Daily Report - ${data.reportDate}`,\n  attachments: [\n    {\n      color: '#36a64f',\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `📊 CrawlingHub 일간 리포트 - ${data.reportDate}`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: '*📈 전체 요약*'\n          }\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*총 Seller*\\n${summary.totalSellers}개 (Active: ${summary.activeSellers})`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*총 크롤링*\\n${summary.totalExecutions}건`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*전체 성공률*\\n${summary.overallSuccessRate}%`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*성공/실패/타임아웃*\\n${summary.totalSuccess}/${summary.totalFailed}/${summary.totalTimeout}`\n            }\n          ]\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: `*🏆 Top 5 Seller (성공률)*\\n${topSellersText}`\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: `*⚠️ 주의 필요 Seller (성공률 80% 미만)*\\n${problemText}`\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: `*💤 비활성 Seller (ACTIVE이나 크롤링 없음)*\\n${inactiveText}`\n          }\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ 리포트 생성: ${new Date().toISOString()}`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { slackMessage };"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 0]
+    }
+  ],
+  "connections": {
+    "Every Day 09:00 KST": {
+      "main": [
+        [
+          {
+            "node": "Calculate Yesterday Range",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Yesterday Range": {
+      "main": [
+        [
+          {
+            "node": "Get All Sellers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All Executions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Sellers": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Executions": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Report": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Seoul"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-daily-report"
+  },
+  "pinData": {},
+  "versionId": "1.0.0",
+  "tags": [
+    {
+      "name": "reporting"
+    },
+    {
+      "name": "crawlinghub"
+    },
+    {
+      "name": "daily"
+    }
+  ]
+}
