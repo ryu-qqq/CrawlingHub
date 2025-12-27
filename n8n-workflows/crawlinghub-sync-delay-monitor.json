@@ -1,0 +1,497 @@
+{
+  "name": "CrawlingHub - Sync Delay Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 10 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst token = staticData.token || null;\nconst tokenExpiry = staticData.tokenExpiry || 0;\nconst now = Date.now();\n\n// 토큰이 없거나 5분 내 만료 예정이면 갱신 필요\nconst needsRefresh = !token || (tokenExpiry - now) < 5 * 60 * 1000;\n\nreturn {\n  accessToken: token,\n  needsRefresh,\n  tokenExpiry: new Date(tokenExpiry).toISOString()\n};"
+      },
+      "id": "code-check-token",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-refresh",
+              "leftValue": "={{ $json.needsRefresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-needs-refresh",
+      "name": "Needs Token Refresh?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.set-of.com/api/v1/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"identifier\": \"{{ $vars.AUTHHUB_IDENTIFIER }}\",\n  \"password\": \"{{ $vars.AUTHHUB_PASSWORD }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-login",
+      "name": "Login to AuthHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\n\nif (response.data && response.data.accessToken) {\n  staticData.token = response.data.accessToken;\n  staticData.refreshToken = response.data.refreshToken;\n  // 토큰 만료 시간 설정 (기본 55분)\n  staticData.tokenExpiry = Date.now() + 55 * 60 * 1000;\n  \n  return {\n    accessToken: response.data.accessToken,\n    success: true\n  };\n} else {\n  throw new Error('Failed to get access token from AuthHub');\n}"
+      },
+      "id": "code-save-token",
+      "name": "Save New Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, -100]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-token",
+      "name": "Merge Token",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1000, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/product-outbox/sync?status=PENDING&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-sync-pending",
+      "name": "Get Pending Sync Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, -150]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/product-outbox/sync?status=FAILED&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-sync-failed",
+      "name": "Get Failed Sync Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/product-outbox/image?status=PENDING&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-image-pending",
+      "name": "Get Pending Image Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, 150]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/product-outbox/image?status=FAILED&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-image-failed",
+      "name": "Get Failed Image Outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge All Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1500, 75]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst syncPendingRes = items[0]?.json;\nconst syncFailedRes = items[1]?.json;\nconst imagePendingRes = items[2]?.json;\nconst imageFailedRes = items[3]?.json;\n\nconst syncPending = syncPendingRes?.data?.content || [];\nconst syncFailed = syncFailedRes?.data?.content || [];\nconst imagePending = imagePendingRes?.data?.content || [];\nconst imageFailed = imageFailedRes?.data?.content || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 60; // 1시간 이상 대기 시 경고\n\n// 오래된 PENDING 항목 필터링\nfunction getStaleItems(items) {\n  return items.filter(item => {\n    const createdAt = new Date(item.createdAt);\n    const diffMinutes = (now - createdAt) / (1000 * 60);\n    return diffMinutes >= STALE_THRESHOLD_MINUTES;\n  });\n}\n\nconst staleSyncPending = getStaleItems(syncPending);\nconst staleImagePending = getStaleItems(imagePending);\n\n// 알림 조건\nconst alerts = [];\n\n// 동기화 지연 알림\nif (syncPending.length >= 100) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `🚨 동기화 대기 상품 ${syncPending.length}개! 마켓플레이스 API 장애 의심`\n  });\n} else if (syncPending.length >= 50) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `⚠️ 동기화 대기 상품 ${syncPending.length}개 적체 중`\n  });\n}\n\nif (staleSyncPending.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'stale_sync_pending',\n    value: staleSyncPending.length,\n    message: `🚨 ${staleSyncPending.length}개 상품이 ${STALE_THRESHOLD_MINUTES}분 이상 동기화 대기 중!`\n  });\n}\n\nif (syncFailed.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `🚨 동기화 실패 상품 ${syncFailed.length}개! 즉시 확인 필요`\n  });\n} else if (syncFailed.length >= 5) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `⚠️ 동기화 실패 상품 ${syncFailed.length}개`\n  });\n}\n\n// 이미지 업로드 지연 알림\nif (imagePending.length >= 200) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `🚨 이미지 업로드 대기 ${imagePending.length}개! Fileflow 장애 의심`\n  });\n} else if (imagePending.length >= 100) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `⚠️ 이미지 업로드 대기 ${imagePending.length}개 적체 중`\n  });\n}\n\nif (staleImagePending.length >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'stale_image_pending',\n    value: staleImagePending.length,\n    message: `🚨 ${staleImagePending.length}개 이미지가 ${STALE_THRESHOLD_MINUTES}분 이상 업로드 대기 중!`\n  });\n}\n\nif (imageFailed.length >= 30) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `🚨 이미지 업로드 실패 ${imageFailed.length}개! S3/Fileflow 확인 필요`\n  });\n} else if (imageFailed.length >= 10) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `⚠️ 이미지 업로드 실패 ${imageFailed.length}개`\n  });\n}\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    sync: {\n      pending: syncPending.length,\n      stalePending: staleSyncPending.length,\n      failed: syncFailed.length\n    },\n    image: {\n      pending: imagePending.length,\n      stalePending: staleImagePending.length,\n      failed: imageFailed.length\n    },\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  hasSyncIssue: alerts.some(a => a.category === 'sync'),\n  hasImageIssue: alerts.some(a => a.category === 'image')\n};"
+      },
+      "id": "code-analyze",
+      "name": "Analyze Sync Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1720, 75]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1940, 75]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst alerts = data.alerts;\nconst summary = data.summary;\n\nconst hasCritical = data.hasCritical;\nconst emoji = hasCritical ? '🚨' : '⚠️';\nconst color = hasCritical ? '#ff0000' : '#ffcc00';\n\n// 카테고리별 알림 분류\nconst syncAlerts = alerts.filter(a => a.category === 'sync').map(a => a.message).join('\\n');\nconst imageAlerts = alerts.filter(a => a.category === 'image').map(a => a.message).join('\\n');\n\nlet alertSections = [];\n\nif (syncAlerts) {\n  alertSections.push(`*📦 상품 동기화*\\n${syncAlerts}`);\n}\n\nif (imageAlerts) {\n  alertSections.push(`*🖼️ 이미지 업로드*\\n${imageAlerts}`);\n}\n\nconst alertText = alertSections.join('\\n\\n');\n\nconst slackMessage = {\n  text: `${emoji} CrawlingHub Sync Delay Alert`,\n  attachments: [\n    {\n      color: color,\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `${emoji} CrawlingHub 동기화 지연 알림`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: alertText\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: '*📦 상품 동기화 현황*'\n          }\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*대기 중*\\n${summary.sync.pending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*장기 대기 (>${summary.staleThresholdMinutes}분)*\\n${summary.sync.stalePending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*실패*\\n${summary.sync.failed}개`\n            }\n          ]\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: '*🖼️ 이미지 업로드 현황*'\n          }\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*대기 중*\\n${summary.image.pending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*장기 대기 (>${summary.staleThresholdMinutes}분)*\\n${summary.image.stalePending}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*실패*\\n${summary.image.failed}개`\n            }\n          ]\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ ${data.timestamp}`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { slackMessage, hasCritical, hasSyncIssue: data.hasSyncIssue, hasImageIssue: data.hasImageIssue };"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2160, -25]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2380, -25]
+    },
+    {
+      "parameters": {},
+      "id": "noop-no-alert",
+      "name": "No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2160, 175]
+    }
+  ],
+  "connections": {
+    "Every 10 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Needs Token Refresh?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Token Refresh?": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Login to AuthHub": {
+      "main": [
+        [
+          {
+            "node": "Save New Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Token": {
+      "main": [
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Token": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Sync Outbox",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Failed Sync Outbox",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Pending Image Outbox",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Failed Image Outbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Sync Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Failed Sync Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Pending Image Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Get Failed Image Outbox": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge All Results": {
+      "main": [
+        [
+          {
+            "node": "Analyze Sync Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Sync Status": {
+      "main": [
+        [
+          {
+            "node": "Has Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "global": {
+      "token": null,
+      "refreshToken": null,
+      "tokenExpiry": 0
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-sync-delay-monitor"
+  },
+  "pinData": {},
+  "versionId": "1.1.0",
+  "tags": [
+    {
+      "name": "monitoring"
+    },
+    {
+      "name": "crawlinghub"
+    },
+    {
+      "name": "sync"
+    },
+    {
+      "name": "image"
+    }
+  ]
+}

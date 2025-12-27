@@ -1,0 +1,446 @@
+{
+  "name": "CrawlingHub - Crawl Failure Rate Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Static Data에서 토큰 가져오기\nconst tokenData = $workflow.staticData.token;\n\nif (!tokenData || !tokenData.accessToken) {\n  return {\n    hasToken: false,\n    needsRefresh: true,\n    message: 'No token found'\n  };\n}\n\n// 토큰 만료 체크 (5분 전에 갱신)\nconst expiresAt = new Date(tokenData.expiresAt);\nconst now = new Date();\nconst fiveMinutes = 5 * 60 * 1000;\n\nif (expiresAt - now < fiveMinutes) {\n  return {\n    hasToken: true,\n    needsRefresh: true,\n    accessToken: tokenData.accessToken,\n    message: 'Token expires soon'\n  };\n}\n\nreturn {\n  hasToken: true,\n  needsRefresh: false,\n  accessToken: tokenData.accessToken,\n  message: 'Token valid'\n};"
+      },
+      "id": "code-check-token",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-refresh",
+              "leftValue": "={{ $json.needsRefresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-needs-refresh",
+      "name": "Needs Token Refresh?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.set-of.com/api/v1/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"identifier\": \"rsw2@connectly.co.kr\",\n  \"password\": \"Ff@20122104\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-login",
+      "name": "Login to AuthHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const loginResponse = $input.first().json;\n\nif (!loginResponse.success) {\n  throw new Error('Login failed: ' + (loginResponse.detail || 'Unknown error'));\n}\n\nconst tokenData = {\n  accessToken: loginResponse.data.accessToken,\n  refreshToken: loginResponse.data.refreshToken,\n  expiresIn: loginResponse.data.expiresIn,\n  tokenType: loginResponse.data.tokenType,\n  userId: loginResponse.data.userId,\n  issuedAt: new Date().toISOString(),\n  expiresAt: new Date(Date.now() + (loginResponse.data.expiresIn * 1000)).toISOString()\n};\n\n$workflow.staticData.token = tokenData;\n\nreturn {\n  accessToken: tokenData.accessToken,\n  message: 'Token refreshed'\n};"
+      },
+      "id": "code-save-new-token",
+      "name": "Save New Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "let accessToken;\n\nconst items = $input.all();\nfor (const item of items) {\n  if (item.json.accessToken) {\n    accessToken = item.json.accessToken;\n    break;\n  }\n}\n\nif (!accessToken) {\n  const tokenData = $workflow.staticData.token;\n  if (tokenData) {\n    accessToken = tokenData.accessToken;\n  }\n}\n\nif (!accessToken) {\n  throw new Error('No access token available');\n}\n\n// 15분 전 시간 계산\nconst now = new Date();\nconst from = new Date(now.getTime() - 15 * 60 * 1000);\n\nreturn {\n  accessToken,\n  fromISO: from.toISOString(),\n  toISO: now.toISOString()\n};"
+      },
+      "id": "code-merge-token",
+      "name": "Merge Token & Time Range",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=FAILED&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-failed",
+      "name": "Get Failed Executions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, -150]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=TIMEOUT&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-timeout",
+      "name": "Get Timeout Executions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=SUCCESS&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-get-success",
+      "name": "Get Success Executions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 150]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge All Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst failedResponse = items[0]?.json;\nconst timeoutResponse = items[1]?.json;\nconst successResponse = items[2]?.json;\n\nconst failedList = failedResponse?.data?.content || [];\nconst timeoutList = timeoutResponse?.data?.content || [];\nconst successList = successResponse?.data?.content || [];\n\nconst totalFailed = failedList.length;\nconst totalTimeout = timeoutList.length;\nconst totalSuccess = successList.length;\nconst totalExecutions = totalFailed + totalTimeout + totalSuccess;\n\nconst overallFailureRate = totalExecutions > 0 \n  ? ((totalFailed + totalTimeout) / totalExecutions * 100).toFixed(2)\n  : 0;\n\nconst sellerStats = {};\n\n[...failedList, ...timeoutList, ...successList].forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = { sellerId, failed: 0, timeout: 0, success: 0 };\n  }\n});\n\nfailedList.forEach(exec => {\n  sellerStats[exec.sellerId].failed++;\n});\n\ntimeoutList.forEach(exec => {\n  sellerStats[exec.sellerId].timeout++;\n});\n\nsuccessList.forEach(exec => {\n  sellerStats[exec.sellerId].success++;\n});\n\nconst problematicSellers = Object.values(sellerStats)\n  .map(s => {\n    const total = s.failed + s.timeout + s.success;\n    const failureRate = total > 0 ? ((s.failed + s.timeout) / total * 100) : 0;\n    return { ...s, total, failureRate: failureRate.toFixed(2) };\n  })\n  .filter(s => s.total >= 3 && parseFloat(s.failureRate) >= 30)\n  .sort((a, b) => parseFloat(b.failureRate) - parseFloat(a.failureRate));\n\nconst alerts = [];\n\nif (parseFloat(overallFailureRate) >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `🚨 전체 크롤링 실패율 ${overallFailureRate}%! 시스템 장애 의심`\n  });\n} else if (parseFloat(overallFailureRate) >= 30) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `⚠️ 전체 크롤링 실패율 ${overallFailureRate}% 주의`\n  });\n}\n\nif (problematicSellers.length > 0) {\n  const sellerList = problematicSellers.slice(0, 5).map(s => \n    `• Seller ${s.sellerId}: ${s.failureRate}% (${s.failed + s.timeout}/${s.total})`\n  ).join('\\n');\n  \n  alerts.push({\n    type: problematicSellers.length >= 3 ? 'CRITICAL' : 'WARNING',\n    metric: 'seller_failure_rate',\n    count: problematicSellers.length,\n    message: problematicSellers.length >= 3\n      ? `🚨 ${problematicSellers.length}개 Seller 실패율 30% 초과:\\n${sellerList}`\n      : `⚠️ ${problematicSellers.length}개 Seller 실패율 주의:\\n${sellerList}`\n  });\n}\n\nconst taskFailureCounts = {};\n[...failedList, ...timeoutList].forEach(exec => {\n  const taskId = exec.crawlTaskId;\n  taskFailureCounts[taskId] = (taskFailureCounts[taskId] || 0) + 1;\n});\n\nconst repeatedFailures = Object.entries(taskFailureCounts)\n  .filter(([_, count]) => count >= 3)\n  .map(([taskId, count]) => ({ taskId, count }));\n\nif (repeatedFailures.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'repeated_failures',\n    count: repeatedFailures.length,\n    message: `⚠️ ${repeatedFailures.length}개 Task가 반복 실패 중 (3회 이상)`\n  });\n}\n\nreturn {\n  timestamp: new Date().toISOString(),\n  summary: {\n    totalExecutions,\n    totalFailed,\n    totalTimeout,\n    totalSuccess,\n    overallFailureRate: parseFloat(overallFailureRate),\n    problematicSellerCount: problematicSellers.length\n  },\n  problematicSellers: problematicSellers.slice(0, 10),\n  repeatedFailures: repeatedFailures.slice(0, 10),\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL')\n};"
+      },
+      "id": "code-analyze",
+      "name": "Analyze Failure Rate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1980, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst alerts = data.alerts;\nconst summary = data.summary;\nconst problematicSellers = data.problematicSellers;\n\nconst hasCritical = data.hasCritical;\nconst emoji = hasCritical ? '🚨' : '⚠️';\nconst color = hasCritical ? '#ff0000' : '#ffcc00';\nconst alertText = alerts.map(a => a.message).join('\\n\\n');\n\nconst slackMessage = {\n  text: `${emoji} CrawlingHub Failure Alert`,\n  attachments: [\n    {\n      color: color,\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `${emoji} CrawlingHub 크롤링 실패율 알림`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: alertText\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*총 실행*\\n${summary.totalExecutions}건`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*전체 실패율*\\n${summary.overallFailureRate}%`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*FAILED*\\n${summary.totalFailed}건`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*TIMEOUT*\\n${summary.totalTimeout}건`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*SUCCESS*\\n${summary.totalSuccess}건`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*문제 Seller*\\n${summary.problematicSellerCount}개`\n            }\n          ]\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ ${data.timestamp} | 최근 15분 기준`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { slackMessage, hasCritical, problematicSellers };"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2420, -100]
+    },
+    {
+      "parameters": {},
+      "id": "noop-no-alert",
+      "name": "No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2200, 100]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Needs Token Refresh?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Token Refresh?": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Token & Time Range",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Login to AuthHub": {
+      "main": [
+        [
+          {
+            "node": "Save New Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Token": {
+      "main": [
+        [
+          {
+            "node": "Merge Token & Time Range",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Token & Time Range": {
+      "main": [
+        [
+          {
+            "node": "Get Failed Executions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Timeout Executions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Success Executions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Failed Executions": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Timeout Executions": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Success Executions": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Results": {
+      "main": [
+        [
+          {
+            "node": "Analyze Failure Rate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Failure Rate": {
+      "main": [
+        [
+          {
+            "node": "Has Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "token": null
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-failure-monitor"
+  },
+  "pinData": {},
+  "versionId": "2.0.0",
+  "tags": [
+    {
+      "name": "monitoring"
+    },
+    {
+      "name": "crawlinghub"
+    },
+    {
+      "name": "failure-rate"
+    }
+  ]
+}
