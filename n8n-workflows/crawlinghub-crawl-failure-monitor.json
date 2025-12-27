@@ -97,7 +97,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=FAILED&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=FAILED&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -120,7 +120,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=TIMEOUT&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=TIMEOUT&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -143,7 +143,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=SUCCESS&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=SUCCESS&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -165,28 +165,13 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": []
-        },
-        "combinationMode": "multiplex",
-        "options": {}
-      },
-      "id": "merge-results",
-      "name": "Merge All Results",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [1540, 0]
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nconst failedResponse = items[0]?.json;\nconst timeoutResponse = items[1]?.json;\nconst successResponse = items[2]?.json;\n\nconst failedList = failedResponse?.data?.content || [];\nconst timeoutList = timeoutResponse?.data?.content || [];\nconst successList = successResponse?.data?.content || [];\n\nconst totalFailed = failedList.length;\nconst totalTimeout = timeoutList.length;\nconst totalSuccess = successList.length;\nconst totalExecutions = totalFailed + totalTimeout + totalSuccess;\n\nconst overallFailureRate = totalExecutions > 0 \n  ? ((totalFailed + totalTimeout) / totalExecutions * 100).toFixed(2)\n  : 0;\n\nconst sellerStats = {};\n\n[...failedList, ...timeoutList, ...successList].forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = { sellerId, failed: 0, timeout: 0, success: 0 };\n  }\n});\n\nfailedList.forEach(exec => {\n  sellerStats[exec.sellerId].failed++;\n});\n\ntimeoutList.forEach(exec => {\n  sellerStats[exec.sellerId].timeout++;\n});\n\nsuccessList.forEach(exec => {\n  sellerStats[exec.sellerId].success++;\n});\n\nconst problematicSellers = Object.values(sellerStats)\n  .map(s => {\n    const total = s.failed + s.timeout + s.success;\n    const failureRate = total > 0 ? ((s.failed + s.timeout) / total * 100) : 0;\n    return { ...s, total, failureRate: failureRate.toFixed(2) };\n  })\n  .filter(s => s.total >= 3 && parseFloat(s.failureRate) >= 30)\n  .sort((a, b) => parseFloat(b.failureRate) - parseFloat(a.failureRate));\n\nconst alerts = [];\n\nif (parseFloat(overallFailureRate) >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `🚨 전체 크롤링 실패율 ${overallFailureRate}%! 시스템 장애 의심`\n  });\n} else if (parseFloat(overallFailureRate) >= 30) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `⚠️ 전체 크롤링 실패율 ${overallFailureRate}% 주의`\n  });\n}\n\nif (problematicSellers.length > 0) {\n  const sellerList = problematicSellers.slice(0, 5).map(s => \n    `• Seller ${s.sellerId}: ${s.failureRate}% (${s.failed + s.timeout}/${s.total})`\n  ).join('\\n');\n  \n  alerts.push({\n    type: problematicSellers.length >= 3 ? 'CRITICAL' : 'WARNING',\n    metric: 'seller_failure_rate',\n    count: problematicSellers.length,\n    message: problematicSellers.length >= 3\n      ? `🚨 ${problematicSellers.length}개 Seller 실패율 30% 초과:\\n${sellerList}`\n      : `⚠️ ${problematicSellers.length}개 Seller 실패율 주의:\\n${sellerList}`\n  });\n}\n\nconst taskFailureCounts = {};\n[...failedList, ...timeoutList].forEach(exec => {\n  const taskId = exec.crawlTaskId;\n  taskFailureCounts[taskId] = (taskFailureCounts[taskId] || 0) + 1;\n});\n\nconst repeatedFailures = Object.entries(taskFailureCounts)\n  .filter(([_, count]) => count >= 3)\n  .map(([taskId, count]) => ({ taskId, count }));\n\nif (repeatedFailures.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'repeated_failures',\n    count: repeatedFailures.length,\n    message: `⚠️ ${repeatedFailures.length}개 Task가 반복 실패 중 (3회 이상)`\n  });\n}\n\nreturn {\n  timestamp: new Date().toISOString(),\n  summary: {\n    totalExecutions,\n    totalFailed,\n    totalTimeout,\n    totalSuccess,\n    overallFailureRate: parseFloat(overallFailureRate),\n    problematicSellerCount: problematicSellers.length\n  },\n  problematicSellers: problematicSellers.slice(0, 10),\n  repeatedFailures: repeatedFailures.slice(0, 10),\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL')\n};"
+        "jsCode": "// 각 노드의 결과를 직접 참조\nconst failedResponse = $('Get Failed Executions').first().json;\nconst timeoutResponse = $('Get Timeout Executions').first().json;\nconst successResponse = $('Get Success Executions').first().json;\n\nconst failedList = failedResponse?.data?.content || [];\nconst timeoutList = timeoutResponse?.data?.content || [];\nconst successList = successResponse?.data?.content || [];\n\nconst totalFailed = failedList.length;\nconst totalTimeout = timeoutList.length;\nconst totalSuccess = successList.length;\nconst totalExecutions = totalFailed + totalTimeout + totalSuccess;\n\nconst overallFailureRate = totalExecutions > 0 \n  ? ((totalFailed + totalTimeout) / totalExecutions * 100).toFixed(2)\n  : 0;\n\nconst sellerStats = {};\n\n[...failedList, ...timeoutList, ...successList].forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = { sellerId, failed: 0, timeout: 0, success: 0 };\n  }\n});\n\nfailedList.forEach(exec => {\n  sellerStats[exec.sellerId].failed++;\n});\n\ntimeoutList.forEach(exec => {\n  sellerStats[exec.sellerId].timeout++;\n});\n\nsuccessList.forEach(exec => {\n  sellerStats[exec.sellerId].success++;\n});\n\nconst problematicSellers = Object.values(sellerStats)\n  .map(s => {\n    const total = s.failed + s.timeout + s.success;\n    const failureRate = total > 0 ? ((s.failed + s.timeout) / total * 100) : 0;\n    return { ...s, total, failureRate: failureRate.toFixed(2) };\n  })\n  .filter(s => s.total >= 3 && parseFloat(s.failureRate) >= 30)\n  .sort((a, b) => parseFloat(b.failureRate) - parseFloat(a.failureRate));\n\nconst alerts = [];\n\nif (parseFloat(overallFailureRate) >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `🚨 전체 크롤링 실패율 ${overallFailureRate}%! 시스템 장애 의심`\n  });\n} else if (parseFloat(overallFailureRate) >= 30) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'overall_failure_rate',\n    value: overallFailureRate,\n    message: `⚠️ 전체 크롤링 실패율 ${overallFailureRate}% 주의`\n  });\n}\n\nif (problematicSellers.length > 0) {\n  const sellerList = problematicSellers.slice(0, 5).map(s => \n    `• Seller ${s.sellerId}: ${s.failureRate}% (${s.failed + s.timeout}/${s.total})`\n  ).join('\\n');\n  \n  alerts.push({\n    type: problematicSellers.length >= 3 ? 'CRITICAL' : 'WARNING',\n    metric: 'seller_failure_rate',\n    count: problematicSellers.length,\n    message: problematicSellers.length >= 3\n      ? `🚨 ${problematicSellers.length}개 Seller 실패율 30% 초과:\\n${sellerList}`\n      : `⚠️ ${problematicSellers.length}개 Seller 실패율 주의:\\n${sellerList}`\n  });\n}\n\nconst taskFailureCounts = {};\n[...failedList, ...timeoutList].forEach(exec => {\n  const taskId = exec.crawlTaskId;\n  taskFailureCounts[taskId] = (taskFailureCounts[taskId] || 0) + 1;\n});\n\nconst repeatedFailures = Object.entries(taskFailureCounts)\n  .filter(([_, count]) => count >= 3)\n  .map(([taskId, count]) => ({ taskId, count }));\n\nif (repeatedFailures.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'repeated_failures',\n    count: repeatedFailures.length,\n    message: `⚠️ ${repeatedFailures.length}개 Task가 반복 실패 중 (3회 이상)`\n  });\n}\n\nreturn {\n  timestamp: new Date().toISOString(),\n  summary: {\n    totalExecutions,\n    totalFailed,\n    totalTimeout,\n    totalSuccess,\n    overallFailureRate: parseFloat(overallFailureRate),\n    problematicSellerCount: problematicSellers.length\n  },\n  problematicSellers: problematicSellers.slice(0, 10),\n  repeatedFailures: repeatedFailures.slice(0, 10),\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL')\n};"
       },
       "id": "code-analyze",
       "name": "Analyze Failure Rate",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1760, 0]
+      "position": [1540, 0]
     },
     {
       "parameters": {
@@ -215,7 +200,7 @@
       "name": "Has Alerts?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1980, 0]
+      "position": [1760, 0]
     },
     {
       "parameters": {
@@ -225,7 +210,7 @@
       "name": "Format Slack Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2200, -100]
+      "position": [1980, -100]
     },
     {
       "parameters": {
@@ -240,7 +225,7 @@
       "name": "Send Slack Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2420, -100]
+      "position": [2200, -100]
     },
     {
       "parameters": {},
@@ -248,7 +233,7 @@
       "name": "No Alerts",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2200, 100]
+      "position": [1980, 100]
     }
   ],
   "connections": {
@@ -339,7 +324,7 @@
       "main": [
         [
           {
-            "node": "Merge All Results",
+            "node": "Analyze Failure Rate",
             "type": "main",
             "index": 0
           }
@@ -350,25 +335,14 @@
       "main": [
         [
           {
-            "node": "Merge All Results",
+            "node": "Analyze Failure Rate",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
     },
     "Get Success Executions": {
-      "main": [
-        [
-          {
-            "node": "Merge All Results",
-            "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "Merge All Results": {
       "main": [
         [
           {
@@ -431,7 +405,7 @@
     "instanceId": "crawlinghub-failure-monitor"
   },
   "pinData": {},
-  "versionId": "2.0.0",
+  "versionId": "2.1.0",
   "tags": [
     {
       "name": "monitoring"
