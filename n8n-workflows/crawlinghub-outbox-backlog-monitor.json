@@ -102,7 +102,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=PENDING&limit=500",
+        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=PENDING&limit=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +125,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=FAILED&limit=500",
+        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=FAILED&limit=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -147,28 +147,13 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": []
-        },
-        "combinationMode": "multiplex",
-        "options": {}
-      },
-      "id": "merge-outbox",
-      "name": "Merge Results",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [1540, 0]
-    },
-    {
-      "parameters": {
-        "jsCode": "const pendingResponse = $input.all()[0]?.json;\nconst failedResponse = $input.all()[1]?.json;\n\nconst pendingList = pendingResponse?.data || [];\nconst failedList = failedResponse?.data || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 30;\n\n// 30분 이상 적체된 PENDING 항목 필터링\nconst staleItems = pendingList.filter(item => {\n  const createdAt = new Date(item.createdAt);\n  const diffMinutes = (now - createdAt) / (1000 * 60);\n  return diffMinutes >= STALE_THRESHOLD_MINUTES;\n});\n\n// 알림 조건 체크\nconst alerts = [];\n\nif (staleItems.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'stale_pending_outbox',\n    count: staleItems.length,\n    message: `⚠️ ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 PENDING 상태입니다.`\n  });\n}\n\nif (staleItems.length >= 50) {\n  alerts[0].type = 'CRITICAL';\n  alerts[0].message = `🚨 ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 적체되었습니다! SQS/EventBridge 장애 의심`;\n}\n\nif (failedList.length > 0) {\n  alerts.push({\n    type: failedList.length >= 10 ? 'CRITICAL' : 'WARNING',\n    metric: 'failed_outbox',\n    count: failedList.length,\n    message: failedList.length >= 10 \n      ? `🚨 ${failedList.length}개의 Outbox가 FAILED 상태입니다! 즉시 확인 필요`\n      : `⚠️ ${failedList.length}개의 Outbox가 FAILED 상태입니다.`\n  });\n}\n\n// 자동 재발행 대상 (최대 10개)\nconst autoRepublishTargets = [\n  ...staleItems.slice(0, 5),\n  ...failedList.slice(0, 5)\n].map(item => ({\n  crawlTaskId: item.crawlTaskId,\n  status: item.status,\n  createdAt: item.createdAt\n}));\n\n// 토큰 정보 유지\nconst staticData = $getWorkflowStaticData('global');\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    totalPending: pendingList.length,\n    stalePending: staleItems.length,\n    totalFailed: failedList.length,\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  autoRepublishTargets,\n  shouldAutoRepublish: autoRepublishTargets.length > 0 && alerts.some(a => a.type === 'CRITICAL'),\n  accessToken: staticData.token\n};"
+        "jsCode": "// 각 노드의 결과를 직접 참조\nconst pendingResponse = $('Get Pending Outbox').first().json;\nconst failedResponse = $('Get Failed Outbox').first().json;\n\nconst pendingList = pendingResponse?.data || [];\nconst failedList = failedResponse?.data || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 30;\n\n// 30분 이상 적체된 PENDING 항목 필터링\nconst staleItems = pendingList.filter(item => {\n  const createdAt = new Date(item.createdAt);\n  const diffMinutes = (now - createdAt) / (1000 * 60);\n  return diffMinutes >= STALE_THRESHOLD_MINUTES;\n});\n\n// 알림 조건 체크\nconst alerts = [];\n\nif (staleItems.length > 0) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'stale_pending_outbox',\n    count: staleItems.length,\n    message: `⚠️ ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 PENDING 상태입니다.`\n  });\n}\n\nif (staleItems.length >= 50) {\n  alerts[0].type = 'CRITICAL';\n  alerts[0].message = `🚨 ${staleItems.length}개의 Outbox가 ${STALE_THRESHOLD_MINUTES}분 이상 적체되었습니다! SQS/EventBridge 장애 의심`;\n}\n\nif (failedList.length > 0) {\n  alerts.push({\n    type: failedList.length >= 10 ? 'CRITICAL' : 'WARNING',\n    metric: 'failed_outbox',\n    count: failedList.length,\n    message: failedList.length >= 10 \n      ? `🚨 ${failedList.length}개의 Outbox가 FAILED 상태입니다! 즉시 확인 필요`\n      : `⚠️ ${failedList.length}개의 Outbox가 FAILED 상태입니다.`\n  });\n}\n\n// 자동 재발행 대상 (최대 10개)\nconst autoRepublishTargets = [\n  ...staleItems.slice(0, 5),\n  ...failedList.slice(0, 5)\n].map(item => ({\n  crawlTaskId: item.crawlTaskId,\n  status: item.status,\n  createdAt: item.createdAt\n}));\n\n// 토큰 정보 유지\nconst staticData = $getWorkflowStaticData('global');\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    totalPending: pendingList.length,\n    stalePending: staleItems.length,\n    totalFailed: failedList.length,\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  autoRepublishTargets,\n  shouldAutoRepublish: autoRepublishTargets.length > 0 && alerts.some(a => a.type === 'CRITICAL'),\n  accessToken: staticData.token\n};"
       },
       "id": "code-analyze",
       "name": "Analyze Backlog",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1760, 0]
+      "position": [1540, 0]
     },
     {
       "parameters": {
@@ -197,7 +182,7 @@
       "name": "Has Alerts?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1980, 0]
+      "position": [1760, 0]
     },
     {
       "parameters": {
@@ -207,7 +192,7 @@
       "name": "Format Slack Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2200, -100]
+      "position": [1980, -100]
     },
     {
       "parameters": {
@@ -222,7 +207,7 @@
       "name": "Send Slack Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2420, -100]
+      "position": [2200, -100]
     },
     {
       "parameters": {
@@ -251,7 +236,7 @@
       "name": "Should Auto Republish?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2640, -100]
+      "position": [2420, -100]
     },
     {
       "parameters": {
@@ -261,7 +246,7 @@
       "name": "Split Targets",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2860, -200]
+      "position": [2640, -200]
     },
     {
       "parameters": {
@@ -284,7 +269,7 @@
       "name": "Auto Republish",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3080, -200]
+      "position": [2860, -200]
     },
     {
       "parameters": {
@@ -299,7 +284,7 @@
       "name": "Notify Republish Result",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3300, -200]
+      "position": [3080, -200]
     },
     {
       "parameters": {},
@@ -307,7 +292,7 @@
       "name": "No Alerts",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2200, 100]
+      "position": [1980, 100]
     }
   ],
   "connections": {
@@ -393,7 +378,7 @@
       "main": [
         [
           {
-            "node": "Merge Results",
+            "node": "Analyze Backlog",
             "type": "main",
             "index": 0
           }
@@ -401,17 +386,6 @@
       ]
     },
     "Get Failed Outbox": {
-      "main": [
-        [
-          {
-            "node": "Merge Results",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Results": {
       "main": [
         [
           {
@@ -523,7 +497,7 @@
     "instanceId": "crawlinghub-outbox-monitor"
   },
   "pinData": {},
-  "versionId": "1.1.0",
+  "versionId": "1.2.0",
   "tags": [
     {
       "name": "monitoring"
