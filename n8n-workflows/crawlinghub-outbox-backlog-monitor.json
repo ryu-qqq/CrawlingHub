@@ -102,7 +102,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox?status=PENDING&limit=500",
+        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=PENDING&limit=500",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +125,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox?status=FAILED&limit=500",
+        "url": "https://api.set-of.com/api/v1/crawling/outbox?status=FAILED&limit=500",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -266,7 +266,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/outbox/{{ $json.crawlTaskId }}/republish",
+        "url": "=https://api.set-of.com/api/v1/crawling/outbox/{{ $json.crawlTaskId }}/republish",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
