@@ -1,0 +1,220 @@
+{
+  "name": "CrawlingHub - Token Refresh",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 50
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 50 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-webhook",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 400],
+      "webhookId": "crawlinghub-token-refresh"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.set-of.com/api/v1/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"identifier\": \"rsw2@connectly.co.kr\",\n  \"password\": \"Ff@20122104\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-login",
+      "name": "Login to AuthHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "login-success",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-login-success",
+      "name": "Login Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [520, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const loginResponse = $input.first().json;\n\n// 토큰 정보 추출\nconst tokenData = {\n  accessToken: loginResponse.data.accessToken,\n  refreshToken: loginResponse.data.refreshToken,\n  expiresIn: loginResponse.data.expiresIn,\n  tokenType: loginResponse.data.tokenType,\n  userId: loginResponse.data.userId,\n  issuedAt: new Date().toISOString(),\n  expiresAt: new Date(Date.now() + (loginResponse.data.expiresIn * 1000)).toISOString()\n};\n\n// Static Data에 저장 (워크플로우 간 공유용)\n$workflow.staticData.token = tokenData;\n\nreturn {\n  success: true,\n  message: 'Token refreshed successfully',\n  token: tokenData\n};"
+      },
+      "id": "code-save-token",
+      "name": "Save Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"✅ CrawlingHub Token Refreshed\",\n  \"attachments\": [\n    {\n      \"color\": \"#36a64f\",\n      \"text\": \"토큰이 성공적으로 갱신되었습니다.\\n만료 시간: {{ $json.token.expiresAt }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-slack-success",
+      "name": "Notify Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🚨 CrawlingHub Token Refresh Failed\",\n  \"attachments\": [\n    {\n      \"color\": \"#ff0000\",\n      \"text\": \"토큰 갱신에 실패했습니다.\\n에러: {{ $json.detail || $json.message || 'Unknown error' }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-slack-fail",
+      "name": "Notify Failure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [740, 300]
+    }
+  ],
+  "connections": {
+    "Every 50 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Login to AuthHub": {
+      "main": [
+        [
+          {
+            "node": "Login Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Login Success?": {
+      "main": [
+        [
+          {
+            "node": "Save Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Token": {
+      "main": [
+        [
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "token": null
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-token"
+  },
+  "pinData": {},
+  "versionId": "1.0.0",
+  "tags": [
+    {
+      "name": "auth"
+    },
+    {
+      "name": "crawlinghub"
+    }
+  ]
+}

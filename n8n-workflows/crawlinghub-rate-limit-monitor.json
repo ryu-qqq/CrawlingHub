@@ -1,0 +1,455 @@
+{
+  "name": "CrawlingHub - Rate Limit Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Every 3 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst token = staticData.token || null;\nconst tokenExpiry = staticData.tokenExpiry || 0;\nconst now = Date.now();\n\n// 토큰이 없거나 5분 내 만료 예정이면 갱신 필요\nconst needsRefresh = !token || (tokenExpiry - now) < 5 * 60 * 1000;\n\nreturn {\n  accessToken: token,\n  needsRefresh,\n  tokenExpiry: new Date(tokenExpiry).toISOString()\n};"
+      },
+      "id": "code-check-token",
+      "name": "Check Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-refresh",
+              "leftValue": "={{ $json.needsRefresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-needs-refresh",
+      "name": "Needs Token Refresh?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.set-of.com/api/v1/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"identifier\": \"{{ $vars.AUTHHUB_IDENTIFIER }}\",\n  \"password\": \"{{ $vars.AUTHHUB_PASSWORD }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-login",
+      "name": "Login to AuthHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\n\nif (response.data && response.data.accessToken) {\n  staticData.token = response.data.accessToken;\n  staticData.refreshToken = response.data.refreshToken;\n  // 토큰 만료 시간 설정 (기본 55분)\n  staticData.tokenExpiry = Date.now() + 55 * 60 * 1000;\n  \n  return {\n    accessToken: response.data.accessToken,\n    success: true\n  };\n} else {\n  throw new Error('Failed to get access token from AuthHub');\n}"
+      },
+      "id": "code-save-token",
+      "name": "Save New Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-token",
+      "name": "Merge Token",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/actuator/prometheus",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "http-prometheus",
+      "name": "Get Prometheus Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prometheusText = $input.first().json.data || $input.first().json;\n\n// Prometheus 메트릭 파싱 함수\nfunction parsePrometheusMetric(text, metricName) {\n  const regex = new RegExp(`^${metricName}(?:\\\\{[^}]*\\\\})?\\\\s+([0-9.]+)`, 'gm');\n  const matches = [...String(text).matchAll(regex)];\n  if (matches.length === 0) return null;\n  return parseFloat(matches[matches.length - 1][1]);\n}\n\n// 메트릭 추출\nconst rateLimitedTotal = parsePrometheusMetric(prometheusText, 'useragent_rate_limited_total') || 0;\nconst circuitBreakerTotal = parsePrometheusMetric(prometheusText, 'useragent_circuit_breaker_total') || 0;\nconst suspendedTotal = parsePrometheusMetric(prometheusText, 'useragent_suspended_total') || 0;\nconst poolAvailable = parsePrometheusMetric(prometheusText, 'useragent_pool_available') || 0;\nconst poolTotal = parsePrometheusMetric(prometheusText, 'useragent_pool_total') || 1;\nconst poolAvailableRate = parsePrometheusMetric(prometheusText, 'useragent_pool_available_rate') || 0;\n\n// 이전 실행 값과 비교를 위한 정적 데이터 (n8n의 staticData 활용)\nconst staticData = $getWorkflowStaticData('global');\nconst prevRateLimited = staticData.prevRateLimited || 0;\nconst prevCircuitBreaker = staticData.prevCircuitBreaker || 0;\nconst lastCheckTime = staticData.lastCheckTime || Date.now();\n\n// 증가량 계산 (3분 내)\nconst rateLimitedIncrease = rateLimitedTotal - prevRateLimited;\nconst circuitBreakerIncrease = circuitBreakerTotal - prevCircuitBreaker;\nconst timeDiffMinutes = (Date.now() - lastCheckTime) / (1000 * 60);\n\n// 분당 Rate Limit 발생률\nconst rateLimitedPerMinute = timeDiffMinutes > 0 \n  ? (rateLimitedIncrease / timeDiffMinutes).toFixed(2) \n  : 0;\n\n// 현재 값 저장 (다음 실행을 위해)\nstaticData.prevRateLimited = rateLimitedTotal;\nstaticData.prevCircuitBreaker = circuitBreakerTotal;\nstaticData.lastCheckTime = Date.now();\n\n// 알림 조건 체크\nconst alerts = [];\n\n// 3분 내 10회 이상 Rate Limit\nif (rateLimitedIncrease >= 10) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'rate_limited_spike',\n    value: rateLimitedIncrease,\n    message: `🚨 Rate Limit 급증! 3분 내 ${rateLimitedIncrease}회 (분당 ${rateLimitedPerMinute}회)`\n  });\n} else if (rateLimitedIncrease >= 5) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'rate_limited_increase',\n    value: rateLimitedIncrease,\n    message: `⚠️ Rate Limit 증가: 3분 내 ${rateLimitedIncrease}회`\n  });\n}\n\n// Circuit Breaker 급증\nif (circuitBreakerIncrease >= 3) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'circuit_breaker_spike',\n    value: circuitBreakerIncrease,\n    message: `🚨 Circuit Breaker ${circuitBreakerIncrease}회 발동! UserAgent 차단 위험`\n  });\n}\n\n// Pool 고갈 위험\nif (poolAvailableRate < 30) {\n  alerts.push({\n    type: 'CRITICAL',\n    metric: 'pool_exhaustion',\n    value: poolAvailableRate,\n    message: `🚨 UserAgent Pool 고갈 위험! ${poolAvailable}/${poolTotal} (${poolAvailableRate.toFixed(1)}%)`\n  });\n} else if (poolAvailableRate < 50) {\n  alerts.push({\n    type: 'WARNING',\n    metric: 'pool_low',\n    value: poolAvailableRate,\n    message: `⚠️ UserAgent Pool 부족: ${poolAvailable}/${poolTotal} (${poolAvailableRate.toFixed(1)}%)`\n  });\n}\n\n// 자동 복구 조건: CRITICAL 알림 중 Rate Limit 또는 Pool 관련\nconst shouldAutoRecover = alerts.some(a => \n  a.type === 'CRITICAL' && \n  (a.metric === 'rate_limited_spike' || a.metric === 'pool_exhaustion' || a.metric === 'circuit_breaker_spike')\n);\n\nreturn {\n  timestamp: new Date().toISOString(),\n  metrics: {\n    rateLimited: {\n      total: rateLimitedTotal,\n      increase: rateLimitedIncrease,\n      perMinute: parseFloat(rateLimitedPerMinute)\n    },\n    circuitBreaker: {\n      total: circuitBreakerTotal,\n      increase: circuitBreakerIncrease\n    },\n    suspended: suspendedTotal,\n    pool: {\n      available: poolAvailable,\n      total: poolTotal,\n      availableRate: poolAvailableRate\n    }\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  shouldAutoRecover,\n  accessToken: staticData.token\n};"
+      },
+      "id": "code-analyze",
+      "name": "Analyze Rate Limit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-alerts",
+              "leftValue": "={{ $json.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst alerts = data.alerts;\nconst metrics = data.metrics;\n\nconst hasCritical = data.hasCritical;\nconst emoji = hasCritical ? '🚨' : '⚠️';\nconst color = hasCritical ? '#ff0000' : '#ffcc00';\nconst alertText = alerts.map(a => a.message).join('\\n');\n\nconst slackMessage = {\n  text: `${emoji} CrawlingHub Rate Limit Alert`,\n  attachments: [\n    {\n      color: color,\n      blocks: [\n        {\n          type: 'header',\n          text: {\n            type: 'plain_text',\n            text: `${emoji} CrawlingHub Rate Limit 알림`,\n            emoji: true\n          }\n        },\n        {\n          type: 'section',\n          text: {\n            type: 'mrkdwn',\n            text: alertText\n          }\n        },\n        {\n          type: 'divider'\n        },\n        {\n          type: 'section',\n          fields: [\n            {\n              type: 'mrkdwn',\n              text: `*Rate Limited (429)*\\n총 ${metrics.rateLimited.total}회 (+${metrics.rateLimited.increase})`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*분당 발생률*\\n${metrics.rateLimited.perMinute}회/분`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*Circuit Breaker*\\n총 ${metrics.circuitBreaker.total}회 (+${metrics.circuitBreaker.increase})`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*Suspended*\\n${metrics.suspended}개`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*Pool 상태*\\n${metrics.pool.available}/${metrics.pool.total} (${metrics.pool.availableRate.toFixed(1)}%)`\n            },\n            {\n              type: 'mrkdwn',\n              text: `*자동 복구*\\n${data.shouldAutoRecover ? '✅ 실행 예정' : '❌ 불필요'}`\n            }\n          ]\n        },\n        {\n          type: 'context',\n          elements: [\n            {\n              type: 'mrkdwn',\n              text: `⏰ ${data.timestamp}`\n            }\n          ]\n        }\n      ]\n    }\n  ]\n};\n\nreturn { slackMessage, shouldAutoRecover: data.shouldAutoRecover, hasCritical, accessToken: data.accessToken };"
+      },
+      "id": "code-slack-format",
+      "name": "Format Slack Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.slackMessage }}",
+        "options": {}
+      },
+      "id": "http-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-recover",
+              "leftValue": "={{ $json.shouldAutoRecover }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-should-recover",
+      "name": "Should Auto Recover?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2420, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/user-agents/recover",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-recover",
+      "name": "Auto Recover UserAgents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2640, -200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔄 Rate Limit 자동 대응 완료\",\n  \"attachments\": [\n    {\n      \"color\": \"#36a64f\",\n      \"blocks\": [\n        {\n          \"type\": \"section\",\n          \"text\": {\n            \"type\": \"mrkdwn\",\n            \"text\": \"*자동 복구 조치:*\\n• SUSPENDED UserAgent 복구 완료\\n• Pool 상태 정상화 시도\\n\\n다음 모니터링 주기에 상태를 재확인합니다.\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-slack-recovery",
+      "name": "Notify Recovery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, -200]
+    },
+    {
+      "parameters": {},
+      "id": "noop-no-alert",
+      "name": "No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1980, 100]
+    }
+  ],
+  "connections": {
+    "Every 3 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token": {
+      "main": [
+        [
+          {
+            "node": "Needs Token Refresh?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Token Refresh?": {
+      "main": [
+        [
+          {
+            "node": "Login to AuthHub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Login to AuthHub": {
+      "main": [
+        [
+          {
+            "node": "Save New Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Token": {
+      "main": [
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Token": {
+      "main": [
+        [
+          {
+            "node": "Get Prometheus Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prometheus Metrics": {
+      "main": [
+        [
+          {
+            "node": "Analyze Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Has Alerts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Should Auto Recover?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Auto Recover?": {
+      "main": [
+        [
+          {
+            "node": "Auto Recover UserAgents",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Auto Recover UserAgents": {
+      "main": [
+        [
+          {
+            "node": "Notify Recovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "global": {
+      "token": null,
+      "refreshToken": null,
+      "tokenExpiry": 0,
+      "prevRateLimited": 0,
+      "prevCircuitBreaker": 0,
+      "lastCheckTime": 0
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "crawlinghub-rate-limit-monitor"
+  },
+  "pinData": {},
+  "versionId": "1.1.0",
+  "tags": [
+    {
+      "name": "monitoring"
+    },
+    {
+      "name": "crawlinghub"
+    },
+    {
+      "name": "rate-limit"
+    }
+  ]
+}
