@@ -102,7 +102,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/sync?status=PENDING&size=500",
+        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/sync?status=PENDING&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +125,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/sync?status=FAILED&size=500",
+        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/sync?status=FAILED&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -148,7 +148,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/image?status=PENDING&size=500",
+        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/image?status=PENDING&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -171,7 +171,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/image?status=FAILED&size=500",
+        "url": "https://api.set-of.com/api/v1/crawling/product-outbox/image?status=FAILED&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -193,28 +193,13 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": []
-        },
-        "combinationMode": "multiplex",
-        "options": {}
-      },
-      "id": "merge-results",
-      "name": "Merge All Results",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [1500, 75]
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nconst syncPendingRes = items[0]?.json;\nconst syncFailedRes = items[1]?.json;\nconst imagePendingRes = items[2]?.json;\nconst imageFailedRes = items[3]?.json;\n\nconst syncPending = syncPendingRes?.data?.content || [];\nconst syncFailed = syncFailedRes?.data?.content || [];\nconst imagePending = imagePendingRes?.data?.content || [];\nconst imageFailed = imageFailedRes?.data?.content || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 60; // 1시간 이상 대기 시 경고\n\n// 오래된 PENDING 항목 필터링\nfunction getStaleItems(items) {\n  return items.filter(item => {\n    const createdAt = new Date(item.createdAt);\n    const diffMinutes = (now - createdAt) / (1000 * 60);\n    return diffMinutes >= STALE_THRESHOLD_MINUTES;\n  });\n}\n\nconst staleSyncPending = getStaleItems(syncPending);\nconst staleImagePending = getStaleItems(imagePending);\n\n// 알림 조건\nconst alerts = [];\n\n// 동기화 지연 알림\nif (syncPending.length >= 100) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `🚨 동기화 대기 상품 ${syncPending.length}개! 마켓플레이스 API 장애 의심`\n  });\n} else if (syncPending.length >= 50) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `⚠️ 동기화 대기 상품 ${syncPending.length}개 적체 중`\n  });\n}\n\nif (staleSyncPending.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'stale_sync_pending',\n    value: staleSyncPending.length,\n    message: `🚨 ${staleSyncPending.length}개 상품이 ${STALE_THRESHOLD_MINUTES}분 이상 동기화 대기 중!`\n  });\n}\n\nif (syncFailed.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `🚨 동기화 실패 상품 ${syncFailed.length}개! 즉시 확인 필요`\n  });\n} else if (syncFailed.length >= 5) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `⚠️ 동기화 실패 상품 ${syncFailed.length}개`\n  });\n}\n\n// 이미지 업로드 지연 알림\nif (imagePending.length >= 200) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `🚨 이미지 업로드 대기 ${imagePending.length}개! Fileflow 장애 의심`\n  });\n} else if (imagePending.length >= 100) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `⚠️ 이미지 업로드 대기 ${imagePending.length}개 적체 중`\n  });\n}\n\nif (staleImagePending.length >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'stale_image_pending',\n    value: staleImagePending.length,\n    message: `🚨 ${staleImagePending.length}개 이미지가 ${STALE_THRESHOLD_MINUTES}분 이상 업로드 대기 중!`\n  });\n}\n\nif (imageFailed.length >= 30) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `🚨 이미지 업로드 실패 ${imageFailed.length}개! S3/Fileflow 확인 필요`\n  });\n} else if (imageFailed.length >= 10) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `⚠️ 이미지 업로드 실패 ${imageFailed.length}개`\n  });\n}\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    sync: {\n      pending: syncPending.length,\n      stalePending: staleSyncPending.length,\n      failed: syncFailed.length\n    },\n    image: {\n      pending: imagePending.length,\n      stalePending: staleImagePending.length,\n      failed: imageFailed.length\n    },\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  hasSyncIssue: alerts.some(a => a.category === 'sync'),\n  hasImageIssue: alerts.some(a => a.category === 'image')\n};"
+        "jsCode": "// 각 노드의 결과를 직접 참조\nconst syncPendingRes = $('Get Pending Sync Outbox').first().json;\nconst syncFailedRes = $('Get Failed Sync Outbox').first().json;\nconst imagePendingRes = $('Get Pending Image Outbox').first().json;\nconst imageFailedRes = $('Get Failed Image Outbox').first().json;\n\nconst syncPending = syncPendingRes?.data?.content || [];\nconst syncFailed = syncFailedRes?.data?.content || [];\nconst imagePending = imagePendingRes?.data?.content || [];\nconst imageFailed = imageFailedRes?.data?.content || [];\n\nconst now = new Date();\nconst STALE_THRESHOLD_MINUTES = 60; // 1시간 이상 대기 시 경고\n\n// 오래된 PENDING 항목 필터링\nfunction getStaleItems(items) {\n  return items.filter(item => {\n    const createdAt = new Date(item.createdAt);\n    const diffMinutes = (now - createdAt) / (1000 * 60);\n    return diffMinutes >= STALE_THRESHOLD_MINUTES;\n  });\n}\n\nconst staleSyncPending = getStaleItems(syncPending);\nconst staleImagePending = getStaleItems(imagePending);\n\n// 알림 조건\nconst alerts = [];\n\n// 동기화 지연 알림\nif (syncPending.length >= 100) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `🚨 동기화 대기 상품 ${syncPending.length}개! 마켓플레이스 API 장애 의심`\n  });\n} else if (syncPending.length >= 50) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_pending_count',\n    value: syncPending.length,\n    message: `⚠️ 동기화 대기 상품 ${syncPending.length}개 적체 중`\n  });\n}\n\nif (staleSyncPending.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'stale_sync_pending',\n    value: staleSyncPending.length,\n    message: `🚨 ${staleSyncPending.length}개 상품이 ${STALE_THRESHOLD_MINUTES}분 이상 동기화 대기 중!`\n  });\n}\n\nif (syncFailed.length >= 20) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `🚨 동기화 실패 상품 ${syncFailed.length}개! 즉시 확인 필요`\n  });\n} else if (syncFailed.length >= 5) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'sync',\n    metric: 'sync_failed_count',\n    value: syncFailed.length,\n    message: `⚠️ 동기화 실패 상품 ${syncFailed.length}개`\n  });\n}\n\n// 이미지 업로드 지연 알림\nif (imagePending.length >= 200) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `🚨 이미지 업로드 대기 ${imagePending.length}개! Fileflow 장애 의심`\n  });\n} else if (imagePending.length >= 100) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_pending_count',\n    value: imagePending.length,\n    message: `⚠️ 이미지 업로드 대기 ${imagePending.length}개 적체 중`\n  });\n}\n\nif (staleImagePending.length >= 50) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'stale_image_pending',\n    value: staleImagePending.length,\n    message: `🚨 ${staleImagePending.length}개 이미지가 ${STALE_THRESHOLD_MINUTES}분 이상 업로드 대기 중!`\n  });\n}\n\nif (imageFailed.length >= 30) {\n  alerts.push({\n    type: 'CRITICAL',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `🚨 이미지 업로드 실패 ${imageFailed.length}개! S3/Fileflow 확인 필요`\n  });\n} else if (imageFailed.length >= 10) {\n  alerts.push({\n    type: 'WARNING',\n    category: 'image',\n    metric: 'image_failed_count',\n    value: imageFailed.length,\n    message: `⚠️ 이미지 업로드 실패 ${imageFailed.length}개`\n  });\n}\n\nreturn {\n  timestamp: now.toISOString(),\n  summary: {\n    sync: {\n      pending: syncPending.length,\n      stalePending: staleSyncPending.length,\n      failed: syncFailed.length\n    },\n    image: {\n      pending: imagePending.length,\n      stalePending: staleImagePending.length,\n      failed: imageFailed.length\n    },\n    staleThresholdMinutes: STALE_THRESHOLD_MINUTES\n  },\n  alerts,\n  hasAlerts: alerts.length > 0,\n  hasCritical: alerts.some(a => a.type === 'CRITICAL'),\n  hasSyncIssue: alerts.some(a => a.category === 'sync'),\n  hasImageIssue: alerts.some(a => a.category === 'image')\n};"
       },
       "id": "code-analyze",
       "name": "Analyze Sync Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1720, 75]
+      "position": [1500, 75]
     },
     {
       "parameters": {
@@ -243,7 +228,7 @@
       "name": "Has Alerts?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1940, 75]
+      "position": [1720, 75]
     },
     {
       "parameters": {
@@ -253,7 +238,7 @@
       "name": "Format Slack Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2160, -25]
+      "position": [1940, -25]
     },
     {
       "parameters": {
@@ -268,7 +253,7 @@
       "name": "Send Slack Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2380, -25]
+      "position": [2160, -25]
     },
     {
       "parameters": {},
@@ -276,7 +261,7 @@
       "name": "No Alerts",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2160, 175]
+      "position": [1940, 175]
     }
   ],
   "connections": {
@@ -372,7 +357,7 @@
       "main": [
         [
           {
-            "node": "Merge All Results",
+            "node": "Analyze Sync Status",
             "type": "main",
             "index": 0
           }
@@ -383,9 +368,9 @@
       "main": [
         [
           {
-            "node": "Merge All Results",
+            "node": "Analyze Sync Status",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -394,25 +379,14 @@
       "main": [
         [
           {
-            "node": "Merge All Results",
+            "node": "Analyze Sync Status",
             "type": "main",
-            "index": 2
+            "index": 0
           }
         ]
       ]
     },
     "Get Failed Image Outbox": {
-      "main": [
-        [
-          {
-            "node": "Merge All Results",
-            "type": "main",
-            "index": 3
-          }
-        ]
-      ]
-    },
-    "Merge All Results": {
       "main": [
         [
           {
@@ -479,7 +453,7 @@
     "instanceId": "crawlinghub-sync-delay-monitor"
   },
   "pinData": {},
-  "versionId": "1.1.0",
+  "versionId": "1.2.0",
   "tags": [
     {
       "name": "monitoring"

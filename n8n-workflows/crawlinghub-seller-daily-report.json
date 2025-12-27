@@ -135,7 +135,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://api.set-of.com/api/v1/crawling/executions?from={{ $('Calculate Yesterday Range').item.json.fromISO }}&to={{ $('Calculate Yesterday Range').item.json.toISO }}&size=2000",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?from={{ $('Calculate Yesterday Range').item.json.fromISO }}&to={{ $('Calculate Yesterday Range').item.json.toISO }}&size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -157,28 +157,13 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": []
-        },
-        "combinationMode": "multiplex",
-        "options": {}
-      },
-      "id": "merge-data",
-      "name": "Merge Data",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [1760, 0]
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nconst sellersResponse = items[0]?.json;\nconst executionsResponse = items[1]?.json;\n\nconst sellers = sellersResponse?.data?.content || [];\nconst executions = executionsResponse?.data?.content || [];\n\n// Seller ID → Name 매핑\nconst sellerMap = {};\nsellers.forEach(s => {\n  sellerMap[s.sellerId] = s.sellerName || s.mustItSellerName || `Seller ${s.sellerId}`;\n});\n\n// Seller별 통계 집계\nconst sellerStats = {};\n\nsellers.forEach(s => {\n  sellerStats[s.sellerId] = {\n    sellerId: s.sellerId,\n    sellerName: sellerMap[s.sellerId],\n    status: s.status,\n    productCount: s.productCount || 0,\n    success: 0,\n    failed: 0,\n    timeout: 0,\n    running: 0,\n    totalDurationMs: 0,\n    executionCount: 0\n  };\n});\n\nexecutions.forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = {\n      sellerId,\n      sellerName: `Unknown (${sellerId})`,\n      status: 'UNKNOWN',\n      productCount: 0,\n      success: 0,\n      failed: 0,\n      timeout: 0,\n      running: 0,\n      totalDurationMs: 0,\n      executionCount: 0\n    };\n  }\n  \n  const stats = sellerStats[sellerId];\n  stats.executionCount++;\n  \n  switch (exec.status) {\n    case 'SUCCESS': stats.success++; break;\n    case 'FAILED': stats.failed++; break;\n    case 'TIMEOUT': stats.timeout++; break;\n    case 'RUNNING': stats.running++; break;\n  }\n  \n  if (exec.durationMs) {\n    stats.totalDurationMs += exec.durationMs;\n  }\n});\n\n// 결과 정리\nconst sellerReports = Object.values(sellerStats)\n  .map(s => {\n    const total = s.success + s.failed + s.timeout;\n    const successRate = total > 0 ? (s.success / total * 100).toFixed(1) : 'N/A';\n    const avgDuration = s.executionCount > 0 \n      ? (s.totalDurationMs / s.executionCount / 1000).toFixed(2) \n      : 'N/A';\n    \n    return {\n      ...s,\n      totalExecutions: total,\n      successRate,\n      avgDurationSec: avgDuration\n    };\n  })\n  .filter(s => s.totalExecutions > 0 || s.status === 'ACTIVE')\n  .sort((a, b) => b.totalExecutions - a.totalExecutions);\n\n// 전체 요약\nconst totalSuccess = sellerReports.reduce((sum, s) => sum + s.success, 0);\nconst totalFailed = sellerReports.reduce((sum, s) => sum + s.failed, 0);\nconst totalTimeout = sellerReports.reduce((sum, s) => sum + s.timeout, 0);\nconst totalExecutions = totalSuccess + totalFailed + totalTimeout;\nconst overallSuccessRate = totalExecutions > 0 \n  ? (totalSuccess / totalExecutions * 100).toFixed(1) \n  : 'N/A';\n\n// Top 5 성공률 Seller\nconst topSellers = sellerReports\n  .filter(s => s.totalExecutions >= 10)\n  .sort((a, b) => parseFloat(b.successRate) - parseFloat(a.successRate))\n  .slice(0, 5);\n\n// 문제 Seller (실패율 20% 이상)\nconst problematicSellers = sellerReports\n  .filter(s => s.totalExecutions >= 5 && parseFloat(s.successRate) < 80)\n  .sort((a, b) => parseFloat(a.successRate) - parseFloat(b.successRate))\n  .slice(0, 5);\n\n// 비활성 Seller (ACTIVE인데 실행 없음)\nconst inactiveSellers = sellerReports\n  .filter(s => s.status === 'ACTIVE' && s.totalExecutions === 0);\n\nconst reportDate = $('Calculate Yesterday Range').item.json.reportDate;\n\nreturn {\n  reportDate,\n  summary: {\n    totalSellers: sellers.length,\n    activeSellers: sellers.filter(s => s.status === 'ACTIVE').length,\n    totalExecutions,\n    totalSuccess,\n    totalFailed,\n    totalTimeout,\n    overallSuccessRate\n  },\n  topSellers,\n  problematicSellers,\n  inactiveSellers: inactiveSellers.slice(0, 5),\n  sellerReports: sellerReports.slice(0, 20)\n};"
+        "jsCode": "// 각 노드의 결과를 직접 참조\nconst sellersResponse = $('Get All Sellers').first().json;\nconst executionsResponse = $('Get All Executions').first().json;\n\nconst sellers = sellersResponse?.data?.content || [];\nconst executions = executionsResponse?.data?.content || [];\n\n// Seller ID → Name 매핑\nconst sellerMap = {};\nsellers.forEach(s => {\n  sellerMap[s.sellerId] = s.sellerName || s.mustItSellerName || `Seller ${s.sellerId}`;\n});\n\n// Seller별 통계 집계\nconst sellerStats = {};\n\nsellers.forEach(s => {\n  sellerStats[s.sellerId] = {\n    sellerId: s.sellerId,\n    sellerName: sellerMap[s.sellerId],\n    status: s.status,\n    productCount: s.productCount || 0,\n    success: 0,\n    failed: 0,\n    timeout: 0,\n    running: 0,\n    totalDurationMs: 0,\n    executionCount: 0\n  };\n});\n\nexecutions.forEach(exec => {\n  const sellerId = exec.sellerId;\n  if (!sellerStats[sellerId]) {\n    sellerStats[sellerId] = {\n      sellerId,\n      sellerName: `Unknown (${sellerId})`,\n      status: 'UNKNOWN',\n      productCount: 0,\n      success: 0,\n      failed: 0,\n      timeout: 0,\n      running: 0,\n      totalDurationMs: 0,\n      executionCount: 0\n    };\n  }\n  \n  const stats = sellerStats[sellerId];\n  stats.executionCount++;\n  \n  switch (exec.status) {\n    case 'SUCCESS': stats.success++; break;\n    case 'FAILED': stats.failed++; break;\n    case 'TIMEOUT': stats.timeout++; break;\n    case 'RUNNING': stats.running++; break;\n  }\n  \n  if (exec.durationMs) {\n    stats.totalDurationMs += exec.durationMs;\n  }\n});\n\n// 결과 정리\nconst sellerReports = Object.values(sellerStats)\n  .map(s => {\n    const total = s.success + s.failed + s.timeout;\n    const successRate = total > 0 ? (s.success / total * 100).toFixed(1) : 'N/A';\n    const avgDuration = s.executionCount > 0 \n      ? (s.totalDurationMs / s.executionCount / 1000).toFixed(2) \n      : 'N/A';\n    \n    return {\n      ...s,\n      totalExecutions: total,\n      successRate,\n      avgDurationSec: avgDuration\n    };\n  })\n  .filter(s => s.totalExecutions > 0 || s.status === 'ACTIVE')\n  .sort((a, b) => b.totalExecutions - a.totalExecutions);\n\n// 전체 요약\nconst totalSuccess = sellerReports.reduce((sum, s) => sum + s.success, 0);\nconst totalFailed = sellerReports.reduce((sum, s) => sum + s.failed, 0);\nconst totalTimeout = sellerReports.reduce((sum, s) => sum + s.timeout, 0);\nconst totalExecutions = totalSuccess + totalFailed + totalTimeout;\nconst overallSuccessRate = totalExecutions > 0 \n  ? (totalSuccess / totalExecutions * 100).toFixed(1) \n  : 'N/A';\n\n// Top 5 성공률 Seller\nconst topSellers = sellerReports\n  .filter(s => s.totalExecutions >= 10)\n  .sort((a, b) => parseFloat(b.successRate) - parseFloat(a.successRate))\n  .slice(0, 5);\n\n// 문제 Seller (실패율 20% 이상)\nconst problematicSellers = sellerReports\n  .filter(s => s.totalExecutions >= 5 && parseFloat(s.successRate) < 80)\n  .sort((a, b) => parseFloat(a.successRate) - parseFloat(b.successRate))\n  .slice(0, 5);\n\n// 비활성 Seller (ACTIVE인데 실행 없음)\nconst inactiveSellers = sellerReports\n  .filter(s => s.status === 'ACTIVE' && s.totalExecutions === 0);\n\nconst reportDate = $('Calculate Yesterday Range').item.json.reportDate;\n\nreturn {\n  reportDate,\n  summary: {\n    totalSellers: sellers.length,\n    activeSellers: sellers.filter(s => s.status === 'ACTIVE').length,\n    totalExecutions,\n    totalSuccess,\n    totalFailed,\n    totalTimeout,\n    overallSuccessRate\n  },\n  topSellers,\n  problematicSellers,\n  inactiveSellers: inactiveSellers.slice(0, 5),\n  sellerReports: sellerReports.slice(0, 20)\n};"
       },
       "id": "code-analyze",
       "name": "Generate Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1980, 0]
+      "position": [1760, 0]
     },
     {
       "parameters": {
@@ -188,7 +173,7 @@
       "name": "Format Slack Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2200, 0]
+      "position": [1980, 0]
     },
     {
       "parameters": {
@@ -203,7 +188,7 @@
       "name": "Send Slack Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2420, 0]
+      "position": [2200, 0]
     }
   ],
   "connections": {
@@ -300,7 +285,7 @@
       "main": [
         [
           {
-            "node": "Merge Data",
+            "node": "Generate Report",
             "type": "main",
             "index": 0
           }
@@ -308,17 +293,6 @@
       ]
     },
     "Get All Executions": {
-      "main": [
-        [
-          {
-            "node": "Merge Data",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Data": {
       "main": [
         [
           {
@@ -368,7 +342,7 @@
     "instanceId": "crawlinghub-daily-report"
   },
   "pinData": {},
-  "versionId": "1.1.0",
+  "versionId": "1.2.0",
   "tags": [
     {
       "name": "reporting"
