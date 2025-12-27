@@ -97,7 +97,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/actuator/prometheus",
+        "url": "https://api.set-of.com/actuator/prometheus",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -181,7 +181,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/actuator/prometheus",
+        "url": "https://api.set-of.com/actuator/prometheus",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -307,7 +307,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/user-agents/recover",
+        "url": "https://api.set-of.com/api/v1/crawling/user-agents/recover",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

@@ -97,7 +97,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=FAILED&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=FAILED&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -120,7 +120,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=TIMEOUT&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=TIMEOUT&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -143,7 +143,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?status=SUCCESS&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?status=SUCCESS&from={{ $json.fromISO }}&to={{ $json.toISO }}&size=500",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

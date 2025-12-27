@@ -112,7 +112,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/sellers?size=100",
+        "url": "https://api.set-of.com/api/v1/crawling/sellers?size=100",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -135,7 +135,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/crawling/executions?from={{ $('Calculate Yesterday Range').item.json.fromISO }}&to={{ $('Calculate Yesterday Range').item.json.toISO }}&size=2000",
+        "url": "=https://api.set-of.com/api/v1/crawling/executions?from={{ $('Calculate Yesterday Range').item.json.fromISO }}&to={{ $('Calculate Yesterday Range').item.json.toISO }}&size=2000",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
