@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.time.Clock;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * CrawlTask Transaction Manager
@@ -64,6 +65,7 @@ public class CrawlTaskTransactionManager {
      * @param clock 시간 제어
      * @throws IllegalStateException 상태 전환이 불가능한 경우
      */
+    @Transactional
     public void markAsPublished(CrawlTaskId crawlTaskId, Clock clock) {
         CrawlTask crawlTask =
                 crawlTaskQueryPort
