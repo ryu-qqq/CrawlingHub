@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
  *   <li>POST /api/v1/crawling/outbox/{crawlTaskId}/republish - Outbox 재발행
  * </ul>
  *
- * <p>SQS가 활성화된 경우에만 등록됩니다. (app.messaging.sqs.enabled=true)
- *
  * @author development-team
  * @since 1.0.0
  */
