@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.useragent.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.util.List;
 
 /**
  * UserAgent Persistence Port (DB 저장)
@@ -30,4 +31,13 @@ public interface UserAgentPersistencePort {
      * @return 저장된 UserAgent ID
      */
     UserAgentId persist(UserAgent userAgent);
+
+    /**
+     * 여러 UserAgent 저장 (배치 처리용)
+     *
+     * <p>Domain에서 비즈니스 로직이 처리된 상태로 전달받아 그대로 저장합니다.
+     *
+     * @param userAgents 저장할 UserAgent 목록 (Domain에서 상태 변경 완료)
+     */
+    void persistAll(List<UserAgent> userAgents);
 }

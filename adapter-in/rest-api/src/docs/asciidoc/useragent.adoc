@@ -51,3 +51,27 @@ operation::useragent-command/recover[snippets='response-fields,http-request,http
 `POST /api/v1/crawling/user-agents/recover` (복구 대상이 없는 경우)
 
 operation::useragent-command/recover-no-agents[snippets='response-fields,http-request,http-response']
+
+[[resources-useragent-update-status]]
+=== UserAgent 상태 일괄 변경
+
+`PATCH /api/v1/crawling/user-agents/status`
+
+여러 UserAgent의 상태를 일괄 변경합니다.
+
+변경 가능한 상태:
+
+* `AVAILABLE` - 사용 가능
+* `SUSPENDED` - 정지
+* `BLOCKED` - 차단
+
+operation::useragent-command/update-status[snippets='request-fields,response-fields,http-request,http-response']
+
+[[resources-useragent-update-status-single]]
+=== UserAgent 상태 변경 (단일)
+
+`PATCH /api/v1/crawling/user-agents/status` (단일 UserAgent)
+
+단일 UserAgent의 상태를 변경합니다.
+
+operation::useragent-command/update-status-single[snippets='request-fields,response-fields,http-request,http-response']

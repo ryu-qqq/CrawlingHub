@@ -1,11 +1,14 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse.PoolInfoApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
@@ -111,5 +114,27 @@ public class UserAgentApiMapper {
                 appResponse.createdAt(),
                 appResponse.updatedAt(),
                 poolInfoApi);
+    }
+
+    /**
+     * UpdateUserAgentStatusApiRequest → UpdateUserAgentStatusCommand 변환
+     *
+     * @param apiRequest API 요청 DTO
+     * @return Application Layer Command DTO
+     */
+    public UpdateUserAgentStatusCommand toCommand(UpdateUserAgentStatusApiRequest apiRequest) {
+        return new UpdateUserAgentStatusCommand(apiRequest.userAgentIds(), apiRequest.status());
+    }
+
+    /**
+     * 상태 변경 결과 → UpdateUserAgentStatusApiResponse 변환
+     *
+     * @param updatedCount 변경된 UserAgent 수
+     * @param status 변경된 상태명
+     * @return REST API 응답
+     */
+    public UpdateUserAgentStatusApiResponse toStatusUpdateApiResponse(
+            int updatedCount, String status) {
+        return UpdateUserAgentStatusApiResponse.of(updatedCount, status);
     }
 }

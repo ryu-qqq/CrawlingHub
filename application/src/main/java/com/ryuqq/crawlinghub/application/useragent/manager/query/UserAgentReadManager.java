@@ -74,4 +74,14 @@ public class UserAgentReadManager {
     public List<UserAgent> findByStatus(UserAgentStatus status) {
         return userAgentQueryPort.findByStatus(status);
     }
+
+    /**
+     * 여러 ID로 UserAgent 조회 (배치 처리용)
+     *
+     * @param userAgentIds UserAgent ID 목록
+     * @return UserAgent 목록
+     */
+    public List<UserAgent> findByIds(List<UserAgentId> userAgentIds) {
+        return userAgentQueryPort.findByIds(userAgentIds);
+    }
 }

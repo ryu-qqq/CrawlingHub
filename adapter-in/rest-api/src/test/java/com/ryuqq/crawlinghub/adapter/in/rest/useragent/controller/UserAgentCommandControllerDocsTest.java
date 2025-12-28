@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -11,12 +14,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,6 +43,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private RecoverUserAgentUseCase recoverUserAgentUseCase;
+
+    @MockitoBean private UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase;
 
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
@@ -116,6 +128,135 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("복구할 UserAgent가 없음을 나타내는 메시지"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/crawling/user-agents/status - UserAgent 상태 일괄 변경 API 문서")
+    void updateUserAgentStatus() throws Exception {
+        // given
+        UpdateUserAgentStatusApiRequest apiRequest =
+                new UpdateUserAgentStatusApiRequest(List.of(1L, 2L, 3L), UserAgentStatus.SUSPENDED);
+        UpdateUserAgentStatusCommand command =
+                new UpdateUserAgentStatusCommand(List.of(1L, 2L, 3L), UserAgentStatus.SUSPENDED);
+        UpdateUserAgentStatusApiResponse apiResponse =
+                UpdateUserAgentStatusApiResponse.of(3, "SUSPENDED");
+
+        given(userAgentApiMapper.toCommand(any(UpdateUserAgentStatusApiRequest.class)))
+                .willReturn(command);
+        given(updateUserAgentStatusUseCase.execute(any(UpdateUserAgentStatusCommand.class)))
+                .willReturn(3);
+        given(userAgentApiMapper.toStatusUpdateApiResponse(3, "SUSPENDED")).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(
+                        patch("/api/v1/crawling/user-agents/status")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(apiRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.updatedCount").value(3))
+                .andExpect(
+                        jsonPath("$.data.message")
+                                .value("3 user agent(s) status updated to SUSPENDED"))
+                .andDo(
+                        document(
+                                "useragent-command/update-status",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
+                                requestFields(
+                                        fieldWithPath("userAgentIds")
+                                                .type(JsonFieldType.ARRAY)
+                                                .description("변경할 UserAgent ID 목록"),
+                                        fieldWithPath("status")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "변경할 상태 (AVAILABLE, SUSPENDED, BLOCKED)")),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.updatedCount")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("상태가 변경된 UserAgent 수"),
+                                        fieldWithPath("data.message")
+                                                .type(JsonFieldType.STRING)
+                                                .description("결과 메시지"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/crawling/user-agents/status - 단일 UserAgent 상태 변경 API 문서")
+    void updateUserAgentStatus_single() throws Exception {
+        // given
+        UpdateUserAgentStatusApiRequest apiRequest =
+                new UpdateUserAgentStatusApiRequest(List.of(1L), UserAgentStatus.BLOCKED);
+        UpdateUserAgentStatusCommand command =
+                new UpdateUserAgentStatusCommand(List.of(1L), UserAgentStatus.BLOCKED);
+        UpdateUserAgentStatusApiResponse apiResponse =
+                UpdateUserAgentStatusApiResponse.of(1, "BLOCKED");
+
+        given(userAgentApiMapper.toCommand(any(UpdateUserAgentStatusApiRequest.class)))
+                .willReturn(command);
+        given(updateUserAgentStatusUseCase.execute(any(UpdateUserAgentStatusCommand.class)))
+                .willReturn(1);
+        given(userAgentApiMapper.toStatusUpdateApiResponse(1, "BLOCKED")).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(
+                        patch("/api/v1/crawling/user-agents/status")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(apiRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.updatedCount").value(1))
+                .andExpect(
+                        jsonPath("$.data.message")
+                                .value("1 user agent(s) status updated to BLOCKED"))
+                .andDo(
+                        document(
+                                "useragent-command/update-status-single",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
+                                requestFields(
+                                        fieldWithPath("userAgentIds")
+                                                .type(JsonFieldType.ARRAY)
+                                                .description("변경할 UserAgent ID 목록 (단일)"),
+                                        fieldWithPath("status")
+                                                .type(JsonFieldType.STRING)
+                                                .description("변경할 상태")),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.updatedCount")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("상태가 변경된 UserAgent 수"),
+                                        fieldWithPath("data.message")
+                                                .type(JsonFieldType.STRING)
+                                                .description("결과 메시지"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

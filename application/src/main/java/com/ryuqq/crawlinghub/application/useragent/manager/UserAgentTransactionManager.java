@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.useragent.manager;
 import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPersistencePort;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,5 +33,14 @@ public class UserAgentTransactionManager {
      */
     public UserAgentId persist(UserAgent userAgent) {
         return persistencePort.persist(userAgent);
+    }
+
+    /**
+     * 여러 UserAgent 저장 (배치 처리용)
+     *
+     * @param userAgents 저장할 UserAgent 목록
+     */
+    public void persistAll(List<UserAgent> userAgents) {
+        persistencePort.persistAll(userAgents);
     }
 }
