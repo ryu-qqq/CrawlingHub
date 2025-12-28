@@ -106,32 +106,14 @@ tasks.named('asciidoctor') {
 }
 
 // ========================================
-// Copy REST Docs to static folder
+// Copy REST Docs to static folder (수동 실행용)
 // ========================================
+// 문서 생성 명령: ./gradlew :adapter-in:rest-api:copyDocument
+// 생성된 문서는 git에 커밋하여 배포에 포함
 tasks.register('copyDocument', Copy) {
     dependsOn asciidoctor
-    // Only copy if asciidoc output exists
-    onlyIf { file("build/docs/asciidoc").exists() }
     from file("build/docs/asciidoc")
     into file("src/main/resources/static/docs")
-}
-
-// Only add copyDocument dependency when not skipping tests
-tasks.named('build') {
-    dependsOn copyDocument
-}
-
-// processResources should only depend on copyDocument when docs exist
-tasks.named('processResources') {
-    // Remove hard dependency, use mustRunAfter instead
-    mustRunAfter copyDocument
-}
-
-// ========================================
-// SpotBugs must run before copyDocument to avoid task conflicts
-// ========================================
-tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
-    mustRunAfter tasks.named('copyDocument')
 }
 
 // ========================================
