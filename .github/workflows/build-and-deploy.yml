@@ -28,10 +28,10 @@ env:
 
 jobs:
   # ============================================================================
-  # 테스트 + REST Docs 생성 (공통 - 한 번만 실행)
+  # 테스트 (공통 - 한 번만 실행)
   # ============================================================================
   test:
-    name: Run Tests & Generate REST Docs
+    name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -46,17 +46,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Run tests and generate REST Docs
+      - name: Run tests
         run: |
           chmod +x gradlew
-          ./gradlew clean test :adapter-in:rest-api:asciidoctor :adapter-in:rest-api:copyDocument -x jacocoTestCoverageVerification --no-daemon
-
-      - name: Upload REST Docs artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rest-docs
-          path: adapter-in/rest-api/src/main/resources/static/docs
-          retention-days: 1
+          ./gradlew clean test -x jacocoTestCoverageVerification --no-daemon
 
   # ============================================================================
   # 빌드 Jobs (병렬 실행)
@@ -64,55 +57,15 @@ jobs:
   build-web-api:
     name: Build web-api
     needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    outputs:
-      image-uri: ${{ steps.build-image.outputs.image-uri }}
-      image-tag: ${{ steps.build-image.outputs.image-tag }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Download REST Docs artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: rest-docs
-          path: adapter-in/rest-api/src/main/resources/static/docs
-
-      - name: Build bootJar (skip test, docs already generated)
-        run: |
-          chmod +x gradlew
-          ./gradlew :bootstrap:bootstrap-web-api:bootJar -x test -x asciidoctor -x copyDocument --no-daemon
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ap-northeast-2
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: crawlinghub-web-api-prod
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f bootstrap/bootstrap-web-api/Dockerfile .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image-uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+    uses: ryu-qqq/Infrastructure/.github/workflows/reusable-build-docker.yml@main
+    with:
+      ecr-repository: crawlinghub-web-api-prod
+      component: web-api
+      dockerfile: bootstrap/bootstrap-web-api/Dockerfile
+      gradle-task: ":bootstrap:bootstrap-web-api:bootJar"
+      timeout-minutes: 30
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
   build-scheduler:
     name: Build scheduler
