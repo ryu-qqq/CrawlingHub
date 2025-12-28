@@ -1,0 +1,53 @@
+[[resources-useragent]]
+== UserAgent API
+
+UserAgent Pool 관리 API입니다.
+
+[[resources-useragent-pool-status]]
+=== Pool 상태 조회
+
+`GET /api/v1/crawling/user-agents/pool-status`
+
+UserAgent Pool의 전체 상태를 조회합니다.
+
+operation::useragent-query/pool-status[snippets='response-fields,http-request,http-response']
+
+[[resources-useragent-list]]
+=== UserAgent 목록 조회
+
+`GET /api/v1/crawling/user-agents`
+
+UserAgent 목록을 페이징 및 상태별로 필터링하여 조회합니다.
+
+operation::useragent-query/list[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-useragent-detail]]
+=== UserAgent 상세 조회
+
+`GET /api/v1/crawling/user-agents/{userAgentId}`
+
+특정 UserAgent의 상세 정보를 조회합니다. Redis Pool 상태 정보도 함께 반환됩니다.
+
+operation::useragent-query/detail[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-useragent-recover]]
+=== UserAgent 복구
+
+`POST /api/v1/crawling/user-agents/recover`
+
+정지된 UserAgent를 복구합니다.
+
+복구 조건:
+
+* SUSPENDED 상태
+* 1시간 경과
+* Health Score >= 30
+
+operation::useragent-command/recover[snippets='response-fields,http-request,http-response']
+
+[[resources-useragent-recover-no-agents]]
+=== UserAgent 복구 (복구 대상 없음)
+
+`POST /api/v1/crawling/user-agents/recover` (복구 대상이 없는 경우)
+
+operation::useragent-command/recover-no-agents[snippets='response-fields,http-request,http-response']

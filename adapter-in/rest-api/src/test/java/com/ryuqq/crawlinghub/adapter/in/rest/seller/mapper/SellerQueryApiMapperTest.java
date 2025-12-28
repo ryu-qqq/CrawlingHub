@@ -88,7 +88,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=ACTIVE 변환")
         void toQuery_SearchSellers_StatusActive() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest("ACTIVE", 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -104,7 +105,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=INACTIVE 변환")
         void toQuery_SearchSellers_StatusInactive() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest("INACTIVE", 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, "INACTIVE", null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -118,7 +120,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=null (전체 조회)")
         void toQuery_SearchSellers_StatusNull() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(null, 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, null, null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -132,7 +135,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: status=빈 문자열 (전체 조회)")
         void toQuery_SearchSellers_StatusBlank() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest("", 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, "", null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -146,7 +150,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 기본 페이징 파라미터")
         void toQuery_SearchSellers_DefaultPagination() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest(null, 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, null, null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -161,7 +166,8 @@ class SellerQueryApiMapperTest {
         @DisplayName("성공: 커스텀 페이징 파라미터")
         void toQuery_SearchSellers_CustomPagination() {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest("ACTIVE", 5, 50);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 5, 50);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -170,6 +176,41 @@ class SellerQueryApiMapperTest {
             assertThat(query).isNotNull();
             assertThat(query.page()).isEqualTo(5);
             assertThat(query.size()).isEqualTo(50);
+        }
+
+        @Test
+        @DisplayName("성공: sellerName, mustItSellerName 필터 변환")
+        void toQuery_SearchSellers_WithNameFilters() {
+            // Given
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest("테스트셀러", "머스트잇셀러", "ACTIVE", null, null, 0, 20);
+
+            // When
+            SearchSellersQuery query = mapper.toQuery(request);
+
+            // Then
+            assertThat(query).isNotNull();
+            assertThat(query.sellerName()).isEqualTo("테스트셀러");
+            assertThat(query.mustItSellerName()).isEqualTo("머스트잇셀러");
+            assertThat(query.sellerStatus()).isEqualTo(SellerStatus.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("성공: createdFrom, createdTo 필터 변환")
+        void toQuery_SearchSellers_WithDateFilters() {
+            // Given
+            Instant from = Instant.parse("2024-01-01T00:00:00Z");
+            Instant to = Instant.parse("2024-12-31T23:59:59Z");
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, null, from, to, 0, 20);
+
+            // When
+            SearchSellersQuery query = mapper.toQuery(request);
+
+            // Then
+            assertThat(query).isNotNull();
+            assertThat(query.createdFrom()).isEqualTo(from);
+            assertThat(query.createdTo()).isEqualTo(to);
         }
     }
 
@@ -234,7 +275,17 @@ class SellerQueryApiMapperTest {
         void toSummaryApiResponse_ActiveTrue() {
             // Given
             SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now());
+                    new SellerSummaryResponse(
+                            1L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            true,
+                            Instant.now(),
+                            2,
+                            3,
+                            "COMPLETED",
+                            Instant.now(),
+                            50L);
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -252,7 +303,17 @@ class SellerQueryApiMapperTest {
         void toSummaryApiResponse_ActiveFalse() {
             // Given
             SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(2L, "머스트잇 테스트 셀러", "테스트 셀러", false, Instant.now());
+                    new SellerSummaryResponse(
+                            2L,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            false,
+                            Instant.now(),
+                            0,
+                            1,
+                            null,
+                            null,
+                            0L);
 
             // When
             SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
@@ -274,8 +335,28 @@ class SellerQueryApiMapperTest {
             // Given
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
-                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", true, Instant.now()));
+                            new SellerSummaryResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L),
+                            new SellerSummaryResponse(
+                                    2L,
+                                    "머스트잇 셀러2",
+                                    "셀러2",
+                                    true,
+                                    Instant.now(),
+                                    1,
+                                    2,
+                                    "RUNNING",
+                                    Instant.now(),
+                                    30L));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 100L, 5, true, false);
@@ -305,9 +386,27 @@ class SellerQueryApiMapperTest {
             List<SellerSummaryResponse> content =
                     List.of(
                             new SellerSummaryResponse(
-                                    99L, "머스트잇 셀러99", "셀러99", true, Instant.now()),
+                                    99L,
+                                    "머스트잇 셀러99",
+                                    "셀러99",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L),
                             new SellerSummaryResponse(
-                                    100L, "머스트잇 셀러100", "셀러100", false, Instant.now()));
+                                    100L,
+                                    "머스트잇 셀러100",
+                                    "셀러100",
+                                    false,
+                                    Instant.now(),
+                                    0,
+                                    0,
+                                    null,
+                                    null,
+                                    0L));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 4, 20, 100L, 5, false, true);
@@ -349,7 +448,18 @@ class SellerQueryApiMapperTest {
         void toPageApiResponse_SinglePage() {
             // Given
             List<SellerSummaryResponse> content =
-                    List.of(new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()));
+                    List.of(
+                            new SellerSummaryResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -373,9 +483,39 @@ class SellerQueryApiMapperTest {
             // Given
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
-                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", false, Instant.now()),
-                            new SellerSummaryResponse(3L, "머스트잇 셀러3", "셀러3", true, Instant.now()));
+                            new SellerSummaryResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L),
+                            new SellerSummaryResponse(
+                                    2L,
+                                    "머스트잇 셀러2",
+                                    "셀러2",
+                                    false,
+                                    Instant.now(),
+                                    0,
+                                    0,
+                                    null,
+                                    null,
+                                    0L),
+                            new SellerSummaryResponse(
+                                    3L,
+                                    "머스트잇 셀러3",
+                                    "셀러3",
+                                    true,
+                                    Instant.now(),
+                                    1,
+                                    1,
+                                    "RUNNING",
+                                    Instant.now(),
+                                    25L));
 
             PageResponse<SellerSummaryResponse> appPageResponse =
                     new PageResponse<>(content, 0, 20, 3L, 1, true, true);

@@ -1,0 +1,32 @@
+[[resources-task]]
+== CrawlTask API
+
+크롤 태스크 관리 API입니다.
+
+[[resources-task-retry]]
+=== 태스크 재시도
+
+`POST /api/v1/crawling/tasks/{id}/retry`
+
+실패한 크롤 태스크를 재시도합니다.
+
+재시도 조건:
+
+* FAILED 또는 TIMEOUT 상태의 태스크만 재시도 가능
+* 최대 재시도 횟수(3회) 미만
+
+operation::task-command/retry[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-task-list]]
+=== 태스크 목록 조회
+
+`GET /api/v1/crawling/tasks`
+
+operation::task-query/list[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-task-get]]
+=== 태스크 상세 조회
+
+`GET /api/v1/crawling/tasks/{id}`
+
+operation::task-query/get[snippets='path-parameters,response-fields,http-request,http-response']

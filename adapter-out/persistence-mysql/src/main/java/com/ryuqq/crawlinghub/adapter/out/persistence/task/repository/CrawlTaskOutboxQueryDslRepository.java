@@ -71,9 +71,29 @@ public class CrawlTaskOutboxQueryDslRepository {
                         .selectFrom(qOutbox)
                         .where(buildSearchConditions(criteria))
                         .orderBy(qOutbox.createdAt.asc())
+                        .offset(criteria.offset())
                         .limit(criteria.limit());
 
         return query.fetch();
+    }
+
+    /**
+     * 검색 조건으로 Outbox 개수 조회
+     *
+     * <p>페이징 처리를 위한 전체 개수 조회에 사용됩니다.
+     *
+     * @param criteria 검색 조건 (CrawlTaskOutboxCriteria)
+     * @return 조건에 맞는 Outbox 개수
+     */
+    public long countByCriteria(CrawlTaskOutboxCriteria criteria) {
+        Long count =
+                queryFactory
+                        .select(qOutbox.count())
+                        .from(qOutbox)
+                        .where(buildSearchConditions(criteria))
+                        .fetchOne();
+
+        return count != null ? count : 0L;
     }
 
     /**

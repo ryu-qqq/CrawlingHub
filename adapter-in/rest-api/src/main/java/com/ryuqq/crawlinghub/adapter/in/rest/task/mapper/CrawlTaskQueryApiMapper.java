@@ -65,7 +65,14 @@ public class CrawlTaskQueryApiMapper {
                         : null;
 
         return new ListCrawlTasksQuery(
-                request.crawlSchedulerId(), status, taskType, request.page(), request.size());
+                request.crawlSchedulerId(),
+                request.sellerId(),
+                status,
+                taskType,
+                request.createdFrom(),
+                request.createdTo(),
+                request.page(),
+                request.size());
     }
 
     /**

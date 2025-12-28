@@ -54,4 +54,30 @@ public interface CrawlScheduleQueryPort {
      * @return 활성 스케줄러 리스트
      */
     List<CrawlScheduler> findActiveSchedulersBySellerId(SellerId sellerId);
+
+    /**
+     * 셀러별 전체 스케줄러 개수 조회.
+     *
+     * @param sellerId 셀러 ID
+     * @return 전체 스케줄러 개수
+     */
+    long countBySellerId(SellerId sellerId);
+
+    /**
+     * 셀러별 활성 스케줄러 개수 조회.
+     *
+     * @param sellerId 셀러 ID
+     * @return 활성 스케줄러 개수
+     */
+    long countActiveSchedulersBySellerId(SellerId sellerId);
+
+    /**
+     * 셀러별 전체 스케줄러 목록 조회.
+     *
+     * <p>셀러 상세 조회 시 연관 스케줄러 목록을 표시하기 위해 사용
+     *
+     * @param sellerId 셀러 ID
+     * @return 스케줄러 리스트 (생성일시 내림차순)
+     */
+    List<CrawlScheduler> findBySellerId(SellerId sellerId);
 }

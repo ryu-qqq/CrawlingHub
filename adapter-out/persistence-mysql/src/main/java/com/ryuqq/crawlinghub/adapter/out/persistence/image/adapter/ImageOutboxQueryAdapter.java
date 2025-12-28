@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.image.adapter;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.mapper.ProductImageOutboxJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.repository.ProductImageOutboxQueryDslRepository;
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
@@ -112,5 +113,40 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
         List<ProductImageOutboxJpaEntity> entities =
                 queryDslRepository.findTimedOutProcessingOutboxes(timeoutSeconds, limit);
         return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (이미지 정보 포함, 페이징)
+     *
+     * <p>CrawledProductImage와 LEFT JOIN하여 이미지 정보를 함께 반환합니다.
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Outbox + 이미지 정보 응답 목록
+     */
+    @Override
+    public List<ProductImageOutboxWithImageResponse> searchWithImageInfo(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+        return queryDslRepository
+                .searchWithImageInfo(crawledProductImageId, status, offset, size)
+                .stream()
+                .map(
+                        dto ->
+                                ProductImageOutboxWithImageResponse.of(
+                                        dto.id(),
+                                        dto.crawledProductImageId(),
+                                        dto.idempotencyKey(),
+                                        dto.status(),
+                                        dto.retryCount(),
+                                        dto.errorMessage(),
+                                        dto.createdAt(),
+                                        dto.processedAt(),
+                                        dto.crawledProductId(),
+                                        dto.originalUrl(),
+                                        dto.s3Url(),
+                                        dto.imageType()))
+                .toList();
     }
 }

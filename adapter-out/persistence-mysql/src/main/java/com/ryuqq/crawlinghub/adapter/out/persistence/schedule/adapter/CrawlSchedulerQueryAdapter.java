@@ -110,4 +110,39 @@ public class CrawlSchedulerQueryAdapter implements CrawlScheduleQueryPort {
                 queryDslRepository.findActiveBySellerIdmethod(sellerId.value());
         return entities.stream().map(mapper::toDomain).toList();
     }
+
+    /**
+     * 셀러별 전체 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 전체 스케줄러 개수
+     */
+    @Override
+    public long countBySellerId(SellerId sellerId) {
+        return queryDslRepository.countBySellerId(sellerId.value());
+    }
+
+    /**
+     * 셀러별 활성 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 활성 스케줄러 개수
+     */
+    @Override
+    public long countActiveSchedulersBySellerId(SellerId sellerId) {
+        return queryDslRepository.countActiveSchedulersBySellerId(sellerId.value());
+    }
+
+    /**
+     * 셀러별 전체 스케줄러 목록 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 스케줄러 목록 (생성일시 내림차순)
+     */
+    @Override
+    public List<CrawlScheduler> findBySellerId(SellerId sellerId) {
+        List<CrawlSchedulerJpaEntity> entities =
+                queryDslRepository.findBySellerId(sellerId.value());
+        return entities.stream().map(mapper::toDomain).toList();
+    }
 }

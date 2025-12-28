@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import java.time.Instant;
 
 /**
  * Search CrawlTasks API Request
@@ -13,18 +14,22 @@ import jakarta.validation.constraints.Positive;
  * <p><strong>Query Parameters:</strong>
  *
  * <ul>
- *   <li>crawlSchedulerId: 크롤 스케줄러 ID 필터 (필수)
+ *   <li>crawlSchedulerId: 크롤 스케줄러 ID 필터 (선택적)
  *   <li>sellerId: 셀러 ID 필터 (선택적)
  *   <li>status: 상태 필터 (선택적, WAITING|PUBLISHED|RUNNING|SUCCESS|FAILED|RETRY|TIMEOUT)
- *   <li>taskType: 태스크 유형 필터 (선택적, META|MINI_SHOP|DETAIL|OPTION)
+ *   <li>taskType: 태스크 유형 필터 (선택적, META|MINI_SHOP|DETAIL|OPTION|SEARCH)
+ *   <li>createdFrom: 생성일시 시작 (선택적, ISO-8601 형식)
+ *   <li>createdTo: 생성일시 종료 (선택적, ISO-8601 형식)
  *   <li>page: 페이지 번호 (선택적, 기본값: 0)
  *   <li>size: 페이지 크기 (선택적, 기본값: 20, 최대: 100)
  * </ul>
  *
- * @param crawlSchedulerId 크롤 스케줄러 ID 필터 (필수)
+ * @param crawlSchedulerId 크롤 스케줄러 ID 필터 (선택적)
  * @param sellerId 셀러 ID 필터 (선택적)
  * @param status 상태 필터 (선택적)
  * @param taskType 태스크 유형 필터 (선택적)
+ * @param createdFrom 생성일시 시작 (선택적)
+ * @param createdTo 생성일시 종료 (선택적)
  * @param page 페이지 번호
  * @param size 페이지 크기
  * @author development-team
@@ -43,6 +48,8 @@ public record SearchCrawlTasksApiRequest(
                         regexp = "META|MINI_SHOP|DETAIL|OPTION|SEARCH",
                         message = "태스크 유형은 META, MINI_SHOP, DETAIL, OPTION, SEARCH 중 하나여야 합니다")
                 String taskType,
+        Instant createdFrom,
+        Instant createdTo,
         @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다") Integer page,
         @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
                 @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
@@ -51,10 +58,12 @@ public record SearchCrawlTasksApiRequest(
     /**
      * 기본값 적용 생성자
      *
-     * @param crawlSchedulerId 크롤 스케줄러 ID
-     * @param sellerId 셀러 ID
-     * @param status 상태
-     * @param taskType 태스크 유형
+     * @param crawlSchedulerId 크롤 스케줄러 ID (선택)
+     * @param sellerId 셀러 ID (선택)
+     * @param status 상태 (선택)
+     * @param taskType 태스크 유형 (선택)
+     * @param createdFrom 생성일시 시작 (선택)
+     * @param createdTo 생성일시 종료 (선택)
      * @param page 페이지 번호 (null이면 0)
      * @param size 페이지 크기 (null이면 20)
      */

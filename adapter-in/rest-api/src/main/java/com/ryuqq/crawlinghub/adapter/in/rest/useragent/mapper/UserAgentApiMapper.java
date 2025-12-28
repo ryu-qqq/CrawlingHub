@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse.PoolInfoApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
 import org.springframework.stereotype.Component;
@@ -81,5 +84,32 @@ public class UserAgentApiMapper {
                 appResponse.requestsPerDay(),
                 appResponse.lastUsedAt(),
                 appResponse.createdAt());
+    }
+
+    /**
+     * UserAgentDetailResponse → UserAgentDetailApiResponse 변환
+     *
+     * @param appResponse Application Layer 상세 응답
+     * @return REST API 상세 응답
+     */
+    public UserAgentDetailApiResponse toDetailApiResponse(UserAgentDetailResponse appResponse) {
+        PoolInfoApiResponse poolInfoApi =
+                new PoolInfoApiResponse(
+                        appResponse.poolInfo().isInPool(),
+                        appResponse.poolInfo().remainingTokens(),
+                        appResponse.poolInfo().hasValidSession(),
+                        appResponse.poolInfo().sessionExpiresAt());
+
+        return new UserAgentDetailApiResponse(
+                appResponse.id(),
+                appResponse.userAgentValue(),
+                appResponse.deviceType(),
+                appResponse.status(),
+                appResponse.healthScore(),
+                appResponse.requestsPerDay(),
+                appResponse.lastUsedAt(),
+                appResponse.createdAt(),
+                appResponse.updatedAt(),
+                poolInfoApi);
     }
 }

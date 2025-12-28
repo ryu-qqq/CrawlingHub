@@ -2,15 +2,24 @@ package com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SchedulerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailStatisticsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.TaskSummaryApiResponse;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SchedulerSummary;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.TaskSummary;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,7 +79,22 @@ public class SellerQueryApiMapper {
                         ? SellerStatus.valueOf(request.status())
                         : null;
 
-        return new SearchSellersQuery(null, null, status, request.page(), request.size());
+        String sellerName = isNotBlank(request.sellerName()) ? request.sellerName() : null;
+        String mustItSellerName =
+                isNotBlank(request.mustItSellerName()) ? request.mustItSellerName() : null;
+
+        return new SearchSellersQuery(
+                mustItSellerName,
+                sellerName,
+                status,
+                request.createdFrom(),
+                request.createdTo(),
+                request.page(),
+                request.size());
+    }
+
+    private boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
     }
 
     /**
@@ -120,5 +144,67 @@ public class SellerQueryApiMapper {
     public PageApiResponse<SellerSummaryApiResponse> toPageApiResponse(
             PageResponse<SellerSummaryResponse> appPageResponse) {
         return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+    }
+
+    /**
+     * SellerDetailResponse → SellerDetailApiResponse 변환
+     *
+     * @param appResponse Application Layer 셀러 상세 응답
+     * @return REST API 셀러 상세 응답
+     */
+    public SellerDetailApiResponse toDetailApiResponse(SellerDetailResponse appResponse) {
+        String statusName = appResponse.active() ? "ACTIVE" : "INACTIVE";
+        List<SchedulerSummaryApiResponse> schedulers =
+                toSchedulerSummaryApiResponses(appResponse.schedulers());
+        List<TaskSummaryApiResponse> recentTasks =
+                toTaskSummaryApiResponses(appResponse.recentTasks());
+        SellerDetailStatisticsApiResponse statistics =
+                toStatisticsApiResponse(appResponse.statistics());
+
+        return new SellerDetailApiResponse(
+                appResponse.sellerId(),
+                appResponse.mustItSellerName(),
+                appResponse.sellerName(),
+                statusName,
+                toIsoString(appResponse.createdAt()),
+                toIsoString(appResponse.updatedAt()),
+                schedulers,
+                recentTasks,
+                statistics);
+    }
+
+    private List<SchedulerSummaryApiResponse> toSchedulerSummaryApiResponses(
+            List<SchedulerSummary> schedulers) {
+        return schedulers.stream().map(this::toSchedulerSummaryApiResponse).toList();
+    }
+
+    private SchedulerSummaryApiResponse toSchedulerSummaryApiResponse(SchedulerSummary summary) {
+        return new SchedulerSummaryApiResponse(
+                summary.schedulerId(),
+                summary.schedulerName(),
+                summary.status(),
+                summary.cronExpression(),
+                toIsoString(summary.nextExecutionTime()));
+    }
+
+    private List<TaskSummaryApiResponse> toTaskSummaryApiResponses(List<TaskSummary> tasks) {
+        return tasks.stream().map(this::toTaskSummaryApiResponse).toList();
+    }
+
+    private TaskSummaryApiResponse toTaskSummaryApiResponse(TaskSummary summary) {
+        return new TaskSummaryApiResponse(
+                summary.taskId(),
+                summary.status(),
+                summary.taskType(),
+                toIsoString(summary.createdAt()));
+    }
+
+    private SellerDetailStatisticsApiResponse toStatisticsApiResponse(
+            SellerDetailStatistics statistics) {
+        return new SellerDetailStatisticsApiResponse(
+                statistics.totalProducts(),
+                statistics.syncedProducts(),
+                statistics.pendingSyncProducts(),
+                statistics.successRate());
     }
 }

@@ -88,6 +88,7 @@ public final class ApiPaths {
      */
     public static final class UserAgents {
         public static final String BASE = CRAWLING_SERVICE_BASE + "/user-agents";
+        public static final String BY_ID = "/{userAgentId}";
         public static final String POOL_STATUS = "/pool-status";
         public static final String RECOVER = "/recover";
 

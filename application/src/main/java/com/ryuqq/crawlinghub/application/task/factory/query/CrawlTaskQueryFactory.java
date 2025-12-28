@@ -40,10 +40,19 @@ public class CrawlTaskQueryFactory {
      * @return Domain 조회 조건 객체
      */
     public CrawlTaskCriteria createCriteria(ListCrawlTasksQuery query) {
+        CrawlSchedulerId schedulerId =
+                query.crawlSchedulerId() != null
+                        ? CrawlSchedulerId.of(query.crawlSchedulerId())
+                        : null;
+        SellerId sellerId = query.sellerId() != null ? SellerId.of(query.sellerId()) : null;
+
         return new CrawlTaskCriteria(
-                CrawlSchedulerId.of(query.crawlSchedulerId()),
+                schedulerId,
+                sellerId,
                 query.status(),
                 query.taskType(),
+                query.createdFrom(),
+                query.createdTo(),
                 query.page(),
                 query.size());
     }
