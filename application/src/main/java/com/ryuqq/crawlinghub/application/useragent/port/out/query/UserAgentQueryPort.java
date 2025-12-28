@@ -66,4 +66,12 @@ public interface UserAgentQueryPort {
      * @return 페이징된 UserAgent 요약 정보 목록
      */
     PageResponse<UserAgentSummaryResponse> findByCriteria(UserAgentSearchCriteria criteria);
+
+    /**
+     * 여러 ID로 UserAgent 조회 (배치 처리용)
+     *
+     * @param userAgentIds UserAgent ID 목록
+     * @return UserAgent 목록
+     */
+    List<UserAgent> findByIds(List<UserAgentId> userAgentIds);
 }

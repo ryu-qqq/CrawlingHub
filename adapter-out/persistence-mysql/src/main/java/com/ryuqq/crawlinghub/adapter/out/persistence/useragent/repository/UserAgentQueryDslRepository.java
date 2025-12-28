@@ -163,4 +163,21 @@ public class UserAgentQueryDslRepository {
     private BooleanExpression statusEq(UserAgentStatus status) {
         return status != null ? qUserAgent.status.eq(status) : null;
     }
+
+    /**
+     * 여러 ID로 UserAgent 목록 조회 (배치 처리용)
+     *
+     * @param ids UserAgent ID 목록
+     * @return UserAgentJpaEntity 목록
+     */
+    public List<UserAgentJpaEntity> findByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+                .selectFrom(qUserAgent)
+                .where(qUserAgent.id.in(ids))
+                .orderBy(qUserAgent.id.asc())
+                .fetch();
+    }
 }

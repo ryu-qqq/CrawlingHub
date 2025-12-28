@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository.UserAg
 import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPersistencePort;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,5 +66,18 @@ public class UserAgentCommandAdapter implements UserAgentPersistencePort {
         UserAgentJpaEntity entity = mapper.toEntity(userAgent);
         UserAgentJpaEntity savedEntity = jpaRepository.save(entity);
         return UserAgentId.of(savedEntity.getId());
+    }
+
+    /**
+     * 여러 UserAgent 저장 (배치 처리용)
+     *
+     * <p>Domain에서 비즈니스 로직이 처리된 상태로 전달받아 그대로 저장합니다.
+     *
+     * @param userAgents 저장할 UserAgent 목록 (Domain에서 상태 변경 완료)
+     */
+    @Override
+    public void persistAll(List<UserAgent> userAgents) {
+        List<UserAgentJpaEntity> entities = userAgents.stream().map(mapper::toEntity).toList();
+        jpaRepository.saveAll(entities);
     }
 }

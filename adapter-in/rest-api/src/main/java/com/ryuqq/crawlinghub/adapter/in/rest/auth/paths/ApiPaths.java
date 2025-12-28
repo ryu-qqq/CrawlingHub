@@ -91,6 +91,7 @@ public final class ApiPaths {
         public static final String BY_ID = "/{userAgentId}";
         public static final String POOL_STATUS = "/pool-status";
         public static final String RECOVER = "/recover";
+        public static final String STATUS = "/status";
 
         private UserAgents() {}
     }
@@ -169,5 +170,17 @@ public final class ApiPaths {
         public static final String CHECK = API_VERSION + "/health";
 
         private Health() {}
+    }
+
+    /**
+     * Dashboard 관련 API 경로
+     *
+     * <p>관리자 대시보드 API입니다. @PreAuthorize로 권한 검사를 수행합니다.
+     */
+    public static final class Dashboard {
+        public static final String BASE = CRAWLING_SERVICE_BASE + "/dashboard";
+        public static final String STATS = "/stats";
+
+        private Dashboard() {}
     }
 }

@@ -175,4 +175,17 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
         }
         return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
+
+    /**
+     * 여러 ID로 UserAgent 조회 (배치 처리용)
+     *
+     * @param userAgentIds UserAgent ID 목록
+     * @return UserAgent 목록
+     */
+    @Override
+    public List<UserAgent> findByIds(List<UserAgentId> userAgentIds) {
+        List<Long> ids = userAgentIds.stream().map(UserAgentId::value).toList();
+        List<UserAgentJpaEntity> entities = queryDslRepository.findByIds(ids);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
 }

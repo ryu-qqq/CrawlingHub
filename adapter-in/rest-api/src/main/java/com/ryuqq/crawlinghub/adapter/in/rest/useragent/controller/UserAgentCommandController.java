@@ -2,19 +2,26 @@ package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <ul>
  *   <li>POST /api/v1/crawling/user-agents/recover - 정지된 UserAgent 복구
+ *   <li>PATCH /api/v1/crawling/user-agents/status - UserAgent 상태 일괄 변경
  * </ul>
  *
  * <p><strong>Controller 책임:</strong>
@@ -57,18 +65,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAgentCommandController {
 
     private final RecoverUserAgentUseCase recoverUserAgentUseCase;
+    private final UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase;
     private final UserAgentApiMapper userAgentApiMapper;
 
     /**
      * UserAgentCommandController 생성자
      *
      * @param recoverUserAgentUseCase UserAgent 복구 UseCase
+     * @param updateUserAgentStatusUseCase UserAgent 상태 변경 UseCase
      * @param userAgentApiMapper UserAgent API Mapper
      */
     public UserAgentCommandController(
             RecoverUserAgentUseCase recoverUserAgentUseCase,
+            UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase,
             UserAgentApiMapper userAgentApiMapper) {
         this.recoverUserAgentUseCase = recoverUserAgentUseCase;
+        this.updateUserAgentStatusUseCase = updateUserAgentStatusUseCase;
         this.userAgentApiMapper = userAgentApiMapper;
     }
 
@@ -141,6 +153,99 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toRecoverApiResponse(recoveredCount);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    /**
+     * UserAgent 상태 일괄 변경
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: PATCH
+     *   <li>Path: /api/v1/crawling/user-agents/status
+     *   <li>Status: 200 OK
+     * </ul>
+     *
+     * <p><strong>사용 시나리오:</strong>
+     *
+     * <ul>
+     *   <li>관리자가 체크박스로 여러 UserAgent를 선택하여 상태 변경
+     *   <li>문제가 있는 UserAgent들을 일괄 정지(SUSPENDED) 처리
+     *   <li>점검 완료 후 일괄 활성화(AVAILABLE) 처리
+     *   <li>보안 문제로 일괄 차단(BLOCKED) 처리
+     * </ul>
+     *
+     * <p><strong>Request:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "userAgentIds": [1, 2, 3],
+     *   "status": "SUSPENDED"
+     * }
+     * }</pre>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "updatedCount": 3,
+     *     "message": "3 user agent(s) status updated to SUSPENDED"
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-11-20T10:30:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @param request 상태 변경 요청 (ID 목록 + 변경할 상태)
+     * @return 상태 변경 결과 (200 OK)
+     */
+    @PatchMapping(ApiPaths.UserAgents.STATUS)
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "UserAgent 상태 일괄 변경",
+            description = "여러 UserAgent의 상태를 일괄 변경합니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "상태 변경 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        UpdateUserAgentStatusApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 (ID 목록 비어있음, 상태 null 등)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "UserAgent를 찾을 수 없음")
+    })
+    public ResponseEntity<ApiResponse<UpdateUserAgentStatusApiResponse>> updateUserAgentStatus(
+            @Valid @RequestBody UpdateUserAgentStatusApiRequest request) {
+        // 1. API Request → Application Command 변환 (Mapper)
+        UpdateUserAgentStatusCommand command = userAgentApiMapper.toCommand(request);
+
+        // 2. UseCase 실행 (비즈니스 로직)
+        int updatedCount = updateUserAgentStatusUseCase.execute(command);
+
+        // 3. UseCase 결과 → API Response 변환 (Mapper)
+        UpdateUserAgentStatusApiResponse apiResponse =
+                userAgentApiMapper.toStatusUpdateApiResponse(updatedCount, request.status().name());
+
+        // 4. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

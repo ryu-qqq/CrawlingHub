@@ -243,6 +243,46 @@ public class UserAgent {
     }
 
     /**
+     * 차단 해제 (BLOCKED → AVAILABLE, Health Score 70)
+     *
+     * <p>관리자가 차단된 UserAgent를 다시 활성화할 때 사용합니다.
+     *
+     * @param clock 시간 제어
+     * @throws InvalidUserAgentStateException BLOCKED 상태가 아닌 경우
+     */
+    public void unblock(Clock clock) {
+        if (!this.status.isBlocked()) {
+            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.AVAILABLE);
+        }
+        this.status = UserAgentStatus.AVAILABLE;
+        this.healthScore = HealthScore.recovered();
+        this.updatedAt = clock.instant();
+    }
+
+    /**
+     * 상태 변경 (관리자용 배치 처리)
+     *
+     * <p>관리자가 명시적으로 상태를 변경할 때 사용합니다. 모든 상태 전환이 가능합니다.
+     *
+     * @param newStatus 변경할 상태
+     * @param clock 시간 제어
+     * @throws InvalidUserAgentStateException 동일한 상태로 변경하려는 경우
+     */
+    public void changeStatus(UserAgentStatus newStatus, Clock clock) {
+        if (this.status == newStatus) {
+            throw new InvalidUserAgentStateException(this.status, newStatus);
+        }
+
+        // AVAILABLE로 변경 시 Health Score 복구
+        if (newStatus.isAvailable()) {
+            this.healthScore = HealthScore.recovered();
+        }
+
+        this.status = newStatus;
+        this.updatedAt = clock.instant();
+    }
+
+    /**
      * 일일 요청 수 초기화 (매일 자정 실행)
      *
      * @param clock 시간 제어

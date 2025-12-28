@@ -1,0 +1,30 @@
+[[resources-dashboard]]
+== Dashboard API
+
+대시보드 통계 API입니다.
+
+[[resources-dashboard-stats]]
+=== 대시보드 통계 조회
+
+`GET /api/v1/dashboard/stats`
+
+크롤링 시스템의 전체 통계를 조회합니다.
+
+응답 데이터:
+
+* 오늘 태스크 통계 (성공/실패/진행중/대기)
+* 주간 성공률 추이 (최근 7일)
+* 스케줄 통계 (전체/활성/비활성)
+* Outbox 통계 (대기/전송완료/실패)
+* 최근 실패 태스크 목록
+
+operation::dashboard-query/stats[snippets='response-fields,http-request,http-response']
+
+[[resources-dashboard-stats-no-data]]
+=== 대시보드 통계 조회 (데이터 없음)
+
+`GET /api/v1/dashboard/stats` (데이터가 없는 경우)
+
+시스템에 데이터가 없는 경우의 응답입니다.
+
+operation::dashboard-query/stats-no-data[snippets='response-fields,http-request,http-response']
