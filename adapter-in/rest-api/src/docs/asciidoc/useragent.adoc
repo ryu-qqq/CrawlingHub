@@ -21,6 +21,15 @@ UserAgent 목록을 페이징 및 상태별로 필터링하여 조회합니다.
 
 operation::useragent-query/list[snippets='query-parameters,response-fields,http-request,http-response']
 
+[[resources-useragent-detail]]
+=== UserAgent 상세 조회
+
+`GET /api/v1/crawling/user-agents/{userAgentId}`
+
+특정 UserAgent의 상세 정보를 조회합니다. Redis Pool 상태 정보도 함께 반환됩니다.
+
+operation::useragent-query/detail[snippets='path-parameters,response-fields,http-request,http-response']
+
 [[resources-useragent-recover]]
 === UserAgent 복구
 

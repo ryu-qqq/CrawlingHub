@@ -131,18 +131,48 @@ public class CrawlTaskQueryDslRepository {
      * <p>BooleanExpression을 사용하여 동적 쿼리를 구성합니다.
      */
     private BooleanExpression buildSearchConditions(CrawlTaskCriteria criteria) {
-        // 스케줄러 ID는 필수
-        BooleanExpression expression =
-                qTask.crawlSchedulerId.eq(criteria.crawlSchedulerId().value());
+        BooleanExpression expression = null;
+
+        // 조건: 스케줄러 ID 필터 (선택)
+        if (criteria.hasSchedulerIdFilter()) {
+            expression = qTask.crawlSchedulerId.eq(criteria.crawlSchedulerId().value());
+        }
+
+        // 조건: 셀러 ID 필터 (선택) - 서브쿼리 사용
+        if (criteria.hasSellerIdFilter()) {
+            QCrawlSchedulerJpaEntity qScheduler = QCrawlSchedulerJpaEntity.crawlSchedulerJpaEntity;
+            BooleanExpression sellerCondition =
+                    qTask.crawlSchedulerId.in(
+                            JPAExpressions.select(qScheduler.id)
+                                    .from(qScheduler)
+                                    .where(qScheduler.sellerId.eq(criteria.sellerId().value())));
+            expression = expression != null ? expression.and(sellerCondition) : sellerCondition;
+        }
 
         // 조건: 상태 필터
         if (criteria.hasStatusFilter()) {
-            expression = expression.and(qTask.status.eq(criteria.status()));
+            BooleanExpression statusCondition = qTask.status.eq(criteria.status());
+            expression = expression != null ? expression.and(statusCondition) : statusCondition;
         }
 
         // 조건: 태스크 유형 필터
         if (criteria.hasTaskTypeFilter()) {
-            expression = expression.and(qTask.taskType.eq(criteria.taskType()));
+            BooleanExpression taskTypeCondition = qTask.taskType.eq(criteria.taskType());
+            expression = expression != null ? expression.and(taskTypeCondition) : taskTypeCondition;
+        }
+
+        // 조건: 생성일시 시작 필터
+        if (criteria.hasCreatedFromFilter()) {
+            BooleanExpression fromCondition =
+                    qTask.createdAt.goe(toLocalDateTime(criteria.createdFrom()));
+            expression = expression != null ? expression.and(fromCondition) : fromCondition;
+        }
+
+        // 조건: 생성일시 종료 필터
+        if (criteria.hasCreatedToFilter()) {
+            BooleanExpression toCondition =
+                    qTask.createdAt.loe(toLocalDateTime(criteria.createdTo()));
+            expression = expression != null ? expression.and(toCondition) : toCondition;
         }
 
         return expression;

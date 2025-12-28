@@ -92,7 +92,7 @@ class CrawlTaskQueryControllerTest {
             // Given
             Long crawlSchedulerId = 100L;
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, 0, 20);
+                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, null, null, null, 0, 20);
 
             Instant now = Instant.now();
             List<CrawlTaskResponse> useCaseContent =
@@ -183,7 +183,14 @@ class CrawlTaskQueryControllerTest {
             Long crawlSchedulerId = 100L;
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            crawlSchedulerId, CrawlTaskStatus.FAILED, CrawlTaskType.META, 0, 20);
+                            crawlSchedulerId,
+                            null,
+                            CrawlTaskStatus.FAILED,
+                            CrawlTaskType.META,
+                            null,
+                            null,
+                            0,
+                            20);
 
             Instant now = Instant.now();
             List<CrawlTaskResponse> useCaseContent =
@@ -247,7 +254,7 @@ class CrawlTaskQueryControllerTest {
             // Given
             Long crawlSchedulerId = 100L;
             ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, 2, 10);
+                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, null, null, null, 2, 10);
 
             PageResponse<CrawlTaskResponse> useCasePageResponse =
                     new PageResponse<>(List.of(), 2, 10, 25, 3, false, true);

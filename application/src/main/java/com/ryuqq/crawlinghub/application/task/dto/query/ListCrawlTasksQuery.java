@@ -2,28 +2,50 @@ package com.ryuqq.crawlinghub.application.task.dto.query;
 
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.time.Instant;
 
 /**
  * CrawlTask 목록 조회 Query DTO
  *
- * @param crawlSchedulerId 크롤 스케줄러 ID (NotNull)
- * @param status 상태 필터 (Optional, null이면 전체)
- * @param taskType 태스크 유형 필터 (Optional, null이면 전체)
+ * <p><strong>조회 조건</strong>:
+ *
+ * <ul>
+ *   <li>crawlSchedulerId: 크롤 스케줄러 ID (선택, null이면 전체)
+ *   <li>sellerId: 셀러 ID (선택, null이면 전체)
+ *   <li>status: 상태 필터 (선택, null이면 전체)
+ *   <li>taskType: 태스크 유형 필터 (선택, null이면 전체)
+ *   <li>createdFrom: 생성일시 시작 (선택)
+ *   <li>createdTo: 생성일시 종료 (선택)
+ *   <li>page: 페이지 번호 (0부터 시작)
+ *   <li>size: 페이지 크기
+ * </ul>
+ *
+ * @param crawlSchedulerId 크롤 스케줄러 ID (선택)
+ * @param sellerId 셀러 ID (선택)
+ * @param status 상태 필터 (선택)
+ * @param taskType 태스크 유형 필터 (선택)
+ * @param createdFrom 생성일시 시작 (선택)
+ * @param createdTo 생성일시 종료 (선택)
  * @param page 페이지 번호 (0부터 시작)
  * @param size 페이지 크기
  * @author development-team
  * @since 1.0.0
  */
 public record ListCrawlTasksQuery(
-        Long crawlSchedulerId, CrawlTaskStatus status, CrawlTaskType taskType, int page, int size) {
+        Long crawlSchedulerId,
+        Long sellerId,
+        CrawlTaskStatus status,
+        CrawlTaskType taskType,
+        Instant createdFrom,
+        Instant createdTo,
+        int page,
+        int size) {
+
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 20;
     private static final int MAX_SIZE = 100;
 
     public ListCrawlTasksQuery {
-        if (crawlSchedulerId == null) {
-            throw new IllegalArgumentException("crawlSchedulerId는 null일 수 없습니다.");
-        }
         if (page < 0) {
             page = DEFAULT_PAGE;
         }

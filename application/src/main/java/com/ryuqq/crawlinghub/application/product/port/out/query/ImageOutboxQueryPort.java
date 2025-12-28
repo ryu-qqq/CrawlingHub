@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.port.out.query;
 
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.util.List;
@@ -98,4 +99,18 @@ public interface ImageOutboxQueryPort {
      * @return 타임아웃된 ImageOutbox 목록
      */
     List<ProductImageOutbox> findTimedOutProcessingOutboxes(int timeoutSeconds, int limit);
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (이미지 정보 포함, 페이징)
+     *
+     * <p>CrawledProductImage와 JOIN하여 이미지 정보를 함께 반환합니다.
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Outbox + 이미지 정보 응답 목록
+     */
+    List<ProductImageOutboxWithImageResponse> searchWithImageInfo(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size);
 }

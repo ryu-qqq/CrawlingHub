@@ -19,12 +19,14 @@ import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response.Product
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response.ProductSyncOutboxApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.mapper.ProductOutboxQueryApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxResponse;
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductSyncOutboxResponse;
 import com.ryuqq.crawlinghub.application.product.port.in.query.SearchProductImageOutboxUseCase;
 import com.ryuqq.crawlinghub.application.product.port.in.query.SearchProductSyncOutboxUseCase;
+import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -259,38 +261,56 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/crawling/product-outbox/image - ImageOutbox 목록 조회 API 문서")
     void searchImageOutbox() throws Exception {
         // given
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
 
-        ProductImageOutboxResponse response1 =
-                new ProductImageOutboxResponse(
+        ProductImageOutboxWithImageResponse response1 =
+                ProductImageOutboxWithImageResponse.of(
                         1L,
                         100L,
                         "image-100-1234567890",
                         ProductOutboxStatus.PENDING,
                         0,
                         null,
-                        true,
                         now,
-                        null);
+                        null,
+                        50L,
+                        "https://example.com/image1.jpg",
+                        "https://s3.example.com/image1.jpg",
+                        ImageType.THUMBNAIL);
 
-        ProductImageOutboxResponse response2 =
-                new ProductImageOutboxResponse(
+        ProductImageOutboxWithImageResponse response2 =
+                ProductImageOutboxWithImageResponse.of(
                         2L,
                         101L,
                         "image-101-1234567891",
                         ProductOutboxStatus.FAILED,
                         3,
                         "Upload failed: Network error",
-                        true,
-                        now.minusSeconds(3600),
-                        now);
+                        now.minusHours(1),
+                        now,
+                        51L,
+                        "https://example.com/image2.jpg",
+                        null,
+                        ImageType.DESCRIPTION);
 
-        PageResponse<ProductImageOutboxResponse> useCaseResponse =
+        PageResponse<ProductImageOutboxWithImageResponse> useCaseResponse =
                 new PageResponse<>(List.of(response1, response2), 0, 20, 2, 1, true, true);
 
         ProductImageOutboxApiResponse apiResponse1 =
                 new ProductImageOutboxApiResponse(
-                        1L, 100L, "image-100-1234567890", "PENDING", 0, null, true, now, null);
+                        1L,
+                        100L,
+                        "image-100-1234567890",
+                        "PENDING",
+                        0,
+                        null,
+                        true,
+                        now,
+                        null,
+                        50L,
+                        "https://example.com/image1.jpg",
+                        "https://s3.example.com/image1.jpg",
+                        "MAIN");
 
         ProductImageOutboxApiResponse apiResponse2 =
                 new ProductImageOutboxApiResponse(
@@ -301,8 +321,12 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         3,
                         "Upload failed: Network error",
                         true,
-                        now.minusSeconds(3600),
-                        now);
+                        now.minusHours(1),
+                        now,
+                        51L,
+                        "https://example.com/image2.jpg",
+                        null,
+                        "DETAIL");
 
         PageApiResponse<ProductImageOutboxApiResponse> apiPageResponse =
                 new PageApiResponse<>(List.of(apiResponse1, apiResponse2), 0, 20, 2, 1, true, true);
@@ -382,6 +406,19 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("처리 시각")
                                                 .optional(),
+                                        fieldWithPath("data.content[].crawledProductId")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("CrawledProduct ID"),
+                                        fieldWithPath("data.content[].originalUrl")
+                                                .type(JsonFieldType.STRING)
+                                                .description("원본 이미지 URL"),
+                                        fieldWithPath("data.content[].s3Url")
+                                                .type(JsonFieldType.STRING)
+                                                .description("S3 업로드 URL")
+                                                .optional(),
+                                        fieldWithPath("data.content[].imageType")
+                                                .type(JsonFieldType.STRING)
+                                                .description("이미지 타입 (MAIN, DETAIL)"),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),

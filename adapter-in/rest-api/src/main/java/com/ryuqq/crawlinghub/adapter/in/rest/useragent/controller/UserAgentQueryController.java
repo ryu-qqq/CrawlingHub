@@ -3,13 +3,16 @@ package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
+import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentByIdUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentPoolStatusUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentsUseCase;
 import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
@@ -25,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,6 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAgentQueryController {
 
     private final GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
+    private final GetUserAgentByIdUseCase getUserAgentByIdUseCase;
     private final GetUserAgentsUseCase getUserAgentsUseCase;
     private final UserAgentApiMapper userAgentApiMapper;
 
@@ -75,14 +80,17 @@ public class UserAgentQueryController {
      * UserAgentQueryController 생성자
      *
      * @param getUserAgentPoolStatusUseCase UserAgent Pool 상태 조회 UseCase
+     * @param getUserAgentByIdUseCase UserAgent 단건 조회 UseCase
      * @param getUserAgentsUseCase UserAgent 목록 조회 UseCase
      * @param userAgentApiMapper UserAgent API Mapper
      */
     public UserAgentQueryController(
             GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase,
+            GetUserAgentByIdUseCase getUserAgentByIdUseCase,
             GetUserAgentsUseCase getUserAgentsUseCase,
             UserAgentApiMapper userAgentApiMapper) {
         this.getUserAgentPoolStatusUseCase = getUserAgentPoolStatusUseCase;
+        this.getUserAgentByIdUseCase = getUserAgentByIdUseCase;
         this.getUserAgentsUseCase = getUserAgentsUseCase;
         this.userAgentApiMapper = userAgentApiMapper;
     }
@@ -235,6 +243,91 @@ public class UserAgentQueryController {
                 PageApiResponse.from(useCaseResponse, userAgentApiMapper::toSummaryApiResponse);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    /**
+     * UserAgent 단건 상세 조회
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: GET
+     *   <li>Path: /api/v1/crawling/user-agents/{userAgentId}
+     *   <li>Status: 200 OK
+     * </ul>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "id": 1,
+     *     "userAgentValue": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
+     *     "deviceType": "DESKTOP",
+     *     "status": "AVAILABLE",
+     *     "healthScore": 85,
+     *     "requestsPerDay": 150,
+     *     "lastUsedAt": "2025-01-15T10:30:00Z",
+     *     "createdAt": "2025-01-01T00:00:00Z",
+     *     "updatedAt": "2025-01-15T10:30:00Z",
+     *     "poolInfo": {
+     *       "isInPool": true,
+     *       "remainingTokens": 45,
+     *       "hasValidSession": true,
+     *       "sessionExpiresAt": "2025-01-15T11:30:00Z"
+     *     }
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-01-15T10:35:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @param userAgentId UserAgent ID
+     * @return UserAgent 상세 정보 (200 OK)
+     */
+    @GetMapping(ApiPaths.UserAgents.BY_ID)
+    @PreAuthorize("@access.hasPermission('useragent:read')")
+    @Operation(
+            summary = "UserAgent 단건 상세 조회",
+            description =
+                    "특정 UserAgent의 상세 정보를 조회합니다. Pool 상태 정보도 함께 반환됩니다. "
+                            + "useragent:read 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        UserAgentDetailApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:read 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "UserAgent를 찾을 수 없음")
+    })
+    public ResponseEntity<ApiResponse<UserAgentDetailApiResponse>> getUserAgentById(
+            @Parameter(description = "UserAgent ID", required = true, example = "1") @PathVariable
+                    Long userAgentId) {
+        // 1. UseCase 실행 (비즈니스 로직)
+        UserAgentDetailResponse useCaseResponse = getUserAgentByIdUseCase.execute(userAgentId);
+
+        // 2. UseCase Response → API Response 변환 (Mapper)
+        UserAgentDetailApiResponse apiResponse =
+                userAgentApiMapper.toDetailApiResponse(useCaseResponse);
+
+        // 3. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

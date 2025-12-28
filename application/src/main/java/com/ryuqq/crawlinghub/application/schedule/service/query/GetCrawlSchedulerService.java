@@ -82,7 +82,8 @@ public class GetCrawlSchedulerService implements SearchCrawlScheduleUseCase {
 
     private List<CrawlTask> findRecentTasks(CrawlSchedulerId schedulerId) {
         CrawlTaskCriteria criteria =
-                new CrawlTaskCriteria(schedulerId, null, null, 0, RECENT_TASKS_LIMIT);
+                new CrawlTaskCriteria(
+                        schedulerId, null, null, null, null, null, 0, RECENT_TASKS_LIMIT);
         return crawlTaskReadManager.findByCriteria(criteria);
     }
 

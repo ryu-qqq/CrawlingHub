@@ -5,10 +5,13 @@ import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.cralwinghub.domain.fixture.product.ProductImageOutboxFixture;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.adapter.ImageOutboxQueryAdapter;
+import com.ryuqq.crawlinghub.adapter.out.persistence.image.dto.ProductImageOutboxWithImageDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.mapper.ProductImageOutboxJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.repository.ProductImageOutboxQueryDslRepository;
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -235,5 +238,149 @@ class ImageOutboxQueryAdapterTest {
 
         // Then
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - 조건으로 ProductImageOutbox 검색")
+    void shouldSearchWithConditions() {
+        // Given
+        Long crawledProductImageId = 1L;
+        ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+        long offset = 0L;
+        int size = 20;
+        LocalDateTime now = LocalDateTime.now();
+        ProductImageOutboxJpaEntity entity =
+                ProductImageOutboxJpaEntity.of(
+                        1L,
+                        crawledProductImageId,
+                        "img-1-12345-abc123",
+                        status,
+                        0,
+                        null,
+                        now,
+                        null);
+        ProductImageOutbox domain = ProductImageOutboxFixture.aReconstitutedPending();
+
+        given(queryDslRepository.search(crawledProductImageId, status, offset, size))
+                .willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<ProductImageOutbox> result =
+                queryAdapter.search(crawledProductImageId, status, offset, size);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - 조건으로 ProductImageOutbox 개수 조회")
+    void shouldCountWithConditions() {
+        // Given
+        Long crawledProductImageId = 1L;
+        ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+        long expectedCount = 5L;
+
+        given(queryDslRepository.count(crawledProductImageId, status)).willReturn(expectedCount);
+
+        // When
+        long result = queryAdapter.count(crawledProductImageId, status);
+
+        // Then
+        assertThat(result).isEqualTo(expectedCount);
+    }
+
+    @Test
+    @DisplayName("성공 - 타임아웃된 PROCESSING 상태 ProductImageOutbox 조회")
+    void shouldFindTimedOutProcessingOutboxes() {
+        // Given
+        int timeoutSeconds = 300;
+        int limit = 10;
+        LocalDateTime now = LocalDateTime.now();
+        ProductImageOutboxJpaEntity entity =
+                ProductImageOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        "img-1-12345-abc123",
+                        ProductOutboxStatus.PROCESSING,
+                        0,
+                        null,
+                        now.minusMinutes(10),
+                        now.minusMinutes(10));
+        ProductImageOutbox domain = ProductImageOutboxFixture.aReconstitutedProcessing();
+
+        given(queryDslRepository.findTimedOutProcessingOutboxes(timeoutSeconds, limit))
+                .willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<ProductImageOutbox> result =
+                queryAdapter.findTimedOutProcessingOutboxes(timeoutSeconds, limit);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - 이미지 정보 포함 ProductImageOutbox 검색")
+    void shouldSearchWithImageInfo() {
+        // Given
+        Long crawledProductImageId = 100L;
+        ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+        long offset = 0L;
+        int size = 20;
+        LocalDateTime now = LocalDateTime.now();
+
+        ProductImageOutboxWithImageDto dto =
+                new ProductImageOutboxWithImageDto(
+                        1L,
+                        crawledProductImageId,
+                        "image-100-1234567890",
+                        status,
+                        0,
+                        null,
+                        now,
+                        null,
+                        50L,
+                        "https://example.com/image.jpg",
+                        "https://s3.example.com/image.jpg",
+                        ImageType.THUMBNAIL);
+
+        given(queryDslRepository.searchWithImageInfo(crawledProductImageId, status, offset, size))
+                .willReturn(List.of(dto));
+
+        // When
+        List<ProductImageOutboxWithImageResponse> result =
+                queryAdapter.searchWithImageInfo(crawledProductImageId, status, offset, size);
+
+        // Then
+        assertThat(result).hasSize(1);
+        ProductImageOutboxWithImageResponse response = result.get(0);
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.crawledProductImageId()).isEqualTo(crawledProductImageId);
+        assertThat(response.crawledProductId()).isEqualTo(50L);
+        assertThat(response.originalUrl()).isEqualTo("https://example.com/image.jpg");
+        assertThat(response.s3Url()).isEqualTo("https://s3.example.com/image.jpg");
+        assertThat(response.imageType()).isEqualTo(ImageType.THUMBNAIL);
+    }
+
+    @Test
+    @DisplayName("성공 - 이미지 정보 포함 검색 (빈 결과)")
+    void shouldReturnEmptyWhenSearchWithImageInfoNoResults() {
+        // Given
+        Long crawledProductImageId = 999L;
+        ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+        long offset = 0L;
+        int size = 20;
+
+        given(queryDslRepository.searchWithImageInfo(crawledProductImageId, status, offset, size))
+                .willReturn(List.of());
+
+        // When
+        List<ProductImageOutboxWithImageResponse> result =
+                queryAdapter.searchWithImageInfo(crawledProductImageId, status, offset, size);
+
+        // Then
+        assertThat(result).isEmpty();
     }
 }

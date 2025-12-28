@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.image.repository;
 
+import static com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.QCrawledProductImageJpaEntity.crawledProductImageJpaEntity;
 import static com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.QProductImageOutboxJpaEntity.productImageOutboxJpaEntity;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.ryuqq.crawlinghub.adapter.out.persistence.image.dto.ProductImageOutboxWithImageDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.LocalDateTime;
@@ -240,6 +243,53 @@ public class ProductImageOutboxQueryDslRepository {
                         productImageOutboxJpaEntity.processedAt.lt(cutoffTime))
                 .orderBy(productImageOutboxJpaEntity.processedAt.asc())
                 .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * 조건으로 ImageOutbox 목록 검색 (이미지 정보 포함, 페이징)
+     *
+     * <p>CrawledProductImage와 LEFT JOIN하여 이미지 정보를 함께 반환합니다.
+     *
+     * @param crawledProductImageId CrawledProductImage ID (nullable)
+     * @param status 상태 (nullable)
+     * @param offset 오프셋
+     * @param size 페이지 크기
+     * @return Outbox + 이미지 정보 DTO 목록
+     */
+    public List<ProductImageOutboxWithImageDto> searchWithImageInfo(
+            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+        var query =
+                queryFactory
+                        .select(
+                                Projections.constructor(
+                                        ProductImageOutboxWithImageDto.class,
+                                        productImageOutboxJpaEntity.id,
+                                        productImageOutboxJpaEntity.crawledProductImageId,
+                                        productImageOutboxJpaEntity.idempotencyKey,
+                                        productImageOutboxJpaEntity.status,
+                                        productImageOutboxJpaEntity.retryCount,
+                                        productImageOutboxJpaEntity.errorMessage,
+                                        productImageOutboxJpaEntity.createdAt,
+                                        productImageOutboxJpaEntity.processedAt,
+                                        crawledProductImageJpaEntity.crawledProductId,
+                                        crawledProductImageJpaEntity.originalUrl,
+                                        crawledProductImageJpaEntity.s3Url,
+                                        crawledProductImageJpaEntity.imageType))
+                        .from(productImageOutboxJpaEntity)
+                        .leftJoin(crawledProductImageJpaEntity)
+                        .on(
+                                productImageOutboxJpaEntity.crawledProductImageId.eq(
+                                        crawledProductImageJpaEntity.id));
+
+        var condition = buildSearchCondition(crawledProductImageId, status);
+        if (condition != null) {
+            query = query.where(condition);
+        }
+
+        return query.orderBy(productImageOutboxJpaEntity.createdAt.desc())
+                .offset(offset)
+                .limit(size)
                 .fetch();
     }
 }
