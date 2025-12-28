@@ -89,4 +89,15 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     public long count(SearchCrawledProductsQuery query) {
         return queryDslRepository.count(query);
     }
+
+    /**
+     * 셀러별 CrawledProduct 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 해당 셀러의 상품 개수
+     */
+    @Override
+    public long countBySellerId(SellerId sellerId) {
+        return queryDslRepository.countBySellerId(sellerId.value());
+    }
 }

@@ -1,0 +1,20 @@
+[[resources-webhook]]
+== Webhook API
+
+외부 시스템 Webhook 처리 API입니다.
+
+[[resources-webhook-image-upload]]
+=== 이미지 업로드 완료 Webhook
+
+`POST /api/v1/webhook/image-upload`
+
+Fileflow에서 이미지 업로드 완료 시 호출되는 Webhook입니다.
+
+operation::webhook/image-upload-success[snippets='request-fields,response-fields,http-request,http-response']
+
+[[resources-webhook-image-upload-failure]]
+=== 이미지 업로드 완료 Webhook (실패 케이스)
+
+`POST /api/v1/webhook/image-upload` (처리 실패 시)
+
+operation::webhook/image-upload-failure[snippets='request-fields,response-fields,http-request,http-response']

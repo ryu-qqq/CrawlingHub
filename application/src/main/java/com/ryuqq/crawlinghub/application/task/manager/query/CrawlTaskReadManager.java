@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.task.manager.query;
 
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
@@ -93,5 +94,26 @@ public class CrawlTaskReadManager {
     public Map<CrawlTaskType, CrawlTaskQueryPort.TaskTypeCount> countByTaskType(
             CrawlTaskStatisticsCriteria criteria) {
         return crawlTaskQueryPort.countByTaskType(criteria);
+    }
+
+    /**
+     * 셀러별 최근 태스크 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 최근 태스크 (Optional)
+     */
+    public Optional<CrawlTask> findLatestBySellerId(SellerId sellerId) {
+        return crawlTaskQueryPort.findLatestBySellerId(sellerId);
+    }
+
+    /**
+     * 셀러별 최근 태스크 N개 조회
+     *
+     * @param sellerId 셀러 ID
+     * @param limit 조회할 개수
+     * @return 최근 태스크 리스트 (생성일시 내림차순)
+     */
+    public List<CrawlTask> findRecentBySellerId(SellerId sellerId, int limit) {
+        return crawlTaskQueryPort.findRecentBySellerId(sellerId, limit);
     }
 }

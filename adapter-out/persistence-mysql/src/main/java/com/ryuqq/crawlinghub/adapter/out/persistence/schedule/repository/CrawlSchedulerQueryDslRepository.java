@@ -147,6 +147,56 @@ public class CrawlSchedulerQueryDslRepository {
     }
 
     /**
+     * 셀러 ID로 전체 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 전체 스케줄러 개수
+     */
+    public long countBySellerId(Long sellerId) {
+        Long count =
+                queryFactory
+                        .select(qScheduler.count())
+                        .from(qScheduler)
+                        .where(qScheduler.sellerId.eq(sellerId))
+                        .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * 셀러 ID로 활성 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 활성 스케줄러 개수
+     */
+    public long countActiveSchedulersBySellerId(Long sellerId) {
+        Long count =
+                queryFactory
+                        .select(qScheduler.count())
+                        .from(qScheduler)
+                        .where(
+                                qScheduler.sellerId.eq(sellerId),
+                                qScheduler.status.eq(SchedulerStatus.ACTIVE))
+                        .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * 셀러 ID로 전체 스케줄러 목록 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 스케줄러 목록 (생성일시 내림차순)
+     */
+    public List<CrawlSchedulerJpaEntity> findBySellerId(Long sellerId) {
+        return queryFactory
+                .selectFrom(qScheduler)
+                .where(qScheduler.sellerId.eq(sellerId))
+                .orderBy(qScheduler.createdAt.desc())
+                .fetch();
+    }
+
+    /**
      * 검색 조건 구성 (Private 헬퍼 메서드)
      *
      * <p>BooleanExpression을 사용하여 동적 쿼리를 구성합니다.

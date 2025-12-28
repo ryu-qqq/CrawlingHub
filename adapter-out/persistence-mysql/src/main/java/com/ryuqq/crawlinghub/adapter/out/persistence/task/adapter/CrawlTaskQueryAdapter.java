@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskQueryDslRepository;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
@@ -125,5 +126,30 @@ public class CrawlTaskQueryAdapter implements CrawlTaskQueryPort {
     @Override
     public Map<CrawlTaskType, TaskTypeCount> countByTaskType(CrawlTaskStatisticsCriteria criteria) {
         return queryDslRepository.countByTaskType(criteria);
+    }
+
+    /**
+     * 셀러별 최근 태스크 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 최근 태스크 (Optional)
+     */
+    @Override
+    public Optional<CrawlTask> findLatestBySellerId(SellerId sellerId) {
+        return queryDslRepository.findLatestBySellerId(sellerId.value()).map(mapper::toDomain);
+    }
+
+    /**
+     * 셀러별 최근 태스크 N개 조회
+     *
+     * @param sellerId 셀러 ID
+     * @param limit 조회할 개수
+     * @return 최근 태스크 리스트 (생성일시 내림차순)
+     */
+    @Override
+    public List<CrawlTask> findRecentBySellerId(SellerId sellerId, int limit) {
+        List<CrawlTaskJpaEntity> entities =
+                queryDslRepository.findRecentBySellerId(sellerId.value(), limit);
+        return entities.stream().map(mapper::toDomain).toList();
     }
 }

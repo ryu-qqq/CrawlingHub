@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.outbox.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -16,10 +17,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.OutboxApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.RepublishResultApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.mapper.OutboxApiMapper;
+import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.OutboxResponse;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.RepublishResultResponse;
 import com.ryuqq.crawlinghub.application.outbox.port.in.command.RepublishOutboxUseCase;
@@ -41,7 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * <p>검증 범위:
  *
  * <ul>
- *   <li>Outbox 목록 조회 API 문서화
+ *   <li>Outbox 목록 조회 API 문서화 (페이징)
  *   <li>Outbox 재발행 API 문서화
  * </ul>
  *
@@ -61,7 +64,7 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private OutboxApiMapper outboxApiMapper;
 
     @Test
-    @DisplayName("GET /api/v1/crawling/outbox - Outbox 목록 조회 API 문서")
+    @DisplayName("GET /api/v1/crawling/outbox - Outbox 목록 조회 API 문서 (페이징)")
     void getOutboxList() throws Exception {
         // given
         Instant now = Instant.now();
@@ -78,6 +81,9 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
                         now.minusSeconds(3600),
                         now);
 
+        PageResponse<OutboxResponse> pageResponse =
+                new PageResponse<>(List.of(response1, response2), 0, 20, 2, 1, true, true);
+
         OutboxApiResponse apiResponse1 =
                 new OutboxApiResponse(1L, "outbox-1-abc12345", "PENDING", 0, now.toString(), null);
 
@@ -90,20 +96,24 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
                         now.minusSeconds(3600).toString(),
                         now.toString());
 
-        given(getOutboxListUseCase.execute(any())).willReturn(List.of(response1, response2));
-        given(outboxApiMapper.toQuery(any(), any(Integer.class))).willReturn(null);
-        given(outboxApiMapper.toApiResponse(response1)).willReturn(apiResponse1);
-        given(outboxApiMapper.toApiResponse(response2)).willReturn(apiResponse2);
+        PageApiResponse<OutboxApiResponse> apiPageResponse =
+                new PageApiResponse<>(List.of(apiResponse1, apiResponse2), 0, 20, 2, 1, true, true);
+
+        given(outboxApiMapper.toQuery(any(), anyInt(), anyInt())).willReturn(null);
+        given(getOutboxListUseCase.execute(any())).willReturn(pageResponse);
+        given(outboxApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
         // when & then
         mockMvc.perform(
                         get("/api/v1/crawling/outbox")
                                 .param("status", "FAILED")
-                                .param("limit", "100"))
+                                .param("page", "0")
+                                .param("size", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(2))
+                .andExpect(jsonPath("$.data.totalElements").value(2))
                 .andDo(
                         document(
                                 "outbox/get-list",
@@ -112,35 +122,59 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("status")
                                                 .description("상태 필터 (PENDING, FAILED, SENT) (선택)")
                                                 .optional(),
-                                        parameterWithName("limit")
-                                                .description("조회 개수 제한 (기본값: 100, 최대: 500)")
+                                        parameterWithName("page")
+                                                .description("페이지 번호 (0부터 시작, 기본값: 0)")
+                                                .optional(),
+                                        parameterWithName("size")
+                                                .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
                                         fieldWithPath("success")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("성공 여부"),
                                         fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("페이징 응답 데이터"),
+                                        fieldWithPath("data.content")
                                                 .type(JsonFieldType.ARRAY)
                                                 .description("Outbox 목록"),
-                                        fieldWithPath("data[].crawlTaskId")
+                                        fieldWithPath("data.content[].crawlTaskId")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("Task ID"),
-                                        fieldWithPath("data[].idempotencyKey")
+                                        fieldWithPath("data.content[].idempotencyKey")
                                                 .type(JsonFieldType.STRING)
                                                 .description("멱등성 키"),
-                                        fieldWithPath("data[].status")
+                                        fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
                                                 .description("상태 (PENDING, FAILED, SENT)"),
-                                        fieldWithPath("data[].retryCount")
+                                        fieldWithPath("data.content[].retryCount")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("재시도 횟수"),
-                                        fieldWithPath("data[].createdAt")
+                                        fieldWithPath("data.content[].createdAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("생성 시각"),
-                                        fieldWithPath("data[].processedAt")
+                                        fieldWithPath("data.content[].processedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("처리 시각")
                                                 .optional(),
+                                        fieldWithPath("data.page")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("현재 페이지 번호"),
+                                        fieldWithPath("data.size")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("페이지 크기"),
+                                        fieldWithPath("data.totalElements")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("전체 데이터 개수"),
+                                        fieldWithPath("data.totalPages")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("전체 페이지 수"),
+                                        fieldWithPath("data.first")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("첫 페이지 여부"),
+                                        fieldWithPath("data.last")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("마지막 페이지 여부"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

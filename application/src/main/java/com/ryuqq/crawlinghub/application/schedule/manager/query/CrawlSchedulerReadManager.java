@@ -78,4 +78,34 @@ public class CrawlSchedulerReadManager {
     public List<CrawlScheduler> findActiveSchedulersBySellerId(SellerId sellerId) {
         return crawlScheduleQueryPort.findActiveSchedulersBySellerId(sellerId);
     }
+
+    /**
+     * 셀러별 전체 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 전체 스케줄러 개수
+     */
+    public long countBySellerId(SellerId sellerId) {
+        return crawlScheduleQueryPort.countBySellerId(sellerId);
+    }
+
+    /**
+     * 셀러별 활성 스케줄러 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 활성 스케줄러 개수
+     */
+    public long countActiveSchedulersBySellerId(SellerId sellerId) {
+        return crawlScheduleQueryPort.countActiveSchedulersBySellerId(sellerId);
+    }
+
+    /**
+     * 셀러별 전체 스케줄러 목록 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 스케줄러 목록 (생성일시 내림차순)
+     */
+    public List<CrawlScheduler> findBySellerId(SellerId sellerId) {
+        return crawlScheduleQueryPort.findBySellerId(sellerId);
+    }
 }

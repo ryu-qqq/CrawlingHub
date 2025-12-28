@@ -1,0 +1,29 @@
+[[resources-outbox]]
+== Outbox API
+
+크롤 태스크 Outbox 관리 API입니다.
+
+[[resources-outbox-list]]
+=== Outbox 목록 조회
+
+`GET /api/v1/crawling/outbox`
+
+크롤 태스크 Outbox 목록을 조회합니다.
+
+operation::outbox/get-list[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-outbox-republish]]
+=== Outbox 재발행
+
+`POST /api/v1/crawling/outbox/{crawlTaskId}/republish`
+
+Outbox 메시지를 재발행합니다.
+
+operation::outbox/republish[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-outbox-republish-failure]]
+=== Outbox 재발행 (실패 케이스)
+
+`POST /api/v1/crawling/outbox/{crawlTaskId}/republish` (존재하지 않는 경우)
+
+operation::outbox/republish-failure[snippets='path-parameters,response-fields,http-request,http-response']

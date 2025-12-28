@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.port.in.query;
 
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 
 /**
  * Get Seller Use Case
@@ -19,7 +19,7 @@ public interface GetSellerUseCase {
      * 셀러 단건 조회 실행
      *
      * @param query 조회 쿼리 (sellerId)
-     * @return 셀러 상세 정보
+     * @return 셀러 상세 정보 (스케줄러, 최근 태스크, 통계 포함)
      */
-    SellerResponse execute(GetSellerQuery query);
+    SellerDetailResponse execute(GetSellerQuery query);
 }

@@ -1,0 +1,40 @@
+[[resources-crawled-product]]
+== CrawledProduct API
+
+크롤링된 상품 관리 API입니다.
+
+[[resources-crawled-product-search]]
+=== 크롤링 상품 목록 조회
+
+`GET /api/v1/crawling/crawled-products`
+
+크롤링된 상품 목록을 페이징 및 필터링하여 조회합니다.
+
+operation::crawled-product-query/search[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-crawled-product-detail]]
+=== 크롤링 상품 상세 조회
+
+`GET /api/v1/crawling/crawled-products/{id}`
+
+특정 크롤링 상품의 상세 정보를 조회합니다.
+
+operation::crawled-product-query/detail[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-crawled-product-sync]]
+=== 수동 동기화 트리거
+
+`POST /api/v1/crawling/crawled-products/{id}/sync`
+
+크롤링된 상품을 수동으로 외부 시스템에 동기화합니다.
+
+operation::crawled-product-command/trigger-manual-sync[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-crawled-product-sync-update]]
+=== 수동 동기화 트리거 (업데이트)
+
+`POST /api/v1/crawling/crawled-products/{id}/sync` (기존 상품 업데이트)
+
+이미 동기화된 상품을 다시 동기화하여 업데이트합니다.
+
+operation::crawled-product-command/trigger-manual-sync-update[snippets='path-parameters,response-fields,http-request,http-response']
