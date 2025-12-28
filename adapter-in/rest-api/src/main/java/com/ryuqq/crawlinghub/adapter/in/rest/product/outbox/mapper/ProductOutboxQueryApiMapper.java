@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response.Product
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.query.SearchProductImageOutboxQuery;
 import com.ryuqq.crawlinghub.application.product.dto.query.SearchProductSyncOutboxQuery;
-import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxResponse;
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductSyncOutboxResponse;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import org.springframework.stereotype.Component;
@@ -64,13 +64,13 @@ public class ProductOutboxQueryApiMapper {
     }
 
     /**
-     * ImageOutbox PageResponse를 PageApiResponse로 변환
+     * ImageOutbox PageResponse를 PageApiResponse로 변환 (이미지 정보 포함)
      *
      * @param pageResponse Application PageResponse
      * @return API PageApiResponse
      */
     public PageApiResponse<ProductImageOutboxApiResponse> toImagePageApiResponse(
-            PageResponse<ProductImageOutboxResponse> pageResponse) {
+            PageResponse<ProductImageOutboxWithImageResponse> pageResponse) {
         return PageApiResponse.from(pageResponse, ProductImageOutboxApiResponse::from);
     }
 

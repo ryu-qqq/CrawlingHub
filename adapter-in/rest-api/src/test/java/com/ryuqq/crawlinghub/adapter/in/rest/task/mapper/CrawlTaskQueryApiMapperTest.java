@@ -52,7 +52,8 @@ class CrawlTaskQueryApiMapperTest {
         void toQuery_WithAllFields_ShouldConvertCorrectly() {
             // given
             SearchCrawlTasksApiRequest request =
-                    new SearchCrawlTasksApiRequest(1L, 100L, "RUNNING", "MINI_SHOP", 0, 20);
+                    new SearchCrawlTasksApiRequest(
+                            1L, 100L, "RUNNING", "MINI_SHOP", null, null, 0, 20);
 
             // when
             ListCrawlTasksQuery result = mapper.toQuery(request);
@@ -69,7 +70,7 @@ class CrawlTaskQueryApiMapperTest {
         void toQuery_WithNullStatus_ShouldConvertWithNullStatus() {
             // given
             SearchCrawlTasksApiRequest request =
-                    new SearchCrawlTasksApiRequest(1L, null, null, null, 0, 20);
+                    new SearchCrawlTasksApiRequest(1L, null, null, null, null, null, 0, 20);
 
             // when
             ListCrawlTasksQuery result = mapper.toQuery(request);
@@ -83,7 +84,7 @@ class CrawlTaskQueryApiMapperTest {
         void toQuery_WithBlankStatus_ShouldConvertWithNullStatus() {
             // given
             SearchCrawlTasksApiRequest request =
-                    new SearchCrawlTasksApiRequest(1L, null, "  ", null, 0, 20);
+                    new SearchCrawlTasksApiRequest(1L, null, "  ", null, null, null, 0, 20);
 
             // when
             ListCrawlTasksQuery result = mapper.toQuery(request);

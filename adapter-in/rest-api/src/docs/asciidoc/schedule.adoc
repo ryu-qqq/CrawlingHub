@@ -46,3 +46,12 @@ operation::schedule-command/trigger[snippets='path-parameters,response-fields,ht
 `GET /api/v1/crawling/schedules`
 
 operation::schedule-query/list[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-schedule-detail]]
+=== 스케줄러 상세 조회
+
+`GET /api/v1/crawling/schedules/{crawlSchedulerId}`
+
+크롤 스케줄러의 상세 정보를 조회합니다. 셀러 정보, 실행 정보, 통계, 최근 태스크 목록을 포함합니다.
+
+operation::schedule-query/detail[snippets='path-parameters,response-fields,http-request,http-response']

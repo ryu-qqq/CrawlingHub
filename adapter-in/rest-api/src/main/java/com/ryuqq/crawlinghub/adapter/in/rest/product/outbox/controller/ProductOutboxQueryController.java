@@ -11,7 +11,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.mapper.ProductOutbox
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.query.SearchProductImageOutboxQuery;
 import com.ryuqq.crawlinghub.application.product.dto.query.SearchProductSyncOutboxQuery;
-import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxResponse;
+import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductSyncOutboxResponse;
 import com.ryuqq.crawlinghub.application.product.port.in.query.SearchProductImageOutboxUseCase;
 import com.ryuqq.crawlinghub.application.product.port.in.query.SearchProductSyncOutboxUseCase;
@@ -137,7 +137,7 @@ public class ProductOutboxQueryController {
     public ResponseEntity<ApiResponse<PageApiResponse<ProductImageOutboxApiResponse>>>
             searchImageOutbox(@ModelAttribute @Valid SearchProductImageOutboxApiRequest request) {
         SearchProductImageOutboxQuery query = mapper.toImageQuery(request);
-        PageResponse<ProductImageOutboxResponse> useCaseResponse =
+        PageResponse<ProductImageOutboxWithImageResponse> useCaseResponse =
                 searchImageOutboxUseCase.execute(query);
         PageApiResponse<ProductImageOutboxApiResponse> apiPageResponse =
                 mapper.toImagePageApiResponse(useCaseResponse);
