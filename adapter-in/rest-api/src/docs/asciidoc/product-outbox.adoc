@@ -1,0 +1,40 @@
+[[resources-product-outbox]]
+== ProductOutbox API
+
+상품 동기화 및 이미지 업로드 Outbox 관리 API입니다.
+
+[[resources-product-outbox-sync-search]]
+=== 상품 동기화 Outbox 목록 조회
+
+`GET /api/v1/crawling/product-outbox/sync`
+
+상품 동기화 Outbox 목록을 페이징하여 조회합니다.
+
+operation::product-outbox-query/search-sync[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-product-outbox-image-search]]
+=== 이미지 업로드 Outbox 목록 조회
+
+`GET /api/v1/crawling/product-outbox/image`
+
+이미지 업로드 Outbox 목록을 페이징하여 조회합니다.
+
+operation::product-outbox-query/search-image[snippets='query-parameters,response-fields,http-request,http-response']
+
+[[resources-product-outbox-sync-retry]]
+=== 상품 동기화 Outbox 재시도
+
+`POST /api/v1/crawling/product-outbox/sync/{id}/retry`
+
+실패한 상품 동기화 Outbox를 재시도합니다.
+
+operation::product-outbox-command/retry-sync[snippets='path-parameters,response-fields,http-request,http-response']
+
+[[resources-product-outbox-image-retry]]
+=== 이미지 업로드 Outbox 재시도
+
+`POST /api/v1/crawling/product-outbox/image/{id}/retry`
+
+실패한 이미지 업로드 Outbox를 재시도합니다.
+
+operation::product-outbox-command/retry-image[snippets='path-parameters,response-fields,http-request,http-response']

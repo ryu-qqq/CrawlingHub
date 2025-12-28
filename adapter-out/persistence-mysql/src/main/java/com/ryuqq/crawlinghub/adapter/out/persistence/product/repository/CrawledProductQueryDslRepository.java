@@ -167,6 +167,23 @@ public class CrawledProductQueryDslRepository {
     }
 
     /**
+     * 셀러별 CrawledProduct 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 해당 셀러의 상품 개수
+     */
+    public long countBySellerId(long sellerId) {
+        Long count =
+                queryFactory
+                        .select(crawledProductJpaEntity.count())
+                        .from(crawledProductJpaEntity)
+                        .where(crawledProductJpaEntity.sellerId.eq(sellerId))
+                        .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    /**
      * 검색 조건 BooleanBuilder 생성
      *
      * @param query 검색 조건

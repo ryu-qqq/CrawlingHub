@@ -43,6 +43,12 @@ public class SellerQueryFactory {
                 query.sellerName() != null ? SellerName.of(query.sellerName()) : null;
 
         return new SellerQueryCriteria(
-                mustItSellerName, sellerName, query.sellerStatus(), query.page(), query.size());
+                mustItSellerName,
+                sellerName,
+                query.sellerStatus(),
+                query.createdFrom(),
+                query.createdTo(),
+                query.page(),
+                query.size());
     }
 }

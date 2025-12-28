@@ -3,12 +3,23 @@ package com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.query.SearchCrawlSchedulersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse.ExecutionInfoApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse.SchedulerStatisticsApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse.SellerSummaryApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse.TaskSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerSummaryApiResponse;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerDetailResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.ExecutionInfo;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.SchedulerStatistics;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.SellerSummaryForScheduler;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.TaskSummaryForScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -104,6 +115,74 @@ public class CrawlSchedulerQueryApiMapper {
     public PageApiResponse<CrawlSchedulerSummaryApiResponse> toPageApiResponse(
             PageResponse<CrawlSchedulerResponse> appPageResponse) {
         return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+    }
+
+    /**
+     * CrawlSchedulerDetailResponse → CrawlSchedulerDetailApiResponse 변환
+     *
+     * @param appDetailResponse Application Layer 스케줄러 상세 응답
+     * @return REST API 스케줄러 상세 응답
+     */
+    public CrawlSchedulerDetailApiResponse toDetailApiResponse(
+            CrawlSchedulerDetailResponse appDetailResponse) {
+        return new CrawlSchedulerDetailApiResponse(
+                appDetailResponse.crawlSchedulerId(),
+                appDetailResponse.schedulerName(),
+                appDetailResponse.cronExpression(),
+                appDetailResponse.status().name(),
+                toIsoString(appDetailResponse.createdAt()),
+                toIsoString(appDetailResponse.updatedAt()),
+                toSellerSummaryApiResponse(appDetailResponse.seller()),
+                toExecutionInfoApiResponse(appDetailResponse.execution()),
+                toStatisticsApiResponse(appDetailResponse.statistics()),
+                toTaskSummaryApiResponses(appDetailResponse.recentTasks()));
+    }
+
+    private SellerSummaryApiResponse toSellerSummaryApiResponse(SellerSummaryForScheduler seller) {
+        if (seller == null) {
+            return null;
+        }
+        return new SellerSummaryApiResponse(
+                seller.sellerId(), seller.sellerName(), seller.mustItSellerName());
+    }
+
+    private ExecutionInfoApiResponse toExecutionInfoApiResponse(ExecutionInfo execution) {
+        if (execution == null) {
+            return null;
+        }
+        return new ExecutionInfoApiResponse(
+                toIsoString(execution.nextExecutionTime()),
+                toIsoString(execution.lastExecutionTime()),
+                execution.lastExecutionStatus());
+    }
+
+    private SchedulerStatisticsApiResponse toStatisticsApiResponse(SchedulerStatistics statistics) {
+        if (statistics == null) {
+            return null;
+        }
+        return new SchedulerStatisticsApiResponse(
+                statistics.totalTasks(),
+                statistics.successTasks(),
+                statistics.failedTasks(),
+                statistics.successRate(),
+                statistics.avgDurationMs());
+    }
+
+    private List<TaskSummaryApiResponse> toTaskSummaryApiResponses(
+            List<TaskSummaryForScheduler> tasks) {
+        if (tasks == null) {
+            return List.of();
+        }
+        return tasks.stream().map(this::toTaskSummaryApiResponse).toList();
+    }
+
+    private TaskSummaryApiResponse toTaskSummaryApiResponse(TaskSummaryForScheduler task) {
+        return new TaskSummaryApiResponse(
+                task.taskId(),
+                task.status(),
+                task.taskType(),
+                toIsoString(task.createdAt()),
+                toIsoString(task.completedAt()));
     }
 
     /**

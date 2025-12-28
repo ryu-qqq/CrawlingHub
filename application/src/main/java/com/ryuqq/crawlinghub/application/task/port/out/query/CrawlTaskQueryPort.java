@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
@@ -79,4 +80,25 @@ public interface CrawlTaskQueryPort {
      * @return 태스크 유형별 통계 맵
      */
     Map<CrawlTaskType, TaskTypeCount> countByTaskType(CrawlTaskStatisticsCriteria criteria);
+
+    /**
+     * 셀러별 최근 태스크 조회
+     *
+     * <p>해당 셀러의 스케줄러에 속한 태스크 중 가장 최근 것을 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 최근 태스크 (Optional)
+     */
+    Optional<CrawlTask> findLatestBySellerId(SellerId sellerId);
+
+    /**
+     * 셀러별 최근 태스크 N개 조회
+     *
+     * <p>셀러 상세 조회 시 최근 태스크 목록을 표시하기 위해 사용
+     *
+     * @param sellerId 셀러 ID
+     * @param limit 조회할 개수
+     * @return 최근 태스크 리스트 (생성일시 내림차순)
+     */
+    List<CrawlTask> findRecentBySellerId(SellerId sellerId, int limit);
 }

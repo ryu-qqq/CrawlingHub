@@ -78,4 +78,12 @@ public interface CrawledProductQueryPort {
      * @return 총 개수
      */
     long count(SearchCrawledProductsQuery query);
+
+    /**
+     * 셀러별 CrawledProduct 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 해당 셀러의 상품 개수
+     */
+    long countBySellerId(SellerId sellerId);
 }

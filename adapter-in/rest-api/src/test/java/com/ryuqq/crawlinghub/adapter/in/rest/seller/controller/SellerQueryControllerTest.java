@@ -12,17 +12,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailStatisticsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerQueryApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -97,22 +100,33 @@ class SellerQueryControllerTest {
 
             GetSellerQuery query = new GetSellerQuery(sellerId);
 
-            SellerResponse useCaseResponse =
-                    new SellerResponse(
-                            sellerId, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now(), null);
+            SellerDetailResponse useCaseResponse =
+                    new SellerDetailResponse(
+                            sellerId,
+                            "머스트잇 테스트 셀러",
+                            "테스트 셀러",
+                            true,
+                            Instant.now(),
+                            null,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            SellerDetailStatistics.empty());
 
-            SellerApiResponse apiResponse =
-                    new SellerApiResponse(
+            SellerDetailApiResponse apiResponse =
+                    new SellerDetailApiResponse(
                             sellerId,
                             "머스트잇 테스트 셀러",
                             "테스트 셀러",
                             "ACTIVE",
                             Instant.now().toString(),
-                            null);
+                            null,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            new SellerDetailStatisticsApiResponse(0L, 0L, 0L, 0.0));
 
             given(sellerQueryApiMapper.toQuery(any(Long.class))).willReturn(query);
             given(getSellerUseCase.execute(any(GetSellerQuery.class))).willReturn(useCaseResponse);
-            given(sellerQueryApiMapper.toApiResponse(any(SellerResponse.class)))
+            given(sellerQueryApiMapper.toDetailApiResponse(any(SellerDetailResponse.class)))
                     .willReturn(apiResponse);
 
             // When & Then
@@ -126,12 +140,15 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.sellerName").value("테스트 셀러"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
                     .andExpect(jsonPath("$.data.createdAt").exists())
+                    .andExpect(jsonPath("$.data.schedulers").isArray())
+                    .andExpect(jsonPath("$.data.recentTasks").isArray())
+                    .andExpect(jsonPath("$.data.statistics").exists())
                     .andExpect(jsonPath("$.error").isEmpty());
 
             // UseCase 호출 검증
             verify(sellerQueryApiMapper).toQuery(any(Long.class));
             verify(getSellerUseCase).execute(any(GetSellerQuery.class));
-            verify(sellerQueryApiMapper).toApiResponse(any(SellerResponse.class));
+            verify(sellerQueryApiMapper).toDetailApiResponse(any(SellerDetailResponse.class));
         }
 
         /**
@@ -179,14 +196,35 @@ class SellerQueryControllerTest {
         @DisplayName("성공: 200 OK, 페이징 응답 구조 검증")
         void listSellers_Success() throws Exception {
             // Given
-            SearchSellersApiRequest request = new SearchSellersApiRequest("ACTIVE", 0, 20);
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 0, 20);
 
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
+            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
 
             List<SellerSummaryResponse> content =
                     List.of(
-                            new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()),
-                            new SellerSummaryResponse(2L, "머스트잇 셀러2", "셀러2", true, Instant.now()));
+                            new SellerSummaryResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L),
+                            new SellerSummaryResponse(
+                                    2L,
+                                    "머스트잇 셀러2",
+                                    "셀러2",
+                                    true,
+                                    Instant.now(),
+                                    1,
+                                    2,
+                                    "RUNNING",
+                                    Instant.now(),
+                                    30L));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 100L, 5, true, false);
@@ -238,10 +276,21 @@ class SellerQueryControllerTest {
         @DisplayName("성공: 기본 페이징 파라미터 (page=0, size=20)")
         void listSellers_DefaultPagination() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
+            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
 
             List<SellerSummaryResponse> content =
-                    List.of(new SellerSummaryResponse(1L, "머스트잇 셀러1", "셀러1", true, Instant.now()));
+                    List.of(
+                            new SellerSummaryResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    true,
+                                    Instant.now(),
+                                    2,
+                                    3,
+                                    "COMPLETED",
+                                    Instant.now(),
+                                    50L));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -275,10 +324,21 @@ class SellerQueryControllerTest {
         @DisplayName("성공: INACTIVE 상태 필터링")
         void listSellers_FilterByInactiveStatus() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
+            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
 
             List<SellerSummaryResponse> content =
-                    List.of(new SellerSummaryResponse(3L, "머스트잇 셀러3", "셀러3", false, Instant.now()));
+                    List.of(
+                            new SellerSummaryResponse(
+                                    3L,
+                                    "머스트잇 셀러3",
+                                    "셀러3",
+                                    false,
+                                    Instant.now(),
+                                    0,
+                                    1,
+                                    null,
+                                    null,
+                                    0L));
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
@@ -314,7 +374,7 @@ class SellerQueryControllerTest {
         @DisplayName("성공: 빈 결과 (content가 빈 배열)")
         void listSellers_EmptyResult() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, 0, 20);
+            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
 
             PageResponse<SellerSummaryResponse> useCasePageResponse =
                     new PageResponse<>(List.of(), 0, 20, 0L, 0, true, true);

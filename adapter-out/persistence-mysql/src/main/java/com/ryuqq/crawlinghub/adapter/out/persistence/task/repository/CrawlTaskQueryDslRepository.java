@@ -2,7 +2,9 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.task.repository;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QCrawlSchedulerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.QCrawlTaskJpaEntity;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
@@ -246,5 +248,53 @@ public class CrawlTaskQueryDslRepository {
             return null;
         }
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    /**
+     * 셀러 ID로 최근 태스크 조회
+     *
+     * <p>서브쿼리를 사용하여 해당 셀러의 스케줄러에 속한 태스크 중 가장 최근 것을 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 최근 태스크 (Optional)
+     */
+    public Optional<CrawlTaskJpaEntity> findLatestBySellerId(Long sellerId) {
+        QCrawlSchedulerJpaEntity qScheduler = QCrawlSchedulerJpaEntity.crawlSchedulerJpaEntity;
+
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(qTask)
+                        .where(
+                                qTask.crawlSchedulerId.in(
+                                        JPAExpressions.select(qScheduler.id)
+                                                .from(qScheduler)
+                                                .where(qScheduler.sellerId.eq(sellerId))))
+                        .orderBy(qTask.createdAt.desc())
+                        .limit(1)
+                        .fetchOne());
+    }
+
+    /**
+     * 셀러 ID로 최근 태스크 N개 조회
+     *
+     * <p>서브쿼리를 사용하여 해당 셀러의 스케줄러에 속한 태스크 중 최근 N개를 조회
+     *
+     * @param sellerId 셀러 ID
+     * @param limit 조회할 개수
+     * @return 최근 태스크 목록 (생성일시 내림차순)
+     */
+    public List<CrawlTaskJpaEntity> findRecentBySellerId(Long sellerId, int limit) {
+        QCrawlSchedulerJpaEntity qScheduler = QCrawlSchedulerJpaEntity.crawlSchedulerJpaEntity;
+
+        return queryFactory
+                .selectFrom(qTask)
+                .where(
+                        qTask.crawlSchedulerId.in(
+                                JPAExpressions.select(qScheduler.id)
+                                        .from(qScheduler)
+                                        .where(qScheduler.sellerId.eq(sellerId))))
+                .orderBy(qTask.createdAt.desc())
+                .limit(limit)
+                .fetch();
     }
 }

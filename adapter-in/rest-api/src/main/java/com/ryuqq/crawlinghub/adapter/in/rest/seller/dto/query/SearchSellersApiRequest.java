@@ -3,6 +3,8 @@ package com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
 
 /**
  * List Sellers API Request
@@ -12,20 +14,32 @@ import jakarta.validation.constraints.Pattern;
  * <p><strong>Validation 규칙:</strong>
  *
  * <ul>
+ *   <li>sellerName: 선택, 최대 100자 (부분 일치 검색)
+ *   <li>mustItSellerName: 선택, 최대 100자 (부분 일치 검색)
  *   <li>status: 선택, "ACTIVE" 또는 "INACTIVE"만 허용
+ *   <li>createdFrom: 선택, 생성일 시작 (ISO-8601 형식)
+ *   <li>createdTo: 선택, 생성일 종료 (ISO-8601 형식)
  *   <li>page: 최소 0 (기본값: 0)
  *   <li>size: 1-100 (기본값: 20)
  * </ul>
  *
+ * @param sellerName 셀러명 필터 (부분 일치 검색, 선택)
+ * @param mustItSellerName 머스트잇 셀러명 필터 (부분 일치 검색, 선택)
  * @param status 셀러 상태 필터 (선택)
+ * @param createdFrom 생성일 시작 (선택)
+ * @param createdTo 생성일 종료 (선택)
  * @param page 페이지 번호 (0부터 시작, 기본값: 0)
  * @param size 페이지 크기 (기본값: 20, 최대: 100)
  * @author development-team
  * @since 1.0.0
  */
 public record SearchSellersApiRequest(
+        @Size(max = 100, message = "셀러명은 최대 100자까지 허용됩니다") String sellerName,
+        @Size(max = 100, message = "머스트잇 셀러명은 최대 100자까지 허용됩니다") String mustItSellerName,
         @Pattern(regexp = "^(ACTIVE|INACTIVE)?$", message = "상태값은 ACTIVE 또는 INACTIVE만 허용됩니다")
                 String status,
+        Instant createdFrom,
+        Instant createdTo,
         @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다") Integer page,
         @Min(value = 1, message = "페이지 크기는 최소 1이어야 합니다")
                 @Max(value = 100, message = "페이지 크기는 최대 100까지 허용됩니다")

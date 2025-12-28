@@ -19,6 +19,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedule
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper.CrawlSchedulerQueryApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlScheduleUseCase;
 import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulesUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
@@ -42,6 +43,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase;
+
+    @MockitoBean private SearchCrawlScheduleUseCase searchCrawlScheduleUseCase;
 
     @MockitoBean private CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper;
 
