@@ -186,6 +186,7 @@ class UpdateUserAgentStatusServiceTest {
 
             // Then
             assertThat(result).isEqualTo(1);
+            then(transactionManager).should().persistAll(userAgentsCaptor.capture());
             then(cacheManager).should().warmUp(any());
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
@@ -312,9 +313,11 @@ class UpdateUserAgentStatusServiceTest {
 
     /** 테스트용 UserAgent 생성 */
     private UserAgent createUserAgent(long id, UserAgentStatus status) {
+        // Token은 최소 44자 이상 + 유효한 Base64 형식이어야 함
+        String token = "dGVzdC10b2tlbi12YWx1ZS1mb3ItdGVzdGluZy1wdXJwb3NlLTEyMzQ1";
         return UserAgent.reconstitute(
                 UserAgentId.of(id),
-                Token.of("encrypted-token-" + id),
+                Token.of(token),
                 UserAgentString.of("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
                 DeviceType.of(DeviceType.Type.DESKTOP),
                 status,
