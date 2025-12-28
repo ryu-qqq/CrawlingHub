@@ -5,6 +5,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.QSellerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -198,20 +201,21 @@ public class SellerQueryDslRepository {
     private BooleanExpression buildSearchConditions(SellerQueryCriteria criteria) {
         BooleanExpression expression = null;
 
-        // 조건 1: 머스트잇 셀러명
+        // 조건 1: 머스트잇 셀러명 (부분 일치 검색)
         if (criteria.mustItSellerName() != null) {
             BooleanExpression mustItSellerNameCondition =
-                    qSeller.mustItSellerName.eq(criteria.mustItSellerName().value());
+                    qSeller.mustItSellerName.containsIgnoreCase(
+                            criteria.mustItSellerName().value());
             expression =
                     expression != null
                             ? expression.and(mustItSellerNameCondition)
                             : mustItSellerNameCondition;
         }
 
-        // 조건 2: 셀러명
+        // 조건 2: 셀러명 (부분 일치 검색)
         if (criteria.sellerName() != null) {
             BooleanExpression sellerNameCondition =
-                    qSeller.sellerName.eq(criteria.sellerName().value());
+                    qSeller.sellerName.containsIgnoreCase(criteria.sellerName().value());
             expression =
                     expression != null ? expression.and(sellerNameCondition) : sellerNameCondition;
         }
@@ -222,6 +226,36 @@ public class SellerQueryDslRepository {
             expression = expression != null ? expression.and(statusCondition) : statusCondition;
         }
 
+        // 조건 4: 생성일 시작
+        if (criteria.createdFrom() != null) {
+            LocalDateTime createdFromDateTime = toLocalDateTime(criteria.createdFrom());
+            BooleanExpression createdFromCondition = qSeller.createdAt.goe(createdFromDateTime);
+            expression =
+                    expression != null
+                            ? expression.and(createdFromCondition)
+                            : createdFromCondition;
+        }
+
+        // 조건 5: 생성일 종료
+        if (criteria.createdTo() != null) {
+            LocalDateTime createdToDateTime = toLocalDateTime(criteria.createdTo());
+            BooleanExpression createdToCondition = qSeller.createdAt.loe(createdToDateTime);
+            expression =
+                    expression != null ? expression.and(createdToCondition) : createdToCondition;
+        }
+
         return expression;
+    }
+
+    /**
+     * Instant → LocalDateTime 변환
+     *
+     * <p>Domain Layer의 Instant를 Persistence Layer의 LocalDateTime으로 변환
+     *
+     * @param instant 변환할 Instant
+     * @return 서울 시간대 기준 LocalDateTime
+     */
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
     }
 }

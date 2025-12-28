@@ -4,13 +4,13 @@ import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerQueryApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
 import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
 import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
@@ -72,7 +72,7 @@ public class SellerQueryController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SellerApiResponse.class))),
+                                schema = @Schema(implementation = SellerDetailApiResponse.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "401",
                 description = "인증 실패"),
@@ -83,14 +83,15 @@ public class SellerQueryController {
                 responseCode = "404",
                 description = "셀러를 찾을 수 없음")
     })
-    public ResponseEntity<ApiResponse<SellerApiResponse>> getSeller(
+    public ResponseEntity<ApiResponse<SellerDetailApiResponse>> getSeller(
             @Parameter(description = "셀러 ID", required = true, example = "1")
                     @PathVariable
                     @Positive
                     Long id) {
         GetSellerQuery query = sellerQueryApiMapper.toQuery(id);
-        SellerResponse useCaseResponse = getSellerUseCase.execute(query);
-        SellerApiResponse apiResponse = sellerQueryApiMapper.toApiResponse(useCaseResponse);
+        SellerDetailResponse useCaseResponse = getSellerUseCase.execute(query);
+        SellerDetailApiResponse apiResponse =
+                sellerQueryApiMapper.toDetailApiResponse(useCaseResponse);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 

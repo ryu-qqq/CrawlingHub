@@ -73,4 +73,17 @@ public class CrawlTaskOutboxQueryAdapter implements CrawlTaskOutboxQueryPort {
         List<CrawlTaskOutboxJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
         return entities.stream().map(mapper::toDomain).toList();
     }
+
+    /**
+     * 조건에 맞는 Outbox 개수 조회
+     *
+     * <p>페이징 처리를 위한 전체 개수 조회에 사용됩니다.
+     *
+     * @param criteria 조회 조건 (CrawlTaskOutboxCriteria)
+     * @return 조건에 맞는 Outbox 개수
+     */
+    @Override
+    public long countByCriteria(CrawlTaskOutboxCriteria criteria) {
+        return queryDslRepository.countByCriteria(criteria);
+    }
 }

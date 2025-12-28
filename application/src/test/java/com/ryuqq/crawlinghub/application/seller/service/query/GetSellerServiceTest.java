@@ -7,14 +7,21 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
+import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
 import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
 import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +45,10 @@ class GetSellerServiceTest {
 
     @Mock private SellerReadManager sellerReadManager;
 
+    @Mock private CrawlSchedulerReadManager crawlSchedulerReadManager;
+
+    @Mock private CrawlTaskReadManager crawlTaskReadManager;
+
     @Mock private SellerAssembler sellerAssembler;
 
     @InjectMocks private GetSellerService service;
@@ -47,26 +58,48 @@ class GetSellerServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 존재하는 셀러 조회 시 SellerResponse 반환")
-        void shouldReturnSellerResponseWhenSellerExists() {
+        @DisplayName("[성공] 존재하는 셀러 조회 시 SellerDetailResponse 반환")
+        void shouldReturnSellerDetailResponseWhenSellerExists() {
             // Given
             Long sellerId = 1L;
             GetSellerQuery query = new GetSellerQuery(sellerId);
             Seller seller = SellerFixture.anActiveSeller();
             Instant now = Instant.now();
-            SellerResponse expectedResponse =
-                    new SellerResponse(sellerId, "mustit-seller", "seller-name", true, now, now);
+            List<CrawlScheduler> schedulers = Collections.emptyList();
+            List<CrawlTask> recentTasks = Collections.emptyList();
+            SellerDetailResponse expectedResponse =
+                    new SellerDetailResponse(
+                            sellerId,
+                            "mustit-seller",
+                            "seller-name",
+                            true,
+                            now,
+                            now,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            SellerDetailStatistics.empty());
 
             given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
-            given(sellerAssembler.toResponse(seller)).willReturn(expectedResponse);
+            given(crawlSchedulerReadManager.findBySellerId(any(SellerId.class)))
+                    .willReturn(schedulers);
+            given(
+                            crawlTaskReadManager.findRecentBySellerId(
+                                    any(SellerId.class), any(Integer.class)))
+                    .willReturn(recentTasks);
+            given(sellerAssembler.toDetailResponse(seller, schedulers, recentTasks))
+                    .willReturn(expectedResponse);
 
             // When
-            SellerResponse result = service.execute(query);
+            SellerDetailResponse result = service.execute(query);
 
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(sellerAssembler).should().toResponse(seller);
+            then(crawlSchedulerReadManager).should().findBySellerId(any(SellerId.class));
+            then(crawlTaskReadManager)
+                    .should()
+                    .findRecentBySellerId(any(SellerId.class), any(Integer.class));
+            then(sellerAssembler).should().toDetailResponse(seller, schedulers, recentTasks);
         }
 
         @Test

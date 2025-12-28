@@ -82,4 +82,14 @@ public class CrawledProductReadManager {
     public boolean existsBySellerIdAndItemNo(SellerId sellerId, long itemNo) {
         return crawledProductQueryPort.existsBySellerIdAndItemNo(sellerId, itemNo);
     }
+
+    /**
+     * 셀러별 CrawledProduct 개수 조회
+     *
+     * @param sellerId 셀러 ID
+     * @return 해당 셀러의 상품 개수
+     */
+    public long countBySellerId(SellerId sellerId) {
+        return crawledProductQueryPort.countBySellerId(sellerId);
+    }
 }

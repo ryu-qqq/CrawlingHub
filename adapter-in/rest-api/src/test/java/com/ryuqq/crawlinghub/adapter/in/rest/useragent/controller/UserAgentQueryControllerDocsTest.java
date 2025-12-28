@@ -7,6 +7,7 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,14 +16,19 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsSecuritySnippets;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse.PoolInfoApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse.PoolInfo;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse.HealthScoreStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
+import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentByIdUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentPoolStatusUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentsUseCase;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
@@ -48,6 +54,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private GetUserAgentPoolStatusUseCase getUserAgentPoolStatusUseCase;
+
+    @MockitoBean private GetUserAgentByIdUseCase getUserAgentByIdUseCase;
 
     @MockitoBean private GetUserAgentsUseCase getUserAgentsUseCase;
 
@@ -293,6 +301,142 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/crawling/user-agents/{userAgentId} - UserAgent 상세 조회 API 문서")
+    void getUserAgentById() throws Exception {
+        // given
+        Long userAgentId = 1L;
+        Instant now = Instant.parse("2025-11-20T10:30:00Z");
+        Instant sessionExpiresAt = Instant.parse("2025-11-20T11:30:00Z");
+
+        UserAgentDetailResponse useCaseResponse =
+                UserAgentDetailResponse.withPoolInfo(
+                        userAgentId,
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like"
+                                + " Gecko) Chrome/120.0.0.0 Safari/537.36",
+                        DeviceType.of("DESKTOP"),
+                        UserAgentStatus.AVAILABLE,
+                        95,
+                        150,
+                        now,
+                        now,
+                        now,
+                        PoolInfo.of(45, true, sessionExpiresAt));
+
+        UserAgentDetailApiResponse apiResponse =
+                new UserAgentDetailApiResponse(
+                        userAgentId,
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like"
+                                + " Gecko) Chrome/120.0.0.0 Safari/537.36",
+                        DeviceType.of("DESKTOP"),
+                        UserAgentStatus.AVAILABLE,
+                        95,
+                        150,
+                        now,
+                        now,
+                        now,
+                        new PoolInfoApiResponse(true, 45, true, sessionExpiresAt));
+
+        given(getUserAgentByIdUseCase.execute(userAgentId)).willReturn(useCaseResponse);
+        given(userAgentApiMapper.toDetailApiResponse(useCaseResponse)).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/crawling/user-agents/{userAgentId}", userAgentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(userAgentId))
+                .andExpect(jsonPath("$.data.healthScore").value(95))
+                .andExpect(jsonPath("$.data.poolInfo.isInPool").value(true))
+                .andDo(
+                        document(
+                                "useragent-query/detail",
+                                RestDocsSecuritySnippets.authorization("useragent:read"),
+                                pathParameters(
+                                        parameterWithName("userAgentId")
+                                                .description("조회할 UserAgent ID")),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.id")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("UserAgent ID"),
+                                        fieldWithPath("data.userAgentValue")
+                                                .type(JsonFieldType.STRING)
+                                                .description("User-Agent 문자열 (전체)"),
+                                        fieldWithPath("data.deviceType")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("디바이스 타입"),
+                                        fieldWithPath("data.deviceType.type")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "디바이스 타입 Enum 값 (DESKTOP, MOBILE, TABLET)"),
+                                        fieldWithPath("data.deviceType.typeName")
+                                                .type(JsonFieldType.STRING)
+                                                .description("디바이스 타입 이름"),
+                                        fieldWithPath("data.deviceType.displayName")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "디바이스 표시 이름 (Desktop, Mobile, Tablet)"),
+                                        fieldWithPath("data.deviceType.mobile")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("모바일 디바이스 여부"),
+                                        fieldWithPath("data.deviceType.tablet")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("태블릿 디바이스 여부"),
+                                        fieldWithPath("data.deviceType.desktop")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("데스크톱 디바이스 여부"),
+                                        fieldWithPath("data.status")
+                                                .type(JsonFieldType.STRING)
+                                                .description(
+                                                        "현재 상태 (AVAILABLE, SUSPENDED, BLOCKED)"),
+                                        fieldWithPath("data.healthScore")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("건강 점수 (0-100)"),
+                                        fieldWithPath("data.requestsPerDay")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("일일 요청 수"),
+                                        fieldWithPath("data.lastUsedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("마지막 사용 시각"),
+                                        fieldWithPath("data.createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각"),
+                                        fieldWithPath("data.poolInfo")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("Redis Pool 정보"),
+                                        fieldWithPath("data.poolInfo.isInPool")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("Pool에 존재하는지 여부"),
+                                        fieldWithPath("data.poolInfo.remainingTokens")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("남은 토큰 수"),
+                                        fieldWithPath("data.poolInfo.hasValidSession")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("유효한 세션이 있는지 여부"),
+                                        fieldWithPath("data.poolInfo.sessionExpiresAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("세션 만료 시각")
+                                                .optional(),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

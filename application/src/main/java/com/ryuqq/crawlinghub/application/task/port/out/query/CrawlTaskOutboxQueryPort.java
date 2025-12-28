@@ -33,4 +33,14 @@ public interface CrawlTaskOutboxQueryPort {
      * @return Outbox 목록
      */
     List<CrawlTaskOutbox> findByCriteria(CrawlTaskOutboxCriteria criteria);
+
+    /**
+     * 조건에 맞는 Outbox 개수 조회
+     *
+     * <p>페이징 처리를 위한 전체 개수 조회에 사용됩니다.
+     *
+     * @param criteria 조회 조건 (CrawlTaskOutboxCriteria)
+     * @return 조건에 맞는 Outbox 개수
+     */
+    long countByCriteria(CrawlTaskOutboxCriteria criteria);
 }
