@@ -20,7 +20,6 @@ import com.ryuqq.crawlinghub.application.schedule.dto.response.TaskSummaryForSch
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,6 +78,7 @@ public class CrawlSchedulerQueryApiMapper {
      *
      * @param statusStrings 상태 문자열 목록
      * @return SchedulerStatus Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
      */
     private List<SchedulerStatus> parseStatuses(List<String> statusStrings) {
         if (statusStrings == null || statusStrings.isEmpty()) {
@@ -86,16 +86,16 @@ public class CrawlSchedulerQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(
-                        s -> {
-                            try {
-                                return SchedulerStatus.valueOf(s);
-                            } catch (IllegalArgumentException e) {
-                                return null;
-                            }
-                        })
-                .filter(Objects::nonNull)
+                .map(this::parseStatus)
                 .toList();
+    }
+
+    private SchedulerStatus parseStatus(String status) {
+        try {
+            return SchedulerStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
     }
 
     /**

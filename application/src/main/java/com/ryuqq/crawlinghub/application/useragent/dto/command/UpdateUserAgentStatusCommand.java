@@ -33,6 +33,7 @@ public record UpdateUserAgentStatusCommand(List<Long> userAgentIds, UserAgentSta
         if (status == null) {
             throw new IllegalArgumentException("변경할 상태는 null일 수 없습니다");
         }
+        userAgentIds = List.copyOf(userAgentIds);
     }
 
     /**

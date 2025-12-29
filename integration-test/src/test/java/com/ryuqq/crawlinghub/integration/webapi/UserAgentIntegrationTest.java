@@ -92,7 +92,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(USER_AGENTS_BASE_URL + "?status=AVAILABLE"),
+                            url(USER_AGENTS_BASE_URL + "?statuses=AVAILABLE"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -118,7 +118,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(USER_AGENTS_BASE_URL + "?status=BLOCKED"),
+                            url(USER_AGENTS_BASE_URL + "?statuses=BLOCKED"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -169,7 +169,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(USER_AGENTS_BASE_URL + "?status=INVALID"),
+                            url(USER_AGENTS_BASE_URL + "?statuses=INVALID"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

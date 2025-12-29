@@ -60,6 +60,7 @@ public record CrawlExecutionCriteria(
     private static final int DEFAULT_SIZE = 20;
 
     public CrawlExecutionCriteria {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
         if (page < 0) {
             page = DEFAULT_PAGE;
         }

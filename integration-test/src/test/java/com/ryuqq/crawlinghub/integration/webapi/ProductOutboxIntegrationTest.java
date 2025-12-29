@@ -93,7 +93,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SYNC_URL + "?status=FAILED"),
+                            url(SYNC_URL + "?statuses=FAILED"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -245,7 +245,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(IMAGE_URL + "?status=COMPLETED"),
+                            url(IMAGE_URL + "?statuses=COMPLETED"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

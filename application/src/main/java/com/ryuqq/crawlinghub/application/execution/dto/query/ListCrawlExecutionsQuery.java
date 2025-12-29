@@ -32,6 +32,7 @@ public record ListCrawlExecutionsQuery(
     private static final int MAX_SIZE = 100;
 
     public ListCrawlExecutionsQuery {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
         if (page < 0) {
             page = DEFAULT_PAGE;
         }

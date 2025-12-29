@@ -12,7 +12,6 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionRe
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +50,7 @@ public class CrawlExecutionQueryApiMapper {
      *
      * @param statusStrings 상태 문자열 목록
      * @return CrawlExecutionStatus Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
      */
     private List<CrawlExecutionStatus> parseStatuses(List<String> statusStrings) {
         if (statusStrings == null || statusStrings.isEmpty()) {
@@ -58,16 +58,16 @@ public class CrawlExecutionQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(
-                        s -> {
-                            try {
-                                return CrawlExecutionStatus.valueOf(s);
-                            } catch (IllegalArgumentException e) {
-                                return null;
-                            }
-                        })
-                .filter(Objects::nonNull)
+                .map(this::parseStatus)
                 .toList();
+    }
+
+    private CrawlExecutionStatus parseStatus(String status) {
+        try {
+            return CrawlExecutionStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
     }
 
     /**
