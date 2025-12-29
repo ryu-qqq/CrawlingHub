@@ -80,6 +80,56 @@ Content-Type: application/json
 | Seller ID
 |===
 
+==== Request Body
+
+|===
+| Field | Type | Required | Description
+
+| `sellerName`
+| String
+| No
+| 셀러명 (변경 시)
+
+| `mustItSellerName`
+| String
+| No
+| 머스트잇 셀러명 (변경 시)
+
+| `status`
+| String
+| No
+| 상태 (ACTIVE, INACTIVE)
+|===
+
+==== Request Example
+
+[source,http]
+----
+PATCH /api/v1/crawling/sellers/1 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+Content-Type: application/json
+
+{
+  "sellerName": "수정된 셀러명"
+}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "sellerId": 1,
+    "message": "셀러가 수정되었습니다."
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
+
 [[resources-seller-get]]
 === 셀러 단건 조회
 

@@ -20,6 +20,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.response.TaskSummary;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -102,7 +103,15 @@ public class SellerQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(SellerStatus::valueOf)
+                .map(
+                        s -> {
+                            try {
+                                return SellerStatus.valueOf(s);
+                            } catch (IllegalArgumentException e) {
+                                return null;
+                            }
+                        })
+                .filter(Objects::nonNull)
                 .toList();
     }
 
