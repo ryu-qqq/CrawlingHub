@@ -4,7 +4,7 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.SearchParseResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.SearchResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
@@ -47,17 +47,17 @@ public class SearchCrawlResultProcessor implements CrawlResultProcessor {
 
     private final SearchResponseParser searchResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
-    private final CrawledRawManager crawledRawManager;
+    private final CrawledRawTransactionManager crawledRawTransactionManager;
     private final ProcessMiniShopItemUseCase processMiniShopItemUseCase;
 
     public SearchCrawlResultProcessor(
             SearchResponseParser searchResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager,
+            CrawledRawTransactionManager crawledRawTransactionManager,
             ProcessMiniShopItemUseCase processMiniShopItemUseCase) {
         this.searchResponseParser = searchResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
-        this.crawledRawManager = crawledRawManager;
+        this.crawledRawTransactionManager = crawledRawTransactionManager;
         this.processMiniShopItemUseCase = processMiniShopItemUseCase;
     }
 
@@ -96,7 +96,7 @@ public class SearchCrawlResultProcessor implements CrawlResultProcessor {
                     crawledRawAssembler.toMiniShopRaws(schedulerId, sellerId, items);
 
             // 3. Manager로 벌크 저장
-            List<CrawledRawId> savedIds = crawledRawManager.saveAll(crawledRaws);
+            List<CrawledRawId> savedIds = crawledRawTransactionManager.saveAll(crawledRaws);
             savedCount = savedIds.size();
 
             log.info(

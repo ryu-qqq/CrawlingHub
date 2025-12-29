@@ -45,7 +45,7 @@ public class SellerQueryFactory {
         return new SellerQueryCriteria(
                 mustItSellerName,
                 sellerName,
-                query.sellerStatus(),
+                query.sellerStatuses(),
                 query.createdFrom(),
                 query.createdTo(),
                 query.page(),

@@ -32,20 +32,42 @@ public class CrawlExecutionQueryApiMapper {
      * @return Application 쿼리 DTO
      */
     public ListCrawlExecutionsQuery toQuery(SearchCrawlExecutionsApiRequest request) {
-        CrawlExecutionStatus status = null;
-        if (request.status() != null) {
-            status = CrawlExecutionStatus.valueOf(request.status());
-        }
+        List<CrawlExecutionStatus> statuses = parseStatuses(request.statuses());
 
         return new ListCrawlExecutionsQuery(
                 request.crawlTaskId(),
                 request.crawlSchedulerId(),
                 request.sellerId(),
-                status,
+                statuses,
                 request.from(),
                 request.to(),
                 request.page(),
                 request.size());
+    }
+
+    /**
+     * 상태 문자열 목록 → CrawlExecutionStatus Enum 목록 변환
+     *
+     * @param statusStrings 상태 문자열 목록
+     * @return CrawlExecutionStatus Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
+     */
+    private List<CrawlExecutionStatus> parseStatuses(List<String> statusStrings) {
+        if (statusStrings == null || statusStrings.isEmpty()) {
+            return null;
+        }
+        return statusStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(this::parseStatus)
+                .toList();
+    }
+
+    private CrawlExecutionStatus parseStatus(String status) {
+        try {
+            return CrawlExecutionStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
     }
 
     /**

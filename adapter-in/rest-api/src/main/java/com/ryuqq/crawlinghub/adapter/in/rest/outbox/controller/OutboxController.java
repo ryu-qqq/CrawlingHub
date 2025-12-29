@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -41,8 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <ul>
  *   <li>GET /api/v1/crawling/outbox - Outbox 목록 조회 (페이징)
- *   <li>POST /api/v1/crawling/outbox/{crawlTaskId}/republish - Outbox 재발행
+ *   <li>POST /api/v1/crawling/outbox/{crawlTaskId}/republish - Outbox 재발행 (SQS 활성화 시에만 가능)
  * </ul>
+ *
+ * <p><strong>SQS 조건부 기능:</strong> republish 기능은 app.messaging.sqs.enabled=true일 때만 사용 가능합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -54,12 +57,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OutboxController {
 
     private final GetOutboxListUseCase getOutboxListUseCase;
-    private final RepublishOutboxUseCase republishOutboxUseCase;
+    private final Optional<RepublishOutboxUseCase> republishOutboxUseCase;
     private final OutboxApiMapper outboxApiMapper;
 
     public OutboxController(
             GetOutboxListUseCase getOutboxListUseCase,
-            RepublishOutboxUseCase republishOutboxUseCase,
+            Optional<RepublishOutboxUseCase> republishOutboxUseCase,
             OutboxApiMapper outboxApiMapper) {
         this.getOutboxListUseCase = getOutboxListUseCase;
         this.republishOutboxUseCase = republishOutboxUseCase;
@@ -134,8 +137,10 @@ public class OutboxController {
      * <ul>
      *   <li>Method: POST
      *   <li>Path: /api/v1/crawling/outbox/{crawlTaskId}/republish
-     *   <li>Status: 200 OK
+     *   <li>Status: 200 OK (성공 시), 503 Service Unavailable (SQS 비활성화 시)
      * </ul>
+     *
+     * <p><strong>주의:</strong> SQS 비활성화 시(app.messaging.sqs.enabled=false) 503 에러를 반환합니다.
      *
      * @param crawlTaskId 재발행할 Task ID
      * @return 재발행 결과
@@ -147,6 +152,7 @@ public class OutboxController {
             description =
                     "특정 CrawlTask의 Outbox를 SQS로 다시 발행합니다. "
                             + "PENDING 또는 FAILED 상태의 Outbox만 재발행할 수 있습니다. "
+                            + "SQS 비활성화 시 503 에러를 반환합니다. "
                             + "outbox:update 권한이 필요합니다.",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
@@ -165,14 +171,27 @@ public class OutboxController {
                 description = "인증 실패"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "403",
-                description = "권한 없음 (outbox:update 권한 필요)")
+                description = "권한 없음 (outbox:update 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "503",
+                description = "SQS 비활성화 상태 (app.messaging.sqs.enabled=false)")
     })
     public ResponseEntity<ApiResponse<RepublishResultApiResponse>> republishOutbox(
             @Parameter(description = "Task ID", required = true, example = "1")
                     @PathVariable
                     @Positive
                     Long crawlTaskId) {
-        RepublishResultResponse useCaseResponse = republishOutboxUseCase.republish(crawlTaskId);
+        if (republishOutboxUseCase.isEmpty()) {
+            RepublishResultApiResponse unavailableResponse =
+                    outboxApiMapper.toRepublishApiResponse(
+                            RepublishResultResponse.failure(
+                                    crawlTaskId,
+                                    "SQS 비활성화 상태입니다. app.messaging.sqs.enabled=true로 설정하세요."));
+            return ResponseEntity.status(503).body(ApiResponse.ofSuccess(unavailableResponse));
+        }
+
+        RepublishResultResponse useCaseResponse =
+                republishOutboxUseCase.get().republish(crawlTaskId);
         RepublishResultApiResponse apiResponse =
                 outboxApiMapper.toRepublishApiResponse(useCaseResponse);
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));

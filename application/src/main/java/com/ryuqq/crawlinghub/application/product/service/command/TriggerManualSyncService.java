@@ -4,9 +4,9 @@ import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.dto.command.TriggerManualSyncCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.ManualSyncTriggerResponse;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.TriggerManualSyncUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.exception.CrawledProductNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
@@ -22,15 +22,15 @@ public class TriggerManualSyncService implements TriggerManualSyncUseCase {
 
     private final CrawledProductQueryPort crawledProductQueryPort;
     private final SyncOutboxFactory syncOutboxFactory;
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     public TriggerManualSyncService(
             CrawledProductQueryPort crawledProductQueryPort,
             SyncOutboxFactory syncOutboxFactory,
-            SyncOutboxManager syncOutboxManager) {
+            SyncOutboxTransactionManager syncOutboxTransactionManager) {
         this.crawledProductQueryPort = crawledProductQueryPort;
         this.syncOutboxFactory = syncOutboxFactory;
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class TriggerManualSyncService implements TriggerManualSyncUseCase {
 
     private ManualSyncTriggerResponse persistAndReturnSuccess(
             Long crawledProductId, SyncOutboxBundle bundle) {
-        syncOutboxManager.persist(bundle);
+        syncOutboxTransactionManager.persist(bundle);
         return ManualSyncTriggerResponse.success(
                 crawledProductId, bundle.outbox().getId(), bundle.outbox().getSyncType().name());
     }

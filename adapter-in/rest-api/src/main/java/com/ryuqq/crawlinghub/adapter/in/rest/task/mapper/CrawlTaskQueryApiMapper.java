@@ -12,6 +12,7 @@ import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,25 +55,68 @@ public class CrawlTaskQueryApiMapper {
      * @return Application Layer 크롤 태스크 목록 조회 쿼리
      */
     public ListCrawlTasksQuery toQuery(SearchCrawlTasksApiRequest request) {
-        CrawlTaskStatus status =
-                (request.status() != null && !request.status().isBlank())
-                        ? CrawlTaskStatus.valueOf(request.status())
-                        : null;
-
-        CrawlTaskType taskType =
-                (request.taskType() != null && !request.taskType().isBlank())
-                        ? CrawlTaskType.valueOf(request.taskType())
-                        : null;
+        List<CrawlTaskStatus> statuses = parseStatuses(request.statuses());
+        List<CrawlTaskType> taskTypes = parseTaskTypes(request.taskTypes());
 
         return new ListCrawlTasksQuery(
                 request.crawlSchedulerId(),
                 request.sellerId(),
-                status,
-                taskType,
+                statuses,
+                taskTypes,
                 request.createdFrom(),
                 request.createdTo(),
                 request.page(),
                 request.size());
+    }
+
+    /**
+     * 상태 문자열 목록 → CrawlTaskStatus Enum 목록 변환
+     *
+     * @param statusStrings 상태 문자열 목록
+     * @return CrawlTaskStatus Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
+     */
+    private List<CrawlTaskStatus> parseStatuses(List<String> statusStrings) {
+        if (statusStrings == null || statusStrings.isEmpty()) {
+            return null;
+        }
+        return statusStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(this::parseStatus)
+                .toList();
+    }
+
+    private CrawlTaskStatus parseStatus(String status) {
+        try {
+            return CrawlTaskStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
+    }
+
+    /**
+     * 태스크 유형 문자열 목록 → CrawlTaskType Enum 목록 변환
+     *
+     * @param taskTypeStrings 태스크 유형 문자열 목록
+     * @return CrawlTaskType Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 태스크 유형이 포함된 경우
+     */
+    private List<CrawlTaskType> parseTaskTypes(List<String> taskTypeStrings) {
+        if (taskTypeStrings == null || taskTypeStrings.isEmpty()) {
+            return null;
+        }
+        return taskTypeStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(this::parseTaskType)
+                .toList();
+    }
+
+    private CrawlTaskType parseTaskType(String taskType) {
+        try {
+            return CrawlTaskType.valueOf(taskType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid task type value: " + taskType);
+        }
     }
 
     /**

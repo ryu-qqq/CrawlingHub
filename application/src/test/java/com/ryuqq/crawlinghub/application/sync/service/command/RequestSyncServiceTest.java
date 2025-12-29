@@ -10,7 +10,7 @@ import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixt
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
@@ -50,7 +50,7 @@ class RequestSyncServiceTest {
 
     @Mock private SyncOutboxFactory syncOutboxFactory;
 
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     @Mock private TransactionEventRegistry eventRegistry;
 
@@ -83,7 +83,7 @@ class RequestSyncServiceTest {
 
             // Then
             then(syncOutboxFactory).should().createBundle(product);
-            then(syncOutboxManager).should().persist(bundle);
+            then(syncOutboxTransactionManager).should().persist(bundle);
 
             ArgumentCaptor<ExternalSyncRequestedEvent> eventCaptor =
                     ArgumentCaptor.forClass(ExternalSyncRequestedEvent.class);
@@ -121,7 +121,7 @@ class RequestSyncServiceTest {
 
             // Then
             then(syncOutboxFactory).should().createBundle(product);
-            then(syncOutboxManager).should().persist(bundle);
+            then(syncOutboxTransactionManager).should().persist(bundle);
 
             ArgumentCaptor<ExternalSyncRequestedEvent> eventCaptor =
                     ArgumentCaptor.forClass(ExternalSyncRequestedEvent.class);
@@ -144,7 +144,7 @@ class RequestSyncServiceTest {
 
             // Then
             then(syncOutboxFactory).should().createBundle(product);
-            verifyNoInteractions(syncOutboxManager, eventRegistry);
+            verifyNoInteractions(syncOutboxTransactionManager, eventRegistry);
         }
 
         @Test
@@ -157,7 +157,7 @@ class RequestSyncServiceTest {
             service.requestIfReady(product);
 
             // Then
-            verifyNoInteractions(syncOutboxFactory, syncOutboxManager, eventRegistry);
+            verifyNoInteractions(syncOutboxFactory, syncOutboxTransactionManager, eventRegistry);
         }
 
         @Test
@@ -170,7 +170,7 @@ class RequestSyncServiceTest {
             service.requestIfReady(product);
 
             // Then
-            verifyNoInteractions(syncOutboxFactory, syncOutboxManager, eventRegistry);
+            verifyNoInteractions(syncOutboxFactory, syncOutboxTransactionManager, eventRegistry);
         }
     }
 

@@ -10,7 +10,100 @@
 
 상품 동기화 Outbox 목록을 페이징하여 조회합니다.
 
-operation::product-outbox-query/search-sync[snippets='query-parameters,response-fields,http-request,http-response']
+==== Query Parameters
+
+|===
+| Parameter | Type | Required | Description | Example
+
+| `crawledProductId`
+| Long
+| No
+| CrawledProduct ID 필터
+| `1`
+
+| `sellerId`
+| Long
+| No
+| 셀러 ID 필터
+| `100`
+
+| `itemNos`
+| List<Long>
+| No
+| 외부 상품번호 목록 필터 (다중 선택 가능)
+| `itemNos=1001&itemNos=1002`
+
+| `statuses`
+| List<String>
+| No
+| 상태 필터 목록 (다중 선택 가능: PENDING, PROCESSING, COMPLETED, FAILED)
+| `statuses=PENDING&statuses=FAILED`
+
+| `createdFrom`
+| Instant
+| No
+| 생성일시 시작 (ISO-8601)
+| `2025-01-01T00:00:00Z`
+
+| `createdTo`
+| Instant
+| No
+| 생성일시 종료 (ISO-8601)
+| `2025-12-31T23:59:59Z`
+
+| `page`
+| Integer
+| No
+| 페이지 번호 (0부터 시작, 기본값: 0)
+| `0`
+
+| `size`
+| Integer
+| No
+| 페이지 크기 (기본값: 20, 최대: 100)
+| `20`
+|===
+
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/product-outbox/sync?sellerId=1&statuses=FAILED&page=0&size=20 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "productSyncOutboxId": 1,
+        "crawledProductId": 100,
+        "sellerId": 1,
+        "itemNo": 1001,
+        "status": "FAILED",
+        "errorMessage": "연동 실패: 외부 API 오류",
+        "retryCount": 2,
+        "createdAt": "2025-01-15T10:00:00Z",
+        "updatedAt": "2025-01-15T10:30:00Z"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-product-outbox-image-search]]
 === 이미지 업로드 Outbox 목록 조회
@@ -19,7 +112,93 @@ operation::product-outbox-query/search-sync[snippets='query-parameters,response-
 
 이미지 업로드 Outbox 목록을 페이징하여 조회합니다.
 
-operation::product-outbox-query/search-image[snippets='query-parameters,response-fields,http-request,http-response']
+==== Query Parameters
+
+|===
+| Parameter | Type | Required | Description | Example
+
+| `crawledProductImageId`
+| Long
+| No
+| CrawledProductImage ID 필터
+| `1`
+
+| `crawledProductId`
+| Long
+| No
+| CrawledProduct ID 필터
+| `100`
+
+| `statuses`
+| List<String>
+| No
+| 상태 필터 목록 (다중 선택 가능: PENDING, PROCESSING, COMPLETED, FAILED)
+| `statuses=PENDING&statuses=FAILED`
+
+| `createdFrom`
+| Instant
+| No
+| 생성일시 시작 (ISO-8601)
+| `2025-01-01T00:00:00Z`
+
+| `createdTo`
+| Instant
+| No
+| 생성일시 종료 (ISO-8601)
+| `2025-12-31T23:59:59Z`
+
+| `page`
+| Integer
+| No
+| 페이지 번호 (0부터 시작, 기본값: 0)
+| `0`
+
+| `size`
+| Integer
+| No
+| 페이지 크기 (기본값: 20, 최대: 100)
+| `20`
+|===
+
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/product-outbox/image?crawledProductId=100&statuses=PENDING&page=0&size=20 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "productImageOutboxId": 1,
+        "crawledProductImageId": 50,
+        "crawledProductId": 100,
+        "status": "PENDING",
+        "imageUrl": "https://example.com/image.jpg",
+        "retryCount": 0,
+        "createdAt": "2025-01-15T10:00:00Z",
+        "updatedAt": "2025-01-15T10:00:00Z"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-product-outbox-sync-retry]]
 === 상품 동기화 Outbox 재시도
@@ -28,7 +207,41 @@ operation::product-outbox-query/search-image[snippets='query-parameters,response
 
 실패한 상품 동기화 Outbox를 재시도합니다.
 
-operation::product-outbox-command/retry-sync[snippets='path-parameters,response-fields,http-request,http-response']
+==== Path Parameters
+
+|===
+| Parameter | Type | Required | Description
+
+| `id`
+| Long
+| Yes
+| ProductSyncOutbox ID
+|===
+
+==== Request Example
+
+[source,http]
+----
+POST /api/v1/crawling/product-outbox/sync/1/retry HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "productSyncOutboxId": 1,
+    "status": "PENDING",
+    "message": "재시도가 요청되었습니다."
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-product-outbox-image-retry]]
 === 이미지 업로드 Outbox 재시도
@@ -37,4 +250,39 @@ operation::product-outbox-command/retry-sync[snippets='path-parameters,response-
 
 실패한 이미지 업로드 Outbox를 재시도합니다.
 
-operation::product-outbox-command/retry-image[snippets='path-parameters,response-fields,http-request,http-response']
+==== Path Parameters
+
+|===
+| Parameter | Type | Required | Description
+
+| `id`
+| Long
+| Yes
+| ProductImageOutbox ID
+|===
+
+==== Request Example
+
+[source,http]
+----
+POST /api/v1/crawling/product-outbox/image/1/retry HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "productImageOutboxId": 1,
+    "status": "PENDING",
+    "message": "재시도가 요청되었습니다."
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
+

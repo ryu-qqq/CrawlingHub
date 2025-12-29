@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import org.slf4j.Logger;
@@ -29,13 +29,13 @@ public class SyncCompletionFacade {
 
     private static final Logger log = LoggerFactory.getLogger(SyncCompletionFacade.class);
 
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
     private final CrawledProductTransactionManager crawledProductManager;
 
     public SyncCompletionFacade(
-            SyncOutboxManager syncOutboxManager,
+            SyncOutboxTransactionManager syncOutboxTransactionManager,
             CrawledProductTransactionManager crawledProductManager) {
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
         this.crawledProductManager = crawledProductManager;
     }
 
@@ -51,7 +51,7 @@ public class SyncCompletionFacade {
     @Transactional
     public void completeSync(
             CrawledProductSyncOutbox outbox, CrawledProduct product, Long externalProductId) {
-        syncOutboxManager.markAsCompleted(outbox, externalProductId);
+        syncOutboxTransactionManager.markAsCompleted(outbox, externalProductId);
 
         // CREATE인 경우 CrawledProduct에 externalProductId 저장
         if (outbox.isCreateRequest()) {
@@ -77,7 +77,7 @@ public class SyncCompletionFacade {
      */
     @Transactional
     public void failSync(CrawledProductSyncOutbox outbox, String errorMessage) {
-        syncOutboxManager.markAsFailed(outbox, errorMessage);
+        syncOutboxTransactionManager.markAsFailed(outbox, errorMessage);
 
         log.warn(
                 "동기화 실패 처리: outboxId={}, productId={}, error={}",

@@ -49,8 +49,8 @@ public class CrawlTaskQueryFactory {
         return new CrawlTaskCriteria(
                 schedulerId,
                 sellerId,
-                query.status(),
-                query.taskType(),
+                query.statuses(),
+                query.taskTypes(),
                 query.createdFrom(),
                 query.createdTo(),
                 query.page(),

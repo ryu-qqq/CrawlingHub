@@ -127,7 +127,7 @@ class ListCrawlTasksServiceTest {
             // Given
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            1L, null, CrawlTaskStatus.WAITING, null, null, null, 0, 10);
+                            1L, null, List.of(CrawlTaskStatus.WAITING), null, null, null, 0, 10);
             CrawlTaskCriteria criteria = org.mockito.Mockito.mock(CrawlTaskCriteria.class);
             List<CrawlTask> waitingTasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;

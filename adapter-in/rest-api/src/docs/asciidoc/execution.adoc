@@ -8,18 +8,149 @@
 
 `GET /api/v1/crawling/executions`
 
-operation::execution-query/list[snippets='query-parameters,response-fields,http-request,http-response']
+크롤 실행 결과 목록을 페이징 및 필터링하여 조회합니다.
+
+==== Query Parameters
+
+|===
+| Parameter | Type | Required | Description | Example
+
+| `crawlTaskId`
+| Long
+| No
+| 태스크 ID 필터
+| `1`
+
+| `crawlSchedulerId`
+| Long
+| No
+| 스케줄러 ID 필터
+| `1`
+
+| `sellerId`
+| Long
+| No
+| 셀러 ID 필터
+| `1`
+
+| `statuses`
+| List<String>
+| No
+| 상태 필터 목록 (다중 선택 가능: RUNNING, SUCCESS, FAILED, TIMEOUT)
+| `statuses=SUCCESS&statuses=FAILED`
+
+| `from`
+| LocalDateTime
+| No
+| 조회 시작 시간 (ISO-8601)
+| `2025-01-01T00:00:00`
+
+| `to`
+| LocalDateTime
+| No
+| 조회 종료 시간 (ISO-8601)
+| `2025-12-31T23:59:59`
+
+| `page`
+| Integer
+| No
+| 페이지 번호 (0부터 시작, 기본값: 0)
+| `0`
+
+| `size`
+| Integer
+| No
+| 페이지 크기 (기본값: 20, 최대: 100)
+| `20`
+|===
+
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/executions?crawlSchedulerId=1&statuses=SUCCESS&statuses=FAILED&page=0&size=20 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "crawlExecutionId": 1,
+        "crawlTaskId": 10,
+        "crawlSchedulerId": 1,
+        "sellerId": 100,
+        "taskType": "SEARCH",
+        "status": "SUCCESS",
+        "processedCount": 150,
+        "totalCount": 150,
+        "startedAt": "2025-01-15T10:00:00",
+        "completedAt": "2025-01-15T10:05:30",
+        "errorMessage": null
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-execution-get]]
 === 실행 결과 상세 조회
 
 `GET /api/v1/crawling/executions/{id}`
 
-operation::execution-query/get[snippets='path-parameters,response-fields,http-request,http-response']
+==== Path Parameters
 
-[[resources-execution-get-failed]]
-=== 실패한 실행 결과 조회
+|===
+| Parameter | Type | Required | Description
 
-`GET /api/v1/crawling/executions/{id}` (실패 케이스)
+| `id`
+| Long
+| Yes
+| CrawlExecution ID
+|===
 
-operation::execution-query/get-failed[snippets='path-parameters,response-fields,http-request,http-response']
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/executions/1 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "crawlExecutionId": 1,
+    "crawlTaskId": 10,
+    "crawlSchedulerId": 1,
+    "sellerId": 100,
+    "taskType": "SEARCH",
+    "status": "SUCCESS",
+    "processedCount": 150,
+    "totalCount": 150,
+    "startedAt": "2025-01-15T10:00:00",
+    "completedAt": "2025-01-15T10:05:30",
+    "errorMessage": null,
+    "executionLogs": []
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----

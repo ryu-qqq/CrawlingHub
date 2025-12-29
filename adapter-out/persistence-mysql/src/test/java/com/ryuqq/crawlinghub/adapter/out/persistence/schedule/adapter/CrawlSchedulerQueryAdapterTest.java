@@ -127,7 +127,8 @@ class CrawlSchedulerQueryAdapterTest {
         void shouldFindByCriteria() {
             // Given
             CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, SchedulerStatus.ACTIVE, 0, 10);
+                    new CrawlSchedulerQueryCriteria(
+                            null, List.of(SchedulerStatus.ACTIVE), null, null, 0, 10);
             LocalDateTime now = LocalDateTime.now();
             CrawlSchedulerJpaEntity entity =
                     CrawlSchedulerJpaEntity.of(
@@ -160,7 +161,8 @@ class CrawlSchedulerQueryAdapterTest {
         void shouldCount() {
             // Given
             CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, SchedulerStatus.ACTIVE, null, null);
+                    new CrawlSchedulerQueryCriteria(
+                            null, List.of(SchedulerStatus.ACTIVE), null, null, null, null);
             given(queryDslRepository.countByCriteria(criteria)).willReturn(5L);
 
             // When

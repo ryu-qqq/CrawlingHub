@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.repository;
+package com.ryuqq.crawlinghub.adapter.out.persistence.sync.repository;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutions
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +38,14 @@ class CrawlExecutionQueryFactoryTest {
             LocalDateTime to = LocalDateTime.of(2024, 1, 31, 23, 59);
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            100L, 200L, 300L, CrawlExecutionStatus.SUCCESS, from, to, 1, 20);
+                            100L,
+                            200L,
+                            300L,
+                            List.of(CrawlExecutionStatus.SUCCESS),
+                            from,
+                            to,
+                            1,
+                            20);
 
             // When
             CrawlExecutionCriteria criteria = factory.createCriteria(query);
@@ -103,7 +111,14 @@ class CrawlExecutionQueryFactoryTest {
             // Given
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            100L, 200L, 300L, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
+                            100L,
+                            200L,
+                            300L,
+                            List.of(CrawlExecutionStatus.RUNNING),
+                            null,
+                            null,
+                            0,
+                            10);
 
             // When
             CrawlExecutionCriteria criteria = factory.createCriteria(query);
@@ -118,7 +133,14 @@ class CrawlExecutionQueryFactoryTest {
             // Given
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            100L, 200L, 300L, CrawlExecutionStatus.FAILED, null, null, 0, 10);
+                            100L,
+                            200L,
+                            300L,
+                            List.of(CrawlExecutionStatus.FAILED),
+                            null,
+                            null,
+                            0,
+                            10);
 
             // When
             CrawlExecutionCriteria criteria = factory.createCriteria(query);

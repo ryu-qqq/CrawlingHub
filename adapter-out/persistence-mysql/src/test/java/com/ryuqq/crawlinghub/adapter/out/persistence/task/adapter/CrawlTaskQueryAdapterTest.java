@@ -134,7 +134,7 @@ class CrawlTaskQueryAdapterTest {
                     new CrawlTaskCriteria(
                             CrawlSchedulerId.of(1L),
                             null,
-                            CrawlTaskStatus.WAITING,
+                            List.of(CrawlTaskStatus.WAITING),
                             null,
                             null,
                             null,
@@ -179,7 +179,7 @@ class CrawlTaskQueryAdapterTest {
                     new CrawlTaskCriteria(
                             CrawlSchedulerId.of(1L),
                             null,
-                            CrawlTaskStatus.SUCCESS,
+                            List.of(CrawlTaskStatus.SUCCESS),
                             null,
                             null,
                             null,

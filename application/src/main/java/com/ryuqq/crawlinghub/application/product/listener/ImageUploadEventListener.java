@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.application.product.listener;
 
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient;
 import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient.ImageUploadRequest;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
@@ -45,15 +46,18 @@ public class ImageUploadEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ImageUploadEventListener.class);
 
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
+    private final ProductImageOutboxReadManager outboxReadManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
     private final FileServerClient fileServerClient;
 
     public ImageUploadEventListener(
-            ImageOutboxReadManager imageOutboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
+            ProductImageOutboxReadManager outboxReadManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
             FileServerClient fileServerClient) {
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.imageReadManager = imageReadManager;
+        this.outboxReadManager = outboxReadManager;
         this.outboxTransactionManager = outboxTransactionManager;
         this.fileServerClient = fileServerClient;
     }
@@ -79,8 +83,7 @@ public class ImageUploadEventListener {
         List<String> originalUrls = targets.stream().map(ImageUploadTarget::originalUrl).toList();
 
         // 이미지 조회 (originalUrl → CrawledProductImage)
-        List<CrawledProductImage> images =
-                imageOutboxReadManager.findImagesByCrawledProductId(productId);
+        List<CrawledProductImage> images = imageReadManager.findByCrawledProductId(productId);
 
         // URL로 이미지 매핑
         Map<String, CrawledProductImage> imageByUrl =
@@ -104,7 +107,7 @@ public class ImageUploadEventListener {
 
             // 이미지 ID로 Outbox 조회
             Optional<ProductImageOutbox> outboxOpt =
-                    imageOutboxReadManager.findByCrawledProductImageId(image.getId());
+                    outboxReadManager.findByCrawledProductImageId(image.getId());
             if (outboxOpt.isEmpty()) {
                 log.warn(
                         "Outbox를 찾을 수 없음: productId={}, imageId={}",

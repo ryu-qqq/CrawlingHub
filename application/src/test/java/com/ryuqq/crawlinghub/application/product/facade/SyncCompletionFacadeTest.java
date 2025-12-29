@@ -4,8 +4,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
@@ -45,7 +45,7 @@ class SyncCompletionFacadeTest {
     private static final long ITEM_NO = 12345L;
     private static final Long EXTERNAL_PRODUCT_ID = 99999L;
 
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     @Mock private CrawledProductTransactionManager crawledProductManager;
 
@@ -53,7 +53,7 @@ class SyncCompletionFacadeTest {
 
     @BeforeEach
     void setUp() {
-        facade = new SyncCompletionFacade(syncOutboxManager, crawledProductManager);
+        facade = new SyncCompletionFacade(syncOutboxTransactionManager, crawledProductManager);
     }
 
     @Nested
@@ -73,7 +73,7 @@ class SyncCompletionFacadeTest {
 
             // Then
             // Outbox COMPLETED 상태로 변경 검증
-            verify(syncOutboxManager, times(1))
+            verify(syncOutboxTransactionManager, times(1))
                     .markAsCompleted(eq(outbox), eq(newExternalProductId));
 
             // CREATE 요청이므로 새로운 externalProductId로 저장
@@ -94,7 +94,7 @@ class SyncCompletionFacadeTest {
 
             // Then
             // Outbox COMPLETED 상태로 변경 검증
-            verify(syncOutboxManager, times(1))
+            verify(syncOutboxTransactionManager, times(1))
                     .markAsCompleted(eq(outbox), eq(returnedExternalProductId));
 
             // UPDATE 요청이므로 기존 externalProductId 유지
@@ -118,7 +118,8 @@ class SyncCompletionFacadeTest {
             facade.failSync(outbox, errorMessage);
 
             // Then
-            verify(syncOutboxManager, times(1)).markAsFailed(eq(outbox), eq(errorMessage));
+            verify(syncOutboxTransactionManager, times(1))
+                    .markAsFailed(eq(outbox), eq(errorMessage));
         }
 
         @Test
@@ -132,7 +133,8 @@ class SyncCompletionFacadeTest {
             facade.failSync(outbox, errorMessage);
 
             // Then
-            verify(syncOutboxManager, times(1)).markAsFailed(eq(outbox), eq(errorMessage));
+            verify(syncOutboxTransactionManager, times(1))
+                    .markAsFailed(eq(outbox), eq(errorMessage));
         }
     }
 

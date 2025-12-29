@@ -1,9 +1,10 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.CompleteImageUploadUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
@@ -26,19 +27,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class CompleteImageUploadService implements CompleteImageUploadUseCase {
 
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final ProductImageOutboxReadManager outboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
     private final CrawledProductImageTransactionManager imageTransactionManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
     private final TransactionEventRegistry eventRegistry;
     private final Clock clock;
 
     public CompleteImageUploadService(
-            ImageOutboxReadManager imageOutboxReadManager,
+            ProductImageOutboxReadManager outboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
             CrawledProductImageTransactionManager imageTransactionManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
             TransactionEventRegistry eventRegistry,
             Clock clock) {
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.outboxReadManager = outboxReadManager;
+        this.imageReadManager = imageReadManager;
         this.imageTransactionManager = imageTransactionManager;
         this.outboxTransactionManager = outboxTransactionManager;
         this.eventRegistry = eventRegistry;
@@ -52,7 +56,7 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
 
     @Override
     public void complete(Long outboxId, String s3Url, String fileAssetId) {
-        Optional<ProductImageOutbox> outboxOpt = imageOutboxReadManager.findById(outboxId);
+        Optional<ProductImageOutbox> outboxOpt = outboxReadManager.findById(outboxId);
         if (outboxOpt.isEmpty()) {
             return;
         }
@@ -61,7 +65,7 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
 
         // 이미지 조회 및 S3 URL 업데이트
         Optional<CrawledProductImage> imageOpt =
-                imageOutboxReadManager.findImageById(outbox.getCrawledProductImageId());
+                imageReadManager.findById(outbox.getCrawledProductImageId());
         if (imageOpt.isEmpty()) {
             return;
         }

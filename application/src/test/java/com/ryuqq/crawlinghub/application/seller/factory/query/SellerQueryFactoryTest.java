@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +40,7 @@ class SellerQueryFactoryTest {
                     new SearchSellersQuery(
                             "mustit-seller",
                             "seller-name",
-                            SellerStatus.ACTIVE,
+                            List.of(SellerStatus.ACTIVE),
                             createdFrom,
                             createdTo,
                             1,

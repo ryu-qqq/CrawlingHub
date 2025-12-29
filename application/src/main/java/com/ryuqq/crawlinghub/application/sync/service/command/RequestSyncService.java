@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.sync.service.command;
 
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import org.springframework.stereotype.Service;
@@ -34,15 +34,15 @@ import org.springframework.stereotype.Service;
 public class RequestSyncService implements RequestSyncUseCase {
 
     private final SyncOutboxFactory syncOutboxFactory;
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
     private final TransactionEventRegistry eventRegistry;
 
     public RequestSyncService(
             SyncOutboxFactory syncOutboxFactory,
-            SyncOutboxManager syncOutboxManager,
+            SyncOutboxTransactionManager syncOutboxTransactionManager,
             TransactionEventRegistry eventRegistry) {
         this.syncOutboxFactory = syncOutboxFactory;
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
         this.eventRegistry = eventRegistry;
     }
 
@@ -56,7 +56,7 @@ public class RequestSyncService implements RequestSyncUseCase {
                 .createBundle(product)
                 .ifPresent(
                         bundle -> {
-                            syncOutboxManager.persist(bundle);
+                            syncOutboxTransactionManager.persist(bundle);
                             eventRegistry.registerForPublish(bundle.event());
                         });
     }

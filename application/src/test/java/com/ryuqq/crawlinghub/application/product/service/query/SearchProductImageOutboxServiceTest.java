@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutbox
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -52,19 +53,23 @@ class SearchProductImageOutboxServiceTest {
         void shouldReturnPageResponseWithImageInfoWhenOutboxesExist() {
             // Given
             Long crawledProductImageId = 100L;
-            ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
             int page = 0;
             int size = 10;
             SearchProductImageOutboxQuery query =
-                    new SearchProductImageOutboxQuery(crawledProductImageId, status, page, size);
+                    new SearchProductImageOutboxQuery(
+                            crawledProductImageId, null, statuses, null, null, page, size);
 
             ProductImageOutboxWithImageResponse response = createMockResponse();
             List<ProductImageOutboxWithImageResponse> responses = List.of(response);
             long totalElements = 1L;
 
-            given(queryPort.searchWithImageInfo(crawledProductImageId, status, 0L, size))
+            given(
+                            queryPort.searchWithImageInfo(
+                                    crawledProductImageId, null, statuses, null, null, 0L, size))
                     .willReturn(responses);
-            given(queryPort.count(crawledProductImageId, status)).willReturn(totalElements);
+            given(queryPort.count(crawledProductImageId, null, statuses, null, null))
+                    .willReturn(totalElements);
 
             // When
             PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
@@ -80,8 +85,11 @@ class SearchProductImageOutboxServiceTest {
             assertThat(result.size()).isEqualTo(10);
             assertThat(result.first()).isTrue();
             assertThat(result.last()).isTrue();
-            then(queryPort).should().searchWithImageInfo(crawledProductImageId, status, 0L, size);
-            then(queryPort).should().count(crawledProductImageId, status);
+            then(queryPort)
+                    .should()
+                    .searchWithImageInfo(
+                            crawledProductImageId, null, statuses, null, null, 0L, size);
+            then(queryPort).should().count(crawledProductImageId, null, statuses, null, null);
         }
 
         @Test
@@ -89,15 +97,19 @@ class SearchProductImageOutboxServiceTest {
         void shouldReturnEmptyPageResponseWhenNoOutboxesFound() {
             // Given
             Long crawledProductImageId = 999L;
-            ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
             int page = 0;
             int size = 10;
             SearchProductImageOutboxQuery query =
-                    new SearchProductImageOutboxQuery(crawledProductImageId, status, page, size);
+                    new SearchProductImageOutboxQuery(
+                            crawledProductImageId, null, statuses, null, null, page, size);
 
-            given(queryPort.searchWithImageInfo(crawledProductImageId, status, 0L, size))
+            given(
+                            queryPort.searchWithImageInfo(
+                                    crawledProductImageId, null, statuses, null, null, 0L, size))
                     .willReturn(Collections.emptyList());
-            given(queryPort.count(crawledProductImageId, status)).willReturn(0L);
+            given(queryPort.count(crawledProductImageId, null, statuses, null, null))
+                    .willReturn(0L);
 
             // When
             PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
@@ -108,8 +120,11 @@ class SearchProductImageOutboxServiceTest {
             assertThat(result.totalPages()).isZero();
             assertThat(result.first()).isTrue();
             assertThat(result.last()).isTrue();
-            then(queryPort).should().searchWithImageInfo(crawledProductImageId, status, 0L, size);
-            then(queryPort).should().count(crawledProductImageId, status);
+            then(queryPort)
+                    .should()
+                    .searchWithImageInfo(
+                            crawledProductImageId, null, statuses, null, null, 0L, size);
+            then(queryPort).should().count(crawledProductImageId, null, statuses, null, null);
         }
 
         @Test
@@ -120,15 +135,15 @@ class SearchProductImageOutboxServiceTest {
             int size = 20;
             long totalElements = 100L;
             SearchProductImageOutboxQuery query =
-                    new SearchProductImageOutboxQuery(null, null, page, size);
+                    new SearchProductImageOutboxQuery(null, null, null, null, null, page, size);
             long expectedOffset = 40L; // page * size = 2 * 20
 
             ProductImageOutboxWithImageResponse response = createMockResponse();
             List<ProductImageOutboxWithImageResponse> responses = List.of(response);
 
-            given(queryPort.searchWithImageInfo(null, null, expectedOffset, size))
+            given(queryPort.searchWithImageInfo(null, null, null, null, null, expectedOffset, size))
                     .willReturn(responses);
-            given(queryPort.count(null, null)).willReturn(totalElements);
+            given(queryPort.count(null, null, null, null, null)).willReturn(totalElements);
 
             // When
             PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
@@ -151,14 +166,14 @@ class SearchProductImageOutboxServiceTest {
             long totalElements = 100L;
             long expectedOffset = 80L;
             SearchProductImageOutboxQuery query =
-                    new SearchProductImageOutboxQuery(null, null, page, size);
+                    new SearchProductImageOutboxQuery(null, null, null, null, null, page, size);
 
             ProductImageOutboxWithImageResponse response = createMockResponse();
             List<ProductImageOutboxWithImageResponse> responses = List.of(response);
 
-            given(queryPort.searchWithImageInfo(null, null, expectedOffset, size))
+            given(queryPort.searchWithImageInfo(null, null, null, null, null, expectedOffset, size))
                     .willReturn(responses);
-            given(queryPort.count(null, null)).willReturn(totalElements);
+            given(queryPort.count(null, null, null, null, null)).willReturn(totalElements);
 
             // When
             PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
@@ -172,8 +187,9 @@ class SearchProductImageOutboxServiceTest {
         @DisplayName("[성공] nullable 필드 조회 시 정상 동작")
         void shouldHandleNullableFieldsInResponse() {
             // Given
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.FAILED);
             SearchProductImageOutboxQuery query =
-                    new SearchProductImageOutboxQuery(null, ProductOutboxStatus.FAILED, 0, 10);
+                    new SearchProductImageOutboxQuery(null, null, statuses, null, null, 0, 10);
 
             ProductImageOutboxWithImageResponse responseWithNulls =
                     ProductImageOutboxWithImageResponse.of(
@@ -191,9 +207,9 @@ class SearchProductImageOutboxServiceTest {
                             null // imageType null
                             );
 
-            given(queryPort.searchWithImageInfo(null, ProductOutboxStatus.FAILED, 0L, 10))
+            given(queryPort.searchWithImageInfo(null, null, statuses, null, null, 0L, 10))
                     .willReturn(List.of(responseWithNulls));
-            given(queryPort.count(null, ProductOutboxStatus.FAILED)).willReturn(1L);
+            given(queryPort.count(null, null, statuses, null, null)).willReturn(1L);
 
             // When
             PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
@@ -205,6 +221,61 @@ class SearchProductImageOutboxServiceTest {
             assertThat(response.originalUrl()).isNull();
             assertThat(response.s3Url()).isNull();
             assertThat(response.imageType()).isNull();
+        }
+
+        @Test
+        @DisplayName("[성공] crawledProductId로 필터링 조회")
+        void shouldFilterByCrawledProductId() {
+            // Given
+            Long crawledProductId = 50L;
+            SearchProductImageOutboxQuery query =
+                    new SearchProductImageOutboxQuery(
+                            null, crawledProductId, null, null, null, 0, 10);
+
+            ProductImageOutboxWithImageResponse response = createMockResponse();
+            List<ProductImageOutboxWithImageResponse> responses = List.of(response);
+
+            given(queryPort.searchWithImageInfo(null, crawledProductId, null, null, null, 0L, 10))
+                    .willReturn(responses);
+            given(queryPort.count(null, crawledProductId, null, null, null)).willReturn(1L);
+
+            // When
+            PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
+
+            // Then
+            assertThat(result.content()).hasSize(1);
+            then(queryPort)
+                    .should()
+                    .searchWithImageInfo(null, crawledProductId, null, null, null, 0L, 10);
+            then(queryPort).should().count(null, crawledProductId, null, null, null);
+        }
+
+        @Test
+        @DisplayName("[성공] 날짜 범위로 필터링 조회")
+        void shouldFilterByDateRange() {
+            // Given
+            Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
+            SearchProductImageOutboxQuery query =
+                    new SearchProductImageOutboxQuery(
+                            null, null, null, createdFrom, createdTo, 0, 10);
+
+            ProductImageOutboxWithImageResponse response = createMockResponse();
+            List<ProductImageOutboxWithImageResponse> responses = List.of(response);
+
+            given(queryPort.searchWithImageInfo(null, null, null, createdFrom, createdTo, 0L, 10))
+                    .willReturn(responses);
+            given(queryPort.count(null, null, null, createdFrom, createdTo)).willReturn(1L);
+
+            // When
+            PageResponse<ProductImageOutboxWithImageResponse> result = service.execute(query);
+
+            // Then
+            assertThat(result.content()).hasSize(1);
+            then(queryPort)
+                    .should()
+                    .searchWithImageInfo(null, null, null, createdFrom, createdTo, 0L, 10);
+            then(queryPort).should().count(null, null, null, createdFrom, createdTo);
         }
     }
 

@@ -48,14 +48,14 @@ class CrawlSchedulerQueryApiMapperTest {
         void toQuery_WithAllFields_ShouldConvertCorrectly() {
             // given
             SearchCrawlSchedulersApiRequest request =
-                    new SearchCrawlSchedulersApiRequest(1L, "ACTIVE", 0, 20);
+                    new SearchCrawlSchedulersApiRequest(1L, List.of("ACTIVE"), null, null, 0, 20);
 
             // when
             SearchCrawlSchedulersQuery result = mapper.toQuery(request);
 
             // then
             assertThat(result.sellerId()).isEqualTo(1L);
-            assertThat(result.status()).isEqualTo(SchedulerStatus.ACTIVE);
+            assertThat(result.statuses()).containsExactly(SchedulerStatus.ACTIVE);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
         }
@@ -65,28 +65,28 @@ class CrawlSchedulerQueryApiMapperTest {
         void toQuery_WithNullStatus_ShouldConvertWithNullStatus() {
             // given
             SearchCrawlSchedulersApiRequest request =
-                    new SearchCrawlSchedulersApiRequest(1L, null, 0, 20);
+                    new SearchCrawlSchedulersApiRequest(1L, null, null, null, 0, 20);
 
             // when
             SearchCrawlSchedulersQuery result = mapper.toQuery(request);
 
             // then
             assertThat(result.sellerId()).isEqualTo(1L);
-            assertThat(result.status()).isNull();
+            assertThat(result.statuses()).isNull();
         }
 
         @Test
-        @DisplayName("status가 빈 문자열인 요청을 쿼리로 변환한다")
+        @DisplayName("status가 빈 리스트인 요청을 쿼리로 변환하면 null이 된다")
         void toQuery_WithBlankStatus_ShouldConvertWithNullStatus() {
             // given
             SearchCrawlSchedulersApiRequest request =
-                    new SearchCrawlSchedulersApiRequest(1L, "  ", 0, 20);
+                    new SearchCrawlSchedulersApiRequest(1L, List.of(), null, null, 0, 20);
 
             // when
             SearchCrawlSchedulersQuery result = mapper.toQuery(request);
 
             // then
-            assertThat(result.status()).isNull();
+            assertThat(result.statuses()).isNull();
         }
     }
 

@@ -7,6 +7,7 @@ import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutbox
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -74,16 +75,32 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
      * 조건으로 ImageOutbox 목록 검색 (페이징)
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return ImageOutbox 목록
      */
     @Override
     public List<ProductImageOutbox> search(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size) {
         List<ProductImageOutboxJpaEntity> entities =
-                queryDslRepository.search(crawledProductImageId, status, offset, size);
+                queryDslRepository.search(
+                        crawledProductImageId,
+                        crawledProductId,
+                        statuses,
+                        createdFrom,
+                        createdTo,
+                        offset,
+                        size);
         return entities.stream().map(mapper::toDomain).toList();
     }
 
@@ -91,12 +108,21 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
      * 조건으로 ImageOutbox 개수 조회
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
     @Override
-    public long count(Long crawledProductImageId, ProductOutboxStatus status) {
-        return queryDslRepository.count(crawledProductImageId, status);
+    public long count(
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo) {
+        return queryDslRepository.count(
+                crawledProductImageId, crawledProductId, statuses, createdFrom, createdTo);
     }
 
     /**
@@ -121,16 +147,32 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
      * <p>CrawledProductImage와 LEFT JOIN하여 이미지 정보를 함께 반환합니다.
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return Outbox + 이미지 정보 응답 목록
      */
     @Override
     public List<ProductImageOutboxWithImageResponse> searchWithImageInfo(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size) {
         return queryDslRepository
-                .searchWithImageInfo(crawledProductImageId, status, offset, size)
+                .searchWithImageInfo(
+                        crawledProductImageId,
+                        crawledProductId,
+                        statuses,
+                        createdFrom,
+                        createdTo,
+                        offset,
+                        size)
                 .stream()
                 .map(
                         dto ->

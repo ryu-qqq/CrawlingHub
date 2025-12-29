@@ -72,7 +72,7 @@ class SearchSellersServiceTest {
             // Given
             SearchSellersQuery query =
                     new SearchSellersQuery(
-                            "mustit", "seller", SellerStatus.ACTIVE, null, null, 0, 10);
+                            "mustit", "seller", List.of(SellerStatus.ACTIVE), null, null, 0, 10);
             SellerQueryCriteria criteria =
                     new SellerQueryCriteria(null, null, null, null, null, 0, 10);
             List<Seller> sellers = List.of(SellerFixture.anActiveSeller());

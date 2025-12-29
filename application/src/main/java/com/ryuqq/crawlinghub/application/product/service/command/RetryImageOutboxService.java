@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.product.dto.command.RetryImageOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryResponse;
 import com.ryuqq.crawlinghub.application.product.port.in.command.RetryImageOutboxUseCase;

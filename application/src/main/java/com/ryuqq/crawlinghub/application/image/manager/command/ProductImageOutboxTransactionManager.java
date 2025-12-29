@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.image.manager;
+package com.ryuqq.crawlinghub.application.image.manager.command;
 
 import com.ryuqq.crawlinghub.application.product.port.out.command.ImageOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;

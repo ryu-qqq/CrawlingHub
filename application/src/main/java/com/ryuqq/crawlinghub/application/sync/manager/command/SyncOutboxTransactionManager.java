@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.product.manager;
+package com.ryuqq.crawlinghub.application.sync.manager.command;
 
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.port.out.command.SyncOutboxPersistencePort;
@@ -31,12 +31,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 1.0.0
  */
 @Component
-public class SyncOutboxManager {
+public class SyncOutboxTransactionManager {
 
     private final SyncOutboxPersistencePort syncOutboxPersistencePort;
     private final Clock clock;
 
-    public SyncOutboxManager(SyncOutboxPersistencePort syncOutboxPersistencePort, Clock clock) {
+    public SyncOutboxTransactionManager(
+            SyncOutboxPersistencePort syncOutboxPersistencePort, Clock clock) {
         this.syncOutboxPersistencePort = syncOutboxPersistencePort;
         this.clock = clock;
     }

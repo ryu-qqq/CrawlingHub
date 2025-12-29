@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.query.SearchUserAgentsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
@@ -9,9 +10,13 @@ import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoo
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
+import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -136,5 +141,35 @@ public class UserAgentApiMapper {
     public UpdateUserAgentStatusApiResponse toStatusUpdateApiResponse(
             int updatedCount, String status) {
         return UpdateUserAgentStatusApiResponse.of(updatedCount, status);
+    }
+
+    /**
+     * SearchUserAgentsApiRequest → UserAgentSearchCriteria 변환
+     *
+     * @param request REST API 검색 요청
+     * @return Application Layer 검색 조건
+     */
+    public UserAgentSearchCriteria toCriteria(SearchUserAgentsApiRequest request) {
+        List<UserAgentStatus> statuses = parseStatuses(request.statuses());
+        PageRequest pageRequest = PageRequest.of(request.page(), request.size());
+
+        return UserAgentSearchCriteria.of(
+                statuses, request.createdFrom(), request.createdTo(), pageRequest);
+    }
+
+    /**
+     * 상태 문자열 목록 → UserAgentStatus Enum 목록 변환
+     *
+     * @param statusStrings 상태 문자열 목록
+     * @return UserAgentStatus Enum 목록 (null이거나 빈 리스트면 null)
+     */
+    private List<UserAgentStatus> parseStatuses(List<String> statusStrings) {
+        if (statusStrings == null || statusStrings.isEmpty()) {
+            return null;
+        }
+        return statusStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(UserAgentStatus::valueOf)
+                .toList();
     }
 }

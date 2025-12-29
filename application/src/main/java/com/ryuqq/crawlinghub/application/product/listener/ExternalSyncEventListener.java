@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.product.listener;
 
 import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
-import com.ryuqq.crawlinghub.application.sync.manager.SyncOutboxReadManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.query.SyncOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
@@ -41,19 +41,19 @@ public class ExternalSyncEventListener {
     private static final Logger log = LoggerFactory.getLogger(ExternalSyncEventListener.class);
 
     private final SyncOutboxReadManager syncOutboxReadManager;
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
     private final CrawledProductReadManager crawledProductReadManager;
     private final SyncCompletionFacade syncCompletionFacade;
     private final ExternalProductServerClient externalProductServerClient;
 
     public ExternalSyncEventListener(
             SyncOutboxReadManager syncOutboxReadManager,
-            SyncOutboxManager syncOutboxManager,
+            SyncOutboxTransactionManager syncOutboxTransactionManager,
             CrawledProductReadManager crawledProductReadManager,
             SyncCompletionFacade syncCompletionFacade,
             ExternalProductServerClient externalProductServerClient) {
         this.syncOutboxReadManager = syncOutboxReadManager;
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
         this.crawledProductReadManager = crawledProductReadManager;
         this.syncCompletionFacade = syncCompletionFacade;
         this.externalProductServerClient = externalProductServerClient;
@@ -113,7 +113,7 @@ public class ExternalSyncEventListener {
             CrawledProduct product = productOpt.get();
 
             // 2. 상태 → PROCESSING
-            syncOutboxManager.markAsProcessing(outbox);
+            syncOutboxTransactionManager.markAsProcessing(outbox);
 
             // 3. 외부 API 호출
             ProductSyncResult result = callExternalApi(outbox, product);

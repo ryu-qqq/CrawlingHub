@@ -12,8 +12,8 @@ import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.dto.command.TriggerManualSyncCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.ManualSyncTriggerResponse;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
@@ -55,7 +55,7 @@ class TriggerManualSyncServiceTest {
 
     @Mock private CrawledProductQueryPort crawledProductQueryPort;
     @Mock private SyncOutboxFactory syncOutboxFactory;
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     private TriggerManualSyncService service;
 
@@ -63,7 +63,7 @@ class TriggerManualSyncServiceTest {
     void setUp() {
         service =
                 new TriggerManualSyncService(
-                        crawledProductQueryPort, syncOutboxFactory, syncOutboxManager);
+                        crawledProductQueryPort, syncOutboxFactory, syncOutboxTransactionManager);
     }
 
     @Nested
@@ -98,7 +98,7 @@ class TriggerManualSyncServiceTest {
             assertThat(response.syncType()).isEqualTo("CREATE");
             assertThat(response.message()).isEqualTo("동기화 요청이 등록되었습니다.");
 
-            verify(syncOutboxManager).persist(bundle);
+            verify(syncOutboxTransactionManager).persist(bundle);
         }
 
         @Test
@@ -128,7 +128,7 @@ class TriggerManualSyncServiceTest {
             assertThat(response.syncType()).isEqualTo("UPDATE");
             assertThat(response.message()).isEqualTo("동기화 요청이 등록되었습니다.");
 
-            verify(syncOutboxManager).persist(bundle);
+            verify(syncOutboxTransactionManager).persist(bundle);
         }
 
         @Test
@@ -149,7 +149,7 @@ class TriggerManualSyncServiceTest {
             assertThat(response.syncType()).isNull();
             assertThat(response.message()).contains("이미 PENDING 또는 PROCESSING 상태");
 
-            verifyNoInteractions(syncOutboxManager);
+            verifyNoInteractions(syncOutboxTransactionManager);
         }
 
         @Test

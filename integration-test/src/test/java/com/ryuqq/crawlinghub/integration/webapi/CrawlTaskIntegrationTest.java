@@ -115,7 +115,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&status=WAITING"),
+                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&statuses=WAITING"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -140,7 +140,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&taskType=META"),
+                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&taskTypes=META"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -454,7 +454,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&status=INVALID_STATUS"),
+                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&statuses=INVALID_STATUS"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -472,7 +472,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&taskType=INVALID_TYPE"),
+                            url(TASKS_BASE_URL + "?crawlSchedulerId=1&taskTypes=INVALID_TYPE"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

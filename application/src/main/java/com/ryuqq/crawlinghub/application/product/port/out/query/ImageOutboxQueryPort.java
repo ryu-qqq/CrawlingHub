@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,22 +73,39 @@ public interface ImageOutboxQueryPort {
      * 조건으로 ImageOutbox 목록 검색 (페이징)
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return ImageOutbox 목록
      */
     List<ProductImageOutbox> search(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size);
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size);
 
     /**
      * 조건으로 ImageOutbox 개수 조회
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
-    long count(Long crawledProductImageId, ProductOutboxStatus status);
+    long count(
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo);
 
     /**
      * PROCESSING 상태이고 타임아웃된 ImageOutbox 조회
@@ -106,11 +124,20 @@ public interface ImageOutboxQueryPort {
      * <p>CrawledProductImage와 JOIN하여 이미지 정보를 함께 반환합니다.
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return Outbox + 이미지 정보 응답 목록
      */
     List<ProductImageOutboxWithImageResponse> searchWithImageInfo(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size);
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size);
 }

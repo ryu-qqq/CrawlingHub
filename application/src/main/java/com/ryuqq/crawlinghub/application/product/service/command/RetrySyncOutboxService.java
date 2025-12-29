@@ -2,9 +2,9 @@ package com.ryuqq.crawlinghub.application.product.service.command;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.RetrySyncOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryResponse;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.RetrySyncOutboxUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.exception.SyncOutboxNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
@@ -19,12 +19,13 @@ import org.springframework.stereotype.Service;
 public class RetrySyncOutboxService implements RetrySyncOutboxUseCase {
 
     private final SyncOutboxQueryPort syncOutboxQueryPort;
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     public RetrySyncOutboxService(
-            SyncOutboxQueryPort syncOutboxQueryPort, SyncOutboxManager syncOutboxManager) {
+            SyncOutboxQueryPort syncOutboxQueryPort,
+            SyncOutboxTransactionManager syncOutboxTransactionManager) {
         this.syncOutboxQueryPort = syncOutboxQueryPort;
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
     }
 
     @Override
@@ -34,7 +35,7 @@ public class RetrySyncOutboxService implements RetrySyncOutboxUseCase {
         ProductOutboxStatus previousStatus = outbox.getStatus();
         validateCanRetry(outbox);
 
-        syncOutboxManager.resetToPending(outbox);
+        syncOutboxTransactionManager.resetToPending(outbox);
 
         return OutboxRetryResponse.success(
                 command.outboxId(), previousStatus.name(), ProductOutboxStatus.PENDING.name());
