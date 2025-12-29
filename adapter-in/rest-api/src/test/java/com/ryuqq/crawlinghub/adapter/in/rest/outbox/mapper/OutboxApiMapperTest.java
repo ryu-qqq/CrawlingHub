@@ -147,7 +147,10 @@ class OutboxApiMapperTest {
             assertThatThrownBy(() -> mapper.toQuery(statuses, null, null, 0, 20))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Invalid outbox status: 'INVALID_STATUS'")
-                    .hasMessageContaining("Valid values: PENDING, FAILED, SENT");
+                    .hasMessageContaining("Valid values:")
+                    .hasMessageContaining("PENDING")
+                    .hasMessageContaining("FAILED")
+                    .hasMessageContaining("SENT");
         }
 
         @Test

@@ -9,7 +9,9 @@ import com.ryuqq.crawlinghub.application.outbox.dto.response.OutboxResponse;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.RepublishResultResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,8 +70,12 @@ public class OutboxApiMapper {
         try {
             return OutboxStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
+            String validValues =
+                    Arrays.stream(OutboxStatus.values())
+                            .map(Enum::name)
+                            .collect(Collectors.joining(", "));
             throw new IllegalArgumentException(
-                    "Invalid outbox status: '" + status + "'. Valid values: PENDING, FAILED, SENT");
+                    "Invalid outbox status: '" + status + "'. Valid values: " + validValues);
         }
     }
 

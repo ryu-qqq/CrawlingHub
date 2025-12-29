@@ -7,7 +7,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.QCrawlTaskOutbo
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -136,12 +136,14 @@ public class CrawlTaskOutboxQueryDslRepository {
     }
 
     /**
-     * Instant → LocalDateTime 변환 (UTC → 시스템 기본 타임존)
+     * Instant → LocalDateTime 변환 (UTC 기준)
+     *
+     * <p>분산 환경에서 서버 타임존에 관계없이 일관된 쿼리 결과를 보장하기 위해 UTC를 사용합니다.
      *
      * @param instant 변환할 Instant
-     * @return LocalDateTime
+     * @return LocalDateTime (UTC 기준)
      */
     private LocalDateTime toLocalDateTime(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }

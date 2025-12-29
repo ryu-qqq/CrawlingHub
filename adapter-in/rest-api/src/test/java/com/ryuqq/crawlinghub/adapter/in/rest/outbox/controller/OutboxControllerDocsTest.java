@@ -24,6 +24,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.OutboxApiRespon
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.RepublishResultApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.mapper.OutboxApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
+import com.ryuqq.crawlinghub.application.outbox.dto.query.GetOutboxListQuery;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.OutboxResponse;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.RepublishResultResponse;
 import com.ryuqq.crawlinghub.application.outbox.port.in.command.RepublishOutboxUseCase;
@@ -100,8 +101,9 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<OutboxApiResponse> apiPageResponse =
                 new PageApiResponse<>(List.of(apiResponse1, apiResponse2), 0, 20, 2, 1, true, true);
 
+        GetOutboxListQuery query = GetOutboxListQuery.pendingOrFailed(0, 20);
         given(outboxApiMapper.toQuery(anyList(), any(), any(), anyInt(), anyInt()))
-                .willReturn(null);
+                .willReturn(query);
         given(getOutboxListUseCase.execute(any())).willReturn(pageResponse);
         given(outboxApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
