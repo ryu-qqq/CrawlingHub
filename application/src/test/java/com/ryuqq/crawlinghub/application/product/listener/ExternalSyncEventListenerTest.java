@@ -10,10 +10,10 @@ import static org.mockito.Mockito.never;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
 import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
-import com.ryuqq.crawlinghub.application.sync.manager.SyncOutboxReadManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.query.SyncOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
@@ -49,7 +49,7 @@ class ExternalSyncEventListenerTest {
 
     @Mock private SyncOutboxReadManager syncOutboxReadManager;
 
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     @Mock private CrawledProductReadManager crawledProductReadManager;
 
@@ -92,7 +92,7 @@ class ExternalSyncEventListenerTest {
             // Then
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).should().findById(PRODUCT_ID);
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(externalProductServerClient).should().createProduct(any(), any());
             then(syncCompletionFacade).should().completeSync(outbox, product, EXTERNAL_PRODUCT_ID);
         }
@@ -118,7 +118,7 @@ class ExternalSyncEventListenerTest {
             // Then
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).should().findById(PRODUCT_ID);
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(externalProductServerClient).should().updateProduct(any(), any());
             then(syncCompletionFacade).should().completeSync(outbox, product, EXTERNAL_PRODUCT_ID);
         }
@@ -139,7 +139,7 @@ class ExternalSyncEventListenerTest {
             // Then
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).shouldHaveNoInteractions();
-            then(syncOutboxManager).shouldHaveNoInteractions();
+            then(syncOutboxTransactionManager).shouldHaveNoInteractions();
             then(externalProductServerClient).shouldHaveNoInteractions();
             then(syncCompletionFacade).shouldHaveNoInteractions();
         }
@@ -164,7 +164,7 @@ class ExternalSyncEventListenerTest {
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).should().findById(PRODUCT_ID);
             then(syncCompletionFacade).should().failSync(eq(outbox), anyString());
-            then(syncOutboxManager).should(never()).markAsProcessing(any());
+            then(syncOutboxTransactionManager).should(never()).markAsProcessing(any());
             then(externalProductServerClient).shouldHaveNoInteractions();
         }
 
@@ -190,7 +190,7 @@ class ExternalSyncEventListenerTest {
             // Then
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).should().findById(PRODUCT_ID);
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(externalProductServerClient).should().createProduct(any(), any());
             then(syncCompletionFacade).should().failSync(eq(outbox), anyString());
             then(syncCompletionFacade).should(never()).completeSync(any(), any(), any());
@@ -218,7 +218,7 @@ class ExternalSyncEventListenerTest {
             // Then
             then(syncOutboxReadManager).should().findByIdempotencyKey(IDEMPOTENCY_KEY);
             then(crawledProductReadManager).should().findById(PRODUCT_ID);
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(externalProductServerClient).should().createProduct(any(), any());
             then(syncCompletionFacade).should().failSync(eq(outbox), anyString());
             then(syncCompletionFacade).should(never()).completeSync(any(), any(), any());

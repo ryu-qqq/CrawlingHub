@@ -6,6 +6,9 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
 import com.ryuqq.crawlinghub.application.product.dto.query.SearchCrawledProductsQuery;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -197,9 +200,9 @@ public class CrawledProductQueryDslRepository {
             builder.and(crawledProductJpaEntity.sellerId.eq(query.sellerId()));
         }
 
-        // itemNo 정확히 일치
-        if (query.itemNo() != null) {
-            builder.and(crawledProductJpaEntity.itemNo.eq(query.itemNo()));
+        // itemNos 다중 선택 (IN 절)
+        if (query.hasItemNosFilter()) {
+            builder.and(crawledProductJpaEntity.itemNo.in(query.itemNos()));
         }
 
         // itemName 부분 일치 (LIKE)
@@ -210,6 +213,14 @@ public class CrawledProductQueryDslRepository {
         // brandName 부분 일치 (LIKE)
         if (query.brandName() != null && !query.brandName().isBlank()) {
             builder.and(crawledProductJpaEntity.brandName.containsIgnoreCase(query.brandName()));
+        }
+
+        // 가격 범위 필터 (할인가 기준)
+        if (query.minPrice() != null) {
+            builder.and(crawledProductJpaEntity.discountPrice.goe(query.minPrice()));
+        }
+        if (query.maxPrice() != null) {
+            builder.and(crawledProductJpaEntity.discountPrice.loe(query.maxPrice()));
         }
 
         // needsSync 여부
@@ -242,6 +253,26 @@ public class CrawledProductQueryDslRepository {
             }
         }
 
+        // 생성일시 범위 필터 (Instant → LocalDateTime 변환)
+        if (query.createdFrom() != null) {
+            LocalDateTime fromDateTime = toLocalDateTime(query.createdFrom());
+            builder.and(crawledProductJpaEntity.createdAt.goe(fromDateTime));
+        }
+        if (query.createdTo() != null) {
+            LocalDateTime toDateTime = toLocalDateTime(query.createdTo());
+            builder.and(crawledProductJpaEntity.createdAt.loe(toDateTime));
+        }
+
         return builder;
+    }
+
+    /**
+     * Instant를 LocalDateTime으로 변환
+     *
+     * @param instant Instant 객체
+     * @return LocalDateTime 객체
+     */
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

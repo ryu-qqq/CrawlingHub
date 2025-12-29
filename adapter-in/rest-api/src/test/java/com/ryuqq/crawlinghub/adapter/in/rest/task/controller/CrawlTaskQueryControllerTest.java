@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryuqq.crawlinghub.adapter.in.rest.common.controller.GlobalExceptionHandler;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskDetailApiResponse;
@@ -23,6 +25,7 @@ import com.ryuqq.crawlinghub.application.task.port.in.query.ListCrawlTasksUseCas
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,10 +78,14 @@ class CrawlTaskQueryControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
+        ErrorMapperRegistry errorMapperRegistry = new ErrorMapperRegistry(Collections.emptyList());
+        GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler(errorMapperRegistry);
+
         mockMvc =
                 MockMvcBuilders.standaloneSetup(controller)
                         .addPlaceholderValue("api.endpoints.base-v1", "/api/v1")
                         .setValidator(validator)
+                        .setControllerAdvice(exceptionHandler)
                         .build();
     }
 
@@ -185,8 +192,8 @@ class CrawlTaskQueryControllerTest {
                     new ListCrawlTasksQuery(
                             crawlSchedulerId,
                             null,
-                            CrawlTaskStatus.FAILED,
-                            CrawlTaskType.META,
+                            List.of(CrawlTaskStatus.FAILED),
+                            List.of(CrawlTaskType.META),
                             null,
                             null,
                             0,
@@ -291,6 +298,8 @@ class CrawlTaskQueryControllerTest {
         void listCrawlTasks_InvalidStatus_BadRequest() throws Exception {
             // Given
             Long crawlSchedulerId = 100L;
+            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
+                    .willThrow(new IllegalArgumentException("Invalid status: INVALID_STATUS"));
 
             // When & Then
             mockMvc.perform(
@@ -306,6 +315,8 @@ class CrawlTaskQueryControllerTest {
         void listCrawlTasks_InvalidTaskType_BadRequest() throws Exception {
             // Given
             Long crawlSchedulerId = 100L;
+            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
+                    .willThrow(new IllegalArgumentException("Invalid taskType: INVALID_TYPE"));
 
             // When & Then
             mockMvc.perform(

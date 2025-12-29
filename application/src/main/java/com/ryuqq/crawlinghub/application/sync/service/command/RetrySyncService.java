@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.sync.service.command;
 
 import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.sync.dto.command.SyncRetryResult;
-import com.ryuqq.crawlinghub.application.sync.manager.SyncOutboxReadManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.query.SyncOutboxReadManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RetrySyncUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
@@ -41,19 +41,19 @@ public class RetrySyncService implements RetrySyncUseCase {
     private static final int MAX_RETRY_COUNT = 3;
 
     private final SyncOutboxReadManager syncOutboxReadManager;
-    private final SyncOutboxManager syncOutboxManager;
+    private final SyncOutboxTransactionManager syncOutboxTransactionManager;
     private final CrawledProductReadManager crawledProductReadManager;
     private final SyncCompletionFacade syncCompletionFacade;
     private final ExternalProductServerClient externalProductServerClient;
 
     public RetrySyncService(
             SyncOutboxReadManager syncOutboxReadManager,
-            SyncOutboxManager syncOutboxManager,
+            SyncOutboxTransactionManager syncOutboxTransactionManager,
             CrawledProductReadManager crawledProductReadManager,
             SyncCompletionFacade syncCompletionFacade,
             ExternalProductServerClient externalProductServerClient) {
         this.syncOutboxReadManager = syncOutboxReadManager;
-        this.syncOutboxManager = syncOutboxManager;
+        this.syncOutboxTransactionManager = syncOutboxTransactionManager;
         this.crawledProductReadManager = crawledProductReadManager;
         this.syncCompletionFacade = syncCompletionFacade;
         this.externalProductServerClient = externalProductServerClient;
@@ -102,7 +102,7 @@ public class RetrySyncService implements RetrySyncUseCase {
 
         CrawledProduct product = productOpt.get();
 
-        syncOutboxManager.markAsProcessing(outbox);
+        syncOutboxTransactionManager.markAsProcessing(outbox);
 
         ProductSyncResult result = callExternalApi(outbox, product);
 

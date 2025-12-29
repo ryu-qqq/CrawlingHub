@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.product.manager;
+package com.ryuqq.crawlinghub.application.product.manager.command;
 
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledRawPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
@@ -29,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 1.0.0
  */
 @Component
-public class CrawledRawManager {
+public class CrawledRawTransactionManager {
 
     private final CrawledRawPersistencePort crawledRawPersistencePort;
 
-    public CrawledRawManager(CrawledRawPersistencePort crawledRawPersistencePort) {
+    public CrawledRawTransactionManager(CrawledRawPersistencePort crawledRawPersistencePort) {
         this.crawledRawPersistencePort = crawledRawPersistencePort;
     }
 

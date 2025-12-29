@@ -2,6 +2,8 @@ package com.ryuqq.crawlinghub.adapter.in.rest.product.dto.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -39,7 +41,19 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            1L, 100L, "상품명", "브랜드", true, false, true, null, 30);
+                            1L,
+                            List.of(100L),
+                            "상품명",
+                            "브랜드",
+                            null,
+                            null,
+                            true,
+                            false,
+                            true,
+                            null,
+                            null,
+                            null,
+                            30);
 
             // Then
             assertThat(request.page()).isZero();
@@ -51,7 +65,19 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            1L, 100L, "상품명", "브랜드", true, false, true, 0, null);
+                            1L,
+                            List.of(100L),
+                            "상품명",
+                            "브랜드",
+                            null,
+                            null,
+                            true,
+                            false,
+                            true,
+                            null,
+                            null,
+                            0,
+                            null);
 
             // Then
             assertThat(request.size()).isEqualTo(20);
@@ -63,7 +89,8 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            null, null, null, null, null, null, null, null, null);
+                            null, null, null, null, null, null, null, null, null, null, null, null,
+                            null);
 
             // Then
             assertThat(request.page()).isZero();
@@ -81,7 +108,8 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            null, null, null, null, null, null, null, 5, null);
+                            null, null, null, null, null, null, null, null, null, null, null, 5,
+                            null);
 
             // Then
             assertThat(request.page()).isEqualTo(5);
@@ -93,7 +121,8 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            null, null, null, null, null, null, null, null, 50);
+                            null, null, null, null, null, null, null, null, null, null, null, null,
+                            50);
 
             // Then
             assertThat(request.size()).isEqualTo(50);
@@ -103,18 +132,35 @@ class SearchCrawledProductsApiRequestTest {
         @DisplayName("모든 필드가 올바르게 설정된다")
         void shouldSetAllFieldsCorrectly() {
             // When
+            Instant now = Instant.now();
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            1L, 100L, "테스트 상품", "테스트 브랜드", true, false, true, 2, 30);
+                            1L,
+                            List.of(100L, 200L),
+                            "테스트 상품",
+                            "테스트 브랜드",
+                            10000L,
+                            50000L,
+                            true,
+                            false,
+                            true,
+                            now,
+                            now,
+                            2,
+                            30);
 
             // Then
             assertThat(request.sellerId()).isEqualTo(1L);
-            assertThat(request.itemNo()).isEqualTo(100L);
+            assertThat(request.itemNos()).containsExactly(100L, 200L);
             assertThat(request.itemName()).isEqualTo("테스트 상품");
             assertThat(request.brandName()).isEqualTo("테스트 브랜드");
+            assertThat(request.minPrice()).isEqualTo(10000L);
+            assertThat(request.maxPrice()).isEqualTo(50000L);
             assertThat(request.needsSync()).isTrue();
             assertThat(request.allCrawled()).isFalse();
             assertThat(request.hasExternalId()).isTrue();
+            assertThat(request.createdFrom()).isEqualTo(now);
+            assertThat(request.createdTo()).isEqualTo(now);
             assertThat(request.page()).isEqualTo(2);
             assertThat(request.size()).isEqualTo(30);
         }
@@ -130,16 +176,21 @@ class SearchCrawledProductsApiRequestTest {
             // When
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            null, null, null, null, null, null, null, 0, 20);
+                            null, null, null, null, null, null, null, null, null, null, null, 0,
+                            20);
 
             // Then
             assertThat(request.sellerId()).isNull();
-            assertThat(request.itemNo()).isNull();
+            assertThat(request.itemNos()).isNull();
             assertThat(request.itemName()).isNull();
             assertThat(request.brandName()).isNull();
+            assertThat(request.minPrice()).isNull();
+            assertThat(request.maxPrice()).isNull();
             assertThat(request.needsSync()).isNull();
             assertThat(request.allCrawled()).isNull();
             assertThat(request.hasExternalId()).isNull();
+            assertThat(request.createdFrom()).isNull();
+            assertThat(request.createdTo()).isNull();
         }
     }
 }

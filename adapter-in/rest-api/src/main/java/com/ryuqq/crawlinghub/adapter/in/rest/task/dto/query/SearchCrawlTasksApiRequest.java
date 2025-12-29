@@ -1,10 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Search CrawlTasks API Request
@@ -16,8 +17,8 @@ import java.time.Instant;
  * <ul>
  *   <li>crawlSchedulerId: 크롤 스케줄러 ID 필터 (선택적)
  *   <li>sellerId: 셀러 ID 필터 (선택적)
- *   <li>status: 상태 필터 (선택적, WAITING|PUBLISHED|RUNNING|SUCCESS|FAILED|RETRY|TIMEOUT)
- *   <li>taskType: 태스크 유형 필터 (선택적, META|MINI_SHOP|DETAIL|OPTION|SEARCH)
+ *   <li>statuses: 상태 필터 목록 (선택적, 다중 선택 가능)
+ *   <li>taskTypes: 태스크 유형 필터 목록 (선택적, 다중 선택 가능)
  *   <li>createdFrom: 생성일시 시작 (선택적, ISO-8601 형식)
  *   <li>createdTo: 생성일시 종료 (선택적, ISO-8601 형식)
  *   <li>page: 페이지 번호 (선택적, 기본값: 0)
@@ -26,8 +27,8 @@ import java.time.Instant;
  *
  * @param crawlSchedulerId 크롤 스케줄러 ID 필터 (선택적)
  * @param sellerId 셀러 ID 필터 (선택적)
- * @param status 상태 필터 (선택적)
- * @param taskType 태스크 유형 필터 (선택적)
+ * @param statuses 상태 필터 목록 (선택적, 다중 선택 가능)
+ * @param taskTypes 태스크 유형 필터 목록 (선택적, 다중 선택 가능)
  * @param createdFrom 생성일시 시작 (선택적)
  * @param createdTo 생성일시 종료 (선택적)
  * @param page 페이지 번호
@@ -36,37 +37,28 @@ import java.time.Instant;
  * @since 1.0.0
  */
 public record SearchCrawlTasksApiRequest(
-        @Positive(message = "크롤 스케줄러 ID는 양수여야 합니다") Long crawlSchedulerId,
-        @Positive(message = "셀러 ID는 양수여야 합니다") Long sellerId,
-        @Pattern(
-                        regexp = "WAITING|PUBLISHED|RUNNING|SUCCESS|FAILED|RETRY|TIMEOUT",
-                        message =
-                                "상태는 WAITING, PUBLISHED, RUNNING, SUCCESS, FAILED, RETRY, TIMEOUT 중"
-                                        + " 하나여야 합니다")
-                String status,
-        @Pattern(
-                        regexp = "META|MINI_SHOP|DETAIL|OPTION|SEARCH",
-                        message = "태스크 유형은 META, MINI_SHOP, DETAIL, OPTION, SEARCH 중 하나여야 합니다")
-                String taskType,
-        Instant createdFrom,
-        Instant createdTo,
-        @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다") Integer page,
+        @Positive(message = "크롤 스케줄러 ID는 양수여야 합니다")
+                @Schema(description = "크롤 스케줄러 ID 필터", example = "1")
+                Long crawlSchedulerId,
+        @Positive(message = "셀러 ID는 양수여야 합니다") @Schema(description = "셀러 ID 필터", example = "1")
+                Long sellerId,
+        @Schema(description = "상태 필터 목록 (다중 선택 가능)", example = "[\"SUCCESS\", \"FAILED\"]")
+                List<String> statuses,
+        @Schema(description = "태스크 유형 필터 목록 (다중 선택 가능)", example = "[\"META\", \"DETAIL\"]")
+                List<String> taskTypes,
+        @Schema(description = "생성일시 시작 (ISO-8601)", example = "2025-01-01T00:00:00Z")
+                Instant createdFrom,
+        @Schema(description = "생성일시 종료 (ISO-8601)", example = "2025-12-31T23:59:59Z")
+                Instant createdTo,
+        @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
+                @Schema(description = "페이지 번호 (0부터 시작)", example = "0")
+                Integer page,
         @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
                 @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
+                @Schema(description = "페이지 크기 (최대 100)", example = "20")
                 Integer size) {
 
-    /**
-     * 기본값 적용 생성자
-     *
-     * @param crawlSchedulerId 크롤 스케줄러 ID (선택)
-     * @param sellerId 셀러 ID (선택)
-     * @param status 상태 (선택)
-     * @param taskType 태스크 유형 (선택)
-     * @param createdFrom 생성일시 시작 (선택)
-     * @param createdTo 생성일시 종료 (선택)
-     * @param page 페이지 번호 (null이면 0)
-     * @param size 페이지 크기 (null이면 20)
-     */
+    /** Compact Constructor - 기본값 설정 */
     public SearchCrawlTasksApiRequest {
         if (page == null) {
             page = 0;

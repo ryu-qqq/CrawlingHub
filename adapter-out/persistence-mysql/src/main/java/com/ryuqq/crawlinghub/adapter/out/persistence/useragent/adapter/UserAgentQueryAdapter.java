@@ -116,17 +116,15 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
     /**
      * 검색 조건에 따른 UserAgent 페이징 조회
      *
-     * @param criteria 검색 조건 (상태 필터, 페이징)
+     * @param criteria 검색 조건 (상태 필터, 기간 필터, 페이징)
      * @return 페이징된 UserAgent 요약 정보 목록
      */
     @Override
     public PageResponse<UserAgentSummaryResponse> findByCriteria(UserAgentSearchCriteria criteria) {
         PageRequest pageRequest = criteria.pageRequest();
-        UserAgentStatus status = criteria.status();
 
-        List<UserAgentJpaEntity> entities =
-                queryDslRepository.findByStatusWithPaging(status, pageRequest);
-        long totalElements = queryDslRepository.countByStatusOrAll(status);
+        List<UserAgentJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
+        long totalElements = queryDslRepository.countByCriteria(criteria);
 
         List<UserAgentSummaryResponse> content =
                 entities.stream().map(this::toSummaryResponse).toList();

@@ -200,7 +200,7 @@ class SellerAssemblerTest {
                     new SearchSellersQuery(
                             "MUSTIT_001",
                             "테스트셀러",
-                            SellerStatus.ACTIVE,
+                            List.of(SellerStatus.ACTIVE),
                             createdFrom,
                             createdTo,
                             0,

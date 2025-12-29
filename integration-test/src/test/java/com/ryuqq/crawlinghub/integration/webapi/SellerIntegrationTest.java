@@ -445,7 +445,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SELLERS_BASE_URL + "?status=ACTIVE"),
+                            url(SELLERS_BASE_URL + "?statuses=ACTIVE"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -471,7 +471,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SELLERS_BASE_URL + "?status=INACTIVE"),
+                            url(SELLERS_BASE_URL + "?statuses=INACTIVE"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -621,7 +621,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SELLERS_BASE_URL + "?status=INVALID"),
+                            url(SELLERS_BASE_URL + "?statuses=INVALID"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

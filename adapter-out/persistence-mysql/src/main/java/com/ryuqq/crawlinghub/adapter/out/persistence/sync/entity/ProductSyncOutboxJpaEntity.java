@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity;
+package com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;

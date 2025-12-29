@@ -7,13 +7,16 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledProductAssembler;
 import com.ryuqq.crawlinghub.application.product.dto.response.CrawledProductDetailResponse;
-import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
+import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.exception.CrawledProductNotFoundException;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
@@ -21,6 +24,7 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +50,9 @@ class GetCrawledProductDetailServiceTest {
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
 
-    @Mock private CrawledProductQueryPort queryPort;
+    @Mock private CrawledProductReadManager productReadManager;
+
+    @Mock private CrawledProductImageReadManager imageReadManager;
 
     @Mock private CrawledProductAssembler assembler;
 
@@ -54,7 +60,8 @@ class GetCrawledProductDetailServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new GetCrawledProductDetailService(queryPort, assembler);
+        service =
+                new GetCrawledProductDetailService(productReadManager, imageReadManager, assembler);
     }
 
     @Nested
@@ -62,14 +69,29 @@ class GetCrawledProductDetailServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 상품 존재 시 → DetailResponse 반환")
+        @DisplayName("[성공] 상품 존재 시 → DetailResponse 반환 (업로드된 이미지 포함)")
         void shouldReturnDetailResponseWhenProductExists() {
             // Given
             CrawledProduct product = createMockProduct();
+            List<CrawledProductImage> thumbnails = List.of(createMockImage(ImageType.THUMBNAIL));
+            List<CrawledProductImage> descriptionImages =
+                    List.of(createMockImage(ImageType.DESCRIPTION));
             CrawledProductDetailResponse expectedResponse = createMockDetailResponse();
 
-            given(queryPort.findById(any(CrawledProductId.class))).willReturn(Optional.of(product));
-            given(assembler.toDetailResponse(product)).willReturn(expectedResponse);
+            given(productReadManager.findById(any(CrawledProductId.class)))
+                    .willReturn(Optional.of(product));
+            given(
+                            imageReadManager.findUploadedThumbnailsByCrawledProductId(
+                                    any(CrawledProductId.class)))
+                    .willReturn(thumbnails);
+            given(
+                            imageReadManager.findUploadedDescriptionImagesByCrawledProductId(
+                                    any(CrawledProductId.class)))
+                    .willReturn(descriptionImages);
+            given(
+                            assembler.toDetailResponseWithUploadedImages(
+                                    product, thumbnails, descriptionImages))
+                    .willReturn(expectedResponse);
 
             // When
             CrawledProductDetailResponse result = service.execute(PRODUCT_ID.value());
@@ -77,22 +99,68 @@ class GetCrawledProductDetailServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(result.id()).isEqualTo(PRODUCT_ID.value());
-            then(queryPort).should().findById(PRODUCT_ID);
-            then(assembler).should().toDetailResponse(product);
+            then(productReadManager).should().findById(PRODUCT_ID);
+            then(imageReadManager).should().findUploadedThumbnailsByCrawledProductId(PRODUCT_ID);
+            then(imageReadManager)
+                    .should()
+                    .findUploadedDescriptionImagesByCrawledProductId(PRODUCT_ID);
+            then(assembler)
+                    .should()
+                    .toDetailResponseWithUploadedImages(product, thumbnails, descriptionImages);
+        }
+
+        @Test
+        @DisplayName("[성공] 업로드된 이미지 없을 시 → 빈 이미지 목록으로 응답")
+        void shouldReturnDetailResponseWithEmptyImagesWhenNoUploadedImages() {
+            // Given
+            CrawledProduct product = createMockProduct();
+            List<CrawledProductImage> emptyThumbnails = List.of();
+            List<CrawledProductImage> emptyDescriptionImages = List.of();
+            CrawledProductDetailResponse expectedResponse = createMockDetailResponse();
+
+            given(productReadManager.findById(any(CrawledProductId.class)))
+                    .willReturn(Optional.of(product));
+            given(
+                            imageReadManager.findUploadedThumbnailsByCrawledProductId(
+                                    any(CrawledProductId.class)))
+                    .willReturn(emptyThumbnails);
+            given(
+                            imageReadManager.findUploadedDescriptionImagesByCrawledProductId(
+                                    any(CrawledProductId.class)))
+                    .willReturn(emptyDescriptionImages);
+            given(
+                            assembler.toDetailResponseWithUploadedImages(
+                                    product, emptyThumbnails, emptyDescriptionImages))
+                    .willReturn(expectedResponse);
+
+            // When
+            CrawledProductDetailResponse result = service.execute(PRODUCT_ID.value());
+
+            // Then
+            assertThat(result).isEqualTo(expectedResponse);
+            then(imageReadManager).should().findUploadedThumbnailsByCrawledProductId(PRODUCT_ID);
+            then(imageReadManager)
+                    .should()
+                    .findUploadedDescriptionImagesByCrawledProductId(PRODUCT_ID);
         }
 
         @Test
         @DisplayName("[실패] 상품 미존재 시 → CrawledProductNotFoundException 발생")
         void shouldThrowExceptionWhenProductNotExists() {
             // Given
-            given(queryPort.findById(any(CrawledProductId.class))).willReturn(Optional.empty());
+            given(productReadManager.findById(any(CrawledProductId.class)))
+                    .willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(PRODUCT_ID.value()))
                     .isInstanceOf(CrawledProductNotFoundException.class);
 
-            then(queryPort).should().findById(PRODUCT_ID);
-            then(assembler).should(never()).toDetailResponse(any());
+            then(productReadManager).should().findById(PRODUCT_ID);
+            then(imageReadManager).should(never()).findUploadedThumbnailsByCrawledProductId(any());
+            then(imageReadManager)
+                    .should(never())
+                    .findUploadedDescriptionImagesByCrawledProductId(any());
+            then(assembler).should(never()).toDetailResponseWithUploadedImages(any(), any(), any());
         }
     }
 
@@ -121,6 +189,20 @@ class GetCrawledProductDetailServiceTest {
                 null,
                 null,
                 false,
+                now,
+                now);
+    }
+
+    private CrawledProductImage createMockImage(ImageType imageType) {
+        Instant now = FIXED_CLOCK.instant();
+        return CrawledProductImage.reconstitute(
+                1L,
+                PRODUCT_ID,
+                "https://example.com/image.jpg",
+                imageType,
+                0,
+                "https://s3.example.com/image.jpg",
+                "file-asset-123",
                 now,
                 now);
     }

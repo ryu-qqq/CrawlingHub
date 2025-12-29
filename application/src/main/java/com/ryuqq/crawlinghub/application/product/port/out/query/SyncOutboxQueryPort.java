@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +72,10 @@ public interface SyncOutboxQueryPort {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return SyncOutbox 목록
@@ -79,7 +83,10 @@ public interface SyncOutboxQueryPort {
     List<CrawledProductSyncOutbox> search(
             Long crawledProductId,
             Long sellerId,
-            ProductOutboxStatus status,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
             long offset,
             int size);
 
@@ -88,8 +95,17 @@ public interface SyncOutboxQueryPort {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
-    long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status);
+    long count(
+            Long crawledProductId,
+            Long sellerId,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo);
 }

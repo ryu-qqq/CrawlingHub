@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,7 +35,7 @@ class CrawlTaskQueryFactoryTest {
             // Given
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            100L, null, CrawlTaskStatus.WAITING, null, null, null, 1, 20);
+                            100L, null, List.of(CrawlTaskStatus.WAITING), null, null, null, 1, 20);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -69,7 +70,7 @@ class CrawlTaskQueryFactoryTest {
             // Given
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            200L, null, CrawlTaskStatus.RUNNING, null, null, null, 0, 10);
+                            200L, null, List.of(CrawlTaskStatus.RUNNING), null, null, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -84,7 +85,7 @@ class CrawlTaskQueryFactoryTest {
             // Given
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            300L, null, CrawlTaskStatus.SUCCESS, null, null, null, 0, 10);
+                            300L, null, List.of(CrawlTaskStatus.SUCCESS), null, null, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);
@@ -99,7 +100,7 @@ class CrawlTaskQueryFactoryTest {
             // Given
             ListCrawlTasksQuery query =
                     new ListCrawlTasksQuery(
-                            400L, null, CrawlTaskStatus.FAILED, null, null, null, 0, 10);
+                            400L, null, List.of(CrawlTaskStatus.FAILED), null, null, null, 0, 10);
 
             // When
             CrawlTaskCriteria criteria = factory.createCriteria(query);

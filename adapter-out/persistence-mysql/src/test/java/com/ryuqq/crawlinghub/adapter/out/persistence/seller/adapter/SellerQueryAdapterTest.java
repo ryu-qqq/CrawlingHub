@@ -217,7 +217,8 @@ class SellerQueryAdapterTest {
         void shouldFindSellersByCriteria() {
             // Given
             SellerQueryCriteria criteria =
-                    new SellerQueryCriteria(null, null, SellerStatus.ACTIVE, null, null, 0, 10);
+                    new SellerQueryCriteria(
+                            null, null, List.of(SellerStatus.ACTIVE), null, null, 0, 10);
             LocalDateTime now = LocalDateTime.now();
             SellerJpaEntity entity =
                     SellerJpaEntity.of(1L, "mustit", "commerce", SellerStatus.ACTIVE, 0, now, now);
@@ -244,7 +245,8 @@ class SellerQueryAdapterTest {
         void shouldCountSellersByCriteria() {
             // Given
             SellerQueryCriteria criteria =
-                    new SellerQueryCriteria(null, null, SellerStatus.ACTIVE, null, null, 0, 10);
+                    new SellerQueryCriteria(
+                            null, null, List.of(SellerStatus.ACTIVE), null, null, 0, 10);
             given(queryDslRepository.countByCriteria(criteria)).willReturn(5L);
 
             // When

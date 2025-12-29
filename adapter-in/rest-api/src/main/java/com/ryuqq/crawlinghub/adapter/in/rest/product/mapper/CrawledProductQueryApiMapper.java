@@ -57,12 +57,16 @@ public class CrawledProductQueryApiMapper {
     public SearchCrawledProductsQuery toQuery(SearchCrawledProductsApiRequest request) {
         return new SearchCrawledProductsQuery(
                 request.sellerId(),
-                request.itemNo(),
+                request.itemNos(),
                 request.itemName(),
                 request.brandName(),
+                request.minPrice(),
+                request.maxPrice(),
                 request.needsSync(),
                 request.allCrawled(),
                 request.hasExternalId(),
+                request.createdFrom(),
+                request.createdTo(),
                 request.page(),
                 request.size());
     }

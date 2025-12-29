@@ -11,6 +11,7 @@ import com.ryuqq.crawlinghub.application.product.dto.query.SearchProductSyncOutb
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductSyncOutboxResponse;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,11 +32,14 @@ public class ProductOutboxQueryApiMapper {
      * @return Application Query
      */
     public SearchProductSyncOutboxQuery toSyncQuery(SearchProductSyncOutboxApiRequest request) {
-        ProductOutboxStatus status = parseStatus(request.status());
+        List<ProductOutboxStatus> statuses = parseStatuses(request.statuses());
         return new SearchProductSyncOutboxQuery(
                 request.crawledProductId(),
                 request.sellerId(),
-                status,
+                request.itemNos(),
+                statuses,
+                request.createdFrom(),
+                request.createdTo(),
                 request.page(),
                 request.size());
     }
@@ -47,9 +51,15 @@ public class ProductOutboxQueryApiMapper {
      * @return Application Query
      */
     public SearchProductImageOutboxQuery toImageQuery(SearchProductImageOutboxApiRequest request) {
-        ProductOutboxStatus status = parseStatus(request.status());
+        List<ProductOutboxStatus> statuses = parseStatuses(request.statuses());
         return new SearchProductImageOutboxQuery(
-                request.crawledProductImageId(), status, request.page(), request.size());
+                request.crawledProductImageId(),
+                request.crawledProductId(),
+                statuses,
+                request.createdFrom(),
+                request.createdTo(),
+                request.page(),
+                request.size());
     }
 
     /**
@@ -72,6 +82,13 @@ public class ProductOutboxQueryApiMapper {
     public PageApiResponse<ProductImageOutboxApiResponse> toImagePageApiResponse(
             PageResponse<ProductImageOutboxWithImageResponse> pageResponse) {
         return PageApiResponse.from(pageResponse, ProductImageOutboxApiResponse::from);
+    }
+
+    private List<ProductOutboxStatus> parseStatuses(List<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return null;
+        }
+        return statuses.stream().map(this::parseStatus).filter(s -> s != null).toList();
     }
 
     private ProductOutboxStatus parseStatus(String status) {

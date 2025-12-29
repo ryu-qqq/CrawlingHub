@@ -7,8 +7,8 @@
 
 fileflow:
   client:
-    base-url: ${FILEFLOW_BASE_URL:http://localhost:8090}
-    callback-url: ${FILEFLOW_CALLBACK_URL:http://localhost:8080/api/v1/webhook/image-upload}
+    base-url: ${FILEFLOW_BASE_URL:http://localhost:8082}
+    callback-url: ${FILEFLOW_CALLBACK_URL:http://localhost:8083/api/v1/webhook/image-upload}
     connect-timeout: 5000
     read-timeout: 30000
     # Service Token 인증 (서버 간 내부 통신용)
@@ -27,8 +27,8 @@ spring:
 
 fileflow:
   client:
-    base-url: http://localhost:8090
-    callback-url: http://localhost:8080/api/v1/webhook/image-upload
+    base-url: http://localhost:8082
+    callback-url: http://localhost:8083/api/v1/webhook/image-upload
 
 ---
 # ========================================

@@ -1,12 +1,13 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.adapter;
+package com.ryuqq.crawlinghub.adapter.out.persistence.sync.adapter;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity.ProductSyncOutboxJpaEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.mapper.ProductSyncOutboxJpaEntityMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.repository.ProductSyncOutboxQueryDslRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper.ProductSyncOutboxJpaEntityMapper;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.repository.ProductSyncOutboxQueryDslRepository;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -130,7 +131,10 @@ public class SyncOutboxQueryAdapter implements SyncOutboxQueryPort {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return SyncOutbox 목록
@@ -139,11 +143,22 @@ public class SyncOutboxQueryAdapter implements SyncOutboxQueryPort {
     public List<CrawledProductSyncOutbox> search(
             Long crawledProductId,
             Long sellerId,
-            ProductOutboxStatus status,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
             long offset,
             int size) {
         List<ProductSyncOutboxJpaEntity> entities =
-                queryDslRepository.search(crawledProductId, sellerId, status, offset, size);
+                queryDslRepository.search(
+                        crawledProductId,
+                        sellerId,
+                        itemNos,
+                        statuses,
+                        createdFrom,
+                        createdTo,
+                        offset,
+                        size);
         return entities.stream().map(mapper::toDomain).toList();
     }
 
@@ -152,11 +167,21 @@ public class SyncOutboxQueryAdapter implements SyncOutboxQueryPort {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
     @Override
-    public long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
-        return queryDslRepository.count(crawledProductId, sellerId, status);
+    public long count(
+            Long crawledProductId,
+            Long sellerId,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo) {
+        return queryDslRepository.count(
+                crawledProductId, sellerId, itemNos, statuses, createdFrom, createdTo);
     }
 }

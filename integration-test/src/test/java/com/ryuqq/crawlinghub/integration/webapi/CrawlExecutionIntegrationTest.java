@@ -172,7 +172,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?status=SUCCESS"),
+                            url(EXECUTIONS_BASE_URL + "?statuses=SUCCESS"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -197,7 +197,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?status=FAILED"),
+                            url(EXECUTIONS_BASE_URL + "?statuses=FAILED"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -222,7 +222,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?status=RUNNING"),
+                            url(EXECUTIONS_BASE_URL + "?statuses=RUNNING"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -247,7 +247,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?status=TIMEOUT"),
+                            url(EXECUTIONS_BASE_URL + "?statuses=TIMEOUT"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -272,7 +272,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?crawlSchedulerId=1&status=SUCCESS"),
+                            url(EXECUTIONS_BASE_URL + "?crawlSchedulerId=1&statuses=SUCCESS"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -610,7 +610,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(EXECUTIONS_BASE_URL + "?status=INVALID_STATUS"),
+                            url(EXECUTIONS_BASE_URL + "?statuses=INVALID_STATUS"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

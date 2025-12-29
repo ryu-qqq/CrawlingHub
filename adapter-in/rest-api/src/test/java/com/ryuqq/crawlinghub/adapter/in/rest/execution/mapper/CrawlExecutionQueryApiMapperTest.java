@@ -53,7 +53,8 @@ class CrawlExecutionQueryApiMapperTest {
             LocalDateTime from = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
             LocalDateTime to = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
             SearchCrawlExecutionsApiRequest request =
-                    new SearchCrawlExecutionsApiRequest(1L, 10L, 100L, "SUCCESS", from, to, 0, 20);
+                    new SearchCrawlExecutionsApiRequest(
+                            1L, 10L, 100L, List.of("SUCCESS"), from, to, 0, 20);
 
             // when
             ListCrawlExecutionsQuery result = mapper.toQuery(request);
@@ -62,14 +63,14 @@ class CrawlExecutionQueryApiMapperTest {
             assertThat(result.crawlTaskId()).isEqualTo(1L);
             assertThat(result.crawlSchedulerId()).isEqualTo(10L);
             assertThat(result.sellerId()).isEqualTo(100L);
-            assertThat(result.status()).isEqualTo(CrawlExecutionStatus.SUCCESS);
+            assertThat(result.statuses()).containsExactly(CrawlExecutionStatus.SUCCESS);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
         }
 
         @Test
-        @DisplayName("status가 null인 요청을 쿼리로 변환한다")
-        void toQuery_WithNullStatus_ShouldConvertWithNullStatus() {
+        @DisplayName("statuses가 null인 요청을 쿼리로 변환한다")
+        void toQuery_WithNullStatuses_ShouldConvertWithNullStatuses() {
             // given
             SearchCrawlExecutionsApiRequest request =
                     new SearchCrawlExecutionsApiRequest(1L, 10L, 100L, null, null, null, 0, 20);
@@ -78,7 +79,7 @@ class CrawlExecutionQueryApiMapperTest {
             ListCrawlExecutionsQuery result = mapper.toQuery(request);
 
             // then
-            assertThat(result.status()).isNull();
+            assertThat(result.statuses()).isNull();
         }
 
         @Test
@@ -87,13 +88,13 @@ class CrawlExecutionQueryApiMapperTest {
             // given
             SearchCrawlExecutionsApiRequest request =
                     new SearchCrawlExecutionsApiRequest(
-                            1L, null, null, "FAILED", null, null, 0, 20);
+                            1L, null, null, List.of("FAILED"), null, null, 0, 20);
 
             // when
             ListCrawlExecutionsQuery result = mapper.toQuery(request);
 
             // then
-            assertThat(result.status()).isEqualTo(CrawlExecutionStatus.FAILED);
+            assertThat(result.statuses()).containsExactly(CrawlExecutionStatus.FAILED);
         }
     }
 

@@ -121,7 +121,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "?status=ACTIVE"),
+                            url(SCHEDULES_BASE_URL + "?statuses=ACTIVE"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -785,7 +785,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "?status=INVALID_STATUS"),
+                            url(SCHEDULES_BASE_URL + "?statuses=INVALID_STATUS"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

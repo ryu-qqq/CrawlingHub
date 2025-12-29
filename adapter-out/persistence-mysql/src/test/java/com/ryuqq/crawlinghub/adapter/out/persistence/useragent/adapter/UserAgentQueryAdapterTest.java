@@ -245,9 +245,9 @@ class UserAgentQueryAdapterTest {
                             now,
                             now);
 
-            given(queryDslRepository.findByStatusWithPaging(null, pageRequest))
+            given(queryDslRepository.findByCriteria(criteria))
                     .willReturn(List.of(entity1, entity2));
-            given(queryDslRepository.countByStatusOrAll(null)).willReturn(2L);
+            given(queryDslRepository.countByCriteria(criteria)).willReturn(2L);
 
             // When
             PageResponse<UserAgentSummaryResponse> result = queryAdapter.findByCriteria(criteria);
@@ -283,9 +283,8 @@ class UserAgentQueryAdapterTest {
                             now,
                             now);
 
-            given(queryDslRepository.findByStatusWithPaging(UserAgentStatus.AVAILABLE, pageRequest))
-                    .willReturn(List.of(entity));
-            given(queryDslRepository.countByStatusOrAll(UserAgentStatus.AVAILABLE)).willReturn(1L);
+            given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of(entity));
+            given(queryDslRepository.countByCriteria(criteria)).willReturn(1L);
 
             // When
             PageResponse<UserAgentSummaryResponse> result = queryAdapter.findByCriteria(criteria);
@@ -294,9 +293,8 @@ class UserAgentQueryAdapterTest {
             assertThat(result.content()).hasSize(1);
             assertThat(result.content().get(0).status()).isEqualTo(UserAgentStatus.AVAILABLE);
             assertThat(result.totalElements()).isEqualTo(1);
-            verify(queryDslRepository)
-                    .findByStatusWithPaging(UserAgentStatus.AVAILABLE, pageRequest);
-            verify(queryDslRepository).countByStatusOrAll(UserAgentStatus.AVAILABLE);
+            verify(queryDslRepository).findByCriteria(criteria);
+            verify(queryDslRepository).countByCriteria(criteria);
         }
 
         @Test
@@ -307,9 +305,8 @@ class UserAgentQueryAdapterTest {
             UserAgentSearchCriteria criteria =
                     UserAgentSearchCriteria.byStatus(UserAgentStatus.BLOCKED, pageRequest);
 
-            given(queryDslRepository.findByStatusWithPaging(UserAgentStatus.BLOCKED, pageRequest))
-                    .willReturn(List.of());
-            given(queryDslRepository.countByStatusOrAll(UserAgentStatus.BLOCKED)).willReturn(0L);
+            given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of());
+            given(queryDslRepository.countByCriteria(criteria)).willReturn(0L);
 
             // When
             PageResponse<UserAgentSummaryResponse> result = queryAdapter.findByCriteria(criteria);
@@ -341,9 +338,8 @@ class UserAgentQueryAdapterTest {
                             now,
                             now);
 
-            given(queryDslRepository.findByStatusWithPaging(null, pageRequest))
-                    .willReturn(List.of(entity));
-            given(queryDslRepository.countByStatusOrAll(null)).willReturn(25L);
+            given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of(entity));
+            given(queryDslRepository.countByCriteria(criteria)).willReturn(25L);
 
             // When
             PageResponse<UserAgentSummaryResponse> result = queryAdapter.findByCriteria(criteria);
@@ -377,9 +373,8 @@ class UserAgentQueryAdapterTest {
                             now,
                             now);
 
-            given(queryDslRepository.findByStatusWithPaging(null, pageRequest))
-                    .willReturn(List.of(entity));
-            given(queryDslRepository.countByStatusOrAll(null)).willReturn(1L);
+            given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of(entity));
+            given(queryDslRepository.countByCriteria(criteria)).willReturn(1L);
 
             // When
             PageResponse<UserAgentSummaryResponse> result = queryAdapter.findByCriteria(criteria);
