@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.RetryImageUploadUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
@@ -37,15 +38,18 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
     private static final int BATCH_SIZE = 100;
     private static final int MAX_RETRY_COUNT = 3;
 
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final ProductImageOutboxReadManager outboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
     private final FileServerClient fileServerClient;
 
     public RetryImageUploadService(
-            ImageOutboxReadManager imageOutboxReadManager,
+            ProductImageOutboxReadManager outboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
             FileServerClient fileServerClient) {
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.outboxReadManager = outboxReadManager;
+        this.imageReadManager = imageReadManager;
         this.outboxTransactionManager = outboxTransactionManager;
         this.fileServerClient = fileServerClient;
     }
@@ -53,7 +57,7 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
     @Override
     public ImageUploadRetryResult execute() {
         List<ProductImageOutbox> retryableOutboxes =
-                imageOutboxReadManager.findRetryableOutboxes(MAX_RETRY_COUNT, BATCH_SIZE);
+                outboxReadManager.findRetryableOutboxes(MAX_RETRY_COUNT, BATCH_SIZE);
 
         if (retryableOutboxes.isEmpty()) {
             return ImageUploadRetryResult.empty();
@@ -81,7 +85,7 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
     private void processOutbox(ProductImageOutbox outbox) {
         // 이미지 정보 조회
         Optional<CrawledProductImage> imageOpt =
-                imageOutboxReadManager.findImageById(outbox.getCrawledProductImageId());
+                imageReadManager.findById(outbox.getCrawledProductImageId());
         if (imageOpt.isEmpty()) {
             log.warn(
                     "이미지를 찾을 수 없음: outboxId={}, imageId={}",

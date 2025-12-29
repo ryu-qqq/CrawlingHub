@@ -5,7 +5,7 @@ import static com.ryuqq.crawlinghub.application.common.utils.StringTruncator.tru
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessDetailInfoUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
@@ -41,17 +41,17 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
 
     private final DetailResponseParser detailResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
-    private final CrawledRawManager crawledRawManager;
+    private final CrawledRawTransactionManager crawledRawTransactionManager;
     private final ProcessDetailInfoUseCase processDetailInfoUseCase;
 
     public DetailCrawlResultProcessor(
             DetailResponseParser detailResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager,
+            CrawledRawTransactionManager crawledRawTransactionManager,
             ProcessDetailInfoUseCase processDetailInfoUseCase) {
         this.detailResponseParser = detailResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
-        this.crawledRawManager = crawledRawManager;
+        this.crawledRawTransactionManager = crawledRawTransactionManager;
         this.processDetailInfoUseCase = processDetailInfoUseCase;
     }
 
@@ -92,7 +92,7 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
         // 3. Manager로 저장
         int savedCount = 0;
         if (crawledRaw != null) {
-            CrawledRawId savedId = crawledRawManager.save(crawledRaw);
+            CrawledRawId savedId = crawledRawTransactionManager.save(crawledRaw);
             savedCount = savedId != null ? 1 : 0;
         }
 

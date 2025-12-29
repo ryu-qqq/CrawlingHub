@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
 import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.MiniShopProcessBundle;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
@@ -30,15 +30,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class MiniShopProcessFacade {
 
     private final CrawledProductTransactionManager crawledProductManager;
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
     private final ImageUploadBundleFactory imageUploadBundleFactory;
 
     public MiniShopProcessFacade(
             CrawledProductTransactionManager crawledProductManager,
-            ImageOutboxReadManager imageOutboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
             ImageUploadBundleFactory imageUploadBundleFactory) {
         this.crawledProductManager = crawledProductManager;
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.imageReadManager = imageReadManager;
         this.imageUploadBundleFactory = imageUploadBundleFactory;
     }
 
@@ -110,8 +110,7 @@ public class MiniShopProcessFacade {
         // 3. 새로운 이미지 URL만 필터링 (N+1 해결)
         if (enrichedBundle.hasImageUpload()) {
             List<String> newImageUrls =
-                    imageOutboxReadManager.filterNewImageUrls(
-                            productId, enrichedBundle.getImageUrls());
+                    imageReadManager.filterNewImageUrls(productId, enrichedBundle.getImageUrls());
 
             // 필터링된 URL로 Bundle 갱신
             enrichedBundle = enrichedBundle.withFilteredImageUrls(newImageUrls);

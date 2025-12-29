@@ -45,7 +45,7 @@ public class CrawlExecutionQueryFactory {
                         ? CrawlSchedulerId.of(query.crawlSchedulerId())
                         : null,
                 query.sellerId() != null ? SellerId.of(query.sellerId()) : null,
-                query.status(),
+                query.statuses(),
                 toInstant(query.from()),
                 toInstant(query.to()),
                 query.page(),

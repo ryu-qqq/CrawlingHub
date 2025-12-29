@@ -1,10 +1,14 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.repository;
+package com.ryuqq.crawlinghub.adapter.out.persistence.sync.repository;
 
-import static com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity.QProductSyncOutboxJpaEntity.productSyncOutboxJpaEntity;
+import static com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.QProductSyncOutboxJpaEntity.productSyncOutboxJpaEntity;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -140,7 +144,10 @@ public class ProductSyncOutboxQueryDslRepository {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return Entity 목록
@@ -148,17 +155,22 @@ public class ProductSyncOutboxQueryDslRepository {
     public List<ProductSyncOutboxJpaEntity> search(
             Long crawledProductId,
             Long sellerId,
-            ProductOutboxStatus status,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
             long offset,
             int size) {
-        var query = queryFactory.selectFrom(productSyncOutboxJpaEntity);
-
-        var condition = buildSearchCondition(crawledProductId, sellerId, status);
-        if (condition != null) {
-            query = query.where(condition);
-        }
-
-        return query.orderBy(productSyncOutboxJpaEntity.createdAt.desc())
+        return queryFactory
+                .selectFrom(productSyncOutboxJpaEntity)
+                .where(
+                        eqCrawledProductId(crawledProductId),
+                        eqSellerId(sellerId),
+                        inItemNos(itemNos),
+                        inStatuses(statuses),
+                        goeCreatedAt(createdFrom),
+                        loeCreatedAt(createdTo))
+                .orderBy(productSyncOutboxJpaEntity.createdAt.desc())
                 .offset(offset)
                 .limit(size)
                 .fetch();
@@ -169,42 +181,69 @@ public class ProductSyncOutboxQueryDslRepository {
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
-     * @param status 상태 (nullable)
+     * @param itemNos 외부 상품번호 목록 (IN 조건, nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
-    public long count(Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
-        var query =
+    public long count(
+            Long crawledProductId,
+            Long sellerId,
+            List<Long> itemNos,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo) {
+        Long result =
                 queryFactory
                         .select(productSyncOutboxJpaEntity.count())
-                        .from(productSyncOutboxJpaEntity);
-
-        var condition = buildSearchCondition(crawledProductId, sellerId, status);
-        if (condition != null) {
-            query = query.where(condition);
-        }
-
-        Long result = query.fetchOne();
+                        .from(productSyncOutboxJpaEntity)
+                        .where(
+                                eqCrawledProductId(crawledProductId),
+                                eqSellerId(sellerId),
+                                inItemNos(itemNos),
+                                inStatuses(statuses),
+                                goeCreatedAt(createdFrom),
+                                loeCreatedAt(createdTo))
+                        .fetchOne();
         return result != null ? result : 0L;
     }
 
-    private com.querydsl.core.types.dsl.BooleanExpression buildSearchCondition(
-            Long crawledProductId, Long sellerId, ProductOutboxStatus status) {
-        com.querydsl.core.types.dsl.BooleanExpression condition = null;
+    private BooleanExpression eqCrawledProductId(Long crawledProductId) {
+        return crawledProductId != null
+                ? productSyncOutboxJpaEntity.crawledProductId.eq(crawledProductId)
+                : null;
+    }
 
-        if (crawledProductId != null) {
-            condition = productSyncOutboxJpaEntity.crawledProductId.eq(crawledProductId);
+    private BooleanExpression eqSellerId(Long sellerId) {
+        return sellerId != null ? productSyncOutboxJpaEntity.sellerId.eq(sellerId) : null;
+    }
+
+    private BooleanExpression inItemNos(List<Long> itemNos) {
+        return itemNos != null && !itemNos.isEmpty()
+                ? productSyncOutboxJpaEntity.itemNo.in(itemNos)
+                : null;
+    }
+
+    private BooleanExpression inStatuses(List<ProductOutboxStatus> statuses) {
+        return statuses != null && !statuses.isEmpty()
+                ? productSyncOutboxJpaEntity.status.in(statuses)
+                : null;
+    }
+
+    private BooleanExpression goeCreatedAt(Instant createdFrom) {
+        if (createdFrom == null) {
+            return null;
         }
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(createdFrom, ZoneId.systemDefault());
+        return productSyncOutboxJpaEntity.createdAt.goe(localDateTime);
+    }
 
-        if (sellerId != null) {
-            var sellerCondition = productSyncOutboxJpaEntity.sellerId.eq(sellerId);
-            condition = condition != null ? condition.and(sellerCondition) : sellerCondition;
+    private BooleanExpression loeCreatedAt(Instant createdTo) {
+        if (createdTo == null) {
+            return null;
         }
-
-        if (status != null) {
-            var statusCondition = productSyncOutboxJpaEntity.status.eq(status);
-            condition = condition != null ? condition.and(statusCondition) : statusCondition;
-        }
-
-        return condition;
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(createdTo, ZoneId.systemDefault());
+        return productSyncOutboxJpaEntity.createdAt.loe(localDateTime);
     }
 }

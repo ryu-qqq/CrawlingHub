@@ -66,7 +66,19 @@ class SearchCrawledProductsServiceTest {
             // Given
             SearchCrawledProductsQuery query =
                     new SearchCrawledProductsQuery(
-                            SELLER_ID.value(), null, null, null, null, null, null, 0, 10);
+                            SELLER_ID.value(),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            10);
             CrawledProduct product = createMockProduct();
             List<CrawledProduct> products = List.of(product);
             long totalElements = 1L;
@@ -97,7 +109,9 @@ class SearchCrawledProductsServiceTest {
         void shouldReturnEmptyPageResponseWhenNoProductsFound() {
             // Given
             SearchCrawledProductsQuery query =
-                    new SearchCrawledProductsQuery(999L, null, null, null, null, null, null, 0, 10);
+                    new SearchCrawledProductsQuery(
+                            999L, null, null, null, null, null, null, null, null, null, null, 0,
+                            10);
 
             given(queryPort.search(query)).willReturn(Collections.emptyList());
             given(queryPort.count(query)).willReturn(0L);
@@ -124,7 +138,8 @@ class SearchCrawledProductsServiceTest {
             long totalElements = 100L;
             SearchCrawledProductsQuery query =
                     new SearchCrawledProductsQuery(
-                            null, null, null, null, null, null, null, page, size);
+                            null, null, null, null, null, null, null, null, null, null, null, page,
+                            size);
             CrawledProduct product = createMockProduct();
             List<CrawledProduct> products = List.of(product);
             CrawledProductSummaryResponse summaryResponse = createMockSummaryResponse();
@@ -154,7 +169,8 @@ class SearchCrawledProductsServiceTest {
             long totalElements = 100L;
             SearchCrawledProductsQuery query =
                     new SearchCrawledProductsQuery(
-                            null, null, null, null, null, null, null, page, size);
+                            null, null, null, null, null, null, null, null, null, null, null, page,
+                            size);
             CrawledProduct product = createMockProduct();
             List<CrawledProduct> products = List.of(product);
             CrawledProductSummaryResponse summaryResponse = createMockSummaryResponse();

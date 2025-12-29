@@ -7,8 +7,8 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.RetrySyncOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryResponse;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.exception.SyncOutboxNotFoundException;
@@ -40,13 +40,13 @@ class RetrySyncOutboxServiceTest {
     private static final SellerId SELLER_ID = SellerId.of(200L);
 
     @Mock private SyncOutboxQueryPort syncOutboxQueryPort;
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     private RetrySyncOutboxService service;
 
     @BeforeEach
     void setUp() {
-        service = new RetrySyncOutboxService(syncOutboxQueryPort, syncOutboxManager);
+        service = new RetrySyncOutboxService(syncOutboxQueryPort, syncOutboxTransactionManager);
     }
 
     @Nested
@@ -70,7 +70,7 @@ class RetrySyncOutboxServiceTest {
             assertThat(response.newStatus()).isEqualTo("PENDING");
             assertThat(response.message()).isEqualTo("재시도 요청이 등록되었습니다.");
 
-            verify(syncOutboxManager).resetToPending(outbox);
+            verify(syncOutboxTransactionManager).resetToPending(outbox);
         }
 
         @Test

@@ -89,7 +89,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_StatusActive() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -106,7 +106,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_StatusInactive() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, "INACTIVE", null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, List.of("INACTIVE"), null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -121,7 +121,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_StatusNull() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, null, null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, null, null, null, null, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -136,7 +136,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_StatusBlank() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, "", null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, List.of(), null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -151,7 +151,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_DefaultPagination() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, null, null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, null, null, null, null, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -167,7 +167,7 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_CustomPagination() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 5, 50);
+                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 5, 50);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);
@@ -183,7 +183,8 @@ class SellerQueryApiMapperTest {
         void toQuery_SearchSellers_WithNameFilters() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest("테스트셀러", "머스트잇셀러", "ACTIVE", null, null, 0, 20);
+                    new SearchSellersApiRequest(
+                            "테스트셀러", "머스트잇셀러", List.of("ACTIVE"), null, null, 0, 20);
 
             // When
             SearchSellersQuery query = mapper.toQuery(request);

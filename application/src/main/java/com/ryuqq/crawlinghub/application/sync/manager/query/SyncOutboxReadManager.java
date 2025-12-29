@@ -1,4 +1,4 @@
-package com.ryuqq.crawlinghub.application.sync.manager;
+package com.ryuqq.crawlinghub.application.sync.manager.query;
 
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;

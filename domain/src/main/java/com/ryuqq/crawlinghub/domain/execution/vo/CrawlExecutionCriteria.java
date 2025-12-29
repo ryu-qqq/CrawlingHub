@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * CrawlExecution 조회 조건 Value Object
@@ -14,7 +15,7 @@ import java.time.Instant;
  *   <li>crawlTaskId: 태스크 ID 필터 (optional)
  *   <li>crawlSchedulerId: 스케줄러 ID 필터 (optional)
  *   <li>sellerId: 셀러 ID 필터 (optional)
- *   <li>status: 상태 필터 (optional)
+ *   <li>statuses: 상태 필터 목록 (optional, 다중 선택 가능)
  *   <li>from: 조회 시작 시간 (optional)
  *   <li>to: 조회 종료 시간 (optional)
  *   <li>page: 페이지 번호 (0부터 시작)
@@ -37,7 +38,7 @@ import java.time.Instant;
  * @param crawlTaskId 태스크 ID (optional)
  * @param crawlSchedulerId 스케줄러 ID (optional)
  * @param sellerId 셀러 ID (optional)
- * @param status 상태 필터 (optional)
+ * @param statuses 상태 필터 목록 (optional, 다중 선택 가능)
  * @param from 조회 시작 시간 (optional)
  * @param to 조회 종료 시간 (optional)
  * @param page 페이지 번호 (0부터 시작)
@@ -49,7 +50,7 @@ public record CrawlExecutionCriteria(
         CrawlTaskId crawlTaskId,
         CrawlSchedulerId crawlSchedulerId,
         SellerId sellerId,
-        CrawlExecutionStatus status,
+        List<CrawlExecutionStatus> statuses,
         Instant from,
         Instant to,
         int page,
@@ -114,8 +115,9 @@ public record CrawlExecutionCriteria(
             Instant to,
             int page,
             int size) {
+        List<CrawlExecutionStatus> statuses = status != null ? List.of(status) : null;
         return new CrawlExecutionCriteria(
-                null, crawlSchedulerId, null, status, from, to, page, size);
+                null, crawlSchedulerId, null, statuses, from, to, page, size);
     }
 
     // ===== Helper Methods =====
@@ -157,12 +159,21 @@ public record CrawlExecutionCriteria(
     }
 
     /**
-     * 상태 필터 여부
+     * 상태 필터 여부 (다중 상태)
      *
      * @return 상태 필터가 있으면 true
      */
     public boolean hasStatusFilter() {
-        return status != null;
+        return statuses != null && !statuses.isEmpty();
+    }
+
+    /**
+     * 단일 상태 반환 (하위 호환성)
+     *
+     * @return 첫 번째 상태 또는 null
+     */
+    public CrawlExecutionStatus status() {
+        return hasStatusFilter() ? statuses.get(0) : null;
     }
 
     /**

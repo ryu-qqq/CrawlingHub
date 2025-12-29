@@ -57,9 +57,10 @@ class SearchCrawlSchedulersServiceTest {
         void shouldReturnPageResponseWhenSchedulersExist() {
             // Given
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(1L, SchedulerStatus.ACTIVE, 0, 10);
+                    new SearchCrawlSchedulersQuery(
+                            1L, List.of(SchedulerStatus.ACTIVE), null, null, 0, 10);
             CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, 0, 10);
+                    new CrawlSchedulerQueryCriteria(null, null, null, null, 0, 10);
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 1L;
 
@@ -97,9 +98,10 @@ class SearchCrawlSchedulersServiceTest {
         @DisplayName("[성공] 조건에 맞는 스케줄러 없을 시 빈 PageResponse 반환")
         void shouldReturnEmptyPageResponseWhenNoSchedulersFound() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(999L, null, 0, 10);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(999L, null, null, null, 0, 10);
             CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, 0, 10);
+                    new CrawlSchedulerQueryCriteria(null, null, null, null, 0, 10);
             List<CrawlScheduler> emptySchedulers = Collections.emptyList();
             long totalElements = 0L;
 
@@ -127,9 +129,9 @@ class SearchCrawlSchedulersServiceTest {
             int page = 2;
             int size = 20;
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(null, null, page, size);
+                    new SearchCrawlSchedulersQuery(null, null, null, null, page, size);
             CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, page, size);
+                    new CrawlSchedulerQueryCriteria(null, null, null, null, page, size);
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 50L;
 

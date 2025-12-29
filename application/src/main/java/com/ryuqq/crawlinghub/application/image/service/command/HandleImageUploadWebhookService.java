@@ -1,9 +1,10 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
-import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageUploadWebhookUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
@@ -34,15 +35,18 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
     private static final Logger log =
             LoggerFactory.getLogger(HandleImageUploadWebhookService.class);
 
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final ProductImageOutboxReadManager outboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
     private final CrawledProductImageTransactionManager imageTransactionManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
 
     public HandleImageUploadWebhookService(
-            ImageOutboxReadManager imageOutboxReadManager,
+            ProductImageOutboxReadManager outboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
             CrawledProductImageTransactionManager imageTransactionManager,
             ProductImageOutboxTransactionManager outboxTransactionManager) {
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.outboxReadManager = outboxReadManager;
+        this.imageReadManager = imageReadManager;
         this.imageTransactionManager = imageTransactionManager;
         this.outboxTransactionManager = outboxTransactionManager;
     }
@@ -55,7 +59,7 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
                 command.status());
 
         ProductImageOutbox outbox =
-                imageOutboxReadManager
+                outboxReadManager
                         .findByIdempotencyKey(command.externalDownloadId())
                         .orElseThrow(
                                 () -> {
@@ -84,8 +88,8 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
 
         // 이미지 조회 및 업로드 완료 처리
         CrawledProductImage image =
-                imageOutboxReadManager
-                        .findImageById(outbox.getCrawledProductImageId())
+                imageReadManager
+                        .findById(outbox.getCrawledProductImageId())
                         .orElseThrow(
                                 () -> {
                                     log.error(

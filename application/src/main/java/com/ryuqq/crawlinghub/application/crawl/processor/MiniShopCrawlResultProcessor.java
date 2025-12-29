@@ -5,7 +5,7 @@ import static com.ryuqq.crawlinghub.application.common.utils.StringTruncator.tru
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.MiniShopResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
@@ -44,17 +44,17 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
 
     private final MiniShopResponseParser miniShopResponseParser;
     private final CrawledRawAssembler crawledRawAssembler;
-    private final CrawledRawManager crawledRawManager;
+    private final CrawledRawTransactionManager crawledRawTransactionManager;
     private final ProcessMiniShopItemUseCase processMiniShopItemUseCase;
 
     public MiniShopCrawlResultProcessor(
             MiniShopResponseParser miniShopResponseParser,
             CrawledRawAssembler crawledRawAssembler,
-            CrawledRawManager crawledRawManager,
+            CrawledRawTransactionManager crawledRawTransactionManager,
             ProcessMiniShopItemUseCase processMiniShopItemUseCase) {
         this.miniShopResponseParser = miniShopResponseParser;
         this.crawledRawAssembler = crawledRawAssembler;
-        this.crawledRawManager = crawledRawManager;
+        this.crawledRawTransactionManager = crawledRawTransactionManager;
         this.processMiniShopItemUseCase = processMiniShopItemUseCase;
     }
 
@@ -90,7 +90,7 @@ public class MiniShopCrawlResultProcessor implements CrawlResultProcessor {
                 crawledRawAssembler.toMiniShopRaws(schedulerId, sellerId, items);
 
         // 3. Manager로 벌크 저장
-        List<CrawledRawId> savedIds = crawledRawManager.saveAll(crawledRaws);
+        List<CrawledRawId> savedIds = crawledRawTransactionManager.saveAll(crawledRaws);
         int savedCount = savedIds.size();
 
         log.info(

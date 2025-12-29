@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.DetailProcessBundle;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
@@ -57,7 +57,7 @@ class DetailProcessFacadeTest {
 
     @Mock private CrawledProductTransactionManager crawledProductManager;
 
-    @Mock private ImageOutboxReadManager imageOutboxReadManager;
+    @Mock private CrawledProductImageReadManager imageReadManager;
 
     @Mock private ImageUploadBundleFactory imageUploadBundleFactory;
 
@@ -72,7 +72,7 @@ class DetailProcessFacadeTest {
         facade =
                 new DetailProcessFacade(
                         crawledProductManager,
-                        imageOutboxReadManager,
+                        imageReadManager,
                         imageUploadBundleFactory,
                         requestSyncUseCase);
     }
@@ -98,7 +98,7 @@ class DetailProcessFacadeTest {
                     .willReturn(updateResult);
 
             // 모든 URL이 새로운 URL로 반환
-            given(imageOutboxReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
+            given(imageReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
                     .willReturn(imageUrls);
 
             // When
@@ -138,7 +138,7 @@ class DetailProcessFacadeTest {
                     .willReturn(updateResult);
 
             // 하나의 URL만 새로운 URL로 반환
-            given(imageOutboxReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
+            given(imageReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
                     .willReturn(newUrlsOnly);
 
             // When
@@ -178,7 +178,7 @@ class DetailProcessFacadeTest {
                     .willReturn(updateResult);
 
             // 빈 리스트 반환 (모든 URL이 이미 존재)
-            given(imageOutboxReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
+            given(imageReadManager.filterNewImageUrls(any(CrawledProductId.class), anyList()))
                     .willReturn(List.of());
 
             // When
@@ -215,7 +215,7 @@ class DetailProcessFacadeTest {
             assertThat(result).isNotNull();
 
             // URL 필터링 호출 안 함 검증
-            verify(imageOutboxReadManager, never())
+            verify(imageReadManager, never())
                     .filterNewImageUrls(any(CrawledProductId.class), anyList());
 
             // Factory 호출 안 함 검증

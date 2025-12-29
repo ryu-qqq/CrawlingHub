@@ -73,7 +73,8 @@ class CrawlSchedulerAssemblerTest {
         void shouldConvertQueryToCriteria() {
             // Given
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(1L, SchedulerStatus.ACTIVE, 0, 20);
+                    new SearchCrawlSchedulersQuery(
+                            1L, List.of(SchedulerStatus.ACTIVE), null, null, 0, 20);
 
             // When
             CrawlSchedulerQueryCriteria result = assembler.toCriteria(query);
@@ -90,7 +91,8 @@ class CrawlSchedulerAssemblerTest {
         @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerQueryCriteria 변환 (null 필드)")
         void shouldConvertQueryToCriteriaWithNullFields() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(null, null, 0, 10);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(null, null, null, null, 0, 10);
 
             // When
             CrawlSchedulerQueryCriteria result = assembler.toCriteria(query);

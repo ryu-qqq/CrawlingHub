@@ -12,11 +12,11 @@ import static org.mockito.Mockito.times;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
 import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
-import com.ryuqq.crawlinghub.application.product.manager.SyncOutboxManager;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.sync.dto.command.SyncRetryResult;
-import com.ryuqq.crawlinghub.application.sync.manager.SyncOutboxReadManager;
+import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.query.SyncOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
@@ -53,7 +53,7 @@ class RetrySyncServiceTest {
 
     @Mock private SyncOutboxReadManager syncOutboxReadManager;
 
-    @Mock private SyncOutboxManager syncOutboxManager;
+    @Mock private SyncOutboxTransactionManager syncOutboxTransactionManager;
 
     @Mock private CrawledProductReadManager crawledProductReadManager;
 
@@ -90,7 +90,7 @@ class RetrySyncServiceTest {
             assertThat(result.hasMore()).isFalse();
 
             then(syncOutboxReadManager).should().findRetryableOutboxes(3, 100);
-            then(syncOutboxManager).shouldHaveNoInteractions();
+            then(syncOutboxTransactionManager).shouldHaveNoInteractions();
             then(externalProductServerClient).shouldHaveNoInteractions();
             then(syncCompletionFacade).shouldHaveNoInteractions();
         }
@@ -117,7 +117,7 @@ class RetrySyncServiceTest {
             assertThat(result.failed()).isZero();
             assertThat(result.hasMore()).isFalse();
 
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(syncCompletionFacade).should().completeSync(outbox, product, EXTERNAL_PRODUCT_ID);
         }
 
@@ -140,7 +140,7 @@ class RetrySyncServiceTest {
             assertThat(result.failed()).isEqualTo(1);
 
             then(syncCompletionFacade).should().failSync(eq(outbox), anyString());
-            then(syncOutboxManager).should(never()).markAsProcessing(any());
+            then(syncOutboxTransactionManager).should(never()).markAsProcessing(any());
         }
 
         @Test
@@ -164,7 +164,7 @@ class RetrySyncServiceTest {
             assertThat(result.succeeded()).isZero();
             assertThat(result.failed()).isEqualTo(1);
 
-            then(syncOutboxManager).should().markAsProcessing(outbox);
+            then(syncOutboxTransactionManager).should().markAsProcessing(outbox);
             then(syncCompletionFacade).should().failSync(eq(outbox), anyString());
         }
 
@@ -207,7 +207,7 @@ class RetrySyncServiceTest {
             assertThat(result.succeeded()).isEqualTo(1);
             assertThat(result.failed()).isEqualTo(1);
 
-            then(syncOutboxManager).should(times(1)).markAsProcessing(any());
+            then(syncOutboxTransactionManager).should(times(1)).markAsProcessing(any());
             then(syncCompletionFacade).should(times(1)).completeSync(any(), any(), any());
             then(syncCompletionFacade).should(times(1)).failSync(any(), anyString());
         }

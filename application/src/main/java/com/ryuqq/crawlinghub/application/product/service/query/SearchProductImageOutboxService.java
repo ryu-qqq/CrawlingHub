@@ -40,10 +40,19 @@ public class SearchProductImageOutboxService implements SearchProductImageOutbox
         List<ProductImageOutboxWithImageResponse> content =
                 queryPort.searchWithImageInfo(
                         query.crawledProductImageId(),
-                        query.status(),
+                        query.crawledProductId(),
+                        query.statuses(),
+                        query.createdFrom(),
+                        query.createdTo(),
                         query.getOffset(),
                         query.size());
-        long totalElements = queryPort.count(query.crawledProductImageId(), query.status());
+        long totalElements =
+                queryPort.count(
+                        query.crawledProductImageId(),
+                        query.crawledProductId(),
+                        query.statuses(),
+                        query.createdFrom(),
+                        query.createdTo());
 
         // 2. PageResponse 생성
         int page = query.page();

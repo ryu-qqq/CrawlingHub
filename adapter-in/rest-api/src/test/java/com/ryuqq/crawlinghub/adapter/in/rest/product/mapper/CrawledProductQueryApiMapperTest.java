@@ -57,21 +57,39 @@ class CrawledProductQueryApiMapperTest {
         @DisplayName("SearchCrawledProductsApiRequest를 SearchCrawledProductsQuery로 변환한다")
         void shouldConvertApiRequestToQuery() {
             // Given
+            Instant createdFrom = Instant.parse("2025-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2025-12-31T23:59:59Z");
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            1L, 100L, "상품명", "브랜드", true, false, true, 0, 20);
+                            1L,
+                            List.of(100L, 200L),
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            50000L,
+                            true,
+                            false,
+                            true,
+                            createdFrom,
+                            createdTo,
+                            0,
+                            20);
 
             // When
             SearchCrawledProductsQuery query = mapper.toQuery(request);
 
             // Then
             assertThat(query.sellerId()).isEqualTo(1L);
-            assertThat(query.itemNo()).isEqualTo(100L);
+            assertThat(query.itemNos()).containsExactly(100L, 200L);
             assertThat(query.itemName()).isEqualTo("상품명");
             assertThat(query.brandName()).isEqualTo("브랜드");
+            assertThat(query.minPrice()).isEqualTo(10000L);
+            assertThat(query.maxPrice()).isEqualTo(50000L);
             assertThat(query.needsSync()).isTrue();
             assertThat(query.allCrawled()).isFalse();
             assertThat(query.hasExternalId()).isTrue();
+            assertThat(query.createdFrom()).isEqualTo(createdFrom);
+            assertThat(query.createdTo()).isEqualTo(createdTo);
             assertThat(query.page()).isZero();
             assertThat(query.size()).isEqualTo(20);
         }
@@ -82,19 +100,24 @@ class CrawledProductQueryApiMapperTest {
             // Given
             SearchCrawledProductsApiRequest request =
                     new SearchCrawledProductsApiRequest(
-                            null, null, null, null, null, null, null, null, null);
+                            null, null, null, null, null, null, null, null, null, null, null, null,
+                            null);
 
             // When
             SearchCrawledProductsQuery query = mapper.toQuery(request);
 
             // Then
             assertThat(query.sellerId()).isNull();
-            assertThat(query.itemNo()).isNull();
+            assertThat(query.itemNos()).isNull();
             assertThat(query.itemName()).isNull();
             assertThat(query.brandName()).isNull();
+            assertThat(query.minPrice()).isNull();
+            assertThat(query.maxPrice()).isNull();
             assertThat(query.needsSync()).isNull();
             assertThat(query.allCrawled()).isNull();
             assertThat(query.hasExternalId()).isNull();
+            assertThat(query.createdFrom()).isNull();
+            assertThat(query.createdTo()).isNull();
             assertThat(query.page()).isZero(); // 기본값 적용
             assertThat(query.size()).isEqualTo(20); // 기본값 적용
         }

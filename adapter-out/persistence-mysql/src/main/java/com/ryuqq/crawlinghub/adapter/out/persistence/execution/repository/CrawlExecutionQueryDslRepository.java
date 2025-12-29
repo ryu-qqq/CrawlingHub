@@ -8,6 +8,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.QCrawlExec
 import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -131,10 +132,10 @@ public class CrawlExecutionQueryDslRepository {
             expression = expression != null ? expression.and(sellerIdCondition) : sellerIdCondition;
         }
 
-        // 조건 4: 상태 필터
-        if (criteria.hasStatusFilter()) {
-            BooleanExpression statusCondition = qExecution.status.eq(criteria.status());
-            expression = expression != null ? expression.and(statusCondition) : statusCondition;
+        // 조건 4: 상태 필터 (다중 상태 IN 조건)
+        BooleanExpression statusesCondition = statusesIn(criteria.statuses());
+        if (statusesCondition != null) {
+            expression = expression != null ? expression.and(statusesCondition) : statusesCondition;
         }
 
         // 조건 5: 기간 필터
@@ -175,6 +176,19 @@ public class CrawlExecutionQueryDslRepository {
             return null;
         }
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    /**
+     * 다중 상태 필터 BooleanExpression
+     *
+     * @param statuses 상태 목록 (null이거나 빈 리스트면 필터 없음)
+     * @return BooleanExpression (null이면 조건 없음)
+     */
+    private BooleanExpression statusesIn(List<CrawlExecutionStatus> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return null;
+        }
+        return qExecution.status.in(statuses);
     }
 
     /**

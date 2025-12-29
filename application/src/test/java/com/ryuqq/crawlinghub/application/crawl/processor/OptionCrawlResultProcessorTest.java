@@ -11,7 +11,7 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.OptionResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessOptionsUseCase;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
@@ -39,7 +39,7 @@ class OptionCrawlResultProcessorTest {
 
     @Mock private OptionResponseParser optionResponseParser;
     @Mock private CrawledRawAssembler crawledRawAssembler;
-    @Mock private CrawledRawManager crawledRawManager;
+    @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
     @Mock private ProcessOptionsUseCase processOptionsUseCase;
 
     private OptionCrawlResultProcessor processor;
@@ -50,7 +50,7 @@ class OptionCrawlResultProcessorTest {
                 new OptionCrawlResultProcessor(
                         optionResponseParser,
                         crawledRawAssembler,
-                        crawledRawManager,
+                        crawledRawTransactionManager,
                         processOptionsUseCase);
     }
 
@@ -89,7 +89,7 @@ class OptionCrawlResultProcessorTest {
             // Then
             assertThat(result.hasFollowUpTasks()).isFalse();
             assertThat(result.getParsedItemCount()).isEqualTo(0);
-            verify(crawledRawManager, never()).save(any());
+            verify(crawledRawTransactionManager, never()).save(any());
         }
 
         @Test

@@ -66,7 +66,12 @@ public class CrawlSchedulerAssembler {
         SellerId sellerId = query.sellerId() != null ? SellerId.of(query.sellerId()) : null;
 
         return new CrawlSchedulerQueryCriteria(
-                sellerId, query.status(), query.page(), query.size());
+                sellerId,
+                query.statuses(),
+                query.createdFrom(),
+                query.createdTo(),
+                query.page(),
+                query.size());
     }
 
     /**
