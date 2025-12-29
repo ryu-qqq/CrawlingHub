@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.adapter.in.rest.outbox.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -23,6 +24,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.OutboxApiRespon
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.dto.response.RepublishResultApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.outbox.mapper.OutboxApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
+import com.ryuqq.crawlinghub.application.outbox.dto.query.GetOutboxListQuery;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.OutboxResponse;
 import com.ryuqq.crawlinghub.application.outbox.dto.response.RepublishResultResponse;
 import com.ryuqq.crawlinghub.application.outbox.port.in.command.RepublishOutboxUseCase;
@@ -99,14 +101,18 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<OutboxApiResponse> apiPageResponse =
                 new PageApiResponse<>(List.of(apiResponse1, apiResponse2), 0, 20, 2, 1, true, true);
 
-        given(outboxApiMapper.toQuery(any(), anyInt(), anyInt())).willReturn(null);
+        GetOutboxListQuery query = GetOutboxListQuery.pendingOrFailed(0, 20);
+        given(outboxApiMapper.toQuery(anyList(), any(), any(), anyInt(), anyInt()))
+                .willReturn(query);
         given(getOutboxListUseCase.execute(any())).willReturn(pageResponse);
         given(outboxApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
         // when & then
         mockMvc.perform(
                         get("/api/v1/crawling/outbox")
-                                .param("status", "FAILED")
+                                .param("statuses", "FAILED")
+                                .param("createdFrom", "2024-01-01T00:00:00Z")
+                                .param("createdTo", "2024-12-31T23:59:59Z")
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -119,8 +125,18 @@ class OutboxControllerDocsTest extends RestDocsTestSupport {
                                 "outbox/get-list",
                                 RestDocsSecuritySnippets.authorization("outbox:read"),
                                 queryParameters(
-                                        parameterWithName("status")
-                                                .description("상태 필터 (PENDING, FAILED, SENT) (선택)")
+                                        parameterWithName("statuses")
+                                                .description(
+                                                        "상태 필터 목록 (PENDING, FAILED, SENT) - 다중 선택"
+                                                                + " 가능 (선택)")
+                                                .optional(),
+                                        parameterWithName("createdFrom")
+                                                .description(
+                                                        "생성일 시작 범위 (ISO-8601 형식, inclusive) (선택)")
+                                                .optional(),
+                                        parameterWithName("createdTo")
+                                                .description(
+                                                        "생성일 종료 범위 (ISO-8601 형식, exclusive) (선택)")
                                                 .optional(),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (0부터 시작, 기본값: 0)")
