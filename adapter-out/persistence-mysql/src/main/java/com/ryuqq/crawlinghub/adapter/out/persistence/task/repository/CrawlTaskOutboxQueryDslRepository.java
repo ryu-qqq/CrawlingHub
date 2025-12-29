@@ -5,6 +5,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskOutboxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.QCrawlTaskOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -115,6 +118,30 @@ public class CrawlTaskOutboxQueryDslRepository {
             expression = expression != null ? expression.and(statusesCondition) : statusesCondition;
         }
 
+        // 조건 3: 생성일 시작 범위 (inclusive)
+        if (criteria.hasCreatedFromFilter()) {
+            LocalDateTime fromDateTime = toLocalDateTime(criteria.createdFrom());
+            BooleanExpression fromCondition = qOutbox.createdAt.goe(fromDateTime);
+            expression = expression != null ? expression.and(fromCondition) : fromCondition;
+        }
+
+        // 조건 4: 생성일 종료 범위 (exclusive)
+        if (criteria.hasCreatedToFilter()) {
+            LocalDateTime toDateTime = toLocalDateTime(criteria.createdTo());
+            BooleanExpression toCondition = qOutbox.createdAt.lt(toDateTime);
+            expression = expression != null ? expression.and(toCondition) : toCondition;
+        }
+
         return expression;
+    }
+
+    /**
+     * Instant → LocalDateTime 변환 (UTC → 시스템 기본 타임존)
+     *
+     * @param instant 변환할 Instant
+     * @return LocalDateTime
+     */
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

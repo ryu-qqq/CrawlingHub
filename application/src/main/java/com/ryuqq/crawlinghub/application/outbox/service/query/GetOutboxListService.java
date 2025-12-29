@@ -37,8 +37,12 @@ public class GetOutboxListService implements GetOutboxListUseCase {
     @Override
     public PageResponse<OutboxResponse> execute(GetOutboxListQuery query) {
         CrawlTaskOutboxCriteria criteria =
-                CrawlTaskOutboxCriteria.byStatusesWithPaging(
-                        query.statuses(), query.offset(), query.size());
+                CrawlTaskOutboxCriteria.withDateRange(
+                        query.statuses(),
+                        query.createdFrom(),
+                        query.createdTo(),
+                        query.offset(),
+                        query.size());
 
         List<CrawlTaskOutbox> outboxList = outboxQueryPort.findByCriteria(criteria);
         long totalElements = outboxQueryPort.countByCriteria(criteria);
