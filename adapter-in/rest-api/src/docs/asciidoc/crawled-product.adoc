@@ -10,7 +10,130 @@
 
 크롤링된 상품 목록을 페이징 및 필터링하여 조회합니다.
 
-operation::crawled-product-query/search[snippets='query-parameters,response-fields,http-request,http-response']
+==== Query Parameters
+
+|===
+| Parameter | Type | Required | Description | Example
+
+| `sellerId`
+| Long
+| No
+| 셀러 ID 필터
+| `1`
+
+| `itemNos`
+| List<Long>
+| No
+| 상품 번호 목록 필터 (다중 선택 가능)
+| `itemNos=1001&itemNos=1002`
+
+| `itemName`
+| String
+| No
+| 상품명 부분 일치 검색 (LIKE)
+| `나이키`
+
+| `brandName`
+| String
+| No
+| 브랜드명 부분 일치 검색 (LIKE)
+| `NIKE`
+
+| `minPrice`
+| Long
+| No
+| 최소 가격 필터
+| `10000`
+
+| `maxPrice`
+| Long
+| No
+| 최대 가격 필터
+| `100000`
+
+| `needsSync`
+| Boolean
+| No
+| 동기화 필요 여부 필터
+| `true`
+
+| `allCrawled`
+| Boolean
+| No
+| 모든 크롤링 완료 여부 필터
+| `false`
+
+| `hasExternalId`
+| Boolean
+| No
+| 외부 상품 ID 존재 여부 필터
+| `true`
+
+| `createdFrom`
+| Instant
+| No
+| 생성일시 시작 (ISO-8601)
+| `2025-01-01T00:00:00Z`
+
+| `createdTo`
+| Instant
+| No
+| 생성일시 종료 (ISO-8601)
+| `2025-12-31T23:59:59Z`
+
+| `page`
+| Integer
+| No
+| 페이지 번호 (0부터 시작, 기본값: 0)
+| `0`
+
+| `size`
+| Integer
+| No
+| 페이지 크기 (기본값: 20, 최대: 100)
+| `20`
+|===
+
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/crawled-products?sellerId=1&needsSync=true&page=0&size=20 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "crawledProductId": 1,
+        "sellerId": 1,
+        "sellerName": "테스트셀러",
+        "itemNo": 1001,
+        "itemName": "나이키 에어맥스",
+        "brandName": "NIKE",
+        "currentPrice": 159000,
+        "externalProductId": null,
+        "needsSync": true,
+        "allCrawled": false,
+        "createdAt": "2025-01-15T10:00:00Z"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-crawled-product-detail]]
 === 크롤링 상품 상세 조회
@@ -19,7 +142,54 @@ operation::crawled-product-query/search[snippets='query-parameters,response-fiel
 
 특정 크롤링 상품의 상세 정보를 조회합니다.
 
-operation::crawled-product-query/detail[snippets='path-parameters,response-fields,http-request,http-response']
+==== Path Parameters
+
+|===
+| Parameter | Type | Required | Description
+
+| `id`
+| Long
+| Yes
+| CrawledProduct ID
+|===
+
+==== Request Example
+
+[source,http]
+----
+GET /api/v1/crawling/crawled-products/1 HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "crawledProductId": 1,
+    "sellerId": 1,
+    "sellerName": "테스트셀러",
+    "itemNo": 1001,
+    "itemName": "나이키 에어맥스",
+    "brandName": "NIKE",
+    "currentPrice": 159000,
+    "originalPrice": 189000,
+    "description": "상품 설명...",
+    "externalProductId": "EXT-12345",
+    "needsSync": false,
+    "allCrawled": true,
+    "options": [...],
+    "images": [...],
+    "createdAt": "2025-01-15T10:00:00Z",
+    "updatedAt": "2025-01-15T11:00:00Z"
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
 
 [[resources-crawled-product-sync]]
 === 수동 동기화 트리거
@@ -28,13 +198,38 @@ operation::crawled-product-query/detail[snippets='path-parameters,response-field
 
 크롤링된 상품을 수동으로 외부 시스템에 동기화합니다.
 
-operation::crawled-product-command/trigger-manual-sync[snippets='path-parameters,response-fields,http-request,http-response']
+==== Path Parameters
 
-[[resources-crawled-product-sync-update]]
-=== 수동 동기화 트리거 (업데이트)
+|===
+| Parameter | Type | Required | Description
 
-`POST /api/v1/crawling/crawled-products/{id}/sync` (기존 상품 업데이트)
+| `id`
+| Long
+| Yes
+| CrawledProduct ID
+|===
 
-이미 동기화된 상품을 다시 동기화하여 업데이트합니다.
+==== Request Example
 
-operation::crawled-product-command/trigger-manual-sync-update[snippets='path-parameters,response-fields,http-request,http-response']
+[source,http]
+----
+POST /api/v1/crawling/crawled-products/1/sync HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer {jwt-token}
+----
+
+==== Response Example
+
+[source,json]
+----
+{
+  "success": true,
+  "data": {
+    "crawledProductId": 1,
+    "syncStatus": "PENDING",
+    "message": "동기화 요청이 등록되었습니다."
+  },
+  "error": null,
+  "timestamp": "2025-01-15T12:00:00"
+}
+----
