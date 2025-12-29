@@ -13,6 +13,7 @@ import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -81,7 +82,15 @@ public class CrawlTaskQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(CrawlTaskStatus::valueOf)
+                .map(
+                        s -> {
+                            try {
+                                return CrawlTaskStatus.valueOf(s);
+                            } catch (IllegalArgumentException e) {
+                                return null;
+                            }
+                        })
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -97,7 +106,15 @@ public class CrawlTaskQueryApiMapper {
         }
         return taskTypeStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(CrawlTaskType::valueOf)
+                .map(
+                        s -> {
+                            try {
+                                return CrawlTaskType.valueOf(s);
+                            } catch (IllegalArgumentException e) {
+                                return null;
+                            }
+                        })
+                .filter(Objects::nonNull)
                 .toList();
     }
 

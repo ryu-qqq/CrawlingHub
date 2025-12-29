@@ -20,6 +20,7 @@ import com.ryuqq.crawlinghub.application.schedule.dto.response.TaskSummaryForSch
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -85,7 +86,15 @@ public class CrawlSchedulerQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(SchedulerStatus::valueOf)
+                .map(
+                        s -> {
+                            try {
+                                return SchedulerStatus.valueOf(s);
+                            } catch (IllegalArgumentException e) {
+                                return null;
+                            }
+                        })
+                .filter(Objects::nonNull)
                 .toList();
     }
 

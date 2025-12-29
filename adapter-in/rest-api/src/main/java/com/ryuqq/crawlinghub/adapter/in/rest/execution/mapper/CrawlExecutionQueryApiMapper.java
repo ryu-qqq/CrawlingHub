@@ -12,6 +12,7 @@ import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionRe
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,7 +58,15 @@ public class CrawlExecutionQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(CrawlExecutionStatus::valueOf)
+                .map(
+                        s -> {
+                            try {
+                                return CrawlExecutionStatus.valueOf(s);
+                            } catch (IllegalArgumentException e) {
+                                return null;
+                            }
+                        })
+                .filter(Objects::nonNull)
                 .toList();
     }
 
