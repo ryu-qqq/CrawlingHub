@@ -43,6 +43,7 @@ public record SearchCrawledProductsQuery(
     private static final Integer DEFAULT_SIZE = Integer.valueOf(20);
 
     public SearchCrawledProductsQuery {
+        itemNos = itemNos != null ? List.copyOf(itemNos) : null;
         page = (page == null) ? DEFAULT_PAGE : page;
         size = (size == null) ? DEFAULT_SIZE : size;
     }

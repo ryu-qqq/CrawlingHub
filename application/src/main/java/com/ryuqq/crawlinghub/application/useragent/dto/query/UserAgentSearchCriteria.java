@@ -32,6 +32,10 @@ public record UserAgentSearchCriteria(
         Instant createdTo,
         PageRequest pageRequest) {
 
+    public UserAgentSearchCriteria {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
+    }
+
     /**
      * 전체 조회 (상태 필터 없음)
      *

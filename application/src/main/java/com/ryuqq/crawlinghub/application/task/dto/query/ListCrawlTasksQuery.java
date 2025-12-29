@@ -47,6 +47,8 @@ public record ListCrawlTasksQuery(
     private static final int MAX_SIZE = 100;
 
     public ListCrawlTasksQuery {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
+        taskTypes = taskTypes != null ? List.copyOf(taskTypes) : null;
         if (page < 0) {
             page = DEFAULT_PAGE;
         }

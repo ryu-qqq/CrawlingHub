@@ -27,6 +27,10 @@ public record SellerQueryCriteria(
         Integer page,
         Integer size) {
 
+    public SellerQueryCriteria {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
+    }
+
     /** 상태 필터 여부 (다중 상태) */
     public boolean hasStatusFilter() {
         return statuses != null && !statuses.isEmpty();

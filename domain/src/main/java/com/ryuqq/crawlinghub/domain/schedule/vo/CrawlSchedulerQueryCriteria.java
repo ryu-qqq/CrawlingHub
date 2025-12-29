@@ -33,6 +33,10 @@ public record CrawlSchedulerQueryCriteria(
         Integer page,
         Integer size) {
 
+    public CrawlSchedulerQueryCriteria {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
+    }
+
     /** 오프셋 계산 (페이징용) */
     public long offset() {
         return (long) page * size;

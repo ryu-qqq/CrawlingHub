@@ -13,7 +13,6 @@ import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -75,6 +74,7 @@ public class CrawlTaskQueryApiMapper {
      *
      * @param statusStrings 상태 문자열 목록
      * @return CrawlTaskStatus Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
      */
     private List<CrawlTaskStatus> parseStatuses(List<String> statusStrings) {
         if (statusStrings == null || statusStrings.isEmpty()) {
@@ -82,16 +82,16 @@ public class CrawlTaskQueryApiMapper {
         }
         return statusStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(
-                        s -> {
-                            try {
-                                return CrawlTaskStatus.valueOf(s);
-                            } catch (IllegalArgumentException e) {
-                                return null;
-                            }
-                        })
-                .filter(Objects::nonNull)
+                .map(this::parseStatus)
                 .toList();
+    }
+
+    private CrawlTaskStatus parseStatus(String status) {
+        try {
+            return CrawlTaskStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + status);
+        }
     }
 
     /**
@@ -99,6 +99,7 @@ public class CrawlTaskQueryApiMapper {
      *
      * @param taskTypeStrings 태스크 유형 문자열 목록
      * @return CrawlTaskType Enum 목록 (null이거나 빈 리스트면 null)
+     * @throws IllegalArgumentException 유효하지 않은 태스크 유형이 포함된 경우
      */
     private List<CrawlTaskType> parseTaskTypes(List<String> taskTypeStrings) {
         if (taskTypeStrings == null || taskTypeStrings.isEmpty()) {
@@ -106,16 +107,16 @@ public class CrawlTaskQueryApiMapper {
         }
         return taskTypeStrings.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .map(
-                        s -> {
-                            try {
-                                return CrawlTaskType.valueOf(s);
-                            } catch (IllegalArgumentException e) {
-                                return null;
-                            }
-                        })
-                .filter(Objects::nonNull)
+                .map(this::parseTaskType)
                 .toList();
+    }
+
+    private CrawlTaskType parseTaskType(String taskType) {
+        try {
+            return CrawlTaskType.valueOf(taskType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid task type value: " + taskType);
+        }
     }
 
     /**

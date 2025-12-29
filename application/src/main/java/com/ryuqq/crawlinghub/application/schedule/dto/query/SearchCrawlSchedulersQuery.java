@@ -26,6 +26,10 @@ public record SearchCrawlSchedulersQuery(
         Integer page,
         Integer size) {
 
+    public SearchCrawlSchedulersQuery {
+        statuses = statuses != null ? List.copyOf(statuses) : null;
+    }
+
     /**
      * 상태 필터가 있는지 확인
      *

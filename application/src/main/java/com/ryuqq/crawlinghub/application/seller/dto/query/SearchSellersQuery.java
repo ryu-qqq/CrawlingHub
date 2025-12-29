@@ -28,6 +28,10 @@ public record SearchSellersQuery(
         Integer page,
         Integer size) {
 
+    public SearchSellersQuery {
+        sellerStatuses = sellerStatuses != null ? List.copyOf(sellerStatuses) : null;
+    }
+
     /**
      * 상태 필터가 있는지 확인
      *

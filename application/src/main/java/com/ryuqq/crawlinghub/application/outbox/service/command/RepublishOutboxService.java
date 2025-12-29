@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,10 +18,16 @@ import org.springframework.stereotype.Service;
  *
  * <p>RepublishOutboxUseCase 구현체
  *
+ * <p><strong>조건</strong>: app.messaging.sqs.enabled=true 일 때만 활성화 (scheduler에서만 사용)
+ *
  * @author development-team
  * @since 1.0.0
  */
 @Service
+@ConditionalOnProperty(
+        name = "app.messaging.sqs.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 public class RepublishOutboxService implements RepublishOutboxUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(RepublishOutboxService.class);
