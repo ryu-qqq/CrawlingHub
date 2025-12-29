@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.QSellerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -220,16 +221,15 @@ public class SellerQueryDslRepository {
                     expression != null ? expression.and(sellerNameCondition) : sellerNameCondition;
         }
 
-        // 조건 3: 상태
-        if (criteria.status() != null) {
-            BooleanExpression statusCondition = qSeller.status.eq(criteria.status());
-            expression = expression != null ? expression.and(statusCondition) : statusCondition;
+        // 조건 3: 상태 (다중 상태 IN 조건)
+        BooleanExpression statusesCondition = statusesIn(criteria.statuses());
+        if (statusesCondition != null) {
+            expression = expression != null ? expression.and(statusesCondition) : statusesCondition;
         }
 
         // 조건 4: 생성일 시작
-        if (criteria.createdFrom() != null) {
-            LocalDateTime createdFromDateTime = toLocalDateTime(criteria.createdFrom());
-            BooleanExpression createdFromCondition = qSeller.createdAt.goe(createdFromDateTime);
+        BooleanExpression createdFromCondition = createdAtGoe(criteria.createdFrom());
+        if (createdFromCondition != null) {
             expression =
                     expression != null
                             ? expression.and(createdFromCondition)
@@ -237,14 +237,54 @@ public class SellerQueryDslRepository {
         }
 
         // 조건 5: 생성일 종료
-        if (criteria.createdTo() != null) {
-            LocalDateTime createdToDateTime = toLocalDateTime(criteria.createdTo());
-            BooleanExpression createdToCondition = qSeller.createdAt.loe(createdToDateTime);
+        BooleanExpression createdToCondition = createdAtLoe(criteria.createdTo());
+        if (createdToCondition != null) {
             expression =
                     expression != null ? expression.and(createdToCondition) : createdToCondition;
         }
 
         return expression;
+    }
+
+    /**
+     * 다중 상태 필터 BooleanExpression
+     *
+     * @param statuses 상태 목록 (null이거나 빈 리스트면 필터 없음)
+     * @return BooleanExpression (null이면 조건 없음)
+     */
+    private BooleanExpression statusesIn(List<SellerStatus> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return null;
+        }
+        return qSeller.status.in(statuses);
+    }
+
+    /**
+     * 생성일 시작 조건
+     *
+     * @param createdFrom 생성일 시작 (null이면 조건 없음)
+     * @return BooleanExpression (null이면 조건 없음)
+     */
+    private BooleanExpression createdAtGoe(Instant createdFrom) {
+        if (createdFrom == null) {
+            return null;
+        }
+        LocalDateTime localDateTime = toLocalDateTime(createdFrom);
+        return qSeller.createdAt.goe(localDateTime);
+    }
+
+    /**
+     * 생성일 종료 조건
+     *
+     * @param createdTo 생성일 종료 (null이면 조건 없음)
+     * @return BooleanExpression (null이면 조건 없음)
+     */
+    private BooleanExpression createdAtLoe(Instant createdTo) {
+        if (createdTo == null) {
+            return null;
+        }
+        LocalDateTime localDateTime = toLocalDateTime(createdTo);
+        return qSeller.createdAt.loe(localDateTime);
     }
 
     /**

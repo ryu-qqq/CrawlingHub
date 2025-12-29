@@ -131,9 +131,10 @@ public class GetDashboardStatsService implements GetDashboardStatsUseCase {
     /** 스케줄 통계 조회 */
     private ScheduleStats getScheduleStats() {
         CrawlSchedulerQueryCriteria allCriteria =
-                new CrawlSchedulerQueryCriteria(null, null, 0, Integer.MAX_VALUE);
+                new CrawlSchedulerQueryCriteria(null, null, null, null, 0, Integer.MAX_VALUE);
         CrawlSchedulerQueryCriteria activeCriteria =
-                new CrawlSchedulerQueryCriteria(null, SchedulerStatus.ACTIVE, 0, Integer.MAX_VALUE);
+                new CrawlSchedulerQueryCriteria(
+                        null, List.of(SchedulerStatus.ACTIVE), null, null, 0, Integer.MAX_VALUE);
 
         long total = scheduleQueryPort.count(allCriteria);
         long active = scheduleQueryPort.count(activeCriteria);
@@ -165,8 +166,8 @@ public class GetDashboardStatsService implements GetDashboardStatsUseCase {
                 new CrawlTaskCriteria(
                         null, // crawlSchedulerId
                         null, // sellerId
-                        CrawlTaskStatus.FAILED, // status
-                        null, // taskType
+                        List.of(CrawlTaskStatus.FAILED), // statuses
+                        null, // taskTypes
                         oneDayAgo, // createdFrom
                         null, // createdTo
                         0, // page

@@ -1,6 +1,6 @@
-package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.mapper;
+package com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;

@@ -56,20 +56,30 @@ class SearchProductSyncOutboxServiceTest {
             // Given
             Long crawledProductId = 1L;
             Long sellerId = 100L;
-            ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
             int page = 0;
             int size = 10;
             SearchProductSyncOutboxQuery query =
                     new SearchProductSyncOutboxQuery(
-                            crawledProductId, sellerId, status, page, size);
+                            crawledProductId, sellerId, null, statuses, null, null, page, size);
 
             CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
             List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
             long totalElements = 1L;
 
-            given(queryPort.search(crawledProductId, sellerId, status, 0L, size))
+            given(
+                            queryPort.search(
+                                    crawledProductId,
+                                    sellerId,
+                                    null,
+                                    statuses,
+                                    null,
+                                    null,
+                                    0L,
+                                    size))
                     .willReturn(outboxes);
-            given(queryPort.count(crawledProductId, sellerId, status)).willReturn(totalElements);
+            given(queryPort.count(crawledProductId, sellerId, null, statuses, null, null))
+                    .willReturn(totalElements);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
@@ -83,8 +93,10 @@ class SearchProductSyncOutboxServiceTest {
             assertThat(result.size()).isEqualTo(10);
             assertThat(result.first()).isTrue();
             assertThat(result.last()).isTrue();
-            then(queryPort).should().search(crawledProductId, sellerId, status, 0L, size);
-            then(queryPort).should().count(crawledProductId, sellerId, status);
+            then(queryPort)
+                    .should()
+                    .search(crawledProductId, sellerId, null, statuses, null, null, 0L, size);
+            then(queryPort).should().count(crawledProductId, sellerId, null, statuses, null, null);
         }
 
         @Test
@@ -93,16 +105,26 @@ class SearchProductSyncOutboxServiceTest {
             // Given
             Long crawledProductId = 999L;
             Long sellerId = 999L;
-            ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
             int page = 0;
             int size = 10;
             SearchProductSyncOutboxQuery query =
                     new SearchProductSyncOutboxQuery(
-                            crawledProductId, sellerId, status, page, size);
+                            crawledProductId, sellerId, null, statuses, null, null, page, size);
 
-            given(queryPort.search(crawledProductId, sellerId, status, 0L, size))
+            given(
+                            queryPort.search(
+                                    crawledProductId,
+                                    sellerId,
+                                    null,
+                                    statuses,
+                                    null,
+                                    null,
+                                    0L,
+                                    size))
                     .willReturn(Collections.emptyList());
-            given(queryPort.count(crawledProductId, sellerId, status)).willReturn(0L);
+            given(queryPort.count(crawledProductId, sellerId, null, statuses, null, null))
+                    .willReturn(0L);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
@@ -113,8 +135,10 @@ class SearchProductSyncOutboxServiceTest {
             assertThat(result.totalPages()).isZero();
             assertThat(result.first()).isTrue();
             assertThat(result.last()).isTrue();
-            then(queryPort).should().search(crawledProductId, sellerId, status, 0L, size);
-            then(queryPort).should().count(crawledProductId, sellerId, status);
+            then(queryPort)
+                    .should()
+                    .search(crawledProductId, sellerId, null, statuses, null, null, 0L, size);
+            then(queryPort).should().count(crawledProductId, sellerId, null, statuses, null, null);
         }
 
         @Test
@@ -126,13 +150,15 @@ class SearchProductSyncOutboxServiceTest {
             long totalElements = 100L;
             long expectedOffset = 40L; // page * size = 2 * 20
             SearchProductSyncOutboxQuery query =
-                    new SearchProductSyncOutboxQuery(null, null, null, page, size);
+                    new SearchProductSyncOutboxQuery(
+                            null, null, null, null, null, null, page, size);
 
             CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
             List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
 
-            given(queryPort.search(null, null, null, expectedOffset, size)).willReturn(outboxes);
-            given(queryPort.count(null, null, null)).willReturn(totalElements);
+            given(queryPort.search(null, null, null, null, null, null, expectedOffset, size))
+                    .willReturn(outboxes);
+            given(queryPort.count(null, null, null, null, null, null)).willReturn(totalElements);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
@@ -155,13 +181,15 @@ class SearchProductSyncOutboxServiceTest {
             long totalElements = 100L;
             long expectedOffset = 80L;
             SearchProductSyncOutboxQuery query =
-                    new SearchProductSyncOutboxQuery(null, null, null, page, size);
+                    new SearchProductSyncOutboxQuery(
+                            null, null, null, null, null, null, page, size);
 
             CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
             List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
 
-            given(queryPort.search(null, null, null, expectedOffset, size)).willReturn(outboxes);
-            given(queryPort.count(null, null, null)).willReturn(totalElements);
+            given(queryPort.search(null, null, null, null, null, null, expectedOffset, size))
+                    .willReturn(outboxes);
+            given(queryPort.count(null, null, null, null, null, null)).willReturn(totalElements);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
@@ -175,16 +203,17 @@ class SearchProductSyncOutboxServiceTest {
         @DisplayName("[성공] FAILED 상태 Outbox 조회")
         void shouldReturnFailedOutboxes() {
             // Given
+            List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.FAILED);
             SearchProductSyncOutboxQuery query =
-                    new SearchProductSyncOutboxQuery(null, null, ProductOutboxStatus.FAILED, 0, 10);
+                    new SearchProductSyncOutboxQuery(null, null, null, statuses, null, null, 0, 10);
 
             CrawledProductSyncOutbox failedOutbox =
                     createMockOutboxWithError(ProductOutboxStatus.FAILED, 3, "Sync failed");
             List<CrawledProductSyncOutbox> outboxes = List.of(failedOutbox);
 
-            given(queryPort.search(null, null, ProductOutboxStatus.FAILED, 0L, 10))
+            given(queryPort.search(null, null, null, statuses, null, null, 0L, 10))
                     .willReturn(outboxes);
-            given(queryPort.count(null, null, ProductOutboxStatus.FAILED)).willReturn(1L);
+            given(queryPort.count(null, null, null, statuses, null, null)).willReturn(1L);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
@@ -203,21 +232,72 @@ class SearchProductSyncOutboxServiceTest {
             // Given
             Long sellerId = 100L;
             SearchProductSyncOutboxQuery query =
-                    new SearchProductSyncOutboxQuery(null, sellerId, null, 0, 10);
+                    new SearchProductSyncOutboxQuery(null, sellerId, null, null, null, null, 0, 10);
 
             CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
             List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
 
-            given(queryPort.search(null, sellerId, null, 0L, 10)).willReturn(outboxes);
-            given(queryPort.count(null, sellerId, null)).willReturn(1L);
+            given(queryPort.search(null, sellerId, null, null, null, null, 0L, 10))
+                    .willReturn(outboxes);
+            given(queryPort.count(null, sellerId, null, null, null, null)).willReturn(1L);
 
             // When
             PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
 
             // Then
             assertThat(result.content()).hasSize(1);
-            then(queryPort).should().search(null, sellerId, null, 0L, 10);
-            then(queryPort).should().count(null, sellerId, null);
+            then(queryPort).should().search(null, sellerId, null, null, null, null, 0L, 10);
+            then(queryPort).should().count(null, sellerId, null, null, null, null);
+        }
+
+        @Test
+        @DisplayName("[성공] itemNos 필터로 조회")
+        void shouldFilterByItemNos() {
+            // Given
+            List<Long> itemNos = List.of(12345L, 12346L);
+            SearchProductSyncOutboxQuery query =
+                    new SearchProductSyncOutboxQuery(null, null, itemNos, null, null, null, 0, 10);
+
+            CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
+            List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
+
+            given(queryPort.search(null, null, itemNos, null, null, null, 0L, 10))
+                    .willReturn(outboxes);
+            given(queryPort.count(null, null, itemNos, null, null, null)).willReturn(1L);
+
+            // When
+            PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
+
+            // Then
+            assertThat(result.content()).hasSize(1);
+            then(queryPort).should().search(null, null, itemNos, null, null, null, 0L, 10);
+            then(queryPort).should().count(null, null, itemNos, null, null, null);
+        }
+
+        @Test
+        @DisplayName("[성공] 날짜 범위로 필터링 조회")
+        void shouldFilterByDateRange() {
+            // Given
+            Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
+            Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
+            SearchProductSyncOutboxQuery query =
+                    new SearchProductSyncOutboxQuery(
+                            null, null, null, null, createdFrom, createdTo, 0, 10);
+
+            CrawledProductSyncOutbox outbox = createMockOutbox(ProductOutboxStatus.PENDING, 0);
+            List<CrawledProductSyncOutbox> outboxes = List.of(outbox);
+
+            given(queryPort.search(null, null, null, null, createdFrom, createdTo, 0L, 10))
+                    .willReturn(outboxes);
+            given(queryPort.count(null, null, null, null, createdFrom, createdTo)).willReturn(1L);
+
+            // When
+            PageResponse<ProductSyncOutboxResponse> result = service.execute(query);
+
+            // Then
+            assertThat(result.content()).hasSize(1);
+            then(queryPort).should().search(null, null, null, null, createdFrom, createdTo, 0L, 10);
+            then(queryPort).should().count(null, null, null, null, createdFrom, createdTo);
         }
     }
 

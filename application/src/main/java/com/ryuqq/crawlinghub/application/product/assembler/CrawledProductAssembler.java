@@ -12,6 +12,7 @@ import com.ryuqq.crawlinghub.application.product.dto.response.CrawledProductDeta
 import com.ryuqq.crawlinghub.application.product.dto.response.CrawledProductDetailResponse.SyncStatusInfo;
 import com.ryuqq.crawlinghub.application.product.dto.response.CrawledProductSummaryResponse;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImage;
@@ -211,5 +212,76 @@ public class CrawledProductAssembler {
                 product.isNeedsSync(),
                 product.getLastSyncedAt(),
                 product.canSyncToExternalServer());
+    }
+
+    /**
+     * Domain → Detail Response 변환 (업로드된 이미지 사용)
+     *
+     * <p>CrawledProductImage 엔티티 기반 이미지 정보 사용 (JSON 파싱 제외)
+     *
+     * @param product CrawledProduct 도메인 객체
+     * @param uploadedThumbnails 업로드된 썸네일 목록
+     * @param uploadedDescriptionImages 업로드된 상세 이미지 목록
+     * @return CrawledProductDetailResponse
+     */
+    public CrawledProductDetailResponse toDetailResponseWithUploadedImages(
+            CrawledProduct product,
+            List<CrawledProductImage> uploadedThumbnails,
+            List<CrawledProductImage> uploadedDescriptionImages) {
+        return new CrawledProductDetailResponse(
+                product.getIdValue(),
+                product.getSellerIdValue(),
+                product.getItemNo(),
+                product.getItemName(),
+                product.getBrandName(),
+                product.getItemStatus(),
+                product.getOriginCountry(),
+                product.getShippingLocation(),
+                product.isFreeShipping(),
+                toPriceInfo(product.getPrice()),
+                toImagesInfoFromEntity(uploadedThumbnails, uploadedDescriptionImages),
+                toCategoryInfo(product.getCategory()),
+                toShippingInfoDto(product.getShippingInfo()),
+                toOptionsInfo(product.getOptions()),
+                toCrawlStatusInfo(product.getCrawlCompletionStatus()),
+                toSyncStatusInfo(product),
+                product.getDescriptionMarkUp(),
+                product.getCreatedAt(),
+                product.getUpdatedAt());
+    }
+
+    /**
+     * CrawledProductImage Entity → ImagesInfo 변환
+     *
+     * <p>업로드 완료된 이미지만 포함 (s3Url != null)
+     *
+     * @param thumbnails 업로드된 썸네일 목록
+     * @param descriptionImages 업로드된 상세 이미지 목록
+     * @return ImagesInfo
+     */
+    private ImagesInfo toImagesInfoFromEntity(
+            List<CrawledProductImage> thumbnails, List<CrawledProductImage> descriptionImages) {
+
+        List<ImageInfo> thumbnailInfos =
+                thumbnails.stream().map(this::toImageInfoFromEntity).toList();
+
+        List<ImageInfo> descriptionInfos =
+                descriptionImages.stream().map(this::toImageInfoFromEntity).toList();
+
+        int totalCount = thumbnails.size() + descriptionImages.size();
+        int uploadedCount = totalCount; // 이미 업로드된 것만 필터링되어 전달됨
+
+        return new ImagesInfo(thumbnailInfos, descriptionInfos, totalCount, uploadedCount);
+    }
+
+    /**
+     * CrawledProductImage Entity → ImageInfo 변환
+     *
+     * @param image CrawledProductImage 엔티티
+     * @return ImageInfo
+     */
+    private ImageInfo toImageInfoFromEntity(CrawledProductImage image) {
+        return new ImageInfo(
+                image.getOriginalUrl(), image.getS3Url(), "UPLOADED", image.getDisplayOrder());
     }
 }

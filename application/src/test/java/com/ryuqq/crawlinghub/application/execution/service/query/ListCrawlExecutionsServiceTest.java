@@ -128,7 +128,14 @@ class ListCrawlExecutionsServiceTest {
             // Given
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            1L, null, null, CrawlExecutionStatus.SUCCESS, null, null, 0, 10);
+                            1L,
+                            null,
+                            null,
+                            List.of(CrawlExecutionStatus.SUCCESS),
+                            null,
+                            null,
+                            0,
+                            10);
             CrawlExecutionCriteria criteria = Mockito.mock(CrawlExecutionCriteria.class);
             List<CrawlExecution> successExecutions =
                     List.of(CrawlExecutionFixture.aSuccessExecution());

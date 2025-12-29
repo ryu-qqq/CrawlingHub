@@ -149,15 +149,15 @@ public class CrawlTaskQueryDslRepository {
             expression = expression != null ? expression.and(sellerCondition) : sellerCondition;
         }
 
-        // 조건: 상태 필터
-        if (criteria.hasStatusFilter()) {
-            BooleanExpression statusCondition = qTask.status.eq(criteria.status());
+        // 조건: 상태 필터 (다중 상태 IN 절)
+        BooleanExpression statusCondition = statusesIn(criteria.statuses());
+        if (statusCondition != null) {
             expression = expression != null ? expression.and(statusCondition) : statusCondition;
         }
 
-        // 조건: 태스크 유형 필터
-        if (criteria.hasTaskTypeFilter()) {
-            BooleanExpression taskTypeCondition = qTask.taskType.eq(criteria.taskType());
+        // 조건: 태스크 유형 필터 (다중 유형 IN 절)
+        BooleanExpression taskTypeCondition = taskTypesIn(criteria.taskTypes());
+        if (taskTypeCondition != null) {
             expression = expression != null ? expression.and(taskTypeCondition) : taskTypeCondition;
         }
 
@@ -278,6 +278,32 @@ public class CrawlTaskQueryDslRepository {
             return null;
         }
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    /**
+     * 상태 목록 IN 조건 (다중 상태 필터링)
+     *
+     * @param statuses 상태 목록
+     * @return BooleanExpression (목록이 비어있으면 null)
+     */
+    private BooleanExpression statusesIn(List<CrawlTaskStatus> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return null;
+        }
+        return qTask.status.in(statuses);
+    }
+
+    /**
+     * 태스크 유형 목록 IN 조건 (다중 유형 필터링)
+     *
+     * @param taskTypes 태스크 유형 목록
+     * @return BooleanExpression (목록이 비어있으면 null)
+     */
+    private BooleanExpression taskTypesIn(List<CrawlTaskType> taskTypes) {
+        if (taskTypes == null || taskTypes.isEmpty()) {
+            return null;
+        }
+        return qTask.taskType.in(taskTypes);
     }
 
     /**

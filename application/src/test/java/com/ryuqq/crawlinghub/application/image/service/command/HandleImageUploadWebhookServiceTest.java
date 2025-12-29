@@ -8,9 +8,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
-import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
@@ -46,7 +47,9 @@ class HandleImageUploadWebhookServiceTest {
     private static final String FILE_ASSET_ID = "asset-uuid-123";
     private static final String ERROR_MESSAGE = "Upload failed: network error";
 
-    @Mock private ImageOutboxReadManager imageOutboxReadManager;
+    @Mock private ProductImageOutboxReadManager outboxReadManager;
+
+    @Mock private CrawledProductImageReadManager imageReadManager;
 
     @Mock private CrawledProductImageTransactionManager imageTransactionManager;
 
@@ -58,7 +61,10 @@ class HandleImageUploadWebhookServiceTest {
     void setUp() {
         service =
                 new HandleImageUploadWebhookService(
-                        imageOutboxReadManager, imageTransactionManager, outboxTransactionManager);
+                        outboxReadManager,
+                        imageReadManager,
+                        imageTransactionManager,
+                        outboxTransactionManager);
     }
 
     @Nested
@@ -75,9 +81,9 @@ class HandleImageUploadWebhookServiceTest {
             ProductImageOutbox outbox = createMockOutbox();
             CrawledProductImage image = createMockImage();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
+            given(outboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
-            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.of(image));
+            given(imageReadManager.findById(IMAGE_ID)).willReturn(Optional.of(image));
 
             // When
             service.execute(command);
@@ -101,7 +107,7 @@ class HandleImageUploadWebhookServiceTest {
                             EXTERNAL_DOWNLOAD_ID, ERROR_MESSAGE, FIXED_INSTANT);
             ProductImageOutbox outbox = createMockOutbox();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
+            given(outboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
 
             // When
@@ -121,7 +127,7 @@ class HandleImageUploadWebhookServiceTest {
                     ImageUploadWebhookCommand.completed(
                             EXTERNAL_DOWNLOAD_ID, FILE_URL, FILE_ASSET_ID, FIXED_INSTANT);
 
-            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
+            given(outboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.empty());
 
             // When & Then
@@ -139,7 +145,7 @@ class HandleImageUploadWebhookServiceTest {
                             EXTERNAL_DOWNLOAD_ID, "UNKNOWN", null, null, null, FIXED_INSTANT);
             ProductImageOutbox outbox = createMockOutbox();
 
-            given(imageOutboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
+            given(outboxReadManager.findByIdempotencyKey(EXTERNAL_DOWNLOAD_ID))
                     .willReturn(Optional.of(outbox));
 
             // When

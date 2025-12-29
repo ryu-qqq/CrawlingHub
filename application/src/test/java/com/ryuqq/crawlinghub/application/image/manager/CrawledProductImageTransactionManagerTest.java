@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledProductImagePersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;

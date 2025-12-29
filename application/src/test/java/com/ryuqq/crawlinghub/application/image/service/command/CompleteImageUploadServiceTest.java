@@ -8,9 +8,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
-import com.ryuqq.crawlinghub.application.image.manager.CrawledProductImageTransactionManager;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadCompletedEvent;
@@ -50,7 +51,9 @@ class CompleteImageUploadServiceTest {
     private static final String S3_URL = "https://s3.amazonaws.com/bucket/uploaded.jpg";
     private static final String FILE_ASSET_ID = "asset-uuid-123";
 
-    @Mock private ImageOutboxReadManager imageOutboxReadManager;
+    @Mock private ProductImageOutboxReadManager outboxReadManager;
+
+    @Mock private CrawledProductImageReadManager imageReadManager;
 
     @Mock private CrawledProductImageTransactionManager imageTransactionManager;
 
@@ -66,7 +69,8 @@ class CompleteImageUploadServiceTest {
     void setUp() {
         service =
                 new CompleteImageUploadService(
-                        imageOutboxReadManager,
+                        outboxReadManager,
+                        imageReadManager,
                         imageTransactionManager,
                         outboxTransactionManager,
                         eventRegistry,
@@ -84,8 +88,8 @@ class CompleteImageUploadServiceTest {
             ProductImageOutbox outbox = createMockOutbox();
             CrawledProductImage image = createMockImage();
 
-            given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
-            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.of(image));
+            given(outboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
+            given(imageReadManager.findById(IMAGE_ID)).willReturn(Optional.of(image));
 
             // When
             service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);
@@ -107,7 +111,7 @@ class CompleteImageUploadServiceTest {
         @DisplayName("[성공] Outbox 미존재 → 아무 작업 안 함")
         void shouldDoNothingWhenOutboxNotExists() {
             // Given
-            given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.empty());
+            given(outboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.empty());
 
             // When
             service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);
@@ -124,8 +128,8 @@ class CompleteImageUploadServiceTest {
             // Given
             ProductImageOutbox outbox = createMockOutbox();
 
-            given(imageOutboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
-            given(imageOutboxReadManager.findImageById(IMAGE_ID)).willReturn(Optional.empty());
+            given(outboxReadManager.findById(OUTBOX_ID)).willReturn(Optional.of(outbox));
+            given(imageReadManager.findById(IMAGE_ID)).willReturn(Optional.empty());
 
             // When
             service.complete(OUTBOX_ID, S3_URL, FILE_ASSET_ID);

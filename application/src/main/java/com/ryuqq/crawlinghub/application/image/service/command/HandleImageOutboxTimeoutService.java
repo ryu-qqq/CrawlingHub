@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageOutboxTimeoutResult;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageOutboxTimeoutUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;

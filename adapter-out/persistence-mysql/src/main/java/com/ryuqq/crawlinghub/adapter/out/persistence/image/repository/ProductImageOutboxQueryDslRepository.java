@@ -4,11 +4,14 @@ import static com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.QCrawle
 import static com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.QProductImageOutboxJpaEntity.productImageOutboxJpaEntity;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.dto.ProductImageOutboxWithImageDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -165,21 +168,40 @@ public class ProductImageOutboxQueryDslRepository {
      * 조건으로 ImageOutbox 목록 검색 (페이징)
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return Entity 목록
      */
     public List<ProductImageOutboxJpaEntity> search(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size) {
         var query = queryFactory.selectFrom(productImageOutboxJpaEntity);
 
-        var condition = buildSearchCondition(crawledProductImageId, status);
-        if (condition != null) {
-            query = query.where(condition);
+        // crawledProductId 필터 시 JOIN 필요
+        if (crawledProductId != null) {
+            query =
+                    query.innerJoin(crawledProductImageJpaEntity)
+                            .on(
+                                    productImageOutboxJpaEntity.crawledProductImageId.eq(
+                                            crawledProductImageJpaEntity.id));
         }
 
-        return query.orderBy(productImageOutboxJpaEntity.createdAt.desc())
+        return query.where(
+                        eqCrawledProductImageId(crawledProductImageId),
+                        eqCrawledProductId(crawledProductId),
+                        inStatuses(statuses),
+                        goeCreatedAt(createdFrom),
+                        loeCreatedAt(createdTo))
+                .orderBy(productImageOutboxJpaEntity.createdAt.desc())
                 .offset(offset)
                 .limit(size)
                 .fetch();
@@ -189,38 +211,75 @@ public class ProductImageOutboxQueryDslRepository {
      * 조건으로 ImageOutbox 개수 조회
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @return 총 개수
      */
-    public long count(Long crawledProductImageId, ProductOutboxStatus status) {
+    public long count(
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo) {
         var query =
                 queryFactory
                         .select(productImageOutboxJpaEntity.count())
                         .from(productImageOutboxJpaEntity);
 
-        var condition = buildSearchCondition(crawledProductImageId, status);
-        if (condition != null) {
-            query = query.where(condition);
+        // crawledProductId 필터 시 JOIN 필요
+        if (crawledProductId != null) {
+            query =
+                    query.innerJoin(crawledProductImageJpaEntity)
+                            .on(
+                                    productImageOutboxJpaEntity.crawledProductImageId.eq(
+                                            crawledProductImageJpaEntity.id));
         }
 
-        Long result = query.fetchOne();
+        Long result =
+                query.where(
+                                eqCrawledProductImageId(crawledProductImageId),
+                                eqCrawledProductId(crawledProductId),
+                                inStatuses(statuses),
+                                goeCreatedAt(createdFrom),
+                                loeCreatedAt(createdTo))
+                        .fetchOne();
         return result != null ? result : 0L;
     }
 
-    private com.querydsl.core.types.dsl.BooleanExpression buildSearchCondition(
-            Long crawledProductImageId, ProductOutboxStatus status) {
-        com.querydsl.core.types.dsl.BooleanExpression condition = null;
+    private BooleanExpression eqCrawledProductImageId(Long crawledProductImageId) {
+        return crawledProductImageId != null
+                ? productImageOutboxJpaEntity.crawledProductImageId.eq(crawledProductImageId)
+                : null;
+    }
 
-        if (crawledProductImageId != null) {
-            condition = productImageOutboxJpaEntity.crawledProductImageId.eq(crawledProductImageId);
+    private BooleanExpression eqCrawledProductId(Long crawledProductId) {
+        return crawledProductId != null
+                ? crawledProductImageJpaEntity.crawledProductId.eq(crawledProductId)
+                : null;
+    }
+
+    private BooleanExpression inStatuses(List<ProductOutboxStatus> statuses) {
+        return statuses != null && !statuses.isEmpty()
+                ? productImageOutboxJpaEntity.status.in(statuses)
+                : null;
+    }
+
+    private BooleanExpression goeCreatedAt(Instant createdFrom) {
+        if (createdFrom == null) {
+            return null;
         }
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(createdFrom, ZoneId.systemDefault());
+        return productImageOutboxJpaEntity.createdAt.goe(localDateTime);
+    }
 
-        if (status != null) {
-            var statusCondition = productImageOutboxJpaEntity.status.eq(status);
-            condition = condition != null ? condition.and(statusCondition) : statusCondition;
+    private BooleanExpression loeCreatedAt(Instant createdTo) {
+        if (createdTo == null) {
+            return null;
         }
-
-        return condition;
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(createdTo, ZoneId.systemDefault());
+        return productImageOutboxJpaEntity.createdAt.loe(localDateTime);
     }
 
     /**
@@ -252,42 +311,50 @@ public class ProductImageOutboxQueryDslRepository {
      * <p>CrawledProductImage와 LEFT JOIN하여 이미지 정보를 함께 반환합니다.
      *
      * @param crawledProductImageId CrawledProductImage ID (nullable)
-     * @param status 상태 (nullable)
+     * @param crawledProductId CrawledProduct ID (nullable)
+     * @param statuses 상태 목록 (IN 조건, nullable)
+     * @param createdFrom 생성일 시작 범위 (nullable)
+     * @param createdTo 생성일 종료 범위 (nullable)
      * @param offset 오프셋
      * @param size 페이지 크기
      * @return Outbox + 이미지 정보 DTO 목록
      */
     public List<ProductImageOutboxWithImageDto> searchWithImageInfo(
-            Long crawledProductImageId, ProductOutboxStatus status, long offset, int size) {
-        var query =
-                queryFactory
-                        .select(
-                                Projections.constructor(
-                                        ProductImageOutboxWithImageDto.class,
-                                        productImageOutboxJpaEntity.id,
-                                        productImageOutboxJpaEntity.crawledProductImageId,
-                                        productImageOutboxJpaEntity.idempotencyKey,
-                                        productImageOutboxJpaEntity.status,
-                                        productImageOutboxJpaEntity.retryCount,
-                                        productImageOutboxJpaEntity.errorMessage,
-                                        productImageOutboxJpaEntity.createdAt,
-                                        productImageOutboxJpaEntity.processedAt,
-                                        crawledProductImageJpaEntity.crawledProductId,
-                                        crawledProductImageJpaEntity.originalUrl,
-                                        crawledProductImageJpaEntity.s3Url,
-                                        crawledProductImageJpaEntity.imageType))
-                        .from(productImageOutboxJpaEntity)
-                        .leftJoin(crawledProductImageJpaEntity)
-                        .on(
-                                productImageOutboxJpaEntity.crawledProductImageId.eq(
-                                        crawledProductImageJpaEntity.id));
-
-        var condition = buildSearchCondition(crawledProductImageId, status);
-        if (condition != null) {
-            query = query.where(condition);
-        }
-
-        return query.orderBy(productImageOutboxJpaEntity.createdAt.desc())
+            Long crawledProductImageId,
+            Long crawledProductId,
+            List<ProductOutboxStatus> statuses,
+            Instant createdFrom,
+            Instant createdTo,
+            long offset,
+            int size) {
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                ProductImageOutboxWithImageDto.class,
+                                productImageOutboxJpaEntity.id,
+                                productImageOutboxJpaEntity.crawledProductImageId,
+                                productImageOutboxJpaEntity.idempotencyKey,
+                                productImageOutboxJpaEntity.status,
+                                productImageOutboxJpaEntity.retryCount,
+                                productImageOutboxJpaEntity.errorMessage,
+                                productImageOutboxJpaEntity.createdAt,
+                                productImageOutboxJpaEntity.processedAt,
+                                crawledProductImageJpaEntity.crawledProductId,
+                                crawledProductImageJpaEntity.originalUrl,
+                                crawledProductImageJpaEntity.s3Url,
+                                crawledProductImageJpaEntity.imageType))
+                .from(productImageOutboxJpaEntity)
+                .leftJoin(crawledProductImageJpaEntity)
+                .on(
+                        productImageOutboxJpaEntity.crawledProductImageId.eq(
+                                crawledProductImageJpaEntity.id))
+                .where(
+                        eqCrawledProductImageId(crawledProductImageId),
+                        eqCrawledProductId(crawledProductId),
+                        inStatuses(statuses),
+                        goeCreatedAt(createdFrom),
+                        loeCreatedAt(createdTo))
+                .orderBy(productImageOutboxJpaEntity.createdAt.desc())
                 .offset(offset)
                 .limit(size)
                 .fetch();

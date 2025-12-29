@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.product.dto.command.RetryImageOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.dto.response.OutboxRetryResponse;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;

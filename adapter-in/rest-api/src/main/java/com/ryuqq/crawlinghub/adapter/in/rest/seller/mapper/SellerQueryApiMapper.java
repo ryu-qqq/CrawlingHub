@@ -74,10 +74,7 @@ public class SellerQueryApiMapper {
      * @return Application Layer 셀러 목록 조회 쿼리
      */
     public SearchSellersQuery toQuery(SearchSellersApiRequest request) {
-        SellerStatus status =
-                (request.status() != null && !request.status().isBlank())
-                        ? SellerStatus.valueOf(request.status())
-                        : null;
+        List<SellerStatus> statuses = parseStatuses(request.statuses());
 
         String sellerName = isNotBlank(request.sellerName()) ? request.sellerName() : null;
         String mustItSellerName =
@@ -86,11 +83,27 @@ public class SellerQueryApiMapper {
         return new SearchSellersQuery(
                 mustItSellerName,
                 sellerName,
-                status,
+                statuses,
                 request.createdFrom(),
                 request.createdTo(),
                 request.page(),
                 request.size());
+    }
+
+    /**
+     * 상태 문자열 목록 → SellerStatus Enum 목록 변환
+     *
+     * @param statusStrings 상태 문자열 목록
+     * @return SellerStatus Enum 목록 (null이거나 빈 리스트면 null)
+     */
+    private List<SellerStatus> parseStatuses(List<String> statusStrings) {
+        if (statusStrings == null || statusStrings.isEmpty()) {
+            return null;
+        }
+        return statusStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(SellerStatus::valueOf)
+                .toList();
     }
 
     private boolean isNotBlank(String value) {

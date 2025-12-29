@@ -43,7 +43,7 @@ class CrawlExecutionAssemblerTest {
             LocalDateTime to = LocalDateTime.of(2025, 11, 30, 23, 59);
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            1L, 10L, 100L, CrawlExecutionStatus.SUCCESS, from, to, 0, 20);
+                            1L, 10L, 100L, List.of(CrawlExecutionStatus.SUCCESS), from, to, 0, 20);
 
             // When
             CrawlExecutionCriteria result = assembler.toCriteria(query);
@@ -85,7 +85,14 @@ class CrawlExecutionAssemblerTest {
             // Given
             ListCrawlExecutionsQuery query =
                     new ListCrawlExecutionsQuery(
-                            1L, 10L, 100L, CrawlExecutionStatus.RUNNING, null, null, 0, 10);
+                            1L,
+                            10L,
+                            100L,
+                            List.of(CrawlExecutionStatus.RUNNING),
+                            null,
+                            null,
+                            0,
+                            10);
 
             // When
             CrawlExecutionCriteria result = assembler.toCriteria(query);

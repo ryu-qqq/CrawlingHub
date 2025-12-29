@@ -14,7 +14,7 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.MiniShopResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
@@ -43,7 +43,7 @@ class MiniShopCrawlResultProcessorTest {
 
     @Mock private MiniShopResponseParser miniShopResponseParser;
     @Mock private CrawledRawAssembler crawledRawAssembler;
-    @Mock private CrawledRawManager crawledRawManager;
+    @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
     @Mock private ProcessMiniShopItemUseCase processMiniShopItemUseCase;
     @Mock private CrawledRaw crawledRaw;
 
@@ -55,7 +55,7 @@ class MiniShopCrawlResultProcessorTest {
                 new MiniShopCrawlResultProcessor(
                         miniShopResponseParser,
                         crawledRawAssembler,
-                        crawledRawManager,
+                        crawledRawTransactionManager,
                         processMiniShopItemUseCase);
     }
 
@@ -92,7 +92,7 @@ class MiniShopCrawlResultProcessorTest {
             given(miniShopResponseParser.parse(anyString())).willReturn(items);
             given(crawledRawAssembler.toMiniShopRaws(anyLong(), anyLong(), anyList()))
                     .willReturn(List.of(crawledRaw, crawledRaw));
-            given(crawledRawManager.saveAll(anyList()))
+            given(crawledRawTransactionManager.saveAll(anyList()))
                     .willReturn(List.of(CrawledRawId.of(1L), CrawledRawId.of(2L)));
 
             // When
@@ -123,7 +123,7 @@ class MiniShopCrawlResultProcessorTest {
             // Then
             assertThat(result.hasFollowUpTasks()).isFalse();
             assertThat(result.getParsedItemCount()).isEqualTo(0);
-            verify(crawledRawManager, never()).saveAll(anyList());
+            verify(crawledRawTransactionManager, never()).saveAll(anyList());
         }
     }
 

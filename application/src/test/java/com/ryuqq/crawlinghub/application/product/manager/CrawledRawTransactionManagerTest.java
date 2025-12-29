@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledRawPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
@@ -27,11 +28,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CrawledRawManager 테스트")
-class CrawledRawManagerTest {
+class CrawledRawTransactionManagerTest {
 
     @Mock private CrawledRawPersistencePort crawledRawPersistencePort;
 
-    @InjectMocks private CrawledRawManager manager;
+    @InjectMocks private CrawledRawTransactionManager manager;
 
     @Nested
     @DisplayName("save() 테스트")

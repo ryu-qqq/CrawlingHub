@@ -28,7 +28,7 @@ services:
       - .env.aws
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 8080
+      SERVER_PORT: 8083
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
@@ -42,7 +42,7 @@ services:
       APP_MESSAGING_SQS_ENABLED: false
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "8080:8080"
+      - "8083:8083"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -61,7 +61,7 @@ services:
       - .env.aws
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 8081
+      SERVER_PORT: 30081
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
@@ -82,7 +82,7 @@ services:
       SCHEDULER_SESSION_ISSUANCE_ENABLED: true
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "8081:8081"
+      - "30081:30081"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -101,7 +101,7 @@ services:
       - .env.aws
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 8082
+      SERVER_PORT: 30082
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
@@ -115,7 +115,7 @@ services:
       SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "8082:8082"
+      - "30082:30082"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

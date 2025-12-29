@@ -41,11 +41,20 @@ public class SearchProductSyncOutboxService implements SearchProductSyncOutboxUs
                 queryPort.search(
                         query.crawledProductId(),
                         query.sellerId(),
-                        query.status(),
+                        query.itemNos(),
+                        query.statuses(),
+                        query.createdFrom(),
+                        query.createdTo(),
                         query.getOffset(),
                         query.size());
         long totalElements =
-                queryPort.count(query.crawledProductId(), query.sellerId(), query.status());
+                queryPort.count(
+                        query.crawledProductId(),
+                        query.sellerId(),
+                        query.itemNos(),
+                        query.statuses(),
+                        query.createdFrom(),
+                        query.createdTo());
 
         // 2. Domain → Response 변환
         List<ProductSyncOutboxResponse> content =

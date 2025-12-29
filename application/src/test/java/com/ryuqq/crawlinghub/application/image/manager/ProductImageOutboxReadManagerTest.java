@@ -4,12 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductImageQueryPort;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
 import java.util.List;
@@ -27,23 +24,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * <p>Mockist 스타일 테스트: QueryPort Mocking
  *
+ * <p><strong>SRP</strong>: Outbox 조회만 테스트 (이미지 조회는 CrawledProductImageReadManagerTest)
+ *
  * @author development-team
  * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ImageOutboxReadManager 테스트")
-class ImageOutboxReadManagerTest {
+class ProductImageOutboxReadManagerTest {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-15T10:00:00Z");
 
     @Mock private ImageOutboxQueryPort outboxQueryPort;
-    @Mock private CrawledProductImageQueryPort imageQueryPort;
 
-    private ImageOutboxReadManager manager;
+    private ProductImageOutboxReadManager manager;
 
     @BeforeEach
     void setUp() {
-        manager = new ImageOutboxReadManager(outboxQueryPort, imageQueryPort);
+        manager = new ProductImageOutboxReadManager(outboxQueryPort);
     }
 
     @Nested
@@ -152,125 +150,6 @@ class ImageOutboxReadManagerTest {
         }
     }
 
-    @Nested
-    @DisplayName("이미지 조회 테스트")
-    class ImageQuery {
-
-        @Test
-        @DisplayName("[성공] ID로 이미지 조회")
-        void shouldFindImageById() {
-            // Given
-            Long imageId = 1L;
-            CrawledProductImage image = createImage(imageId, 100L);
-            given(imageQueryPort.findById(imageId)).willReturn(Optional.of(image));
-
-            // When
-            Optional<CrawledProductImage> result = manager.findImageById(imageId);
-
-            // Then
-            assertThat(result).isPresent();
-            assertThat(result.get().getId()).isEqualTo(imageId);
-            verify(imageQueryPort).findById(imageId);
-        }
-
-        @Test
-        @DisplayName("[성공] CrawledProductId로 이미지 목록 조회")
-        void shouldFindImagesByCrawledProductId() {
-            // Given
-            CrawledProductId crawledProductId = CrawledProductId.of(100L);
-            List<CrawledProductImage> images =
-                    List.of(createImage(1L, 100L), createImage(2L, 100L));
-            given(imageQueryPort.findByCrawledProductId(crawledProductId)).willReturn(images);
-
-            // When
-            List<CrawledProductImage> result =
-                    manager.findImagesByCrawledProductId(crawledProductId);
-
-            // Then
-            assertThat(result).hasSize(2);
-            verify(imageQueryPort).findByCrawledProductId(crawledProductId);
-        }
-
-        @Test
-        @DisplayName("[성공] CrawledProductId와 원본 URL로 이미지 조회")
-        void shouldFindImageByCrawledProductIdAndOriginalUrl() {
-            // Given
-            CrawledProductId crawledProductId = CrawledProductId.of(100L);
-            String originalUrl = "https://example.com/image.jpg";
-            CrawledProductImage image = createImage(1L, 100L);
-            given(
-                            imageQueryPort.findByCrawledProductIdAndOriginalUrl(
-                                    crawledProductId, originalUrl))
-                    .willReturn(Optional.of(image));
-
-            // When
-            Optional<CrawledProductImage> result =
-                    manager.findImageByCrawledProductIdAndOriginalUrl(
-                            crawledProductId, originalUrl);
-
-            // Then
-            assertThat(result).isPresent();
-            verify(imageQueryPort)
-                    .findByCrawledProductIdAndOriginalUrl(crawledProductId, originalUrl);
-        }
-    }
-
-    @Nested
-    @DisplayName("filterNewImageUrls() 테스트")
-    class FilterNewImageUrls {
-
-        @Test
-        @DisplayName("[성공] 새로운 이미지 URL만 필터링")
-        void shouldFilterNewImageUrls() {
-            // Given
-            CrawledProductId crawledProductId = CrawledProductId.of(100L);
-            List<String> imageUrls =
-                    List.of(
-                            "https://example.com/new1.jpg",
-                            "https://example.com/existing.jpg",
-                            "https://example.com/new2.jpg");
-            List<String> existingUrls = List.of("https://example.com/existing.jpg");
-            given(imageQueryPort.findExistingOriginalUrls(crawledProductId, imageUrls))
-                    .willReturn(existingUrls);
-
-            // When
-            List<String> result = manager.filterNewImageUrls(crawledProductId, imageUrls);
-
-            // Then
-            assertThat(result)
-                    .hasSize(2)
-                    .containsExactlyInAnyOrder(
-                            "https://example.com/new1.jpg", "https://example.com/new2.jpg");
-        }
-
-        @Test
-        @DisplayName("[성공] 빈 목록 입력 → 빈 목록 반환")
-        void shouldReturnEmptyListForEmptyInput() {
-            // Given
-            CrawledProductId crawledProductId = CrawledProductId.of(100L);
-            List<String> emptyList = List.of();
-
-            // When
-            List<String> result = manager.filterNewImageUrls(crawledProductId, emptyList);
-
-            // Then
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("[성공] null 입력 → 빈 목록 반환")
-        void shouldReturnEmptyListForNullInput() {
-            // Given
-            CrawledProductId crawledProductId = CrawledProductId.of(100L);
-
-            // When
-            List<String> result = manager.filterNewImageUrls(crawledProductId, null);
-
-            // Then
-            assertThat(result).isEmpty();
-        }
-    }
-
     // === Helper Methods ===
 
     private ProductImageOutbox createOutbox(Long id) {
@@ -280,19 +159,6 @@ class ImageOutboxReadManagerTest {
                 "test-idempotency-key-" + id,
                 ProductOutboxStatus.PENDING,
                 0,
-                null,
-                FIXED_TIME,
-                null);
-    }
-
-    private CrawledProductImage createImage(Long id, Long crawledProductId) {
-        return CrawledProductImage.reconstitute(
-                id,
-                CrawledProductId.of(crawledProductId),
-                "https://example.com/image" + id + ".jpg",
-                ImageType.THUMBNAIL,
-                1,
-                null,
                 null,
                 FIXED_TIME,
                 null);

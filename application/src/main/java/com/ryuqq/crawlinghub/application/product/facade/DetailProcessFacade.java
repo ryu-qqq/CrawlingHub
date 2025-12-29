@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
 import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.DetailProcessBundle;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;
@@ -32,17 +32,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class DetailProcessFacade {
 
     private final CrawledProductTransactionManager crawledProductManager;
-    private final ImageOutboxReadManager imageOutboxReadManager;
+    private final CrawledProductImageReadManager imageReadManager;
     private final ImageUploadBundleFactory imageUploadBundleFactory;
     private final RequestSyncUseCase requestSyncUseCase;
 
     public DetailProcessFacade(
             CrawledProductTransactionManager crawledProductManager,
-            ImageOutboxReadManager imageOutboxReadManager,
+            CrawledProductImageReadManager imageReadManager,
             ImageUploadBundleFactory imageUploadBundleFactory,
             RequestSyncUseCase requestSyncUseCase) {
         this.crawledProductManager = crawledProductManager;
-        this.imageOutboxReadManager = imageOutboxReadManager;
+        this.imageReadManager = imageReadManager;
         this.imageUploadBundleFactory = imageUploadBundleFactory;
         this.requestSyncUseCase = requestSyncUseCase;
     }
@@ -80,8 +80,7 @@ public class DetailProcessFacade {
         // 3. 새로운 이미지 URL만 필터링 (N+1 해결)
         if (enrichedBundle.hasImageUpload()) {
             List<String> newImageUrls =
-                    imageOutboxReadManager.filterNewImageUrls(
-                            productId, enrichedBundle.getImageUrls());
+                    imageReadManager.filterNewImageUrls(productId, enrichedBundle.getImageUrls());
 
             // 필터링된 URL로 Bundle 갱신
             enrichedBundle = enrichedBundle.withFilteredImageUrls(newImageUrls);

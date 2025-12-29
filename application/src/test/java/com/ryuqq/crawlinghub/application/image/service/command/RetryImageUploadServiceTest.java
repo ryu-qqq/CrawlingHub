@@ -11,8 +11,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
-import com.ryuqq.crawlinghub.application.image.manager.ImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.image.manager.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
@@ -43,7 +44,9 @@ class RetryImageUploadServiceTest {
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
 
-    @Mock private ImageOutboxReadManager imageOutboxReadManager;
+    @Mock private ProductImageOutboxReadManager outboxReadManager;
+
+    @Mock private CrawledProductImageReadManager imageReadManager;
 
     @Mock private ProductImageOutboxTransactionManager outboxTransactionManager;
 
@@ -55,7 +58,10 @@ class RetryImageUploadServiceTest {
     void setUp() {
         service =
                 new RetryImageUploadService(
-                        imageOutboxReadManager, outboxTransactionManager, fileServerClient);
+                        outboxReadManager,
+                        imageReadManager,
+                        outboxTransactionManager,
+                        fileServerClient);
     }
 
     @Nested
@@ -66,7 +72,7 @@ class RetryImageUploadServiceTest {
         @DisplayName("[성공] 재시도 대상 없음 → empty 결과 반환")
         void shouldReturnEmptyWhenNoRetryableOutboxes() {
             // Given
-            given(imageOutboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
+            given(outboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
                     .willReturn(List.of());
 
             // When
@@ -88,9 +94,9 @@ class RetryImageUploadServiceTest {
             ProductImageOutbox outbox = createMockOutbox(1L, 1L, "key-1");
             CrawledProductImage image = createMockImage(1L);
 
-            given(imageOutboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
+            given(outboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
                     .willReturn(List.of(outbox));
-            given(imageOutboxReadManager.findImageById(1L)).willReturn(Optional.of(image));
+            given(imageReadManager.findById(1L)).willReturn(Optional.of(image));
             given(fileServerClient.requestImageUpload(any())).willReturn(true);
 
             // When
@@ -112,9 +118,9 @@ class RetryImageUploadServiceTest {
             ProductImageOutbox outbox = createMockOutbox(1L, 1L, "key-1");
             CrawledProductImage image = createMockImage(1L);
 
-            given(imageOutboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
+            given(outboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
                     .willReturn(List.of(outbox));
-            given(imageOutboxReadManager.findImageById(1L)).willReturn(Optional.of(image));
+            given(imageReadManager.findById(1L)).willReturn(Optional.of(image));
             given(fileServerClient.requestImageUpload(any())).willReturn(false);
 
             // When
@@ -141,11 +147,11 @@ class RetryImageUploadServiceTest {
             CrawledProductImage image2 = createMockImage(2L);
             CrawledProductImage image3 = createMockImage(3L);
 
-            given(imageOutboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
+            given(outboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
                     .willReturn(List.of(outbox1, outbox2, outbox3));
-            given(imageOutboxReadManager.findImageById(1L)).willReturn(Optional.of(image1));
-            given(imageOutboxReadManager.findImageById(2L)).willReturn(Optional.of(image2));
-            given(imageOutboxReadManager.findImageById(3L)).willReturn(Optional.of(image3));
+            given(imageReadManager.findById(1L)).willReturn(Optional.of(image1));
+            given(imageReadManager.findById(2L)).willReturn(Optional.of(image2));
+            given(imageReadManager.findById(3L)).willReturn(Optional.of(image3));
             given(fileServerClient.requestImageUpload(any()))
                     .willReturn(true) // outbox1 성공
                     .willReturn(false) // outbox2 실패
@@ -169,12 +175,11 @@ class RetryImageUploadServiceTest {
                             .mapToObj(i -> createMockOutbox((long) i, (long) i, "key-" + i))
                             .toList();
 
-            given(imageOutboxReadManager.findRetryableOutboxes(anyInt(), anyInt()))
-                    .willReturn(outboxes);
+            given(outboxReadManager.findRetryableOutboxes(anyInt(), anyInt())).willReturn(outboxes);
 
             // 모든 이미지에 대한 mock 설정
             for (int i = 1; i <= 100; i++) {
-                given(imageOutboxReadManager.findImageById((long) i))
+                given(imageReadManager.findById((long) i))
                         .willReturn(Optional.of(createMockImage((long) i)));
             }
 

@@ -15,7 +15,7 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.SearchParseResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.SearchResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledRawManager;
+import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
@@ -43,7 +43,7 @@ class SearchCrawlResultProcessorTest {
 
     @Mock private SearchResponseParser searchResponseParser;
     @Mock private CrawledRawAssembler crawledRawAssembler;
-    @Mock private CrawledRawManager crawledRawManager;
+    @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
     @Mock private ProcessMiniShopItemUseCase processMiniShopItemUseCase;
     @Mock private CrawledRaw crawledRaw;
 
@@ -55,7 +55,7 @@ class SearchCrawlResultProcessorTest {
                 new SearchCrawlResultProcessor(
                         searchResponseParser,
                         crawledRawAssembler,
-                        crawledRawManager,
+                        crawledRawTransactionManager,
                         processMiniShopItemUseCase);
     }
 
@@ -92,7 +92,8 @@ class SearchCrawlResultProcessorTest {
             given(searchResponseParser.parse(anyString())).willReturn(parseResult);
             given(crawledRawAssembler.toMiniShopRaws(anyLong(), anyLong(), anyList()))
                     .willReturn(List.of(crawledRaw));
-            given(crawledRawManager.saveAll(anyList())).willReturn(List.of(CrawledRawId.of(1L)));
+            given(crawledRawTransactionManager.saveAll(anyList()))
+                    .willReturn(List.of(CrawledRawId.of(1L)));
 
             // When
             ProcessingResult result = processor.process(crawlResult, task);
@@ -120,7 +121,8 @@ class SearchCrawlResultProcessorTest {
             given(searchResponseParser.parse(anyString())).willReturn(parseResult);
             given(crawledRawAssembler.toMiniShopRaws(anyLong(), anyLong(), anyList()))
                     .willReturn(List.of(crawledRaw));
-            given(crawledRawManager.saveAll(anyList())).willReturn(List.of(CrawledRawId.of(1L)));
+            given(crawledRawTransactionManager.saveAll(anyList()))
+                    .willReturn(List.of(CrawledRawId.of(1L)));
 
             // When
             ProcessingResult result = processor.process(crawlResult, task);
@@ -147,7 +149,7 @@ class SearchCrawlResultProcessorTest {
             // Then
             assertThat(result.hasFollowUpTasks()).isFalse();
             assertThat(result.getParsedItemCount()).isEqualTo(0);
-            verify(crawledRawManager, never()).saveAll(anyList());
+            verify(crawledRawTransactionManager, never()).saveAll(anyList());
         }
     }
 

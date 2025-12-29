@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,7 +34,8 @@ class CrawlSchedulerQueryFactoryTest {
         void shouldConvertQueryWithAllFields() {
             // Given
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(100L, SchedulerStatus.ACTIVE, 1, 20);
+                    new SearchCrawlSchedulersQuery(
+                            100L, List.of(SchedulerStatus.ACTIVE), null, null, 1, 20);
 
             // When
             CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
@@ -50,7 +52,8 @@ class CrawlSchedulerQueryFactoryTest {
         void shouldSetNullSellerIdWhenQueryHasNull() {
             // Given
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(null, SchedulerStatus.ACTIVE, 1, 10);
+                    new SearchCrawlSchedulersQuery(
+                            null, List.of(SchedulerStatus.ACTIVE), null, null, 1, 10);
 
             // When
             CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
@@ -64,7 +67,8 @@ class CrawlSchedulerQueryFactoryTest {
         @DisplayName("status가 null이어도 Criteria로 변환한다")
         void shouldConvertQueryWithNullStatus() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(100L, null, 2, 50);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(100L, null, null, null, 2, 50);
 
             // When
             CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
@@ -81,7 +85,8 @@ class CrawlSchedulerQueryFactoryTest {
         void shouldConvertQueryWithInactiveStatus() {
             // Given
             SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(200L, SchedulerStatus.INACTIVE, 0, 10);
+                    new SearchCrawlSchedulersQuery(
+                            200L, List.of(SchedulerStatus.INACTIVE), null, null, 0, 10);
 
             // When
             CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
@@ -94,7 +99,8 @@ class CrawlSchedulerQueryFactoryTest {
         @DisplayName("모든 검색 조건이 null이어도 페이지네이션은 유지한다")
         void shouldKeepPaginationWhenAllSearchConditionsAreNull() {
             // Given
-            SearchCrawlSchedulersQuery query = new SearchCrawlSchedulersQuery(null, null, 5, 50);
+            SearchCrawlSchedulersQuery query =
+                    new SearchCrawlSchedulersQuery(null, null, null, null, 5, 50);
 
             // When
             CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);

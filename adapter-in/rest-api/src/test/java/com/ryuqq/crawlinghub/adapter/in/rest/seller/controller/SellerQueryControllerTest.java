@@ -10,7 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.controller.GlobalExceptionHandler;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailStatisticsApiResponse;
@@ -77,12 +79,16 @@ class SellerQueryControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
+        ErrorMapperRegistry errorMapperRegistry = new ErrorMapperRegistry(Collections.emptyList());
+        GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler(errorMapperRegistry);
+
         mockMvc =
                 MockMvcBuilders.standaloneSetup(controller)
                         .addPlaceholderValue("api.endpoints.base-v1", "/api/v1")
                         .addPlaceholderValue("api.endpoints.seller.base", "/sellers")
                         .addPlaceholderValue("api.endpoints.seller.by-id", "/{id}")
                         .setValidator(validator)
+                        .setControllerAdvice(exceptionHandler)
                         .build();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -197,7 +203,7 @@ class SellerQueryControllerTest {
         void listSellers_Success() throws Exception {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, "ACTIVE", null, null, 0, 20);
+                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 0, 20);
 
             SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
 
@@ -405,6 +411,10 @@ class SellerQueryControllerTest {
         @Test
         @DisplayName("실패: 잘못된 status 값 (400 Bad Request)")
         void listSellers_InvalidStatus_BadRequest() throws Exception {
+            // Given
+            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
+                    .willThrow(new IllegalArgumentException("Invalid status: INVALID_STATUS"));
+
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/sellers")

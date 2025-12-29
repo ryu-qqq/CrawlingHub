@@ -53,21 +53,21 @@ class CrawlTaskQueryApiMapperTest {
             // given
             SearchCrawlTasksApiRequest request =
                     new SearchCrawlTasksApiRequest(
-                            1L, 100L, "RUNNING", "MINI_SHOP", null, null, 0, 20);
+                            1L, 100L, List.of("RUNNING"), List.of("MINI_SHOP"), null, null, 0, 20);
 
             // when
             ListCrawlTasksQuery result = mapper.toQuery(request);
 
             // then
             assertThat(result.crawlSchedulerId()).isEqualTo(1L);
-            assertThat(result.status()).isEqualTo(CrawlTaskStatus.RUNNING);
+            assertThat(result.statuses()).containsExactly(CrawlTaskStatus.RUNNING);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
         }
 
         @Test
-        @DisplayName("status가 null인 요청을 쿼리로 변환한다")
-        void toQuery_WithNullStatus_ShouldConvertWithNullStatus() {
+        @DisplayName("statuses가 null인 요청을 쿼리로 변환한다")
+        void toQuery_WithNullStatuses_ShouldConvertWithNullStatuses() {
             // given
             SearchCrawlTasksApiRequest request =
                     new SearchCrawlTasksApiRequest(1L, null, null, null, null, null, 0, 20);
@@ -76,21 +76,21 @@ class CrawlTaskQueryApiMapperTest {
             ListCrawlTasksQuery result = mapper.toQuery(request);
 
             // then
-            assertThat(result.status()).isNull();
+            assertThat(result.statuses()).isNull();
         }
 
         @Test
-        @DisplayName("status가 빈 문자열인 요청을 쿼리로 변환한다")
-        void toQuery_WithBlankStatus_ShouldConvertWithNullStatus() {
+        @DisplayName("statuses가 빈 리스트인 요청을 쿼리로 변환하면 null이 된다")
+        void toQuery_WithEmptyStatuses_ShouldConvertWithNullStatuses() {
             // given
             SearchCrawlTasksApiRequest request =
-                    new SearchCrawlTasksApiRequest(1L, null, "  ", null, null, null, 0, 20);
+                    new SearchCrawlTasksApiRequest(1L, null, List.of(), null, null, null, 0, 20);
 
             // when
             ListCrawlTasksQuery result = mapper.toQuery(request);
 
             // then
-            assertThat(result.status()).isNull();
+            assertThat(result.statuses()).isNull();
         }
     }
 
