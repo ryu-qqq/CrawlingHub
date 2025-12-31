@@ -45,8 +45,8 @@ class CrawledProductImageCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("성공 - CrawledProductImage 저장")
-    void shouldSaveImage() {
+    @DisplayName("성공 - CrawledProductImage 단건 저장 (upsert)")
+    void shouldPersistImage() {
         // Given
         CrawledProductImage image = CrawledProductImageFixture.aReconstitutedThumbnailPending();
         LocalDateTime now = LocalDateTime.now();
@@ -78,7 +78,7 @@ class CrawledProductImageCommandAdapterTest {
         given(mapper.toDomain(savedEntity)).willReturn(image);
 
         // When
-        CrawledProductImage result = commandAdapter.save(image);
+        CrawledProductImage result = commandAdapter.persist(image);
 
         // Then
         assertThat(result).isNotNull();
@@ -88,8 +88,8 @@ class CrawledProductImageCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("성공 - CrawledProductImage 일괄 저장")
-    void shouldSaveAllImages() {
+    @DisplayName("성공 - CrawledProductImage 일괄 저장 (upsert)")
+    void shouldPersistAllImages() {
         // Given
         CrawledProductImage image1 =
                 CrawledProductImageFixture.aReconstitutedPending(
@@ -131,39 +131,10 @@ class CrawledProductImageCommandAdapterTest {
         given(mapper.toDomain(entity2)).willReturn(image2);
 
         // When
-        List<CrawledProductImage> results = commandAdapter.saveAll(images);
+        List<CrawledProductImage> results = commandAdapter.persistAll(images);
 
         // Then
         assertThat(results).hasSize(2);
         verify(jpaRepository).saveAll(List.of(entity1, entity2));
-    }
-
-    @Test
-    @DisplayName("성공 - CrawledProductImage 업데이트")
-    void shouldUpdateImage() {
-        // Given
-        CrawledProductImage image = CrawledProductImageFixture.aReconstitutedThumbnailUploaded();
-        LocalDateTime now = LocalDateTime.now();
-        CrawledProductImageJpaEntity entity =
-                CrawledProductImageJpaEntity.of(
-                        1L,
-                        1L,
-                        "https://example.com/thumbnail.jpg",
-                        "https://s3.amazonaws.com/bucket/thumbnail.jpg",
-                        "file-asset-id-123",
-                        ImageType.THUMBNAIL,
-                        0,
-                        now,
-                        now);
-
-        given(mapper.toEntity(image)).willReturn(entity);
-        given(jpaRepository.save(entity)).willReturn(entity);
-
-        // When
-        commandAdapter.update(image);
-
-        // Then
-        verify(mapper).toEntity(image);
-        verify(jpaRepository).save(entity);
     }
 }

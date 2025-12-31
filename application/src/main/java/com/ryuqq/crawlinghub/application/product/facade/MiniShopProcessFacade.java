@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
-import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.orchestrator.ImageUploadOrchestrator;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.MiniShopProcessBundle;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
@@ -13,13 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * MINI_SHOP 처리 Facade
  *
- * <p>CrawledProductTransactionManager, ImageUploadBundleFactory를 조합하여 MINI_SHOP 크롤링 결과 처리를 담당합니다.
+ * <p>CrawledProductTransactionManager, ImageUploadOrchestrator를 조합하여 MINI_SHOP 크롤링 결과 처리를 담당합니다.
  *
  * <p><strong>Bundle 패턴 적용</strong>:
  *
  * <ul>
  *   <li>Factory에서 생성된 MiniShopProcessBundle을 받아 처리
- *   <li>ImageUploadBundleFactory가 이미지/Outbox/Event 처리 담당
+ *   <li>ImageUploadOrchestrator가 이미지/Outbox/Event 처리 담당
  *   <li>N+1 문제 해결: 배치 쿼리로 기존 URL 필터링
  * </ul>
  *
@@ -31,15 +31,15 @@ public class MiniShopProcessFacade {
 
     private final CrawledProductTransactionManager crawledProductManager;
     private final CrawledProductImageReadManager imageReadManager;
-    private final ImageUploadBundleFactory imageUploadBundleFactory;
+    private final ImageUploadOrchestrator imageUploadOrchestrator;
 
     public MiniShopProcessFacade(
             CrawledProductTransactionManager crawledProductManager,
             CrawledProductImageReadManager imageReadManager,
-            ImageUploadBundleFactory imageUploadBundleFactory) {
+            ImageUploadOrchestrator imageUploadOrchestrator) {
         this.crawledProductManager = crawledProductManager;
         this.imageReadManager = imageReadManager;
-        this.imageUploadBundleFactory = imageUploadBundleFactory;
+        this.imageUploadOrchestrator = imageUploadOrchestrator;
     }
 
     /**
@@ -50,7 +50,7 @@ public class MiniShopProcessFacade {
      * <ol>
      *   <li>CrawledProduct 생성
      *   <li>Bundle에 CrawledProduct ID 설정 (enrichWithProductId)
-     *   <li>ImageUploadBundleFactory로 이미지 처리 위임 (신규는 필터링 불필요)
+     *   <li>ImageUploadOrchestrator로 이미지 처리 위임 (신규는 필터링 불필요)
      * </ol>
      *
      * @param bundle MINI_SHOP 처리 Bundle
@@ -66,9 +66,9 @@ public class MiniShopProcessFacade {
         CrawledProductId productId = product.getId();
         MiniShopProcessBundle enrichedBundle = bundle.enrichWithProductId(productId);
 
-        // 3. Factory로 이미지 처리 위임 (신규 상품이므로 필터링 불필요)
+        // 3. Orchestrator로 이미지 처리 위임 (신규 상품이므로 필터링 불필요)
         if (enrichedBundle.hasImageUpload()) {
-            imageUploadBundleFactory.processImageUpload(enrichedBundle.imageUploadData());
+            imageUploadOrchestrator.processImageUpload(enrichedBundle.imageUploadData());
         }
 
         return product;
@@ -83,7 +83,7 @@ public class MiniShopProcessFacade {
      *   <li>CrawledProduct 업데이트
      *   <li>Bundle에 CrawledProduct ID 설정 (enrichWithProductId)
      *   <li>기존 URL 필터링 (N+1 해결)
-     *   <li>ImageUploadBundleFactory로 이미지 처리 위임
+     *   <li>ImageUploadOrchestrator로 이미지 처리 위임
      * </ol>
      *
      * @param existing 기존 CrawledProduct
@@ -116,9 +116,9 @@ public class MiniShopProcessFacade {
             enrichedBundle = enrichedBundle.withFilteredImageUrls(newImageUrls);
         }
 
-        // 4. Factory로 이미지 처리 위임
+        // 4. Orchestrator로 이미지 처리 위임
         if (enrichedBundle.hasImageUpload()) {
-            imageUploadBundleFactory.processImageUpload(enrichedBundle.imageUploadData());
+            imageUploadOrchestrator.processImageUpload(enrichedBundle.imageUploadData());
         }
 
         return product;

@@ -9,6 +9,7 @@ import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDet
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
@@ -74,6 +75,16 @@ public class UserAgentApiMapper {
      */
     public RecoverUserAgentApiResponse toRecoverApiResponse(int recoveredCount) {
         return RecoverUserAgentApiResponse.of(recoveredCount);
+    }
+
+    /**
+     * Warm-up으로 추가된 UserAgent 수 → WarmUpUserAgentApiResponse 변환
+     *
+     * @param addedCount Pool에 추가된 UserAgent 수
+     * @return REST API Warm-up 응답
+     */
+    public WarmUpUserAgentApiResponse toWarmUpApiResponse(int addedCount) {
+        return WarmUpUserAgentApiResponse.of(addedCount);
     }
 
     /**

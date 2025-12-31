@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.facade;
 
-import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.orchestrator.ImageUploadOrchestrator;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.DetailProcessBundle;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;
@@ -14,14 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * DETAIL 처리 Facade
  *
- * <p>CrawledProductTransactionManager, ImageUploadBundleFactory, RequestSyncUseCase를 조합하여 DETAIL
- * 크롤링 결과 처리를 담당합니다.
+ * <p>CrawledProductTransactionManager, ImageUploadOrchestrator, RequestSyncUseCase를 조합하여 DETAIL 크롤링
+ * 결과 처리를 담당합니다.
  *
  * <p><strong>Bundle 패턴 적용</strong>:
  *
  * <ul>
  *   <li>Factory에서 생성된 DetailProcessBundle을 받아 처리
- *   <li>ImageUploadBundleFactory가 이미지/Outbox/Event 처리 담당
+ *   <li>ImageUploadOrchestrator가 이미지/Outbox/Event 처리 담당
  *   <li>N+1 문제 해결: 배치 쿼리로 기존 URL 필터링
  * </ul>
  *
@@ -33,17 +33,17 @@ public class DetailProcessFacade {
 
     private final CrawledProductTransactionManager crawledProductManager;
     private final CrawledProductImageReadManager imageReadManager;
-    private final ImageUploadBundleFactory imageUploadBundleFactory;
+    private final ImageUploadOrchestrator imageUploadOrchestrator;
     private final RequestSyncUseCase requestSyncUseCase;
 
     public DetailProcessFacade(
             CrawledProductTransactionManager crawledProductManager,
             CrawledProductImageReadManager imageReadManager,
-            ImageUploadBundleFactory imageUploadBundleFactory,
+            ImageUploadOrchestrator imageUploadOrchestrator,
             RequestSyncUseCase requestSyncUseCase) {
         this.crawledProductManager = crawledProductManager;
         this.imageReadManager = imageReadManager;
-        this.imageUploadBundleFactory = imageUploadBundleFactory;
+        this.imageUploadOrchestrator = imageUploadOrchestrator;
         this.requestSyncUseCase = requestSyncUseCase;
     }
 
@@ -56,7 +56,7 @@ public class DetailProcessFacade {
      *   <li>CrawledProduct 업데이트
      *   <li>Bundle에 CrawledProduct ID 설정 (enrichWithProductId)
      *   <li>기존 URL 필터링 (N+1 해결)
-     *   <li>ImageUploadBundleFactory로 이미지 처리 위임
+     *   <li>ImageUploadOrchestrator로 이미지 처리 위임
      *   <li>동기화 요청
      * </ol>
      *
@@ -86,9 +86,9 @@ public class DetailProcessFacade {
             enrichedBundle = enrichedBundle.withFilteredImageUrls(newImageUrls);
         }
 
-        // 4. Factory로 이미지 처리 위임
+        // 4. Orchestrator로 이미지 처리 위임
         if (enrichedBundle.hasImageUpload()) {
-            imageUploadBundleFactory.processImageUpload(enrichedBundle.imageUploadData());
+            imageUploadOrchestrator.processImageUpload(enrichedBundle.imageUploadData());
         }
 
         // 5. 외부 동기화 가능 여부 확인 및 요청
