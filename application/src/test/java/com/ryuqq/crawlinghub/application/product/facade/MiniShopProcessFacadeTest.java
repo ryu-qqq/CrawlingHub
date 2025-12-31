@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.orchestrator.ImageUploadOrchestrator;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.MiniShopProcessBundle;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
@@ -56,7 +56,7 @@ class MiniShopProcessFacadeTest {
 
     @Mock private CrawledProductImageReadManager imageReadManager;
 
-    @Mock private ImageUploadBundleFactory imageUploadBundleFactory;
+    @Mock private ImageUploadOrchestrator imageUploadOrchestrator;
 
     @Captor private ArgumentCaptor<ImageUploadData> imageUploadDataCaptor;
 
@@ -66,7 +66,7 @@ class MiniShopProcessFacadeTest {
     void setUp() {
         facade =
                 new MiniShopProcessFacade(
-                        crawledProductManager, imageReadManager, imageUploadBundleFactory);
+                        crawledProductManager, imageReadManager, imageUploadOrchestrator);
     }
 
     @Nested
@@ -93,7 +93,7 @@ class MiniShopProcessFacadeTest {
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
             // Factory 호출 검증
-            verify(imageUploadBundleFactory, times(1))
+            verify(imageUploadOrchestrator, times(1))
                     .processImageUpload(imageUploadDataCaptor.capture());
             ImageUploadData capturedData = imageUploadDataCaptor.getValue();
             assertThat(capturedData.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -118,7 +118,7 @@ class MiniShopProcessFacadeTest {
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
             // Factory 호출 안 함 검증
-            verify(imageUploadBundleFactory, never()).processImageUpload(any());
+            verify(imageUploadOrchestrator, never()).processImageUpload(any());
         }
     }
 
@@ -160,7 +160,7 @@ class MiniShopProcessFacadeTest {
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
             // Factory 호출 검증
-            verify(imageUploadBundleFactory, times(1))
+            verify(imageUploadOrchestrator, times(1))
                     .processImageUpload(imageUploadDataCaptor.capture());
             ImageUploadData capturedData = imageUploadDataCaptor.getValue();
             assertThat(capturedData.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -200,7 +200,7 @@ class MiniShopProcessFacadeTest {
             assertThat(result).isNotNull();
 
             // Factory에 새로운 URL 1개만 전달 검증
-            verify(imageUploadBundleFactory, times(1))
+            verify(imageUploadOrchestrator, times(1))
                     .processImageUpload(imageUploadDataCaptor.capture());
             ImageUploadData capturedData = imageUploadDataCaptor.getValue();
             assertThat(capturedData.imageUrls()).hasSize(1);
@@ -241,7 +241,7 @@ class MiniShopProcessFacadeTest {
             assertThat(result).isNotNull();
 
             // Factory 호출 안 함 검증
-            verify(imageUploadBundleFactory, never()).processImageUpload(any());
+            verify(imageUploadOrchestrator, never()).processImageUpload(any());
         }
 
         @Test
@@ -273,7 +273,7 @@ class MiniShopProcessFacadeTest {
                     .filterNewImageUrls(any(CrawledProductId.class), anyList());
 
             // Factory 호출 안 함 검증
-            verify(imageUploadBundleFactory, never()).processImageUpload(any());
+            verify(imageUploadOrchestrator, never()).processImageUpload(any());
         }
     }
 

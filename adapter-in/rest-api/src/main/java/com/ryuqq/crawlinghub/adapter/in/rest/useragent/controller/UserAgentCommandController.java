@@ -5,10 +5,12 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.WarmUpUserAgentUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -66,6 +68,7 @@ public class UserAgentCommandController {
 
     private final RecoverUserAgentUseCase recoverUserAgentUseCase;
     private final UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase;
+    private final WarmUpUserAgentUseCase warmUpUserAgentUseCase;
     private final UserAgentApiMapper userAgentApiMapper;
 
     /**
@@ -73,14 +76,17 @@ public class UserAgentCommandController {
      *
      * @param recoverUserAgentUseCase UserAgent 복구 UseCase
      * @param updateUserAgentStatusUseCase UserAgent 상태 변경 UseCase
+     * @param warmUpUserAgentUseCase UserAgent Warm-up UseCase
      * @param userAgentApiMapper UserAgent API Mapper
      */
     public UserAgentCommandController(
             RecoverUserAgentUseCase recoverUserAgentUseCase,
             UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase,
+            WarmUpUserAgentUseCase warmUpUserAgentUseCase,
             UserAgentApiMapper userAgentApiMapper) {
         this.recoverUserAgentUseCase = recoverUserAgentUseCase;
         this.updateUserAgentStatusUseCase = updateUserAgentStatusUseCase;
+        this.warmUpUserAgentUseCase = warmUpUserAgentUseCase;
         this.userAgentApiMapper = userAgentApiMapper;
     }
 
@@ -246,6 +252,77 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toStatusUpdateApiResponse(updatedCount, request.status().name());
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    /**
+     * UserAgent Pool Warm-up
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: POST
+     *   <li>Path: /api/v1/crawling/user-agents/warmup
+     *   <li>Status: 200 OK
+     * </ul>
+     *
+     * <p><strong>Warm-up 동작:</strong>
+     *
+     * <ul>
+     *   <li>DB에서 AVAILABLE 상태 UserAgent 조회
+     *   <li>Redis Pool에 없는 UserAgent만 추가
+     *   <li>Lazy Token Issuance - 세션은 소비 시점에 발급
+     * </ul>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "addedCount": 10,
+     *     "message": "10 user agents added to pool"
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-11-20T10:30:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @return Warm-up 결과 (200 OK)
+     */
+    @PostMapping(ApiPaths.UserAgents.WARMUP)
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "UserAgent Pool Warm-up",
+            description = "AVAILABLE 상태 UserAgent를 Redis Pool에 추가합니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "Warm-up 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        WarmUpUserAgentApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)")
+    })
+    public ResponseEntity<ApiResponse<WarmUpUserAgentApiResponse>> warmUpUserAgents() {
+        // 1. UseCase 실행 (비즈니스 로직)
+        int addedCount = warmUpUserAgentUseCase.warmUp();
+
+        // 2. UseCase 결과 → API Response 변환 (Mapper)
+        WarmUpUserAgentApiResponse apiResponse = userAgentApiMapper.toWarmUpApiResponse(addedCount);
+
+        // 3. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

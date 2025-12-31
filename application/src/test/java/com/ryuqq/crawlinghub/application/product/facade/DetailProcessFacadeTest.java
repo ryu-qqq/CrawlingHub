@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
+import com.ryuqq.crawlinghub.application.image.orchestrator.ImageUploadOrchestrator;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.DetailProcessBundle;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledProductTransactionManager;
@@ -59,7 +59,7 @@ class DetailProcessFacadeTest {
 
     @Mock private CrawledProductImageReadManager imageReadManager;
 
-    @Mock private ImageUploadBundleFactory imageUploadBundleFactory;
+    @Mock private ImageUploadOrchestrator imageUploadOrchestrator;
 
     @Mock private RequestSyncUseCase requestSyncUseCase;
 
@@ -73,7 +73,7 @@ class DetailProcessFacadeTest {
                 new DetailProcessFacade(
                         crawledProductManager,
                         imageReadManager,
-                        imageUploadBundleFactory,
+                        imageUploadOrchestrator,
                         requestSyncUseCase);
     }
 
@@ -109,7 +109,7 @@ class DetailProcessFacadeTest {
             assertThat(result.getId()).isEqualTo(PRODUCT_ID);
 
             // Factory 호출 검증
-            verify(imageUploadBundleFactory, times(1))
+            verify(imageUploadOrchestrator, times(1))
                     .processImageUpload(imageUploadDataCaptor.capture());
             ImageUploadData capturedData = imageUploadDataCaptor.getValue();
             assertThat(capturedData.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -148,7 +148,7 @@ class DetailProcessFacadeTest {
             assertThat(result).isNotNull();
 
             // Factory에 새로운 URL 1개만 전달 검증
-            verify(imageUploadBundleFactory, times(1))
+            verify(imageUploadOrchestrator, times(1))
                     .processImageUpload(imageUploadDataCaptor.capture());
             ImageUploadData capturedData = imageUploadDataCaptor.getValue();
             assertThat(capturedData.imageUrls()).hasSize(1);
@@ -188,7 +188,7 @@ class DetailProcessFacadeTest {
             assertThat(result).isNotNull();
 
             // Factory 호출 안 함 검증
-            verify(imageUploadBundleFactory, never()).processImageUpload(any());
+            verify(imageUploadOrchestrator, never()).processImageUpload(any());
 
             // Sync는 항상 요청
             verify(requestSyncUseCase, times(1)).requestIfReady(updatedProduct);
@@ -219,7 +219,7 @@ class DetailProcessFacadeTest {
                     .filterNewImageUrls(any(CrawledProductId.class), anyList());
 
             // Factory 호출 안 함 검증
-            verify(imageUploadBundleFactory, never()).processImageUpload(any());
+            verify(imageUploadOrchestrator, never()).processImageUpload(any());
 
             // Sync는 항상 요청
             verify(requestSyncUseCase, times(1)).requestIfReady(updatedProduct);

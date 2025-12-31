@@ -59,6 +59,35 @@ public class UserAgentPoolProperties {
         this.keyPrefix = keyPrefix;
     }
 
+    // === Law of Demeter 준수를 위한 Delegate 메서드 ===
+
+    /**
+     * Rate Limit의 최대 토큰 수를 반환합니다.
+     *
+     * @return 최대 토큰 수
+     */
+    public int getMaxTokens() {
+        return rateLimit.getMaxTokens();
+    }
+
+    /**
+     * Rate Limit의 윈도우 지속 시간(밀리초)을 반환합니다.
+     *
+     * @return 윈도우 지속 시간 (밀리초)
+     */
+    public long getWindowDurationMillis() {
+        return rateLimit.getWindowDuration().toMillis();
+    }
+
+    /**
+     * Health Score의 SUSPENDED 전환 임계값을 반환합니다.
+     *
+     * @return SUSPENDED 전환 임계값
+     */
+    public int getSuspensionThreshold() {
+        return health.getSuspensionThreshold();
+    }
+
     /** Rate Limiting 설정 */
     public static class RateLimit {
         /** 시간당 최대 요청 수 (기본: 80) */
