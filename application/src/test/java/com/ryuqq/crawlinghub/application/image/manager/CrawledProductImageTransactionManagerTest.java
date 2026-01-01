@@ -9,9 +9,7 @@ import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledProduct
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * <p>Mockist 스타일 테스트: PersistencePort Mocking
  *
+ * <p><strong>주의</strong>: TransactionManager는 영속성 작업만 담당. 비즈니스 로직(domain method 호출)은 Service에서 처리.
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -37,56 +37,54 @@ class CrawledProductImageTransactionManagerTest {
 
     @Mock private CrawledProductImagePersistencePort imagePersistencePort;
 
-    private Clock fixedClock;
     private CrawledProductImageTransactionManager manager;
 
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(FIXED_TIME, ZoneId.of("UTC"));
-        manager = new CrawledProductImageTransactionManager(imagePersistencePort, fixedClock);
+        manager = new CrawledProductImageTransactionManager(imagePersistencePort);
     }
 
     @Nested
-    @DisplayName("save() 테스트")
-    class Save {
+    @DisplayName("persist() 테스트")
+    class Persist {
 
         @Test
-        @DisplayName("[성공] 이미지 단건 저장")
-        void shouldSaveImage() {
+        @DisplayName("[성공] 이미지 단건 저장 (upsert)")
+        void shouldPersistImage() {
             // Given
             CrawledProductImage image = createImage(null, 100L);
             CrawledProductImage savedImage = createImage(1L, 100L);
-            given(imagePersistencePort.save(image)).willReturn(savedImage);
+            given(imagePersistencePort.persist(image)).willReturn(savedImage);
 
             // When
-            CrawledProductImage result = manager.save(image);
+            CrawledProductImage result = manager.persist(image);
 
             // Then
             assertThat(result.getId()).isEqualTo(1L);
-            verify(imagePersistencePort).save(image);
+            verify(imagePersistencePort).persist(image);
         }
     }
 
     @Nested
-    @DisplayName("saveAll() 테스트")
-    class SaveAll {
+    @DisplayName("persistAll() 테스트")
+    class PersistAll {
 
         @Test
-        @DisplayName("[성공] 이미지 벌크 저장")
-        void shouldSaveAllImages() {
+        @DisplayName("[성공] 이미지 벌크 저장 (upsert)")
+        void shouldPersistAllImages() {
             // Given
             List<CrawledProductImage> images =
                     List.of(createImage(null, 100L), createImage(null, 100L));
             List<CrawledProductImage> savedImages =
                     List.of(createImage(1L, 100L), createImage(2L, 100L));
-            given(imagePersistencePort.saveAll(images)).willReturn(savedImages);
+            given(imagePersistencePort.persistAll(images)).willReturn(savedImages);
 
             // When
-            List<CrawledProductImage> result = manager.saveAll(images);
+            List<CrawledProductImage> result = manager.persistAll(images);
 
             // Then
             assertThat(result).hasSize(2);
-            verify(imagePersistencePort).saveAll(images);
+            verify(imagePersistencePort).persistAll(images);
         }
 
         @Test
@@ -96,7 +94,7 @@ class CrawledProductImageTransactionManagerTest {
             List<CrawledProductImage> emptyList = List.of();
 
             // When
-            List<CrawledProductImage> result = manager.saveAll(emptyList);
+            List<CrawledProductImage> result = manager.persistAll(emptyList);
 
             // Then
             assertThat(result).isEmpty();
@@ -106,33 +104,10 @@ class CrawledProductImageTransactionManagerTest {
         @DisplayName("[성공] null 입력 → 빈 목록 반환")
         void shouldReturnEmptyListForNullInput() {
             // When
-            List<CrawledProductImage> result = manager.saveAll(null);
+            List<CrawledProductImage> result = manager.persistAll(null);
 
             // Then
             assertThat(result).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("completeUpload() 테스트")
-    class CompleteUpload {
-
-        @Test
-        @DisplayName("[성공] 이미지 업로드 완료 처리")
-        void shouldCompleteUpload() {
-            // Given
-            CrawledProductImage image = createImage(1L, 100L);
-            String s3Url = "https://s3.amazonaws.com/bucket/image.jpg";
-            String fileAssetId = "file-asset-123";
-
-            // When
-            manager.completeUpload(image, s3Url, fileAssetId);
-
-            // Then
-            assertThat(image.getS3Url()).isEqualTo(s3Url);
-            assertThat(image.getFileAssetId()).isEqualTo(fileAssetId);
-            assertThat(image.isUploaded()).isTrue();
-            verify(imagePersistencePort).update(image);
         }
     }
 

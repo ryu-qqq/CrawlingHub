@@ -71,6 +71,19 @@ public class SyncOutboxTransactionManager {
     // === 상태 전환 ===
 
     /**
+     * SQS 발행 완료 (Scheduler에서 SQS 메시지 발행 성공)
+     *
+     * <p>PENDING/FAILED → SENT 상태 전환
+     *
+     * @param outbox SQS 발행된 Outbox
+     */
+    @Transactional
+    public void markAsSent(CrawledProductSyncOutbox outbox) {
+        outbox.markAsSent(clock);
+        syncOutboxPersistencePort.update(outbox);
+    }
+
+    /**
      * 처리 시작 (외부 서버 API 호출 시작)
      *
      * @param outbox 처리 시작할 Outbox

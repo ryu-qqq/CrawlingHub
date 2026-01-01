@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageOutboxTimeoutResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageOutboxTimeoutResponse;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageOutboxTimeoutUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
@@ -57,12 +57,12 @@ public class HandleImageOutboxTimeoutService implements HandleImageOutboxTimeout
 
     @Override
     @Transactional
-    public ImageOutboxTimeoutResult execute() {
+    public ImageOutboxTimeoutResponse execute() {
         List<ProductImageOutbox> timedOutOutboxes =
                 imageOutboxQueryPort.findTimedOutProcessingOutboxes(TIMEOUT_SECONDS, BATCH_SIZE);
 
         if (timedOutOutboxes.isEmpty()) {
-            return ImageOutboxTimeoutResult.empty();
+            return ImageOutboxTimeoutResponse.empty();
         }
 
         log.info("타임아웃된 ImageOutbox {} 건 발견", timedOutOutboxes.size());
@@ -78,6 +78,6 @@ public class HandleImageOutboxTimeoutService implements HandleImageOutboxTimeout
         }
 
         boolean hasMore = timedOutOutboxes.size() >= BATCH_SIZE;
-        return ImageOutboxTimeoutResult.of(timedOutOutboxes.size(), hasMore);
+        return ImageOutboxTimeoutResponse.of(timedOutOutboxes.size(), hasMore);
     }
 }

@@ -89,6 +89,7 @@ class CrawlTaskCommandControllerTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.DETAIL,
                             1,
+                            Instant.now(),
                             Instant.now());
 
             CrawlTaskApiResponse apiResponse =
@@ -100,7 +101,8 @@ class CrawlTaskCommandControllerTest {
                             "RETRY",
                             "DETAIL",
                             1,
-                            Instant.now().toString());
+                            "2025-01-15 10:30:00",
+                            "2025-01-15 10:30:00");
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))
@@ -146,6 +148,7 @@ class CrawlTaskCommandControllerTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.MINI_SHOP,
                             2,
+                            Instant.now(),
                             Instant.now());
 
             CrawlTaskApiResponse apiResponse =
@@ -157,7 +160,8 @@ class CrawlTaskCommandControllerTest {
                             "RETRY",
                             "MINI_SHOP",
                             2,
-                            Instant.now().toString());
+                            "2025-01-15 10:30:00",
+                            "2025-01-15 10:30:00");
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))
@@ -197,6 +201,7 @@ class CrawlTaskCommandControllerTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.META,
                             3,
+                            Instant.now(),
                             Instant.now());
 
             CrawlTaskApiResponse apiResponse =
@@ -208,7 +213,8 @@ class CrawlTaskCommandControllerTest {
                             "RETRY",
                             "META",
                             3,
-                            Instant.now().toString());
+                            "2025-01-15 10:30:00",
+                            "2025-01-15 10:30:00");
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))

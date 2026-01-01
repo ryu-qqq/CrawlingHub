@@ -68,6 +68,26 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     @Column(name = "device_type", nullable = false, length = 20)
     private String deviceType;
 
+    /** 디바이스 브랜드 (IPHONE/SAMSUNG/PIXEL/XIAOMI/HUAWEI/OPPO/ONEPLUS/IPAD/GALAXY_TAB/GENERIC) */
+    @Column(name = "device_brand", nullable = false, length = 30)
+    private String deviceBrand;
+
+    /** OS 타입 (WINDOWS/MACOS/LINUX/IOS/ANDROID/CHROME_OS) */
+    @Column(name = "os_type", nullable = false, length = 20)
+    private String osType;
+
+    /** OS 버전 (nullable, 예: 17.0, 10.15.7, 14) */
+    @Column(name = "os_version", length = 50)
+    private String osVersion;
+
+    /** 브라우저 타입 (CHROME/SAFARI/FIREFOX/EDGE/OPERA/SAMSUNG_BROWSER) */
+    @Column(name = "browser_type", nullable = false, length = 30)
+    private String browserType;
+
+    /** 브라우저 버전 (nullable, 예: 120.0.0.0, 17.0) */
+    @Column(name = "browser_version", length = 50)
+    private String browserVersion;
+
     /** UserAgent 상태 (AVAILABLE/SUSPENDED/BLOCKED) */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -101,6 +121,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
+     * @param deviceBrand 디바이스 브랜드
+     * @param osType OS 타입
+     * @param osVersion OS 버전 (nullable)
+     * @param browserType 브라우저 타입
+     * @param browserVersion 브라우저 버전 (nullable)
      * @param status UserAgent 상태
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
@@ -113,6 +138,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             String token,
             String userAgentString,
             String deviceType,
+            String deviceBrand,
+            String osType,
+            String osVersion,
+            String browserType,
+            String browserVersion,
             UserAgentStatus status,
             int healthScore,
             LocalDateTime lastUsedAt,
@@ -124,6 +154,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
         this.token = token;
         this.userAgentString = userAgentString;
         this.deviceType = deviceType;
+        this.deviceBrand = deviceBrand;
+        this.osType = osType;
+        this.osVersion = osVersion;
+        this.browserType = browserType;
+        this.browserVersion = browserVersion;
         this.status = status;
         this.healthScore = healthScore;
         this.lastUsedAt = lastUsedAt;
@@ -141,6 +176,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
+     * @param deviceBrand 디바이스 브랜드
+     * @param osType OS 타입
+     * @param osVersion OS 버전 (nullable)
+     * @param browserType 브라우저 타입
+     * @param browserVersion 브라우저 버전 (nullable)
      * @param status UserAgent 상태
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
@@ -154,6 +194,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             String token,
             String userAgentString,
             String deviceType,
+            String deviceBrand,
+            String osType,
+            String osVersion,
+            String browserType,
+            String browserVersion,
             UserAgentStatus status,
             int healthScore,
             LocalDateTime lastUsedAt,
@@ -165,6 +210,11 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
                 token,
                 userAgentString,
                 deviceType,
+                deviceBrand,
+                osType,
+                osVersion,
+                browserType,
+                browserVersion,
                 status,
                 healthScore,
                 lastUsedAt,
@@ -189,6 +239,26 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
 
     public String getDeviceType() {
         return deviceType;
+    }
+
+    public String getDeviceBrand() {
+        return deviceBrand;
+    }
+
+    public String getOsType() {
+        return osType;
+    }
+
+    public String getOsVersion() {
+        return osVersion;
+    }
+
+    public String getBrowserType() {
+        return browserType;
+    }
+
+    public String getBrowserVersion() {
+        return browserVersion;
     }
 
     public UserAgentStatus getStatus() {

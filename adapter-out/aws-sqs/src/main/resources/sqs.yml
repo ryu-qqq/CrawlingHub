@@ -19,6 +19,14 @@ aws:
     # Production: Terraform output -> SSM Parameter -> ECS Task Definition
     crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
 
+    # ProductImage Queue URL (for image upload processing)
+    # Production: Terraform output -> SSM Parameter -> ECS Task Definition
+    product-image-queue-url: ${SQS_PRODUCT_IMAGE_QUEUE_URL:}
+
+    # ProductSync Queue URL (for external product sync)
+    # Production: Terraform output -> SSM Parameter -> ECS Task Definition
+    product-sync-queue-url: ${SQS_PRODUCT_SYNC_QUEUE_URL:}
+
     # Message Group ID Prefix (FIFO only, Standard queue does not use this)
     message-group-id-prefix: crawl-task-
 

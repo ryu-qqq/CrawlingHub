@@ -2,13 +2,23 @@ package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.RegisterUserAgentApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentMetadataApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RegisterUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentMetadataApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.RegisterUserAgentCommand;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentMetadataCommand;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.RegisterUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentMetadataUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.WarmUpUserAgentUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +30,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,24 +76,231 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "UserAgent", description = "UserAgent 관리 API")
 public class UserAgentCommandController {
 
+    private final RegisterUserAgentUseCase registerUserAgentUseCase;
+    private final UpdateUserAgentMetadataUseCase updateUserAgentMetadataUseCase;
     private final RecoverUserAgentUseCase recoverUserAgentUseCase;
     private final UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase;
+    private final WarmUpUserAgentUseCase warmUpUserAgentUseCase;
     private final UserAgentApiMapper userAgentApiMapper;
 
     /**
      * UserAgentCommandController 생성자
      *
+     * @param registerUserAgentUseCase UserAgent 등록 UseCase
+     * @param updateUserAgentMetadataUseCase UserAgent 메타데이터 수정 UseCase
      * @param recoverUserAgentUseCase UserAgent 복구 UseCase
      * @param updateUserAgentStatusUseCase UserAgent 상태 변경 UseCase
+     * @param warmUpUserAgentUseCase UserAgent Warm-up UseCase
      * @param userAgentApiMapper UserAgent API Mapper
      */
     public UserAgentCommandController(
+            RegisterUserAgentUseCase registerUserAgentUseCase,
+            UpdateUserAgentMetadataUseCase updateUserAgentMetadataUseCase,
             RecoverUserAgentUseCase recoverUserAgentUseCase,
             UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase,
+            WarmUpUserAgentUseCase warmUpUserAgentUseCase,
             UserAgentApiMapper userAgentApiMapper) {
+        this.registerUserAgentUseCase = registerUserAgentUseCase;
+        this.updateUserAgentMetadataUseCase = updateUserAgentMetadataUseCase;
         this.recoverUserAgentUseCase = recoverUserAgentUseCase;
         this.updateUserAgentStatusUseCase = updateUserAgentStatusUseCase;
+        this.warmUpUserAgentUseCase = warmUpUserAgentUseCase;
         this.userAgentApiMapper = userAgentApiMapper;
+    }
+
+    /**
+     * 새 UserAgent 등록
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: POST
+     *   <li>Path: /api/v1/crawling/user-agents
+     *   <li>Status: 201 Created
+     * </ul>
+     *
+     * <p><strong>처리 흐름:</strong>
+     *
+     * <ol>
+     *   <li>Request Body 수신 및 Validation
+     *   <li>API Request → Application Command 변환
+     *   <li>Token 자동 생성 (AES-256-GCM)
+     *   <li>UserAgent 저장 후 ID 반환
+     * </ol>
+     *
+     * <p><strong>Request:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "userAgentString": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+     *   "deviceType": "DESKTOP",
+     *   "deviceBrand": "GENERIC",
+     *   "osType": "WINDOWS",
+     *   "osVersion": "10.0",
+     *   "browserType": "CHROME",
+     *   "browserVersion": "120.0.0.0"
+     * }
+     * }</pre>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "userAgentId": 123,
+     *     "message": "UserAgent registered successfully"
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-11-20T10:30:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @param request 등록 요청 (UserAgent 문자열, 메타데이터 포함)
+     * @return 등록 결과 (201 Created, 생성된 ID)
+     */
+    @PostMapping
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "새 UserAgent 등록",
+            description = "새로운 UserAgent를 등록합니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "201",
+                description = "등록 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        RegisterUserAgentApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 (Validation 오류)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)")
+    })
+    public ResponseEntity<ApiResponse<RegisterUserAgentApiResponse>> registerUserAgent(
+            @Valid @RequestBody RegisterUserAgentApiRequest request) {
+        // 1. API Request → Application Command 변환 (Mapper)
+        RegisterUserAgentCommand command = userAgentApiMapper.toCommand(request);
+
+        // 2. UseCase 실행 (비즈니스 로직 - Token 생성 포함)
+        long userAgentId = registerUserAgentUseCase.register(command);
+
+        // 3. UseCase 결과 → API Response 변환 (Mapper)
+        RegisterUserAgentApiResponse apiResponse =
+                userAgentApiMapper.toRegisterApiResponse(userAgentId);
+
+        // 4. ResponseEntity<ApiResponse<T>> 래핑 (201 Created)
+        return ResponseEntity.status(201).body(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    /**
+     * UserAgent 메타데이터 수정
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: PUT
+     *   <li>Path: /api/v1/crawling/user-agents/{userAgentId}
+     *   <li>Status: 200 OK
+     * </ul>
+     *
+     * <p><strong>처리 흐름:</strong>
+     *
+     * <ol>
+     *   <li>Path Variable에서 UserAgent ID 추출
+     *   <li>Request Body 수신 및 Validation
+     *   <li>API Request → Application Command 변환 (Partial Update 지원)
+     *   <li>메타데이터 수정 후 결과 반환
+     * </ol>
+     *
+     * <p><strong>Request:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "userAgentString": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)...",
+     *   "deviceType": "DESKTOP",
+     *   "deviceBrand": "APPLE",
+     *   "osType": "MACOS",
+     *   "osVersion": "14.0",
+     *   "browserType": "SAFARI",
+     *   "browserVersion": "17.0"
+     * }
+     * }</pre>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "userAgentId": 123,
+     *     "message": "UserAgent metadata updated successfully"
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-11-20T10:30:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @param userAgentId 수정 대상 UserAgent ID
+     * @param request 수정 요청 (변경할 메타데이터, 제공된 필드만 수정)
+     * @return 수정 결과 (200 OK)
+     */
+    @PutMapping(ApiPaths.UserAgents.BY_ID)
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "UserAgent 메타데이터 수정",
+            description = "기존 UserAgent의 메타데이터를 수정합니다. 제공된 필드만 수정됩니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "수정 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        UpdateUserAgentMetadataApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 (Validation 오류)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "UserAgent를 찾을 수 없음")
+    })
+    public ResponseEntity<ApiResponse<UpdateUserAgentMetadataApiResponse>> updateUserAgentMetadata(
+            @PathVariable long userAgentId,
+            @Valid @RequestBody UpdateUserAgentMetadataApiRequest request) {
+        // 1. API Request → Application Command 변환 (Mapper)
+        UpdateUserAgentMetadataCommand command = userAgentApiMapper.toCommand(userAgentId, request);
+
+        // 2. UseCase 실행 (비즈니스 로직)
+        updateUserAgentMetadataUseCase.updateMetadata(command);
+
+        // 3. UseCase 결과 → API Response 변환 (Mapper)
+        UpdateUserAgentMetadataApiResponse apiResponse =
+                userAgentApiMapper.toMetadataUpdateApiResponse(userAgentId);
+
+        // 4. ResponseEntity<ApiResponse<T>> 래핑
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 
     /**
@@ -246,6 +465,77 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toStatusUpdateApiResponse(updatedCount, request.status().name());
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
+        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+    }
+
+    /**
+     * UserAgent Pool Warm-up
+     *
+     * <p><strong>API 명세:</strong>
+     *
+     * <ul>
+     *   <li>Method: POST
+     *   <li>Path: /api/v1/crawling/user-agents/warmup
+     *   <li>Status: 200 OK
+     * </ul>
+     *
+     * <p><strong>Warm-up 동작:</strong>
+     *
+     * <ul>
+     *   <li>DB에서 AVAILABLE 상태 UserAgent 조회
+     *   <li>Redis Pool에 없는 UserAgent만 추가
+     *   <li>Lazy Token Issuance - 세션은 소비 시점에 발급
+     * </ul>
+     *
+     * <p><strong>Response:</strong>
+     *
+     * <pre>{@code
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "addedCount": 10,
+     *     "message": "10 user agents added to pool"
+     *   },
+     *   "error": null,
+     *   "timestamp": "2025-11-20T10:30:00",
+     *   "requestId": "req-123456"
+     * }
+     * }</pre>
+     *
+     * @return Warm-up 결과 (200 OK)
+     */
+    @PostMapping(ApiPaths.UserAgents.WARMUP)
+    @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @Operation(
+            summary = "UserAgent Pool Warm-up",
+            description = "AVAILABLE 상태 UserAgent를 Redis Pool에 추가합니다. useragent:manage 권한이 필요합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "Warm-up 성공",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema =
+                                        @Schema(
+                                                implementation =
+                                                        WarmUpUserAgentApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "403",
+                description = "권한 없음 (useragent:manage 권한 필요)")
+    })
+    public ResponseEntity<ApiResponse<WarmUpUserAgentApiResponse>> warmUpUserAgents() {
+        // 1. UseCase 실행 (비즈니스 로직)
+        int addedCount = warmUpUserAgentUseCase.warmUp();
+
+        // 2. UseCase 결과 → API Response 변환 (Mapper)
+        WarmUpUserAgentApiResponse apiResponse = userAgentApiMapper.toWarmUpApiResponse(addedCount);
+
+        // 3. ResponseEntity<ApiResponse<T>> 래핑
         return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
     }
 }

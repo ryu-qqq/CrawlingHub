@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;

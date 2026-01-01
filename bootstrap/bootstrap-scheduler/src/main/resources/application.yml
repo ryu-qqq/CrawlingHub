@@ -100,11 +100,6 @@ scheduler:
   session-issuance:
     enabled: true
 
-  # ImageOutbox Retry (Fileflow image upload retry)
-  image-outbox-retry:
-    enabled: true
-    fixed-delay: 300000  # 5분 (밀리초)
-
   # SyncOutbox Retry (External product server sync retry)
   sync-outbox-retry:
     enabled: true
@@ -130,8 +125,6 @@ scheduler:
   crawl-task-outbox:
     enabled: false
   session-issuance:
-    enabled: false
-  image-outbox-retry:
     enabled: false
   sync-outbox-retry:
     enabled: false

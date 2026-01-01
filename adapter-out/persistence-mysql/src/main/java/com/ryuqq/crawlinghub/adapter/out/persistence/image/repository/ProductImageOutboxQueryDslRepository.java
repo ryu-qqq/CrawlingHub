@@ -8,6 +8,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.dto.ProductImageOutboxWithImageDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.image.entity.ProductImageOutboxJpaEntity;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductImageOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -128,6 +129,92 @@ public class ProductImageOutboxQueryDslRepository {
                 .orderBy(productImageOutboxJpaEntity.createdAt.asc())
                 .limit(limit)
                 .fetch();
+    }
+
+    /**
+     * Criteria 기반 Outbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductImageOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return Entity 목록
+     */
+    public List<ProductImageOutboxJpaEntity> findByCriteria(ProductImageOutboxCriteria criteria) {
+        return queryFactory
+                .selectFrom(productImageOutboxJpaEntity)
+                .where(buildCriteriaConditions(criteria))
+                .orderBy(productImageOutboxJpaEntity.createdAt.asc())
+                .offset(criteria.offset())
+                .limit(criteria.limit())
+                .fetch();
+    }
+
+    /**
+     * Criteria 기반 Outbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    public long countByCriteria(ProductImageOutboxCriteria criteria) {
+        Long count =
+                queryFactory
+                        .select(productImageOutboxJpaEntity.count())
+                        .from(productImageOutboxJpaEntity)
+                        .where(buildCriteriaConditions(criteria))
+                        .fetchOne();
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * Criteria에서 BooleanExpression 배열 생성
+     *
+     * @param criteria 조회 조건 VO
+     * @return BooleanExpression 배열
+     */
+    private BooleanExpression[] buildCriteriaConditions(ProductImageOutboxCriteria criteria) {
+        return new BooleanExpression[] {
+            criteriaEqStatus(criteria),
+            criteriaInStatuses(criteria),
+            criteriaGoeCreatedAt(criteria),
+            criteriaLoeCreatedAt(criteria),
+            criteriaLtRetryCount(criteria)
+        };
+    }
+
+    private BooleanExpression criteriaEqStatus(ProductImageOutboxCriteria criteria) {
+        return criteria.hasSingleStatusFilter()
+                ? productImageOutboxJpaEntity.status.eq(criteria.status())
+                : null;
+    }
+
+    private BooleanExpression criteriaInStatuses(ProductImageOutboxCriteria criteria) {
+        return criteria.hasMultipleStatusFilter()
+                ? productImageOutboxJpaEntity.status.in(criteria.statuses())
+                : null;
+    }
+
+    private BooleanExpression criteriaGoeCreatedAt(ProductImageOutboxCriteria criteria) {
+        if (!criteria.hasCreatedFromFilter()) {
+            return null;
+        }
+        LocalDateTime localDateTime =
+                LocalDateTime.ofInstant(criteria.createdFrom(), ZoneId.systemDefault());
+        return productImageOutboxJpaEntity.createdAt.goe(localDateTime);
+    }
+
+    private BooleanExpression criteriaLoeCreatedAt(ProductImageOutboxCriteria criteria) {
+        if (!criteria.hasCreatedToFilter()) {
+            return null;
+        }
+        LocalDateTime localDateTime =
+                LocalDateTime.ofInstant(criteria.createdTo(), ZoneId.systemDefault());
+        return productImageOutboxJpaEntity.createdAt.loe(localDateTime);
+    }
+
+    private BooleanExpression criteriaLtRetryCount(ProductImageOutboxCriteria criteria) {
+        return criteria.hasMaxRetryCountFilter()
+                ? productImageOutboxJpaEntity.retryCount.lt(criteria.maxRetryCount())
+                : null;
     }
 
     /**

@@ -75,8 +75,9 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
         // Outbox 상태 갱신
         outboxTransactionManager.markAsCompleted(outbox);
 
-        // 이미지 업로드 완료 처리
-        imageTransactionManager.completeUpload(image, s3Url, fileAssetId);
+        // 이미지 업로드 완료 처리 (도메인 로직 → 영속화)
+        image.completeUpload(s3Url, fileAssetId, clock);
+        imageTransactionManager.persist(image);
 
         // CrawledProduct 업데이트를 위한 이벤트 등록 (커밋 후 발행)
         ImageUploadCompletedEvent event =

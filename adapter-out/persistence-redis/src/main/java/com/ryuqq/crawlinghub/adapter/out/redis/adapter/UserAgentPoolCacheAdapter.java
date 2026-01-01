@@ -69,7 +69,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
     private final String suspendedSetKey;
 
     private final int maxTokens;
-    private final Duration windowDuration;
+    private final long windowDurationMillis;
     private final int suspensionThreshold;
 
     private final RedissonClient redissonClient;
@@ -91,19 +91,19 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         this.sessionRequiredSetKey = keyPrefix + "session_required";
         this.suspendedSetKey = keyPrefix + "suspended";
 
-        this.maxTokens = properties.getRateLimit().getMaxTokens();
-        this.windowDuration = properties.getRateLimit().getWindowDuration();
-        this.suspensionThreshold = properties.getHealth().getSuspensionThreshold();
+        this.maxTokens = properties.getMaxTokens();
+        this.windowDurationMillis = properties.getWindowDurationMillis();
+        this.suspensionThreshold = properties.getSuspensionThreshold();
 
         this.consumeTokenScript = loadLuaScript("lua/useragent_consume_token.lua");
         this.recordSuccessScript = loadLuaScript("lua/useragent_record_success.lua");
         this.recordFailureScript = loadLuaScript("lua/useragent_record_failure.lua");
 
         log.info(
-                "UserAgentPoolCacheAdapter 초기화: maxTokens={}, windowDuration={},"
+                "UserAgentPoolCacheAdapter 초기화: maxTokens={}, windowDurationMillis={},"
                         + " suspensionThreshold={}",
                 maxTokens,
-                windowDuration,
+                windowDurationMillis,
                 suspensionThreshold);
     }
 
@@ -122,7 +122,6 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
     public Optional<CachedUserAgent> consumeToken() {
         Instant now = clock.instant();
         long nowMillis = now.toEpochMilli();
-        long windowDurationMillis = windowDuration.toMillis();
 
         // READY 상태에서만 선택 (세션이 있고 만료되지 않은 UserAgent만)
         RScript script = redissonClient.getScript(StringCodec.INSTANCE);

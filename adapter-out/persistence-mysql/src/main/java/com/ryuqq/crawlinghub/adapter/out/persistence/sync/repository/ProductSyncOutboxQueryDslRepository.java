@@ -6,6 +6,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncOutboxCriteria;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -137,6 +138,92 @@ public class ProductSyncOutboxQueryDslRepository {
                 .orderBy(productSyncOutboxJpaEntity.createdAt.asc())
                 .limit(limit)
                 .fetch();
+    }
+
+    /**
+     * Criteria 기반 Outbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductSyncOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return Entity 목록
+     */
+    public List<ProductSyncOutboxJpaEntity> findByCriteria(ProductSyncOutboxCriteria criteria) {
+        return queryFactory
+                .selectFrom(productSyncOutboxJpaEntity)
+                .where(buildCriteriaConditions(criteria))
+                .orderBy(productSyncOutboxJpaEntity.createdAt.asc())
+                .offset(criteria.offset())
+                .limit(criteria.limit())
+                .fetch();
+    }
+
+    /**
+     * Criteria 기반 Outbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    public long countByCriteria(ProductSyncOutboxCriteria criteria) {
+        Long count =
+                queryFactory
+                        .select(productSyncOutboxJpaEntity.count())
+                        .from(productSyncOutboxJpaEntity)
+                        .where(buildCriteriaConditions(criteria))
+                        .fetchOne();
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * Criteria에서 BooleanExpression 배열 생성
+     *
+     * @param criteria 조회 조건 VO
+     * @return BooleanExpression 배열
+     */
+    private BooleanExpression[] buildCriteriaConditions(ProductSyncOutboxCriteria criteria) {
+        return new BooleanExpression[] {
+            criteriaEqStatus(criteria),
+            criteriaInStatuses(criteria),
+            criteriaGoeCreatedAt(criteria),
+            criteriaLoeCreatedAt(criteria),
+            criteriaLtRetryCount(criteria)
+        };
+    }
+
+    private BooleanExpression criteriaEqStatus(ProductSyncOutboxCriteria criteria) {
+        return criteria.hasSingleStatusFilter()
+                ? productSyncOutboxJpaEntity.status.eq(criteria.status())
+                : null;
+    }
+
+    private BooleanExpression criteriaInStatuses(ProductSyncOutboxCriteria criteria) {
+        return criteria.hasMultipleStatusFilter()
+                ? productSyncOutboxJpaEntity.status.in(criteria.statuses())
+                : null;
+    }
+
+    private BooleanExpression criteriaGoeCreatedAt(ProductSyncOutboxCriteria criteria) {
+        if (!criteria.hasCreatedFromFilter()) {
+            return null;
+        }
+        LocalDateTime localDateTime =
+                LocalDateTime.ofInstant(criteria.createdFrom(), ZoneId.systemDefault());
+        return productSyncOutboxJpaEntity.createdAt.goe(localDateTime);
+    }
+
+    private BooleanExpression criteriaLoeCreatedAt(ProductSyncOutboxCriteria criteria) {
+        if (!criteria.hasCreatedToFilter()) {
+            return null;
+        }
+        LocalDateTime localDateTime =
+                LocalDateTime.ofInstant(criteria.createdTo(), ZoneId.systemDefault());
+        return productSyncOutboxJpaEntity.createdAt.loe(localDateTime);
+    }
+
+    private BooleanExpression criteriaLtRetryCount(ProductSyncOutboxCriteria criteria) {
+        return criteria.hasMaxRetryCountFilter()
+                ? productSyncOutboxJpaEntity.retryCount.lt(criteria.maxRetryCount())
+                : null;
     }
 
     /**

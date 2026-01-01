@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.query.SearchCrawlSchedulersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerApiResponse;
@@ -128,7 +130,9 @@ public class CrawlSchedulerQueryApiMapper {
                 appResponse.sellerId(),
                 appResponse.schedulerName(),
                 appResponse.cronExpression(),
-                appResponse.status().name());
+                appResponse.status().name(),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.query.SearchProductImageOutboxApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.query.SearchProductSyncOutboxApiRequest;
@@ -70,7 +72,31 @@ public class ProductOutboxQueryApiMapper {
      */
     public PageApiResponse<ProductSyncOutboxApiResponse> toSyncPageApiResponse(
             PageResponse<ProductSyncOutboxResponse> pageResponse) {
-        return PageApiResponse.from(pageResponse, ProductSyncOutboxApiResponse::from);
+        return PageApiResponse.from(pageResponse, this::toSyncApiResponse);
+    }
+
+    /**
+     * ProductSyncOutboxResponse → ProductSyncOutboxApiResponse 변환
+     *
+     * @param appResponse Application Response
+     * @return API Response
+     */
+    private ProductSyncOutboxApiResponse toSyncApiResponse(ProductSyncOutboxResponse appResponse) {
+        return new ProductSyncOutboxApiResponse(
+                appResponse.id(),
+                appResponse.crawledProductId(),
+                appResponse.sellerId(),
+                appResponse.itemNo(),
+                appResponse.syncType(),
+                appResponse.idempotencyKey(),
+                appResponse.externalProductId(),
+                appResponse.status() != null ? appResponse.status().name() : null,
+                appResponse.retryCount(),
+                appResponse.errorMessage(),
+                appResponse.canRetry(),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()),
+                format(appResponse.processedAt()));
     }
 
     /**
@@ -81,7 +107,32 @@ public class ProductOutboxQueryApiMapper {
      */
     public PageApiResponse<ProductImageOutboxApiResponse> toImagePageApiResponse(
             PageResponse<ProductImageOutboxWithImageResponse> pageResponse) {
-        return PageApiResponse.from(pageResponse, ProductImageOutboxApiResponse::from);
+        return PageApiResponse.from(pageResponse, this::toImageApiResponse);
+    }
+
+    /**
+     * ProductImageOutboxWithImageResponse → ProductImageOutboxApiResponse 변환
+     *
+     * @param appResponse Application Response
+     * @return API Response
+     */
+    private ProductImageOutboxApiResponse toImageApiResponse(
+            ProductImageOutboxWithImageResponse appResponse) {
+        return new ProductImageOutboxApiResponse(
+                appResponse.id(),
+                appResponse.crawledProductImageId(),
+                appResponse.idempotencyKey(),
+                appResponse.status() != null ? appResponse.status().name() : null,
+                appResponse.retryCount(),
+                appResponse.errorMessage(),
+                appResponse.canRetry(),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()),
+                format(appResponse.processedAt()),
+                appResponse.crawledProductId(),
+                appResponse.originalUrl(),
+                appResponse.s3Url(),
+                appResponse.imageType() != null ? appResponse.imageType().name() : null);
     }
 
     private List<ProductOutboxStatus> parseStatuses(List<String> statuses) {

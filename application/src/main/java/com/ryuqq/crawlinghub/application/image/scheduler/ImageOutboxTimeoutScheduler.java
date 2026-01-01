@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.image.scheduler;
 
 import com.ryuqq.crawlinghub.application.common.port.out.lock.DistributedLockPort;
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageOutboxTimeoutResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageOutboxTimeoutResponse;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageOutboxTimeoutUseCase;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -100,7 +100,7 @@ public class ImageOutboxTimeoutScheduler {
         int totalProcessed = 0;
 
         for (int i = 0; i < MAX_ITERATIONS; i++) {
-            ImageOutboxTimeoutResult batchResult = handleImageOutboxTimeoutUseCase.execute();
+            ImageOutboxTimeoutResponse batchResult = handleImageOutboxTimeoutUseCase.execute();
 
             totalProcessed += batchResult.processed();
 

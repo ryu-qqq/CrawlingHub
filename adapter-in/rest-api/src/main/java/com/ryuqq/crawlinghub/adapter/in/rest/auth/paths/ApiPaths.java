@@ -92,6 +92,7 @@ public final class ApiPaths {
         public static final String POOL_STATUS = "/pool-status";
         public static final String RECOVER = "/recover";
         public static final String STATUS = "/status";
+        public static final String WARMUP = "/warmup";
 
         private UserAgents() {}
     }

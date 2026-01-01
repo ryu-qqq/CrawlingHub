@@ -26,7 +26,6 @@ import com.ryuqq.crawlinghub.application.product.port.in.query.SearchProductSync
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,6 +78,7 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         null,
                         true,
                         now,
+                        null,
                         null);
 
         ProductSyncOutboxResponse response2 =
@@ -95,6 +95,7 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         "Connection timeout",
                         true,
                         now.minusSeconds(3600),
+                        now,
                         now);
 
         PageResponse<ProductSyncOutboxResponse> useCaseResponse =
@@ -113,7 +114,8 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         0,
                         null,
                         true,
-                        now,
+                        "2025-01-15 10:30:00",
+                        null,
                         null);
 
         ProductSyncOutboxApiResponse apiResponse2 =
@@ -129,8 +131,9 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         3,
                         "Connection timeout",
                         true,
-                        now.minusSeconds(3600),
-                        now);
+                        "2025-01-15 09:30:00",
+                        "2025-01-15 10:30:00",
+                        "2025-01-15 10:30:00");
 
         PageApiResponse<ProductSyncOutboxApiResponse> apiPageResponse =
                 new PageApiResponse<>(List.of(apiResponse1, apiResponse2), 0, 20, 2, 1, true, true);
@@ -223,6 +226,10 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].createdAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("data.content[].processedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("처리 시각")
@@ -261,7 +268,7 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/crawling/product-outbox/image - ImageOutbox 목록 조회 API 문서")
     void searchImageOutbox() throws Exception {
         // given
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         ProductImageOutboxWithImageResponse response1 =
                 ProductImageOutboxWithImageResponse.of(
@@ -272,7 +279,8 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         0,
                         null,
                         now,
-                        null,
+                        null, // updatedAt
+                        null, // processedAt
                         50L,
                         "https://example.com/image1.jpg",
                         "https://s3.example.com/image1.jpg",
@@ -286,8 +294,9 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         ProductOutboxStatus.FAILED,
                         3,
                         "Upload failed: Network error",
-                        now.minusHours(1),
-                        now,
+                        now.minusSeconds(3600),
+                        now, // updatedAt
+                        now, // processedAt
                         51L,
                         "https://example.com/image2.jpg",
                         null,
@@ -305,7 +314,8 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         0,
                         null,
                         true,
-                        now,
+                        "2025-01-15 10:30:00",
+                        null,
                         null,
                         50L,
                         "https://example.com/image1.jpg",
@@ -321,8 +331,9 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                         3,
                         "Upload failed: Network error",
                         true,
-                        now.minusHours(1),
-                        now,
+                        "2025-01-15 09:30:00",
+                        "2025-01-15 10:30:00",
+                        "2025-01-15 10:30:00",
                         51L,
                         "https://example.com/image2.jpg",
                         null,
@@ -405,6 +416,10 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].processedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("처리 시각")
+                                                .optional(),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
                                                 .optional(),
                                         fieldWithPath("data.content[].crawledProductId")
                                                 .type(JsonFieldType.NUMBER)

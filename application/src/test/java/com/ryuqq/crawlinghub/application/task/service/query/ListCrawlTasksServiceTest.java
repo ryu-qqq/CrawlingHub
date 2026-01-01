@@ -63,6 +63,7 @@ class ListCrawlTasksServiceTest {
             List<CrawlTask> tasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             CrawlTaskResponse response =
                     new CrawlTaskResponse(
                             1L,
@@ -72,7 +73,8 @@ class ListCrawlTasksServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            Instant.now());
+                            now,
+                            now);
             PageResponse<CrawlTaskResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
@@ -132,6 +134,7 @@ class ListCrawlTasksServiceTest {
             List<CrawlTask> waitingTasks = List.of(CrawlTaskFixture.aWaitingTask());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             CrawlTaskResponse response =
                     new CrawlTaskResponse(
                             1L,
@@ -141,7 +144,8 @@ class ListCrawlTasksServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            Instant.now());
+                            now,
+                            now);
             PageResponse<CrawlTaskResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 

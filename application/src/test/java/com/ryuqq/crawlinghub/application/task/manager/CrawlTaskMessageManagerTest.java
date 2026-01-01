@@ -10,6 +10,7 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessagePort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;

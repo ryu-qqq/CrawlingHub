@@ -1,9 +1,10 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,10 +63,7 @@ public class CrawlTaskCommandApiMapper {
                 appResponse.status().name(),
                 appResponse.taskType().name(),
                 appResponse.retryCount(),
-                toIsoString(appResponse.createdAt()));
-    }
-
-    private String toIsoString(Instant instant) {
-        return instant != null ? instant.toString() : null;
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 }

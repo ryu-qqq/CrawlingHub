@@ -19,6 +19,7 @@ import java.time.Instant;
  * @param errorMessage 에러 메시지 (nullable)
  * @param canRetry 재시도 가능 여부
  * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
  * @param processedAt 처리 시각 (nullable)
  * @author development-team
  * @since 1.0.0
@@ -36,22 +37,31 @@ public record ProductSyncOutboxResponse(
         String errorMessage,
         boolean canRetry,
         Instant createdAt,
+        Instant updatedAt,
         Instant processedAt) {
 
-    public static ProductSyncOutboxResponse from(CrawledProductSyncOutbox outbox) {
+    /**
+     * CrawledProductSyncOutbox Domain → ProductSyncOutboxResponse 변환
+     *
+     * @param domain CrawledProductSyncOutbox Domain
+     * @return ProductSyncOutboxResponse
+     */
+    public static ProductSyncOutboxResponse from(CrawledProductSyncOutbox domain) {
+        boolean canRetry = domain.getRetryCount() < 3;
         return new ProductSyncOutboxResponse(
-                outbox.getId(),
-                outbox.getCrawledProductIdValue(),
-                outbox.getSellerIdValue(),
-                outbox.getItemNo(),
-                outbox.getSyncType().name(),
-                outbox.getIdempotencyKey(),
-                outbox.getExternalProductId(),
-                outbox.getStatus(),
-                outbox.getRetryCount(),
-                outbox.getErrorMessage(),
-                outbox.canRetry(),
-                outbox.getCreatedAt(),
-                outbox.getProcessedAt());
+                domain.getId(),
+                domain.getCrawledProductIdValue(),
+                domain.getSellerIdValue(),
+                domain.getItemNo(),
+                domain.getSyncType().name(),
+                domain.getIdempotencyKey(),
+                domain.getExternalProductId(),
+                domain.getStatus(),
+                domain.getRetryCount(),
+                domain.getErrorMessage(),
+                canRetry,
+                domain.getCreatedAt(),
+                null, // updatedAt: domain 모델에 미존재, 향후 추가 예정
+                domain.getProcessedAt());
     }
 }

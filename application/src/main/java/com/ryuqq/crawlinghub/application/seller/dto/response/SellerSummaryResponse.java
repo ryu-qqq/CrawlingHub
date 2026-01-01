@@ -12,6 +12,7 @@ import java.time.Instant;
  * @param sellerName 셀러 이름
  * @param active 활성화 여부
  * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
  * @param activeSchedulerCount 활성 스케줄러 수
  * @param totalSchedulerCount 전체 스케줄러 수
  * @param lastTaskStatus 최근 태스크 상태
@@ -26,8 +27,37 @@ public record SellerSummaryResponse(
         String sellerName,
         boolean active,
         Instant createdAt,
+        Instant updatedAt,
         int activeSchedulerCount,
         int totalSchedulerCount,
         String lastTaskStatus,
         Instant lastTaskExecutedAt,
-        long totalProductCount) {}
+        long totalProductCount) {
+
+    /** 기본 생성 메서드 (통계 정보 포함) */
+    public static SellerSummaryResponse of(
+            Long sellerId,
+            String mustItSellerName,
+            String sellerName,
+            boolean active,
+            Instant createdAt,
+            Instant updatedAt,
+            int activeSchedulerCount,
+            int totalSchedulerCount,
+            String lastTaskStatus,
+            Instant lastTaskExecutedAt,
+            long totalProductCount) {
+        return new SellerSummaryResponse(
+                sellerId,
+                mustItSellerName,
+                sellerName,
+                active,
+                createdAt,
+                updatedAt,
+                activeSchedulerCount,
+                totalSchedulerCount,
+                lastTaskStatus,
+                lastTaskExecutedAt,
+                totalProductCount);
+    }
+}

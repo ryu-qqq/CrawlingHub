@@ -130,6 +130,7 @@ spring:
       - classpath:eventbridge.yml
       - classpath:redis.yml
       - classpath:fileflow.yml
+      - classpath:sqs.yml
 
   # ===============================================
   # Flyway Migration
