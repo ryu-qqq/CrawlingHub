@@ -74,6 +74,19 @@ public class ProductImageOutboxTransactionManager {
     // === 상태 전환 ===
 
     /**
+     * SQS 발행 완료 (Scheduler에서 SQS 메시지 발행 성공)
+     *
+     * <p>PENDING/FAILED → SENT 상태 전환
+     *
+     * @param outbox SQS 발행된 Outbox
+     */
+    @Transactional
+    public void markAsSent(ProductImageOutbox outbox) {
+        outbox.markAsSent(clock);
+        outboxPersistencePort.update(outbox);
+    }
+
+    /**
      * 처리 시작 (파일서버 API 호출 시작)
      *
      * @param outbox 처리 시작할 Outbox

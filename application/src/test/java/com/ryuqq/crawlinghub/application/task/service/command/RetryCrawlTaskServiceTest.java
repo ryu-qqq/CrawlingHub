@@ -74,6 +74,7 @@ class RetryCrawlTaskServiceTest {
             CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
             Clock clock = FIXED_CLOCK;
             String outboxPayload = "{\"taskId\":1}";
+            Instant clockNow = Instant.now(clock);
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
                             1L,
@@ -83,7 +84,8 @@ class RetryCrawlTaskServiceTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.META,
                             1,
-                            Instant.now(clock));
+                            clockNow,
+                            clockNow);
 
             given(readManager.findById(any(CrawlTaskId.class))).willReturn(Optional.of(failedTask));
             given(clockHolder.getClock()).willReturn(clock);
@@ -113,6 +115,7 @@ class RetryCrawlTaskServiceTest {
             CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
             Clock clock = FIXED_CLOCK;
             String outboxPayload = "{\"taskId\":2}";
+            Instant clockNow = Instant.now(clock);
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
                             2L,
@@ -122,7 +125,8 @@ class RetryCrawlTaskServiceTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.META,
                             1,
-                            Instant.now(clock));
+                            clockNow,
+                            clockNow);
 
             given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(timeoutTask));

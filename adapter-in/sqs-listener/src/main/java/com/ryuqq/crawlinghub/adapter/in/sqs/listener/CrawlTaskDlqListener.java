@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.sqs.listener;
 
 import com.ryuqq.crawlinghub.application.task.dto.messaging.CrawlTaskPayload;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;

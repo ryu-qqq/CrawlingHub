@@ -7,6 +7,7 @@ import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryP
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncOutboxCriteria;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -124,6 +125,31 @@ public class SyncOutboxQueryAdapter implements SyncOutboxQueryPort {
         List<ProductSyncOutboxJpaEntity> entities =
                 queryDslRepository.findRetryableOutboxes(maxRetryCount, limit);
         return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * Criteria 기반 SyncOutbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductSyncOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return SyncOutbox 목록
+     */
+    @Override
+    public List<CrawledProductSyncOutbox> findByCriteria(ProductSyncOutboxCriteria criteria) {
+        List<ProductSyncOutboxJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * Criteria 기반 SyncOutbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    @Override
+    public long countByCriteria(ProductSyncOutboxCriteria criteria) {
+        return queryDslRepository.countByCriteria(criteria);
     }
 
     /**

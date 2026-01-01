@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.task.factory.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
+import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;

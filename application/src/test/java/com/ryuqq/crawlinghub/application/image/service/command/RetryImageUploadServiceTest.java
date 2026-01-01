@@ -10,7 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageUploadRetryResponse;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
@@ -76,7 +76,7 @@ class RetryImageUploadServiceTest {
                     .willReturn(List.of());
 
             // When
-            ImageUploadRetryResult result = service.execute();
+            ImageUploadRetryResponse result = service.execute();
 
             // Then
             assertThat(result.processed()).isZero();
@@ -100,7 +100,7 @@ class RetryImageUploadServiceTest {
             given(fileServerClient.requestImageUpload(any())).willReturn(true);
 
             // When
-            ImageUploadRetryResult result = service.execute();
+            ImageUploadRetryResponse result = service.execute();
 
             // Then
             assertThat(result.processed()).isEqualTo(1);
@@ -124,7 +124,7 @@ class RetryImageUploadServiceTest {
             given(fileServerClient.requestImageUpload(any())).willReturn(false);
 
             // When
-            ImageUploadRetryResult result = service.execute();
+            ImageUploadRetryResponse result = service.execute();
 
             // Then
             assertThat(result.processed()).isEqualTo(1);
@@ -158,7 +158,7 @@ class RetryImageUploadServiceTest {
                     .willReturn(true); // outbox3 성공
 
             // When
-            ImageUploadRetryResult result = service.execute();
+            ImageUploadRetryResponse result = service.execute();
 
             // Then
             assertThat(result.processed()).isEqualTo(3);
@@ -186,7 +186,7 @@ class RetryImageUploadServiceTest {
             given(fileServerClient.requestImageUpload(any())).willReturn(true);
 
             // When
-            ImageUploadRetryResult result = service.execute();
+            ImageUploadRetryResponse result = service.execute();
 
             // Then
             assertThat(result.processed()).isEqualTo(100);

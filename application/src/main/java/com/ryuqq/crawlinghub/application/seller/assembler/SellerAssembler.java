@@ -69,6 +69,7 @@ public class SellerAssembler {
                 seller.getSellerNameValue(),
                 seller.isActive(),
                 seller.getCreatedAt(),
+                seller.getUpdatedAt(),
                 statistics.activeSchedulerCount(),
                 statistics.totalSchedulerCount(),
                 statistics.lastTaskStatus(),

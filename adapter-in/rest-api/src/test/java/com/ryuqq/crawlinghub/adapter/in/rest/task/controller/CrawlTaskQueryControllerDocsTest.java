@@ -67,6 +67,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlTaskStatus.WAITING,
                                 CrawlTaskType.META,
                                 0,
+                                Instant.parse("2025-11-20T10:30:00Z"),
                                 Instant.parse("2025-11-20T10:30:00Z")),
                         new CrawlTaskResponse(
                                 2L,
@@ -76,6 +77,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 CrawlTaskStatus.SUCCESS,
                                 CrawlTaskType.DETAIL,
                                 1,
+                                Instant.parse("2025-11-20T10:35:00Z"),
                                 Instant.parse("2025-11-20T10:35:00Z")));
 
         PageResponse<CrawlTaskResponse> pageResponse =
@@ -91,6 +93,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 "PENDING",
                                 "META",
                                 0,
+                                "2025-11-20T10:30:00Z",
                                 "2025-11-20T10:30:00Z"),
                         new CrawlTaskApiResponse(
                                 2L,
@@ -100,6 +103,7 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 "SUCCESS",
                                 "DETAIL",
                                 1,
+                                "2025-11-20T10:35:00Z",
                                 "2025-11-20T10:35:00Z"));
 
         PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
@@ -185,6 +189,10 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].createdAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.domain.product.vo.ItemTag;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
 import com.ryuqq.crawlinghub.domain.product.vo.SearchItem;
+import com.ryuqq.crawlinghub.domain.product.vo.SearchParseResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

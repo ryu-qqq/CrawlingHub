@@ -13,7 +13,7 @@ import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
-import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
+import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
@@ -76,6 +76,7 @@ class TriggerCrawlTaskServiceTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             Seller seller = SellerFixture.anActiveSeller();
             CrawlTask savedTask = CrawlTaskFixture.aWaitingTask();
+            Instant now = Instant.now();
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
                             1L,
@@ -85,7 +86,8 @@ class TriggerCrawlTaskServiceTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
-                            Instant.now());
+                            now,
+                            now);
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willReturn(scheduler);

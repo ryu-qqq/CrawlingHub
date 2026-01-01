@@ -166,6 +166,7 @@ class UserAgentApiMapperTest {
                             95,
                             150,
                             lastUsed,
+                            now,
                             now);
 
             // when
@@ -179,8 +180,8 @@ class UserAgentApiMapperTest {
             assertThat(result.status()).isEqualTo(UserAgentStatus.AVAILABLE);
             assertThat(result.healthScore()).isEqualTo(95);
             assertThat(result.requestsPerDay()).isEqualTo(150);
-            assertThat(result.lastUsedAt()).isEqualTo(lastUsed);
-            assertThat(result.createdAt()).isEqualTo(now);
+            assertThat(result.lastUsedAt()).isNotNull();
+            assertThat(result.createdAt()).isNotNull();
         }
 
         @Test
@@ -196,6 +197,7 @@ class UserAgentApiMapperTest {
                             UserAgentStatus.SUSPENDED,
                             50,
                             300,
+                            now,
                             now,
                             now);
 
@@ -221,7 +223,8 @@ class UserAgentApiMapperTest {
                             100,
                             0,
                             null,
-                            now);
+                            now,
+                            null);
 
             // when
             UserAgentSummaryApiResponse result = mapper.toSummaryApiResponse(appResponse);

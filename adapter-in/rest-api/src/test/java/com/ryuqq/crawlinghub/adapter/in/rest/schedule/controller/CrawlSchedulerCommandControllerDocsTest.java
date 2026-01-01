@@ -367,6 +367,7 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                         CrawlTaskStatus.WAITING,
                         CrawlTaskType.META,
                         0,
+                        Instant.parse("2025-11-20T10:30:00Z"),
                         Instant.parse("2025-11-20T10:30:00Z"));
 
         given(triggerCrawlTaskUseCase.execute(any())).willReturn(useCaseResponse);
@@ -382,7 +383,8 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                     resp.status().name(),
                                     resp.taskType().name(),
                                     resp.retryCount(),
-                                    resp.createdAt() != null ? resp.createdAt().toString() : null);
+                                    resp.createdAt() != null ? resp.createdAt().toString() : null,
+                                    resp.updatedAt() != null ? resp.updatedAt().toString() : null);
                         });
 
         // when & then
@@ -428,6 +430,10 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.createdAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("생성 일시"),
+                                        fieldWithPath("data.updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 일시")
+                                                .optional(),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

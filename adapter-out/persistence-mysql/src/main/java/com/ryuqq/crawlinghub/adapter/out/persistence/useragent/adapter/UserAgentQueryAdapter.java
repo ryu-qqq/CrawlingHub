@@ -158,7 +158,8 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
                 entity.getHealthScore(),
                 entity.getRequestsPerDay(),
                 toInstant(entity.getLastUsedAt()),
-                toInstant(entity.getCreatedAt()));
+                toInstant(entity.getCreatedAt()),
+                toInstant(entity.getUpdatedAt()));
     }
 
     /**

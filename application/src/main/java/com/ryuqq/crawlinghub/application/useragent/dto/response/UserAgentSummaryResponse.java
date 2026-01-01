@@ -17,6 +17,7 @@ import java.time.Instant;
  * @param requestsPerDay 일일 요청 수
  * @param lastUsedAt 마지막 사용 시각
  * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
  * @author development-team
  * @since 1.0.0
  */
@@ -28,7 +29,8 @@ public record UserAgentSummaryResponse(
         int healthScore,
         int requestsPerDay,
         Instant lastUsedAt,
-        Instant createdAt) {
+        Instant createdAt,
+        Instant updatedAt) {
 
     /**
      * UserAgentSummaryResponse 생성
@@ -41,6 +43,7 @@ public record UserAgentSummaryResponse(
      * @param requestsPerDay 일일 요청 수
      * @param lastUsedAt 마지막 사용 시각
      * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
      * @return UserAgentSummaryResponse
      */
     public static UserAgentSummaryResponse of(
@@ -51,7 +54,8 @@ public record UserAgentSummaryResponse(
             int healthScore,
             int requestsPerDay,
             Instant lastUsedAt,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant updatedAt) {
         return new UserAgentSummaryResponse(
                 id,
                 truncateUserAgentValue(userAgentValue),
@@ -60,7 +64,8 @@ public record UserAgentSummaryResponse(
                 healthScore,
                 requestsPerDay,
                 lastUsedAt,
-                createdAt);
+                createdAt,
+                updatedAt);
     }
 
     /**

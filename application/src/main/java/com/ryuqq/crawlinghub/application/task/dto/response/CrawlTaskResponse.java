@@ -17,6 +17,7 @@ import java.time.Instant;
  * @param taskType 태스크 유형
  * @param retryCount 재시도 횟수
  * @param createdAt 생성 시각 (UTC Instant)
+ * @param updatedAt 수정 시각 (UTC Instant)
  * @author development-team
  * @since 1.0.0
  */
@@ -28,4 +29,5 @@ public record CrawlTaskResponse(
         CrawlTaskStatus status,
         CrawlTaskType taskType,
         int retryCount,
-        Instant createdAt) {}
+        Instant createdAt,
+        Instant updatedAt) {}

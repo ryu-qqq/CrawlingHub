@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncOutboxCriteria;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,24 @@ public interface SyncOutboxQueryPort {
      * @return 재시도 가능한 SyncOutbox 목록
      */
     List<CrawledProductSyncOutbox> findRetryableOutboxes(int maxRetryCount, int limit);
+
+    /**
+     * Criteria 기반 SyncOutbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductSyncOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return SyncOutbox 목록
+     */
+    List<CrawledProductSyncOutbox> findByCriteria(ProductSyncOutboxCriteria criteria);
+
+    /**
+     * Criteria 기반 SyncOutbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    long countByCriteria(ProductSyncOutboxCriteria criteria);
 
     /**
      * 조건으로 SyncOutbox 목록 검색 (페이징)

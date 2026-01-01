@@ -56,6 +56,8 @@ public abstract class WorkerIntegrationTest {
     protected static final String CRAWL_TASK_QUEUE_NAME = "crawl-task-queue-test";
     protected static final String CRAWL_TASK_DLQ_NAME = "crawl-task-dlq-test";
     protected static final String EVENTBRIDGE_TRIGGER_QUEUE_NAME = "eventbridge-trigger-queue-test";
+    protected static final String PRODUCT_SYNC_QUEUE_NAME = "product-sync-queue-test";
+    protected static final String PRODUCT_IMAGE_QUEUE_NAME = "product-image-queue-test";
 
     // Static containers for reuse across tests
     protected static final MySQLContainer<?> MYSQL_CONTAINER;
@@ -67,6 +69,8 @@ public abstract class WorkerIntegrationTest {
     protected static String crawlTaskQueueUrl;
     protected static String crawlTaskDlqUrl;
     protected static String eventBridgeTriggerQueueUrl;
+    protected static String productSyncQueueUrl;
+    protected static String productImageQueueUrl;
 
     static {
         MYSQL_CONTAINER =
@@ -103,6 +107,8 @@ public abstract class WorkerIntegrationTest {
         crawlTaskQueueUrl = createQueueIfNotExists(CRAWL_TASK_QUEUE_NAME);
         crawlTaskDlqUrl = createQueueIfNotExists(CRAWL_TASK_DLQ_NAME);
         eventBridgeTriggerQueueUrl = createQueueIfNotExists(EVENTBRIDGE_TRIGGER_QUEUE_NAME);
+        productSyncQueueUrl = createQueueIfNotExists(PRODUCT_SYNC_QUEUE_NAME);
+        productImageQueueUrl = createQueueIfNotExists(PRODUCT_IMAGE_QUEUE_NAME);
     }
 
     private static String createQueueIfNotExists(String queueName) {
@@ -155,6 +161,8 @@ public abstract class WorkerIntegrationTest {
         registry.add(
                 "aws.sqs.listener.event-bridge-trigger-queue-url",
                 () -> eventBridgeTriggerQueueUrl);
+        registry.add("aws.sqs.product-sync-queue-url", () -> productSyncQueueUrl);
+        registry.add("aws.sqs.product-image-queue-url", () -> productImageQueueUrl);
 
         // SQS Listener enabled for testing
         registry.add("aws.sqs.listener.crawl-task-listener-enabled", () -> "true");

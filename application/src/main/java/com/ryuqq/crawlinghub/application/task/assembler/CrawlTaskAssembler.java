@@ -36,7 +36,8 @@ public class CrawlTaskAssembler {
                 crawlTask.getStatus(),
                 crawlTask.getTaskType(),
                 crawlTask.getRetryCount().value(),
-                crawlTask.getCreatedAt());
+                crawlTask.getCreatedAt(),
+                crawlTask.getUpdatedAt());
     }
 
     /**

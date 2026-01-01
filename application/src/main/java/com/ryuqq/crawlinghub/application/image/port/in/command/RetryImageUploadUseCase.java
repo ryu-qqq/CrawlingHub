@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.port.in.command;
 
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageUploadRetryResponse;
 
 /**
  * 이미지 업로드 재시도 UseCase
@@ -24,5 +24,5 @@ public interface RetryImageUploadUseCase {
      *
      * @return 처리 결과 (처리 건수, 성공/실패, 추가 데이터 유무)
      */
-    ImageUploadRetryResult execute();
+    ImageUploadRetryResponse execute();
 }

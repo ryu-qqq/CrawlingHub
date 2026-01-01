@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
@@ -11,7 +13,6 @@ import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailRespon
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -144,7 +145,8 @@ public class CrawlTaskQueryApiMapper {
                 appResponse.status().name(),
                 appResponse.taskType().name(),
                 appResponse.retryCount(),
-                toIsoString(appResponse.createdAt()));
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -165,8 +167,8 @@ public class CrawlTaskQueryApiMapper {
                 appResponse.path(),
                 appResponse.queryParams(),
                 appResponse.fullUrl(),
-                toIsoString(appResponse.createdAt()),
-                toIsoString(appResponse.updatedAt()));
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -180,18 +182,5 @@ public class CrawlTaskQueryApiMapper {
     public PageApiResponse<CrawlTaskApiResponse> toPageApiResponse(
             PageResponse<CrawlTaskResponse> appPageResponse) {
         return PageApiResponse.from(appPageResponse, this::toApiResponse);
-    }
-
-    /**
-     * Instant → ISO-8601 String 변환
-     *
-     * @param instant Instant 시각
-     * @return ISO-8601 형식 문자열 (null 안전)
-     */
-    private String toIsoString(Instant instant) {
-        if (instant == null) {
-            return null;
-        }
-        return instant.toString();
     }
 }

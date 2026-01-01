@@ -160,6 +160,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                 95,
                                 150,
                                 now,
+                                now,
                                 now),
                         UserAgentSummaryResponse.of(
                                 2L,
@@ -168,6 +169,7 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                 UserAgentStatus.SUSPENDED,
                                 60,
                                 80,
+                                now,
                                 now,
                                 now));
 
@@ -183,8 +185,9 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                 UserAgentStatus.AVAILABLE,
                                 95,
                                 150,
-                                now,
-                                now),
+                                "2025-01-15 10:30:00",
+                                "2025-01-15 10:30:00",
+                                "2025-01-15 10:30:00"),
                         new UserAgentSummaryApiResponse(
                                 2L,
                                 "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0)",
@@ -192,8 +195,9 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                 UserAgentStatus.SUSPENDED,
                                 60,
                                 80,
-                                now,
-                                now));
+                                "2025-01-15 10:30:00",
+                                "2025-01-15 10:30:00",
+                                "2025-01-15 10:30:00"));
 
         PageApiResponse<UserAgentSummaryApiResponse> apiResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -283,6 +287,9 @@ class UserAgentQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].createdAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각"),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),

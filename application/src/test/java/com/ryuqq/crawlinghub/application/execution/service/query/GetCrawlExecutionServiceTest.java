@@ -55,6 +55,7 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 1L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
+            Instant now = Instant.now();
             CrawlExecutionDetailResponse expectedResponse =
                     new CrawlExecutionDetailResponse(
                             crawlExecutionId,
@@ -66,7 +67,9 @@ class GetCrawlExecutionServiceTest {
                             null,
                             null,
                             null,
-                            Instant.now(),
+                            now,
+                            null,
+                            now,
                             null);
 
             given(readManager.findById(any(CrawlExecutionId.class)))
@@ -105,6 +108,7 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 2L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution successExecution = CrawlExecutionFixture.aSuccessExecution();
+            Instant now = Instant.now();
             CrawlExecutionDetailResponse expectedResponse =
                     new CrawlExecutionDetailResponse(
                             crawlExecutionId,
@@ -116,8 +120,10 @@ class GetCrawlExecutionServiceTest {
                             "{\"products\": []}",
                             null,
                             1500L,
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now,
+                            now,
+                            null);
 
             given(readManager.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(successExecution));
@@ -139,6 +145,7 @@ class GetCrawlExecutionServiceTest {
             Long crawlExecutionId = 3L;
             GetCrawlExecutionQuery query = new GetCrawlExecutionQuery(crawlExecutionId);
             CrawlExecution failedExecution = CrawlExecutionFixture.aFailedExecution();
+            Instant now = Instant.now();
             CrawlExecutionDetailResponse expectedResponse =
                     new CrawlExecutionDetailResponse(
                             crawlExecutionId,
@@ -150,8 +157,10 @@ class GetCrawlExecutionServiceTest {
                             null,
                             "Internal Server Error",
                             500L,
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now,
+                            now,
+                            null);
 
             given(readManager.findById(any(CrawlExecutionId.class)))
                     .willReturn(Optional.of(failedExecution));

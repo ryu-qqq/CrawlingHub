@@ -20,6 +20,7 @@ import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import java.time.Clock;
@@ -320,6 +321,7 @@ class UpdateUserAgentStatusServiceTest {
                 Token.of(token),
                 UserAgentString.of("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
                 DeviceType.of(DeviceType.Type.DESKTOP),
+                UserAgentMetadata.defaultMetadata(),
                 status,
                 HealthScore.initial(),
                 Instant.parse("2025-12-27T10:00:00Z"),

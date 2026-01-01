@@ -12,6 +12,8 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncOutboxCriteria;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -193,5 +195,224 @@ class SyncOutboxQueryAdapterTest {
 
         // Then
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - IdempotencyKey로 SyncOutbox 조회")
+    void shouldFindByIdempotencyKey() {
+        // Given
+        String idempotencyKey = "sync-key-123";
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        100L,
+                        12345L,
+                        SyncType.CREATE,
+                        idempotencyKey,
+                        null,
+                        ProductOutboxStatus.PENDING,
+                        0,
+                        null,
+                        now,
+                        null);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedPending();
+
+        given(queryDslRepository.findByIdempotencyKey(idempotencyKey))
+                .willReturn(Optional.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        Optional<CrawledProductSyncOutbox> result =
+                queryAdapter.findByIdempotencyKey(idempotencyKey);
+
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(domain);
+    }
+
+    @Test
+    @DisplayName("성공 - IdempotencyKey로 SyncOutbox 조회 (없는 경우)")
+    void shouldReturnEmptyWhenNotFoundByIdempotencyKey() {
+        // Given
+        String idempotencyKey = "non-existent-key";
+        given(queryDslRepository.findByIdempotencyKey(idempotencyKey)).willReturn(Optional.empty());
+
+        // When
+        Optional<CrawledProductSyncOutbox> result =
+                queryAdapter.findByIdempotencyKey(idempotencyKey);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("성공 - 상태로 SyncOutbox 목록 조회")
+    void shouldFindByStatus() {
+        // Given
+        ProductOutboxStatus status = ProductOutboxStatus.PENDING;
+        int limit = 10;
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        100L,
+                        12345L,
+                        SyncType.CREATE,
+                        "sync-key-123",
+                        null,
+                        status,
+                        0,
+                        null,
+                        now,
+                        null);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedPending();
+
+        given(queryDslRepository.findByStatus(status, limit)).willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<CrawledProductSyncOutbox> result = queryAdapter.findByStatus(status, limit);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - Criteria 기반 SyncOutbox 조회")
+    void shouldFindByCriteria() {
+        // Given
+        ProductSyncOutboxCriteria criteria = ProductSyncOutboxCriteria.retryable(3, 100);
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        100L,
+                        12345L,
+                        SyncType.CREATE,
+                        "sync-key-123",
+                        null,
+                        ProductOutboxStatus.PENDING,
+                        0,
+                        null,
+                        now,
+                        null);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedPending();
+
+        given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<CrawledProductSyncOutbox> result = queryAdapter.findByCriteria(criteria);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - Criteria 기반 SyncOutbox 개수 조회")
+    void shouldCountByCriteria() {
+        // Given
+        ProductSyncOutboxCriteria criteria = ProductSyncOutboxCriteria.retryable(3, 100);
+
+        given(queryDslRepository.countByCriteria(criteria)).willReturn(5L);
+
+        // When
+        long result = queryAdapter.countByCriteria(criteria);
+
+        // Then
+        assertThat(result).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("성공 - 조건으로 SyncOutbox 검색 (페이징)")
+    void shouldSearch() {
+        // Given
+        Long crawledProductId = 1L;
+        Long sellerId = 100L;
+        List<Long> itemNos = List.of(12345L);
+        List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
+        Instant createdFrom = Instant.now().minusSeconds(3600);
+        Instant createdTo = Instant.now();
+        long offset = 0L;
+        int size = 10;
+
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        crawledProductId,
+                        sellerId,
+                        12345L,
+                        SyncType.CREATE,
+                        "sync-key-123",
+                        null,
+                        ProductOutboxStatus.PENDING,
+                        0,
+                        null,
+                        now,
+                        null);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedPending();
+
+        given(
+                        queryDslRepository.search(
+                                crawledProductId,
+                                sellerId,
+                                itemNos,
+                                statuses,
+                                createdFrom,
+                                createdTo,
+                                offset,
+                                size))
+                .willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<CrawledProductSyncOutbox> result =
+                queryAdapter.search(
+                        crawledProductId,
+                        sellerId,
+                        itemNos,
+                        statuses,
+                        createdFrom,
+                        createdTo,
+                        offset,
+                        size);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - 조건으로 SyncOutbox 개수 조회")
+    void shouldCount() {
+        // Given
+        Long crawledProductId = 1L;
+        Long sellerId = 100L;
+        List<Long> itemNos = List.of(12345L);
+        List<ProductOutboxStatus> statuses = List.of(ProductOutboxStatus.PENDING);
+        Instant createdFrom = Instant.now().minusSeconds(3600);
+        Instant createdTo = Instant.now();
+
+        given(
+                        queryDslRepository.count(
+                                crawledProductId,
+                                sellerId,
+                                itemNos,
+                                statuses,
+                                createdFrom,
+                                createdTo))
+                .willReturn(5L);
+
+        // When
+        long result =
+                queryAdapter.count(
+                        crawledProductId, sellerId, itemNos, statuses, createdFrom, createdTo);
+
+        // Then
+        assertThat(result).isEqualTo(5L);
     }
 }
