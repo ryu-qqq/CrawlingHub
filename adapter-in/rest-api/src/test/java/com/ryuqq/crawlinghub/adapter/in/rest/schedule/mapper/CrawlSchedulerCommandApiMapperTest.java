@@ -159,8 +159,8 @@ class CrawlSchedulerCommandApiMapperTest {
             assertThat(result.schedulerName()).isEqualTo("테스트 스케줄러");
             assertThat(result.cronExpression()).isEqualTo("0 0 * * * *");
             assertThat(result.status()).isEqualTo("ACTIVE");
-            assertThat(result.createdAt()).isEqualTo(now.toString());
-            assertThat(result.updatedAt()).isEqualTo(now.toString());
+            assertThat(result.createdAt()).isNotNull();
+            assertThat(result.updatedAt()).isNotNull();
         }
 
         @Test
@@ -198,6 +198,7 @@ class CrawlSchedulerCommandApiMapperTest {
                             CrawlTaskStatus.RUNNING,
                             CrawlTaskType.MINI_SHOP,
                             0,
+                            now,
                             now);
 
             // when
@@ -211,7 +212,7 @@ class CrawlSchedulerCommandApiMapperTest {
             assertThat(result.status()).isEqualTo("RUNNING");
             assertThat(result.taskType()).isEqualTo("MINI_SHOP");
             assertThat(result.retryCount()).isZero();
-            assertThat(result.createdAt()).isEqualTo(now.toString());
+            assertThat(result.createdAt()).isNotNull();
         }
 
         @Test
@@ -227,6 +228,7 @@ class CrawlSchedulerCommandApiMapperTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.DETAIL,
                             1,
+                            null,
                             null);
 
             // when

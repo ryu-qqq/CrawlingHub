@@ -9,9 +9,9 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskMessageManager;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;

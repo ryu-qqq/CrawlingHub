@@ -63,6 +63,8 @@ class CompleteImageUploadServiceTest {
 
     @Captor private ArgumentCaptor<ImageUploadCompletedEvent> eventCaptor;
 
+    @Captor private ArgumentCaptor<CrawledProductImage> imageCaptor;
+
     private CompleteImageUploadService service;
 
     @BeforeEach
@@ -82,7 +84,7 @@ class CompleteImageUploadServiceTest {
     class Complete {
 
         @Test
-        @DisplayName("[성공] Outbox 존재 → markAsCompleted + 이벤트 등록")
+        @DisplayName("[성공] Outbox 존재 → markAsCompleted + 이미지 업로드 완료 처리 + 이벤트 등록")
         void shouldMarkAsCompletedAndRegisterEventWhenOutboxExists() {
             // Given
             ProductImageOutbox outbox = createMockOutbox();
@@ -96,8 +98,14 @@ class CompleteImageUploadServiceTest {
 
             // Then
             verify(outboxTransactionManager, times(1)).markAsCompleted(eq(outbox));
-            verify(imageTransactionManager, times(1))
-                    .completeUpload(eq(image), eq(S3_URL), eq(FILE_ASSET_ID));
+            // 비즈니스 로직(image.completeUpload) 호출 후 persist가 호출되는지 검증
+            verify(imageTransactionManager, times(1)).persist(imageCaptor.capture());
+            CrawledProductImage capturedImage = imageCaptor.getValue();
+            org.assertj.core.api.Assertions.assertThat(capturedImage.getS3Url()).isEqualTo(S3_URL);
+            org.assertj.core.api.Assertions.assertThat(capturedImage.getFileAssetId())
+                    .isEqualTo(FILE_ASSET_ID);
+            org.assertj.core.api.Assertions.assertThat(capturedImage.isUploaded()).isTrue();
+
             verify(eventRegistry, times(1)).registerForPublish(eventCaptor.capture());
 
             ImageUploadCompletedEvent event = eventCaptor.getValue();
@@ -118,7 +126,7 @@ class CompleteImageUploadServiceTest {
 
             // Then
             verify(outboxTransactionManager, never()).markAsCompleted(any());
-            verify(imageTransactionManager, never()).completeUpload(any(), any(), any());
+            verify(imageTransactionManager, never()).persist(any());
             verify(eventRegistry, never()).registerForPublish(any());
         }
 
@@ -136,7 +144,7 @@ class CompleteImageUploadServiceTest {
 
             // Then
             verify(outboxTransactionManager, never()).markAsCompleted(any());
-            verify(imageTransactionManager, never()).completeUpload(any(), any(), any());
+            verify(imageTransactionManager, never()).persist(any());
             verify(eventRegistry, never()).registerForPublish(any());
         }
     }

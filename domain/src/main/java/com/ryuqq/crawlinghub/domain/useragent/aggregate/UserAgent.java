@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import java.time.Clock;
@@ -44,6 +45,7 @@ public class UserAgent {
     private final Token token;
     private final UserAgentString userAgentString;
     private final DeviceType deviceType;
+    private final UserAgentMetadata metadata;
     private UserAgentStatus status;
     private HealthScore healthScore;
     private Instant lastUsedAt;
@@ -56,6 +58,7 @@ public class UserAgent {
             Token token,
             UserAgentString userAgentString,
             DeviceType deviceType,
+            UserAgentMetadata metadata,
             UserAgentStatus status,
             HealthScore healthScore,
             Instant lastUsedAt,
@@ -66,6 +69,7 @@ public class UserAgent {
         this.token = token;
         this.userAgentString = userAgentString;
         this.deviceType = deviceType;
+        this.metadata = metadata;
         this.status = status;
         this.healthScore = healthScore;
         this.lastUsedAt = lastUsedAt;
@@ -77,6 +81,8 @@ public class UserAgent {
     /**
      * 신규 UserAgent 생성
      *
+     * <p>User-Agent 문자열에서 DeviceType과 UserAgentMetadata를 자동으로 파싱합니다.
+     *
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param clock 시간 제어
@@ -85,11 +91,13 @@ public class UserAgent {
     public static UserAgent forNew(Token token, UserAgentString userAgentString, Clock clock) {
         Instant now = clock.instant();
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
+        UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
         return new UserAgent(
                 UserAgentId.unassigned(),
                 token,
                 userAgentString,
                 deviceType,
+                metadata,
                 UserAgentStatus.AVAILABLE,
                 HealthScore.initial(),
                 null,
@@ -105,6 +113,7 @@ public class UserAgent {
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
+     * @param metadata User-Agent 메타데이터 (DeviceBrand, OsType, BrowserType 정보)
      * @param status 현재 상태
      * @param healthScore 건강 점수
      * @param lastUsedAt 마지막 사용 시각
@@ -118,6 +127,7 @@ public class UserAgent {
             Token token,
             UserAgentString userAgentString,
             DeviceType deviceType,
+            UserAgentMetadata metadata,
             UserAgentStatus status,
             HealthScore healthScore,
             Instant lastUsedAt,
@@ -129,6 +139,7 @@ public class UserAgent {
                 token,
                 userAgentString,
                 deviceType,
+                metadata,
                 status,
                 healthScore,
                 lastUsedAt,
@@ -361,6 +372,15 @@ public class UserAgent {
 
     public DeviceType getDeviceType() {
         return deviceType;
+    }
+
+    /**
+     * User-Agent 메타데이터 반환
+     *
+     * @return User-Agent 메타데이터 (DeviceBrand, OsType, BrowserType 정보)
+     */
+    public UserAgentMetadata getMetadata() {
+        return metadata;
     }
 
     public UserAgentStatus getStatus() {

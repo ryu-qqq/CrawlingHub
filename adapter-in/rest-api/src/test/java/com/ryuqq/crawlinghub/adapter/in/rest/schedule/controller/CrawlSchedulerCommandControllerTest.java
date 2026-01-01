@@ -538,6 +538,7 @@ class CrawlSchedulerCommandControllerTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.META,
                             0,
+                            now,
                             now);
 
             CrawlTaskApiResponse apiResponse =
@@ -549,6 +550,7 @@ class CrawlSchedulerCommandControllerTest {
                             "WAITING",
                             "META",
                             0,
+                            now.toString(),
                             now.toString());
 
             given(triggerCrawlTaskUseCase.execute(any(TriggerCrawlTaskCommand.class)))
@@ -593,6 +595,7 @@ class CrawlSchedulerCommandControllerTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.MINI_SHOP,
                             0,
+                            now,
                             now);
 
             CrawlTaskApiResponse apiResponse =
@@ -604,6 +607,7 @@ class CrawlSchedulerCommandControllerTest {
                             "WAITING",
                             "MINI_SHOP",
                             0,
+                            now.toString(),
                             now.toString());
 
             given(triggerCrawlTaskUseCase.execute(any(TriggerCrawlTaskCommand.class)))

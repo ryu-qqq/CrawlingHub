@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.crawl.parser.SearchParseResult;
 import com.ryuqq.crawlinghub.application.crawl.parser.SearchResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
 import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
@@ -20,6 +19,7 @@ import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShop
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
+import com.ryuqq.crawlinghub.domain.product.vo.SearchParseResult;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;

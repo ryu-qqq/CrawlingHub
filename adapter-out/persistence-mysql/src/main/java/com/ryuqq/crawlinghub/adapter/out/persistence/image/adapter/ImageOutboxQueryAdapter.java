@@ -6,8 +6,11 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.image.repository.ProductIma
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductImageOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -69,6 +72,31 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
         List<ProductImageOutboxJpaEntity> entities =
                 queryDslRepository.findRetryableOutboxes(maxRetryCount, limit);
         return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * Criteria 기반 ImageOutbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductImageOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return ImageOutbox 목록
+     */
+    @Override
+    public List<ProductImageOutbox> findByCriteria(ProductImageOutboxCriteria criteria) {
+        List<ProductImageOutboxJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * Criteria 기반 ImageOutbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    @Override
+    public long countByCriteria(ProductImageOutboxCriteria criteria) {
+        return queryDslRepository.countByCriteria(criteria);
     }
 
     /**
@@ -183,12 +211,28 @@ public class ImageOutboxQueryAdapter implements ImageOutboxQueryPort {
                                         dto.status(),
                                         dto.retryCount(),
                                         dto.errorMessage(),
-                                        dto.createdAt(),
-                                        dto.processedAt(),
+                                        toInstant(dto.createdAt()),
+                                        null, // updatedAt: entity에 미존재, 향후 추가 예정
+                                        toInstant(dto.processedAt()),
                                         dto.crawledProductId(),
                                         dto.originalUrl(),
                                         dto.s3Url(),
                                         dto.imageType()))
                 .toList();
+    }
+
+    /**
+     * LocalDateTime을 Instant로 변환
+     *
+     * <p>null 안전 변환 (Asia/Seoul 타임존 기준)
+     *
+     * @param localDateTime LocalDateTime
+     * @return Instant (null인 경우 null 반환)
+     */
+    private Instant toInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant();
     }
 }

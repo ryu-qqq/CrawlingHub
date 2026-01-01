@@ -17,10 +17,14 @@ import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.RegisterUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentMetadataUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.WarmUpUserAgentUseCase;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -42,9 +46,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @DisplayName("UserAgentCommandController REST Docs")
 class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
 
+    @MockitoBean private RegisterUserAgentUseCase registerUserAgentUseCase;
+
+    @MockitoBean private UpdateUserAgentMetadataUseCase updateUserAgentMetadataUseCase;
+
     @MockitoBean private RecoverUserAgentUseCase recoverUserAgentUseCase;
 
     @MockitoBean private UpdateUserAgentStatusUseCase updateUserAgentStatusUseCase;
+
+    @MockitoBean private WarmUpUserAgentUseCase warmUpUserAgentUseCase;
 
     @MockitoBean private UserAgentApiMapper userAgentApiMapper;
 
@@ -257,6 +267,101 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/crawling/user-agents/warmup - UserAgent Pool Warm-up API 문서")
+    void warmUpUserAgents() throws Exception {
+        // given
+        int addedCount = 10;
+        WarmUpUserAgentApiResponse apiResponse =
+                new WarmUpUserAgentApiResponse(
+                        10, "10 user agents added to pool (Lazy session issuance)");
+
+        given(warmUpUserAgentUseCase.warmUp()).willReturn(addedCount);
+        given(userAgentApiMapper.toWarmUpApiResponse(addedCount)).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/crawling/user-agents/warmup"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.addedCount").value(10))
+                .andExpect(
+                        jsonPath("$.data.message")
+                                .value("10 user agents added to pool (Lazy session issuance)"))
+                .andDo(
+                        document(
+                                "useragent-command/warmup",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.addedCount")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("Pool에 추가된 UserAgent 수"),
+                                        fieldWithPath("data.message")
+                                                .type(JsonFieldType.STRING)
+                                                .description("결과 메시지"),
+                                        fieldWithPath("error")
+                                                .type(JsonFieldType.NULL)
+                                                .description("에러 정보")
+                                                .optional(),
+                                        fieldWithPath("timestamp")
+                                                .type(JsonFieldType.STRING)
+                                                .description("응답 시각"),
+                                        fieldWithPath("requestId")
+                                                .type(JsonFieldType.STRING)
+                                                .description("요청 ID"))));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/crawling/user-agents/warmup - Warm-up 대상이 없는 경우 API 문서")
+    void warmUpUserAgents_noAgentsToWarmUp() throws Exception {
+        // given
+        int addedCount = 0;
+        WarmUpUserAgentApiResponse apiResponse =
+                new WarmUpUserAgentApiResponse(0, "No user agents to warm up");
+
+        given(warmUpUserAgentUseCase.warmUp()).willReturn(addedCount);
+        given(userAgentApiMapper.toWarmUpApiResponse(addedCount)).willReturn(apiResponse);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/crawling/user-agents/warmup"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.addedCount").value(0))
+                .andExpect(jsonPath("$.data.message").value("No user agents to warm up"))
+                .andDo(
+                        document(
+                                "useragent-command/warmup-no-agents",
+                                RestDocsSecuritySnippets.authorization("useragent:manage"),
+                                responseFields(
+                                        fieldWithPath("success")
+                                                .type(JsonFieldType.BOOLEAN)
+                                                .description("성공 여부"),
+                                        fieldWithPath("data")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("응답 데이터"),
+                                        fieldWithPath("data.addedCount")
+                                                .type(JsonFieldType.NUMBER)
+                                                .description("Pool에 추가된 UserAgent 수 (0)"),
+                                        fieldWithPath("data.message")
+                                                .type(JsonFieldType.STRING)
+                                                .description("Warm-up 대상이 없음을 나타내는 메시지"),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")

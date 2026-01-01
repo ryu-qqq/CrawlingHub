@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.port.in.command;
 
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageOutboxTimeoutResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageOutboxTimeoutResponse;
 
 /**
  * 이미지 Outbox 타임아웃 처리 UseCase
@@ -24,5 +24,5 @@ public interface HandleImageOutboxTimeoutUseCase {
      *
      * @return 처리 결과
      */
-    ImageOutboxTimeoutResult execute();
+    ImageOutboxTimeoutResponse execute();
 }

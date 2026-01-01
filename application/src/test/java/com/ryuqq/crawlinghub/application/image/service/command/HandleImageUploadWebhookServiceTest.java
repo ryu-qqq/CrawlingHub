@@ -17,13 +17,17 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -38,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HandleImageUploadWebhookServiceTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final Long OUTBOX_ID = 100L;
     private static final Long IMAGE_ID = 1L;
@@ -55,6 +60,8 @@ class HandleImageUploadWebhookServiceTest {
 
     @Mock private ProductImageOutboxTransactionManager outboxTransactionManager;
 
+    @Captor private ArgumentCaptor<CrawledProductImage> imageCaptor;
+
     private HandleImageUploadWebhookService service;
 
     @BeforeEach
@@ -64,7 +71,8 @@ class HandleImageUploadWebhookServiceTest {
                         outboxReadManager,
                         imageReadManager,
                         imageTransactionManager,
-                        outboxTransactionManager);
+                        outboxTransactionManager,
+                        FIXED_CLOCK);
     }
 
     @Nested
@@ -90,8 +98,15 @@ class HandleImageUploadWebhookServiceTest {
 
             // Then
             verify(outboxTransactionManager, times(1)).markAsCompleted(eq(outbox));
-            verify(imageTransactionManager, times(1))
-                    .completeUpload(eq(image), eq(FILE_URL), eq(FILE_ASSET_ID));
+            // 비즈니스 로직(image.completeUpload) 호출 후 persist가 호출되는지 검증
+            verify(imageTransactionManager, times(1)).persist(imageCaptor.capture());
+            CrawledProductImage capturedImage = imageCaptor.getValue();
+            org.assertj.core.api.Assertions.assertThat(capturedImage.getS3Url())
+                    .isEqualTo(FILE_URL);
+            org.assertj.core.api.Assertions.assertThat(capturedImage.getFileAssetId())
+                    .isEqualTo(FILE_ASSET_ID);
+            org.assertj.core.api.Assertions.assertThat(capturedImage.isUploaded()).isTrue();
+
             verify(outboxTransactionManager, never())
                     .markAsFailed(
                             org.mockito.ArgumentMatchers.any(),

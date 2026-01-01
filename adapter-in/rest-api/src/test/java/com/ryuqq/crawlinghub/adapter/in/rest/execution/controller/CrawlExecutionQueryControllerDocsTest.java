@@ -66,7 +66,9 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 200,
                                 1500L,
                                 Instant.parse("2025-11-20T10:30:00Z"),
-                                Instant.parse("2025-11-20T10:30:01Z")),
+                                Instant.parse("2025-11-20T10:30:01Z"),
+                                Instant.parse("2025-11-20T10:30:00Z"),
+                                null),
                         new CrawlExecutionResponse(
                                 2L,
                                 2L,
@@ -76,7 +78,9 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 500,
                                 3000L,
                                 Instant.parse("2025-11-20T10:35:00Z"),
-                                Instant.parse("2025-11-20T10:35:03Z")));
+                                Instant.parse("2025-11-20T10:35:03Z"),
+                                Instant.parse("2025-11-20T10:35:00Z"),
+                                null));
 
         PageResponse<CrawlExecutionResponse> pageResponse =
                 new PageResponse<>(content, 0, 20, 2, 1, true, true);
@@ -91,8 +95,10 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 "SUCCESS",
                                 200,
                                 1500L,
-                                "2025-11-20T10:30:00Z",
-                                "2025-11-20T10:30:01Z"),
+                                "2025-11-20 19:30:00",
+                                "2025-11-20 19:30:01",
+                                "2025-11-20 19:30:00",
+                                null),
                         new CrawlExecutionApiResponse(
                                 2L,
                                 2L,
@@ -101,8 +107,10 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                 "FAILED",
                                 500,
                                 3000L,
-                                "2025-11-20T10:35:00Z",
-                                "2025-11-20T10:35:03Z"));
+                                "2025-11-20 19:35:00",
+                                "2025-11-20 19:35:03",
+                                "2025-11-20 19:35:00",
+                                null));
 
         PageApiResponse<CrawlExecutionApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -189,6 +197,13 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("실행 완료 시각")
                                                 .optional(),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),
@@ -236,7 +251,9 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         null,
                         1500L,
                         Instant.parse("2025-11-20T10:30:00Z"),
-                        Instant.parse("2025-11-20T10:30:01Z"));
+                        Instant.parse("2025-11-20T10:30:01Z"),
+                        Instant.parse("2025-11-20T10:30:00Z"),
+                        null);
 
         CrawlExecutionDetailApiResponse apiResponse =
                 new CrawlExecutionDetailApiResponse(
@@ -249,8 +266,10 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         "{\"products\": [{\"id\": 1, \"name\": \"Product1\"}]}",
                         null,
                         1500L,
-                        "2025-11-20T10:30:00Z",
-                        "2025-11-20T10:30:01Z");
+                        "2025-11-20 19:30:00",
+                        "2025-11-20 19:30:01",
+                        "2025-11-20 19:30:00",
+                        null);
 
         given(mapper.toGetQuery(any())).willReturn(null);
         given(getCrawlExecutionUseCase.execute(any())).willReturn(useCaseResponse);
@@ -313,6 +332,13 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("실행 완료 시각")
                                                 .optional(),
+                                        fieldWithPath("data.createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)
                                                 .description("에러 정보")
@@ -342,7 +368,9 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         "Internal Server Error: Connection timeout",
                         3000L,
                         Instant.parse("2025-11-20T10:35:00Z"),
-                        Instant.parse("2025-11-20T10:35:03Z"));
+                        Instant.parse("2025-11-20T10:35:03Z"),
+                        Instant.parse("2025-11-20T10:35:00Z"),
+                        null);
 
         CrawlExecutionDetailApiResponse apiResponse =
                 new CrawlExecutionDetailApiResponse(
@@ -355,8 +383,10 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                         null,
                         "Internal Server Error: Connection timeout",
                         3000L,
-                        "2025-11-20T10:35:00Z",
-                        "2025-11-20T10:35:03Z");
+                        "2025-11-20 19:35:00",
+                        "2025-11-20 19:35:03",
+                        "2025-11-20 19:35:00",
+                        null);
 
         given(mapper.toGetQuery(any())).willReturn(null);
         given(getCrawlExecutionUseCase.execute(any())).willReturn(useCaseResponse);
@@ -420,6 +450,13 @@ class CrawlExecutionQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.completedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("실행 완료 시각")
+                                                .optional(),
+                                        fieldWithPath("data.createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
                                                 .optional(),
                                         fieldWithPath("error")
                                                 .type(JsonFieldType.NULL)

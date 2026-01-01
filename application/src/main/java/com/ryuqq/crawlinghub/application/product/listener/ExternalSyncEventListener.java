@@ -1,15 +1,11 @@
 package com.ryuqq.crawlinghub.application.product.listener;
 
-import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
-import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
-import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.sync.manager.messaging.ProductSyncMessageManager;
 import com.ryuqq.crawlinghub.application.sync.manager.query.SyncOutboxReadManager;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +15,19 @@ import org.springframework.stereotype.Component;
 /**
  * 외부 서버 동기화 요청 이벤트 리스너
  *
- * <p><strong>용도</strong>: 트랜잭션 커밋 후 외부 상품 서버 API 호출 및 상태 업데이트
+ * <p><strong>용도</strong>: 트랜잭션 커밋 후 SQS로 메시지 발행
  *
- * <p><strong>처리 흐름</strong>:
+ * <p><strong>Transactional Outbox 패턴</strong>:
  *
  * <ol>
  *   <li>이벤트 수신 (트랜잭션 커밋 후)
- *   <li>SyncOutbox 조회 및 상태 PROCESSING으로 변경
- *   <li>CrawledProduct 조회하여 API 요청 구성
- *   <li>외부 상품 서버 API 호출 (신규 등록 또는 갱신)
- *   <li>성공 시: Outbox 상태 → COMPLETED, CrawledProduct 상태 업데이트
- *   <li>실패 시: Outbox 상태 → FAILED (재시도 스케줄러에서 처리)
+ *   <li>SyncOutbox 조회
+ *   <li>SQS로 메시지 발행 시도
+ *   <li>성공 시: SENT 상태로 전환
+ *   <li>실패 시: PENDING 유지 → 스케줄러에서 재처리
  * </ol>
+ *
+ * <p><strong>실패 복구</strong>: 스케줄러가 PENDING/FAILED 상태 Outbox를 주기적으로 재처리
  *
  * @author development-team
  * @since 1.0.0
@@ -42,21 +39,15 @@ public class ExternalSyncEventListener {
 
     private final SyncOutboxReadManager syncOutboxReadManager;
     private final SyncOutboxTransactionManager syncOutboxTransactionManager;
-    private final CrawledProductReadManager crawledProductReadManager;
-    private final SyncCompletionFacade syncCompletionFacade;
-    private final ExternalProductServerClient externalProductServerClient;
+    private final ProductSyncMessageManager messageManager;
 
     public ExternalSyncEventListener(
             SyncOutboxReadManager syncOutboxReadManager,
             SyncOutboxTransactionManager syncOutboxTransactionManager,
-            CrawledProductReadManager crawledProductReadManager,
-            SyncCompletionFacade syncCompletionFacade,
-            ExternalProductServerClient externalProductServerClient) {
+            ProductSyncMessageManager messageManager) {
         this.syncOutboxReadManager = syncOutboxReadManager;
         this.syncOutboxTransactionManager = syncOutboxTransactionManager;
-        this.crawledProductReadManager = crawledProductReadManager;
-        this.syncCompletionFacade = syncCompletionFacade;
-        this.externalProductServerClient = externalProductServerClient;
+        this.messageManager = messageManager;
     }
 
     /**
@@ -88,70 +79,52 @@ public class ExternalSyncEventListener {
             return;
         }
 
-        CrawledProductSyncOutbox outbox = outboxOpt.get();
-        processOutbox(outbox, productId);
+        boolean success = publishToSqs(outboxOpt.get());
 
-        log.info(
-                "외부 서버 동기화 요청 이벤트 처리 완료: productId={}, syncType={}",
-                productId.value(),
-                event.syncType());
+        if (success) {
+            log.info(
+                    "외부 서버 동기화 SQS 발행 완료: productId={}, syncType={}",
+                    productId.value(),
+                    event.syncType());
+        } else {
+            log.info(
+                    "외부 서버 동기화 SQS 발행 실패 (스케줄러에서 재처리): productId={}, syncType={}",
+                    productId.value(),
+                    event.syncType());
+        }
     }
 
-    private void processOutbox(CrawledProductSyncOutbox outbox, CrawledProductId productId) {
+    /**
+     * SQS로 메시지 발행 및 상태 전환
+     *
+     * @param outbox 발행할 Outbox
+     * @return 발행 성공 여부
+     */
+    private boolean publishToSqs(CrawledProductSyncOutbox outbox) {
         try {
-            // 1. CrawledProduct 조회
-            Optional<CrawledProduct> productOpt = crawledProductReadManager.findById(productId);
-            if (productOpt.isEmpty()) {
-                syncCompletionFacade.failSync(outbox, "CrawledProduct를 찾을 수 없습니다");
-                log.warn(
-                        "CrawledProduct를 찾을 수 없습니다: productId={}, outboxId={}",
-                        productId.value(),
-                        outbox.getId());
-                return;
-            }
+            // SQS 발행
+            messageManager.publish(outbox);
 
-            CrawledProduct product = productOpt.get();
+            // 발행 성공 → SENT 상태로 전환
+            syncOutboxTransactionManager.markAsSent(outbox);
 
-            // 2. 상태 → PROCESSING
-            syncOutboxTransactionManager.markAsProcessing(outbox);
+            log.debug(
+                    "SQS 발행 성공 → SENT: outboxId={}, productId={}, syncType={}",
+                    outbox.getId(),
+                    outbox.getCrawledProductIdValue(),
+                    outbox.getSyncType());
 
-            // 3. 외부 API 호출
-            ProductSyncResult result = callExternalApi(outbox, product);
-
-            // 4. 결과 처리
-            handleSyncResult(outbox, product, result);
+            return true;
 
         } catch (Exception e) {
-            // 예외 발생 → FAILED
-            syncCompletionFacade.failSync(outbox, e.getMessage());
-            log.error(
-                    "외부 서버 동기화 처리 중 오류: outboxId={}, productId={}, error={}",
+            // 발행 실패 → PENDING 유지 (스케줄러에서 재처리)
+            log.warn(
+                    "SQS 발행 실패 (스케줄러에서 재처리): outboxId={}, productId={}, error={}",
                     outbox.getId(),
-                    productId.value(),
-                    e.getMessage(),
-                    e);
-        }
-    }
+                    outbox.getCrawledProductIdValue(),
+                    e.getMessage());
 
-    private ProductSyncResult callExternalApi(
-            CrawledProductSyncOutbox outbox, CrawledProduct product) {
-        if (outbox.isCreateRequest()) {
-            return externalProductServerClient.createProduct(outbox, product);
-        } else {
-            return externalProductServerClient.updateProduct(outbox, product);
-        }
-    }
-
-    private void handleSyncResult(
-            CrawledProductSyncOutbox outbox, CrawledProduct product, ProductSyncResult result) {
-        if (result.success()) {
-            syncCompletionFacade.completeSync(outbox, product, result.externalProductId());
-        } else {
-            String errorMessage =
-                    String.format(
-                            "API 호출 실패: errorCode=%s, errorMessage=%s",
-                            result.errorCode(), result.errorMessage());
-            syncCompletionFacade.failSync(outbox, errorMessage);
+            return false;
         }
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * CrawledProductImageCommandAdapter - 이미지 저장 Adapter
  *
+ * <p><strong>컨벤션</strong>: persist 메서드는 upsert 동작을 수행합니다.
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -28,23 +30,17 @@ public class CrawledProductImageCommandAdapter implements CrawledProductImagePer
     }
 
     @Override
-    public CrawledProductImage save(CrawledProductImage image) {
+    public CrawledProductImage persist(CrawledProductImage image) {
         CrawledProductImageJpaEntity entity = mapper.toEntity(image);
         CrawledProductImageJpaEntity savedEntity = repository.save(entity);
         return mapper.toDomain(savedEntity);
     }
 
     @Override
-    public List<CrawledProductImage> saveAll(List<CrawledProductImage> images) {
+    public List<CrawledProductImage> persistAll(List<CrawledProductImage> images) {
         List<CrawledProductImageJpaEntity> entities =
                 images.stream().map(mapper::toEntity).toList();
         List<CrawledProductImageJpaEntity> savedEntities = repository.saveAll(entities);
         return savedEntities.stream().map(mapper::toDomain).toList();
-    }
-
-    @Override
-    public void update(CrawledProductImage image) {
-        CrawledProductImageJpaEntity entity = mapper.toEntity(image);
-        repository.save(entity);
     }
 }

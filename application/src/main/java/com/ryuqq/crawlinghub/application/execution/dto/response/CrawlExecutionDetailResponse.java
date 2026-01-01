@@ -19,6 +19,8 @@ import java.time.Instant;
  * @param durationMs 실행 시간 (밀리초, nullable)
  * @param startedAt 실행 시작 시각 (UTC Instant)
  * @param completedAt 실행 완료 시각 (UTC Instant, nullable)
+ * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
  * @author development-team
  * @since 1.0.0
  */
@@ -33,4 +35,6 @@ public record CrawlExecutionDetailResponse(
         String errorMessage,
         Long durationMs,
         Instant startedAt,
-        Instant completedAt) {}
+        Instant completedAt,
+        Instant createdAt,
+        Instant updatedAt) {}

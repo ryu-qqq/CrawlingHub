@@ -63,6 +63,7 @@ class ListCrawlExecutionsServiceTest {
             List<CrawlExecution> executions = List.of(CrawlExecutionFixture.aRunningExecution());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             CrawlExecutionResponse response =
                     new CrawlExecutionResponse(
                             1L,
@@ -72,7 +73,9 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.RUNNING,
                             null,
                             null,
-                            Instant.now(),
+                            now,
+                            null,
+                            now,
                             null);
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
@@ -141,6 +144,7 @@ class ListCrawlExecutionsServiceTest {
                     List.of(CrawlExecutionFixture.aSuccessExecution());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             CrawlExecutionResponse response =
                     new CrawlExecutionResponse(
                             1L,
@@ -150,8 +154,10 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.SUCCESS,
                             200,
                             1500L,
-                            Instant.now(),
-                            Instant.now());
+                            now,
+                            now,
+                            now,
+                            null);
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);
 
@@ -180,6 +186,7 @@ class ListCrawlExecutionsServiceTest {
             List<CrawlExecution> executions = List.of(CrawlExecutionFixture.aRunningExecution());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             CrawlExecutionResponse response =
                     new CrawlExecutionResponse(
                             1L,
@@ -189,7 +196,9 @@ class ListCrawlExecutionsServiceTest {
                             CrawlExecutionStatus.RUNNING,
                             null,
                             null,
-                            Instant.now(),
+                            now,
+                            null,
+                            now,
                             null);
             PageResponse<CrawlExecutionResponse> expectedResponse =
                     PageResponse.of(List.of(response), 0, 10, 1L, 1, true, true);

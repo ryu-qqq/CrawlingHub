@@ -3,12 +3,14 @@ package com.ryuqq.crawlinghub.domain.product.vo;
 /**
  * Product Outbox 상태
  *
- * <p><strong>상태 전환 규칙</strong>:
+ * <p><strong>상태 전환 규칙 (SQS 기반)</strong>:
  *
  * <pre>
- * PENDING → PROCESSING → COMPLETED
- *              ↓
- *           FAILED → PENDING (재시도)
+ * PENDING → SENT (SQS 발행 성공)
+ *    ↓         ↓
+ * FAILED   PROCESSING (SQS Consumer 처리 시작)
+ *    ↓         ↓
+ * PENDING   COMPLETED / FAILED
  * </pre>
  *
  * @author development-team
@@ -16,10 +18,13 @@ package com.ryuqq.crawlinghub.domain.product.vo;
  */
 public enum ProductOutboxStatus {
 
-    /** 처리 대기 중 */
+    /** 처리 대기 중 (SQS 발행 전) */
     PENDING,
 
-    /** 처리 진행 중 */
+    /** SQS 발행 완료 (Consumer 처리 대기) */
+    SENT,
+
+    /** 처리 진행 중 (Consumer가 처리 시작) */
     PROCESSING,
 
     /** 처리 완료 */
@@ -31,6 +36,11 @@ public enum ProductOutboxStatus {
     /** 대기 상태인지 확인 */
     public boolean isPending() {
         return this == PENDING;
+    }
+
+    /** SQS 발행 완료 상태인지 확인 */
+    public boolean isSent() {
+        return this == SENT;
     }
 
     /** 진행 중인지 확인 */

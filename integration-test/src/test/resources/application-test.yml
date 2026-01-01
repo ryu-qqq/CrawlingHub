@@ -80,6 +80,11 @@ logging:
 # AWS SQS Configuration (for Worker tests)
 # ===============================================
 # Queue URLs and credentials are injected via DynamicPropertySource
+app:
+  messaging:
+    sqs:
+      enabled: true
+
 aws:
   sqs:
     listener:

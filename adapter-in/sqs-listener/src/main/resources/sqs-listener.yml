@@ -18,9 +18,21 @@ spring:
 
 aws:
   sqs:
+    # ========================================
+    # Queue URLs (from Terraform SSM Parameters)
+    # ========================================
+    # CrawlTask Queue: receives tasks from aws-sqs module
+    crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
+
+    # ProductImage Queue: receives image upload tasks
+    product-image-queue-url: ${SQS_PRODUCT_IMAGE_QUEUE_URL:}
+
+    # ProductSync Queue: receives external product sync tasks
+    product-sync-queue-url: ${SQS_PRODUCT_SYNC_QUEUE_URL:}
+
     listener:
       # ========================================
-      # Queue URLs (from Terraform SSM Parameters)
+      # Queue URLs (for backward compatibility)
       # ========================================
       # CrawlTask Queue: receives tasks from aws-sqs module
       crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
@@ -38,6 +50,18 @@ aws:
       crawl-task-listener-enabled: true
       event-bridge-trigger-listener-enabled: true
       crawl-task-dlq-listener-enabled: true
+
+# ========================================
+# Scheduler Configuration (Backup for EventListener failures)
+# ========================================
+scheduler:
+  # EventListener 발행 실패 시 백업 재처리용 (기본값: true)
+  image-outbox-sqs:
+    enabled: ${SCHEDULER_IMAGE_OUTBOX_SQS_ENABLED:true}
+    fixed-delay: 30000
+  sync-outbox-sqs:
+    enabled: ${SCHEDULER_SYNC_OUTBOX_SQS_ENABLED:true}
+    fixed-delay: 30000
 
 logging:
   level:

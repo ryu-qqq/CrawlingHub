@@ -3,9 +3,13 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJpaEntity;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.BrowserType;
+import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceBrand;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
+import com.ryuqq.crawlinghub.domain.useragent.vo.OsType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -54,6 +58,9 @@ public class UserAgentJpaEntityMapper {
      * <ul>
      *   <li>ID: Domain.getId().value() → Entity.id (null 가능)
      *   <li>Token: Domain.getToken().encryptedValue() → Entity.token
+     *   <li>DeviceType: Domain.getDeviceType().getTypeName() → Entity.deviceType
+     *   <li>Metadata: Domain.getMetadata() → Entity.deviceBrand, osType, osVersion, browserType,
+     *       browserVersion
      *   <li>Status: Domain.getStatus() → Entity.status
      *   <li>HealthScore: Domain.getHealthScoreValue() → Entity.healthScore
      *   <li>LastUsedAt: Domain.getLastUsedAt() → Entity.lastUsedAt (null 가능)
@@ -66,11 +73,17 @@ public class UserAgentJpaEntityMapper {
      * @return UserAgentJpaEntity
      */
     public UserAgentJpaEntity toEntity(UserAgent domain) {
+        UserAgentMetadata metadata = domain.getMetadata();
         return UserAgentJpaEntity.of(
                 domain.getId().value(),
                 domain.getToken().encryptedValue(),
                 domain.getUserAgentString().value(),
                 domain.getDeviceType().getTypeName(),
+                metadata.getDeviceBrand().name(),
+                metadata.getOsType().name(),
+                metadata.getOsVersion(),
+                metadata.getBrowserType().name(),
+                metadata.getBrowserVersion(),
                 domain.getStatus(),
                 domain.getHealthScoreValue(),
                 toLocalDateTime(domain.getLastUsedAt()),
@@ -94,6 +107,9 @@ public class UserAgentJpaEntityMapper {
      * <ul>
      *   <li>ID: Entity.id → Domain.UserAgentId
      *   <li>Token: Entity.token → Domain.Token
+     *   <li>DeviceType: Entity.deviceType → Domain.DeviceType
+     *   <li>Metadata: Entity.deviceBrand, osType, osVersion, browserType, browserVersion →
+     *       Domain.UserAgentMetadata
      *   <li>Status: Entity.status → Domain.UserAgentStatus
      *   <li>HealthScore: Entity.healthScore → Domain.HealthScore
      *   <li>LastUsedAt: Entity.lastUsedAt → Domain.lastUsedAt
@@ -105,11 +121,20 @@ public class UserAgentJpaEntityMapper {
      * @return UserAgent 도메인
      */
     public UserAgent toDomain(UserAgentJpaEntity entity) {
+        UserAgentMetadata metadata =
+                UserAgentMetadata.of(
+                        DeviceBrand.valueOf(entity.getDeviceBrand()),
+                        OsType.valueOf(entity.getOsType()),
+                        entity.getOsVersion(),
+                        BrowserType.valueOf(entity.getBrowserType()),
+                        entity.getBrowserVersion());
+
         return UserAgent.reconstitute(
                 UserAgentId.of(entity.getId()),
                 Token.of(entity.getToken()),
                 UserAgentString.of(entity.getUserAgentString()),
                 DeviceType.of(entity.getDeviceType()),
+                metadata,
                 entity.getStatus(),
                 HealthScore.of(entity.getHealthScore()),
                 toInstant(entity.getLastUsedAt()),

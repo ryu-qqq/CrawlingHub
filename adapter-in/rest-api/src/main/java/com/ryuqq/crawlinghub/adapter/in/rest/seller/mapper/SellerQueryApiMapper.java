@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SchedulerSummaryApiResponse;
@@ -152,7 +154,9 @@ public class SellerQueryApiMapper {
                 appResponse.sellerId(),
                 appResponse.mustItSellerName(),
                 appResponse.sellerName(),
-                statusName);
+                statusName,
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**

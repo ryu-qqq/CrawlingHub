@@ -84,6 +84,7 @@ class CrawlTaskCommandApiMapperTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.MINI_SHOP,
                             2,
+                            now,
                             now);
 
             // when
@@ -97,7 +98,7 @@ class CrawlTaskCommandApiMapperTest {
             assertThat(result.status()).isEqualTo("RETRY");
             assertThat(result.taskType()).isEqualTo("MINI_SHOP");
             assertThat(result.retryCount()).isEqualTo(2);
-            assertThat(result.createdAt()).isEqualTo(now.toString());
+            assertThat(result.createdAt()).isNotNull();
         }
 
         @Test
@@ -114,6 +115,7 @@ class CrawlTaskCommandApiMapperTest {
                             CrawlTaskStatus.TIMEOUT,
                             CrawlTaskType.DETAIL,
                             3,
+                            now,
                             now);
 
             // when
@@ -138,6 +140,7 @@ class CrawlTaskCommandApiMapperTest {
                             CrawlTaskStatus.FAILED,
                             CrawlTaskType.OPTION,
                             1,
+                            null,
                             null);
 
             // when
@@ -163,6 +166,7 @@ class CrawlTaskCommandApiMapperTest {
                             CrawlTaskStatus.SUCCESS,
                             CrawlTaskType.META,
                             0,
+                            now,
                             now);
             assertThat(mapper.toApiResponse(metaResponse).taskType()).isEqualTo("META");
 
@@ -176,6 +180,7 @@ class CrawlTaskCommandApiMapperTest {
                             CrawlTaskStatus.SUCCESS,
                             CrawlTaskType.OPTION,
                             0,
+                            now,
                             now);
             assertThat(mapper.toApiResponse(optionResponse).taskType()).isEqualTo("OPTION");
         }

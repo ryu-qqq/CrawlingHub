@@ -65,7 +65,9 @@ public class CrawlExecutionAssembler {
                 result != null ? result.httpStatusCode() : null,
                 duration != null ? duration.durationMs() : null,
                 duration != null ? duration.startedAt() : null,
-                duration != null ? duration.completedAt() : null);
+                duration != null ? duration.completedAt() : null,
+                execution.getCreatedAt(),
+                null); // updatedAt: domain 모델에 미존재, 향후 추가 예정
     }
 
     /**
@@ -89,7 +91,9 @@ public class CrawlExecutionAssembler {
                 result != null ? result.errorMessage() : null,
                 duration != null ? duration.durationMs() : null,
                 duration != null ? duration.startedAt() : null,
-                duration != null ? duration.completedAt() : null);
+                duration != null ? duration.completedAt() : null,
+                execution.getCreatedAt(),
+                null); // updatedAt: domain 모델에 미존재, 향후 추가 예정
     }
 
     /**

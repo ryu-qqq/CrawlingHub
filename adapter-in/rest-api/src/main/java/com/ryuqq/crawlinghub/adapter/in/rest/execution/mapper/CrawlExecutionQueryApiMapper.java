@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.execution.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.query.SearchCrawlExecutionsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.response.CrawlExecutionApiResponse;
@@ -10,7 +12,6 @@ import com.ryuqq.crawlinghub.application.execution.dto.query.ListCrawlExecutions
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionDetailResponse;
 import com.ryuqq.crawlinghub.application.execution.dto.response.CrawlExecutionResponse;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -95,8 +96,10 @@ public class CrawlExecutionQueryApiMapper {
                 appResponse.status() != null ? appResponse.status().name() : null,
                 appResponse.httpStatusCode(),
                 appResponse.durationMs(),
-                toIsoString(appResponse.startedAt()),
-                toIsoString(appResponse.completedAt()));
+                format(appResponse.startedAt()),
+                format(appResponse.completedAt()),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -117,8 +120,10 @@ public class CrawlExecutionQueryApiMapper {
                 appResponse.responseBody(),
                 appResponse.errorMessage(),
                 appResponse.durationMs(),
-                toIsoString(appResponse.startedAt()),
-                toIsoString(appResponse.completedAt()));
+                format(appResponse.startedAt()),
+                format(appResponse.completedAt()),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -140,18 +145,5 @@ public class CrawlExecutionQueryApiMapper {
                 pageResponse.totalPages(),
                 pageResponse.first(),
                 pageResponse.last());
-    }
-
-    /**
-     * Instant → ISO-8601 String 변환
-     *
-     * @param instant Instant 시각
-     * @return ISO-8601 형식 문자열 (null 안전)
-     */
-    private String toIsoString(Instant instant) {
-        if (instant == null) {
-            return null;
-        }
-        return instant.toString();
     }
 }

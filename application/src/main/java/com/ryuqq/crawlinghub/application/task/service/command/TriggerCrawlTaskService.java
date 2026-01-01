@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.application.task.service.command;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
-import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
+import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;

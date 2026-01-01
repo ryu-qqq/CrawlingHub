@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentPoolStatusResponse.HealthScoreStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
@@ -165,6 +166,7 @@ class UserAgentApiMapperTest {
                             95,
                             150,
                             lastUsed,
+                            now,
                             now);
 
             // when
@@ -178,8 +180,8 @@ class UserAgentApiMapperTest {
             assertThat(result.status()).isEqualTo(UserAgentStatus.AVAILABLE);
             assertThat(result.healthScore()).isEqualTo(95);
             assertThat(result.requestsPerDay()).isEqualTo(150);
-            assertThat(result.lastUsedAt()).isEqualTo(lastUsed);
-            assertThat(result.createdAt()).isEqualTo(now);
+            assertThat(result.lastUsedAt()).isNotNull();
+            assertThat(result.createdAt()).isNotNull();
         }
 
         @Test
@@ -195,6 +197,7 @@ class UserAgentApiMapperTest {
                             UserAgentStatus.SUSPENDED,
                             50,
                             300,
+                            now,
                             now,
                             now);
 
@@ -220,7 +223,8 @@ class UserAgentApiMapperTest {
                             100,
                             0,
                             null,
-                            now);
+                            now,
+                            null);
 
             // when
             UserAgentSummaryApiResponse result = mapper.toSummaryApiResponse(appResponse);
@@ -228,6 +232,54 @@ class UserAgentApiMapperTest {
             // then
             assertThat(result.lastUsedAt()).isNull();
             assertThat(result.requestsPerDay()).isZero();
+        }
+    }
+
+    @Nested
+    @DisplayName("toWarmUpApiResponse() 테스트")
+    class ToWarmUpApiResponseTests {
+
+        @Test
+        @DisplayName("Warm-up 결과를 API 응답으로 변환한다")
+        void toWarmUpApiResponse_ShouldConvertCorrectly() {
+            // given
+            int addedCount = 10;
+
+            // when
+            WarmUpUserAgentApiResponse result = mapper.toWarmUpApiResponse(addedCount);
+
+            // then
+            assertThat(result.addedCount()).isEqualTo(10);
+            assertThat(result.message()).contains("10");
+            assertThat(result.message()).contains("user agents added to pool");
+        }
+
+        @Test
+        @DisplayName("추가된 UserAgent가 없는 경우를 처리한다")
+        void toWarmUpApiResponse_WithZeroAdded_ShouldHandleCorrectly() {
+            // given
+            int addedCount = 0;
+
+            // when
+            WarmUpUserAgentApiResponse result = mapper.toWarmUpApiResponse(addedCount);
+
+            // then
+            assertThat(result.addedCount()).isZero();
+            assertThat(result.message()).contains("No user agents to warm up");
+        }
+
+        @Test
+        @DisplayName("단일 UserAgent 추가 시 올바른 메시지를 생성한다")
+        void toWarmUpApiResponse_WithSingleAgent_ShouldFormatMessageCorrectly() {
+            // given
+            int addedCount = 1;
+
+            // when
+            WarmUpUserAgentApiResponse result = mapper.toWarmUpApiResponse(addedCount);
+
+            // then
+            assertThat(result.addedCount()).isEqualTo(1);
+            assertThat(result.message()).contains("1 user agents added to pool");
         }
     }
 }

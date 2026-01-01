@@ -1,8 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response;
 
-import com.ryuqq.crawlinghub.application.product.dto.response.ProductSyncOutboxResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.Instant;
 
 /**
  * ProductSyncOutbox API 응답
@@ -18,8 +16,9 @@ import java.time.Instant;
  * @param retryCount 재시도 횟수
  * @param errorMessage 에러 메시지 (nullable)
  * @param canRetry 재시도 가능 여부
- * @param createdAt 생성 시각
- * @param processedAt 처리 시각 (nullable)
+ * @param createdAt 생성 시각 (yyyy-MM-dd HH:mm:ss 형식)
+ * @param updatedAt 수정 시각 (yyyy-MM-dd HH:mm:ss 형식)
+ * @param processedAt 처리 시각 (yyyy-MM-dd HH:mm:ss 형식, nullable)
  * @author development-team
  * @since 1.0.0
  */
@@ -36,23 +35,9 @@ public record ProductSyncOutboxApiResponse(
         @Schema(description = "재시도 횟수", example = "0") int retryCount,
         @Schema(description = "에러 메시지") String errorMessage,
         @Schema(description = "재시도 가능 여부", example = "true") boolean canRetry,
-        @Schema(description = "생성 시각", example = "2024-01-15T10:30:00Z") Instant createdAt,
-        @Schema(description = "처리 시각") Instant processedAt) {
-
-    public static ProductSyncOutboxApiResponse from(ProductSyncOutboxResponse response) {
-        return new ProductSyncOutboxApiResponse(
-                response.id(),
-                response.crawledProductId(),
-                response.sellerId(),
-                response.itemNo(),
-                response.syncType(),
-                response.idempotencyKey(),
-                response.externalProductId(),
-                response.status().name(),
-                response.retryCount(),
-                response.errorMessage(),
-                response.canRetry(),
-                response.createdAt(),
-                response.processedAt());
-    }
-}
+        @Schema(description = "생성 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String createdAt,
+        @Schema(description = "수정 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String updatedAt,
+        @Schema(description = "처리 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String processedAt) {}

@@ -325,3 +325,37 @@ Content-Type: application/json
 }
 ----
 
+[[resources-useragent-warmup]]
+=== UserAgent Pool Warm-up
+
+`POST /api/v1/crawling/user-agents/warmup`
+
+AVAILABLE 상태의 UserAgent를 Redis Pool에 추가합니다.
+
+Warm-up 동작:
+
+* DB에서 AVAILABLE 상태 UserAgent 조회
+* Redis Pool에 없는 UserAgent만 추가
+* Lazy Token Issuance - 세션은 소비 시점에 발급
+
+==== Request Example
+
+include::{snippets}/useragent-command/warmup/http-request.adoc[]
+
+==== Response Example
+
+include::{snippets}/useragent-command/warmup/http-response.adoc[]
+
+==== Response Fields
+
+include::{snippets}/useragent-command/warmup/response-fields.adoc[]
+
+[[resources-useragent-warmup-no-agents]]
+=== UserAgent Pool Warm-up (대상 없음)
+
+`POST /api/v1/crawling/user-agents/warmup` (추가할 UserAgent가 없는 경우)
+
+==== Response Example
+
+include::{snippets}/useragent-command/warmup-no-agents/http-response.adoc[]
+

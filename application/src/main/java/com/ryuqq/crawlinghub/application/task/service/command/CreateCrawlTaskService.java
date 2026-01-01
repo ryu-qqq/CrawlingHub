@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
-import com.ryuqq.crawlinghub.application.task.dto.CrawlTaskBundle;
+import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;

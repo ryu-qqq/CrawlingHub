@@ -14,7 +14,7 @@ import com.ryuqq.crawlinghub.application.crawl.processor.CrawlResultProcessorPro
 import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionTransactionManager;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.CreateCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;

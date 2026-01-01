@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.query;
 
 import com.ryuqq.crawlinghub.application.product.dto.response.ProductImageOutboxWithImageResponse;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductImageOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
 import java.util.List;
@@ -68,6 +69,24 @@ public interface ImageOutboxQueryPort {
      * @return 재시도 가능한 ImageOutbox 목록
      */
     List<ProductImageOutbox> findRetryableOutboxes(int maxRetryCount, int limit);
+
+    /**
+     * Criteria 기반 ImageOutbox 조회 (SQS 스케줄러용)
+     *
+     * <p>ProductImageOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
+     *
+     * @param criteria 조회 조건 VO
+     * @return ImageOutbox 목록
+     */
+    List<ProductImageOutbox> findByCriteria(ProductImageOutboxCriteria criteria);
+
+    /**
+     * Criteria 기반 ImageOutbox 개수 조회
+     *
+     * @param criteria 조회 조건 VO
+     * @return 총 개수
+     */
+    long countByCriteria(ProductImageOutboxCriteria criteria);
 
     /**
      * 조건으로 ImageOutbox 목록 검색 (페이징)
