@@ -1,10 +1,9 @@
 package com.ryuqq.crawlinghub.application.product.listener;
 
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.image.manager.messaging.ProductImageMessageManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
-import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient;
-import com.ryuqq.crawlinghub.application.product.port.out.client.FileServerClient.ImageUploadRequest;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
@@ -23,20 +22,19 @@ import org.springframework.stereotype.Component;
 /**
  * 이미지 업로드 요청 이벤트 리스너
  *
- * <p><strong>용도</strong>: 트랜잭션 커밋 후 파일서버 API 호출 및 Outbox 상태 업데이트
+ * <p><strong>용도</strong>: 트랜잭션 커밋 후 SQS로 메시지 발행
  *
- * <p><strong>처리 흐름</strong>:
+ * <p><strong>Transactional Outbox 패턴</strong>:
  *
  * <ol>
  *   <li>이벤트 수신 (트랜잭션 커밋 후)
- *   <li>이벤트의 originalUrl로 이미지 조회
- *   <li>이미지 ID로 Outbox 조회
- *   <li>각 Outbox에 대해 상태 PROCESSING으로 변경
- *   <li>파일서버 API 호출 (비동기 업로드 요청)
- *   <li>실패 시: Outbox 상태 → FAILED (재시도 스케줄러에서 처리)
+ *   <li>Outbox 조회
+ *   <li>SQS로 메시지 발행 시도
+ *   <li>성공 시: SENT 상태로 전환
+ *   <li>실패 시: PENDING 유지 → 스케줄러에서 재처리
  * </ol>
  *
- * <p><strong>완료 처리</strong>: 파일서버 웹훅에서 완료 콜백 수신
+ * <p><strong>실패 복구</strong>: 스케줄러가 PENDING/FAILED 상태 Outbox를 주기적으로 재처리
  *
  * @author development-team
  * @since 1.0.0
@@ -49,17 +47,17 @@ public class ImageUploadEventListener {
     private final CrawledProductImageReadManager imageReadManager;
     private final ProductImageOutboxReadManager outboxReadManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
-    private final FileServerClient fileServerClient;
+    private final ProductImageMessageManager messageManager;
 
     public ImageUploadEventListener(
             CrawledProductImageReadManager imageReadManager,
             ProductImageOutboxReadManager outboxReadManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
-            FileServerClient fileServerClient) {
+            ProductImageMessageManager messageManager) {
         this.imageReadManager = imageReadManager;
         this.outboxReadManager = outboxReadManager;
         this.outboxTransactionManager = outboxTransactionManager;
-        this.fileServerClient = fileServerClient;
+        this.messageManager = messageManager;
     }
 
     /**
@@ -94,7 +92,9 @@ public class ImageUploadEventListener {
                                         Function.identity(),
                                         (existing, replacement) -> existing));
 
-        int processedCount = 0;
+        int publishedCount = 0;
+        int failedCount = 0;
+
         for (String originalUrl : originalUrls) {
             CrawledProductImage image = imageByUrl.get(originalUrl);
             if (image == null) {
@@ -116,53 +116,51 @@ public class ImageUploadEventListener {
                 continue;
             }
 
-            processOutbox(outboxOpt.get(), image);
-            processedCount++;
+            boolean success = publishToSqs(outboxOpt.get());
+            if (success) {
+                publishedCount++;
+            } else {
+                failedCount++;
+            }
         }
 
         log.info(
-                "이미지 업로드 요청 이벤트 처리 완료: productId={}, processedCount={}",
+                "이미지 업로드 이벤트 처리 완료: productId={}, published={}, failed={} (스케줄러에서 재처리)",
                 productId.value(),
-                processedCount);
+                publishedCount,
+                failedCount);
     }
 
-    private void processOutbox(ProductImageOutbox outbox, CrawledProductImage image) {
+    /**
+     * SQS로 메시지 발행 및 상태 전환
+     *
+     * @param outbox 발행할 Outbox
+     * @return 발행 성공 여부
+     */
+    private boolean publishToSqs(ProductImageOutbox outbox) {
         try {
-            // 1. 상태 → PROCESSING
-            outboxTransactionManager.markAsProcessing(outbox);
+            // SQS 발행
+            messageManager.publish(outbox);
 
-            // 2. 파일서버 API 호출 (callbackUrl은 Adapter에서 관리)
-            ImageUploadRequest request =
-                    ImageUploadRequest.of(
-                            outbox.getIdempotencyKey(),
-                            image.getOriginalUrl(),
-                            image.getImageType().name());
+            // 발행 성공 → SENT 상태로 전환
+            outboxTransactionManager.markAsSent(outbox);
 
-            boolean success = fileServerClient.requestImageUpload(request);
+            log.debug(
+                    "SQS 발행 성공 → SENT: outboxId={}, imageId={}",
+                    outbox.getId(),
+                    outbox.getCrawledProductImageId());
 
-            if (!success) {
-                // API 호출 실패 → FAILED
-                outboxTransactionManager.markAsFailed(outbox, "FileServer API 호출 실패");
-                log.warn(
-                        "파일서버 API 호출 실패: outboxId={}, url={}",
-                        outbox.getId(),
-                        image.getOriginalUrl());
-            } else {
-                log.debug(
-                        "파일서버 API 호출 성공: outboxId={}, url={}",
-                        outbox.getId(),
-                        image.getOriginalUrl());
-            }
+            return true;
 
         } catch (Exception e) {
-            // 예외 발생 → FAILED
-            outboxTransactionManager.markAsFailed(outbox, e.getMessage());
-            log.error(
-                    "이미지 업로드 요청 처리 중 오류: outboxId={}, url={}, error={}",
+            // 발행 실패 → PENDING 유지 (스케줄러에서 재처리)
+            log.warn(
+                    "SQS 발행 실패 (스케줄러에서 재처리): outboxId={}, imageId={}, error={}",
                     outbox.getId(),
-                    image.getOriginalUrl(),
-                    e.getMessage(),
-                    e);
+                    outbox.getCrawledProductImageId(),
+                    e.getMessage());
+
+            return false;
         }
     }
 }

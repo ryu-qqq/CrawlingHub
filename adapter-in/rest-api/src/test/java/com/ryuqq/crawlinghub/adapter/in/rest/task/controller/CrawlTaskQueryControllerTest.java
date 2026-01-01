@@ -112,6 +112,7 @@ class CrawlTaskQueryControllerTest {
                                     CrawlTaskStatus.SUCCESS,
                                     CrawlTaskType.DETAIL,
                                     0,
+                                    now,
                                     now),
                             new CrawlTaskResponse(
                                     2L,
@@ -121,6 +122,7 @@ class CrawlTaskQueryControllerTest {
                                     CrawlTaskStatus.RUNNING,
                                     CrawlTaskType.DETAIL,
                                     0,
+                                    now,
                                     now));
 
             PageResponse<CrawlTaskResponse> useCasePageResponse =
@@ -136,6 +138,7 @@ class CrawlTaskQueryControllerTest {
                                     "SUCCESS",
                                     "DETAIL",
                                     0,
+                                    now.toString(),
                                     now.toString()),
                             new CrawlTaskApiResponse(
                                     2L,
@@ -145,6 +148,7 @@ class CrawlTaskQueryControllerTest {
                                     "RUNNING",
                                     "DETAIL",
                                     0,
+                                    now.toString(),
                                     now.toString()));
 
             PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
@@ -210,6 +214,7 @@ class CrawlTaskQueryControllerTest {
                                     CrawlTaskStatus.FAILED,
                                     CrawlTaskType.META,
                                     2,
+                                    now,
                                     now));
 
             PageResponse<CrawlTaskResponse> useCasePageResponse =
@@ -225,6 +230,7 @@ class CrawlTaskQueryControllerTest {
                                     "FAILED",
                                     "META",
                                     2,
+                                    now.toString(),
                                     now.toString()));
 
             PageApiResponse<CrawlTaskApiResponse> apiPageResponse =

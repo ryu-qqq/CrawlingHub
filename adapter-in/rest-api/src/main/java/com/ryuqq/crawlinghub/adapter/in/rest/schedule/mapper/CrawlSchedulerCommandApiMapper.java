@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateSchedulerStatusApiRequest;
@@ -9,7 +11,6 @@ import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSched
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,8 +84,8 @@ public class CrawlSchedulerCommandApiMapper {
                 appResponse.schedulerName(),
                 appResponse.cronExpression(),
                 appResponse.status().name(),
-                toIsoString(appResponse.createdAt()),
-                toIsoString(appResponse.updatedAt()));
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -114,10 +115,7 @@ public class CrawlSchedulerCommandApiMapper {
                 appResponse.status().name(),
                 appResponse.taskType().name(),
                 appResponse.retryCount(),
-                toIsoString(appResponse.createdAt()));
-    }
-
-    private String toIsoString(Instant instant) {
-        return instant != null ? instant.toString() : null;
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 }

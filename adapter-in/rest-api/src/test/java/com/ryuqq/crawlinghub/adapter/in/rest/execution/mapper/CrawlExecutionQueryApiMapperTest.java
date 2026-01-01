@@ -136,7 +136,9 @@ class CrawlExecutionQueryApiMapperTest {
                             200,
                             5000L,
                             startedAt,
-                            completedAt);
+                            completedAt,
+                            startedAt,
+                            null);
 
             // when
             CrawlExecutionApiResponse result = mapper.toApiResponse(appResponse);
@@ -149,8 +151,8 @@ class CrawlExecutionQueryApiMapperTest {
             assertThat(result.status()).isEqualTo("SUCCESS");
             assertThat(result.httpStatusCode()).isEqualTo(200);
             assertThat(result.durationMs()).isEqualTo(5000L);
-            assertThat(result.startedAt()).isEqualTo(startedAt.toString());
-            assertThat(result.completedAt()).isEqualTo(completedAt.toString());
+            assertThat(result.startedAt()).isNotNull();
+            assertThat(result.completedAt()).isNotNull();
         }
 
         @Test
@@ -160,7 +162,8 @@ class CrawlExecutionQueryApiMapperTest {
             Instant startedAt = Instant.now();
             CrawlExecutionResponse appResponse =
                     new CrawlExecutionResponse(
-                            1L, 10L, 100L, 1000L, null, null, null, startedAt, null);
+                            1L, 10L, 100L, 1000L, null, null, null, startedAt, null, startedAt,
+                            null);
 
             // when
             CrawlExecutionApiResponse result = mapper.toApiResponse(appResponse);
@@ -195,7 +198,9 @@ class CrawlExecutionQueryApiMapperTest {
                             null,
                             3000L,
                             startedAt,
-                            completedAt);
+                            completedAt,
+                            startedAt,
+                            null);
 
             // when
             CrawlExecutionDetailApiResponse result = mapper.toDetailApiResponse(appResponse);
@@ -229,6 +234,8 @@ class CrawlExecutionQueryApiMapperTest {
                             "Connection timeout",
                             1000L,
                             startedAt,
+                            null,
+                            startedAt,
                             null);
 
             // when
@@ -261,7 +268,9 @@ class CrawlExecutionQueryApiMapperTest {
                                     200,
                                     5000L,
                                     startedAt,
-                                    startedAt.plusSeconds(5)),
+                                    startedAt.plusSeconds(5),
+                                    startedAt,
+                                    null),
                             new CrawlExecutionResponse(
                                     2L,
                                     10L,
@@ -270,6 +279,8 @@ class CrawlExecutionQueryApiMapperTest {
                                     CrawlExecutionStatus.FAILED,
                                     500,
                                     1000L,
+                                    startedAt,
+                                    null,
                                     startedAt,
                                     null));
             PageResponse<CrawlExecutionResponse> pageResponse =

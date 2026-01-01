@@ -221,6 +221,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "커머스 셀러1",
                                 true,
                                 Instant.parse("2025-11-19T10:30:00Z"),
+                                Instant.parse("2025-11-19T10:30:00Z"),
                                 2,
                                 3,
                                 "COMPLETED",
@@ -232,6 +233,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "커머스 셀러2",
                                 false,
                                 Instant.parse("2025-11-19T10:30:00Z"),
+                                null,
                                 0,
                                 0,
                                 null,
@@ -243,8 +245,20 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
 
         List<SellerSummaryApiResponse> apiContent =
                 List.of(
-                        new SellerSummaryApiResponse(1L, "머스트잇 셀러1", "커머스 셀러1", "ACTIVE"),
-                        new SellerSummaryApiResponse(2L, "머스트잇 셀러2", "커머스 셀러2", "INACTIVE"));
+                        new SellerSummaryApiResponse(
+                                1L,
+                                "머스트잇 셀러1",
+                                "커머스 셀러1",
+                                "ACTIVE",
+                                "2025-11-19 19:30:00",
+                                "2025-11-19 19:30:00"),
+                        new SellerSummaryApiResponse(
+                                2L,
+                                "머스트잇 셀러2",
+                                "커머스 셀러2",
+                                "INACTIVE",
+                                "2025-11-19 19:30:00",
+                                null));
 
         PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -304,6 +318,13 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
                                                 .description("상태 (ACTIVE/INACTIVE)"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),

@@ -59,6 +59,7 @@ class GetUserAgentsServiceTest {
                                     95,
                                     150,
                                     now,
+                                    now,
                                     now),
                             UserAgentSummaryResponse.of(
                                     2L,
@@ -67,6 +68,7 @@ class GetUserAgentsServiceTest {
                                     UserAgentStatus.SUSPENDED,
                                     60,
                                     80,
+                                    now,
                                     now,
                                     now));
 
@@ -104,6 +106,7 @@ class GetUserAgentsServiceTest {
                                     UserAgentStatus.AVAILABLE,
                                     95,
                                     150,
+                                    now,
                                     now,
                                     now));
 
@@ -161,6 +164,7 @@ class GetUserAgentsServiceTest {
                                     88,
                                     120,
                                     now,
+                                    now,
                                     now));
 
             PageResponse<UserAgentSummaryResponse> expectedResponse =
@@ -197,6 +201,7 @@ class GetUserAgentsServiceTest {
                                     UserAgentStatus.SUSPENDED,
                                     45,
                                     200,
+                                    now,
                                     now,
                                     now));
 

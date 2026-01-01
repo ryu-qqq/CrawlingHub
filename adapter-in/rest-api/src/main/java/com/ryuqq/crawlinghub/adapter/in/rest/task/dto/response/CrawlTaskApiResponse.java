@@ -46,4 +46,6 @@ public record CrawlTaskApiResponse(
                 String taskType,
         @Schema(description = "재시도 횟수", example = "0") int retryCount,
         @Schema(description = "생성 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
-                String createdAt) {}
+                String createdAt,
+        @Schema(description = "수정 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String updatedAt) {}

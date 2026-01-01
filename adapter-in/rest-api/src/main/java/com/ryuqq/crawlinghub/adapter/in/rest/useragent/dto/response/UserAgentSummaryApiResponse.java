@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.Instant;
 
 /**
  * UserAgent 요약 정보 API 응답 DTO
@@ -16,8 +15,9 @@ import java.time.Instant;
  * @param status 현재 상태
  * @param healthScore 건강 점수 (0-100)
  * @param requestsPerDay 일일 요청 수
- * @param lastUsedAt 마지막 사용 시각
- * @param createdAt 생성 시각
+ * @param lastUsedAt 마지막 사용 시각 (yyyy-MM-dd HH:mm:ss 형식)
+ * @param createdAt 생성 시각 (yyyy-MM-dd HH:mm:ss 형식)
+ * @param updatedAt 수정 시각 (yyyy-MM-dd HH:mm:ss 형식)
  * @author development-team
  * @since 1.0.0
  */
@@ -32,5 +32,9 @@ public record UserAgentSummaryApiResponse(
         @Schema(description = "현재 상태", example = "AVAILABLE") UserAgentStatus status,
         @Schema(description = "건강 점수 (0-100)", example = "85") int healthScore,
         @Schema(description = "일일 요청 수", example = "150") int requestsPerDay,
-        @Schema(description = "마지막 사용 시각") Instant lastUsedAt,
-        @Schema(description = "생성 시각") Instant createdAt) {}
+        @Schema(description = "마지막 사용 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String lastUsedAt,
+        @Schema(description = "생성 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String createdAt,
+        @Schema(description = "수정 시각 (Asia/Seoul)", example = "2025-01-15 09:30:00")
+                String updatedAt) {}

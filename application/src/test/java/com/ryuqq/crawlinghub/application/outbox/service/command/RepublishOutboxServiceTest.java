@@ -7,10 +7,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.ryuqq.crawlinghub.application.outbox.dto.response.RepublishResultResponse;
-import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxTransactionManager;
-import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessagePort;
-import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
+import com.ryuqq.crawlinghub.application.task.dto.response.RepublishResultResponse;
+import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
+import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
+import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskOutboxReadManager;
+import com.ryuqq.crawlinghub.application.task.service.command.RepublishOutboxService;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
@@ -38,16 +39,17 @@ class RepublishOutboxServiceTest {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-15T10:00:00Z");
 
-    @Mock private CrawlTaskOutboxQueryPort outboxQueryPort;
+    @Mock private CrawlTaskOutboxReadManager outboxReadManager;
     @Mock private CrawlTaskOutboxTransactionManager outboxTransactionManager;
-    @Mock private CrawlTaskMessagePort messagePort;
+    @Mock private CrawlTaskMessageManager messageManager;
 
     private RepublishOutboxService service;
 
     @BeforeEach
     void setUp() {
         service =
-                new RepublishOutboxService(outboxQueryPort, outboxTransactionManager, messagePort);
+                new RepublishOutboxService(
+                        outboxReadManager, outboxTransactionManager, messageManager);
     }
 
     @Nested
@@ -60,7 +62,7 @@ class RepublishOutboxServiceTest {
             // Given
             Long crawlTaskId = 1L;
             CrawlTaskOutbox outbox = createPendingOutbox(crawlTaskId);
-            given(outboxQueryPort.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
+            given(outboxReadManager.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
                     .willReturn(Optional.of(outbox));
 
             // When
@@ -70,7 +72,7 @@ class RepublishOutboxServiceTest {
             assertThat(result.success()).isTrue();
             assertThat(result.crawlTaskId()).isEqualTo(crawlTaskId);
             assertThat(result.message()).contains("재발행이 완료");
-            verify(messagePort).publishFromOutbox(outbox);
+            verify(messageManager).publishFromOutbox(outbox);
             verify(outboxTransactionManager).markAsSent(outbox);
         }
 
@@ -79,7 +81,7 @@ class RepublishOutboxServiceTest {
         void shouldFailWhenOutboxNotFound() {
             // Given
             Long crawlTaskId = 1L;
-            given(outboxQueryPort.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
+            given(outboxReadManager.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
                     .willReturn(Optional.empty());
 
             // When
@@ -89,7 +91,7 @@ class RepublishOutboxServiceTest {
             assertThat(result.success()).isFalse();
             assertThat(result.crawlTaskId()).isEqualTo(crawlTaskId);
             assertThat(result.message()).contains("Outbox를 찾을 수 없습니다");
-            verifyNoInteractions(messagePort);
+            verifyNoInteractions(messageManager);
             verifyNoInteractions(outboxTransactionManager);
         }
 
@@ -99,7 +101,7 @@ class RepublishOutboxServiceTest {
             // Given
             Long crawlTaskId = 1L;
             CrawlTaskOutbox outbox = createSentOutbox(crawlTaskId);
-            given(outboxQueryPort.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
+            given(outboxReadManager.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
                     .willReturn(Optional.of(outbox));
 
             // When
@@ -109,7 +111,7 @@ class RepublishOutboxServiceTest {
             assertThat(result.success()).isFalse();
             assertThat(result.crawlTaskId()).isEqualTo(crawlTaskId);
             assertThat(result.message()).contains("이미 발행 완료된");
-            verifyNoInteractions(messagePort);
+            verifyNoInteractions(messageManager);
             verifyNoInteractions(outboxTransactionManager);
         }
 
@@ -119,10 +121,10 @@ class RepublishOutboxServiceTest {
             // Given
             Long crawlTaskId = 1L;
             CrawlTaskOutbox outbox = createPendingOutbox(crawlTaskId);
-            given(outboxQueryPort.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
+            given(outboxReadManager.findByCrawlTaskId(CrawlTaskId.of(crawlTaskId)))
                     .willReturn(Optional.of(outbox));
             doThrow(new RuntimeException("SQS 연결 실패"))
-                    .when(messagePort)
+                    .when(messageManager)
                     .publishFromOutbox(any(CrawlTaskOutbox.class));
 
             // When

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
-import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadRetryResult;
+import com.ryuqq.crawlinghub.application.image.dto.response.ImageUploadRetryResponse;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxReadManager;
@@ -55,12 +55,12 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
     }
 
     @Override
-    public ImageUploadRetryResult execute() {
+    public ImageUploadRetryResponse execute() {
         List<ProductImageOutbox> retryableOutboxes =
                 outboxReadManager.findRetryableOutboxes(MAX_RETRY_COUNT, BATCH_SIZE);
 
         if (retryableOutboxes.isEmpty()) {
-            return ImageUploadRetryResult.empty();
+            return ImageUploadRetryResponse.empty();
         }
 
         log.info("이미지 업로드 재시도 시작: {} 건", retryableOutboxes.size());
@@ -79,7 +79,7 @@ public class RetryImageUploadService implements RetryImageUploadUseCase {
         }
 
         boolean hasMore = retryableOutboxes.size() >= BATCH_SIZE;
-        return ImageUploadRetryResult.of(retryableOutboxes.size(), succeeded, failed, hasMore);
+        return ImageUploadRetryResponse.of(retryableOutboxes.size(), succeeded, failed, hasMore);
     }
 
     private void processOutbox(ProductImageOutbox outbox) {

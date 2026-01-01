@@ -11,7 +11,6 @@ import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQuery
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -191,6 +190,7 @@ class SearchProductImageOutboxServiceTest {
             SearchProductImageOutboxQuery query =
                     new SearchProductImageOutboxQuery(null, null, statuses, null, null, 0, 10);
 
+            Instant testNow = Instant.now();
             ProductImageOutboxWithImageResponse responseWithNulls =
                     ProductImageOutboxWithImageResponse.of(
                             1L,
@@ -199,8 +199,9 @@ class SearchProductImageOutboxServiceTest {
                             ProductOutboxStatus.FAILED,
                             3,
                             "Upload failed",
-                            LocalDateTime.now(),
-                            LocalDateTime.now(),
+                            testNow,
+                            null, // updatedAt
+                            testNow, // processedAt
                             null, // crawledProductId null
                             null, // originalUrl null
                             null, // s3Url null
@@ -289,8 +290,9 @@ class SearchProductImageOutboxServiceTest {
                 ProductOutboxStatus.PENDING,
                 0,
                 null,
-                LocalDateTime.now(),
-                null,
+                Instant.now(),
+                null, // updatedAt
+                null, // processedAt
                 50L,
                 "https://example.com/image.jpg",
                 "https://s3.example.com/image.jpg",

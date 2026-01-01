@@ -88,9 +88,21 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
         List<CrawlSchedulerSummaryApiResponse> apiContent =
                 List.of(
                         new CrawlSchedulerSummaryApiResponse(
-                                1L, 1L, "daily-crawl", "0 0 9 * * ?", "ACTIVE"),
+                                1L,
+                                1L,
+                                "daily-crawl",
+                                "0 0 9 * * ?",
+                                "ACTIVE",
+                                "2025-11-20 10:30:00",
+                                null),
                         new CrawlSchedulerSummaryApiResponse(
-                                2L, 1L, "hourly-crawl", "0 0 * * * ?", "INACTIVE"));
+                                2L,
+                                1L,
+                                "hourly-crawl",
+                                "0 0 * * * ?",
+                                "INACTIVE",
+                                "2025-11-19 15:00:00",
+                                "2025-11-20 09:00:00"));
 
         PageApiResponse<CrawlSchedulerSummaryApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
@@ -152,6 +164,13 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
                                                 .description("상태 (ACTIVE/INACTIVE)"),
+                                        fieldWithPath("data.content[].createdAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("생성 시각"),
+                                        fieldWithPath("data.content[].updatedAt")
+                                                .type(JsonFieldType.STRING)
+                                                .description("수정 시각")
+                                                .optional(),
                                         fieldWithPath("data.page")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("현재 페이지 번호"),

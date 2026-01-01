@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.product.dto.response;
 
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * ProductImageOutbox + CrawledProductImage 응답 DTO
@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
  * @param errorMessage 에러 메시지 (nullable)
  * @param canRetry 재시도 가능 여부
  * @param createdAt 생성 시각
+ * @param updatedAt 수정 시각
  * @param processedAt 처리 시각 (nullable)
  * @param crawledProductId CrawledProduct ID (이미지 정보)
  * @param originalUrl 원본 이미지 URL (이미지 정보)
@@ -33,8 +34,9 @@ public record ProductImageOutboxWithImageResponse(
         int retryCount,
         String errorMessage,
         boolean canRetry,
-        LocalDateTime createdAt,
-        LocalDateTime processedAt,
+        Instant createdAt,
+        Instant updatedAt,
+        Instant processedAt,
         Long crawledProductId,
         String originalUrl,
         String s3Url,
@@ -50,6 +52,7 @@ public record ProductImageOutboxWithImageResponse(
      * @param retryCount 재시도 횟수
      * @param errorMessage 에러 메시지
      * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
      * @param processedAt 처리 시각
      * @param crawledProductId CrawledProduct ID
      * @param originalUrl 원본 이미지 URL
@@ -64,8 +67,9 @@ public record ProductImageOutboxWithImageResponse(
             ProductOutboxStatus status,
             int retryCount,
             String errorMessage,
-            LocalDateTime createdAt,
-            LocalDateTime processedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant processedAt,
             Long crawledProductId,
             String originalUrl,
             String s3Url,
@@ -80,6 +84,7 @@ public record ProductImageOutboxWithImageResponse(
                 errorMessage,
                 canRetry,
                 createdAt,
+                updatedAt,
                 processedAt,
                 crawledProductId,
                 originalUrl,

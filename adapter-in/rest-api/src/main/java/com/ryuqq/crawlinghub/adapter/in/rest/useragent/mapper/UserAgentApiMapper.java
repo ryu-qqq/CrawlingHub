@@ -1,8 +1,14 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper;
 
+import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils.format;
+
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.RegisterUserAgentApiRequest;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentMetadataApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.query.SearchUserAgentsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RecoverUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.RegisterUserAgentApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentMetadataApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UpdateUserAgentStatusApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse.PoolInfoApiResponse;
@@ -10,6 +16,8 @@ import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoo
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse.HealthScoreStatsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAgentApiResponse;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.RegisterUserAgentCommand;
+import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentMetadataCommand;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
@@ -101,8 +109,9 @@ public class UserAgentApiMapper {
                 appResponse.status(),
                 appResponse.healthScore(),
                 appResponse.requestsPerDay(),
-                appResponse.lastUsedAt(),
-                appResponse.createdAt());
+                format(appResponse.lastUsedAt()),
+                format(appResponse.createdAt()),
+                format(appResponse.updatedAt()));
     }
 
     /**
@@ -152,6 +161,61 @@ public class UserAgentApiMapper {
     public UpdateUserAgentStatusApiResponse toStatusUpdateApiResponse(
             int updatedCount, String status) {
         return UpdateUserAgentStatusApiResponse.of(updatedCount, status);
+    }
+
+    /**
+     * RegisterUserAgentApiRequest → RegisterUserAgentCommand 변환
+     *
+     * <p>User-Agent 문자열에서 자동으로 메타데이터를 파싱합니다.
+     *
+     * @param apiRequest API 등록 요청 DTO
+     * @return Application Layer Command DTO
+     */
+    public RegisterUserAgentCommand toCommand(RegisterUserAgentApiRequest apiRequest) {
+        return RegisterUserAgentCommand.withAutoParsing(
+                apiRequest.userAgentString(), apiRequest.deviceType());
+    }
+
+    /**
+     * UpdateUserAgentMetadataApiRequest → UpdateUserAgentMetadataCommand 변환
+     *
+     * <p>모든 필드를 그대로 전달합니다. null 필드는 Service에서 기존 값 유지로 처리됩니다.
+     *
+     * @param userAgentId 수정 대상 UserAgent ID
+     * @param apiRequest API 수정 요청 DTO
+     * @return Application Layer Command DTO
+     */
+    public UpdateUserAgentMetadataCommand toCommand(
+            long userAgentId, UpdateUserAgentMetadataApiRequest apiRequest) {
+        return new UpdateUserAgentMetadataCommand(
+                userAgentId,
+                apiRequest.userAgentString(),
+                apiRequest.deviceType(),
+                apiRequest.deviceBrand(),
+                apiRequest.osType(),
+                apiRequest.osVersion(),
+                apiRequest.browserType(),
+                apiRequest.browserVersion());
+    }
+
+    /**
+     * UserAgent ID → RegisterUserAgentApiResponse 변환
+     *
+     * @param userAgentId 생성된 UserAgent ID
+     * @return REST API 등록 응답
+     */
+    public RegisterUserAgentApiResponse toRegisterApiResponse(long userAgentId) {
+        return RegisterUserAgentApiResponse.of(userAgentId);
+    }
+
+    /**
+     * UserAgent ID → UpdateUserAgentMetadataApiResponse 변환
+     *
+     * @param userAgentId 수정된 UserAgent ID
+     * @return REST API 메타데이터 수정 응답
+     */
+    public UpdateUserAgentMetadataApiResponse toMetadataUpdateApiResponse(long userAgentId) {
+        return UpdateUserAgentMetadataApiResponse.of(userAgentId);
     }
 
     /**

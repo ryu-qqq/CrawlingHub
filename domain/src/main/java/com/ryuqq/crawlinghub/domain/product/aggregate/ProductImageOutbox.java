@@ -178,6 +178,28 @@ public class ProductImageOutbox {
     }
 
     /**
+     * SQS 발행 완료 (Scheduler에서 SQS 메시지 발행 성공)
+     *
+     * <p>PENDING/FAILED → SENT 상태 전환
+     *
+     * @param clock 시간 제어
+     */
+    public void markAsSent(Clock clock) {
+        this.status = ProductOutboxStatus.SENT;
+        this.processedAt = clock.instant();
+        this.errorMessage = null;
+    }
+
+    /**
+     * SQS 발행 완료 상태인지 확인
+     *
+     * @return SENT 상태 여부
+     */
+    public boolean isSent() {
+        return this.status.isSent();
+    }
+
+    /**
      * 업로드 완료 (웹훅 수신)
      *
      * @param clock 시간 제어

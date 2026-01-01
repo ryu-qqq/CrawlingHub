@@ -215,6 +215,7 @@ class SellerQueryControllerTest {
                                     "셀러1",
                                     true,
                                     Instant.now(),
+                                    Instant.now(),
                                     2,
                                     3,
                                     "COMPLETED",
@@ -225,6 +226,7 @@ class SellerQueryControllerTest {
                                     "머스트잇 셀러2",
                                     "셀러2",
                                     true,
+                                    Instant.now(),
                                     Instant.now(),
                                     1,
                                     2,
@@ -237,8 +239,20 @@ class SellerQueryControllerTest {
 
             List<SellerSummaryApiResponse> apiContent =
                     List.of(
-                            new SellerSummaryApiResponse(1L, "머스트잇 셀러1", "셀러1", "ACTIVE"),
-                            new SellerSummaryApiResponse(2L, "머스트잇 셀러2", "셀러2", "ACTIVE"));
+                            new SellerSummaryApiResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    "ACTIVE",
+                                    "2025-01-15 10:30:00",
+                                    "2025-01-15 10:30:00"),
+                            new SellerSummaryApiResponse(
+                                    2L,
+                                    "머스트잇 셀러2",
+                                    "셀러2",
+                                    "ACTIVE",
+                                    "2025-01-15 10:30:00",
+                                    "2025-01-15 10:30:00"));
 
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 100L, 5, true, false);
@@ -292,6 +306,7 @@ class SellerQueryControllerTest {
                                     "셀러1",
                                     true,
                                     Instant.now(),
+                                    Instant.now(),
                                     2,
                                     3,
                                     "COMPLETED",
@@ -302,7 +317,14 @@ class SellerQueryControllerTest {
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
 
             List<SellerSummaryApiResponse> apiContent =
-                    List.of(new SellerSummaryApiResponse(1L, "머스트잇 셀러1", "셀러1", "ACTIVE"));
+                    List.of(
+                            new SellerSummaryApiResponse(
+                                    1L,
+                                    "머스트잇 셀러1",
+                                    "셀러1",
+                                    "ACTIVE",
+                                    "2025-01-15 10:30:00",
+                                    "2025-01-15 10:30:00"));
 
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 1L, 1, true, true);
@@ -340,6 +362,7 @@ class SellerQueryControllerTest {
                                     "셀러3",
                                     false,
                                     Instant.now(),
+                                    null,
                                     0,
                                     1,
                                     null,
@@ -350,7 +373,14 @@ class SellerQueryControllerTest {
                     new PageResponse<>(content, 0, 20, 1L, 1, true, true);
 
             List<SellerSummaryApiResponse> apiContent =
-                    List.of(new SellerSummaryApiResponse(3L, "머스트잇 셀러3", "셀러3", "INACTIVE"));
+                    List.of(
+                            new SellerSummaryApiResponse(
+                                    3L,
+                                    "머스트잇 셀러3",
+                                    "셀러3",
+                                    "INACTIVE",
+                                    "2025-01-15 10:30:00",
+                                    null));
 
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 1L, 1, true, true);

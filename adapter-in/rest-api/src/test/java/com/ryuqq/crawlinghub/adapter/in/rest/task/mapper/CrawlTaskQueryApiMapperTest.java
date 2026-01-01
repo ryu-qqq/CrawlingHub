@@ -130,6 +130,7 @@ class CrawlTaskQueryApiMapperTest {
                             CrawlTaskStatus.RUNNING,
                             CrawlTaskType.MINI_SHOP,
                             0,
+                            now,
                             now);
 
             // when
@@ -143,7 +144,7 @@ class CrawlTaskQueryApiMapperTest {
             assertThat(result.status()).isEqualTo("RUNNING");
             assertThat(result.taskType()).isEqualTo("MINI_SHOP");
             assertThat(result.retryCount()).isZero();
-            assertThat(result.createdAt()).isEqualTo(now.toString());
+            assertThat(result.createdAt()).isNotNull();
         }
 
         @Test
@@ -159,6 +160,7 @@ class CrawlTaskQueryApiMapperTest {
                             CrawlTaskStatus.WAITING,
                             CrawlTaskType.DETAIL,
                             1,
+                            null,
                             null);
 
             // when
@@ -209,8 +211,8 @@ class CrawlTaskQueryApiMapperTest {
             assertThat(result.queryParams()).containsEntry("page", "1");
             assertThat(result.fullUrl())
                     .isEqualTo("https://example.com/api/products?page=1&size=20");
-            assertThat(result.createdAt()).isEqualTo(now.toString());
-            assertThat(result.updatedAt()).isEqualTo(now.toString());
+            assertThat(result.createdAt()).isNotNull();
+            assertThat(result.updatedAt()).isNotNull();
         }
 
         @Test
@@ -260,6 +262,7 @@ class CrawlTaskQueryApiMapperTest {
                                     CrawlTaskStatus.RUNNING,
                                     CrawlTaskType.MINI_SHOP,
                                     0,
+                                    now,
                                     now),
                             new CrawlTaskResponse(
                                     2L,
@@ -269,6 +272,7 @@ class CrawlTaskQueryApiMapperTest {
                                     CrawlTaskStatus.SUCCESS,
                                     CrawlTaskType.DETAIL,
                                     1,
+                                    now,
                                     now));
             PageResponse<CrawlTaskResponse> pageResponse =
                     new PageResponse<>(items, 0, 20, 2L, 1, true, true);

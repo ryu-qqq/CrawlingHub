@@ -78,17 +78,19 @@ class SearchSellersServiceTest {
             List<Seller> sellers = List.of(SellerFixture.anActiveSeller());
             long totalElements = 1L;
 
+            Instant now = Instant.now();
             SellerSummaryResponse summaryResponse =
                     new SellerSummaryResponse(
                             1L,
                             "mustit-seller",
                             "seller-name",
                             true,
-                            Instant.now(),
+                            now,
+                            now,
                             2,
                             3,
                             "COMPLETED",
-                            Instant.now(),
+                            now,
                             50L);
             PageResponse<SellerSummaryResponse> expectedResponse =
                     PageResponse.of(List.of(summaryResponse), 0, 10, 1L, 1, true, true);

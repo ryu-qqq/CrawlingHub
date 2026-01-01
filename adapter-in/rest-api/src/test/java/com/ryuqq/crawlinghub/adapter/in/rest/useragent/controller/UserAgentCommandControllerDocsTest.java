@@ -21,6 +21,8 @@ import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.WarmUpUserAg
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.mapper.UserAgentApiMapper;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.RegisterUserAgentUseCase;
+import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentMetadataUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentStatusUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.WarmUpUserAgentUseCase;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
@@ -43,6 +45,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("UserAgentCommandController REST Docs")
 class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
+
+    @MockitoBean private RegisterUserAgentUseCase registerUserAgentUseCase;
+
+    @MockitoBean private UpdateUserAgentMetadataUseCase updateUserAgentMetadataUseCase;
 
     @MockitoBean private RecoverUserAgentUseCase recoverUserAgentUseCase;
 

@@ -28,6 +28,12 @@ public class SqsProperties {
     /** CrawlTask 큐 URL */
     private String crawlTaskQueueUrl;
 
+    /** ProductImage 큐 URL */
+    private String productImageQueueUrl;
+
+    /** ProductSync 큐 URL */
+    private String productSyncQueueUrl;
+
     /** 메시지 그룹 ID prefix (FIFO 큐용) */
     private String messageGroupIdPrefix = "crawl-task-";
 
@@ -53,5 +59,21 @@ public class SqsProperties {
 
     public void setMessageGroupIdPrefix(String messageGroupIdPrefix) {
         this.messageGroupIdPrefix = messageGroupIdPrefix;
+    }
+
+    public String getProductImageQueueUrl() {
+        return productImageQueueUrl;
+    }
+
+    public void setProductImageQueueUrl(String productImageQueueUrl) {
+        this.productImageQueueUrl = productImageQueueUrl;
+    }
+
+    public String getProductSyncQueueUrl() {
+        return productSyncQueueUrl;
+    }
+
+    public void setProductSyncQueueUrl(String productSyncQueueUrl) {
+        this.productSyncQueueUrl = productSyncQueueUrl;
     }
 }
