@@ -10,6 +10,17 @@
 # Queue Name Pattern: ${project_name}-crawling-task-${environment}
 # ========================================
 
+# ========================================
+# Application Messaging Configuration
+# ========================================
+app:
+  messaging:
+    sqs:
+      # SQS 어댑터 활성화 여부
+      # true: ProductImageSqsAdapter, ProductSyncSqsAdapter 등 활성화
+      # false 또는 미설정: NoOp 어댑터 사용 (개발/테스트 환경)
+      enabled: ${SQS_ENABLED:true}
+
 aws:
   sqs:
     # AWS Region
