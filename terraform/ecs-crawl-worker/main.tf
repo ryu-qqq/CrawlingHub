@@ -340,9 +340,16 @@ module "ecs_service" {
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
     { name = "REDIS_PORT", value = local.redis_port },
+    # SQS Main Queues
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task" },
     { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger" },
+    { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-image" },
+    { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-sync" },
+    # SQS Dead Letter Queues
     { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" },
+    { name = "SQS_EVENTBRIDGE_TRIGGER_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger-dlq" },
+    { name = "SQS_PRODUCT_IMAGE_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-image-dlq" },
+    { name = "SQS_PRODUCT_SYNC_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-sync-dlq" },
     # Fileflow Client 설정 (이미지 업로드 서비스)
     { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
     { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" },
