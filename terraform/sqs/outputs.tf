@@ -69,3 +69,59 @@ output "eventbridge_trigger_dlq_arn" {
   description = "ARN of the EventBridge trigger dead letter queue"
   value       = module.eventbridge_trigger_queue.dlq_arn
 }
+
+# ========================================
+# Product Image Queue Outputs
+# ========================================
+output "product_image_queue_url" {
+  description = "URL of the product image SQS queue"
+  value       = module.product_image_queue.queue_url
+}
+
+output "product_image_queue_arn" {
+  description = "ARN of the product image SQS queue"
+  value       = module.product_image_queue.queue_arn
+}
+
+output "product_image_queue_name" {
+  description = "Name of the product image SQS queue"
+  value       = module.product_image_queue.queue_name
+}
+
+output "product_image_dlq_url" {
+  description = "URL of the product image dead letter queue"
+  value       = module.product_image_queue.dlq_url
+}
+
+output "product_image_dlq_arn" {
+  description = "ARN of the product image dead letter queue"
+  value       = module.product_image_queue.dlq_arn
+}
+
+# ========================================
+# Product Sync Queue Outputs
+# ========================================
+output "product_sync_queue_url" {
+  description = "URL of the product sync SQS queue"
+  value       = module.product_sync_queue.queue_url
+}
+
+output "product_sync_queue_arn" {
+  description = "ARN of the product sync SQS queue"
+  value       = module.product_sync_queue.queue_arn
+}
+
+output "product_sync_queue_name" {
+  description = "Name of the product sync SQS queue"
+  value       = module.product_sync_queue.queue_name
+}
+
+output "product_sync_dlq_url" {
+  description = "URL of the product sync dead letter queue"
+  value       = module.product_sync_queue.dlq_url
+}
+
+output "product_sync_dlq_arn" {
+  description = "ARN of the product sync dead letter queue"
+  value       = module.product_sync_queue.dlq_arn
+}
