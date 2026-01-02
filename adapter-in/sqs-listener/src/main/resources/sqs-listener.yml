@@ -40,8 +40,20 @@ aws:
       # EventBridge Trigger Queue: receives scheduler triggers
       event-bridge-trigger-queue-url: ${SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL:}
 
+      # ========================================
+      # DLQ URLs (Dead Letter Queues)
+      # ========================================
       # CrawlTask DLQ: receives failed tasks for error handling
       crawl-task-dlq-url: ${SQS_CRAWL_TASK_DLQ_URL:}
+
+      # ProductImage DLQ: receives failed image upload tasks
+      product-image-dlq-url: ${SQS_PRODUCT_IMAGE_DLQ_URL:}
+
+      # ProductSync DLQ: receives failed sync tasks
+      product-sync-dlq-url: ${SQS_PRODUCT_SYNC_DLQ_URL:}
+
+      # EventBridge Trigger DLQ: receives failed trigger messages
+      event-bridge-trigger-dlq-url: ${SQS_EVENTBRIDGE_TRIGGER_DLQ_URL:}
 
       # ========================================
       # Feature Toggles
@@ -49,7 +61,12 @@ aws:
       # Enable/Disable individual listeners
       crawl-task-listener-enabled: true
       event-bridge-trigger-listener-enabled: true
+
+      # Enable/Disable DLQ listeners
       crawl-task-dlq-listener-enabled: true
+      product-image-dlq-listener-enabled: true
+      product-sync-dlq-listener-enabled: true
+      event-bridge-trigger-dlq-listener-enabled: true
 
 # ========================================
 # Scheduler Configuration (Backup for EventListener failures)

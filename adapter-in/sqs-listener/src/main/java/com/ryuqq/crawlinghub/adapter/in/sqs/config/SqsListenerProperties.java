@@ -35,6 +35,15 @@ public class SqsListenerProperties {
     /** CrawlTask DLQ URL */
     private String crawlTaskDlqUrl;
 
+    /** ProductImage DLQ URL */
+    private String productImageDlqUrl;
+
+    /** ProductSync DLQ URL */
+    private String productSyncDlqUrl;
+
+    /** EventBridge Trigger DLQ URL */
+    private String eventBridgeTriggerDlqUrl;
+
     /** CrawlTask 리스너 활성화 여부 */
     private boolean crawlTaskListenerEnabled = true;
 
@@ -43,6 +52,15 @@ public class SqsListenerProperties {
 
     /** CrawlTask DLQ 리스너 활성화 여부 */
     private boolean crawlTaskDlqListenerEnabled = true;
+
+    /** ProductImage DLQ 리스너 활성화 여부 */
+    private boolean productImageDlqListenerEnabled = true;
+
+    /** ProductSync DLQ 리스너 활성화 여부 */
+    private boolean productSyncDlqListenerEnabled = true;
+
+    /** EventBridge Trigger DLQ 리스너 활성화 여부 */
+    private boolean eventBridgeTriggerDlqListenerEnabled = true;
 
     public String getCrawlTaskQueueUrl() {
         return crawlTaskQueueUrl;
@@ -90,5 +108,54 @@ public class SqsListenerProperties {
 
     public void setCrawlTaskDlqListenerEnabled(boolean crawlTaskDlqListenerEnabled) {
         this.crawlTaskDlqListenerEnabled = crawlTaskDlqListenerEnabled;
+    }
+
+    public String getProductImageDlqUrl() {
+        return productImageDlqUrl;
+    }
+
+    public void setProductImageDlqUrl(String productImageDlqUrl) {
+        this.productImageDlqUrl = productImageDlqUrl;
+    }
+
+    public String getProductSyncDlqUrl() {
+        return productSyncDlqUrl;
+    }
+
+    public void setProductSyncDlqUrl(String productSyncDlqUrl) {
+        this.productSyncDlqUrl = productSyncDlqUrl;
+    }
+
+    public String getEventBridgeTriggerDlqUrl() {
+        return eventBridgeTriggerDlqUrl;
+    }
+
+    public void setEventBridgeTriggerDlqUrl(String eventBridgeTriggerDlqUrl) {
+        this.eventBridgeTriggerDlqUrl = eventBridgeTriggerDlqUrl;
+    }
+
+    public boolean isProductImageDlqListenerEnabled() {
+        return productImageDlqListenerEnabled;
+    }
+
+    public void setProductImageDlqListenerEnabled(boolean productImageDlqListenerEnabled) {
+        this.productImageDlqListenerEnabled = productImageDlqListenerEnabled;
+    }
+
+    public boolean isProductSyncDlqListenerEnabled() {
+        return productSyncDlqListenerEnabled;
+    }
+
+    public void setProductSyncDlqListenerEnabled(boolean productSyncDlqListenerEnabled) {
+        this.productSyncDlqListenerEnabled = productSyncDlqListenerEnabled;
+    }
+
+    public boolean isEventBridgeTriggerDlqListenerEnabled() {
+        return eventBridgeTriggerDlqListenerEnabled;
+    }
+
+    public void setEventBridgeTriggerDlqListenerEnabled(
+            boolean eventBridgeTriggerDlqListenerEnabled) {
+        this.eventBridgeTriggerDlqListenerEnabled = eventBridgeTriggerDlqListenerEnabled;
     }
 }

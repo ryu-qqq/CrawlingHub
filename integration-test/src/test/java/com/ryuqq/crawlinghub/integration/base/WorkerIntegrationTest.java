@@ -56,8 +56,11 @@ public abstract class WorkerIntegrationTest {
     protected static final String CRAWL_TASK_QUEUE_NAME = "crawl-task-queue-test";
     protected static final String CRAWL_TASK_DLQ_NAME = "crawl-task-dlq-test";
     protected static final String EVENTBRIDGE_TRIGGER_QUEUE_NAME = "eventbridge-trigger-queue-test";
+    protected static final String EVENTBRIDGE_TRIGGER_DLQ_NAME = "eventbridge-trigger-dlq-test";
     protected static final String PRODUCT_SYNC_QUEUE_NAME = "product-sync-queue-test";
+    protected static final String PRODUCT_SYNC_DLQ_NAME = "product-sync-dlq-test";
     protected static final String PRODUCT_IMAGE_QUEUE_NAME = "product-image-queue-test";
+    protected static final String PRODUCT_IMAGE_DLQ_NAME = "product-image-dlq-test";
 
     // Static containers for reuse across tests
     protected static final MySQLContainer<?> MYSQL_CONTAINER;
@@ -69,8 +72,11 @@ public abstract class WorkerIntegrationTest {
     protected static String crawlTaskQueueUrl;
     protected static String crawlTaskDlqUrl;
     protected static String eventBridgeTriggerQueueUrl;
+    protected static String eventBridgeTriggerDlqUrl;
     protected static String productSyncQueueUrl;
+    protected static String productSyncDlqUrl;
     protected static String productImageQueueUrl;
+    protected static String productImageDlqUrl;
 
     static {
         MYSQL_CONTAINER =
@@ -107,8 +113,11 @@ public abstract class WorkerIntegrationTest {
         crawlTaskQueueUrl = createQueueIfNotExists(CRAWL_TASK_QUEUE_NAME);
         crawlTaskDlqUrl = createQueueIfNotExists(CRAWL_TASK_DLQ_NAME);
         eventBridgeTriggerQueueUrl = createQueueIfNotExists(EVENTBRIDGE_TRIGGER_QUEUE_NAME);
+        eventBridgeTriggerDlqUrl = createQueueIfNotExists(EVENTBRIDGE_TRIGGER_DLQ_NAME);
         productSyncQueueUrl = createQueueIfNotExists(PRODUCT_SYNC_QUEUE_NAME);
+        productSyncDlqUrl = createQueueIfNotExists(PRODUCT_SYNC_DLQ_NAME);
         productImageQueueUrl = createQueueIfNotExists(PRODUCT_IMAGE_QUEUE_NAME);
+        productImageDlqUrl = createQueueIfNotExists(PRODUCT_IMAGE_DLQ_NAME);
     }
 
     private static String createQueueIfNotExists(String queueName) {
@@ -161,12 +170,22 @@ public abstract class WorkerIntegrationTest {
         registry.add(
                 "aws.sqs.listener.event-bridge-trigger-queue-url",
                 () -> eventBridgeTriggerQueueUrl);
+        registry.add(
+                "aws.sqs.listener.event-bridge-trigger-dlq-url", () -> eventBridgeTriggerDlqUrl);
         registry.add("aws.sqs.product-sync-queue-url", () -> productSyncQueueUrl);
+        registry.add("aws.sqs.listener.product-sync-dlq-url", () -> productSyncDlqUrl);
         registry.add("aws.sqs.product-image-queue-url", () -> productImageQueueUrl);
+        registry.add("aws.sqs.listener.product-image-dlq-url", () -> productImageDlqUrl);
 
         // SQS Listener enabled for testing
         registry.add("aws.sqs.listener.crawl-task-listener-enabled", () -> "true");
         registry.add("aws.sqs.listener.event-bridge-trigger-listener-enabled", () -> "false");
+
+        // DLQ Listeners enabled for testing (disabled - DLQ testing is optional)
+        registry.add("aws.sqs.listener.crawl-task-dlq-listener-enabled", () -> "false");
+        registry.add("aws.sqs.listener.product-image-dlq-listener-enabled", () -> "false");
+        registry.add("aws.sqs.listener.product-sync-dlq-listener-enabled", () -> "false");
+        registry.add("aws.sqs.listener.event-bridge-trigger-dlq-listener-enabled", () -> "false");
 
         // Flyway
         registry.add("spring.flyway.enabled", () -> "true");
