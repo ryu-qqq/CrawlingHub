@@ -63,6 +63,7 @@ aws:
       event-bridge-trigger-listener-enabled: true
 
       # Enable/Disable DLQ listeners
+      # ECS Task Definition has DLQ URL env vars configured
       crawl-task-dlq-listener-enabled: true
       product-image-dlq-listener-enabled: true
       product-sync-dlq-listener-enabled: true
