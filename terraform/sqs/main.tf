@@ -346,6 +346,18 @@ resource "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
   }
 }
 
+resource "aws_ssm_parameter" "eventbridge_trigger_dlq_url" {
+  name        = "/${var.project_name}/sqs/eventbridge-trigger-dlq-url"
+  description = "CrawlingHub EventBridge trigger DLQ URL"
+  type        = "String"
+  value       = module.eventbridge_trigger_queue.dlq_url
+
+  tags = {
+    Name        = "${var.project_name}-sqs-eventbridge-trigger-dlq-url"
+    Environment = var.environment
+  }
+}
+
 # ========================================
 # SSM Parameters for Product Image Queue
 # ========================================
