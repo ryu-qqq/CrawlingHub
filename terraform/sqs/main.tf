@@ -129,6 +129,96 @@ module "eventbridge_trigger_queue" {
 }
 
 # ========================================
+# SQS Queue: Product Image
+# ========================================
+# Standard SQS queue for product image upload processing
+# Transactional Outbox pattern for reliable message delivery
+# ========================================
+module "product_image_queue" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/sqs?ref=main"
+
+  name       = "prod-monitoring-sqs-${var.project_name}-product-image"
+  fifo_queue = false
+
+  # KMS Encryption (required)
+  kms_key_id = aws_kms_key.sqs.arn
+
+  # Message Configuration
+  visibility_timeout_seconds = 120    # 2 minutes - image processing time
+  message_retention_seconds  = 345600 # 4 days
+  max_message_size           = 262144 # 256 KB
+  delay_seconds              = 0
+  receive_wait_time_seconds  = 20 # Long polling enabled
+
+  # DLQ Configuration
+  enable_dlq                    = true
+  max_receive_count             = 3       # Move to DLQ after 3 failed attempts
+  dlq_message_retention_seconds = 1209600 # 14 days for DLQ
+
+  # CloudWatch Alarms
+  enable_cloudwatch_alarms         = true
+  alarm_evaluation_periods         = 2
+  alarm_period                     = 300  # 5 minutes
+  alarm_message_age_threshold      = 600  # Alert if message older than 10 minutes
+  alarm_messages_visible_threshold = 500  # Alert if queue depth exceeds 500
+  alarm_dlq_messages_threshold     = 1    # Alert on any DLQ message
+
+  # Required Tags
+  environment = local.common_tags.environment
+  service     = local.common_tags.service_name
+  team        = local.common_tags.team
+  owner       = local.common_tags.owner
+  cost_center = local.common_tags.cost_center
+  project     = local.common_tags.project
+  data_class  = local.common_tags.data_class
+}
+
+# ========================================
+# SQS Queue: Product Sync
+# ========================================
+# Standard SQS queue for external product sync processing
+# Used for syncing crawled products to external systems
+# ========================================
+module "product_sync_queue" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/sqs?ref=main"
+
+  name       = "prod-monitoring-sqs-${var.project_name}-product-sync"
+  fifo_queue = false
+
+  # KMS Encryption (required)
+  kms_key_id = aws_kms_key.sqs.arn
+
+  # Message Configuration
+  visibility_timeout_seconds = 180    # 3 minutes - external API sync time
+  message_retention_seconds  = 345600 # 4 days
+  max_message_size           = 262144 # 256 KB
+  delay_seconds              = 0
+  receive_wait_time_seconds  = 20 # Long polling enabled
+
+  # DLQ Configuration
+  enable_dlq                    = true
+  max_receive_count             = 3       # Move to DLQ after 3 failed attempts
+  dlq_message_retention_seconds = 1209600 # 14 days for DLQ
+
+  # CloudWatch Alarms
+  enable_cloudwatch_alarms         = true
+  alarm_evaluation_periods         = 2
+  alarm_period                     = 300  # 5 minutes
+  alarm_message_age_threshold      = 600  # Alert if message older than 10 minutes
+  alarm_messages_visible_threshold = 500  # Alert if queue depth exceeds 500
+  alarm_dlq_messages_threshold     = 1    # Alert on any DLQ message
+
+  # Required Tags
+  environment = local.common_tags.environment
+  service     = local.common_tags.service_name
+  team        = local.common_tags.team
+  owner       = local.common_tags.owner
+  cost_center = local.common_tags.cost_center
+  project     = local.common_tags.project
+  data_class  = local.common_tags.data_class
+}
+
+# ========================================
 # IAM Policy for SQS Access (ECS Tasks)
 # ========================================
 data "aws_iam_policy_document" "sqs_access" {
@@ -147,7 +237,11 @@ data "aws_iam_policy_document" "sqs_access" {
       module.crawling_task_queue.queue_arn,
       module.crawling_task_queue.dlq_arn,
       module.eventbridge_trigger_queue.queue_arn,
-      module.eventbridge_trigger_queue.dlq_arn
+      module.eventbridge_trigger_queue.dlq_arn,
+      module.product_image_queue.queue_arn,
+      module.product_image_queue.dlq_arn,
+      module.product_sync_queue.queue_arn,
+      module.product_sync_queue.dlq_arn
     ]
   }
 
@@ -248,6 +342,84 @@ resource "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
 
   tags = {
     Name        = "${var.project_name}-sqs-eventbridge-trigger-queue-arn"
+    Environment = var.environment
+  }
+}
+
+# ========================================
+# SSM Parameters for Product Image Queue
+# ========================================
+resource "aws_ssm_parameter" "product_image_queue_url" {
+  name        = "/${var.project_name}/sqs/product-image-queue-url"
+  description = "CrawlingHub product image queue URL"
+  type        = "String"
+  value       = module.product_image_queue.queue_url
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-image-queue-url"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "product_image_queue_arn" {
+  name        = "/${var.project_name}/sqs/product-image-queue-arn"
+  description = "CrawlingHub product image queue ARN"
+  type        = "String"
+  value       = module.product_image_queue.queue_arn
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-image-queue-arn"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "product_image_dlq_url" {
+  name        = "/${var.project_name}/sqs/product-image-dlq-url"
+  description = "CrawlingHub product image DLQ URL"
+  type        = "String"
+  value       = module.product_image_queue.dlq_url
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-image-dlq-url"
+    Environment = var.environment
+  }
+}
+
+# ========================================
+# SSM Parameters for Product Sync Queue
+# ========================================
+resource "aws_ssm_parameter" "product_sync_queue_url" {
+  name        = "/${var.project_name}/sqs/product-sync-queue-url"
+  description = "CrawlingHub product sync queue URL"
+  type        = "String"
+  value       = module.product_sync_queue.queue_url
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-sync-queue-url"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "product_sync_queue_arn" {
+  name        = "/${var.project_name}/sqs/product-sync-queue-arn"
+  description = "CrawlingHub product sync queue ARN"
+  type        = "String"
+  value       = module.product_sync_queue.queue_arn
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-sync-queue-arn"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "product_sync_dlq_url" {
+  name        = "/${var.project_name}/sqs/product-sync-dlq-url"
+  description = "CrawlingHub product sync DLQ URL"
+  type        = "String"
+  value       = module.product_sync_queue.dlq_url
+
+  tags = {
+    Name        = "${var.project_name}-sqs-product-sync-dlq-url"
     Environment = var.environment
   }
 }
