@@ -59,6 +59,14 @@ projects:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
       enabled: true
 
+  # ECS Service for crawl-worker (SQS consumer, no ALB)
+  - name: crawlinghub-ecs-crawl-worker-prod
+    dir: terraform/ecs-crawl-worker
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
   # ============================================================================
   # Event-Driven Infrastructure
   # ============================================================================
@@ -66,6 +74,14 @@ projects:
   #EventBridge for scheduled crawling tasks
   - name: crawlinghub-eventbridge-prod
     dir: terraform/eventbridge
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      enabled: true
+
+  # SQS queues for async messaging (CrawlTask, ProductImage, ProductSync)
+  - name: crawlinghub-sqs-prod
+    dir: terraform/sqs
     workspace: default
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "../*.tf"]
