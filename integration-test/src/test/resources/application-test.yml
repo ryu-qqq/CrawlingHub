@@ -88,8 +88,16 @@ app:
 aws:
   sqs:
     listener:
+      # Main Queue Listeners
       crawl-task-listener-enabled: true
       event-bridge-trigger-listener-enabled: false
+      product-image-listener-enabled: false
+      product-sync-listener-enabled: false
+      # DLQ Listeners (disabled for tests - no DLQ URLs in test environment)
+      crawl-task-dlq-listener-enabled: false
+      product-image-dlq-listener-enabled: false
+      product-sync-dlq-listener-enabled: false
+      event-bridge-trigger-dlq-listener-enabled: false
 
 # ===============================================
 # Management (Disable for tests)
