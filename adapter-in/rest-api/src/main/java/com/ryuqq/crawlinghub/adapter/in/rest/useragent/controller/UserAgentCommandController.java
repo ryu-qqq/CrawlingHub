@@ -146,14 +146,12 @@ public class UserAgentCommandController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "userAgentId": 123,
      *     "message": "UserAgent registered successfully"
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *
@@ -241,14 +239,12 @@ public class UserAgentCommandController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "userAgentId": 123,
      *     "message": "UserAgent metadata updated successfully"
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *
@@ -326,14 +322,12 @@ public class UserAgentCommandController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "recoveredCount": 5,
      *     "message": "5 user agents recovered successfully"
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *
@@ -408,14 +402,12 @@ public class UserAgentCommandController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "updatedCount": 3,
      *     "message": "3 user agent(s) status updated to SUSPENDED"
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *
@@ -491,14 +483,12 @@ public class UserAgentCommandController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "addedCount": 10,
      *     "message": "10 user agents added to pool"
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *

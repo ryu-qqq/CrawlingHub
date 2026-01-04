@@ -119,7 +119,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.totalElements").value(2))
                 .andDo(
@@ -140,9 +139,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -189,10 +185,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -271,7 +263,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(get("/api/v1/crawling/schedules/{crawlSchedulerId}", crawlSchedulerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlSchedulerId").value(crawlSchedulerId))
                 .andExpect(jsonPath("$.data.schedulerName").value("daily-crawl"))
                 .andExpect(jsonPath("$.data.seller.sellerId").value(100))
@@ -284,9 +275,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("crawlSchedulerId")
                                                 .description("크롤 스케줄러 ID")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -372,10 +360,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.recentTasks[].completedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("완료 시각 (ISO-8601, null 가능)")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)

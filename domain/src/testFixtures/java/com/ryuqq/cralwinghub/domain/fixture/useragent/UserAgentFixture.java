@@ -45,6 +45,68 @@ public final class UserAgentFixture {
     }
 
     /**
+     * 토큰 없이 신규 UserAgent 생성 (Lazy Token Issuance)
+     *
+     * @return UserAgent (토큰 없음, AVAILABLE, Health Score 100)
+     */
+    public static UserAgent forNewWithoutToken() {
+        return UserAgent.forNewWithoutToken(
+                UserAgentStringFixture.aDefaultUserAgentString(), DEFAULT_CLOCK);
+    }
+
+    /**
+     * 토큰 없이 신규 UserAgent 생성 (Clock 지정)
+     *
+     * @param clock 시간 제어
+     * @return UserAgent (토큰 없음, AVAILABLE, Health Score 100)
+     */
+    public static UserAgent forNewWithoutToken(Clock clock) {
+        return UserAgent.forNewWithoutToken(
+                UserAgentStringFixture.aDefaultUserAgentString(), clock);
+    }
+
+    /**
+     * ID가 할당된 토큰 없는 UserAgent 생성
+     *
+     * @return UserAgent (ID = 1L, 토큰 없음, AVAILABLE, Health Score 100)
+     */
+    public static UserAgent aUserAgentWithoutToken() {
+        return UserAgent.reconstitute(
+                UserAgentIdFixture.anAssignedId(),
+                TokenFixture.anEmptyToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
+                UserAgentMetadataFixture.aDefaultMetadata(),
+                UserAgentStatus.AVAILABLE,
+                HealthScoreFixture.initial(),
+                DEFAULT_TIME,
+                0,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
+     * 특정 ID를 가진 토큰 없는 UserAgent 생성
+     *
+     * @param id UserAgent ID
+     * @return UserAgent (토큰 없음, AVAILABLE)
+     */
+    public static UserAgent aUserAgentWithoutToken(Long id) {
+        return UserAgent.reconstitute(
+                UserAgentIdFixture.anAssignedId(id),
+                TokenFixture.anEmptyToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
+                UserAgentMetadataFixture.aDefaultMetadata(),
+                UserAgentStatus.AVAILABLE,
+                HealthScoreFixture.initial(),
+                DEFAULT_TIME,
+                0,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
      * ID가 할당된 AVAILABLE 상태 UserAgent 생성
      *
      * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)

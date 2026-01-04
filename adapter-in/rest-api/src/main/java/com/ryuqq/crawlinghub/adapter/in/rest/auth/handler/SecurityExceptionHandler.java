@@ -1,10 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
 /**
  * Security 예외 핸들러
  *
- * <p>인증 실패(401) 및 접근 거부(403) 예외를 JSON 형식으로 응답합니다.
+ * <p>인증 실패(401) 및 접근 거부(403) 예외를 RFC 7807 ProblemDetail 형식으로 응답합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -43,7 +45,7 @@ public class SecurityExceptionHandler implements AuthenticationEntryPoint, Acces
             throws IOException {
 
         writeErrorResponse(
-                response, HttpStatus.UNAUTHORIZED, "AUTH_001", "인증이 필요합니다.", authException);
+                request, response, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다.");
     }
 
     /**
@@ -58,24 +60,38 @@ public class SecurityExceptionHandler implements AuthenticationEntryPoint, Acces
             AccessDeniedException accessDeniedException)
             throws IOException {
 
-        writeErrorResponse(
-                response, HttpStatus.FORBIDDEN, "AUTH_002", "접근 권한이 없습니다.", accessDeniedException);
+        writeErrorResponse(request, response, HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다.");
     }
 
+    /** RFC 7807 ProblemDetail 형식으로 에러 응답 작성 */
     private void writeErrorResponse(
+            HttpServletRequest request,
             HttpServletResponse response,
             HttpStatus status,
-            String errorCode,
-            String message,
-            Exception exception)
+            String code,
+            String detail)
             throws IOException {
 
         response.setStatus(status.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse<Void> errorResponse = ApiResponse.ofFailure(errorCode, message);
+        // RFC 7807 ProblemDetail을 Map으로 직렬화 (Spring의 ProblemDetail은 properties 직렬화 이슈가 있을 수 있음)
+        Map<String, Object> problemDetail = new LinkedHashMap<>();
+        problemDetail.put("type", "about:blank");
+        problemDetail.put("title", status.getReasonPhrase());
+        problemDetail.put("status", status.value());
+        problemDetail.put("detail", detail);
+        problemDetail.put("code", code);
+        problemDetail.put("timestamp", DateTimeFormatUtils.nowIso8601());
 
-        objectMapper.writeValue(response.getOutputStream(), errorResponse);
+        // 요청 경로를 instance로
+        String uri = request.getRequestURI();
+        if (request.getQueryString() != null && !request.getQueryString().isBlank()) {
+            uri = uri + "?" + request.getQueryString();
+        }
+        problemDetail.put("instance", uri);
+
+        objectMapper.writeValue(response.getOutputStream(), problemDetail);
     }
 }

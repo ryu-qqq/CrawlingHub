@@ -123,7 +123,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.totalElements").value(2))
                 .andDo(
@@ -154,9 +153,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -211,10 +207,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -265,7 +257,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(get("/api/v1/crawling/tasks/{id}", taskId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(1))
                 .andDo(
                         document(
@@ -273,9 +264,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 RestDocsSecuritySnippets.authorization("task:read"),
                                 pathParameters(parameterWithName("id").description("크롤 태스크 ID")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -323,10 +311,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 시각"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

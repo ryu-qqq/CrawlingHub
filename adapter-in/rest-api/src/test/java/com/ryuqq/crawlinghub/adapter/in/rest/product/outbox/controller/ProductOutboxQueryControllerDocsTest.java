@@ -151,7 +151,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andDo(
@@ -177,9 +176,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("페이징 응답 데이터"),
@@ -252,10 +248,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.first")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("첫 번째 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -354,7 +346,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andDo(
@@ -377,9 +368,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("페이징 응답 데이터"),
@@ -452,10 +440,6 @@ class ProductOutboxQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.first")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("첫 번째 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

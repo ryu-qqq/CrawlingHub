@@ -176,6 +176,23 @@ class CrawlTaskTransactionManagerTest {
         }
 
         @Test
+        @DisplayName("[성공] PUBLISHED 상태 → 멱등성 보장 (상태 변경 없이 리턴)")
+        void shouldReturnEarlyWhenAlreadyPublished() {
+            // Given
+            CrawlTask publishedTask = CrawlTaskFixture.aPublishedTask();
+            CrawlTaskId taskId = publishedTask.getId();
+
+            given(crawlTaskQueryPort.findById(taskId)).willReturn(Optional.of(publishedTask));
+
+            // When
+            manager.markAsPublished(taskId, FIXED_CLOCK);
+
+            // Then - persist가 호출되지 않아야 함 (early return)
+            verify(crawlTaskPersistencePort, org.mockito.Mockito.never())
+                    .persist(any(CrawlTask.class));
+        }
+
+        @Test
         @DisplayName("[실패] 최대 재시도 초과 시 예외 발생")
         void shouldThrowExceptionWhenMaxRetryExceeded() {
             // Given

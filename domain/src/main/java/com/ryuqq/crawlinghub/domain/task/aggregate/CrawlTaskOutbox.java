@@ -101,7 +101,7 @@ public class CrawlTaskOutbox {
     /**
      * Idempotency Key 생성
      *
-     * <p>taskId + UUID 조합으로 고유 키 생성
+     * <p>UUID로 고유 키 생성
      */
     private static String generateIdempotencyKey(CrawlTaskId crawlTaskId) {
         return String.format(

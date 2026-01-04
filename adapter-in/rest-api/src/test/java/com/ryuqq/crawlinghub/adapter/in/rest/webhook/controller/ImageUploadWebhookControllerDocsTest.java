@@ -71,7 +71,6 @@ class ImageUploadWebhookControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isEmpty())
                 .andDo(
                         document(
@@ -101,16 +100,9 @@ class ImageUploadWebhookControllerDocsTest extends RestDocsTestSupport {
                                                 .description("완료 시각 (ISO-8601 형식)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.NULL)
                                                 .description("응답 데이터 (없음)")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
@@ -141,7 +133,6 @@ class ImageUploadWebhookControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isEmpty())
                 .andDo(
                         document(
@@ -170,16 +161,9 @@ class ImageUploadWebhookControllerDocsTest extends RestDocsTestSupport {
                                                 .description("완료 시각 (ISO-8601 형식)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.NULL)
                                                 .description("응답 데이터 (없음)")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)

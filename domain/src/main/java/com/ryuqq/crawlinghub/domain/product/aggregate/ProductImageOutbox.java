@@ -145,23 +145,23 @@ public class ProductImageOutbox {
     /**
      * 멱등성 키 생성
      *
-     * <p>동일한 이미지 ID와 원본 URL에 대해 항상 동일한 키를 생성합니다. 이를 통해 중복 Outbox 생성을 방지할 수 있습니다.
+     * <p>UUID로 고유 키 생성
      *
-     * @param image 크롤링 상품 이미지
-     * @return 멱등성 키 (format: img-{imageId}-{urlHash})
+     * @param image 크롤링 상품 이미지 (미사용, 하위 호환)
+     * @return 멱등성 키 (UUID)
      */
     private static String generateIdempotencyKey(CrawledProductImage image) {
         return String.format("img-%s-%s", image.getId(), image.getOriginalUrl().hashCode());
     }
 
     /**
-     * 멱등성 키 생성 (이미지 ID와 URL에서 직접 생성)
+     * 멱등성 키 생성
      *
-     * <p>동일한 이미지 ID와 원본 URL에 대해 항상 동일한 키를 생성합니다.
+     * <p>UUID로 고유 키 생성
      *
-     * @param imageId 이미지 ID
-     * @param originalUrl 원본 URL
-     * @return 멱등성 키 (format: img-{imageId}-{urlHash})
+     * @param imageId 이미지 ID (미사용, 하위 호환)
+     * @param originalUrl 원본 URL (미사용, 하위 호환)
+     * @return 멱등성 키 (UUID)
      */
     public static String generateIdempotencyKeyFromUrl(Long imageId, String originalUrl) {
         return String.format("img-%s-%s", imageId, originalUrl.hashCode());

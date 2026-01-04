@@ -77,6 +77,12 @@ public class CrawlTaskTransactionManager {
 
         CrawlTaskStatus currentStatus = crawlTask.getStatus();
 
+        // 이미 PUBLISHED 상태면 early return (멱등성 보장)
+        // SQS 발행 실패 후 재시도 시, 상태 변경 없이 SQS 재발행만 수행
+        if (currentStatus == CrawlTaskStatus.PUBLISHED) {
+            return;
+        }
+
         if (currentStatus == CrawlTaskStatus.FAILED || currentStatus == CrawlTaskStatus.TIMEOUT) {
             // FAILED/TIMEOUT → RETRY → PUBLISHED 플로우
             boolean retrySuccessful = crawlTask.attemptRetry(clock);

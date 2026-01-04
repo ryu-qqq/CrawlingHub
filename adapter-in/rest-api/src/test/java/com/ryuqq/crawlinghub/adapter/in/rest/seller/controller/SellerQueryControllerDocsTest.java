@@ -116,7 +116,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(get("/api/v1/crawling/sellers/{id}", sellerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sellerId").value(1))
                 .andDo(
                         document(
@@ -124,9 +123,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 RestDocsSecuritySnippets.authorization("seller:read"),
                                 pathParameters(parameterWithName("id").description("셀러 ID (양수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -197,10 +193,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.statistics.successRate")
                                                 .type(JsonFieldType.NUMBER)
                                                 .description("크롤링 성공률"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -279,7 +271,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.totalElements").value(2))
                 .andDo(
@@ -297,9 +288,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -343,10 +331,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
