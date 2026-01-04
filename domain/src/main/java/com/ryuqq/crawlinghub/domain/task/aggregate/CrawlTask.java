@@ -150,7 +150,9 @@ public class CrawlTask {
      * <p>UUID로 고유 키 생성
      */
     public String generateIdempotencyKey() {
-        return UUID.randomUUID().toString();
+        return String.format(
+                "%s-%s-%s",
+                crawlSchedulerId.value(), id.value(), UUID.randomUUID().toString().substring(0, 8));
     }
 
     /**
