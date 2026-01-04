@@ -64,18 +64,93 @@ RESTful 서비스에서 사용하는 HTTP 메서드:
 [[overview-response-format]]
 === 공통 응답 형식
 
-모든 API는 다음과 같은 공통 응답 형식을 사용합니다:
+==== 성공 응답
+
+모든 성공 API 응답은 다음과 같은 형식을 사용합니다:
 
 [source,json]
 ----
 {
-  "success": true,
   "data": { ... },
-  "error": null,
-  "timestamp": "2025-11-20T10:30:00",
-  "requestId": "req-123456"
+  "timestamp": "2025-12-22T10:30:00.000Z",
+  "requestId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ----
+
+|===
+| 필드 | 타입 | 설명
+
+| `data`
+| Object
+| 응답 데이터 (null 가능)
+
+| `timestamp`
+| String
+| ISO 8601 형식 응답 시각
+
+| `requestId`
+| String
+| UUID 형식 요청 ID
+|===
+
+==== 에러 응답 (RFC 7807 ProblemDetail)
+
+에러 발생 시 RFC 7807 표준을 따르는 ProblemDetail 형식으로 응답합니다:
+
+[source,json]
+----
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "유효성 검증에 실패했습니다.",
+  "code": "VALIDATION_ERROR",
+  "timestamp": "2025-12-22T10:30:00.000Z",
+  "instance": "/api/v1/crawling/sellers",
+  "errors": [
+    {
+      "field": "siteUrl",
+      "message": "사이트 URL은 필수입니다."
+    }
+  ]
+}
+----
+
+|===
+| 필드 | 타입 | 설명
+
+| `type`
+| String
+| 에러 타입 URI (기본값: "about:blank")
+
+| `title`
+| String
+| HTTP 상태 설명
+
+| `status`
+| Integer
+| HTTP 상태 코드
+
+| `detail`
+| String
+| 에러 상세 메시지
+
+| `code`
+| String
+| 애플리케이션 에러 코드
+
+| `timestamp`
+| String
+| ISO 8601 형식 에러 발생 시각
+
+| `instance`
+| String
+| 에러가 발생한 요청 경로
+
+| `errors`
+| Array
+| (선택) 필드별 유효성 검증 에러 목록
+|===
 
 [[overview-authentication]]
 === 인증

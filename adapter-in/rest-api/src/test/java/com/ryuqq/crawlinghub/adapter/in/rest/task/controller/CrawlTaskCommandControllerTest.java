@@ -115,7 +115,6 @@ class CrawlTaskCommandControllerTest {
                             post("/api/v1/crawling/tasks/{id}/retry", taskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(100))
                     .andExpect(jsonPath("$.data.sellerId").value(10))
@@ -123,8 +122,7 @@ class CrawlTaskCommandControllerTest {
                     .andExpect(jsonPath("$.data.status").value("RETRY"))
                     .andExpect(jsonPath("$.data.taskType").value("DETAIL"))
                     .andExpect(jsonPath("$.data.retryCount").value(1))
-                    .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.createdAt").exists());
 
             // UseCase 호출 검증
             verify(crawlTaskCommandApiMapper).toRetryCommand(taskId);
@@ -174,12 +172,10 @@ class CrawlTaskCommandControllerTest {
                             post("/api/v1/crawling/tasks/{id}/retry", taskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
                     .andExpect(jsonPath("$.data.status").value("RETRY"))
                     .andExpect(jsonPath("$.data.taskType").value("MINI_SHOP"))
-                    .andExpect(jsonPath("$.data.retryCount").value(2))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.retryCount").value(2));
 
             // UseCase 호출 검증
             verify(retryCrawlTaskUseCase).retry(any(RetryCrawlTaskCommand.class));
@@ -227,12 +223,10 @@ class CrawlTaskCommandControllerTest {
                             post("/api/v1/crawling/tasks/{id}/retry", taskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
                     .andExpect(jsonPath("$.data.status").value("RETRY"))
                     .andExpect(jsonPath("$.data.taskType").value("META"))
-                    .andExpect(jsonPath("$.data.retryCount").value(3))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.retryCount").value(3));
 
             // UseCase 호출 검증
             verify(retryCrawlTaskUseCase).retry(any(RetryCrawlTaskCommand.class));

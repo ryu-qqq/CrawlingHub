@@ -1,42 +1,41 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.ErrorInfo;
-import java.time.LocalDateTime;
+import com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils;
+import java.util.UUID;
 
 /**
  * ApiResponse - 표준 API 응답 래퍼
  *
- * <p>모든 REST API 응답의 일관된 형식을 제공합니다.
+ * <p>모든 REST API 성공 응답의 일관된 형식을 제공합니다.
  *
  * <p><strong>사용 예시:</strong>
  *
  * <pre>{@code
- * // 성공 응답
- * ApiResponse<UserDto> response = ApiResponse.success(userDto);
+ * // 성공 응답 (데이터 포함)
+ * ApiResponse<UserDto> response = ApiResponse.ofSuccess(userDto);
  *
- * // 에러 응답
- * ErrorInfo error = new ErrorInfo("USER_NOT_FOUND", "사용자를 찾을 수 없습니다");
- * ApiResponse<Void> response = ApiResponse.failure(error);
+ * // 성공 응답 (데이터 없음)
+ * ApiResponse<Void> response = ApiResponse.ofSuccess();
  * }</pre>
  *
  * <p><strong>응답 형식:</strong>
  *
  * <pre>{@code
  * {
- *   "success": true,
  *   "data": { ... },
- *   "error": null,
- *   "timestamp": "2025-10-23T10:30:00",
- *   "requestId": "req-123456"
+ *   "timestamp": "2025-12-22T10:30:00",
+ *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
  * }
  * }</pre>
+ *
+ * <p><strong>에러 응답:</strong> 에러 응답은 RFC 7807 ProblemDetail 형식을 사용합니다. GlobalExceptionHandler 및
+ * SecurityExceptionHandler를 참조하세요.
  *
  * @param <T> 응답 데이터 타입
  * @author ryu-qqq
  * @since 2025-10-23
  */
-public record ApiResponse<T>(
-        boolean success, T data, ErrorInfo error, LocalDateTime timestamp, String requestId) {
+public record ApiResponse<T>(T data, String timestamp, String requestId) {
 
     /**
      * 성공 응답 생성
@@ -48,7 +47,7 @@ public record ApiResponse<T>(
      * @since 2025-10-23
      */
     public static <T> ApiResponse<T> ofSuccess(T data) {
-        return new ApiResponse<>(true, data, null, LocalDateTime.now(), generateRequestId());
+        return new ApiResponse<>(data, DateTimeFormatUtils.nowIso8601(), generateRequestId());
     }
 
     /**
@@ -64,43 +63,15 @@ public record ApiResponse<T>(
     }
 
     /**
-     * 실패 응답 생성
-     *
-     * @param error 에러 정보
-     * @param <T> 데이터 타입
-     * @return 실패 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
-     */
-    public static <T> ApiResponse<T> ofFailure(ErrorInfo error) {
-        return new ApiResponse<>(false, null, error, LocalDateTime.now(), generateRequestId());
-    }
-
-    /**
-     * 실패 응답 생성 (간편 버전)
-     *
-     * @param errorCode 에러 코드
-     * @param message 에러 메시지
-     * @param <T> 데이터 타입
-     * @return 실패 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
-     */
-    public static <T> ApiResponse<T> ofFailure(String errorCode, String message) {
-        return ofFailure(new ErrorInfo(errorCode, message));
-    }
-
-    /**
      * Request ID 생성
      *
-     * <p>실제 운영 환경에서는 MDC나 분산 추적 시스템의 Trace ID를 사용하는 것이 좋습니다.
+     * <p>UUID v4 형식으로 생성합니다.
      *
-     * @return Request ID
+     * @return UUID 형식의 Request ID
      * @author ryu-qqq
      * @since 2025-10-23
      */
     private static String generateRequestId() {
-        // TODO: MDC or Distributed Tracing ID 사용 권장
-        return "req-" + System.currentTimeMillis();
+        return UUID.randomUUID().toString();
     }
 }

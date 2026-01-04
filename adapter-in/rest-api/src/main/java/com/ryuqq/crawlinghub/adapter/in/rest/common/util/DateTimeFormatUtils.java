@@ -38,6 +38,9 @@ public final class DateTimeFormatUtils {
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern(DATETIME_PATTERN);
 
+    /** ISO 8601 포맷터 (API 응답용) */
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     /** 타임존: Asia/Seoul (KST) */
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
@@ -75,5 +78,51 @@ public final class DateTimeFormatUtils {
             return null;
         }
         return localDateTime.format(FORMATTER);
+    }
+
+    /**
+     * Instant를 ISO 8601 포맷 문자열로 변환
+     *
+     * <p>API 응답에서 사용하는 국제 표준 형식입니다.
+     *
+     * <p>null 입력 시 null 반환 (null-safe)
+     *
+     * @param instant 변환할 Instant (nullable)
+     * @return ISO 8601 포맷 문자열 "yyyy-MM-ddTHH:mm:ss" 또는 null
+     */
+    public static String formatIso8601(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZONE_ID);
+        return localDateTime.format(ISO_FORMATTER);
+    }
+
+    /**
+     * LocalDateTime을 ISO 8601 포맷 문자열로 변환
+     *
+     * <p>API 응답에서 사용하는 국제 표준 형식입니다.
+     *
+     * <p>null 입력 시 null 반환 (null-safe)
+     *
+     * @param localDateTime 변환할 LocalDateTime (nullable)
+     * @return ISO 8601 포맷 문자열 "yyyy-MM-ddTHH:mm:ss" 또는 null
+     */
+    public static String formatIso8601(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.format(ISO_FORMATTER);
+    }
+
+    /**
+     * 현재 시간을 ISO 8601 포맷 문자열로 반환
+     *
+     * <p>API 응답의 timestamp 필드에 사용합니다.
+     *
+     * @return 현재 시간의 ISO 8601 포맷 문자열
+     */
+    public static String nowIso8601() {
+        return formatIso8601(Instant.now());
     }
 }

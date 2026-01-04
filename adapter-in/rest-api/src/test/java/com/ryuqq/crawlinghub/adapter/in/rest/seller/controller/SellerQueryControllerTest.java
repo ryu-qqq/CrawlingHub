@@ -140,7 +140,6 @@ class SellerQueryControllerTest {
                             get("/api/v1/crawling/sellers/{id}", sellerId)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.sellerId").value(sellerId))
                     .andExpect(jsonPath("$.data.mustItSellerName").value("머스트잇 테스트 셀러"))
                     .andExpect(jsonPath("$.data.sellerName").value("테스트 셀러"))
@@ -148,8 +147,7 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.createdAt").exists())
                     .andExpect(jsonPath("$.data.schedulers").isArray())
                     .andExpect(jsonPath("$.data.recentTasks").isArray())
-                    .andExpect(jsonPath("$.data.statistics").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.statistics").exists());
 
             // UseCase 호출 검증
             verify(sellerQueryApiMapper).toQuery(any(Long.class));
@@ -272,7 +270,6 @@ class SellerQueryControllerTest {
                                     .param("size", "20")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content[0].sellerId").value(1))
                     .andExpect(jsonPath("$.data.content[0].mustItSellerName").value("머스트잇 셀러1"))
@@ -283,8 +280,7 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(100))
                     .andExpect(jsonPath("$.data.totalPages").value(5))
                     .andExpect(jsonPath("$.data.first").value(true))
-                    .andExpect(jsonPath("$.data.last").value(false))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.last").value(false));
 
             // UseCase 호출 검증
             verify(sellerQueryApiMapper).toQuery(any(SearchSellersApiRequest.class));
@@ -339,10 +335,8 @@ class SellerQueryControllerTest {
             // When & Then
             mockMvc.perform(get("/api/v1/crawling/sellers").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.page").value(0))
-                    .andExpect(jsonPath("$.data.size").value(20))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.size").value(20));
 
             // UseCase 호출 검증
             verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
@@ -398,9 +392,7 @@ class SellerQueryControllerTest {
                                     .param("status", "INACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content[0].status").value("INACTIVE"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.content[0].status").value("INACTIVE"));
 
             // UseCase 호출 검증
             verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
@@ -428,11 +420,9 @@ class SellerQueryControllerTest {
             // When & Then
             mockMvc.perform(get("/api/v1/crawling/sellers").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content").isEmpty())
-                    .andExpect(jsonPath("$.data.totalElements").value(0))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
 
             // UseCase 호출 검증
             verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));

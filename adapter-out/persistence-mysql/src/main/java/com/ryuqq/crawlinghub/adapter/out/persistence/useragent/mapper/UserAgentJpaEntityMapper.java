@@ -74,9 +74,10 @@ public class UserAgentJpaEntityMapper {
      */
     public UserAgentJpaEntity toEntity(UserAgent domain) {
         UserAgentMetadata metadata = domain.getMetadata();
+        Token token = domain.getToken();
         return UserAgentJpaEntity.of(
                 domain.getId().value(),
-                domain.getToken().encryptedValue(),
+                token != null ? token.encryptedValue() : null,
                 domain.getUserAgentString().value(),
                 domain.getDeviceType().getTypeName(),
                 metadata.getDeviceBrand().name(),
@@ -131,7 +132,7 @@ public class UserAgentJpaEntityMapper {
 
         return UserAgent.reconstitute(
                 UserAgentId.of(entity.getId()),
-                Token.of(entity.getToken()),
+                Token.ofNullable(entity.getToken()),
                 UserAgentString.of(entity.getUserAgentString()),
                 DeviceType.of(entity.getDeviceType()),
                 metadata,

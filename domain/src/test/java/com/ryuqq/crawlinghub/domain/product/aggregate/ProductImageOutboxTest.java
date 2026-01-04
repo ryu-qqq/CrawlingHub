@@ -56,7 +56,7 @@ class ProductImageOutboxTest {
             // Then
             assertThat(outbox.getId()).isNull();
             assertThat(outbox.getCrawledProductImageId()).isEqualTo(100L);
-            assertThat(outbox.getIdempotencyKey()).startsWith("img-100-");
+            assertThat(outbox.getIdempotencyKey()).hasSize(36); // UUID 형식
             assertThat(outbox.getStatus()).isEqualTo(ProductOutboxStatus.PENDING);
             assertThat(outbox.getRetryCount()).isZero();
             assertThat(outbox.getErrorMessage()).isNull();
@@ -93,7 +93,7 @@ class ProductImageOutboxTest {
             // Then
             assertThat(outbox.getId()).isNull();
             assertThat(outbox.getCrawledProductImageId()).isEqualTo(100L);
-            assertThat(outbox.getIdempotencyKey()).startsWith("img-100-");
+            assertThat(outbox.getIdempotencyKey()).hasSize(36); // UUID 형식
             assertThat(outbox.getStatus()).isEqualTo(ProductOutboxStatus.PENDING);
             assertThat(outbox.isPending()).isTrue();
         }

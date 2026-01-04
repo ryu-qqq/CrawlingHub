@@ -46,6 +46,25 @@ public final class TokenFixture {
         return Token.of(encryptedValue);
     }
 
+    /**
+     * 빈 토큰 생성 (Lazy Token Issuance용)
+     *
+     * @return 빈 Token
+     */
+    public static Token anEmptyToken() {
+        return Token.empty();
+    }
+
+    /**
+     * Nullable 값으로 토큰 생성
+     *
+     * @param encryptedValue 암호화된 토큰 값 (nullable)
+     * @return Token (null인 경우 빈 Token 반환)
+     */
+    public static Token ofNullable(String encryptedValue) {
+        return Token.ofNullable(encryptedValue);
+    }
+
     private TokenFixture() {
         // Utility class
     }

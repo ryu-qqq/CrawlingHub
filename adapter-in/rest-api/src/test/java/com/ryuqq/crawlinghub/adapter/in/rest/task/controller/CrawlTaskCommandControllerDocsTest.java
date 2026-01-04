@@ -82,7 +82,6 @@ class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/tasks/{id}/retry", taskId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(100))
                 .andExpect(jsonPath("$.data.status").value("RETRY"))
                 .andExpect(jsonPath("$.data.retryCount").value(1))
@@ -93,9 +92,6 @@ class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
                                 pathParameters(
                                         parameterWithName("id").description("크롤 태스크 ID (양수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -127,10 +123,6 @@ class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 일시")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
