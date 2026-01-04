@@ -71,7 +71,6 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().get("success")).isEqualTo(true);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
@@ -238,7 +237,6 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().get("success")).isEqualTo(true);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
@@ -311,7 +309,6 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().get("success")).isEqualTo(true);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");

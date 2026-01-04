@@ -69,7 +69,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/product-outbox/sync/{id}/retry", outboxId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.outboxId").value(outboxId))
                 .andExpect(jsonPath("$.data.previousStatus").value("FAILED"))
                 .andExpect(jsonPath("$.data.newStatus").value("PENDING"))
@@ -81,9 +80,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("id")
                                                 .description("SyncOutbox ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -99,10 +95,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -130,7 +122,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/product-outbox/image/{id}/retry", outboxId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.outboxId").value(outboxId))
                 .andExpect(jsonPath("$.data.previousStatus").value("FAILED"))
                 .andExpect(jsonPath("$.data.newStatus").value("PENDING"))
@@ -142,9 +133,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("id")
                                                 .description("ImageOutbox ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -160,10 +148,6 @@ class ProductOutboxCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

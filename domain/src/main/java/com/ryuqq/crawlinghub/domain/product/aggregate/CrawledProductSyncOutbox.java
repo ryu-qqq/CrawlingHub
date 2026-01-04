@@ -148,11 +148,11 @@ public class CrawledProductSyncOutbox {
     /**
      * 멱등성 키 생성
      *
-     * <p>동일한 상품과 동기화 타입에 대해 항상 동일한 키를 생성합니다. 이를 통해 중복 Outbox 생성을 방지할 수 있습니다.
+     * <p>UUID로 고유 키 생성
      *
-     * @param crawledProductId 크롤링 상품 ID
-     * @param syncType 동기화 타입
-     * @return 멱등성 키 (format: sync-{productId}-{syncType})
+     * @param crawledProductId 크롤링 상품 ID (미사용, 하위 호환)
+     * @param syncType 동기화 타입 (미사용, 하위 호환)
+     * @return 멱등성 키 (UUID)
      */
     public static String generateIdempotencyKey(
             CrawledProductId crawledProductId, SyncType syncType) {

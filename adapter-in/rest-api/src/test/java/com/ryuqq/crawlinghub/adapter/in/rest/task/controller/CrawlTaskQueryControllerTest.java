@@ -166,7 +166,6 @@ class CrawlTaskQueryControllerTest {
                                     .param("crawlSchedulerId", crawlSchedulerId.toString())
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(2))
                     .andExpect(jsonPath("$.data.content[0].crawlTaskId").value(1))
@@ -178,8 +177,7 @@ class CrawlTaskQueryControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(2))
                     .andExpect(jsonPath("$.data.totalPages").value(1))
                     .andExpect(jsonPath("$.data.first").value(true))
-                    .andExpect(jsonPath("$.data.last").value(true))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.last").value(true));
 
             // UseCase 호출 검증
             verify(crawlTaskQueryApiMapper).toQuery(any(SearchCrawlTasksApiRequest.class));
@@ -250,12 +248,10 @@ class CrawlTaskQueryControllerTest {
                                     .param("taskType", "META")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].status").value("FAILED"))
                     .andExpect(jsonPath("$.data.content[0].taskType").value("META"))
-                    .andExpect(jsonPath("$.data.content[0].retryCount").value(2))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.content[0].retryCount").value(2));
 
             // UseCase 호출 검증
             verify(listCrawlTasksUseCase).execute(any(ListCrawlTasksQuery.class));
@@ -289,14 +285,12 @@ class CrawlTaskQueryControllerTest {
                                     .param("size", "10")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.page").value(2))
                     .andExpect(jsonPath("$.data.size").value(10))
                     .andExpect(jsonPath("$.data.totalElements").value(25))
                     .andExpect(jsonPath("$.data.totalPages").value(3))
                     .andExpect(jsonPath("$.data.first").value(false))
-                    .andExpect(jsonPath("$.data.last").value(true))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.last").value(true));
         }
 
         @Test
@@ -419,7 +413,6 @@ class CrawlTaskQueryControllerTest {
                             get("/api/v1/crawling/tasks/{id}", taskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(100))
                     .andExpect(jsonPath("$.data.sellerId").value(10))
@@ -434,8 +427,7 @@ class CrawlTaskQueryControllerTest {
                             jsonPath("$.data.fullUrl")
                                     .value("https://example.com/products?page=1&size=100"))
                     .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.data.updatedAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.updatedAt").exists());
 
             // UseCase 호출 검증
             verify(crawlTaskQueryApiMapper).toGetQuery(taskId);
@@ -495,12 +487,10 @@ class CrawlTaskQueryControllerTest {
                             get("/api/v1/crawling/tasks/{id}", taskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
                     .andExpect(jsonPath("$.data.status").value("FAILED"))
                     .andExpect(jsonPath("$.data.taskType").value("META"))
-                    .andExpect(jsonPath("$.data.retryCount").value(3))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.retryCount").value(3));
 
             // UseCase 호출 검증
             verify(getCrawlTaskUseCase).execute(any(GetCrawlTaskQuery.class));

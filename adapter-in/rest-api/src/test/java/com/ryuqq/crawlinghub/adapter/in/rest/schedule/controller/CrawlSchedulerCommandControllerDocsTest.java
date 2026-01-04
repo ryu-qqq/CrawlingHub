@@ -97,7 +97,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlSchedulerId").value(1))
                 .andDo(
                         document(
@@ -115,9 +114,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .description(
                                                         "크론 표현식 (AWS EventBridge 형식, 1-100자, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -142,10 +138,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.NULL)
                                                 .description("수정 일시")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
@@ -196,7 +188,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.status").value("INACTIVE"))
                 .andDo(
                         document(
@@ -219,9 +210,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                                         "활성화 여부 (true=ACTIVE, false=INACTIVE, 선택)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -246,10 +234,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 일시"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -298,7 +282,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.status").value("INACTIVE"))
                 .andDo(
                         document(
@@ -313,9 +296,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                                         "활성화 여부 (true=ACTIVE, false=INACTIVE,"
                                                                 + " 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -340,10 +320,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 일시"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -390,7 +366,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/schedules/{id}/trigger", schedulerId))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(100))
                 .andExpect(jsonPath("$.data.status").value("WAITING"))
                 .andDo(
@@ -400,9 +375,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                 pathParameters(
                                         parameterWithName("id").description("크롤 스케줄러 ID (양수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -433,10 +405,6 @@ class CrawlSchedulerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 일시")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)

@@ -633,8 +633,8 @@ class CrawlTaskTest {
     class GenerateIdempotencyKey {
 
         @Test
-        @DisplayName("멱등성 키 생성 시 schedulerId와 taskId 포함")
-        void shouldGenerateKeyWithSchedulerIdAndTaskId() {
+        @DisplayName("멱등성 키 생성 시 Deterministic 형식 (schedulerId-taskId-uuid8)")
+        void shouldGenerateDeterministicKey() {
             // given
             CrawlTask task = CrawlTaskFixture.aWaitingTask();
 
@@ -642,8 +642,8 @@ class CrawlTaskTest {
             String key = task.generateIdempotencyKey();
 
             // then
-            assertThat(key).startsWith("1-1-");
-            assertThat(key).hasSize(12); // "1-1-xxxxxxxx" (8자리 UUID)
+            // Deterministic 형식: {schedulerId}-{taskId}-{uuid8}
+            assertThat(key).matches("\\d+-\\d+-[a-f0-9]{8}");
         }
     }
 

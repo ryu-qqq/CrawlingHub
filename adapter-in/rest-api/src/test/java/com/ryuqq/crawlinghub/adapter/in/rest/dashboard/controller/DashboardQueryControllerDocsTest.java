@@ -84,7 +84,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(get("/api/v1/crawling/dashboard/stats"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.todayTaskStats.total").value(150))
                 .andExpect(jsonPath("$.data.todayTaskStats.success").value(120))
                 .andExpect(jsonPath("$.data.todayTaskStats.failed").value(15))
@@ -105,9 +104,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
                                 "dashboard-query/stats",
                                 RestDocsSecuritySnippets.authorization("dashboard:read"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -195,10 +191,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("실패 시각 (ISO-8601)"),
                                         // Common
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -232,7 +224,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(get("/api/v1/crawling/dashboard/stats"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.todayTaskStats.total").value(0))
                 .andExpect(jsonPath("$.data.todayTaskStats.successRate").value(0.0))
                 .andExpect(jsonPath("$.data.weeklySuccessRates").isArray())
@@ -245,9 +236,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
                                 "dashboard-query/stats-no-data",
                                 RestDocsSecuritySnippets.authorization("dashboard:read"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -314,10 +302,6 @@ class DashboardQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.recentFailedTasks")
                                                 .type(JsonFieldType.ARRAY)
                                                 .description("최근 실패 태스크 목록 (빈 배열)"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

@@ -78,7 +78,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sellerId").value(1))
                 .andDo(
                         document(
@@ -92,9 +91,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("커머스 셀러 이름 (1-100자, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -116,10 +112,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.NULL)
                                                 .description("수정 일시")
-                                                .optional(),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
                                                 .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
@@ -165,7 +157,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.status").value("INACTIVE"))
                 .andDo(
                         document(
@@ -187,9 +178,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                                         "활성화 여부 (true=ACTIVE, false=INACTIVE, 선택)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -211,10 +199,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.updatedAt")
                                                 .type(JsonFieldType.STRING)
                                                 .description("수정 일시"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

@@ -147,7 +147,7 @@ public class CrawlTask {
     /**
      * Idempotency Key 생성
      *
-     * <p>schedulerId + taskId + timestamp 조합으로 고유 키 생성
+     * <p>UUID로 고유 키 생성
      */
     public String generateIdempotencyKey() {
         return String.format(
