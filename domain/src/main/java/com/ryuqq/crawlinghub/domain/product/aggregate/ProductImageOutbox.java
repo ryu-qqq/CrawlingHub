@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * 이미지 업로드 Outbox (작업 큐)
@@ -152,7 +151,7 @@ public class ProductImageOutbox {
      * @return 멱등성 키 (UUID)
      */
     private static String generateIdempotencyKey(CrawledProductImage image) {
-        return UUID.randomUUID().toString();
+        return String.format("img-%s-%s", image.getId(), image.getOriginalUrl().hashCode());
     }
 
     /**
@@ -165,7 +164,7 @@ public class ProductImageOutbox {
      * @return 멱등성 키 (UUID)
      */
     public static String generateIdempotencyKeyFromUrl(Long imageId, String originalUrl) {
-        return UUID.randomUUID().toString();
+        return String.format("img-%s-%s", imageId, originalUrl.hashCode());
     }
 
     /**

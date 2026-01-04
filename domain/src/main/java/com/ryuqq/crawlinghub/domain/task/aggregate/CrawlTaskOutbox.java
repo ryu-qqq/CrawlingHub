@@ -104,7 +104,8 @@ public class CrawlTaskOutbox {
      * <p>UUID로 고유 키 생성
      */
     private static String generateIdempotencyKey(CrawlTaskId crawlTaskId) {
-        return UUID.randomUUID().toString();
+        return String.format(
+                "outbox-%s-%s", crawlTaskId.value(), UUID.randomUUID().toString().substring(0, 8));
     }
 
     /**

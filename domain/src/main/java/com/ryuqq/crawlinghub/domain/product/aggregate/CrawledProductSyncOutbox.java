@@ -6,7 +6,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * 외부 상품 서버 동기화 Outbox
@@ -157,7 +156,7 @@ public class CrawledProductSyncOutbox {
      */
     public static String generateIdempotencyKey(
             CrawledProductId crawledProductId, SyncType syncType) {
-        return UUID.randomUUID().toString();
+        return String.format("sync-%s-%s", crawledProductId.value(), syncType.name().toLowerCase());
     }
 
     /**
