@@ -110,7 +110,6 @@ public class UserAgentQueryController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "totalAgents": 100,
      *     "availableAgents": 85,
@@ -124,9 +123,8 @@ public class UserAgentQueryController {
      *     "isCircuitBreakerOpen": false,
      *     "isHealthy": true
      *   },
-     *   "error": null,
      *   "timestamp": "2025-11-20T10:30:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *
@@ -248,7 +246,6 @@ public class UserAgentQueryController {
      *
      * <pre>{@code
      * {
-     *   "success": true,
      *   "data": {
      *     "id": 1,
      *     "userAgentValue": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
@@ -266,9 +263,8 @@ public class UserAgentQueryController {
      *       "sessionExpiresAt": "2025-01-15T11:30:00Z"
      *     }
      *   },
-     *   "error": null,
      *   "timestamp": "2025-01-15T10:35:00",
-     *   "requestId": "req-123456"
+     *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
      * }
      * }</pre>
      *

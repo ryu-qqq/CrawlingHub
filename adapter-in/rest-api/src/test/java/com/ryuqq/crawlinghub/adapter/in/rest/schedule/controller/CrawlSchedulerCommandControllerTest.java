@@ -139,14 +139,12 @@ class CrawlSchedulerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(100))
                     .andExpect(jsonPath("$.data.sellerId").value(1))
                     .andExpect(jsonPath("$.data.schedulerName").value("테스트 스케줄러"))
                     .andExpect(jsonPath("$.data.cronExpression").value("0 0 * * ? *"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.createdAt").exists());
 
             // UseCase 호출 검증
             verify(crawlSchedulerCommandApiMapper)
@@ -293,13 +291,11 @@ class CrawlSchedulerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(schedulerId))
                     .andExpect(jsonPath("$.data.schedulerName").value("수정된 스케줄러"))
                     .andExpect(jsonPath("$.data.cronExpression").value("0 30 * * ? *"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.data.updatedAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.updatedAt").exists());
 
             // UseCase 호출 검증
             verify(updateCrawlSchedulerUseCase).update(any(UpdateCrawlSchedulerCommand.class));
@@ -352,9 +348,7 @@ class CrawlSchedulerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.schedulerName").value("새로운 이름"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.schedulerName").value("새로운 이름"));
 
             // UseCase 호출 검증
             verify(updateCrawlSchedulerUseCase).update(any(UpdateCrawlSchedulerCommand.class));
@@ -431,10 +425,8 @@ class CrawlSchedulerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(schedulerId))
-                    .andExpect(jsonPath("$.data.status").value("INACTIVE"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.status").value("INACTIVE"));
 
             // UseCase 호출 검증
             verify(updateCrawlSchedulerUseCase).update(any(UpdateCrawlSchedulerCommand.class));
@@ -486,9 +478,7 @@ class CrawlSchedulerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
             // UseCase 호출 검증
             verify(updateCrawlSchedulerUseCase).update(any(UpdateCrawlSchedulerCommand.class));
@@ -563,7 +553,6 @@ class CrawlSchedulerCommandControllerTest {
                             post("/api/v1/crawling/schedules/{id}/trigger", schedulerId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(1))
                     .andExpect(jsonPath("$.data.crawlSchedulerId").value(schedulerId))
                     .andExpect(jsonPath("$.data.sellerId").value(10))
@@ -571,8 +560,7 @@ class CrawlSchedulerCommandControllerTest {
                     .andExpect(jsonPath("$.data.status").value("WAITING"))
                     .andExpect(jsonPath("$.data.taskType").value("META"))
                     .andExpect(jsonPath("$.data.retryCount").value(0))
-                    .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.createdAt").exists());
 
             // UseCase 호출 검증
             verify(triggerCrawlTaskUseCase).execute(any(TriggerCrawlTaskCommand.class));
@@ -620,10 +608,8 @@ class CrawlSchedulerCommandControllerTest {
                             post("/api/v1/crawling/schedules/{id}/trigger", schedulerId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.crawlTaskId").value(2))
-                    .andExpect(jsonPath("$.data.taskType").value("MINI_SHOP"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.taskType").value("MINI_SHOP"));
 
             // UseCase 호출 검증
             verify(triggerCrawlTaskUseCase).execute(any(TriggerCrawlTaskCommand.class));

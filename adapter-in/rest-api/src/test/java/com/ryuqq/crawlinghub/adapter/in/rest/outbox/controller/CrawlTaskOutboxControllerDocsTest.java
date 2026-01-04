@@ -118,7 +118,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.totalElements").value(2))
@@ -147,9 +146,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                                 .description("페이지 크기 (기본값: 20, 최대: 100)")
                                                 .optional()),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("페이징 응답 데이터"),
@@ -197,10 +193,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -227,7 +219,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/outbox/{crawlTaskId}/republish", crawlTaskId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(crawlTaskId))
                 .andExpect(jsonPath("$.data.success").value(true))
                 .andExpect(jsonPath("$.data.message").value("SQS 재발행이 완료되었습니다."))
@@ -239,9 +230,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("crawlTaskId")
                                                 .description("재발행할 Task ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("API 호출 성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("재발행 결과 데이터"),
@@ -254,10 +242,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -286,7 +270,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/outbox/{crawlTaskId}/republish", crawlTaskId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawlTaskId").value(crawlTaskId))
                 .andExpect(jsonPath("$.data.success").value(false))
                 .andExpect(jsonPath("$.data.message").value("해당 Task ID에 대한 Outbox를 찾을 수 없습니다."))
@@ -297,9 +280,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("crawlTaskId")
                                                 .description("재발행할 Task ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("API 호출 성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("재발행 결과 데이터"),
@@ -312,10 +292,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("실패 사유"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

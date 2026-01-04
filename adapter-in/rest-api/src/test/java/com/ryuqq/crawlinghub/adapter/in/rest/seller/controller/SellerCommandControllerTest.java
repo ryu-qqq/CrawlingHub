@@ -116,13 +116,11 @@ class SellerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.sellerId").value(1))
                     .andExpect(jsonPath("$.data.mustItSellerName").value("머스트잇 테스트 셀러"))
                     .andExpect(jsonPath("$.data.sellerName").value("테스트 셀러"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.createdAt").exists());
 
             // UseCase 호출 검증
             verify(sellerCommandApiMapper).toCommand(any(RegisterSellerApiRequest.class));
@@ -260,13 +258,11 @@ class SellerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.sellerId").value(sellerId))
                     .andExpect(jsonPath("$.data.mustItSellerName").value("수정된 머스트잇 셀러명"))
                     .andExpect(jsonPath("$.data.sellerName").value("수정된 셀러명"))
                     .andExpect(jsonPath("$.data.status").value("INACTIVE"))
-                    .andExpect(jsonPath("$.data.updatedAt").exists())
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.updatedAt").exists());
 
             // UseCase 호출 검증
             verify(sellerCommandApiMapper)
@@ -318,10 +314,8 @@ class SellerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.sellerId").value(sellerId))
-                    .andExpect(jsonPath("$.data.mustItSellerName").value("새로운 머스트잇 셀러명"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.mustItSellerName").value("새로운 머스트잇 셀러명"));
 
             // UseCase 호출 검증
             verify(updateSellerUseCase).execute(any(UpdateSellerCommand.class));
@@ -369,9 +363,7 @@ class SellerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.status").value("INACTIVE"))
-                    .andExpect(jsonPath("$.error").isEmpty());
+                    .andExpect(jsonPath("$.data.status").value("INACTIVE"));
 
             // UseCase 호출 검증
             verify(updateSellerUseCase).execute(any(UpdateSellerCommand.class));

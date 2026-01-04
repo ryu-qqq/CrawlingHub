@@ -68,7 +68,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/crawled-products/{id}/sync", crawledProductId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawledProductId").value(crawledProductId))
                 .andExpect(jsonPath("$.data.syncOutboxId").value(100))
                 .andExpect(jsonPath("$.data.syncType").value("CREATE"))
@@ -79,9 +78,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
                                 pathParameters(
                                         parameterWithName("id").description("크롤링 상품 ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -97,10 +93,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -131,7 +123,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/crawled-products/{id}/sync", crawledProductId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.crawledProductId").value(crawledProductId))
                 .andExpect(jsonPath("$.data.syncOutboxId").value(101))
                 .andExpect(jsonPath("$.data.syncType").value("UPDATE"))
@@ -141,9 +132,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
                                 pathParameters(
                                         parameterWithName("id").description("크롤링 상품 ID (양수, 필수)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -159,10 +147,6 @@ class CrawledProductCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

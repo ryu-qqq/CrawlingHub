@@ -56,8 +56,8 @@ class SecurityExceptionHandlerTest {
         }
 
         @Test
-        @DisplayName("JSON 형식으로 응답한다")
-        void shouldReturnJsonResponse() throws IOException {
+        @DisplayName("application/problem+json 형식으로 응답한다")
+        void shouldReturnProblemJsonResponse() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -68,13 +68,14 @@ class SecurityExceptionHandlerTest {
             handler.commence(request, response, authException);
 
             // Then
-            assertThat(response.getContentType()).startsWith(MediaType.APPLICATION_JSON_VALUE);
+            assertThat(response.getContentType())
+                    .startsWith(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
             assertThat(response.getCharacterEncoding()).isEqualTo("UTF-8");
         }
 
         @Test
-        @DisplayName("AUTH_001 에러 코드와 메시지를 포함한다")
-        void shouldContainAuthErrorCodeAndMessage() throws IOException {
+        @DisplayName("UNAUTHORIZED 코드와 메시지를 포함한다")
+        void shouldContainUnauthorizedCodeAndMessage() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -86,26 +87,8 @@ class SecurityExceptionHandlerTest {
 
             // Then
             JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            JsonNode error = responseBody.get("error");
-            assertThat(error.get("errorCode").asText()).isEqualTo("AUTH_001");
-            assertThat(error.get("message").asText()).isEqualTo("인증이 필요합니다.");
-        }
-
-        @Test
-        @DisplayName("success가 false인 응답을 반환한다")
-        void shouldReturnSuccessFalse() throws IOException {
-            // Given
-            MockHttpServletRequest request = new MockHttpServletRequest();
-            MockHttpServletResponse response = new MockHttpServletResponse();
-            AuthenticationException authException =
-                    new BadCredentialsException("Invalid credentials");
-
-            // When
-            handler.commence(request, response, authException);
-
-            // Then
-            JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            assertThat(responseBody.get("success").asBoolean()).isFalse();
+            assertThat(responseBody.get("code").asText()).isEqualTo("UNAUTHORIZED");
+            assertThat(responseBody.get("detail").asText()).isEqualTo("인증이 필요합니다.");
         }
     }
 
@@ -130,8 +113,8 @@ class SecurityExceptionHandlerTest {
         }
 
         @Test
-        @DisplayName("JSON 형식으로 응답한다")
-        void shouldReturnJsonResponse() throws IOException {
+        @DisplayName("application/problem+json 형식으로 응답한다")
+        void shouldReturnProblemJsonResponse() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -142,13 +125,14 @@ class SecurityExceptionHandlerTest {
             handler.handle(request, response, accessDeniedException);
 
             // Then
-            assertThat(response.getContentType()).startsWith(MediaType.APPLICATION_JSON_VALUE);
+            assertThat(response.getContentType())
+                    .startsWith(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
             assertThat(response.getCharacterEncoding()).isEqualTo("UTF-8");
         }
 
         @Test
-        @DisplayName("AUTH_002 에러 코드와 메시지를 포함한다")
-        void shouldContainAccessDeniedErrorCodeAndMessage() throws IOException {
+        @DisplayName("FORBIDDEN 코드와 메시지를 포함한다")
+        void shouldContainForbiddenCodeAndMessage() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -160,38 +144,21 @@ class SecurityExceptionHandlerTest {
 
             // Then
             JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            JsonNode error = responseBody.get("error");
-            assertThat(error.get("errorCode").asText()).isEqualTo("AUTH_002");
-            assertThat(error.get("message").asText()).isEqualTo("접근 권한이 없습니다.");
-        }
-
-        @Test
-        @DisplayName("success가 false인 응답을 반환한다")
-        void shouldReturnSuccessFalse() throws IOException {
-            // Given
-            MockHttpServletRequest request = new MockHttpServletRequest();
-            MockHttpServletResponse response = new MockHttpServletResponse();
-            AccessDeniedException accessDeniedException =
-                    new AccessDeniedException("Access denied");
-
-            // When
-            handler.handle(request, response, accessDeniedException);
-
-            // Then
-            JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            assertThat(responseBody.get("success").asBoolean()).isFalse();
+            assertThat(responseBody.get("code").asText()).isEqualTo("FORBIDDEN");
+            assertThat(responseBody.get("detail").asText()).isEqualTo("접근 권한이 없습니다.");
         }
     }
 
     @Nested
-    @DisplayName("ApiResponse 구조 검증")
-    class ApiResponseStructure {
+    @DisplayName("RFC 7807 ProblemDetail 구조 검증")
+    class ProblemDetailStructure {
 
         @Test
-        @DisplayName("401 응답이 올바른 ApiResponse 구조를 가진다")
+        @DisplayName("401 응답이 올바른 ProblemDetail 구조를 가진다")
         void shouldHaveCorrectStructureFor401() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRequestURI("/api/test");
             MockHttpServletResponse response = new MockHttpServletResponse();
             AuthenticationException authException = new BadCredentialsException("Test");
 
@@ -200,20 +167,26 @@ class SecurityExceptionHandlerTest {
 
             // Then
             JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            assertThat(responseBody.has("success")).isTrue();
-            assertThat(responseBody.has("data")).isTrue();
-            assertThat(responseBody.has("error")).isTrue();
+            assertThat(responseBody.has("type")).isTrue();
+            assertThat(responseBody.has("title")).isTrue();
+            assertThat(responseBody.has("status")).isTrue();
+            assertThat(responseBody.has("detail")).isTrue();
+            assertThat(responseBody.has("code")).isTrue();
             assertThat(responseBody.has("timestamp")).isTrue();
-            assertThat(responseBody.has("requestId")).isTrue();
-            assertThat(responseBody.get("data").isNull()).isTrue();
-            assertThat(responseBody.get("error").isNull()).isFalse();
+            assertThat(responseBody.has("instance")).isTrue();
+
+            assertThat(responseBody.get("type").asText()).isEqualTo("about:blank");
+            assertThat(responseBody.get("title").asText()).isEqualTo("Unauthorized");
+            assertThat(responseBody.get("status").asInt()).isEqualTo(401);
+            assertThat(responseBody.get("instance").asText()).isEqualTo("/api/test");
         }
 
         @Test
-        @DisplayName("403 응답이 올바른 ApiResponse 구조를 가진다")
+        @DisplayName("403 응답이 올바른 ProblemDetail 구조를 가진다")
         void shouldHaveCorrectStructureFor403() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRequestURI("/api/admin");
             MockHttpServletResponse response = new MockHttpServletResponse();
             AccessDeniedException accessDeniedException = new AccessDeniedException("Test");
 
@@ -222,20 +195,27 @@ class SecurityExceptionHandlerTest {
 
             // Then
             JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            assertThat(responseBody.has("success")).isTrue();
-            assertThat(responseBody.has("data")).isTrue();
-            assertThat(responseBody.has("error")).isTrue();
+            assertThat(responseBody.has("type")).isTrue();
+            assertThat(responseBody.has("title")).isTrue();
+            assertThat(responseBody.has("status")).isTrue();
+            assertThat(responseBody.has("detail")).isTrue();
+            assertThat(responseBody.has("code")).isTrue();
             assertThat(responseBody.has("timestamp")).isTrue();
-            assertThat(responseBody.has("requestId")).isTrue();
-            assertThat(responseBody.get("data").isNull()).isTrue();
-            assertThat(responseBody.get("error").isNull()).isFalse();
+            assertThat(responseBody.has("instance")).isTrue();
+
+            assertThat(responseBody.get("type").asText()).isEqualTo("about:blank");
+            assertThat(responseBody.get("title").asText()).isEqualTo("Forbidden");
+            assertThat(responseBody.get("status").asInt()).isEqualTo(403);
+            assertThat(responseBody.get("instance").asText()).isEqualTo("/api/admin");
         }
 
         @Test
-        @DisplayName("error 필드가 올바른 ErrorInfo 구조를 가진다")
-        void shouldHaveCorrectErrorInfoStructure() throws IOException {
+        @DisplayName("쿼리스트링이 있는 경우 instance에 포함된다")
+        void shouldIncludeQueryStringInInstance() throws IOException {
             // Given
             MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRequestURI("/api/test");
+            request.setQueryString("page=1&size=10");
             MockHttpServletResponse response = new MockHttpServletResponse();
             AuthenticationException authException = new BadCredentialsException("Test");
 
@@ -244,9 +224,7 @@ class SecurityExceptionHandlerTest {
 
             // Then
             JsonNode responseBody = objectMapper.readTree(response.getContentAsString());
-            JsonNode error = responseBody.get("error");
-            assertThat(error.has("errorCode")).isTrue();
-            assertThat(error.has("message")).isTrue();
+            assertThat(responseBody.get("instance").asText()).isEqualTo("/api/test?page=1&size=10");
         }
     }
 }

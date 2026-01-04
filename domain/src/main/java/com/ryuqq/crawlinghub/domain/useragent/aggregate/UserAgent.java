@@ -42,7 +42,7 @@ import java.time.Instant;
 public class UserAgent {
 
     private final UserAgentId id;
-    private final Token token;
+    private Token token;
     private final UserAgentString userAgentString;
     private final DeviceType deviceType;
     private final UserAgentMetadata metadata;
@@ -107,6 +107,34 @@ public class UserAgent {
     }
 
     /**
+     * 토큰 없이 신규 UserAgent 생성 (Lazy Token Issuance)
+     *
+     * <p>토큰 발급을 나중으로 미루고 UserAgent만 먼저 등록할 때 사용합니다. 토큰이 필요한 시점에 {@link #issueToken(Token, Clock)}
+     * 메서드로 발급합니다.
+     *
+     * @param userAgentString User-Agent 헤더 문자열
+     * @param clock 시간 제어
+     * @return 토큰이 없는 새로운 UserAgent (AVAILABLE, Health Score 100)
+     */
+    public static UserAgent forNewWithoutToken(UserAgentString userAgentString, Clock clock) {
+        Instant now = clock.instant();
+        DeviceType deviceType = DeviceType.parse(userAgentString.value());
+        UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
+        return new UserAgent(
+                UserAgentId.unassigned(),
+                Token.empty(),
+                userAgentString,
+                deviceType,
+                metadata,
+                UserAgentStatus.AVAILABLE,
+                HealthScore.initial(),
+                null,
+                0,
+                now,
+                now);
+    }
+
+    /**
      * 기존 데이터로 UserAgent 복원 (영속성 계층 전용)
      *
      * @param id UserAgent ID
@@ -149,6 +177,36 @@ public class UserAgent {
     }
 
     // === 비즈니스 로직 ===
+
+    /**
+     * 토큰 발급 (Lazy Token Issuance)
+     *
+     * <p>토큰이 없는 UserAgent에 토큰을 발급합니다. 이미 토큰이 발급된 경우 예외가 발생합니다.
+     *
+     * @param token 발급할 토큰
+     * @param clock 시간 제어
+     * @throws IllegalStateException 이미 토큰이 발급된 경우
+     * @throws IllegalArgumentException 토큰이 비어있는 경우
+     */
+    public void issueToken(Token token, Clock clock) {
+        if (hasToken()) {
+            throw new IllegalStateException("이미 토큰이 발급되었습니다: userAgentId=" + this.id.value());
+        }
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("발급할 토큰은 비어있을 수 없습니다.");
+        }
+        this.token = token;
+        this.updatedAt = clock.instant();
+    }
+
+    /**
+     * 토큰 발급 여부 확인
+     *
+     * @return 토큰이 발급되었으면 true
+     */
+    public boolean hasToken() {
+        return this.token != null && this.token.isPresent();
+    }
 
     /**
      * 사용 기록 (lastUsedAt, requestsPerDay 업데이트)

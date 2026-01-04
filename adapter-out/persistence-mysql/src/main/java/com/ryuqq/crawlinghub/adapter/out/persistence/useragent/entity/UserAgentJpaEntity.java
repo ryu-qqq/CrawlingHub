@@ -56,8 +56,10 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * 암호화된 토큰 (AES-256 Base64)
      *
      * <p>복호화 불가, 암호화 상태로만 저장/비교
+     *
+     * <p><strong>Lazy Token Issuance:</strong> nullable 허용 (토큰 미발급 상태 지원)
      */
-    @Column(name = "token", nullable = false, length = 500)
+    @Column(name = "token", nullable = true, length = 500)
     private String token;
 
     /** User-Agent 헤더 문자열 (실제 User-Agent 값) */

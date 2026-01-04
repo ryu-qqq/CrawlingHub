@@ -87,6 +87,134 @@ class UserAgentTest {
     }
 
     @Nested
+    @DisplayName("forNewWithoutToken() 토큰 없이 신규 생성 테스트")
+    class ForNewWithoutToken {
+
+        @Test
+        @DisplayName("토큰 없이 신규 UserAgent 생성 시 AVAILABLE 상태, Health Score 100, 빈 토큰")
+        void shouldCreateUserAgentWithEmptyToken() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+
+            // when
+            UserAgent userAgent =
+                    UserAgent.forNewWithoutToken(
+                            UserAgentStringFixture.aDefaultUserAgentString(), clock);
+
+            // then
+            assertThat(userAgent.getId()).isNotNull();
+            assertThat(userAgent.getId().value()).isNull();
+            assertThat(userAgent.getToken()).isNotNull();
+            assertThat(userAgent.getToken().isEmpty()).isTrue();
+            assertThat(userAgent.hasToken()).isFalse();
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
+        }
+    }
+
+    @Nested
+    @DisplayName("issueToken() 토큰 발급 테스트")
+    class IssueToken {
+
+        @Test
+        @DisplayName("토큰 없는 UserAgent에 토큰 발급 성공")
+        void shouldIssueTokenSuccessfully() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.aUserAgentWithoutToken();
+            assertThat(userAgent.hasToken()).isFalse();
+
+            // when
+            userAgent.issueToken(TokenFixture.aDefaultToken(), clock);
+
+            // then
+            assertThat(userAgent.hasToken()).isTrue();
+            assertThat(userAgent.getToken()).isEqualTo(TokenFixture.aDefaultToken());
+        }
+
+        @Test
+        @DisplayName("이미 토큰이 있는 UserAgent에 토큰 발급 시 예외 발생")
+        void shouldThrowExceptionWhenTokenAlreadyExists() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.hasToken()).isTrue();
+
+            // when & then
+            assertThatThrownBy(() -> userAgent.issueToken(TokenFixture.anAlternativeToken(), clock))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("이미 토큰이 발급되었습니다");
+        }
+
+        @Test
+        @DisplayName("빈 토큰으로 발급 시도 시 예외 발생")
+        void shouldThrowExceptionWhenIssuingEmptyToken() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.aUserAgentWithoutToken();
+
+            // when & then
+            assertThatThrownBy(() -> userAgent.issueToken(TokenFixture.anEmptyToken(), clock))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("발급할 토큰은 비어있을 수 없습니다");
+        }
+
+        @Test
+        @DisplayName("null 토큰으로 발급 시도 시 예외 발생")
+        void shouldThrowExceptionWhenIssuingNullToken() {
+            // given
+            FixedClock clock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.aUserAgentWithoutToken();
+
+            // when & then
+            assertThatThrownBy(() -> userAgent.issueToken(null, clock))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("발급할 토큰은 비어있을 수 없습니다");
+        }
+
+        @Test
+        @DisplayName("토큰 발급 시 updatedAt 업데이트")
+        void shouldUpdateTimestampWhenIssuingToken() {
+            // given
+            FixedClock pastClock = FixedClock.aDefaultClock();
+            UserAgent userAgent = UserAgentFixture.forNewWithoutToken(pastClock);
+            Instant originalUpdatedAt = userAgent.getUpdatedAt();
+            FixedClock futureClock = FixedClock.at(originalUpdatedAt.plusSeconds(3600));
+
+            // when
+            userAgent.issueToken(TokenFixture.aDefaultToken(), futureClock);
+
+            // then
+            assertThat(userAgent.getUpdatedAt()).isAfter(originalUpdatedAt);
+        }
+    }
+
+    @Nested
+    @DisplayName("hasToken() 토큰 존재 확인 테스트")
+    class HasToken {
+
+        @Test
+        @DisplayName("토큰이 있는 UserAgent는 hasToken() == true")
+        void shouldReturnTrueWhenTokenExists() {
+            // given
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+
+            // then
+            assertThat(userAgent.hasToken()).isTrue();
+        }
+
+        @Test
+        @DisplayName("토큰이 없는 UserAgent는 hasToken() == false")
+        void shouldReturnFalseWhenTokenIsEmpty() {
+            // given
+            UserAgent userAgent = UserAgentFixture.aUserAgentWithoutToken();
+
+            // then
+            assertThat(userAgent.hasToken()).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("reconstitute() 영속성 복원 테스트")
     class Reconstitute {
 

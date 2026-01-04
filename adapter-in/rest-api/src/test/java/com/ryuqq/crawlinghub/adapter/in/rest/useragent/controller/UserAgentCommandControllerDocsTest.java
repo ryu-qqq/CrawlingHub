@@ -72,7 +72,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(5))
                 .andExpect(jsonPath("$.data.message").value("5 user agents recovered successfully"))
                 .andDo(
@@ -80,9 +79,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 "useragent-command/recover",
                                 RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -92,10 +88,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -118,7 +110,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/user-agents/recover"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recoveredCount").value(0))
                 .andExpect(jsonPath("$.data.message").value("No user agents to recover"))
                 .andDo(
@@ -126,9 +117,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 "useragent-command/recover-no-agents",
                                 RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -138,10 +126,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("복구할 UserAgent가 없음을 나타내는 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -173,7 +157,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(apiRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.updatedCount").value(3))
                 .andExpect(
                         jsonPath("$.data.message")
@@ -191,9 +174,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .description(
                                                         "변경할 상태 (AVAILABLE, SUSPENDED, BLOCKED)")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -203,10 +183,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -238,7 +214,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(apiRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.updatedCount").value(1))
                 .andExpect(
                         jsonPath("$.data.message")
@@ -255,9 +230,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .type(JsonFieldType.STRING)
                                                 .description("변경할 상태")),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -267,10 +239,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -294,7 +262,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/user-agents/warmup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.addedCount").value(10))
                 .andExpect(
                         jsonPath("$.data.message")
@@ -304,9 +271,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 "useragent-command/warmup",
                                 RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -316,10 +280,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("결과 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -342,7 +302,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
         // when & then
         mockMvc.perform(post("/api/v1/crawling/user-agents/warmup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.addedCount").value(0))
                 .andExpect(jsonPath("$.data.message").value("No user agents to warm up"))
                 .andDo(
@@ -350,9 +309,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                 "useragent-command/warmup-no-agents",
                                 RestDocsSecuritySnippets.authorization("useragent:manage"),
                                 responseFields(
-                                        fieldWithPath("success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("성공 여부"),
                                         fieldWithPath("data")
                                                 .type(JsonFieldType.OBJECT)
                                                 .description("응답 데이터"),
@@ -362,10 +318,6 @@ class UserAgentCommandControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.message")
                                                 .type(JsonFieldType.STRING)
                                                 .description("Warm-up 대상이 없음을 나타내는 메시지"),
-                                        fieldWithPath("error")
-                                                .type(JsonFieldType.NULL)
-                                                .description("에러 정보")
-                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
