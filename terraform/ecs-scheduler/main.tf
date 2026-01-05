@@ -211,6 +211,12 @@ module "scheduler_task_role" {
   data_class   = local.common_tags.data_class
 }
 
+# SQS Access Policy Attachment (from sqs stack)
+resource "aws_iam_role_policy_attachment" "scheduler_sqs_access" {
+  role       = module.scheduler_task_role.role_name
+  policy_arn = local.sqs_access_policy_arn
+}
+
 # ========================================
 # CloudWatch Log Group (using Infrastructure module)
 # ========================================
@@ -337,6 +343,10 @@ module "ecs_service" {
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
     { name = "REDIS_PORT", value = local.redis_port },
+    # SQS Queue URLs (from sqs stack via SSM)
+    { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
+    { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
+    { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
     # Fileflow Client 설정 (이미지 업로드 서비스)
     { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
     { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" },
