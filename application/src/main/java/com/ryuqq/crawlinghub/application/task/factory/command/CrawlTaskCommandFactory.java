@@ -58,12 +58,13 @@ public class CrawlTaskCommandFactory {
      */
     public CrawlTaskBundle createBundle(
             TriggerCrawlTaskCommand command, CrawlScheduler scheduler, Seller seller) {
-        CrawlEndpoint endpoint = CrawlEndpoint.forMeta(seller.getMustItSellerNameValue());
+        CrawlEndpoint endpoint =
+                CrawlEndpoint.forMiniShopList(seller.getMustItSellerNameValue(), 1, 100);
         CrawlTask crawlTask =
                 CrawlTask.forNew(
                         scheduler.getCrawlSchedulerId(),
                         scheduler.getSellerId(),
-                        CrawlTaskType.META,
+                        CrawlTaskType.SEARCH,
                         endpoint,
                         clockHolder.getClock());
 
