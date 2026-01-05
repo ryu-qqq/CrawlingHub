@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.useragent.scheduler;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -28,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * SessionIssuanceScheduler 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port, Cache Mocking
+ * <p>Mockist 스타일 테스트: Port, Cache, DbStatusUpdater Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -41,6 +42,8 @@ class SessionIssuanceSchedulerTest {
 
     @Mock private UserAgentPoolCachePort cachePort;
 
+    @Mock private SessionDbStatusUpdater dbStatusUpdater;
+
     @Mock private SessionSchedulerProperties properties;
 
     private SessionIssuanceScheduler scheduler;
@@ -48,7 +51,9 @@ class SessionIssuanceSchedulerTest {
     @BeforeEach
     void setUp() {
         given(properties.getRenewalBufferMinutes()).willReturn(5);
-        scheduler = new SessionIssuanceScheduler(sessionTokenPort, cachePort, properties);
+        scheduler =
+                new SessionIssuanceScheduler(
+                        sessionTokenPort, cachePort, dbStatusUpdater, properties);
     }
 
     @Nested
@@ -56,8 +61,8 @@ class SessionIssuanceSchedulerTest {
     class IssueSessionTokens {
 
         @Test
-        @DisplayName("[성공] SESSION_REQUIRED UserAgent에 세션 발급")
-        void shouldIssueSessionTokensToRequiredUserAgents() {
+        @DisplayName("[성공] SESSION_REQUIRED UserAgent에 세션 발급 및 DB 상태 동기화")
+        void shouldIssueSessionTokensToRequiredUserAgentsAndUpdateDb() {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             List<UserAgentId> sessionRequiredIds = List.of(userAgentId);
@@ -85,6 +90,7 @@ class SessionIssuanceSchedulerTest {
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
             given(sessionTokenPort.issueSessionToken("Mozilla/5.0 Test Agent"))
                     .willReturn(Optional.of(sessionToken));
+            given(dbStatusUpdater.updateStatusToReady(anyList())).willReturn(1);
 
             // When
             scheduler.issueSessionTokens();
@@ -94,6 +100,7 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
             verify(cachePort).updateSession(any(), anyString(), any(Instant.class));
+            verify(dbStatusUpdater).updateStatusToReady(List.of(userAgentId));
         }
 
         @Test
@@ -109,11 +116,12 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionRequiredUserAgents();
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
             verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
 
         @Test
-        @DisplayName("[실패] 캐시에서 UserAgent를 찾을 수 없는 경우 → 스킵")
-        void shouldSkipWhenCachedUserAgentNotFound() {
+        @DisplayName("[실패] 캐시에서 UserAgent를 찾을 수 없는 경우 → 스킵, DB 업데이트 안함")
+        void shouldSkipWhenCachedUserAgentNotFoundAndNotUpdateDb() {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             List<UserAgentId> sessionRequiredIds = List.of(userAgentId);
@@ -129,6 +137,46 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
             verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
+        }
+
+        @Test
+        @DisplayName("[실패] 세션 발급 실패 시 → DB 업데이트 안함")
+        void shouldNotUpdateDbWhenSessionIssuanceFails() {
+            // Given
+            UserAgentId userAgentId = new UserAgentId(1L);
+            List<UserAgentId> sessionRequiredIds = List.of(userAgentId);
+
+            CachedUserAgent cachedUserAgent =
+                    new CachedUserAgent(
+                            userAgentId.value(),
+                            "Mozilla/5.0 Test Agent",
+                            null,
+                            null,
+                            null,
+                            null,
+                            80,
+                            80,
+                            null,
+                            null,
+                            100,
+                            UserAgentStatus.SESSION_REQUIRED,
+                            null);
+
+            given(cachePort.getSessionRequiredUserAgents()).willReturn(sessionRequiredIds);
+            given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
+            given(sessionTokenPort.issueSessionToken("Mozilla/5.0 Test Agent"))
+                    .willReturn(Optional.empty());
+
+            // When
+            scheduler.issueSessionTokens();
+
+            // Then
+            verify(cachePort).getSessionRequiredUserAgents();
+            verify(cachePort).findById(userAgentId);
+            verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
+            verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
     }
 
@@ -137,8 +185,8 @@ class SessionIssuanceSchedulerTest {
     class RenewExpiringSessionTokens {
 
         @Test
-        @DisplayName("[성공] 만료 임박 세션 선제적 갱신")
-        void shouldRenewExpiringSessionTokens() {
+        @DisplayName("[성공] 만료 임박 세션 선제적 갱신 및 DB 상태 동기화")
+        void shouldRenewExpiringSessionTokensAndUpdateDb() {
             // Given
             UserAgentId userAgentId = new UserAgentId(1L);
             List<UserAgentId> expiringIds = List.of(userAgentId);
@@ -166,6 +214,7 @@ class SessionIssuanceSchedulerTest {
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
             given(sessionTokenPort.issueSessionToken("Mozilla/5.0 Test Agent"))
                     .willReturn(Optional.of(newSessionToken));
+            given(dbStatusUpdater.updateStatusToReady(anyList())).willReturn(1);
 
             // When
             scheduler.renewExpiringSessionTokens();
@@ -175,6 +224,7 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
             verify(cachePort).updateSession(any(), anyString(), any(Instant.class));
+            verify(dbStatusUpdater).updateStatusToReady(List.of(userAgentId));
         }
 
         @Test
@@ -190,6 +240,7 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionExpiringUserAgents(5);
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
             verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
     }
 }
