@@ -181,7 +181,7 @@ public class SessionIssuanceScheduler {
                 int dbUpdated = dbStatusUpdater.updateStatusToReady(successIds);
                 log.info("[{}] DB 상태 동기화 완료: {}건", operationType, dbUpdated);
             } catch (Exception e) {
-                log.error("[{}] DB 상태 동기화 실패: {}", operationType, e.getMessage());
+                log.error("[{}] DB 상태 동기화 실패", operationType, e);
             }
         }
 
