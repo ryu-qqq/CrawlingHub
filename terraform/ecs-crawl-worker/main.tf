@@ -146,28 +146,10 @@ module "crawl_worker_task_role" {
     ]
   })
 
+  # NOTE: SQS access policy is attached via aws_iam_role_policy_attachment below
+  # (includes both SQS and KMS permissions from the centralized sqs stack)
+
   custom_inline_policies = {
-    sqs-access = {
-      policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [
-          {
-            Effect = "Allow"
-            Action = [
-              "sqs:ReceiveMessage",
-              "sqs:DeleteMessage",
-              "sqs:GetQueueAttributes",
-              "sqs:SendMessage",
-              "sqs:ChangeMessageVisibility"
-            ]
-            Resource = [
-              "arn:aws:sqs:${var.aws_region}:*:${var.project_name}-*",
-              "arn:aws:sqs:${var.aws_region}:*:prod-monitoring-sqs-${var.project_name}-*"
-            ]
-          }
-        ]
-      })
-    }
     adot-amp-access = {
       policy = jsonencode({
         Version = "2012-10-17"
@@ -352,11 +334,11 @@ module "ecs_service" {
     { name = "DB_USER", value = local.rds_username },
     { name = "REDIS_HOST", value = local.redis_host },
     { name = "REDIS_PORT", value = local.redis_port },
-    # SQS Main Queues
-    { name = "SQS_CRAWL_TASK_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task" },
+    # SQS Main Queues (from SSM parameters)
+    { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
     { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger" },
-    { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-image" },
-    { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-product-sync" },
+    { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
+    { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
     # SQS Dead Letter Queues
     { name = "SQS_CRAWL_TASK_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq" },
     { name = "SQS_EVENTBRIDGE_TRIGGER_DLQ_URL", value = "https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger-dlq" },
