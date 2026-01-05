@@ -55,7 +55,7 @@ class GetUserAgentsServiceTest {
                                     1L,
                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                                     DeviceType.of("DESKTOP"),
-                                    UserAgentStatus.AVAILABLE,
+                                    UserAgentStatus.READY,
                                     95,
                                     150,
                                     now,
@@ -94,7 +94,7 @@ class GetUserAgentsServiceTest {
             // Given
             PageRequest pageRequest = PageRequest.of(0, 10);
             UserAgentSearchCriteria criteria =
-                    UserAgentSearchCriteria.byStatus(UserAgentStatus.AVAILABLE, pageRequest);
+                    UserAgentSearchCriteria.byStatus(UserAgentStatus.READY, pageRequest);
             Instant now = Instant.now();
 
             List<UserAgentSummaryResponse> content =
@@ -103,7 +103,7 @@ class GetUserAgentsServiceTest {
                                     1L,
                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                                     DeviceType.of("DESKTOP"),
-                                    UserAgentStatus.AVAILABLE,
+                                    UserAgentStatus.READY,
                                     95,
                                     150,
                                     now,
@@ -120,7 +120,7 @@ class GetUserAgentsServiceTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            assertThat(result.content().get(0).status()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(result.content().get(0).status()).isEqualTo(UserAgentStatus.READY);
             then(userAgentQueryPort).should().findByCriteria(criteria);
         }
 
@@ -160,7 +160,7 @@ class GetUserAgentsServiceTest {
                                     11L,
                                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
                                     DeviceType.of("DESKTOP"),
-                                    UserAgentStatus.AVAILABLE,
+                                    UserAgentStatus.READY,
                                     88,
                                     120,
                                     now,

@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.out.redis.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.redis.config.UserAgentPoolProperties;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +47,7 @@ import org.springframework.util.StreamUtils;
  * SESSION_REQUIRED (Pool 추가, 복구)
  *       ↓ updateSession()
  *     READY (세션 발급 완료)
- *       ↓ 429 또는 Health < 30
+ *       ↓ 429 또는 Health &lt; 30
  *   SUSPENDED (일시 정지)
  *       ↓ restoreToPool() + 세션 발급
  * SESSION_REQUIRED → READY
@@ -201,7 +201,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         map.put("remainingTokens", String.valueOf(cachedUserAgent.remainingTokens()));
         map.put("maxTokens", String.valueOf(cachedUserAgent.maxTokens()));
         map.put("healthScore", String.valueOf(cachedUserAgent.healthScore()));
-        map.put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+        map.put("status", UserAgentStatus.SESSION_REQUIRED.name());
         map.put("windowStart", "0");
         map.put("windowEnd", "0");
         map.put("suspendedAt", "0");
@@ -221,7 +221,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         String idStr = String.valueOf(userAgentId.value());
 
         RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
-        map.put("cacheStatus", CacheStatus.SUSPENDED.name());
+        map.put("status", UserAgentStatus.SUSPENDED.name());
         map.put("suspendedAt", String.valueOf(nowMillis));
         map.put("sessionToken", "");
         map.put("nid", "");
@@ -245,7 +245,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
         map.put("sessionToken", sessionToken);
         map.put("sessionExpiresAt", String.valueOf(sessionExpiresAt.toEpochMilli()));
-        map.put("cacheStatus", CacheStatus.READY.name());
+        map.put("status", UserAgentStatus.READY.name());
 
         // Set 이동: SESSION_REQUIRED → READY
         redissonClient.getSet(sessionRequiredSetKey, StringCodec.INSTANCE).remove(idStr);
@@ -267,7 +267,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         map.put("nid", "");
         map.put("mustitUid", "");
         map.put("sessionExpiresAt", "0");
-        map.put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+        map.put("status", UserAgentStatus.SESSION_REQUIRED.name());
 
         // Set 이동: READY → SESSION_REQUIRED
         redissonClient.getSet(readySetKey, StringCodec.INSTANCE).remove(idStr);
@@ -282,7 +282,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         String idStr = String.valueOf(userAgentId.value());
 
         RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
-        map.put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+        map.put("status", UserAgentStatus.SESSION_REQUIRED.name());
         map.put("healthScore", "70");
         map.put("remainingTokens", String.valueOf(maxTokens));
         map.put("sessionToken", "");
@@ -495,9 +495,8 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         int remainingTokens = Integer.parseInt(data.getOrDefault("remainingTokens", "80"));
         int maxTokens = Integer.parseInt(data.getOrDefault("maxTokens", "80"));
         int healthScore = Integer.parseInt(data.getOrDefault("healthScore", "100"));
-        CacheStatus cacheStatus =
-                CacheStatus.valueOf(
-                        data.getOrDefault("cacheStatus", CacheStatus.SESSION_REQUIRED.name()));
+        UserAgentStatus status =
+                parseStatus(data.getOrDefault("status", UserAgentStatus.SESSION_REQUIRED.name()));
 
         String sessionExpiresAtStr = data.get("sessionExpiresAt");
         String windowStartStr = data.get("windowStart");
@@ -532,7 +531,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
                 windowStart,
                 windowEnd,
                 healthScore,
-                cacheStatus,
+                status,
                 suspendedAt);
     }
 
@@ -541,5 +540,32 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
             return null;
         }
         return Instant.ofEpochMilli(Long.parseLong(value));
+    }
+
+    /**
+     * Redis에 저장된 status 문자열을 UserAgentStatus로 파싱합니다.
+     *
+     * <p>레거시 값(AVAILABLE 등)이 존재할 경우 안전하게 매핑합니다.
+     *
+     * @param statusValue status 문자열
+     * @return 매핑된 UserAgentStatus
+     */
+    private UserAgentStatus parseStatus(String statusValue) {
+        if (statusValue == null || statusValue.isEmpty()) {
+            return UserAgentStatus.SESSION_REQUIRED;
+        }
+
+        try {
+            return UserAgentStatus.valueOf(statusValue);
+        } catch (IllegalArgumentException e) {
+            // 레거시 값 매핑
+            if ("AVAILABLE".equals(statusValue)) {
+                log.warn("레거시 status 값 발견: AVAILABLE → READY로 매핑");
+                return UserAgentStatus.READY;
+            }
+
+            log.error("알 수 없는 status 값: {} → SESSION_REQUIRED로 fallback", statusValue);
+            return UserAgentStatus.SESSION_REQUIRED;
+        }
     }
 }

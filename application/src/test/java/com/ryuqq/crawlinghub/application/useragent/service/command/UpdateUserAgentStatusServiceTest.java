@@ -77,12 +77,12 @@ class UpdateUserAgentStatusServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] SUSPENDED → AVAILABLE 상태 변경")
+        @DisplayName("[성공] SUSPENDED → READY 상태 변경")
         void shouldChangeStatusToAvailable() {
             // Given
             List<Long> ids = List.of(1L, 2L, 3L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents =
                     List.of(
@@ -104,15 +104,14 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
             assertThat(savedAgents).hasSize(3);
-            savedAgents.forEach(
-                    ua -> assertThat(ua.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE));
+            savedAgents.forEach(ua -> assertThat(ua.getStatus()).isEqualTo(UserAgentStatus.READY));
 
             List<CachedUserAgent> cachedAgents = cachedUserAgentsCaptor.getValue();
             assertThat(cachedAgents).hasSize(3);
         }
 
         @Test
-        @DisplayName("[성공] AVAILABLE → SUSPENDED 상태 변경")
+        @DisplayName("[성공] READY → SUSPENDED 상태 변경")
         void shouldChangeStatusToSuspended() {
             // Given
             List<Long> ids = List.of(1L, 2L);
@@ -121,8 +120,8 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
-                            createUserAgent(2L, UserAgentStatus.AVAILABLE));
+                            createUserAgent(1L, UserAgentStatus.READY),
+                            createUserAgent(2L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -143,14 +142,14 @@ class UpdateUserAgentStatusServiceTest {
         }
 
         @Test
-        @DisplayName("[성공] AVAILABLE → BLOCKED 상태 변경")
+        @DisplayName("[성공] READY → BLOCKED 상태 변경")
         void shouldChangeStatusToBlocked() {
             // Given
             List<Long> ids = List.of(1L);
             UpdateUserAgentStatusCommand command =
                     new UpdateUserAgentStatusCommand(ids, UserAgentStatus.BLOCKED);
 
-            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.AVAILABLE));
+            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -166,16 +165,17 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
             assertThat(savedAgents).hasSize(1);
-            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
+            UserAgent savedAgent = savedAgents.get(0);
+            assertThat(savedAgent.getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
         }
 
         @Test
-        @DisplayName("[성공] BLOCKED → AVAILABLE 상태 변경 (관리자 해제)")
+        @DisplayName("[성공] BLOCKED → READY 상태 변경 (관리자 해제)")
         void shouldUnblockToAvailable() {
             // Given
             List<Long> ids = List.of(1L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.BLOCKED));
 
@@ -191,7 +191,8 @@ class UpdateUserAgentStatusServiceTest {
             then(cacheManager).should().warmUp(any());
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
-            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            UserAgent savedAgent = savedAgents.get(0);
+            assertThat(savedAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
         }
 
         @Test
@@ -205,8 +206,8 @@ class UpdateUserAgentStatusServiceTest {
             // 1L, 2L만 존재하고 999L은 존재하지 않음
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
-                            createUserAgent(2L, UserAgentStatus.AVAILABLE));
+                            createUserAgent(1L, UserAgentStatus.READY),
+                            createUserAgent(2L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
 
@@ -227,7 +228,7 @@ class UpdateUserAgentStatusServiceTest {
             UpdateUserAgentStatusCommand command =
                     new UpdateUserAgentStatusCommand(ids, UserAgentStatus.SUSPENDED);
 
-            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.AVAILABLE));
+            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -264,12 +265,12 @@ class UpdateUserAgentStatusServiceTest {
     class RedisPoolHandling {
 
         @Test
-        @DisplayName("[검증] AVAILABLE 상태 변경 시 warmUp 호출")
+        @DisplayName("[검증] READY 상태 변경 시 warmUp 호출")
         void shouldCallWarmUpWhenChangingToAvailable() {
             // Given
             List<Long> ids = List.of(1L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.SUSPENDED));
 
@@ -288,7 +289,7 @@ class UpdateUserAgentStatusServiceTest {
         }
 
         @Test
-        @DisplayName("[검증] 비-AVAILABLE 상태 변경 시 removeFromPool 호출")
+        @DisplayName("[검증] 비-READY 상태 변경 시 removeFromPool 호출")
         void shouldCallRemoveFromPoolWhenChangingToNonAvailable() {
             // Given
             List<Long> ids = List.of(1L, 2L);
@@ -297,7 +298,7 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
+                            createUserAgent(1L, UserAgentStatus.READY),
                             createUserAgent(2L, UserAgentStatus.SUSPENDED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);

@@ -6,9 +6,15 @@ package com.ryuqq.crawlinghub.domain.useragent.vo;
  * <p><strong>상태 흐름</strong>:
  *
  * <pre>
- * AVAILABLE ←→ SUSPENDED (자동 복구)
- *     ↓
- *  BLOCKED (영구 차단)
+ * SESSION_REQUIRED (Pool 추가, 복구)
+ *       ↓ 세션 발급 성공
+ *     READY (세션 있음, 사용 가능)
+ *       ↓ 429 응답 또는 Health &lt; 30
+ *   SUSPENDED (일시 정지)
+ *       ↓ 1시간 경과 + Health ≥ 30
+ * SESSION_REQUIRED (복구 대기)
+ *
+ * BLOCKED (영구 차단 - Pool에서 제외)
  * </pre>
  *
  * @author development-team
@@ -16,13 +22,31 @@ package com.ryuqq.crawlinghub.domain.useragent.vo;
  */
 public enum UserAgentStatus {
 
-    /** 사용 가능 - 정상 상태 */
-    AVAILABLE("사용 가능"),
+    /** 세션이 있고 즉시 사용 가능한 상태 */
+    READY("사용 가능"),
 
-    /** 일시 정지 - Health Score 낮음 또는 429 응답 */
+    /**
+     * 세션 발급이 필요한 상태
+     *
+     * <ul>
+     *   <li>Pool에 새로 추가됨
+     *   <li>세션이 만료됨
+     *   <li>SUSPENDED에서 복구됨
+     * </ul>
+     */
+    SESSION_REQUIRED("세션 발급 필요"),
+
+    /**
+     * 일시 정지 상태
+     *
+     * <ul>
+     *   <li>429 응답 수신
+     *   <li>Health Score &lt; 30
+     * </ul>
+     */
     SUSPENDED("일시 정지"),
 
-    /** 영구 차단 - 관리자 차단 */
+    /** 영구 차단 - 관리자 차단, Pool에서 완전 제외 */
     BLOCKED("영구 차단");
 
     private final String description;
@@ -41,18 +65,36 @@ public enum UserAgentStatus {
     }
 
     /**
-     * 사용 가능 상태인지 확인
+     * 즉시 사용 가능한지 확인
      *
-     * @return AVAILABLE이면 true
+     * @return READY이면 true
      */
-    public boolean isAvailable() {
-        return this == AVAILABLE;
+    public boolean isReady() {
+        return this == READY;
+    }
+
+    /**
+     * 세션 발급이 필요한지 확인
+     *
+     * @return SESSION_REQUIRED이면 true
+     */
+    public boolean needsSession() {
+        return this == SESSION_REQUIRED;
+    }
+
+    /**
+     * 정지 상태인지 확인
+     *
+     * @return SUSPENDED이면 true
+     */
+    public boolean isSuspended() {
+        return this == SUSPENDED;
     }
 
     /**
      * 복구 가능 상태인지 확인
      *
-     * @return SUSPENDED면 true (BLOCKED는 복구 불가)
+     * @return SUSPENDED이면 true (BLOCKED는 복구 불가)
      */
     public boolean canRecover() {
         return this == SUSPENDED;
@@ -65,5 +107,25 @@ public enum UserAgentStatus {
      */
     public boolean isBlocked() {
         return this == BLOCKED;
+    }
+
+    /**
+     * 활성 Pool에 포함된 상태인지 확인
+     *
+     * <p><strong>활성 Pool 상태</strong>:
+     *
+     * <ul>
+     *   <li>READY: 세션 있음, 즉시 사용 가능
+     *   <li>SESSION_REQUIRED: 세션 발급 대기 중 (스케줄러가 1분 주기로 처리)
+     * </ul>
+     *
+     * <p><strong>주의</strong>: 이 메서드는 "즉시 사용 가능" 여부가 아닌 "활성 Pool 포함" 여부를 확인합니다. 즉시 사용 가능 여부는 {@link
+     * #isReady()}를 사용하세요.
+     *
+     * @return READY 또는 SESSION_REQUIRED이면 true
+     * @see #isReady()
+     */
+    public boolean isAvailable() {
+        return this == READY || this == SESSION_REQUIRED;
     }
 }
