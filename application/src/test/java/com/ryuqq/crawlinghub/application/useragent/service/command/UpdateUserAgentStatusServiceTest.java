@@ -77,7 +77,7 @@ class UpdateUserAgentStatusServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] SUSPENDED → AVAILABLE 상태 변경")
+        @DisplayName("[성공] SUSPENDED → READY 상태 변경")
         void shouldChangeStatusToAvailable() {
             // Given
             List<Long> ids = List.of(1L, 2L, 3L);
@@ -111,7 +111,7 @@ class UpdateUserAgentStatusServiceTest {
         }
 
         @Test
-        @DisplayName("[성공] AVAILABLE → SUSPENDED 상태 변경")
+        @DisplayName("[성공] READY → SUSPENDED 상태 변경")
         void shouldChangeStatusToSuspended() {
             // Given
             List<Long> ids = List.of(1L, 2L);
@@ -142,7 +142,7 @@ class UpdateUserAgentStatusServiceTest {
         }
 
         @Test
-        @DisplayName("[성공] AVAILABLE → BLOCKED 상태 변경")
+        @DisplayName("[성공] READY → BLOCKED 상태 변경")
         void shouldChangeStatusToBlocked() {
             // Given
             List<Long> ids = List.of(1L);
@@ -165,11 +165,12 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
             assertThat(savedAgents).hasSize(1);
-            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
+            UserAgent savedAgent = savedAgents.get(0);
+            assertThat(savedAgent.getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
         }
 
         @Test
-        @DisplayName("[성공] BLOCKED → AVAILABLE 상태 변경 (관리자 해제)")
+        @DisplayName("[성공] BLOCKED → READY 상태 변경 (관리자 해제)")
         void shouldUnblockToAvailable() {
             // Given
             List<Long> ids = List.of(1L);
@@ -190,7 +191,8 @@ class UpdateUserAgentStatusServiceTest {
             then(cacheManager).should().warmUp(any());
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
-            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.READY);
+            UserAgent savedAgent = savedAgents.get(0);
+            assertThat(savedAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
         }
 
         @Test
@@ -263,7 +265,7 @@ class UpdateUserAgentStatusServiceTest {
     class RedisPoolHandling {
 
         @Test
-        @DisplayName("[검증] AVAILABLE 상태 변경 시 warmUp 호출")
+        @DisplayName("[검증] READY 상태 변경 시 warmUp 호출")
         void shouldCallWarmUpWhenChangingToAvailable() {
             // Given
             List<Long> ids = List.of(1L);
@@ -287,7 +289,7 @@ class UpdateUserAgentStatusServiceTest {
         }
 
         @Test
-        @DisplayName("[검증] 비-AVAILABLE 상태 변경 시 removeFromPool 호출")
+        @DisplayName("[검증] 비-READY 상태 변경 시 removeFromPool 호출")
         void shouldCallRemoveFromPoolWhenChangingToNonAvailable() {
             // Given
             List<Long> ids = List.of(1L, 2L);

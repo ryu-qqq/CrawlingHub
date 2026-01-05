@@ -60,7 +60,7 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
     /**
      * 활성화된 UserAgent 전체 조회 (Pool 초기화용)
      *
-     * @return AVAILABLE 상태인 UserAgent 목록
+     * @return READY 상태인 UserAgent 목록
      */
     @Override
     public List<UserAgent> findAllAvailable() {

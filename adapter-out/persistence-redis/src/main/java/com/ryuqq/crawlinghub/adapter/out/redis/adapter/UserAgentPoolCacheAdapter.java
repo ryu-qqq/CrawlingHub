@@ -496,8 +496,7 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         int maxTokens = Integer.parseInt(data.getOrDefault("maxTokens", "80"));
         int healthScore = Integer.parseInt(data.getOrDefault("healthScore", "100"));
         UserAgentStatus status =
-                UserAgentStatus.valueOf(
-                        data.getOrDefault("status", UserAgentStatus.SESSION_REQUIRED.name()));
+                parseStatus(data.getOrDefault("status", UserAgentStatus.SESSION_REQUIRED.name()));
 
         String sessionExpiresAtStr = data.get("sessionExpiresAt");
         String windowStartStr = data.get("windowStart");
@@ -541,5 +540,32 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
             return null;
         }
         return Instant.ofEpochMilli(Long.parseLong(value));
+    }
+
+    /**
+     * Redis에 저장된 status 문자열을 UserAgentStatus로 파싱합니다.
+     *
+     * <p>레거시 값(AVAILABLE 등)이 존재할 경우 안전하게 매핑합니다.
+     *
+     * @param statusValue status 문자열
+     * @return 매핑된 UserAgentStatus
+     */
+    private UserAgentStatus parseStatus(String statusValue) {
+        if (statusValue == null || statusValue.isEmpty()) {
+            return UserAgentStatus.SESSION_REQUIRED;
+        }
+
+        try {
+            return UserAgentStatus.valueOf(statusValue);
+        } catch (IllegalArgumentException e) {
+            // 레거시 값 매핑
+            if ("AVAILABLE".equals(statusValue)) {
+                log.warn("레거시 status 값 발견: AVAILABLE → READY로 매핑");
+                return UserAgentStatus.READY;
+            }
+
+            log.error("알 수 없는 status 값: {} → SESSION_REQUIRED로 fallback", statusValue);
+            return UserAgentStatus.SESSION_REQUIRED;
+        }
     }
 }

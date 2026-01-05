@@ -110,9 +110,20 @@ public enum UserAgentStatus {
     }
 
     /**
-     * 사용 가능 상태인지 확인 (READY 또는 SESSION_REQUIRED)
+     * 활성 Pool에 포함된 상태인지 확인
+     *
+     * <p><strong>활성 Pool 상태</strong>:
+     *
+     * <ul>
+     *   <li>READY: 세션 있음, 즉시 사용 가능
+     *   <li>SESSION_REQUIRED: 세션 발급 대기 중 (스케줄러가 1분 주기로 처리)
+     * </ul>
+     *
+     * <p><strong>주의</strong>: 이 메서드는 "즉시 사용 가능" 여부가 아닌 "활성 Pool 포함" 여부를 확인합니다. 즉시 사용 가능 여부는 {@link
+     * #isReady()}를 사용하세요.
      *
      * @return READY 또는 SESSION_REQUIRED이면 true
+     * @see #isReady()
      */
     public boolean isAvailable() {
         return this == READY || this == SESSION_REQUIRED;
