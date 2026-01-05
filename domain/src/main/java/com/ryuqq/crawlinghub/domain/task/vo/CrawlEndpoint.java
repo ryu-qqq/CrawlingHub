@@ -208,11 +208,24 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     /**
      * 머스트잇 셀러명 조회
      *
-     * <p>queryParams에서 sellerId 값을 조회합니다. META, MINI_SHOP 타입에서만 사용됩니다.
+     * <p>queryParams에서 셀러명을 조회합니다.
+     *
+     * <p><strong>조회 순서</strong>:
+     *
+     * <ol>
+     *   <li>sellerId: META, MINI_SHOP 타입에서 사용
+     *   <li>keyword: SEARCH 타입에서 사용 (검색어가 셀러명)
+     * </ol>
      *
      * @return 머스트잇 셀러명 (없으면 null)
      */
     public String getMustItSellerName() {
-        return queryParams.get("sellerId");
+        // META, MINI_SHOP 타입: sellerId 파라미터 사용
+        String sellerId = queryParams.get("sellerId");
+        if (sellerId != null && !sellerId.isBlank()) {
+            return sellerId;
+        }
+        // SEARCH 타입: keyword 파라미터가 셀러명
+        return queryParams.get("keyword");
     }
 }
