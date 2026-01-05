@@ -24,6 +24,7 @@ import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,8 @@ class CrawlTaskExecutionServiceTest {
             CachedUserAgent userAgent = createReadyUserAgent();
             CrawlResult successResult = CrawlResult.success("{\"data\": []}", 200);
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(context);
+            given(crawlTaskExecutionFacade.prepareExecution(command))
+                    .willReturn(Optional.of(context));
             given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
             given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
             given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(successResult);
@@ -103,7 +105,8 @@ class CrawlTaskExecutionServiceTest {
             CachedUserAgent userAgent = createReadyUserAgent();
             CrawlResult failResult = CrawlResult.failure(500, "Internal Server Error");
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(context);
+            given(crawlTaskExecutionFacade.prepareExecution(command))
+                    .willReturn(Optional.of(context));
             given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
             given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
             given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(failResult);
@@ -130,7 +133,8 @@ class CrawlTaskExecutionServiceTest {
             CachedUserAgent userAgent = createReadyUserAgent();
             CrawlResult rateLimitResult = CrawlResult.failure(429, "Rate limited (429)");
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(context);
+            given(crawlTaskExecutionFacade.prepareExecution(command))
+                    .willReturn(Optional.of(context));
             given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
             given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
             given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(rateLimitResult);
@@ -158,7 +162,8 @@ class CrawlTaskExecutionServiceTest {
             ExecutionContext context = new ExecutionContext(task, execution);
             CachedUserAgent userAgent = createReadyUserAgent();
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(context);
+            given(crawlTaskExecutionFacade.prepareExecution(command))
+                    .willReturn(Optional.of(context));
             given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
             given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
             given(mockCrawler.crawl(any(CrawlContext.class)))
@@ -190,7 +195,8 @@ class CrawlTaskExecutionServiceTest {
             CachedUserAgent userAgent = createReadyUserAgent();
             CrawlResult successResult = CrawlResult.success("{\"product\": {}}", 200);
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(context);
+            given(crawlTaskExecutionFacade.prepareExecution(command))
+                    .willReturn(Optional.of(context));
             given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
             given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
             given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(successResult);
@@ -200,6 +206,26 @@ class CrawlTaskExecutionServiceTest {
 
             // Then
             then(crawlerProvider).should().getCrawler(any(CrawlTaskType.class));
+        }
+
+        @Test
+        @DisplayName("[멱등성] 이미 처리된 Task인 경우 정상 종료 (UserAgent 소비하지 않음)")
+        void shouldSkipExecutionWhenTaskAlreadyProcessed() {
+            // Given
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
+
+            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(Optional.empty());
+
+            // When
+            service.execute(command);
+
+            // Then
+            then(crawlTaskExecutionFacade).should().prepareExecution(command);
+            then(consumeUserAgentUseCase).should(never()).execute();
+            then(crawlerProvider).should(never()).getCrawler(any(CrawlTaskType.class));
+            then(crawlTaskExecutionFacade).should(never()).completeWithSuccess(any(), any());
+            then(crawlTaskExecutionFacade).should(never()).completeWithFailure(any(), any(), any());
         }
 
         private CachedUserAgent createReadyUserAgent() {

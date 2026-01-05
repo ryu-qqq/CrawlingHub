@@ -68,19 +68,34 @@ public class CreateCrawlTaskService implements CreateCrawlTaskUseCase {
     public void executeBatch(List<CreateCrawlTaskCommand> commands) {
         log.info("CrawlTask 일괄 동적 생성: count={}", commands.size());
 
+        int successCount = 0;
+        int failCount = 0;
+
         for (CreateCrawlTaskCommand command : commands) {
             try {
                 execute(command);
+                successCount++;
             } catch (RuntimeException e) {
-                // 개별 실패 시에도 나머지는 계속 처리
-                log.warn(
-                        "CrawlTask 생성 실패 (계속 진행): taskType={}, targetId={}, error={}",
+                failCount++;
+                // 상세 예외 정보 로깅 (디버깅용)
+                log.error(
+                        "🚨 CrawlTask 생성 실패 - 예외 발생! "
+                                + "exceptionClass={}, message={}, "
+                                + "schedulerId={}, sellerId={}, taskType={}, targetId={}",
+                        e.getClass().getSimpleName(),
+                        e.getMessage(),
+                        command.crawlSchedulerId(),
+                        command.sellerId(),
                         command.taskType(),
                         command.targetId(),
-                        e.getMessage());
+                        e);
             }
         }
 
-        log.info("CrawlTask 일괄 동적 생성 완료");
+        log.info(
+                "CrawlTask 일괄 동적 생성 완료: total={}, success={}, fail={}",
+                commands.size(),
+                successCount,
+                failCount);
     }
 }
