@@ -68,11 +68,16 @@ public class SessionRequiredEventListener {
             if (sessionTokenOpt.isPresent()) {
                 SessionToken sessionToken = sessionTokenOpt.get();
                 cachePort.updateSession(
-                        userAgentId, sessionToken.token(), sessionToken.expiresAt());
+                        userAgentId,
+                        sessionToken.token(),
+                        sessionToken.nid(),
+                        sessionToken.mustitUid(),
+                        sessionToken.expiresAt());
 
                 log.info(
-                        "세션 발급 완료: userAgentId={}, expiresAt={}",
+                        "세션 발급 완료: userAgentId={}, hasSearchCookies={}, expiresAt={}",
                         userAgentId.value(),
+                        sessionToken.hasSearchCookies(),
                         sessionToken.expiresAt());
             } else {
                 log.warn("세션 발급 실패 (응답 없음): userAgentId={}", userAgentId.value());

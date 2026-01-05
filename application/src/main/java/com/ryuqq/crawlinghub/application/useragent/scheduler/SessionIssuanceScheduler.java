@@ -215,11 +215,16 @@ public class SessionIssuanceScheduler {
             if (sessionTokenOpt.isPresent()) {
                 SessionToken sessionToken = sessionTokenOpt.get();
                 cachePort.updateSession(
-                        userAgentId, sessionToken.token(), sessionToken.expiresAt());
+                        userAgentId,
+                        sessionToken.token(),
+                        sessionToken.nid(),
+                        sessionToken.mustitUid(),
+                        sessionToken.expiresAt());
 
                 log.info(
-                        "세션 발급 성공: userAgentId={}, expiresAt={}",
+                        "세션 발급 성공: userAgentId={}, hasSearchCookies={}, expiresAt={}",
                         userAgentId.value(),
+                        sessionToken.hasSearchCookies(),
                         sessionToken.expiresAt());
                 return true;
             } else {

@@ -93,36 +93,79 @@ public class WebClientSessionTokenAdapter implements SessionTokenPort {
         MultiValueMap<String, ResponseCookie> cookies = response.cookies();
         List<ResponseCookie> sessionCookies = cookies.get(properties.getSessionCookieName());
 
+        // nid, mustit_uid 쿠키 추출
+        String nid = extractCookieValue(cookies, "nid");
+        String mustitUid = extractCookieValue(cookies, "mustit_uid");
+
         if (sessionCookies != null && !sessionCookies.isEmpty()) {
             ResponseCookie cookie = sessionCookies.get(0);
             String token = cookie.getValue();
             Instant expiresAt = calculateExpiresAt(cookie);
 
             log.info(
-                    "세션 토큰 발급 성공 (ResponseCookie): token={}, expiresAt={}",
+                    "세션 토큰 발급 성공 (ResponseCookie): token={}, nid={}, mustitUid={}, expiresAt={}",
                     truncateToken(token),
+                    nid != null ? "있음" : "없음",
+                    mustitUid != null ? "있음" : "없음",
                     expiresAt);
-            return Mono.just(Optional.of(new SessionToken(token, expiresAt)));
+            return Mono.just(Optional.of(new SessionToken(token, nid, mustitUid, expiresAt)));
         }
 
         // 2. Set-Cookie 헤더에서 직접 추출 시도
         List<String> setCookieHeaders = response.headers().header(HttpHeaders.SET_COOKIE);
+
+        // Set-Cookie 헤더에서 nid, mustit_uid 추출 (ResponseCookie에서 못 찾은 경우)
+        if (nid == null) {
+            nid = extractCookieFromHeaders(setCookieHeaders, "nid");
+        }
+        if (mustitUid == null) {
+            mustitUid = extractCookieFromHeaders(setCookieHeaders, "mustit_uid");
+        }
+
         for (String setCookie : setCookieHeaders) {
             if (setCookie.contains(properties.getSessionCookieName())) {
                 String token = extractTokenValue(setCookie);
                 if (token != null) {
                     Instant expiresAt = extractExpiresAt(setCookie);
                     log.info(
-                            "세션 토큰 발급 성공 (Set-Cookie): token={}, expiresAt={}",
+                            "세션 토큰 발급 성공 (Set-Cookie): token={}, nid={}, mustitUid={},"
+                                    + " expiresAt={}",
                             truncateToken(token),
+                            nid != null ? "있음" : "없음",
+                            mustitUid != null ? "있음" : "없음",
                             expiresAt);
-                    return Mono.just(Optional.of(new SessionToken(token, expiresAt)));
+                    return Mono.just(
+                            Optional.of(new SessionToken(token, nid, mustitUid, expiresAt)));
                 }
             }
         }
 
         log.warn("세션 토큰을 찾을 수 없음: cookieName='{}'", properties.getSessionCookieName());
         return Mono.just(Optional.empty());
+    }
+
+    private String extractCookieValue(
+            MultiValueMap<String, ResponseCookie> cookies, String cookieName) {
+        List<ResponseCookie> targetCookies = cookies.get(cookieName);
+        if (targetCookies != null && !targetCookies.isEmpty()) {
+            return targetCookies.get(0).getValue();
+        }
+        return null;
+    }
+
+    private String extractCookieFromHeaders(List<String> setCookieHeaders, String cookieName) {
+        for (String setCookie : setCookieHeaders) {
+            if (setCookie.startsWith(cookieName + "=")) {
+                String[] parts = setCookie.split(";");
+                for (String part : parts) {
+                    String trimmed = part.trim();
+                    if (trimmed.startsWith(cookieName + "=")) {
+                        return trimmed.substring((cookieName + "=").length());
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private Instant calculateExpiresAt(ResponseCookie cookie) {

@@ -104,9 +104,16 @@ public interface UserAgentPoolCachePort {
      *
      * @param userAgentId UserAgent ID
      * @param sessionToken 발급받은 세션 토큰
+     * @param nid nid 쿠키 값 (Search API용)
+     * @param mustitUid mustit_uid 쿠키 값 (Search API용)
      * @param sessionExpiresAt 세션 만료 시간
      */
-    void updateSession(UserAgentId userAgentId, String sessionToken, Instant sessionExpiresAt);
+    void updateSession(
+            UserAgentId userAgentId,
+            String sessionToken,
+            String nid,
+            String mustitUid,
+            Instant sessionExpiresAt);
 
     /**
      * 세션 만료 처리

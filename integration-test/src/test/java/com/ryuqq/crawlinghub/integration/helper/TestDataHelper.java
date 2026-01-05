@@ -420,7 +420,11 @@ VALUES
         // updateSession()을 호출하여 READY 상태로 변경 (세션 토큰 설정)
         for (int i = 1; i <= count; i++) {
             userAgentPoolCachePort.updateSession(
-                    UserAgentId.of((long) i), "test-session-token-" + i, sessionExpiresAt);
+                    UserAgentId.of((long) i),
+                    "test-session-token-" + i,
+                    "test-nid-" + i,
+                    "test-mustit-uid-" + i,
+                    sessionExpiresAt);
         }
     }
 
