@@ -112,7 +112,7 @@ class UserAgentReadManagerTest {
         @DisplayName("[성공] 상태별 UserAgent 개수 조회")
         void shouldDelegateToQueryPort() {
             // Given
-            UserAgentStatus status = UserAgentStatus.AVAILABLE;
+            UserAgentStatus status = UserAgentStatus.READY;
             given(userAgentQueryPort.countByStatus(status)).willReturn(5L);
 
             // When
@@ -151,7 +151,7 @@ class UserAgentReadManagerTest {
         @DisplayName("[성공] 상태별 UserAgent 목록 조회")
         void shouldDelegateToQueryPort() {
             // Given
-            UserAgentStatus status = UserAgentStatus.AVAILABLE;
+            UserAgentStatus status = UserAgentStatus.READY;
             given(userAgentQueryPort.findByStatus(status)).willReturn(List.of(userAgent));
 
             // When

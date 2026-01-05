@@ -83,15 +83,15 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("AVAILABLE 상태 필터링 조회")
-        void shouldFilterByAvailableStatus() {
+        @DisplayName("READY 상태 필터링 조회")
+        void shouldFilterByReadyStatus() {
             // given
             HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
 
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(USER_AGENTS_BASE_URL + "?statuses=AVAILABLE"),
+                            url(USER_AGENTS_BASE_URL + "?statuses=READY"),
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});
@@ -101,11 +101,11 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("totalElements")).isEqualTo(2); // AVAILABLE 2개
+            assertThat(data.get("totalElements")).isEqualTo(2); // READY 2개
 
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> content = (List<Map<String, Object>>) data.get("content");
-            assertThat(content).allMatch(ua -> "AVAILABLE".equals(ua.get("status")));
+            assertThat(content).allMatch(ua -> "READY".equals(ua.get("status")));
         }
 
         @Test

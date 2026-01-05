@@ -36,7 +36,7 @@ for _, id in ipairs(availableIds) do
         -- 세션 만료됨: READY → SESSION_REQUIRED로 이동
         redis.call('SREM', readySetKey, id)
         redis.call('SADD', sessionRequiredSetKey, id)
-        redis.call('HSET', poolKey, 'cacheStatus', 'SESSION_REQUIRED')
+        redis.call('HSET', poolKey, 'status', 'SESSION_REQUIRED')
         redis.call('HSET', poolKey, 'sessionToken', '')
         redis.call('HSET', poolKey, 'sessionExpiresAt', '0')
         -- 다음 UserAgent로 계속

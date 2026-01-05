@@ -7,12 +7,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.useragent.config.SessionSchedulerProperties;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.session.SessionToken;
 import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
 import com.ryuqq.crawlinghub.application.useragent.port.out.session.SessionTokenPort;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -75,7 +75,7 @@ class SessionIssuanceSchedulerTest {
                             null, // windowStart
                             null, // windowEnd
                             100, // healthScore
-                            CacheStatus.SESSION_REQUIRED,
+                            UserAgentStatus.SESSION_REQUIRED,
                             null); // suspendedAt
 
             SessionToken sessionToken =
@@ -156,7 +156,7 @@ class SessionIssuanceSchedulerTest {
                             null, // windowStart
                             null, // windowEnd
                             100, // healthScore
-                            CacheStatus.READY,
+                            UserAgentStatus.READY,
                             null); // suspendedAt
 
             SessionToken newSessionToken =

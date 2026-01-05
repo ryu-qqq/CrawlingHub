@@ -15,7 +15,6 @@ import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.execution.facade.CrawlTaskExecutionFacade;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.ConsumeUserAgentUseCase;
@@ -23,6 +22,7 @@ import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecordUserAge
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -215,7 +215,7 @@ class CrawlTaskExecutionServiceTest {
                     Instant.now(),
                     Instant.now().plusSeconds(60),
                     100,
-                    CacheStatus.READY,
+                    UserAgentStatus.READY,
                     null);
         }
     }
