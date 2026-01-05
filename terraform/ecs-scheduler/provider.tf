@@ -132,20 +132,19 @@ data "aws_ssm_parameter" "amp_workspace_arn" {
 # ========================================
 # SQS Queue Configuration (from sqs stack)
 # ========================================
-data "aws_ssm_parameter" "sqs_crawl_task_queue_url" {
-  name = "/${var.project_name}/sqs/crawling-task-queue-url"
-}
-
-data "aws_ssm_parameter" "sqs_product_image_queue_url" {
-  name = "/${var.project_name}/sqs/product-image-queue-url"
-}
-
-data "aws_ssm_parameter" "sqs_product_sync_queue_url" {
-  name = "/${var.project_name}/sqs/product-sync-queue-url"
-}
-
-data "aws_ssm_parameter" "sqs_access_policy_arn" {
-  name = "/${var.project_name}/sqs/access-policy-arn"
+# ⚠️ DEPLOYMENT DEPENDENCY:
+#   This stack depends on SSM parameters created by the SQS stack.
+#   Deploy order: terraform/sqs → terraform/ecs-scheduler
+#   If these data sources fail, ensure SQS stack is deployed first.
+# ========================================
+data "aws_ssm_parameter" "sqs" {
+  for_each = {
+    crawl_task_queue_url    = "/${var.project_name}/sqs/crawling-task-queue-url"
+    product_image_queue_url = "/${var.project_name}/sqs/product-image-queue-url"
+    product_sync_queue_url  = "/${var.project_name}/sqs/product-sync-queue-url"
+    access_policy_arn       = "/${var.project_name}/sqs/access-policy-arn"
+  }
+  name = each.value
 }
 
 # ========================================
@@ -172,9 +171,9 @@ locals {
   amp_remote_write_url = data.aws_ssm_parameter.amp_remote_write_url.value
   amp_workspace_arn    = data.aws_ssm_parameter.amp_workspace_arn.value
 
-  # SQS Configuration (from SSM)
-  sqs_crawl_task_queue_url    = data.aws_ssm_parameter.sqs_crawl_task_queue_url.value
-  sqs_product_image_queue_url = data.aws_ssm_parameter.sqs_product_image_queue_url.value
-  sqs_product_sync_queue_url  = data.aws_ssm_parameter.sqs_product_sync_queue_url.value
-  sqs_access_policy_arn       = data.aws_ssm_parameter.sqs_access_policy_arn.value
+  # SQS Configuration (from SSM via for_each)
+  sqs_crawl_task_queue_url    = data.aws_ssm_parameter.sqs["crawl_task_queue_url"].value
+  sqs_product_image_queue_url = data.aws_ssm_parameter.sqs["product_image_queue_url"].value
+  sqs_product_sync_queue_url  = data.aws_ssm_parameter.sqs["product_sync_queue_url"].value
+  sqs_access_policy_arn       = data.aws_ssm_parameter.sqs["access_policy_arn"].value
 }
