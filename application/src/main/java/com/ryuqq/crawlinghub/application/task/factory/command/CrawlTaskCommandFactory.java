@@ -51,6 +51,14 @@ public class CrawlTaskCommandFactory {
     /**
      * TriggerCrawlTaskCommand + CrawlScheduler + Seller → CrawlTaskBundle 변환
      *
+     * <p><strong>타입-엔드포인트 조합 설명</strong>:
+     *
+     * <ul>
+     *   <li>SEARCH 타입 + forMiniShopList: 스케줄러에서 최초 크롤링 트리거 시 사용
+     *   <li>미니샵 목록 페이지에서 상품 목록을 검색(SEARCH)하는 것이 목적
+     *   <li>CreateCrawlTaskCommand의 SEARCH + forSearchApi와는 다른 진입점
+     * </ul>
+     *
      * @param command 트리거 명령
      * @param scheduler 검증된 스케줄러
      * @param seller 셀러 (mustItSellerName 조회용)
@@ -58,12 +66,13 @@ public class CrawlTaskCommandFactory {
      */
     public CrawlTaskBundle createBundle(
             TriggerCrawlTaskCommand command, CrawlScheduler scheduler, Seller seller) {
-        CrawlEndpoint endpoint = CrawlEndpoint.forMeta(seller.getMustItSellerNameValue());
+        CrawlEndpoint endpoint =
+                CrawlEndpoint.forMiniShopList(seller.getMustItSellerNameValue(), 1, 100);
         CrawlTask crawlTask =
                 CrawlTask.forNew(
                         scheduler.getCrawlSchedulerId(),
                         scheduler.getSellerId(),
-                        CrawlTaskType.META,
+                        CrawlTaskType.SEARCH,
                         endpoint,
                         clockHolder.getClock());
 
