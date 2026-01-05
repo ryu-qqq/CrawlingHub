@@ -107,6 +107,41 @@ class CrawlEndpointTest {
                     .isEqualTo("/mustit-api/legacy-api/v1/auction_products/99999/options");
             assertThat(endpoint.queryParams()).isEmpty();
         }
+
+        @Test
+        @DisplayName("forSearchItems로 검색 API 엔드포인트 생성")
+        void shouldCreateForSearchItems() {
+            // given
+            String keyword = "test-seller";
+            int pageNo = 1;
+
+            // when
+            CrawlEndpoint endpoint = CrawlEndpoint.forSearchItems(keyword, pageNo);
+
+            // then
+            assertThat(endpoint.baseUrl()).isEqualTo(MUSTIT_BASE_URL);
+            assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
+            assertThat(endpoint.queryParams()).containsEntry("keyword", "test-seller");
+            assertThat(endpoint.queryParams()).containsEntry("sort", "POPULAR2");
+            assertThat(endpoint.queryParams()).containsEntry("f", "us:NEW,lwp:Y");
+            assertThat(endpoint.queryParams()).containsEntry("pageNo", "1");
+        }
+
+        @Test
+        @DisplayName("forSearchItems에 null keyword 전달 시 예외 발생")
+        void shouldThrowExceptionWhenSearchItemsKeywordIsNull() {
+            assertThatThrownBy(() -> CrawlEndpoint.forSearchItems(null, 1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("keyword");
+        }
+
+        @Test
+        @DisplayName("forSearchItems에 빈 keyword 전달 시 예외 발생")
+        void shouldThrowExceptionWhenSearchItemsKeywordIsBlank() {
+            assertThatThrownBy(() -> CrawlEndpoint.forSearchItems("   ", 1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("keyword");
+        }
     }
 
     @Nested

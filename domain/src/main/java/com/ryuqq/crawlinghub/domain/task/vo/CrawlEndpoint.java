@@ -11,9 +11,10 @@ import java.util.stream.Collectors;
  * <p><strong>MUSTIT API 엔드포인트</strong>:
  *
  * <ul>
- *   <li>미니샵 목록: /mustit-api/facade-api/v1/searchmini-shop-search
- *   <li>상품 상세: /mustit-api/facade-api/v1/item/{item_no}/detail/top
- *   <li>상품 옵션: /mustit-api/legacy-api/v1/auction_products/{item_no}/options
+ *   <li>검색 목록 (SEARCH): /mustit-api/facade-api/v1/search/items (스케줄러 초기 트리거)
+ *   <li>미니샵 목록 (MINI_SHOP): /mustit-api/facade-api/v1/searchmini-shop-search
+ *   <li>상품 상세 (DETAIL): /mustit-api/facade-api/v1/item/{item_no}/detail/top
+ *   <li>상품 옵션 (OPTION): /mustit-api/legacy-api/v1/auction_products/{item_no}/options
  * </ul>
  *
  * @author development-team
@@ -44,12 +45,15 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     }
 
     /**
-     * 미니샵 상품 목록 엔드포인트 생성
+     * 미니샵 상품 목록 엔드포인트 생성 (MINI_SHOP 타입 전용)
+     *
+     * <p>미니샵 페이지 크롤링용. 스케줄러 초기 트리거에는 {@link #forSearchItems}를 사용하세요.
      *
      * @param mustItSellerName 머스트잇 셀러명 (API 조회 시 필요)
      * @param page 페이지 번호
      * @param pageSize 페이지 크기
      * @return CrawlEndpoint
+     * @see #forSearchItems(String, int)
      */
     public static CrawlEndpoint forMiniShopList(String mustItSellerName, int page, int pageSize) {
         if (mustItSellerName == null || mustItSellerName.isBlank()) {
@@ -93,6 +97,46 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
                 MUSTIT_BASE_URL,
                 "/mustit-api/legacy-api/v1/auction_products/" + itemNo + "/options",
                 Map.of());
+    }
+
+    /**
+     * 검색 API 초기 엔드포인트 생성 (SEARCH 타입, 스케줄러 초기 트리거용)
+     *
+     * <p>셀러명을 keyword로 검색하는 Search API 엔드포인트를 생성합니다.
+     *
+     * <p><strong>파라미터</strong>:
+     *
+     * <ul>
+     *   <li>keyword: 셀러명 (검색어)
+     *   <li>sort: POPULAR2 (인기순)
+     *   <li>f: us:NEW,lwp:Y (필터 조건)
+     *   <li>pageNo: 페이지 번호
+     * </ul>
+     *
+     * <p><strong>nid, uid, adId, beforeItemType</strong>은 CrawlContext.buildSearchEndpoint()에서
+     * UserAgent 쿠키 정보로 추가됩니다.
+     *
+     * @param keyword 검색어 (셀러명)
+     * @param pageNo 페이지 번호
+     * @return CrawlEndpoint
+     * @see #forSearchApi(String)
+     */
+    public static CrawlEndpoint forSearchItems(String keyword, int pageNo) {
+        if (keyword == null || keyword.isBlank()) {
+            throw new IllegalArgumentException("keyword는 null이거나 빈 값일 수 없습니다.");
+        }
+        return new CrawlEndpoint(
+                MUSTIT_BASE_URL,
+                "/mustit-api/facade-api/v1/search/items",
+                Map.of(
+                        "keyword",
+                        keyword,
+                        "sort",
+                        "POPULAR2",
+                        "f",
+                        "us:NEW,lwp:Y",
+                        "pageNo",
+                        String.valueOf(pageNo)));
     }
 
     /**
