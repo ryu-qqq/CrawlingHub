@@ -82,7 +82,7 @@ class UpdateUserAgentStatusServiceTest {
             // Given
             List<Long> ids = List.of(1L, 2L, 3L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents =
                     List.of(
@@ -104,8 +104,7 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
             assertThat(savedAgents).hasSize(3);
-            savedAgents.forEach(
-                    ua -> assertThat(ua.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE));
+            savedAgents.forEach(ua -> assertThat(ua.getStatus()).isEqualTo(UserAgentStatus.READY));
 
             List<CachedUserAgent> cachedAgents = cachedUserAgentsCaptor.getValue();
             assertThat(cachedAgents).hasSize(3);
@@ -121,8 +120,8 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
-                            createUserAgent(2L, UserAgentStatus.AVAILABLE));
+                            createUserAgent(1L, UserAgentStatus.READY),
+                            createUserAgent(2L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -150,7 +149,7 @@ class UpdateUserAgentStatusServiceTest {
             UpdateUserAgentStatusCommand command =
                     new UpdateUserAgentStatusCommand(ids, UserAgentStatus.BLOCKED);
 
-            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.AVAILABLE));
+            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -175,7 +174,7 @@ class UpdateUserAgentStatusServiceTest {
             // Given
             List<Long> ids = List.of(1L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.BLOCKED));
 
@@ -191,7 +190,7 @@ class UpdateUserAgentStatusServiceTest {
             then(cacheManager).should().warmUp(any());
 
             List<UserAgent> savedAgents = userAgentsCaptor.getValue();
-            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(savedAgents.get(0).getStatus()).isEqualTo(UserAgentStatus.READY);
         }
 
         @Test
@@ -205,8 +204,8 @@ class UpdateUserAgentStatusServiceTest {
             // 1L, 2L만 존재하고 999L은 존재하지 않음
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
-                            createUserAgent(2L, UserAgentStatus.AVAILABLE));
+                            createUserAgent(1L, UserAgentStatus.READY),
+                            createUserAgent(2L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
 
@@ -227,7 +226,7 @@ class UpdateUserAgentStatusServiceTest {
             UpdateUserAgentStatusCommand command =
                     new UpdateUserAgentStatusCommand(ids, UserAgentStatus.SUSPENDED);
 
-            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.AVAILABLE));
+            List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
             given(clockHolder.getClock()).willReturn(fixedClock);
@@ -269,7 +268,7 @@ class UpdateUserAgentStatusServiceTest {
             // Given
             List<Long> ids = List.of(1L);
             UpdateUserAgentStatusCommand command =
-                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.AVAILABLE);
+                    new UpdateUserAgentStatusCommand(ids, UserAgentStatus.READY);
 
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.SUSPENDED));
 
@@ -297,7 +296,7 @@ class UpdateUserAgentStatusServiceTest {
 
             List<UserAgent> userAgents =
                     List.of(
-                            createUserAgent(1L, UserAgentStatus.AVAILABLE),
+                            createUserAgent(1L, UserAgentStatus.READY),
                             createUserAgent(2L, UserAgentStatus.SUSPENDED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);

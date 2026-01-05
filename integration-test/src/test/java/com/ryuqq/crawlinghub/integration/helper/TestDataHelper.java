@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.integration.helper;
 
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,10 +151,10 @@ INSERT INTO user_agent (
 VALUES
     (1, 'test-token-001', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'DESKTOP', 'GENERIC', 'WINDOWS', '10.0', 'CHROME', '120.0.0.0',
-        'AVAILABLE', 100, NULL, 0, NOW(), NOW()),
+        'READY', 100, NULL, 0, NOW(), NOW()),
     (2, 'test-token-002', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         'DESKTOP', 'GENERIC', 'MACOS', '10.15.7', 'CHROME', '120.0.0.0',
-        'AVAILABLE', 95, NULL, 0, NOW(), NOW()),
+        'READY', 95, NULL, 0, NOW(), NOW()),
     (3, 'test-token-003',
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
         'DESKTOP', 'GENERIC', 'WINDOWS', '10.0', 'FIREFOX', '119.0',
@@ -408,7 +408,7 @@ VALUES
                             now, // windowStart
                             windowEnd, // windowEnd
                             100, // healthScore (최대값)
-                            CacheStatus.READY, // READY 상태 (즉시 사용 가능)
+                            UserAgentStatus.READY, // READY 상태 (즉시 사용 가능)
                             null // suspendedAt (서스펜드되지 않음)
                             );
             cachedUserAgents.add(cachedUserAgent);

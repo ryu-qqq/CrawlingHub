@@ -72,7 +72,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             100,
                             null,
                             0,
@@ -126,7 +126,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             100,
                             null,
                             0,
@@ -134,7 +134,7 @@ class UserAgentQueryAdapterTest {
                             now);
             UserAgent domain = UserAgentFixture.anAvailableUserAgent();
 
-            given(queryDslRepository.findByStatus(UserAgentStatus.AVAILABLE))
+            given(queryDslRepository.findByStatus(UserAgentStatus.READY))
                     .willReturn(List.of(entity));
             given(mapper.toDomain(entity)).willReturn(domain);
 
@@ -143,7 +143,7 @@ class UserAgentQueryAdapterTest {
 
             // Then
             assertThat(result).hasSize(1);
-            verify(queryDslRepository).findByStatus(UserAgentStatus.AVAILABLE);
+            verify(queryDslRepository).findByStatus(UserAgentStatus.READY);
         }
     }
 
@@ -155,10 +155,10 @@ class UserAgentQueryAdapterTest {
         @DisplayName("성공 - 상태별 개수 조회")
         void shouldCountByStatus() {
             // Given
-            given(queryDslRepository.countByStatus(UserAgentStatus.AVAILABLE)).willReturn(5L);
+            given(queryDslRepository.countByStatus(UserAgentStatus.READY)).willReturn(5L);
 
             // When
-            long result = queryAdapter.countByStatus(UserAgentStatus.AVAILABLE);
+            long result = queryAdapter.countByStatus(UserAgentStatus.READY);
 
             // Then
             assertThat(result).isEqualTo(5L);
@@ -246,7 +246,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             95,
                             now,
                             150,
@@ -292,7 +292,7 @@ class UserAgentQueryAdapterTest {
             // Given
             PageRequest pageRequest = PageRequest.of(0, 10);
             UserAgentSearchCriteria criteria =
-                    UserAgentSearchCriteria.byStatus(UserAgentStatus.AVAILABLE, pageRequest);
+                    UserAgentSearchCriteria.byStatus(UserAgentStatus.READY, pageRequest);
 
             LocalDateTime now = LocalDateTime.now();
             UserAgentJpaEntity entity =
@@ -306,7 +306,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             95,
                             now,
                             150,
@@ -321,7 +321,7 @@ class UserAgentQueryAdapterTest {
 
             // Then
             assertThat(result.content()).hasSize(1);
-            assertThat(result.content().get(0).status()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(result.content().get(0).status()).isEqualTo(UserAgentStatus.READY);
             assertThat(result.totalElements()).isEqualTo(1);
             verify(queryDslRepository).findByCriteria(criteria);
             verify(queryDslRepository).countByCriteria(criteria);
@@ -366,7 +366,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             88,
                             now,
                             120,
@@ -406,7 +406,7 @@ class UserAgentQueryAdapterTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             95,
                             now,
                             150,
@@ -425,7 +425,7 @@ class UserAgentQueryAdapterTest {
             assertThat(response.userAgentValue())
                     .isEqualTo("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0");
             assertThat(response.deviceType().type().name()).isEqualTo("DESKTOP");
-            assertThat(response.status()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(response.status()).isEqualTo(UserAgentStatus.READY);
             assertThat(response.healthScore()).isEqualTo(95);
             assertThat(response.requestsPerDay()).isEqualTo(150);
         }

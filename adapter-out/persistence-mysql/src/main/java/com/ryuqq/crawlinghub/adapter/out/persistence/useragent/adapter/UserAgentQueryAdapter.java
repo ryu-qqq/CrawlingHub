@@ -64,8 +64,7 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
      */
     @Override
     public List<UserAgent> findAllAvailable() {
-        List<UserAgentJpaEntity> entities =
-                queryDslRepository.findByStatus(UserAgentStatus.AVAILABLE);
+        List<UserAgentJpaEntity> entities = queryDslRepository.findByStatus(UserAgentStatus.READY);
         return entities.stream().map(mapper::toDomain).toList();
     }
 

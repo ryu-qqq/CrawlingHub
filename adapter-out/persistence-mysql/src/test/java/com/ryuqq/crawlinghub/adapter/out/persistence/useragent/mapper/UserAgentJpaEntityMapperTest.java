@@ -54,7 +54,7 @@ class UserAgentJpaEntityMapperTest {
             assertThat(entity.getToken()).isEqualTo(domain.getToken().encryptedValue());
             assertThat(entity.getUserAgentString()).isEqualTo(domain.getUserAgentString().value());
             assertThat(entity.getDeviceType()).isEqualTo(domain.getDeviceType().getTypeName());
-            assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.READY);
             assertThat(entity.getHealthScore()).isEqualTo(domain.getHealthScoreValue());
             assertThat(entity.getRequestsPerDay()).isEqualTo(domain.getRequestsPerDay());
         }
@@ -120,7 +120,7 @@ class UserAgentJpaEntityMapperTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             100,
                             now,
                             0,
@@ -136,7 +136,7 @@ class UserAgentJpaEntityMapperTest {
             assertThat(domain.getToken().encryptedValue()).isEqualTo(validToken);
             assertThat(domain.getUserAgentString().value()).isEqualTo("Mozilla/5.0 Test Browser");
             assertThat(domain.getDeviceType().getTypeName()).isEqualTo("DESKTOP");
-            assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.READY);
             assertThat(domain.getHealthScoreValue()).isEqualTo(100);
         }
 
@@ -189,7 +189,7 @@ class UserAgentJpaEntityMapperTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             100,
                             null, // lastUsedAt is null
                             0,

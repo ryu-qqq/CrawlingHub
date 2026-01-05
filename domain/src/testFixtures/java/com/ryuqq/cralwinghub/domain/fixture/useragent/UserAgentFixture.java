@@ -77,7 +77,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -98,7 +98,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -112,7 +112,7 @@ public final class UserAgentFixture {
      * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)
      */
     public static UserAgent anAvailableUserAgent() {
-        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.initial());
+        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.initial());
     }
 
     /**
@@ -129,7 +129,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 now,
                 0,
@@ -183,7 +183,7 @@ public final class UserAgentFixture {
      * @return UserAgent (AVAILABLE, Health Score 35)
      */
     public static UserAgent anAlmostSuspendedUserAgent() {
-        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.of(35));
+        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.of(35));
     }
 
     /**
@@ -198,7 +198,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 100,
@@ -219,7 +219,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -242,7 +242,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.of(healthScoreValue),
                 now,
                 0,
