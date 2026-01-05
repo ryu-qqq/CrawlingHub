@@ -215,6 +215,18 @@ module "crawl_worker_task_role" {
 }
 
 # ========================================
+# SQS Access Policy Attachment (from sqs stack)
+# ========================================
+# ⚠️ DEPENDENCY: This uses the managed policy from the SQS stack
+#   which includes both SQS permissions and KMS decrypt permissions
+#   required for reading from KMS-encrypted queues.
+# ========================================
+resource "aws_iam_role_policy_attachment" "crawl_worker_sqs_access" {
+  role       = module.crawl_worker_task_role.role_name
+  policy_arn = local.sqs_access_policy_arn
+}
+
+# ========================================
 # CloudWatch Log Group (using Infrastructure module)
 # ========================================
 
