@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.useragent.scheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -78,8 +79,8 @@ class SessionDbStatusUpdaterTest {
 
             // Then
             assertThat(result).isZero();
-            verify(readManager, never()).findByIds(Collections.emptyList());
-            verify(transactionManager, never()).persistAll(Collections.emptyList());
+            verify(readManager, never()).findByIds(anyList());
+            verify(transactionManager, never()).persistAll(anyList());
         }
 
         @Test

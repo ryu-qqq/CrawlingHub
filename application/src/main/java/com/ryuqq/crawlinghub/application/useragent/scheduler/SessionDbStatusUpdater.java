@@ -8,6 +8,8 @@ import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -57,7 +59,7 @@ public class SessionDbStatusUpdater {
      */
     @Transactional
     public int updateStatusToReady(List<UserAgentId> userAgentIds) {
-        if (userAgentIds.isEmpty()) {
+        if (userAgentIds == null || userAgentIds.isEmpty()) {
             return 0;
         }
 
@@ -65,6 +67,16 @@ public class SessionDbStatusUpdater {
         if (userAgents.isEmpty()) {
             log.warn("DB에서 UserAgent를 찾을 수 없음: ids={}", userAgentIds);
             return 0;
+        }
+
+        if (userAgents.size() < userAgentIds.size()) {
+            Set<UserAgentId> foundIds =
+                    userAgents.stream().map(UserAgent::getId).collect(Collectors.toSet());
+            List<UserAgentId> notFoundIds =
+                    userAgentIds.stream()
+                            .filter(id -> !foundIds.contains(id))
+                            .collect(Collectors.toList());
+            log.warn("DB에서 일부 UserAgent를 찾을 수 없음. 누락된 ID: {}", notFoundIds);
         }
 
         Clock clock = clockHolder.getClock();
