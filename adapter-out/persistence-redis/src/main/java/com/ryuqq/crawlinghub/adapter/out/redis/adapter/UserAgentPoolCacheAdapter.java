@@ -238,12 +238,18 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
 
     @Override
     public void updateSession(
-            UserAgentId userAgentId, String sessionToken, Instant sessionExpiresAt) {
+            UserAgentId userAgentId,
+            String sessionToken,
+            String nid,
+            String mustitUid,
+            Instant sessionExpiresAt) {
         String poolKey = poolKeyPrefix + userAgentId.value();
         String idStr = String.valueOf(userAgentId.value());
 
         RMap<String, String> map = redissonClient.getMap(poolKey, StringCodec.INSTANCE);
         map.put("sessionToken", sessionToken);
+        map.put("nid", nid != null ? nid : "");
+        map.put("mustitUid", mustitUid != null ? mustitUid : "");
         map.put("sessionExpiresAt", String.valueOf(sessionExpiresAt.toEpochMilli()));
         map.put("status", UserAgentStatus.READY.name());
 
@@ -252,8 +258,10 @@ public class UserAgentPoolCacheAdapter implements UserAgentPoolCachePort {
         redissonClient.getSet(readySetKey, StringCodec.INSTANCE).add(idStr);
 
         log.info(
-                "UserAgent {} 세션 업데이트 완료 (READY), expiresAt={}",
+                "UserAgent {} 세션 업데이트 완료 (READY), nid={}, mustitUid={}, expiresAt={}",
                 userAgentId.value(),
+                nid != null ? "있음" : "없음",
+                mustitUid != null ? "있음" : "없음",
                 sessionExpiresAt);
     }
 

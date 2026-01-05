@@ -50,19 +50,28 @@ public class SearchCrawler extends Crawler {
     public CrawlResult crawl(CrawlContext context) {
         String searchEndpoint = context.buildSearchEndpoint();
 
-        log.debug(
-                "SearchCrawler 실행: endpoint={}, userAgentId={}, hasSearchCookies={}",
+        log.info(
+                "SearchCrawler 요청: endpoint={}, hasSearchCookies={}, userAgentId={}",
                 searchEndpoint,
-                context.getUserAgentId(),
-                context.hasSearchCookies());
+                context.hasSearchCookies(),
+                context.getUserAgentId());
 
         if (!context.hasSearchCookies()) {
-            log.warn("Search API 호출에 필요한 쿠키 없음: userAgentId={}", context.getUserAgentId());
+            log.warn(
+                    "Search API 호출에 필요한 쿠키 없음: userAgentId={}, nid={}, mustitUid={}",
+                    context.getUserAgentId(),
+                    context.getNid(),
+                    context.getMusitUid());
         }
 
         HttpRequest request = HttpRequest.get(searchEndpoint, context.buildHeaders());
 
         HttpResponse response = httpClientPort.get(request);
+
+        log.info(
+                "SearchCrawler 응답: statusCode={}, userAgentId={}",
+                response.getStatusCode(),
+                context.getUserAgentId());
 
         return CrawlResult.from(response);
     }

@@ -54,8 +54,10 @@ class SessionRequiredEventListenerTest {
                     new SessionRequiredEvent(userAgentId, userAgentValue, occurredAt);
 
             String token = "session-token-abc123";
+            String nid = "nid-test";
+            String mustitUid = "uid-test";
             Instant expiresAt = Instant.now().plusSeconds(3600);
-            SessionToken sessionToken = new SessionToken(token, expiresAt);
+            SessionToken sessionToken = new SessionToken(token, nid, mustitUid, expiresAt);
 
             given(sessionTokenPort.issueSessionToken(userAgentValue))
                     .willReturn(Optional.of(sessionToken));
@@ -65,7 +67,9 @@ class SessionRequiredEventListenerTest {
 
             // Then
             verify(sessionTokenPort).issueSessionToken(userAgentValue);
-            verify(cachePort).updateSession(eq(userAgentId), eq(token), eq(expiresAt));
+            verify(cachePort)
+                    .updateSession(
+                            eq(userAgentId), eq(token), eq(nid), eq(mustitUid), eq(expiresAt));
         }
 
         @Test
@@ -85,7 +89,7 @@ class SessionRequiredEventListenerTest {
 
             // Then
             verify(sessionTokenPort).issueSessionToken(userAgentValue);
-            verify(cachePort, never()).updateSession(any(), any(), any());
+            verify(cachePort, never()).updateSession(any(), any(), any(), any(), any());
         }
 
         @Test
@@ -106,7 +110,7 @@ class SessionRequiredEventListenerTest {
 
             // Then
             verify(sessionTokenPort).issueSessionToken(userAgentValue);
-            verify(cachePort, never()).updateSession(any(), any(), any());
+            verify(cachePort, never()).updateSession(any(), any(), any(), any(), any());
         }
     }
 }

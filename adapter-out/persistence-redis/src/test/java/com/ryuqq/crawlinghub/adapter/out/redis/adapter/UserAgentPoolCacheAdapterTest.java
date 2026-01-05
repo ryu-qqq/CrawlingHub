@@ -191,6 +191,8 @@ class UserAgentPoolCacheAdapterTest {
             // Given
             UserAgentId userAgentId = UserAgentId.of(1L);
             String sessionToken = "new-session-token";
+            String nid = "nid-test-123";
+            String mustitUid = "uid-test-456";
             Instant sessionExpiresAt = FIXED_NOW.plus(Duration.ofHours(2));
             String poolKey = POOL_KEY_PREFIX + "1";
 
@@ -203,10 +205,12 @@ class UserAgentPoolCacheAdapterTest {
             UserAgentPoolCacheAdapter adapter = createAdapterWithMockedScripts();
 
             // When
-            adapter.updateSession(userAgentId, sessionToken, sessionExpiresAt);
+            adapter.updateSession(userAgentId, sessionToken, nid, mustitUid, sessionExpiresAt);
 
             // Then
             verify(rMap).put("sessionToken", sessionToken);
+            verify(rMap).put("nid", nid);
+            verify(rMap).put("mustitUid", mustitUid);
             verify(rMap).put("sessionExpiresAt", String.valueOf(sessionExpiresAt.toEpochMilli()));
             verify(rMap).put("status", UserAgentStatus.READY.name());
         }

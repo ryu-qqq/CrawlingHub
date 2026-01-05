@@ -63,9 +63,14 @@ class WebClientSessionTokenAdapterIntegrationTest {
         SessionToken token = result.get();
         assertThat(token.token()).isNotBlank();
         assertThat(token.expiresAt()).isAfter(Instant.now());
+        // nid, mustitUid는 사이트에서 항상 발급되지 않을 수 있으므로 null 허용
+        // 하지만 hasSearchCookies()가 true인 경우 둘 다 존재해야 함
 
         System.out.println("=== 세션 토큰 발급 결과 ===");
         System.out.println("Token: " + token.token());
+        System.out.println("nid: " + token.nid());
+        System.out.println("mustitUid: " + token.mustitUid());
+        System.out.println("hasSearchCookies: " + token.hasSearchCookies());
         System.out.println("Expires At: " + token.expiresAt());
         System.out.println("Token Length: " + token.token().length());
     }
@@ -103,6 +108,9 @@ class WebClientSessionTokenAdapterIntegrationTest {
 
             System.out.println("UserAgent: " + userAgent.substring(0, 50) + "...");
             System.out.println("Token: " + token.token());
+            System.out.println("nid: " + token.nid());
+            System.out.println("mustitUid: " + token.mustitUid());
+            System.out.println("hasSearchCookies: " + token.hasSearchCookies());
             System.out.println("---");
 
             // 사이트 부하 방지

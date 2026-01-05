@@ -84,7 +84,8 @@ class SessionIssuanceSchedulerTest {
                             null); // suspendedAt
 
             SessionToken sessionToken =
-                    new SessionToken("token-abc123", Instant.now().plusSeconds(1800));
+                    new SessionToken(
+                            "token-abc123", "nid-123", "uid-456", Instant.now().plusSeconds(1800));
 
             given(cachePort.getSessionRequiredUserAgents()).willReturn(sessionRequiredIds);
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
@@ -99,7 +100,9 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionRequiredUserAgents();
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
-            verify(cachePort).updateSession(any(), anyString(), any(Instant.class));
+            verify(cachePort)
+                    .updateSession(
+                            any(), anyString(), anyString(), anyString(), any(Instant.class));
             verify(dbStatusUpdater).updateStatusToReady(List.of(userAgentId));
         }
 
@@ -115,7 +118,8 @@ class SessionIssuanceSchedulerTest {
             // Then
             verify(cachePort).getSessionRequiredUserAgents();
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
-            verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(cachePort, never())
+                    .updateSession(any(), anyString(), anyString(), anyString(), any());
             verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
 
@@ -136,7 +140,8 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionRequiredUserAgents();
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
-            verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(cachePort, never())
+                    .updateSession(any(), anyString(), anyString(), anyString(), any());
             verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
 
@@ -175,7 +180,8 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionRequiredUserAgents();
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
-            verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(cachePort, never())
+                    .updateSession(any(), anyString(), anyString(), anyString(), any());
             verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
     }
@@ -208,7 +214,11 @@ class SessionIssuanceSchedulerTest {
                             null); // suspendedAt
 
             SessionToken newSessionToken =
-                    new SessionToken("new-token-xyz789", Instant.now().plusSeconds(1800));
+                    new SessionToken(
+                            "new-token-xyz789",
+                            "nid-new",
+                            "uid-new",
+                            Instant.now().plusSeconds(1800));
 
             given(cachePort.getSessionExpiringUserAgents(5)).willReturn(expiringIds);
             given(cachePort.findById(userAgentId)).willReturn(Optional.of(cachedUserAgent));
@@ -223,7 +233,9 @@ class SessionIssuanceSchedulerTest {
             verify(cachePort).getSessionExpiringUserAgents(5);
             verify(cachePort).findById(userAgentId);
             verify(sessionTokenPort).issueSessionToken("Mozilla/5.0 Test Agent");
-            verify(cachePort).updateSession(any(), anyString(), any(Instant.class));
+            verify(cachePort)
+                    .updateSession(
+                            any(), anyString(), anyString(), anyString(), any(Instant.class));
             verify(dbStatusUpdater).updateStatusToReady(List.of(userAgentId));
         }
 
@@ -239,7 +251,8 @@ class SessionIssuanceSchedulerTest {
             // Then
             verify(cachePort).getSessionExpiringUserAgents(5);
             verify(sessionTokenPort, never()).issueSessionToken(anyString());
-            verify(cachePort, never()).updateSession(any(), anyString(), any());
+            verify(cachePort, never())
+                    .updateSession(any(), anyString(), anyString(), anyString(), any());
             verify(dbStatusUpdater, never()).updateStatusToReady(anyList());
         }
     }
