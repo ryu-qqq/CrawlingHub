@@ -73,7 +73,7 @@ class CrawlTaskCommandFactoryTest {
                     .isEqualTo(scheduler.getCrawlSchedulerId().value());
             assertThat(bundle.crawlTask().getSellerId().value())
                     .isEqualTo(scheduler.getSellerIdValue());
-            assertThat(bundle.crawlTask().getTaskType()).isEqualTo(CrawlTaskType.META);
+            assertThat(bundle.crawlTask().getTaskType()).isEqualTo(CrawlTaskType.SEARCH);
         }
 
         @Test

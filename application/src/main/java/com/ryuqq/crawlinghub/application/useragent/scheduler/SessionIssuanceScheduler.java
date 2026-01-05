@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.useragent.dto.session.SessionToken;
 import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
 import com.ryuqq.crawlinghub.application.useragent.port.out.session.SessionTokenPort;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -32,8 +33,15 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>1분 주기로 SESSION_REQUIRED 목록 조회 및 발급
  *   <li>세션 만료 5분 전에 선제적으로 갱신
- *   <li>성공 시 READY 상태 유지/전환
+ *   <li>성공 시 Redis READY 상태 전환 + DB 상태 동기화
  *   <li>실패 시 다음 사이클에서 재시도
+ * </ul>
+ *
+ * <p><strong>상태 동기화</strong>:
+ *
+ * <ul>
+ *   <li>Redis: 즉시 업데이트 (세션 토큰 발급 직후)
+ *   <li>DB: 배치 처리로 동기화 (별도 @Transactional 컴포넌트 사용)
  * </ul>
  *
  * <p><strong>세션 만료 시간</strong>:
@@ -60,14 +68,17 @@ public class SessionIssuanceScheduler {
 
     private final SessionTokenPort sessionTokenPort;
     private final UserAgentPoolCachePort cachePort;
+    private final SessionDbStatusUpdater dbStatusUpdater;
     private final int renewalBufferMinutes;
 
     public SessionIssuanceScheduler(
             SessionTokenPort sessionTokenPort,
             UserAgentPoolCachePort cachePort,
+            SessionDbStatusUpdater dbStatusUpdater,
             SessionSchedulerProperties properties) {
         this.sessionTokenPort = sessionTokenPort;
         this.cachePort = cachePort;
+        this.dbStatusUpdater = dbStatusUpdater;
         this.renewalBufferMinutes = properties.getRenewalBufferMinutes();
 
         log.info("SessionIssuanceScheduler 초기화: renewalBufferMinutes={}", renewalBufferMinutes);
@@ -135,11 +146,13 @@ public class SessionIssuanceScheduler {
     /**
      * 공통 세션 발급 처리 로직
      *
+     * <p>Redis 상태는 즉시 업데이트하고, DB 상태는 배치 처리로 동기화합니다.
+     *
      * @param userAgentIds 처리할 UserAgent ID 목록
      * @param operationType 작업 유형 (로깅용)
      */
     private void processSessionIssuance(List<UserAgentId> userAgentIds, String operationType) {
-        int successCount = 0;
+        List<UserAgentId> successIds = new ArrayList<>();
         int failCount = 0;
         int processedCount = 0;
 
@@ -154,20 +167,28 @@ public class SessionIssuanceScheduler {
 
             boolean success = issueSessionForUserAgent(userAgentId);
             if (success) {
-                successCount++;
+                successIds.add(userAgentId);
             } else {
                 failCount++;
             }
             processedCount++;
 
-            // 외부 사이트 부하 방지를 위한 딜레이 (500ms)
             sleepBetweenRequests();
+        }
+
+        if (!successIds.isEmpty()) {
+            try {
+                int dbUpdated = dbStatusUpdater.updateStatusToReady(successIds);
+                log.info("[{}] DB 상태 동기화 완료: {}건", operationType, dbUpdated);
+            } catch (Exception e) {
+                log.error("[{}] DB 상태 동기화 실패: {}", operationType, e.getMessage());
+            }
         }
 
         log.info(
                 "[{}] 완료: 성공={}, 실패={}, 총 처리={}",
                 operationType,
-                successCount,
+                successIds.size(),
                 failCount,
                 processedCount);
     }
