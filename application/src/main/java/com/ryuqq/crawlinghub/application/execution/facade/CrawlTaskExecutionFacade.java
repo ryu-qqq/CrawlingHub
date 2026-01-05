@@ -17,10 +17,13 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * CrawlTask 실행 Facade
@@ -75,16 +78,20 @@ public class CrawlTaskExecutionFacade {
      *
      * <ol>
      *   <li>CrawlTask 조회
+     *   <li>멱등성 체크 - 이미 처리 완료된 Task인지 확인
      *   <li>CrawlTask 상태 → RUNNING
      *   <li>CrawlExecution 생성 (RUNNING 상태)
      * </ol>
      *
+     * <p><strong>멱등성 보장</strong>: SQS 중복 메시지로 인해 이미 완료된 Task에 대해 재처리 요청이 올 경우, 예외를 던지지 않고
+     * Optional.empty()를 반환하여 호출자가 안전하게 처리를 스킵할 수 있도록 합니다.
+     *
      * @param command 실행 커맨드
-     * @return 실행 컨텍스트 (CrawlTask + CrawlExecution)
-     * @throws RuntimeException CrawlTask가 존재하지 않는 경우
+     * @return 실행 컨텍스트 (CrawlTask + CrawlExecution), 이미 처리 완료된 경우 Optional.empty()
+     * @throws CrawlTaskNotFoundException CrawlTask가 존재하지 않는 경우
      */
     @Transactional
-    public ExecutionContext prepareExecution(ExecuteCrawlTaskCommand command) {
+    public Optional<ExecutionContext> prepareExecution(ExecuteCrawlTaskCommand command) {
         Long taskId = command.taskId();
 
         log.info("CrawlTask 실행 준비 시작: taskId={}, schedulerId={}", taskId, command.schedulerId());
@@ -92,13 +99,33 @@ public class CrawlTaskExecutionFacade {
         // 1. CrawlTask 조회
         CrawlTask crawlTask = findCrawlTaskOrThrow(taskId);
 
-        // 2. CrawlTask 상태 → RUNNING
+        // 2. 멱등성 체크 - 이미 완료된 Task인지 확인
+        CrawlTaskStatus currentStatus = crawlTask.getStatus();
+        if (currentStatus.isTerminal()) {
+            log.info(
+                    "CrawlTask 이미 처리 완료 (멱등성 스킵): taskId={}, currentStatus={}",
+                    taskId,
+                    currentStatus);
+            return Optional.empty();
+        }
+
+        // 3. PUBLISHED 상태가 아닌 경우 (RUNNING 등) 처리 스킵
+        if (currentStatus != CrawlTaskStatus.PUBLISHED) {
+            log.warn(
+                    "CrawlTask 처리 불가 상태 (스킵): taskId={}, currentStatus={},"
+                            + " expectedStatus=PUBLISHED",
+                    taskId,
+                    currentStatus);
+            return Optional.empty();
+        }
+
+        // 4. CrawlTask 상태 → RUNNING
         crawlTask.markAsRunning(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.debug("CrawlTask 상태 업데이트: taskId={}, status=RUNNING", taskId);
 
-        // 3. CrawlExecution 생성 및 저장 (RUNNING 상태)
+        // 5. CrawlExecution 생성 및 저장 (RUNNING 상태)
         CrawlExecution execution =
                 crawlExecutionManager.startAndPersist(
                         crawlTask.getId(),
@@ -107,7 +134,7 @@ public class CrawlTaskExecutionFacade {
 
         log.info("CrawlTask 실행 준비 완료: taskId={}", taskId);
 
-        return new ExecutionContext(crawlTask, execution);
+        return Optional.of(new ExecutionContext(crawlTask, execution));
     }
 
     /**
@@ -129,23 +156,33 @@ public class CrawlTaskExecutionFacade {
         CrawlTask crawlTask = context.crawlTask();
         CrawlExecution execution = context.execution();
 
-        log.debug("CrawlTask 성공 처리 시작: taskId={}", crawlTask.getId().value());
+        log.info(
+                "🔵 [TX-START] completeWithSuccess 트랜잭션 시작: taskId={}, txActive={}, txName={}",
+                crawlTask.getId().value(),
+                TransactionSynchronizationManager.isActualTransactionActive(),
+                TransactionSynchronizationManager.getCurrentTransactionName());
 
         // 1. CrawlExecution 성공 완료 및 저장
         crawlExecutionManager.completeWithSuccess(
                 execution, crawlResult.getResponseBody(), crawlResult.getHttpStatusCode());
+        log.debug("✅ Step 1 완료: CrawlExecution 성공 처리");
 
         // 2. CrawlTask 상태 → SUCCESS
         crawlTask.markAsSuccess(clockHolder.getClock());
         crawlTaskTransactionManager.persist(crawlTask);
+        log.debug("✅ Step 2 완료: CrawlTask SUCCESS 마킹");
 
         // 3. 크롤링 결과 처리 (파싱 + 저장 + 후속 Task 생성)
+        log.debug("🔄 Step 3 시작: processResult 호출");
         processResult(crawlResult, crawlTask);
+        log.debug("✅ Step 3 완료: processResult 처리 완료");
 
         log.info(
-                "CrawlTask 실행 성공: taskId={}, durationMs={}",
+                "🟢 [TX-END] completeWithSuccess 트랜잭션 종료 예정: taskId={}, durationMs={}, "
+                        + "txActive={} (이 로그 후 커밋 시도)",
                 crawlTask.getId().value(),
-                execution.getDuration().durationMs());
+                execution.getDuration().durationMs(),
+                TransactionSynchronizationManager.isActualTransactionActive());
     }
 
     /**

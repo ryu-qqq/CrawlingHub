@@ -12,6 +12,7 @@ import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.ConsumeUserAgentUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecordUserAgentResultUseCase;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -83,8 +84,20 @@ public class CrawlTaskExecutionService implements CrawlTaskExecutionUseCase {
                 command.schedulerId(),
                 command.taskType());
 
-        // 1. 실행 준비 (트랜잭션 내: CrawlTask 조회 → RUNNING → CrawlExecution 생성)
-        ExecutionContext context = crawlTaskExecutionFacade.prepareExecution(command);
+        // 1. 실행 준비 (트랜잭션 내: CrawlTask 조회 → 멱등성 체크 → RUNNING → CrawlExecution 생성)
+        Optional<ExecutionContext> contextOptional =
+                crawlTaskExecutionFacade.prepareExecution(command);
+
+        // 1-1. 멱등성 체크로 인한 조기 종료 (이미 처리 완료된 Task)
+        if (contextOptional.isEmpty()) {
+            log.info(
+                    "CrawlTask 이미 처리됨 또는 처리 불가 (정상 종료): taskId={}, schedulerId={}",
+                    taskId,
+                    command.schedulerId());
+            return;
+        }
+
+        ExecutionContext context = contextOptional.get();
 
         // 2. UserAgent 토큰 소비 (트랜잭션 외부: Redis Pool에서 선택)
         CachedUserAgent userAgent = consumeUserAgentUseCase.execute();
@@ -102,11 +115,23 @@ public class CrawlTaskExecutionService implements CrawlTaskExecutionUseCase {
 
             if (crawlResult.isSuccess()) {
                 // 5-1. 성공 처리 (트랜잭션 내: CrawlExecution + CrawlTask 상태 업데이트 + 결과 처리)
-                crawlTaskExecutionFacade.completeWithSuccess(context, crawlResult);
-                log.info(
-                        "CrawlTask 실행 완료: taskId={}, userAgentId={}",
-                        taskId,
-                        userAgent.userAgentId());
+                try {
+                    crawlTaskExecutionFacade.completeWithSuccess(context, crawlResult);
+                    log.info(
+                            "✅ CrawlTask 실행 완료 (커밋 성공): taskId={}, userAgentId={}",
+                            taskId,
+                            userAgent.userAgentId());
+                } catch (Exception txException) {
+                    // 🚨 트랜잭션 롤백 발생 시 상세 로그
+                    log.error(
+                            "🚨🚨🚨 [TX-ROLLBACK] completeWithSuccess 트랜잭션 롤백 발생! "
+                                    + "taskId={}, exceptionClass={}, message={}",
+                            taskId,
+                            txException.getClass().getName(),
+                            txException.getMessage(),
+                            txException);
+                    throw txException;
+                }
             } else {
                 // 5-2. 크롤링 실패 처리
                 crawlTaskExecutionFacade.completeWithFailure(

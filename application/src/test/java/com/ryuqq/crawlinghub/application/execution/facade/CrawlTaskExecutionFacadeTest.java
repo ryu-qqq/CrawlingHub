@@ -98,14 +98,56 @@ class CrawlTaskExecutionFacadeTest {
                     .willReturn(execution);
 
             // When
-            ExecutionContext result = facade.prepareExecution(command);
+            Optional<ExecutionContext> result = facade.prepareExecution(command);
 
             // Then
-            assertThat(result).isNotNull();
-            assertThat(result.crawlTask()).isEqualTo(task);
-            assertThat(result.execution()).isEqualTo(execution);
+            assertThat(result).isPresent();
+            assertThat(result.get().crawlTask()).isEqualTo(task);
+            assertThat(result.get().execution()).isEqualTo(execution);
             verify(crawlTaskReadManager).findById(any(CrawlTaskId.class));
             verify(crawlTaskTransactionManager).persist(task);
+        }
+
+        @Test
+        @DisplayName("[멱등성] 이미 완료된 Task (SUCCESS) → Optional.empty() 반환")
+        void shouldReturnEmptyWhenTaskAlreadyCompleted() {
+            // Given
+            Long taskId = 1L;
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(
+                            taskId, 100L, 200L, "MINI_SHOP", "https://example.com");
+
+            CrawlTask completedTask = CrawlTaskFixture.aSuccessTask();
+
+            given(crawlTaskReadManager.findById(any(CrawlTaskId.class)))
+                    .willReturn(Optional.of(completedTask));
+
+            // When
+            Optional<ExecutionContext> result = facade.prepareExecution(command);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("[멱등성] RUNNING 상태 Task → Optional.empty() 반환 (다른 워커 처리 중)")
+        void shouldReturnEmptyWhenTaskIsRunning() {
+            // Given
+            Long taskId = 1L;
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(
+                            taskId, 100L, 200L, "MINI_SHOP", "https://example.com");
+
+            CrawlTask runningTask = CrawlTaskFixture.aRunningTask();
+
+            given(crawlTaskReadManager.findById(any(CrawlTaskId.class)))
+                    .willReturn(Optional.of(runningTask));
+
+            // When
+            Optional<ExecutionContext> result = facade.prepareExecution(command);
+
+            // Then
+            assertThat(result).isEmpty();
         }
 
         @Test

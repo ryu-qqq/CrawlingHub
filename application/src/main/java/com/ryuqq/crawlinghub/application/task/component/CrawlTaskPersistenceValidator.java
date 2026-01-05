@@ -12,6 +12,8 @@ import com.ryuqq.crawlinghub.domain.task.exception.DuplicateCrawlTaskException;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +31,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CrawlTaskPersistenceValidator {
+
+    private static final Logger log = LoggerFactory.getLogger(CrawlTaskPersistenceValidator.class);
 
     private static final List<CrawlTaskStatus> IN_PROGRESS_STATUSES =
             List.of(
@@ -85,7 +89,20 @@ public class CrawlTaskPersistenceValidator {
                         crawlSchedulerId, IN_PROGRESS_STATUSES);
 
         if (exists) {
+            log.error(
+                    "🚨 중복 Task 감지! DuplicateCrawlTaskException 발생 예정 - "
+                            + "schedulerId={}, sellerId={}, taskType={}, checkStatuses={}",
+                    crawlSchedulerId.value(),
+                    sellerId.value(),
+                    taskType,
+                    IN_PROGRESS_STATUSES);
             throw new DuplicateCrawlTaskException(sellerId.value(), taskType);
         }
+
+        log.debug(
+                "중복 Task 검증 통과: schedulerId={}, sellerId={}, taskType={}",
+                crawlSchedulerId.value(),
+                sellerId.value(),
+                taskType);
     }
 }
