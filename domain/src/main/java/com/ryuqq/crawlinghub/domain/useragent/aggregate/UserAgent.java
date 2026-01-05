@@ -98,7 +98,7 @@ public class UserAgent {
                 userAgentString,
                 deviceType,
                 metadata,
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScore.initial(),
                 null,
                 0,
@@ -126,7 +126,7 @@ public class UserAgent {
                 userAgentString,
                 deviceType,
                 metadata,
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScore.initial(),
                 null,
                 0,
@@ -283,22 +283,22 @@ public class UserAgent {
     }
 
     /**
-     * 복구 (SUSPENDED → AVAILABLE, Health Score 70)
+     * 복구 (SUSPENDED → READY, Health Score 70)
      *
      * @param clock 시간 제어
      * @throws InvalidUserAgentStateException 복구 불가능한 상태인 경우
      */
     public void recover(Clock clock) {
         if (!this.status.canRecover()) {
-            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.AVAILABLE);
+            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
         }
-        this.status = UserAgentStatus.AVAILABLE;
+        this.status = UserAgentStatus.READY;
         this.healthScore = HealthScore.recovered();
         this.updatedAt = clock.instant();
     }
 
     /**
-     * 영구 차단 (AVAILABLE/SUSPENDED → BLOCKED)
+     * 영구 차단 (READY/SUSPENDED → BLOCKED)
      *
      * @param clock 시간 제어
      * @throws InvalidUserAgentStateException 이미 BLOCKED 상태인 경우
@@ -312,7 +312,7 @@ public class UserAgent {
     }
 
     /**
-     * 차단 해제 (BLOCKED → AVAILABLE, Health Score 70)
+     * 차단 해제 (BLOCKED → READY, Health Score 70)
      *
      * <p>관리자가 차단된 UserAgent를 다시 활성화할 때 사용합니다.
      *
@@ -321,9 +321,9 @@ public class UserAgent {
      */
     public void unblock(Clock clock) {
         if (!this.status.isBlocked()) {
-            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.AVAILABLE);
+            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
         }
-        this.status = UserAgentStatus.AVAILABLE;
+        this.status = UserAgentStatus.READY;
         this.healthScore = HealthScore.recovered();
         this.updatedAt = clock.instant();
     }

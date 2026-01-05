@@ -8,10 +8,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.adapter.out.redis.config.UserAgentPoolProperties;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -127,7 +127,7 @@ class UserAgentPoolCacheAdapterTest {
                             null,
                             null,
                             100,
-                            CacheStatus.SESSION_REQUIRED,
+                            UserAgentStatus.SESSION_REQUIRED,
                             null);
 
             String poolKey = POOL_KEY_PREFIX + "1";
@@ -143,7 +143,7 @@ class UserAgentPoolCacheAdapterTest {
             // Then
             verify(rMap).put("userAgentId", "1");
             verify(rMap).put("userAgentValue", "Mozilla/5.0");
-            verify(rMap).put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+            verify(rMap).put("status", UserAgentStatus.SESSION_REQUIRED.name());
             verify(rMap).put("healthScore", "100");
             verify(rSet).add("1");
         }
@@ -174,7 +174,7 @@ class UserAgentPoolCacheAdapterTest {
             adapter.removeFromPool(userAgentId);
 
             // Then
-            verify(rMap).put("cacheStatus", CacheStatus.SUSPENDED.name());
+            verify(rMap).put("status", UserAgentStatus.SUSPENDED.name());
             verify(rMap).put("suspendedAt", String.valueOf(FIXED_NOW.toEpochMilli()));
             verify(rMap).put("sessionToken", "");
             verify(rMap).put("sessionExpiresAt", "0");
@@ -208,7 +208,7 @@ class UserAgentPoolCacheAdapterTest {
             // Then
             verify(rMap).put("sessionToken", sessionToken);
             verify(rMap).put("sessionExpiresAt", String.valueOf(sessionExpiresAt.toEpochMilli()));
-            verify(rMap).put("cacheStatus", CacheStatus.READY.name());
+            verify(rMap).put("status", UserAgentStatus.READY.name());
         }
     }
 
@@ -237,7 +237,7 @@ class UserAgentPoolCacheAdapterTest {
             // Then
             verify(rMap).put("sessionToken", "");
             verify(rMap).put("sessionExpiresAt", "0");
-            verify(rMap).put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+            verify(rMap).put("status", UserAgentStatus.SESSION_REQUIRED.name());
         }
     }
 
@@ -265,7 +265,7 @@ class UserAgentPoolCacheAdapterTest {
             adapter.restoreToPool(userAgentId, userAgentValue);
 
             // Then
-            verify(rMap).put("cacheStatus", CacheStatus.SESSION_REQUIRED.name());
+            verify(rMap).put("status", UserAgentStatus.SESSION_REQUIRED.name());
             verify(rMap).put("healthScore", "70");
             verify(rMap).put("remainingTokens", "80");
             verify(rMap).put("suspendedAt", "0");
@@ -292,7 +292,7 @@ class UserAgentPoolCacheAdapterTest {
                             80,
                             80,
                             100,
-                            CacheStatus.READY);
+                            UserAgentStatus.READY);
 
             given(redissonClient.getMap(eq(poolKey), any(StringCodec.class))).willReturn(rMap);
             given(rMap.readAllMap()).willReturn(data);
@@ -308,7 +308,7 @@ class UserAgentPoolCacheAdapterTest {
             assertThat(cached.userAgentId()).isEqualTo(1L);
             assertThat(cached.userAgentValue()).isEqualTo("Mozilla/5.0");
             assertThat(cached.sessionToken()).isEqualTo("session-token");
-            assertThat(cached.cacheStatus()).isEqualTo(CacheStatus.READY);
+            assertThat(cached.status()).isEqualTo(UserAgentStatus.READY);
             assertThat(cached.healthScore()).isEqualTo(100);
         }
 
@@ -340,7 +340,14 @@ class UserAgentPoolCacheAdapterTest {
 
             Map<String, String> data =
                     createUserAgentData(
-                            1L, "Mozilla/5.0", "", 0L, 80, 80, 100, CacheStatus.SESSION_REQUIRED);
+                            1L,
+                            "Mozilla/5.0",
+                            "",
+                            0L,
+                            80,
+                            80,
+                            100,
+                            UserAgentStatus.SESSION_REQUIRED);
 
             given(redissonClient.getMap(eq(poolKey), any(StringCodec.class))).willReturn(rMap);
             given(rMap.readAllMap()).willReturn(data);
@@ -557,7 +564,7 @@ class UserAgentPoolCacheAdapterTest {
             int remainingTokens,
             int maxTokens,
             int healthScore,
-            CacheStatus status) {
+            UserAgentStatus status) {
 
         Map<String, String> data = new HashMap<>();
         data.put("userAgentId", String.valueOf(id));
@@ -567,7 +574,7 @@ class UserAgentPoolCacheAdapterTest {
         data.put("remainingTokens", String.valueOf(remainingTokens));
         data.put("maxTokens", String.valueOf(maxTokens));
         data.put("healthScore", String.valueOf(healthScore));
-        data.put("cacheStatus", status.name());
+        data.put("status", status.name());
         data.put("windowStart", "0");
         data.put("windowEnd", "0");
         data.put("suspendedAt", "0");

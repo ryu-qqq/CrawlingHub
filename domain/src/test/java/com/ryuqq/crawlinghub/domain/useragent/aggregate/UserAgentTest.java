@@ -59,7 +59,7 @@ class UserAgentTest {
             assertThat(userAgent.getId()).isNotNull();
             assertThat(userAgent.getId().value()).isNull();
             assertThat(userAgent.getToken()).isEqualTo(TokenFixture.aDefaultToken());
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
             assertThat(userAgent.isAvailable()).isTrue();
             assertThat(userAgent.getRequestsPerDay()).isZero();
@@ -107,7 +107,7 @@ class UserAgentTest {
             assertThat(userAgent.getToken()).isNotNull();
             assertThat(userAgent.getToken().isEmpty()).isTrue();
             assertThat(userAgent.hasToken()).isFalse();
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
         }
     }
@@ -226,7 +226,7 @@ class UserAgentTest {
 
             // then
             assertThat(userAgent.getId().value()).isNotNull();
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
         }
 

@@ -162,7 +162,7 @@ class UserAgentApiMapperTest {
                             1L,
                             "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                             DeviceType.of(DeviceType.Type.DESKTOP),
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             95,
                             150,
                             lastUsed,
@@ -177,7 +177,7 @@ class UserAgentApiMapperTest {
             assertThat(result.userAgentValue())
                     .isEqualTo("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
             assertThat(result.deviceType()).isEqualTo(DeviceType.of(DeviceType.Type.DESKTOP));
-            assertThat(result.status()).isEqualTo(UserAgentStatus.AVAILABLE);
+            assertThat(result.status()).isEqualTo(UserAgentStatus.READY);
             assertThat(result.healthScore()).isEqualTo(95);
             assertThat(result.requestsPerDay()).isEqualTo(150);
             assertThat(result.lastUsedAt()).isNotNull();
@@ -219,7 +219,7 @@ class UserAgentApiMapperTest {
                             3L,
                             "Mozilla/5.0 (Linux; Android 10)",
                             DeviceType.of(DeviceType.Type.MOBILE),
-                            UserAgentStatus.AVAILABLE,
+                            UserAgentStatus.READY,
                             100,
                             0,
                             null,

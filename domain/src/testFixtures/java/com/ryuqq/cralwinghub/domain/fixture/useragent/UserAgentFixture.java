@@ -20,7 +20,7 @@ public final class UserAgentFixture {
     private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
 
     /**
-     * 신규 UserAgent 생성 (ID 미할당, AVAILABLE, Health Score 100)
+     * 신규 UserAgent 생성 (ID 미할당, READY, Health Score 100)
      *
      * @return UserAgent
      */
@@ -47,7 +47,7 @@ public final class UserAgentFixture {
     /**
      * 토큰 없이 신규 UserAgent 생성 (Lazy Token Issuance)
      *
-     * @return UserAgent (토큰 없음, AVAILABLE, Health Score 100)
+     * @return UserAgent (토큰 없음, READY, Health Score 100)
      */
     public static UserAgent forNewWithoutToken() {
         return UserAgent.forNewWithoutToken(
@@ -58,7 +58,7 @@ public final class UserAgentFixture {
      * 토큰 없이 신규 UserAgent 생성 (Clock 지정)
      *
      * @param clock 시간 제어
-     * @return UserAgent (토큰 없음, AVAILABLE, Health Score 100)
+     * @return UserAgent (토큰 없음, READY, Health Score 100)
      */
     public static UserAgent forNewWithoutToken(Clock clock) {
         return UserAgent.forNewWithoutToken(
@@ -68,7 +68,7 @@ public final class UserAgentFixture {
     /**
      * ID가 할당된 토큰 없는 UserAgent 생성
      *
-     * @return UserAgent (ID = 1L, 토큰 없음, AVAILABLE, Health Score 100)
+     * @return UserAgent (ID = 1L, 토큰 없음, READY, Health Score 100)
      */
     public static UserAgent aUserAgentWithoutToken() {
         return UserAgent.reconstitute(
@@ -77,7 +77,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -89,7 +89,7 @@ public final class UserAgentFixture {
      * 특정 ID를 가진 토큰 없는 UserAgent 생성
      *
      * @param id UserAgent ID
-     * @return UserAgent (토큰 없음, AVAILABLE)
+     * @return UserAgent (토큰 없음, READY)
      */
     public static UserAgent aUserAgentWithoutToken(Long id) {
         return UserAgent.reconstitute(
@@ -98,7 +98,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -107,19 +107,19 @@ public final class UserAgentFixture {
     }
 
     /**
-     * ID가 할당된 AVAILABLE 상태 UserAgent 생성
+     * ID가 할당된 READY 상태 UserAgent 생성
      *
-     * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)
+     * @return UserAgent (ID = 1L, READY, Health Score 100)
      */
     public static UserAgent anAvailableUserAgent() {
-        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.initial());
+        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.initial());
     }
 
     /**
-     * ID가 할당된 AVAILABLE 상태 UserAgent 생성 (Clock 지정)
+     * ID가 할당된 READY 상태 UserAgent 생성 (Clock 지정)
      *
      * @param clock 시간 제어
-     * @return UserAgent (ID = 1L, AVAILABLE, Health Score 100)
+     * @return UserAgent (ID = 1L, READY, Health Score 100)
      */
     public static UserAgent anAvailableUserAgent(Clock clock) {
         Instant now = clock.instant();
@@ -129,7 +129,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 now,
                 0,
@@ -178,18 +178,18 @@ public final class UserAgentFixture {
     }
 
     /**
-     * 정지 임계값 근처의 AVAILABLE UserAgent 생성
+     * 정지 임계값 근처의 READY UserAgent 생성
      *
-     * @return UserAgent (AVAILABLE, Health Score 35)
+     * @return UserAgent (READY, Health Score 35)
      */
     public static UserAgent anAlmostSuspendedUserAgent() {
-        return reconstitute(UserAgentStatus.AVAILABLE, HealthScoreFixture.of(35));
+        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.of(35));
     }
 
     /**
-     * 높은 요청 수를 가진 AVAILABLE UserAgent 생성
+     * 높은 요청 수를 가진 READY UserAgent 생성
      *
-     * @return UserAgent (AVAILABLE, requestsPerDay = 100)
+     * @return UserAgent (READY, requestsPerDay = 100)
      */
     public static UserAgent aHighUsageUserAgent() {
         return UserAgent.reconstitute(
@@ -198,7 +198,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 100,
@@ -210,7 +210,7 @@ public final class UserAgentFixture {
      * 특정 ID를 가진 UserAgent 생성
      *
      * @param id UserAgent ID
-     * @return UserAgent (AVAILABLE)
+     * @return UserAgent (READY)
      */
     public static UserAgent anUserAgentWithId(Long id) {
         return UserAgent.reconstitute(
@@ -219,7 +219,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -228,7 +228,7 @@ public final class UserAgentFixture {
     }
 
     /**
-     * 특정 Health Score를 가진 AVAILABLE UserAgent 생성 (Clock 지정)
+     * 특정 Health Score를 가진 READY UserAgent 생성 (Clock 지정)
      *
      * @param healthScoreValue 건강 점수
      * @param clock 시간 제어
@@ -242,7 +242,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.AVAILABLE,
+                UserAgentStatus.READY,
                 HealthScoreFixture.of(healthScoreValue),
                 now,
                 0,

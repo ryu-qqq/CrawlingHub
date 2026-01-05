@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.useragent.dto.cache;
 
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 
 /**
@@ -16,7 +17,7 @@ import java.time.Instant;
  *   <li>sessionExpiresAt: 세션 만료 시간
  *   <li>remainingTokens: 남은 요청 토큰 수 (초기 80)
  *   <li>healthScore: 건강 점수 (0-100)
- *   <li>cacheStatus: READY, SESSION_REQUIRED, SUSPENDED
+ *   <li>status: READY, SESSION_REQUIRED, SUSPENDED
  * </ul>
  *
  * <p><strong>세션 흐름</strong>:
@@ -44,7 +45,7 @@ public record CachedUserAgent(
         Instant windowStart,
         Instant windowEnd,
         int healthScore,
-        CacheStatus cacheStatus,
+        UserAgentStatus status,
         Instant suspendedAt) {
     private static final int DEFAULT_MAX_TOKENS = 80;
 
@@ -69,7 +70,7 @@ public record CachedUserAgent(
                 null,
                 null,
                 userAgent.getHealthScoreValue(),
-                CacheStatus.SESSION_REQUIRED,
+                UserAgentStatus.SESSION_REQUIRED,
                 null);
     }
 
@@ -95,7 +96,7 @@ public record CachedUserAgent(
                 null,
                 null,
                 70,
-                CacheStatus.SESSION_REQUIRED,
+                UserAgentStatus.SESSION_REQUIRED,
                 null);
     }
 
@@ -119,7 +120,7 @@ public record CachedUserAgent(
                 this.windowStart,
                 this.windowEnd,
                 this.healthScore,
-                CacheStatus.READY,
+                UserAgentStatus.READY,
                 null);
     }
 
@@ -146,7 +147,7 @@ public record CachedUserAgent(
                 this.windowStart,
                 this.windowEnd,
                 this.healthScore,
-                CacheStatus.READY,
+                UserAgentStatus.READY,
                 null);
     }
 
@@ -195,7 +196,7 @@ public record CachedUserAgent(
      * @return READY이면 true
      */
     public boolean isReady() {
-        return cacheStatus.isReady();
+        return status.isReady();
     }
 
     /**
@@ -204,7 +205,7 @@ public record CachedUserAgent(
      * @return SESSION_REQUIRED이면 true
      */
     public boolean needsSession() {
-        return cacheStatus.needsSession();
+        return status.needsSession();
     }
 
     /**
@@ -214,7 +215,7 @@ public record CachedUserAgent(
      * @return 복구 가능하면 true
      */
     public boolean isRecoverable(Instant threshold) {
-        return cacheStatus.isSuspended()
+        return status.isSuspended()
                 && suspendedAt != null
                 && suspendedAt.isBefore(threshold)
                 && healthScore >= 30;

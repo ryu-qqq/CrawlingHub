@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CacheStatus;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolManager;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,7 +49,7 @@ class ConsumeUserAgentServiceTest {
 
             // Then
             assertThat(result).isEqualTo(expectedUserAgent);
-            assertThat(result.cacheStatus()).isEqualTo(CacheStatus.READY);
+            assertThat(result.status()).isEqualTo(UserAgentStatus.READY);
             then(poolManager).should().consume();
         }
 
@@ -97,7 +97,7 @@ class ConsumeUserAgentServiceTest {
                     Instant.now(),
                     Instant.now().plusSeconds(60),
                     100,
-                    CacheStatus.READY,
+                    UserAgentStatus.READY,
                     null);
         }
     }
