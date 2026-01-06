@@ -75,12 +75,36 @@ public class CrawlTaskQueryAdapter implements CrawlTaskQueryPort {
      * @param crawlSchedulerId 스케줄러 ID
      * @param statuses 확인할 상태 목록
      * @return 존재 여부
+     * @deprecated 스케줄러 ID만으로는 중복 판단이 불완전합니다. {@link
+     *     #existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn} 사용을 권장합니다.
      */
+    @Deprecated
     @Override
     public boolean existsByScheduleIdAndStatusIn(
             CrawlSchedulerId crawlSchedulerId, List<CrawlTaskStatus> statuses) {
         return queryDslRepository.existsBySchedulerIdAndStatusIn(
                 crawlSchedulerId.value(), statuses);
+    }
+
+    /**
+     * 스케줄러 ID, 태스크 타입, 엔드포인트 조합 + 상태로 존재 여부 확인
+     *
+     * @param crawlSchedulerId 스케줄러 ID
+     * @param taskType 태스크 타입
+     * @param endpointPath 엔드포인트 경로
+     * @param endpointQueryParams 엔드포인트 쿼리 파라미터
+     * @param statuses 확인할 상태 목록
+     * @return 존재 여부
+     */
+    @Override
+    public boolean existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+            CrawlSchedulerId crawlSchedulerId,
+            CrawlTaskType taskType,
+            String endpointPath,
+            String endpointQueryParams,
+            List<CrawlTaskStatus> statuses) {
+        return queryDslRepository.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                crawlSchedulerId.value(), taskType, endpointPath, endpointQueryParams, statuses);
     }
 
     /**
