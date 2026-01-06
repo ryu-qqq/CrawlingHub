@@ -407,3 +407,13 @@ module "ecs_service" {
   project      = var.project_name
   data_class   = "confidential"
 }
+
+# ========================================
+# Log Streaming to OpenSearch (V2 - Kinesis)
+# ========================================
+module "log_streaming" {
+  source = "git::https://github.com/ryu-qqq/Infrastructure.git//terraform/modules/log-subscription-filter-v2?ref=main"
+
+  log_group_name = module.scheduler_logs.log_group_name
+  service_name   = "${var.project_name}-scheduler"
+}
