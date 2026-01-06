@@ -2,9 +2,13 @@ package com.ryuqq.crawlinghub.application.task.facade;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
@@ -54,6 +58,8 @@ class CrawlTaskFacadeTest {
 
     @Mock private ClockHolder clockHolder;
 
+    @Mock private ObjectMapper objectMapper;
+
     @InjectMocks private CrawlTaskFacade facade;
 
     @BeforeEach
@@ -84,7 +90,11 @@ class CrawlTaskFacadeTest {
             assertThat(result.getIdValue()).isEqualTo(expectedId.value());
             verify(validator)
                     .validateNoDuplicateTask(
-                            bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
+                            eq(bundle.getCrawlScheduleId()),
+                            eq(task.getSellerId()),
+                            eq(task.getTaskType()),
+                            anyString(),
+                            isNull());
             verify(transactionManager).persist(task);
             verify(outboxTransactionManager).persist(any(CrawlTaskOutbox.class));
         }
@@ -105,7 +115,11 @@ class CrawlTaskFacadeTest {
             // Then
             verify(validator)
                     .validateNoDuplicateTask(
-                            bundle.getCrawlScheduleId(), task.getSellerId(), task.getTaskType());
+                            eq(bundle.getCrawlScheduleId()),
+                            eq(task.getSellerId()),
+                            eq(task.getTaskType()),
+                            anyString(),
+                            isNull());
         }
     }
 }

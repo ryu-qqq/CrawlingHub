@@ -4,7 +4,6 @@ import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * CrawlTask Outbox Aggregate
@@ -101,11 +100,10 @@ public class CrawlTaskOutbox {
     /**
      * Idempotency Key 생성
      *
-     * <p>UUID로 고유 키 생성
+     * <p>CrawlTaskId 기반으로 결정적(deterministic) 키 생성 동일 Task에 대해 항상 동일한 키가 생성되어 SQS 중복 발행 방지
      */
     private static String generateIdempotencyKey(CrawlTaskId crawlTaskId) {
-        return String.format(
-                "outbox-%s-%s", crawlTaskId.value(), UUID.randomUUID().toString().substring(0, 8));
+        return String.format("outbox-%s", crawlTaskId.value());
     }
 
     /**

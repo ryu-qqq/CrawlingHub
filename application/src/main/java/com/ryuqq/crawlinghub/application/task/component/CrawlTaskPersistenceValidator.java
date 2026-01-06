@@ -75,34 +75,58 @@ public class CrawlTaskPersistenceValidator {
     }
 
     /**
-     * 중복 Task 검증
+     * 중복 Task 검증 (스케줄러 ID, 태스크 타입, 엔드포인트 조합)
+     *
+     * <p>동일 스케줄러 내에서도 태스크 타입과 엔드포인트 조합이 다르면 별개의 태스크입니다. 예를 들어, 같은 스케줄러에서 SEARCH 태스크가 진행 중이더라도
+     * DETAIL 태스크는 새로 생성 가능합니다.
+     *
+     * <p><strong>IN_PROGRESS 상태만 체크</strong>:
+     *
+     * <ul>
+     *   <li>WAITING, PUBLISHED, RUNNING, RETRY → 진행 중이므로 중복 생성 방지
+     *   <li>SUCCESS, FAILED → 종료 상태이므로 다음 주기에 새 태스크 생성 허용
+     * </ul>
      *
      * @param crawlSchedulerId 스케줄러 ID
-     * @param sellerId 셀러 ID
+     * @param sellerId 셀러 ID (로깅용)
      * @param taskType 태스크 유형
-     * @throws DuplicateCrawlTaskException 진행 중인 Task가 이미 존재하는 경우
+     * @param endpointPath 엔드포인트 경로
+     * @param endpointQueryParams 엔드포인트 쿼리 파라미터
+     * @throws DuplicateCrawlTaskException 진행 중인 동일 Task가 이미 존재하는 경우
      */
     public void validateNoDuplicateTask(
-            CrawlSchedulerId crawlSchedulerId, SellerId sellerId, CrawlTaskType taskType) {
+            CrawlSchedulerId crawlSchedulerId,
+            SellerId sellerId,
+            CrawlTaskType taskType,
+            String endpointPath,
+            String endpointQueryParams) {
         boolean exists =
-                crawlTaskQueryPort.existsByScheduleIdAndStatusIn(
-                        crawlSchedulerId, IN_PROGRESS_STATUSES);
+                crawlTaskQueryPort.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                        crawlSchedulerId,
+                        taskType,
+                        endpointPath,
+                        endpointQueryParams,
+                        IN_PROGRESS_STATUSES);
 
         if (exists) {
             log.error(
-                    "🚨 중복 Task 감지! DuplicateCrawlTaskException 발생 예정 - "
-                            + "schedulerId={}, sellerId={}, taskType={}, checkStatuses={}",
+                    "중복 Task 감지! DuplicateCrawlTaskException 발생 예정 - "
+                            + "schedulerId={}, sellerId={}, taskType={}, endpointPath={}, "
+                            + "endpointQueryParams={}, checkStatuses={}",
                     crawlSchedulerId.value(),
                     sellerId.value(),
                     taskType,
+                    endpointPath,
+                    endpointQueryParams,
                     IN_PROGRESS_STATUSES);
             throw new DuplicateCrawlTaskException(sellerId.value(), taskType);
         }
 
         log.debug(
-                "중복 Task 검증 통과: schedulerId={}, sellerId={}, taskType={}",
+                "중복 Task 검증 통과: schedulerId={}, sellerId={}, taskType={}, endpointPath={}",
                 crawlSchedulerId.value(),
                 sellerId.value(),
-                taskType);
+                taskType,
+                endpointPath);
     }
 }

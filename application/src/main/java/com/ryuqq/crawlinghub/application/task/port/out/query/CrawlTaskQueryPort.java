@@ -45,9 +45,31 @@ public interface CrawlTaskQueryPort {
      * @param crawlSchedulerId 스케줄러 ID
      * @param statuses 확인할 상태 목록
      * @return 존재 여부
+     * @deprecated 태스크 유형과 엔드포인트까지 확인하는 {@link
+     *     #existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn} 사용 권장
      */
+    @Deprecated
     boolean existsByScheduleIdAndStatusIn(
             CrawlSchedulerId crawlSchedulerId, List<CrawlTaskStatus> statuses);
+
+    /**
+     * 스케줄러 ID, 태스크 타입, 엔드포인트 조합으로 존재 여부 확인
+     *
+     * <p>동일 스케줄러 내에서도 태스크 타입과 엔드포인트가 다르면 별개의 태스크입니다. 예: SEARCH 태스크가 진행 중이어도 DETAIL 태스크는 새로 생성 가능
+     *
+     * @param crawlSchedulerId 스케줄러 ID
+     * @param taskType 태스크 유형
+     * @param endpointPath 엔드포인트 경로
+     * @param endpointQueryParams 엔드포인트 쿼리 파라미터 (JSON 문자열)
+     * @param statuses 확인할 상태 목록
+     * @return 존재 여부
+     */
+    boolean existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+            CrawlSchedulerId crawlSchedulerId,
+            CrawlTaskType taskType,
+            String endpointPath,
+            String endpointQueryParams,
+            List<CrawlTaskStatus> statuses);
 
     /**
      * 조건으로 CrawlTask 목록 조회

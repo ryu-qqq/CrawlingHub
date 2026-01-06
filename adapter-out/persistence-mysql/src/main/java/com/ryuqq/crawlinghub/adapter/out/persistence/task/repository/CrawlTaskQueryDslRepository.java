@@ -73,7 +73,10 @@ public class CrawlTaskQueryDslRepository {
      * @param crawlSchedulerId 스케줄러 ID
      * @param statuses 확인할 상태 목록
      * @return 존재 여부
+     * @deprecated 태스크 유형과 엔드포인트까지 확인하는 {@link
+     *     #existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn} 사용 권장
      */
+    @Deprecated
     public boolean existsBySchedulerIdAndStatusIn(
             Long crawlSchedulerId, List<CrawlTaskStatus> statuses) {
         Integer count =
@@ -84,6 +87,47 @@ public class CrawlTaskQueryDslRepository {
                                 qTask.crawlSchedulerId.eq(crawlSchedulerId),
                                 qTask.status.in(statuses))
                         .fetchFirst();
+
+        return count != null;
+    }
+
+    /**
+     * 스케줄러 ID, 태스크 타입, 엔드포인트 조합으로 존재 여부 확인
+     *
+     * <p>동일 스케줄러 내에서도 태스크 타입과 엔드포인트가 다르면 별개의 태스크입니다.
+     *
+     * @param crawlSchedulerId 스케줄러 ID
+     * @param taskType 태스크 유형
+     * @param endpointPath 엔드포인트 경로
+     * @param endpointQueryParams 엔드포인트 쿼리 파라미터 (JSON 문자열)
+     * @param statuses 확인할 상태 목록
+     * @return 존재 여부
+     */
+    public boolean existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+            Long crawlSchedulerId,
+            CrawlTaskType taskType,
+            String endpointPath,
+            String endpointQueryParams,
+            List<CrawlTaskStatus> statuses) {
+        BooleanExpression condition =
+                qTask.crawlSchedulerId
+                        .eq(crawlSchedulerId)
+                        .and(qTask.taskType.eq(taskType))
+                        .and(qTask.endpointPath.eq(endpointPath))
+                        .and(qTask.status.in(statuses));
+
+        // endpointQueryParams null 또는 빈 문자열 처리
+        if (endpointQueryParams == null || endpointQueryParams.isEmpty()) {
+            condition =
+                    condition.and(
+                            qTask.endpointQueryParams
+                                    .isNull()
+                                    .or(qTask.endpointQueryParams.eq("")));
+        } else {
+            condition = condition.and(qTask.endpointQueryParams.eq(endpointQueryParams));
+        }
+
+        Integer count = queryFactory.selectOne().from(qTask).where(condition).fetchFirst();
 
         return count != null;
     }
