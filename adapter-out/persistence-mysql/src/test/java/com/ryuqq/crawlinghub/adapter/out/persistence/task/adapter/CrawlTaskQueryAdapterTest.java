@@ -123,6 +123,63 @@ class CrawlTaskQueryAdapterTest {
     }
 
     @Nested
+    @DisplayName("existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn 테스트")
+    class ExistsBySchedulerIdAndTaskTypeAndEndpointAndStatusInTests {
+
+        @Test
+        @DisplayName("성공 - 스케줄러 ID, 태스크 타입, 엔드포인트 조합으로 존재 확인")
+        void shouldCheckExistenceWithEndpoint() {
+            // Given
+            CrawlSchedulerId schedulerId = CrawlSchedulerId.of(1L);
+            CrawlTaskType taskType = CrawlTaskType.SEARCH;
+            String endpointPath = "/api/search";
+            String endpointQueryParams = "{\"keyword\":\"test\"}";
+            List<CrawlTaskStatus> statuses =
+                    List.of(CrawlTaskStatus.WAITING, CrawlTaskStatus.RUNNING);
+
+            given(
+                            queryDslRepository.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                                    1L, taskType, endpointPath, endpointQueryParams, statuses))
+                    .willReturn(true);
+
+            // When
+            boolean result =
+                    queryAdapter.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            schedulerId, taskType, endpointPath, endpointQueryParams, statuses);
+
+            // Then
+            assertThat(result).isTrue();
+            verify(queryDslRepository)
+                    .existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            1L, taskType, endpointPath, endpointQueryParams, statuses);
+        }
+
+        @Test
+        @DisplayName("성공 - null queryParams로 존재 확인")
+        void shouldCheckExistenceWithNullQueryParams() {
+            // Given
+            CrawlSchedulerId schedulerId = CrawlSchedulerId.of(1L);
+            CrawlTaskType taskType = CrawlTaskType.DETAIL;
+            String endpointPath = "/api/detail";
+            String endpointQueryParams = null;
+            List<CrawlTaskStatus> statuses = List.of(CrawlTaskStatus.WAITING);
+
+            given(
+                            queryDslRepository.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                                    1L, taskType, endpointPath, null, statuses))
+                    .willReturn(false);
+
+            // When
+            boolean result =
+                    queryAdapter.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            schedulerId, taskType, endpointPath, endpointQueryParams, statuses);
+
+            // Then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("findByCriteria 테스트")
     class FindByCriteriaTests {
 
