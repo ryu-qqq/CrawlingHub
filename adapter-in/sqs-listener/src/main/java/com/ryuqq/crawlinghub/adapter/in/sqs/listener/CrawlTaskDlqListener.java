@@ -81,6 +81,13 @@ public class CrawlTaskDlqListener {
 
         log.debug("CrawlTask DLQ 메시지 수신: taskId={}", taskId);
 
+        // taskId가 null인 잘못된 메시지는 ACK 후 버림
+        if (taskId == null) {
+            log.warn("CrawlTask DLQ 메시지에 taskId가 없음. 메시지 폐기: payload={}", payload);
+            acknowledgement.acknowledge();
+            return;
+        }
+
         try {
             // Outbox 조회 및 FAILED 마킹
             markOutboxAsFailed(taskId);
