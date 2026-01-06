@@ -45,39 +45,9 @@ public interface CrawlTaskQueryPort {
      * @param crawlSchedulerId 스케줄러 ID
      * @param statuses 확인할 상태 목록
      * @return 존재 여부
-     * @deprecated 스케줄러 ID만으로는 중복 판단이 불완전합니다. {@link
-     *     #existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn} 사용을 권장합니다.
      */
-    @Deprecated
     boolean existsByScheduleIdAndStatusIn(
             CrawlSchedulerId crawlSchedulerId, List<CrawlTaskStatus> statuses);
-
-    /**
-     * 스케줄러 ID, 태스크 타입, 엔드포인트 조합 + 상태로 존재 여부 확인
-     *
-     * <p>동일 스케줄러 내에서도 태스크 타입과 엔드포인트 조합이 다르면 별개의 태스크입니다. 예를 들어, 같은 스케줄러에서 SEARCH 태스크가 진행 중이더라도 DETAIL
-     * 태스크는 새로 생성 가능합니다.
-     *
-     * <p><strong>IN_PROGRESS 상태만 체크</strong>:
-     *
-     * <ul>
-     *   <li>WAITING, PUBLISHED, RUNNING, RETRY → 진행 중이므로 중복 생성 방지
-     *   <li>SUCCESS, FAILED → 종료 상태이므로 다음 주기에 새 태스크 생성 허용
-     * </ul>
-     *
-     * @param crawlSchedulerId 스케줄러 ID
-     * @param taskType 태스크 타입 (SEARCH, DETAIL, OPTION 등)
-     * @param endpointPath 엔드포인트 경로
-     * @param endpointQueryParams 엔드포인트 쿼리 파라미터
-     * @param statuses 확인할 상태 목록 (IN_PROGRESS 상태들)
-     * @return 존재 여부 (true = 이미 진행 중인 동일 태스크 존재)
-     */
-    boolean existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
-            CrawlSchedulerId crawlSchedulerId,
-            CrawlTaskType taskType,
-            String endpointPath,
-            String endpointQueryParams,
-            List<CrawlTaskStatus> statuses);
 
     /**
      * 조건으로 CrawlTask 목록 조회
