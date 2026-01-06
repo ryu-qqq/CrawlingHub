@@ -85,6 +85,29 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 # ========================================
+# Sentry Configuration (Error Tracking)
+# ========================================
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${spring.profiles.active:local}
+  release: ${APP_VERSION:unknown}
+  server-name: ${HOSTNAME:unknown}
+
+  # 에러 필터링 (불필요한 에러 제외)
+  ignored-exceptions-for-type:
+    - org.springframework.web.HttpRequestMethodNotSupportedException
+    - org.springframework.web.servlet.NoHandlerFoundException
+    - org.springframework.security.access.AccessDeniedException
+
+  # 민감 정보 전송 비활성화
+  send-default-pii: false
+
+  # 로그 연동
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: info
+
+# ========================================
 # Scheduler Feature Toggles
 # ========================================
 scheduler:
