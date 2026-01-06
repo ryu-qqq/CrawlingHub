@@ -60,6 +60,13 @@ data "aws_ssm_parameter" "service_token_secret" {
   name = "/shared/security/service-token-secret"
 }
 
+# ========================================
+# Sentry DSN (for error tracking)
+# ========================================
+data "aws_ssm_parameter" "sentry_dsn" {
+  name = "/crawlinghub/sentry/dsn"
+}
+
 # VPC data source for internal communication
 data "aws_vpc" "main" {
   id = local.vpc_id
@@ -138,7 +145,8 @@ module "ecs_task_execution_role" {
               "ssm:GetParameter"
             ]
             Resource = [
-              "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*"
+              "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*",
+              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*"
             ]
           }
         ]
@@ -393,7 +401,9 @@ module "ecs_service" {
   container_secrets = [
     { name = "DB_PASSWORD", valueFrom = "${data.aws_secretsmanager_secret.rds.arn}:password::" },
     # Service Token Secret (서버 간 내부 통신 인증용)
-    { name = "SECURITY_SERVICE_TOKEN_SECRET", valueFrom = data.aws_ssm_parameter.service_token_secret.arn }
+    { name = "SECURITY_SERVICE_TOKEN_SECRET", valueFrom = data.aws_ssm_parameter.service_token_secret.arn },
+    # Sentry DSN (에러 트래킹용)
+    { name = "SENTRY_DSN", valueFrom = data.aws_ssm_parameter.sentry_dsn.arn }
   ]
 
   # Health Check
