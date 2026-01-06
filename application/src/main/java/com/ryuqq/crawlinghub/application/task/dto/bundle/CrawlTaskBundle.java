@@ -93,7 +93,9 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
                         crawlTask.getCreatedAt(),
                         crawlTask.getUpdatedAt());
 
-        savedTask.addRegisteredEvent(outboxPayload, clock);
+        // 이벤트에도 taskId가 포함된 payload 전달 (SQS 발행 시 사용됨)
+        String enrichedPayload = enrichPayloadWithTaskId(outboxPayload, savedTaskId.value());
+        savedTask.addRegisteredEvent(enrichedPayload, clock);
         return savedTask;
     }
 
