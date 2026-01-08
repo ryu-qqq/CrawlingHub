@@ -83,3 +83,4 @@ public class SellerCommandFactory {
                 null); // updatedAt (비교 불필요)
     }
 }
+
