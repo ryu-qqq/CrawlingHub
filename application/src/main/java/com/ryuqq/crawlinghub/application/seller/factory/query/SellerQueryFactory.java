@@ -52,3 +52,4 @@ public class SellerQueryFactory {
                 query.size());
     }
 }
+

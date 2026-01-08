@@ -95,3 +95,4 @@ public class CrawlTaskQueryFactory {
         return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }
+
