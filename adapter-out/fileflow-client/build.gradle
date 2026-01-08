@@ -22,7 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
 
     // FileFlow SDK
-    implementation 'com.github.ryu-qqq.fileflow:fileflow-sdk-core:v1.0.0'
+    implementation 'com.github.ryu-qqq.FileFlow:fileflow-sdk-core:v1.0.1'
 
     // ========================================
     // Test Dependencies
