@@ -3,8 +3,8 @@ package com.ryuqq.crawlinghub.integration.config;
 import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.localstack.LocalStackContainer;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -21,8 +21,8 @@ public class TestContainersConfig {
     private static final String LOCALSTACK_IMAGE = "localstack/localstack:3.0";
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public MySQLContainer<?> mysqlContainer() {
-        return new MySQLContainer<>(DockerImageName.parse(MYSQL_IMAGE))
+    public MySQLContainer mysqlContainer() {
+        return new MySQLContainer(DockerImageName.parse(MYSQL_IMAGE))
                 .withDatabaseName("crawlinghub_test")
                 .withUsername("test")
                 .withPassword("test")
@@ -37,7 +37,7 @@ public class TestContainersConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     public LocalStackContainer localStackContainer() {
         return new LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE))
-                .withServices(LocalStackContainer.Service.SQS)
+                .withServices("sqs")
                 .withReuse(true);
     }
 }

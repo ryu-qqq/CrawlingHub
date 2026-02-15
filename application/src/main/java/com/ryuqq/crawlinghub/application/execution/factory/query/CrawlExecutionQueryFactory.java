@@ -59,4 +59,3 @@ public class CrawlExecutionQueryFactory {
         return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 }
-
