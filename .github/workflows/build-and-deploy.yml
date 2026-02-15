@@ -5,7 +5,7 @@
 # web-api, scheduler, crawl-worker 병렬 빌드/배포
 # ============================================================================
 
-name: Build and Deploy to ECS
+name: Build and Deploy
 
 on:
   workflow_dispatch:  # 수동 트리거 허용

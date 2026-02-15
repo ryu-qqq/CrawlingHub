@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.localstack.LocalStackContainer;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -63,7 +63,7 @@ public abstract class WorkerIntegrationTest {
     protected static final String PRODUCT_IMAGE_DLQ_NAME = "product-image-dlq-test";
 
     // Static containers for reuse across tests
-    protected static final MySQLContainer<?> MYSQL_CONTAINER;
+    protected static final MySQLContainer MYSQL_CONTAINER;
     protected static final RedisContainer REDIS_CONTAINER;
     protected static final LocalStackContainer LOCALSTACK_CONTAINER;
     protected static SqsClient sqsClient;
@@ -80,7 +80,7 @@ public abstract class WorkerIntegrationTest {
 
     static {
         MYSQL_CONTAINER =
-                new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+                new MySQLContainer(DockerImageName.parse("mysql:8.0"))
                         .withDatabaseName("crawlinghub_test")
                         .withUsername("test")
                         .withPassword("test")
@@ -90,7 +90,7 @@ public abstract class WorkerIntegrationTest {
 
         LOCALSTACK_CONTAINER =
                 new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.0"))
-                        .withServices(LocalStackContainer.Service.SQS)
+                        .withServices("sqs")
                         .withReuse(true);
 
         MYSQL_CONTAINER.start();
@@ -100,9 +100,7 @@ public abstract class WorkerIntegrationTest {
         // Initialize SQS client
         sqsClient =
                 SqsClient.builder()
-                        .endpointOverride(
-                                LOCALSTACK_CONTAINER.getEndpointOverride(
-                                        LocalStackContainer.Service.SQS))
+                        .endpointOverride(LOCALSTACK_CONTAINER.getEndpoint())
                         .region(Region.US_EAST_1)
                         .credentialsProvider(
                                 StaticCredentialsProvider.create(
@@ -156,10 +154,7 @@ public abstract class WorkerIntegrationTest {
         // LocalStack SQS
         registry.add(
                 "spring.cloud.aws.sqs.endpoint",
-                () ->
-                        LOCALSTACK_CONTAINER
-                                .getEndpointOverride(LocalStackContainer.Service.SQS)
-                                .toString());
+                () -> LOCALSTACK_CONTAINER.getEndpoint().toString());
         registry.add("spring.cloud.aws.region.static", () -> "us-east-1");
         registry.add("spring.cloud.aws.credentials.access-key", () -> "test");
         registry.add("spring.cloud.aws.credentials.secret-key", () -> "test");
