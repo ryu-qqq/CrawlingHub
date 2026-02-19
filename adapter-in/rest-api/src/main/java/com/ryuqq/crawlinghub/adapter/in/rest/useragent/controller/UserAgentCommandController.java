@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.UserAgentEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.RegisterUserAgentApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentMetadataApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.command.UpdateUserAgentStatusApiRequest;
@@ -71,7 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.UserAgents.BASE)
+@RequestMapping(UserAgentEndpoints.BASE)
 @Validated
 @Tag(name = "UserAgent", description = "UserAgent 관리 API")
 public class UserAgentCommandController {
@@ -160,6 +161,7 @@ public class UserAgentCommandController {
      */
     @PostMapping
     @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @RequirePermission(value = "useragent:manage", description = "유저에이전트 등록")
     @Operation(
             summary = "새 UserAgent 등록",
             description = "새로운 UserAgent를 등록합니다. useragent:manage 권한이 필요합니다.",
@@ -198,7 +200,7 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toRegisterApiResponse(userAgentId);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑 (201 Created)
-        return ResponseEntity.status(201).body(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.status(201).body(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -252,8 +254,9 @@ public class UserAgentCommandController {
      * @param request 수정 요청 (변경할 메타데이터, 제공된 필드만 수정)
      * @return 수정 결과 (200 OK)
      */
-    @PutMapping(ApiPaths.UserAgents.BY_ID)
+    @PutMapping(UserAgentEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @RequirePermission(value = "useragent:manage", description = "유저에이전트 메타데이터 수정")
     @Operation(
             summary = "UserAgent 메타데이터 수정",
             description = "기존 UserAgent의 메타데이터를 수정합니다. 제공된 필드만 수정됩니다. useragent:manage 권한이 필요합니다.",
@@ -296,7 +299,7 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toMetadataUpdateApiResponse(userAgentId);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -333,8 +336,9 @@ public class UserAgentCommandController {
      *
      * @return 복구 결과 (200 OK)
      */
-    @PostMapping(ApiPaths.UserAgents.RECOVER)
+    @PostMapping(UserAgentEndpoints.RECOVER)
     @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @RequirePermission(value = "useragent:manage", description = "유저에이전트 복구")
     @Operation(
             summary = "정지된 UserAgent 복구",
             description = "정지된 UserAgent를 복구합니다. useragent:manage 권한이 필요합니다.",
@@ -366,7 +370,7 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toRecoverApiResponse(recoveredCount);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -414,8 +418,9 @@ public class UserAgentCommandController {
      * @param request 상태 변경 요청 (ID 목록 + 변경할 상태)
      * @return 상태 변경 결과 (200 OK)
      */
-    @PatchMapping(ApiPaths.UserAgents.STATUS)
+    @PatchMapping(UserAgentEndpoints.STATUS)
     @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @RequirePermission(value = "useragent:manage", description = "유저에이전트 상태 변경")
     @Operation(
             summary = "UserAgent 상태 일괄 변경",
             description = "여러 UserAgent의 상태를 일괄 변경합니다. useragent:manage 권한이 필요합니다.",
@@ -457,7 +462,7 @@ public class UserAgentCommandController {
                 userAgentApiMapper.toStatusUpdateApiResponse(updatedCount, request.status().name());
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -494,8 +499,9 @@ public class UserAgentCommandController {
      *
      * @return Warm-up 결과 (200 OK)
      */
-    @PostMapping(ApiPaths.UserAgents.WARMUP)
+    @PostMapping(UserAgentEndpoints.WARMUP)
     @PreAuthorize("@access.hasPermission('useragent:manage')")
+    @RequirePermission(value = "useragent:manage", description = "유저에이전트 워밍업")
     @Operation(
             summary = "UserAgent Pool Warm-up",
             description = "AVAILABLE 상태 UserAgent를 Redis Pool에 추가합니다. useragent:manage 권한이 필요합니다.",
@@ -526,6 +532,6 @@ public class UserAgentCommandController {
         WarmUpUserAgentApiResponse apiResponse = userAgentApiMapper.toWarmUpApiResponse(addedCount);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

@@ -2,7 +2,6 @@ package com.ryuqq.cralwinghub.domain.fixture.execution;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -15,8 +14,7 @@ import java.time.Instant;
  */
 public final class ExecutionDurationFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
-    private static final Instant DEFAULT_START = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_START = FixedClock.aDefaultClock().instant();
     private static final Instant DEFAULT_END = DEFAULT_START.plusSeconds(5);
     private static final Long DEFAULT_DURATION_MS = 5000L;
 

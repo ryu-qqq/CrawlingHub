@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.useragent.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -45,12 +44,12 @@ public record SessionRequiredEvent(
      *
      * @param userAgentId UserAgent ID
      * @param userAgentValue User-Agent 문자열
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return SessionRequiredEvent
      */
     public static SessionRequiredEvent of(
-            UserAgentId userAgentId, String userAgentValue, Clock clock) {
-        return new SessionRequiredEvent(userAgentId, userAgentValue, clock.instant());
+            UserAgentId userAgentId, String userAgentValue, Instant now) {
+        return new SessionRequiredEvent(userAgentId, userAgentValue, now);
     }
 
     public Long getUserAgentIdValue() {

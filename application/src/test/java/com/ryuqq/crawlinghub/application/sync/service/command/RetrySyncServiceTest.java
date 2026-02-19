@@ -9,7 +9,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
 import com.ryuqq.crawlinghub.application.product.facade.SyncCompletionFacade;
 import com.ryuqq.crawlinghub.application.product.manager.query.CrawledProductReadManager;
@@ -26,7 +25,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +61,7 @@ class RetrySyncServiceTest {
 
     @InjectMocks private RetrySyncService retrySyncService;
 
-    private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-11-27T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -186,7 +184,7 @@ class RetrySyncServiceTest {
                             com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus.FAILED,
                             1,
                             "Previous error",
-                            FIXED_CLOCK.instant(),
+                            FIXED_INSTANT,
                             null);
 
             CrawledProduct product1 = createSyncReadyProduct(null);
@@ -238,7 +236,7 @@ class RetrySyncServiceTest {
     // === Helper Methods ===
 
     private CrawledProduct createSyncReadyProduct(Long externalProductId) {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
                 SELLER_ID,

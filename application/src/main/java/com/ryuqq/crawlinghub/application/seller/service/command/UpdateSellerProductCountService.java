@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.seller.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
 import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerProductCountUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
@@ -29,15 +29,15 @@ public class UpdateSellerProductCountService implements UpdateSellerProductCount
 
     private final SellerTransactionManager sellerTransactionManager;
     private final SellerReadManager sellerReadManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public UpdateSellerProductCountService(
             SellerTransactionManager sellerTransactionManager,
             SellerReadManager sellerReadManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.sellerTransactionManager = sellerTransactionManager;
         this.sellerReadManager = sellerReadManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class UpdateSellerProductCountService implements UpdateSellerProductCount
                         .findById(SellerId.of(sellerId))
                         .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
-        seller.updateProductCount(productCount, clockHolder.getClock());
+        seller.updateProductCount(productCount, timeProvider.now());
 
         sellerTransactionManager.persist(seller);
         log.info("셀러 상품 수 업데이트: sellerId={}, productCount={}", sellerId, productCount);

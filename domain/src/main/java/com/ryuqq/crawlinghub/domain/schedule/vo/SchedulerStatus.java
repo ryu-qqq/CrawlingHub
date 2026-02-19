@@ -16,8 +16,23 @@ package com.ryuqq.crawlinghub.domain.schedule.vo;
 public enum SchedulerStatus {
 
     /** 활성 상태 */
-    ACTIVE,
+    ACTIVE("활성"),
 
     /** 비활성 상태 */
-    INACTIVE
+    INACTIVE("비활성");
+
+    private final String displayName;
+
+    SchedulerStatus(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /**
+     * 사용자 표시용 이름 반환
+     *
+     * @return 표시명
+     */
+    public String displayName() {
+        return displayName;
+    }
 }

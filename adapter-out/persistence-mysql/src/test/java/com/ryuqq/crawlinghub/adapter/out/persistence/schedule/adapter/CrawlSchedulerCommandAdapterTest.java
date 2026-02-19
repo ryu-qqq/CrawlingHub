@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedu
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedulerJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerJpaRepository;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.execution.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper.MappedError;
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 import com.ryuqq.crawlinghub.domain.execution.exception.CrawlExecutionNotFoundException;
 import com.ryuqq.crawlinghub.domain.execution.exception.InvalidCrawlExecutionStateException;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
@@ -61,10 +65,10 @@ class CrawlExecutionErrorMapperTest {
         @DisplayName("CRAWL-EXEC- prefix를 가진 에러 코드는 supports()가 true를 반환한다")
         void supports_WhenCrawlExecPrefix_ShouldReturnTrue() {
             // given
-            String code = "CRAWL-EXEC-001";
+            DomainException ex = createDomainException("CRAWL-EXEC-001");
 
             // when
-            boolean result = crawlExecutionErrorMapper.supports(code);
+            boolean result = crawlExecutionErrorMapper.supports(ex);
 
             // then
             assertThat(result).isTrue();
@@ -74,10 +78,10 @@ class CrawlExecutionErrorMapperTest {
         @DisplayName("CRAWL-EXEC- prefix가 없는 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNonCrawlExecPrefix_ShouldReturnFalse() {
             // given
-            String code = "CRAWL-TASK-001";
+            DomainException ex = createDomainException("CRAWL-TASK-001");
 
             // when
-            boolean result = crawlExecutionErrorMapper.supports(code);
+            boolean result = crawlExecutionErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -86,11 +90,8 @@ class CrawlExecutionErrorMapperTest {
         @Test
         @DisplayName("null 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNullCode_ShouldReturnFalse() {
-            // given
-            String code = null;
-
             // when
-            boolean result = crawlExecutionErrorMapper.supports(code);
+            boolean result = crawlExecutionErrorMapper.supports(null);
 
             // then
             assertThat(result).isFalse();
@@ -100,10 +101,10 @@ class CrawlExecutionErrorMapperTest {
         @DisplayName("빈 문자열 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenEmptyCode_ShouldReturnFalse() {
             // given
-            String code = "";
+            DomainException ex = createDomainException("");
 
             // when
-            boolean result = crawlExecutionErrorMapper.supports(code);
+            boolean result = crawlExecutionErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -113,10 +114,10 @@ class CrawlExecutionErrorMapperTest {
         @DisplayName("CRAWL- prefix만 있는 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenOnlyCrawlPrefix_ShouldReturnFalse() {
             // given
-            String code = "CRAWL-TASK-001";
+            DomainException ex = createDomainException("CRAWL-TASK-001");
 
             // when
-            boolean result = crawlExecutionErrorMapper.supports(code);
+            boolean result = crawlExecutionErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -244,5 +245,16 @@ class CrawlExecutionErrorMapperTest {
                     .isEqualTo("https://api.example.com/problems/execution/crawl-exec-001");
             assertThat(typeUri).doesNotContain("CRAWL-EXEC");
         }
+    }
+
+    private DomainException createDomainException(String code) {
+        ErrorCode errorCode = Mockito.mock(ErrorCode.class);
+        given(errorCode.getCode()).willReturn(code);
+        return new DomainException(errorCode, "test") {
+            @Override
+            public String code() {
+                return code;
+            }
+        };
     }
 }

@@ -11,48 +11,28 @@
 # ===============================================
 # Springdoc (Swagger/OpenAPI) 설정
 # Gateway 라우팅 패턴(/api/v1/crawling/**)에 맞춰 경로 설정
-# 환경변수로 운영 환경에서 비활성화 가능
+# ApiDocsController가 커스텀 서빙하므로 기본 swagger-ui는 비활성화
 # ===============================================
 springdoc:
   api-docs:
     enabled: ${SPRINGDOC_ENABLED:true}
     path: /api/v1/crawling/api-docs
   swagger-ui:
-    enabled: ${SPRINGDOC_ENABLED:true}
-    path: /api/v1/crawling/swagger-ui.html
-    urls-primary-name: "CrawlingHub API"
-    # 태그/오퍼레이션 정렬
-    tags-sorter: alpha
-    operations-sorter: alpha
-    # 기본 펼침 상태
-    doc-expansion: list
-    # 요청 시간 표시
-    display-request-duration: true
-    # 모델 펼침 깊이
-    default-models-expand-depth: 2
-    default-model-expand-depth: 2
-    # 검색 필터 활성화
-    filter: true
-  # 기본 Content-Type
+    enabled: false
+  packages-to-scan: com.ryuqq.crawlinghub.adapter.in.rest
+  cache:
+    disabled: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
 # ===============================================
 # Security Configuration
 # ===============================================
-# Gateway 및 서비스 간 내부 통신 보안 설정
+# Gateway 헤더 파싱은 AuthHub SDK의 GatewayHeaderParser가 처리
+# SDK의 SecurityHeaders 상수로 헤더명 관리
 security:
-  # Gateway 헤더 설정
-  gateway:
-    user-id-header: X-User-Id
-    user-roles-header: X-User-Roles
-    tenant-id-header: X-Tenant-Id
-    organization-id-header: X-Organization-Id
-    permissions-header: X-Permissions
-
   # Service Token 인증 설정 (서버 간 내부 통신용)
   # SSM Parameter Store에서 환경변수로 주입됨
-  # @see ServiceTokenProperties
   service-token:
     enabled: ${SECURITY_SERVICE_TOKEN_ENABLED:false}
     secret: ${SECURITY_SERVICE_TOKEN_SECRET:}
@@ -63,6 +43,8 @@ security:
 # REST API 엔드포인트 경로 중앙 관리
 # @see com.ryuqq.adapter.in.rest.config.properties.ApiEndpointProperties
 api:
+  server:
+    url: ${API_SERVER_URL:}
   endpoints:
     # API v1 베이스 경로
     base-v1: /api/v1

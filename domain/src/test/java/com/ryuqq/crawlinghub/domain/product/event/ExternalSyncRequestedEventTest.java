@@ -6,9 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent.SyncType;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -23,7 +21,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 class ExternalSyncRequestedEventTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2024-01-15T10:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -211,7 +208,7 @@ class ExternalSyncRequestedEventTest {
             // When
             ExternalSyncRequestedEvent event =
                     ExternalSyncRequestedEvent.forCreate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_CLOCK);
+                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -233,7 +230,7 @@ class ExternalSyncRequestedEventTest {
             // When
             ExternalSyncRequestedEvent event =
                     ExternalSyncRequestedEvent.forUpdate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_CLOCK);
+                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);

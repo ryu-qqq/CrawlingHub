@@ -6,7 +6,6 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,12 +47,11 @@ public class Seller {
      *
      * @param mustItSellerName 머스트잇 셀러명 (중복 불가)
      * @param sellerName 커머스 셀러명 (중복 불가)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 신규 Seller
      */
     public static Seller forNew(
-            MustItSellerName mustItSellerName, SellerName sellerName, Clock clock) {
-        Instant now = clock.instant();
+            MustItSellerName mustItSellerName, SellerName sellerName, Instant now) {
         return new Seller(
                 null, // Auto Increment: ID null
                 mustItSellerName,
@@ -138,14 +136,14 @@ public class Seller {
     /**
      * 셀러 활성화
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void activate(Clock clock) {
+    public void activate(Instant now) {
         if (this.status == SellerStatus.ACTIVE) {
             return; // 이미 활성 상태면 무시
         }
         this.status = SellerStatus.ACTIVE;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -153,18 +151,18 @@ public class Seller {
      *
      * <p><strong>중요</strong>: 비활성화 시 SellerDeActiveEvent를 발행하여 크롤링 스케줄 중지
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void deactivate(Clock clock) {
+    public void deactivate(Instant now) {
         if (this.status == SellerStatus.INACTIVE) {
             return; // 이미 비활성 상태면 무시
         }
 
         this.status = SellerStatus.INACTIVE;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
 
         // 이벤트 발행: 크롤링 스케줄 중지
-        this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId, clock));
+        this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId, now));
     }
 
     /**
@@ -175,31 +173,31 @@ public class Seller {
      * @param newMustItSellerName 새로운 머스트잇 셀러명 (null이면 변경 안 함)
      * @param newSellerName 새로운 셀러명 (null이면 변경 안 함)
      * @param newStatus 새로운 상태 (null이면 변경 안 함)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
     public void update(
             MustItSellerName newMustItSellerName,
             SellerName newSellerName,
             SellerStatus newStatus,
-            Clock clock) {
+            Instant now) {
         // 머스트잇 셀러명 변경 (자기 자신이 판단)
         if (newMustItSellerName != null && !this.mustItSellerName.equals(newMustItSellerName)) {
             this.mustItSellerName = newMustItSellerName;
-            this.updatedAt = clock.instant();
+            this.updatedAt = now;
         }
 
         // 셀러명 변경 (자기 자신이 판단)
         if (newSellerName != null && !this.sellerName.equals(newSellerName)) {
             this.sellerName = newSellerName;
-            this.updatedAt = clock.instant();
+            this.updatedAt = now;
         }
 
         // 상태 변경 (자기 자신이 판단)
         if (newStatus != null && this.status != newStatus) {
             if (newStatus == SellerStatus.ACTIVE) {
-                activate(clock);
+                activate(now);
             } else if (newStatus == SellerStatus.INACTIVE) {
-                deactivate(clock);
+                deactivate(now);
             }
         }
     }
@@ -230,15 +228,15 @@ public class Seller {
      * <p>META 크롤링 결과에서 파싱된 총 상품 수를 업데이트합니다.
      *
      * @param newProductCount 새로운 상품 수 (0 이상)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void updateProductCount(int newProductCount, Clock clock) {
+    public void updateProductCount(int newProductCount, Instant now) {
         if (newProductCount < 0) {
             throw new IllegalArgumentException("상품 수는 0 이상이어야 합니다: " + newProductCount);
         }
         if (this.productCount != newProductCount) {
             this.productCount = newProductCount;
-            this.updatedAt = clock.instant();
+            this.updatedAt = now;
         }
     }
 

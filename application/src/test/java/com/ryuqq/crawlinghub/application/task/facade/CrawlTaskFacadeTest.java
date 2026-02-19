@@ -12,17 +12,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,8 +43,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @DisplayName("CrawlTaskFacade 테스트")
 class CrawlTaskFacadeTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-11-27T12:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-11-27T12:00:00Z");
 
     @Mock private CrawlTaskPersistenceValidator validator;
 
@@ -56,7 +53,7 @@ class CrawlTaskFacadeTest {
 
     @Mock private ApplicationEventPublisher eventPublisher;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @Mock private ObjectMapper objectMapper;
 
@@ -64,8 +61,8 @@ class CrawlTaskFacadeTest {
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = FixedClock.aDefaultClock();
-        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
+        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested

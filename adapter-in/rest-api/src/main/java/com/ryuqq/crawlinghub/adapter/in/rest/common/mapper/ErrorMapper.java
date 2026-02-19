@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 public interface ErrorMapper {
 
-    boolean supports(String code);
+    boolean supports(DomainException ex);
 
     /** DomainException을 HTTP 응답용으로 매핑 */
     MappedError map(DomainException ex, Locale locale);

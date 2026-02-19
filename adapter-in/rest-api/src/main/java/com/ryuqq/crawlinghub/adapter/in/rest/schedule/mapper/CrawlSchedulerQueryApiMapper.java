@@ -145,7 +145,13 @@ public class CrawlSchedulerQueryApiMapper {
      */
     public PageApiResponse<CrawlSchedulerSummaryApiResponse> toPageApiResponse(
             PageResponse<CrawlSchedulerResponse> appPageResponse) {
-        return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+        List<CrawlSchedulerSummaryApiResponse> content =
+                appPageResponse.content().stream().map(this::toSummaryApiResponse).toList();
+        return PageApiResponse.of(
+                content,
+                appPageResponse.page(),
+                appPageResponse.size(),
+                appPageResponse.totalElements());
     }
 
     /**

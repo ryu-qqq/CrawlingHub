@@ -3,7 +3,6 @@ package com.ryuqq.cralwinghub.domain.fixture.useragent;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -16,8 +15,8 @@ import java.time.Instant;
  */
 public final class UserAgentFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
-    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
+    private static final Instant DEFAULT_TIME = DEFAULT_INSTANT;
 
     /**
      * 신규 UserAgent 생성 (ID 미할당, READY, Health Score 100)
@@ -28,20 +27,20 @@ public final class UserAgentFixture {
         return UserAgent.forNew(
                 TokenFixture.aDefaultToken(),
                 UserAgentStringFixture.aDefaultUserAgentString(),
-                DEFAULT_CLOCK);
+                DEFAULT_INSTANT);
     }
 
     /**
-     * 신규 UserAgent 생성 (Clock 지정)
+     * 신규 UserAgent 생성 (시간 지정)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return UserAgent
      */
-    public static UserAgent forNew(Clock clock) {
+    public static UserAgent forNew(Instant now) {
         return UserAgent.forNew(
                 TokenFixture.aDefaultToken(),
                 UserAgentStringFixture.aDefaultUserAgentString(),
-                clock);
+                now);
     }
 
     /**
@@ -51,18 +50,17 @@ public final class UserAgentFixture {
      */
     public static UserAgent forNewWithoutToken() {
         return UserAgent.forNewWithoutToken(
-                UserAgentStringFixture.aDefaultUserAgentString(), DEFAULT_CLOCK);
+                UserAgentStringFixture.aDefaultUserAgentString(), DEFAULT_INSTANT);
     }
 
     /**
-     * 토큰 없이 신규 UserAgent 생성 (Clock 지정)
+     * 토큰 없이 신규 UserAgent 생성 (시간 지정)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return UserAgent (토큰 없음, READY, Health Score 100)
      */
-    public static UserAgent forNewWithoutToken(Clock clock) {
-        return UserAgent.forNewWithoutToken(
-                UserAgentStringFixture.aDefaultUserAgentString(), clock);
+    public static UserAgent forNewWithoutToken(Instant now) {
+        return UserAgent.forNewWithoutToken(UserAgentStringFixture.aDefaultUserAgentString(), now);
     }
 
     /**
@@ -116,13 +114,12 @@ public final class UserAgentFixture {
     }
 
     /**
-     * ID가 할당된 READY 상태 UserAgent 생성 (Clock 지정)
+     * ID가 할당된 READY 상태 UserAgent 생성 (시간 지정)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return UserAgent (ID = 1L, READY, Health Score 100)
      */
-    public static UserAgent anAvailableUserAgent(Clock clock) {
-        Instant now = clock.instant();
+    public static UserAgent anAvailableUserAgent(Instant now) {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),
@@ -228,14 +225,13 @@ public final class UserAgentFixture {
     }
 
     /**
-     * 특정 Health Score를 가진 READY UserAgent 생성 (Clock 지정)
+     * 특정 Health Score를 가진 READY UserAgent 생성 (시간 지정)
      *
      * @param healthScoreValue 건강 점수
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return UserAgent
      */
-    public static UserAgent of(int healthScoreValue, Clock clock) {
-        Instant now = clock.instant();
+    public static UserAgent of(int healthScoreValue, Instant now) {
         return UserAgent.reconstitute(
                 UserAgentIdFixture.anAssignedId(),
                 TokenFixture.aDefaultToken(),

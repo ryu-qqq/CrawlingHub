@@ -1,11 +1,12 @@
 package com.ryuqq.crawlinghub.application.product.factory;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -30,11 +31,11 @@ import org.springframework.stereotype.Component;
 public class SyncOutboxFactory {
 
     private final SyncOutboxQueryPort syncOutboxQueryPort;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
-    public SyncOutboxFactory(SyncOutboxQueryPort syncOutboxQueryPort, Clock clock) {
+    public SyncOutboxFactory(SyncOutboxQueryPort syncOutboxQueryPort, TimeProvider timeProvider) {
         this.syncOutboxQueryPort = syncOutboxQueryPort;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -67,7 +68,7 @@ public class SyncOutboxFactory {
         }
 
         CrawledProductSyncOutbox outbox = createOutbox(product, syncType);
-        ExternalSyncRequestedEvent event = outbox.createSyncRequestedEvent(clock);
+        ExternalSyncRequestedEvent event = outbox.createSyncRequestedEvent(timeProvider.now());
 
         return Optional.of(new SyncOutboxBundle(outbox, event));
     }
@@ -84,15 +85,16 @@ public class SyncOutboxFactory {
 
     private CrawledProductSyncOutbox createOutbox(
             CrawledProduct product, CrawledProductSyncOutbox.SyncType syncType) {
+        Instant now = timeProvider.now();
         if (syncType == CrawledProductSyncOutbox.SyncType.UPDATE) {
             return CrawledProductSyncOutbox.forUpdate(
                     product.getId(),
                     product.getSellerId(),
                     product.getItemNo(),
                     product.getExternalProductId(),
-                    clock);
+                    now);
         }
         return CrawledProductSyncOutbox.forCreate(
-                product.getId(), product.getSellerId(), product.getItemNo(), clock);
+                product.getId(), product.getSellerId(), product.getItemNo(), now);
     }
 }

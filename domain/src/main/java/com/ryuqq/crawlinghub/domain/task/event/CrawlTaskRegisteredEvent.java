@@ -1,12 +1,11 @@
 package com.ryuqq.crawlinghub.domain.task.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -67,7 +66,7 @@ public record CrawlTaskRegisteredEvent(
      * @param taskType 태스크 유형
      * @param endpoint 크롤링 엔드포인트
      * @param outboxPayload Outbox 페이로드
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlTaskRegisteredEvent
      */
     public static CrawlTaskRegisteredEvent of(
@@ -77,15 +76,9 @@ public record CrawlTaskRegisteredEvent(
             CrawlTaskType taskType,
             CrawlEndpoint endpoint,
             String outboxPayload,
-            Clock clock) {
+            Instant now) {
         return new CrawlTaskRegisteredEvent(
-                crawlTaskId,
-                crawlSchedulerId,
-                sellerId,
-                taskType,
-                endpoint,
-                outboxPayload,
-                clock.instant());
+                crawlTaskId, crawlSchedulerId, sellerId, taskType, endpoint, outboxPayload, now);
     }
 
     public Long getCrawlTaskIdValue() {

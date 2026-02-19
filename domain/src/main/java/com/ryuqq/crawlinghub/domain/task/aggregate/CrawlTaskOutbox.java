@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.task.aggregate;
 
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -63,12 +62,11 @@ public class CrawlTaskOutbox {
      *
      * @param crawlTaskId Task ID
      * @param payload 발행할 메시지 페이로드 (JSON)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 Outbox (PENDING 상태)
      */
-    public static CrawlTaskOutbox forNew(CrawlTaskId crawlTaskId, String payload, Clock clock) {
+    public static CrawlTaskOutbox forNew(CrawlTaskId crawlTaskId, String payload, Instant now) {
         String idempotencyKey = generateIdempotencyKey(crawlTaskId);
-        Instant now = clock.instant();
         return new CrawlTaskOutbox(
                 crawlTaskId, idempotencyKey, payload, OutboxStatus.PENDING, 0, now, null);
     }
@@ -109,22 +107,22 @@ public class CrawlTaskOutbox {
     /**
      * 발행 성공 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsSent(Clock clock) {
+    public void markAsSent(Instant now) {
         this.status = OutboxStatus.SENT;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /**
      * 발행 실패 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsFailed(Clock clock) {
+    public void markAsFailed(Instant now) {
         this.status = OutboxStatus.FAILED;
         this.retryCount++;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */

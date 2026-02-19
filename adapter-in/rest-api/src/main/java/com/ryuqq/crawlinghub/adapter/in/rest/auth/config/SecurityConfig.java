@@ -1,8 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.auth.config;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.filter.GatewayAuthenticationFilter;
+import com.ryuqq.authhub.sdk.filter.GatewayAuthenticationFilter;
+import com.ryuqq.crawlinghub.adapter.in.rest.auth.filter.GatewaySecurityBridgeFilter;
 import com.ryuqq.crawlinghub.adapter.in.rest.auth.handler.SecurityExceptionHandler;
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.SecurityPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,23 +26,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <p>인증/인가 흐름:
  *
  * <pre>
- * Gateway (JWT 검증) → X-* 헤더 → GatewayAuthenticationFilter → SecurityContext
- *                                                              ↓
- *                                              @PreAuthorize (권한 기반 접근 제어)
+ * Gateway (JWT 검증) → X-* 헤더 → GatewayAuthenticationFilter (AuthHub SDK) → UserContext
+ *                                                                              ↓
+ *                                                              @PreAuthorize (권한 기반 접근 제어)
  * </pre>
  *
- * <p>엔드포인트 권한 분류 (SecurityPaths 참조):
+ * <p>엔드포인트 권한 분류:
  *
  * <ul>
- *   <li>PUBLIC: 인증 불필요 (헬스체크)
- *   <li>DOCS: 인증된 사용자면 접근 가능 (API 문서)
- *   <li>AUTHENTICATED: 인증된 사용자 + @PreAuthorize 권한 검사 (관리 API)
- * </ul>
- *
- * <p>권한 처리:
- *
- * <ul>
- *   <li>URL 기반 역할 검사 제거 → @PreAuthorize 어노테이션으로 대체
+ *   <li>PUBLIC: 인증 불필요 (헬스체크, 웹훅)
+ *   <li>DOCS: 인증 불필요 (API 문서, Swagger)
+ *   <li>AUTHENTICATED: 인증 필요 + @PreAuthorize 권한 검사 (관리 API)
  * </ul>
  *
  * @author development-team
@@ -54,17 +48,34 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final CorsProperties corsProperties;
-    private final GatewayAuthenticationFilter gatewayAuthenticationFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
 
     @Autowired
     public SecurityConfig(
-            CorsProperties corsProperties,
-            GatewayAuthenticationFilter gatewayAuthenticationFilter,
-            SecurityExceptionHandler securityExceptionHandler) {
+            CorsProperties corsProperties, SecurityExceptionHandler securityExceptionHandler) {
         this.corsProperties = corsProperties;
-        this.gatewayAuthenticationFilter = gatewayAuthenticationFilter;
         this.securityExceptionHandler = securityExceptionHandler;
+    }
+
+    /**
+     * AuthHub SDK의 GatewayAuthenticationFilter Bean 등록
+     *
+     * <p>SDK의 AutoConfiguration에서는 이 필터를 자동 등록하지 않으므로 직접 Bean으로 생성합니다.
+     */
+    @Bean
+    public GatewayAuthenticationFilter gatewayAuthenticationFilter() {
+        return new GatewayAuthenticationFilter();
+    }
+
+    /**
+     * UserContextHolder → SecurityContextHolder 브릿지 필터 Bean 등록
+     *
+     * <p>GatewayAuthenticationFilter가 설정한 UserContext를 Spring Security의 SecurityContextHolder에 연동하여
+     * URL 기반 접근 제어와 @PreAuthorize 어노테이션이 모두 정상 동작하도록 합니다.
+     */
+    @Bean
+    public GatewaySecurityBridgeFilter gatewaySecurityBridgeFilter() {
+        return new GatewaySecurityBridgeFilter();
     }
 
     @Bean
@@ -85,9 +96,12 @@ public class SecurityConfig {
                                         .accessDeniedHandler(securityExceptionHandler))
                 // 엔드포인트 권한 설정
                 .authorizeHttpRequests(this::configureAuthorization)
-                // Gateway 인증 필터 추가 (X-* 헤더 기반)
+                // AuthHub SDK Gateway 인증 필터 추가 (X-* 헤더 기반)
                 .addFilterBefore(
-                        gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        gatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                // UserContextHolder → SecurityContextHolder 브릿지 필터 (GatewayAuthenticationFilter 뒤에
+                // 실행)
+                .addFilterAfter(gatewaySecurityBridgeFilter(), GatewayAuthenticationFilter.class);
 
         return http.build();
     }
@@ -95,19 +109,27 @@ public class SecurityConfig {
     /**
      * 엔드포인트 권한 설정
      *
-     * <p>SecurityPaths에서 정의된 경로별 권한을 설정합니다. 관리 API의 세부 권한은 @PreAuthorize 어노테이션으로 처리됩니다.
+     * <p>관리 API의 세부 권한은 @PreAuthorize 어노테이션으로 처리됩니다.
      */
     private void configureAuthorization(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
                     auth) {
 
-        // PUBLIC 엔드포인트 설정 (인증 불필요)
-        auth.requestMatchers(SecurityPaths.Public.PATTERNS.toArray(String[]::new)).permitAll();
+        // PUBLIC (인증 불필요)
+        auth.requestMatchers("/actuator/**", "/api/v1/health", "/api/v1/webhook/**").permitAll();
 
-        // DOCS 엔드포인트 설정 (인증된 사용자면 접근 가능)
-        auth.requestMatchers(SecurityPaths.Docs.PATTERNS.toArray(String[]::new)).authenticated();
+        // API 문서 (인증 불필요)
+        auth.requestMatchers(
+                        "/api/v1/crawling/api-docs",
+                        "/api/v1/crawling/api-docs/**",
+                        "/api/v1/crawling/swagger",
+                        "/api/v1/crawling/swagger-ui/**",
+                        "/api/v1/crawling/docs/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**")
+                .permitAll();
 
-        // 그 외 모든 요청은 인증 필요 + @PreAuthorize로 세부 권한 검사
+        // 나머지는 인증 필요
         auth.anyRequest().authenticated();
     }
 

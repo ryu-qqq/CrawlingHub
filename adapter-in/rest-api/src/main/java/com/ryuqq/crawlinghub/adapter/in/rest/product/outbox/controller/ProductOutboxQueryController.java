@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.ProductOutboxEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.query.SearchProductImageOutboxApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.query.SearchProductSyncOutboxApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response.ProductImageOutboxApiResponse;
@@ -44,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.ProductOutbox.BASE)
+@RequestMapping(ProductOutboxEndpoints.BASE)
 @Validated
 @Tag(name = "ProductOutbox", description = "상품 Outbox 모니터링 API")
 public class ProductOutboxQueryController {
@@ -70,8 +71,9 @@ public class ProductOutboxQueryController {
      * @param request 검색 조건
      * @return 페이징된 SyncOutbox 목록
      */
-    @GetMapping(ApiPaths.ProductOutbox.SYNC)
+    @GetMapping(ProductOutboxEndpoints.SYNC)
     @PreAuthorize("@access.hasPermission('outbox:read')")
+    @RequirePermission(value = "outbox:read", description = "동기화 아웃박스 목록 조회")
     @Operation(
             summary = "상품 동기화 Outbox 목록 조회",
             description =
@@ -100,7 +102,7 @@ public class ProductOutboxQueryController {
                 searchSyncOutboxUseCase.execute(query);
         PageApiResponse<ProductSyncOutboxApiResponse> apiPageResponse =
                 mapper.toSyncPageApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 
     /**
@@ -111,8 +113,9 @@ public class ProductOutboxQueryController {
      * @param request 검색 조건
      * @return 페이징된 ImageOutbox 목록
      */
-    @GetMapping(ApiPaths.ProductOutbox.IMAGE)
+    @GetMapping(ProductOutboxEndpoints.IMAGE)
     @PreAuthorize("@access.hasPermission('outbox:read')")
+    @RequirePermission(value = "outbox:read", description = "이미지 아웃박스 목록 조회")
     @Operation(
             summary = "이미지 업로드 Outbox 목록 조회",
             description =
@@ -141,6 +144,6 @@ public class ProductOutboxQueryController {
                 searchImageOutboxUseCase.execute(query);
         PageApiResponse<ProductImageOutboxApiResponse> apiPageResponse =
                 mapper.toImagePageApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 }

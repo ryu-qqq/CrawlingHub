@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 
 public interface PersistCrawlScheduleOutBoxPort {
 

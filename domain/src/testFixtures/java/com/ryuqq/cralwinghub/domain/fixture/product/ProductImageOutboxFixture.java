@@ -3,7 +3,6 @@ package com.ryuqq.cralwinghub.domain.fixture.product;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -94,7 +93,7 @@ public final class ProductImageOutboxFixture {
     public static ProductImageOutbox aNewPendingOutbox(
             Long crawledProductImageId, String originalUrl) {
         return ProductImageOutbox.forNewWithImageId(
-                crawledProductImageId, originalUrl, Clock.systemDefaultZone());
+                crawledProductImageId, originalUrl, Instant.now());
     }
 
     /**
@@ -123,6 +122,6 @@ public final class ProductImageOutboxFixture {
      * @return ProductImageOutbox
      */
     public static ProductImageOutbox forImage(CrawledProductImage image) {
-        return ProductImageOutbox.forNew(image, Clock.systemDefaultZone());
+        return ProductImageOutbox.forNew(image, Instant.now());
     }
 }

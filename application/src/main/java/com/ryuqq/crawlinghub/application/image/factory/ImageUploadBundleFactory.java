@@ -1,17 +1,17 @@
 package com.ryuqq.crawlinghub.application.image.factory;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
-import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
  * 이미지 업로드 관련 도메인 객체 생성 Factory
  *
- * <p>순수한 Factory 패턴 구현으로, Clock을 캡슐화하여 도메인 객체 생성만 담당합니다.
+ * <p>순수한 Factory 패턴 구현으로, TimeProvider를 통해 시간을 관리하며 도메인 객체 생성만 담당합니다.
  *
  * <p><strong>책임</strong>:
  *
@@ -36,10 +36,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImageUploadBundleFactory {
 
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
-    public ImageUploadBundleFactory(Clock clock) {
-        this.clock = clock;
+    public ImageUploadBundleFactory(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -49,7 +49,7 @@ public class ImageUploadBundleFactory {
      * @return 생성된 CrawledProductImage 목록 (ID 없음)
      */
     public List<CrawledProductImage> createImages(ImageUploadData imageUploadData) {
-        return imageUploadData.createImages(clock);
+        return imageUploadData.createImages(timeProvider.now());
     }
 
     /**
@@ -61,7 +61,7 @@ public class ImageUploadBundleFactory {
      */
     public List<ProductImageOutbox> createOutboxes(
             List<CrawledProductImage> savedImages, ImageUploadData imageUploadData) {
-        return imageUploadData.createOutboxes(savedImages, clock);
+        return imageUploadData.createOutboxes(savedImages, timeProvider.now());
     }
 
     /**
@@ -71,6 +71,6 @@ public class ImageUploadBundleFactory {
      * @return 생성된 ImageUploadRequestedEvent
      */
     public ImageUploadRequestedEvent createEvent(ImageUploadData imageUploadData) {
-        return imageUploadData.createEvent(clock);
+        return imageUploadData.createEvent(timeProvider.now());
     }
 }

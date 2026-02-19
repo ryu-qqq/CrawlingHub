@@ -10,9 +10,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +29,6 @@ import org.junit.jupiter.api.Test;
 class CrawledProductTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final SellerId SELLER_ID = SellerId.of(1L);
     private static final long ITEM_NO = 123456L;
     private static final String ITEM_NAME = "테스트 상품";
@@ -88,7 +85,7 @@ class CrawledProductTest {
                             price,
                             images,
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             assertThat(product.getId()).isNotNull();
@@ -117,7 +114,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             false,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             CrawlCompletionStatus status = product.getCrawlCompletionStatus();
@@ -188,11 +185,11 @@ class CrawledProductTest {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
             ProductPrice newPrice = ProductPrice.of(15000, 18000, 18000, 14000, 15, 20);
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
             product.updateFromMiniShop(
-                    ITEM_NAME, BRAND_NAME, newPrice, createDefaultImages(), true, laterClock);
+                    ITEM_NAME, BRAND_NAME, newPrice, createDefaultImages(), true, laterInstant);
 
             // Then
             assertThat(product.getPrice()).isEqualTo(newPrice);
@@ -205,7 +202,7 @@ class CrawledProductTest {
         void shouldSetNeedsSyncWhenNameChanges() {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
             product.updateFromMiniShop(
@@ -214,7 +211,7 @@ class CrawledProductTest {
                     createDefaultPrice(),
                     createDefaultImages(),
                     true,
-                    laterClock);
+                    laterInstant);
 
             // Then
             assertThat(product.getItemName()).isEqualTo("새로운 상품명");
@@ -226,7 +223,7 @@ class CrawledProductTest {
         void shouldNotSetNeedsSyncWhenNoChanges() {
             // Given
             CrawledProduct product = createProductWithAllCrawledNoSync();
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
             product.updateFromMiniShop(
@@ -235,7 +232,7 @@ class CrawledProductTest {
                     createDefaultPrice(),
                     createDefaultImages(),
                     true,
-                    laterClock);
+                    laterInstant);
 
             // Then
             assertThat(product.isNeedsSync()).isFalse();
@@ -259,12 +256,12 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
             String s3Url = "https://s3.amazonaws.com/bucket/image.jpg";
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
-            product.markImageAsUploaded(THUMBNAIL_URL, s3Url, laterClock);
+            product.markImageAsUploaded(THUMBNAIL_URL, s3Url, laterInstant);
 
             // Then
             assertThat(product.getImages().getMainImageS3Url()).isEqualTo(s3Url);
@@ -303,7 +300,7 @@ class CrawledProductTest {
                             FIXED_INSTANT);
 
             // When
-            product.markImageAsUploaded(originalUrl, s3Url, FIXED_CLOCK);
+            product.markImageAsUploaded(originalUrl, s3Url, FIXED_INSTANT);
 
             // Then
             assertThat(product.getDescriptionMarkUp()).contains(s3Url);
@@ -366,7 +363,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             assertThat(product.allImagesUploaded()).isFalse();
@@ -400,7 +397,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             assertThat(product.canSyncToExternalServer()).isFalse();
@@ -444,7 +441,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             assertThat(product.needsExternalSync()).isFalse();
@@ -460,10 +457,10 @@ class CrawledProductTest {
         void shouldMarkAsSynced() {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T02:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T02:00:00Z");
 
             // When
-            product.markAsSynced(100L, laterClock);
+            product.markAsSynced(100L, laterInstant);
 
             // Then
             assertThat(product.getExternalProductId()).isEqualTo(100L);
@@ -482,10 +479,10 @@ class CrawledProductTest {
         void shouldMarkSyncFailed() {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T02:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T02:00:00Z");
 
             // When
-            product.markSyncFailed(laterClock);
+            product.markSyncFailed(laterInstant);
 
             // Then
             assertThat(product.isNeedsSync()).isTrue(); // 재시도 위해 유지
@@ -502,7 +499,7 @@ class CrawledProductTest {
         void shouldReturnTrueWhenHasExternalId() {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
-            product.markAsSynced(100L, FIXED_CLOCK);
+            product.markAsSynced(100L, FIXED_INSTANT);
 
             // Then
             assertThat(product.isRegisteredToExternalServer()).isTrue();
@@ -604,7 +601,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // Then
             assertThat(product.getTotalStock()).isZero();
@@ -625,10 +622,10 @@ class CrawledProductTest {
                             List.of(
                                     new ProductOption(1L, ITEM_NO, "Red", "M", 20, null), // 재고 변경
                                     new ProductOption(2L, ITEM_NO, "Blue", "L", 5, null)));
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
-            product.updateFromOption(newOptions, laterClock);
+            product.updateFromOption(newOptions, laterInstant);
 
             // Then
             assertThat(product.getOptions()).isEqualTo(newOptions);
@@ -654,7 +651,7 @@ class CrawledProductTest {
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // When
             List<String> pendingUrls = product.getPendingUploadImageUrls();

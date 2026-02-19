@@ -546,7 +546,7 @@ class DomainPurityArchTest {
                                         + "이유:\n"
                                         + "  - Domain은 중심 (다른 레이어는 Domain에 의존)\n"
                                         + "  - DIP (Dependency Inversion Principle) 준수\n"
-                                        + "  - ClockHolder 패턴: interface는 Domain, 구현은 Application\n"
+                                        + "  - TimeProvider 패턴: Application Layer에서 Clock을 캡슐화\n"
                                         + "  → domain/README.md 참조");
 
         rule.check(classes);

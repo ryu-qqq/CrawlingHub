@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
 import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
@@ -8,7 +9,6 @@ import com.ryuqq.crawlinghub.application.image.manager.query.ProductImageOutboxR
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageUploadWebhookUseCase;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
-import java.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -40,19 +40,19 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
     private final CrawledProductImageReadManager imageReadManager;
     private final CrawledProductImageTransactionManager imageTransactionManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public HandleImageUploadWebhookService(
             ProductImageOutboxReadManager outboxReadManager,
             CrawledProductImageReadManager imageReadManager,
             CrawledProductImageTransactionManager imageTransactionManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
-            Clock clock) {
+            TimeProvider timeProvider) {
         this.outboxReadManager = outboxReadManager;
         this.imageReadManager = imageReadManager;
         this.imageTransactionManager = imageTransactionManager;
         this.outboxTransactionManager = outboxTransactionManager;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -106,7 +106,7 @@ public class HandleImageUploadWebhookService implements HandleImageUploadWebhook
                                 });
 
         // 도메인 로직 → 영속화 (비즈니스 로직은 Service에서 처리)
-        image.completeUpload(fileUrl, fileAssetId, clock);
+        image.completeUpload(fileUrl, fileAssetId, timeProvider.now());
         imageTransactionManager.persist(image);
 
         log.info(

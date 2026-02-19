@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.application.task.factory.query;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskStatisticsQuery;
 import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;

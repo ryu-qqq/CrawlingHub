@@ -1,8 +1,8 @@
 package com.ryuqq.crawlinghub.application.seller.factory.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SellerCommandFactory {
 
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
-    public SellerCommandFactory(ClockHolder clockHolder) {
-        this.clockHolder = clockHolder;
+    public SellerCommandFactory(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -48,7 +48,7 @@ public class SellerCommandFactory {
         return Seller.forNew(
                 MustItSellerName.of(command.mustItSellerName()),
                 SellerName.of(command.sellerName()),
-                clockHolder.getClock());
+                timeProvider.now());
     }
 
     /**

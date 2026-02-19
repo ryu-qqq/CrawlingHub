@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.application.schedule.port.in.command.UpdateCrawlSch
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 /**
  * 크롤 스케줄러 수정 UseCase 구현체.
  *
- * <p><strong>ClockHolder</strong>: Facade가 관리 (Service는 시간 의존성 없음)
+ * <p><strong>TimeProvider</strong>: Facade가 관리 (Service는 시간 의존성 없음)
  */
 @Service
 public class UpdateCrawlSchedulerService implements UpdateCrawlSchedulerUseCase {
@@ -82,7 +82,7 @@ public class UpdateCrawlSchedulerService implements UpdateCrawlSchedulerUseCase 
         // 3. 중복 검증 (이름 변경 시)
         validateDuplicateSchedulerName(crawlScheduler, newName.value());
 
-        // 4. Facade에서 상태 변경 + 저장 + 이벤트 발행 (ClockHolder 캡슐화)
+        // 4. Facade에서 상태 변경 + 저장 + 이벤트 발행 (TimeProvider 캡슐화)
         crawlerSchedulerFacade.updateScheduler(
                 crawlScheduler, newName, newCronExpression, newStatus);
 

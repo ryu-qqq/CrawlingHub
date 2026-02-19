@@ -8,8 +8,10 @@ import com.ryuqq.crawlinghub.application.schedule.dto.response.ExecutionInfo;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.SchedulerStatistics;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.SellerSummaryForScheduler;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.TaskSummaryForScheduler;
+import com.ryuqq.crawlinghub.domain.common.vo.DateRange;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
@@ -28,7 +30,7 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>Command → Domain 변환 금지 (Factory 책임)
- *   <li>ClockHolder 의존 금지
+ *   <li>TimeProvider 의존 금지
  * </ul>
  *
  * @author development-team
@@ -55,23 +57,34 @@ public class CrawlSchedulerAssembler {
     }
 
     /**
-     * SearchCrawlSchedulersQuery → CrawlSchedulerQueryCriteria (조회 조건 변환)
+     * SearchCrawlSchedulersQuery → CrawlSchedulerPageCriteria (조회 조건 변환)
      *
      * <p>Application Layer Query DTO를 Domain VO로 변환
      *
      * @param query 스케줄러 검색 Query
      * @return Domain 조회 조건 객체
      */
-    public CrawlSchedulerQueryCriteria toCriteria(SearchCrawlSchedulersQuery query) {
+    public CrawlSchedulerPageCriteria toCriteria(SearchCrawlSchedulersQuery query) {
         SellerId sellerId = query.sellerId() != null ? SellerId.of(query.sellerId()) : null;
+        DateRange dateRange = toDateRange(query.createdFrom(), query.createdTo());
+        PageRequest pageRequest = PageRequest.of(query.page(), query.size());
 
-        return new CrawlSchedulerQueryCriteria(
-                sellerId,
-                query.statuses(),
-                query.createdFrom(),
-                query.createdTo(),
-                query.page(),
-                query.size());
+        return CrawlSchedulerPageCriteria.of(sellerId, query.statuses(), dateRange, pageRequest);
+    }
+
+    private DateRange toDateRange(Instant from, Instant to) {
+        if (from == null && to == null) {
+            return null;
+        }
+        java.time.LocalDate startDate =
+                from != null
+                        ? java.time.LocalDate.ofInstant(from, java.time.ZoneId.systemDefault())
+                        : null;
+        java.time.LocalDate endDate =
+                to != null
+                        ? java.time.LocalDate.ofInstant(to, java.time.ZoneId.systemDefault())
+                        : null;
+        return DateRange.of(startDate, endDate);
     }
 
     /**

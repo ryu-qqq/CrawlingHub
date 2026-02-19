@@ -126,6 +126,7 @@ spring:
   config:
     import:
       - classpath:rest-api.yml
+      - optional:classpath:rest-api-${spring.profiles.active:local}.yml
       - classpath:persistence.yml
       - classpath:eventbridge.yml
       - classpath:redis.yml
@@ -202,6 +203,19 @@ api:
       base: /sellers
       by-id: /{id}
       status: /{id}/status
+
+# ===============================================
+# AuthHub SDK Configuration
+# ===============================================
+authhub:
+  base-url: ${AUTHHUB_BASE_URL:https://auth.example.com}
+  service-token: ${AUTHHUB_SERVICE_TOKEN:}
+  service-code: ${AUTHHUB_SERVICE_CODE:crawlinghub}
+  timeout:
+    connect: 5s
+    read: 30s
+  endpoint-sync:
+    enabled: false
 
 # ===============================================
 # Sentry Configuration (Error Tracking)

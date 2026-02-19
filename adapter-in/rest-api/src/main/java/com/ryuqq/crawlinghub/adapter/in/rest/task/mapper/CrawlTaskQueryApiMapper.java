@@ -181,6 +181,12 @@ public class CrawlTaskQueryApiMapper {
      */
     public PageApiResponse<CrawlTaskApiResponse> toPageApiResponse(
             PageResponse<CrawlTaskResponse> appPageResponse) {
-        return PageApiResponse.from(appPageResponse, this::toApiResponse);
+        List<CrawlTaskApiResponse> content =
+                appPageResponse.content().stream().map(this::toApiResponse).toList();
+        return PageApiResponse.of(
+                content,
+                appPageResponse.page(),
+                appPageResponse.size(),
+                appPageResponse.totalElements());
     }
 }

@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.component.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
@@ -9,7 +10,7 @@ import com.ryuqq.crawlinghub.application.image.port.in.command.CompleteImageUplo
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadCompletedEvent;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
     private final CrawledProductImageTransactionManager imageTransactionManager;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
     private final TransactionEventRegistry eventRegistry;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public CompleteImageUploadService(
             ProductImageOutboxReadManager outboxReadManager,
@@ -40,13 +41,13 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
             CrawledProductImageTransactionManager imageTransactionManager,
             ProductImageOutboxTransactionManager outboxTransactionManager,
             TransactionEventRegistry eventRegistry,
-            Clock clock) {
+            TimeProvider timeProvider) {
         this.outboxReadManager = outboxReadManager;
         this.imageReadManager = imageReadManager;
         this.imageTransactionManager = imageTransactionManager;
         this.outboxTransactionManager = outboxTransactionManager;
         this.eventRegistry = eventRegistry;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -76,13 +77,14 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
         outboxTransactionManager.markAsCompleted(outbox);
 
         // 이미지 업로드 완료 처리 (도메인 로직 → 영속화)
-        image.completeUpload(s3Url, fileAssetId, clock);
+        Instant now = timeProvider.now();
+        image.completeUpload(s3Url, fileAssetId, now);
         imageTransactionManager.persist(image);
 
         // CrawledProduct 업데이트를 위한 이벤트 등록 (커밋 후 발행)
         ImageUploadCompletedEvent event =
                 ImageUploadCompletedEvent.of(
-                        image.getCrawledProductId(), image.getOriginalUrl(), s3Url, clock);
+                        image.getCrawledProductId(), image.getOriginalUrl(), s3Url, now);
         eventRegistry.registerForPublish(event);
     }
 }

@@ -64,12 +64,12 @@ public class CrawledProductErrorMapper implements ErrorMapper {
      *
      * <p>에러 코드가 "PRODUCT-"로 시작하는 경우 이 Mapper가 처리합니다.
      *
-     * @param code 에러 코드 (예: "PRODUCT-001")
+     * @param ex DomainException (에러 코드 예: "PRODUCT-001")
      * @return "PRODUCT-" prefix를 가진 경우 true
      */
     @Override
-    public boolean supports(String code) {
-        return code != null && code.startsWith(PREFIX);
+    public boolean supports(DomainException ex) {
+        return ex != null && ex.code() != null && ex.code().startsWith(PREFIX);
     }
 
     /**

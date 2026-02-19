@@ -25,9 +25,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("DetailProcessFacade 테스트")
 class DetailProcessFacadeTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -238,7 +235,7 @@ class DetailProcessFacadeTest {
                         "Korea",
                         "Seoul",
                         imageUrls,
-                        FIXED_CLOCK.instant());
+                        FIXED_INSTANT);
 
         ImageUploadData imageUploadData = ImageUploadData.of(imageUrls, ImageType.DESCRIPTION);
 
@@ -255,13 +252,13 @@ class DetailProcessFacadeTest {
                         "Korea",
                         "Seoul",
                         List.of(),
-                        FIXED_CLOCK.instant());
+                        FIXED_INSTANT);
 
         return new DetailProcessBundle(crawlData, null);
     }
 
     private CrawledProduct createMockProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
                 SELLER_ID,

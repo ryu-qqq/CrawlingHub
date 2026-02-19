@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.task.vo;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.time.Instant;
 

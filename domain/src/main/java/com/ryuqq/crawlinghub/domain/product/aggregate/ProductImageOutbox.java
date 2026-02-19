@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -66,15 +65,14 @@ public class ProductImageOutbox {
      * 신규 Outbox 생성
      *
      * @param crawledProductImage 대상 이미지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 ProductImageOutbox
      */
-    public static ProductImageOutbox forNew(CrawledProductImage crawledProductImage, Clock clock) {
+    public static ProductImageOutbox forNew(CrawledProductImage crawledProductImage, Instant now) {
         if (crawledProductImage.getId() == null) {
             throw new IllegalArgumentException("CrawledProductImage는 먼저 저장되어야 합니다.");
         }
         String idempotencyKey = generateIdempotencyKey(crawledProductImage);
-        Instant now = clock.instant();
         return new ProductImageOutbox(
                 null,
                 crawledProductImage.getId(),
@@ -91,13 +89,12 @@ public class ProductImageOutbox {
      *
      * @param crawledProductImageId 대상 이미지 ID
      * @param originalUrl 원본 URL (멱등성 키 생성용)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 ProductImageOutbox
      */
     public static ProductImageOutbox forNewWithImageId(
-            Long crawledProductImageId, String originalUrl, Clock clock) {
+            Long crawledProductImageId, String originalUrl, Instant now) {
         String idempotencyKey = generateIdempotencyKeyFromUrl(crawledProductImageId, originalUrl);
-        Instant now = clock.instant();
         return new ProductImageOutbox(
                 null,
                 crawledProductImageId,
@@ -170,11 +167,11 @@ public class ProductImageOutbox {
     /**
      * 처리 시작 (API 호출 시작)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsProcessing(Clock clock) {
+    public void markAsProcessing(Instant now) {
         this.status = ProductOutboxStatus.PROCESSING;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /**
@@ -182,11 +179,11 @@ public class ProductImageOutbox {
      *
      * <p>PENDING/FAILED → SENT 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsSent(Clock clock) {
+    public void markAsSent(Instant now) {
         this.status = ProductOutboxStatus.SENT;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
         this.errorMessage = null;
     }
 
@@ -202,24 +199,24 @@ public class ProductImageOutbox {
     /**
      * 업로드 완료 (웹훅 수신)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsCompleted(Clock clock) {
+    public void markAsCompleted(Instant now) {
         this.status = ProductOutboxStatus.COMPLETED;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /**
      * 처리 실패
      *
      * @param errorMessage 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsFailed(String errorMessage, Clock clock) {
+    public void markAsFailed(String errorMessage, Instant now) {
         this.status = ProductOutboxStatus.FAILED;
         this.retryCount++;
         this.errorMessage = errorMessage;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */

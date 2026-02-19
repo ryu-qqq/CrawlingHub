@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.dashboard.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.dashboard.DashboardEndpoints;
 import com.ryuqq.crawlinghub.application.dashboard.dto.response.DashboardStatsResponse;
 import com.ryuqq.crawlinghub.application.dashboard.port.in.query.GetDashboardStatsUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Dashboard.BASE)
+@RequestMapping(DashboardEndpoints.BASE)
 @Validated
 @Tag(name = "Dashboard", description = "관리자 대시보드 API")
 public class DashboardQueryController {
@@ -106,8 +107,9 @@ public class DashboardQueryController {
      *
      * @return 대시보드 통계 정보 (200 OK)
      */
-    @GetMapping(ApiPaths.Dashboard.STATS)
+    @GetMapping(DashboardEndpoints.STATS)
     @PreAuthorize("@access.hasPermission('dashboard:read')")
+    @RequirePermission(value = "dashboard:read", description = "대시보드 통계 조회")
     @Operation(
             summary = "대시보드 통계 조회",
             description = "관리자 대시보드에 필요한 전반적인 통계 정보를 조회합니다. dashboard:read 권한이 필요합니다.",
@@ -129,6 +131,6 @@ public class DashboardQueryController {
     })
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats() {
         DashboardStatsResponse response = getDashboardStatsUseCase.execute();
-        return ResponseEntity.ok(ApiResponse.ofSuccess(response));
+        return ResponseEntity.ok(ApiResponse.of(response));
     }
 }

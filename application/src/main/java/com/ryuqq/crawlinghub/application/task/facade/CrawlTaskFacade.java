@@ -2,11 +2,11 @@ package com.ryuqq.crawlinghub.application.task.facade;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
@@ -49,7 +49,7 @@ public class CrawlTaskFacade {
     private final CrawlTaskTransactionManager transactionManager;
     private final CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
     private final ApplicationEventPublisher eventPublisher;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
     private final ObjectMapper objectMapper;
 
     public CrawlTaskFacade(
@@ -57,13 +57,13 @@ public class CrawlTaskFacade {
             CrawlTaskTransactionManager transactionManager,
             CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager,
             ApplicationEventPublisher eventPublisher,
-            ClockHolder clockHolder,
+            TimeProvider timeProvider,
             ObjectMapper objectMapper) {
         this.validator = validator;
         this.transactionManager = transactionManager;
         this.crawlTaskOutboxTransactionManager = crawlTaskOutboxTransactionManager;
         this.eventPublisher = eventPublisher;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
         this.objectMapper = objectMapper;
     }
 
@@ -80,7 +80,7 @@ public class CrawlTaskFacade {
      * </ol>
      *
      * @param bundle 저장할 CrawlTask 번들
-     * @return 저장된 CrawlTask (ID 할당됨, ClockHolder 캡슐화)
+     * @return 저장된 CrawlTask (ID 할당됨, TimeProvider 캡슐화)
      */
     @Transactional
     public CrawlTask persist(CrawlTaskBundle bundle) {
@@ -101,10 +101,10 @@ public class CrawlTaskFacade {
         bundle = bundle.withTaskId(savedTaskId);
 
         // 3. Outbox 저장
-        crawlTaskOutboxTransactionManager.persist(bundle.createOutbox(clockHolder.getClock()));
+        crawlTaskOutboxTransactionManager.persist(bundle.createOutbox(timeProvider.now()));
 
         // 4. 저장된 CrawlTask 생성 + 도메인 이벤트 발행
-        CrawlTask savedTask = bundle.getSavedCrawlTask(clockHolder.getClock());
+        CrawlTask savedTask = bundle.getSavedCrawlTask(timeProvider.now());
         savedTask.getDomainEvents().forEach(eventPublisher::publishEvent);
         savedTask.clearDomainEvents();
 
@@ -150,7 +150,7 @@ public class CrawlTaskFacade {
 
         // 2. Outbox 저장 (SQS 재발행용)
         CrawlTaskOutbox outbox =
-                CrawlTaskOutbox.forNew(crawlTask.getId(), outboxPayload, clockHolder.getClock());
+                CrawlTaskOutbox.forNew(crawlTask.getId(), outboxPayload, timeProvider.now());
         crawlTaskOutboxTransactionManager.persist(outbox);
 
         return crawlTask;

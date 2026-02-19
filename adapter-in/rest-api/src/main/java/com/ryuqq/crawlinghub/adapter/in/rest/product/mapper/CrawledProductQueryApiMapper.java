@@ -137,7 +137,13 @@ public class CrawledProductQueryApiMapper {
      */
     public PageApiResponse<CrawledProductSummaryApiResponse> toPageApiResponse(
             PageResponse<CrawledProductSummaryResponse> appPageResponse) {
-        return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+        List<CrawledProductSummaryApiResponse> content =
+                appPageResponse.content().stream().map(this::toSummaryApiResponse).toList();
+        return PageApiResponse.of(
+                content,
+                appPageResponse.page(),
+                appPageResponse.size(),
+                appPageResponse.totalElements());
     }
 
     private String toIsoString(Instant instant) {

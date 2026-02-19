@@ -6,9 +6,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ErrorMapperRegistry {
+
+    private static final Logger log = LoggerFactory.getLogger(ErrorMapperRegistry.class);
+
     private final List<ErrorMapper> mappers;
 
     public ErrorMapperRegistry(List<ErrorMapper> mappers) {
@@ -16,10 +23,17 @@ public class ErrorMapperRegistry {
     }
 
     public Optional<ErrorMapper.MappedError> map(DomainException ex, Locale locale) {
-        return mappers.stream()
-                .filter(m -> m.supports(ex.code()))
-                .findFirst()
-                .map(m -> m.map(ex, locale));
+        Optional<ErrorMapper.MappedError> result =
+                mappers.stream()
+                        .filter(mapper -> mapper.supports(ex))
+                        .findFirst()
+                        .map(mapper -> mapper.map(ex, locale));
+
+        if (result.isEmpty()) {
+            log.warn("No ErrorMapper found for DomainException code={}", ex.code());
+        }
+
+        return result;
     }
 
     public ErrorMapper.MappedError defaultMapping(DomainException ex) {

@@ -1,21 +1,24 @@
 package com.ryuqq.crawlinghub.application.image.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * ImageUploadBundleFactory 단위 테스트
@@ -25,19 +28,21 @@ import org.junit.jupiter.api.Test;
  * @author development-team
  * @since 1.0.0
  */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("ImageUploadBundleFactory 테스트")
 class ImageUploadBundleFactoryTest {
 
     private static final Instant FIXED_TIME = Instant.parse("2025-01-15T10:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(100L);
 
-    private Clock fixedClock;
+    @Mock private TimeProvider timeProvider;
+
     private ImageUploadBundleFactory factory;
 
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(FIXED_TIME, ZoneId.of("UTC"));
-        factory = new ImageUploadBundleFactory(fixedClock);
+        factory = new ImageUploadBundleFactory(timeProvider);
+        given(timeProvider.now()).willReturn(FIXED_TIME);
     }
 
     @Nested

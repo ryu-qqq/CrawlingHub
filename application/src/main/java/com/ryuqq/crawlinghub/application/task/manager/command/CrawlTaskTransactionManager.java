@@ -6,7 +6,7 @@ import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import java.time.Clock;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,11 +62,11 @@ public class CrawlTaskTransactionManager {
      * </ul>
      *
      * @param crawlTaskId Task ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws IllegalStateException 상태 전환이 불가능한 경우
      */
     @Transactional
-    public void markAsPublished(CrawlTaskId crawlTaskId, Clock clock) {
+    public void markAsPublished(CrawlTaskId crawlTaskId, Instant now) {
         CrawlTask crawlTask =
                 crawlTaskQueryPort
                         .findById(crawlTaskId)
@@ -85,17 +85,17 @@ public class CrawlTaskTransactionManager {
 
         if (currentStatus == CrawlTaskStatus.FAILED || currentStatus == CrawlTaskStatus.TIMEOUT) {
             // FAILED/TIMEOUT → RETRY → PUBLISHED 플로우
-            boolean retrySuccessful = crawlTask.attemptRetry(clock);
+            boolean retrySuccessful = crawlTask.attemptRetry(now);
             if (!retrySuccessful) {
                 throw new IllegalStateException("재시도 횟수를 초과했습니다: taskId=" + crawlTaskId.value());
             }
-            crawlTask.markAsPublishedAfterRetry(clock);
+            crawlTask.markAsPublishedAfterRetry(now);
         } else if (currentStatus == CrawlTaskStatus.RETRY) {
             // RETRY → PUBLISHED
-            crawlTask.markAsPublishedAfterRetry(clock);
+            crawlTask.markAsPublishedAfterRetry(now);
         } else {
             // WAITING → PUBLISHED
-            crawlTask.markAsPublished(clock);
+            crawlTask.markAsPublished(now);
         }
 
         crawlTaskPersistencePort.persist(crawlTask);

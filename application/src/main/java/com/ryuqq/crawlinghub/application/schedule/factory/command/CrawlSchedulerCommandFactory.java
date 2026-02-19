@@ -2,9 +2,9 @@ package com.ryuqq.crawlinghub.application.schedule.factory.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
@@ -36,11 +36,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class CrawlSchedulerCommandFactory {
 
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
     private final ObjectMapper objectMapper;
 
-    public CrawlSchedulerCommandFactory(ClockHolder clockHolder, ObjectMapper objectMapper) {
-        this.clockHolder = clockHolder;
+    public CrawlSchedulerCommandFactory(TimeProvider timeProvider, ObjectMapper objectMapper) {
+        this.timeProvider = timeProvider;
         this.objectMapper = objectMapper;
     }
 
@@ -67,7 +67,7 @@ public class CrawlSchedulerCommandFactory {
                 SellerId.of(command.sellerId()),
                 SchedulerName.of(command.schedulerName()),
                 CronExpression.of(command.cronExpression()),
-                clockHolder.getClock());
+                timeProvider.now());
     }
 
     /**

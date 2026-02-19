@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -35,8 +34,7 @@ public record ImageUploadRequestedEvent(
 
     /** 팩토리 메서드 */
     public static ImageUploadRequestedEvent of(
-            CrawledProductId crawledProductId, List<ImageUploadTarget> targets, Clock clock) {
-        Instant now = clock.instant();
+            CrawledProductId crawledProductId, List<ImageUploadTarget> targets, Instant now) {
         return new ImageUploadRequestedEvent(crawledProductId, targets, now);
     }
 
@@ -45,10 +43,9 @@ public record ImageUploadRequestedEvent(
             CrawledProductId crawledProductId,
             List<String> imageUrls,
             ImageType imageType,
-            Clock clock) {
+            Instant now) {
         List<ImageUploadTarget> targets =
                 imageUrls.stream().map(url -> new ImageUploadTarget(url, imageType)).toList();
-        Instant now = clock.instant();
         return new ImageUploadRequestedEvent(crawledProductId, targets, now);
     }
 

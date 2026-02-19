@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopCrawlData;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,42 +48,42 @@ public record MiniShopProcessBundle(MiniShopCrawlData crawlData, ImageUploadData
     /**
      * CrawledProductImage 목록 생성
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawledProductImage 목록 (이미지가 없으면 빈 리스트)
      */
-    public List<CrawledProductImage> createImages(Clock clock) {
+    public List<CrawledProductImage> createImages(Instant now) {
         if (!hasImageUpload()) {
             return List.of();
         }
-        return imageUploadData.createImages(clock);
+        return imageUploadData.createImages(now);
     }
 
     /**
      * ProductImageOutbox 목록 생성 (저장된 이미지 기반)
      *
      * @param savedImages 저장된 이미지 목록 (ID 포함)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return ProductImageOutbox 목록 (이미지가 없으면 빈 리스트)
      */
     public List<ProductImageOutbox> createOutboxes(
-            List<CrawledProductImage> savedImages, Clock clock) {
+            List<CrawledProductImage> savedImages, Instant now) {
         if (savedImages == null || savedImages.isEmpty()) {
             return List.of();
         }
-        return imageUploadData.createOutboxes(savedImages, clock);
+        return imageUploadData.createOutboxes(savedImages, now);
     }
 
     /**
      * 이미지 업로드 요청 이벤트 생성
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return ImageUploadRequestedEvent (이미지가 없으면 Optional.empty())
      */
-    public Optional<ImageUploadRequestedEvent> createEvent(Clock clock) {
+    public Optional<ImageUploadRequestedEvent> createEvent(Instant now) {
         if (!hasImageUpload()) {
             return Optional.empty();
         }
-        return Optional.of(imageUploadData.createEvent(clock));
+        return Optional.of(imageUploadData.createEvent(now));
     }
 
     /**

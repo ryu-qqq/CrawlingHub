@@ -3,14 +3,12 @@ package com.ryuqq.crawlinghub.application.seller.factory.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,13 +25,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SellerCommandFactory 단위 테스트")
 class SellerCommandFactoryTest {
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     private SellerCommandFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new SellerCommandFactory(clockHolder);
+        factory = new SellerCommandFactory(timeProvider);
     }
 
     @Nested
@@ -44,8 +42,8 @@ class SellerCommandFactoryTest {
         @DisplayName("RegisterSellerCommand로 신규 Seller를 생성한다")
         void shouldCreateNewSellerFromCommand() {
             // Given
-            Clock fixedClock = Clock.fixed(Instant.parse("2024-01-15T10:00:00Z"), ZoneId.of("UTC"));
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             RegisterSellerCommand command =
                     new RegisterSellerCommand("mustit-seller-123", "테스트 셀러");
@@ -64,8 +62,8 @@ class SellerCommandFactoryTest {
         @DisplayName("생성된 Seller는 ACTIVE 상태이다")
         void shouldCreateSellerWithActiveStatus() {
             // Given
-            Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            Instant fixedInstant = Instant.now();
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             RegisterSellerCommand command = new RegisterSellerCommand("mustit-001", "셀러명");
 

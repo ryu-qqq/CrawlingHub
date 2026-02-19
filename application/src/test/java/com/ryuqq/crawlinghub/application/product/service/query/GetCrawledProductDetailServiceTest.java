@@ -21,9 +21,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawledProductDetailService 테스트")
 class GetCrawledProductDetailServiceTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -167,7 +164,7 @@ class GetCrawledProductDetailServiceTest {
     // === Helper Methods ===
 
     private CrawledProduct createMockProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
                 SELLER_ID,
@@ -194,7 +191,7 @@ class GetCrawledProductDetailServiceTest {
     }
 
     private CrawledProductImage createMockImage(ImageType imageType) {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProductImage.reconstitute(
                 1L,
                 PRODUCT_ID,
@@ -208,7 +205,7 @@ class GetCrawledProductDetailServiceTest {
     }
 
     private CrawledProductDetailResponse createMockDetailResponse() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return new CrawledProductDetailResponse(
                 PRODUCT_ID.value(),
                 SELLER_ID.value(),

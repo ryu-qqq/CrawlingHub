@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.ResetUserAgentHealthUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -31,17 +31,17 @@ public class ResetUserAgentHealthService implements ResetUserAgentHealthUseCase 
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
     private final UserAgentPoolCacheManager cacheManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public ResetUserAgentHealthService(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
             UserAgentPoolCacheManager cacheManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
         this.cacheManager = cacheManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ResetUserAgentHealthService implements ResetUserAgentHealthUseCase 
                 readManager.findById(id).orElseThrow(() -> new UserAgentNotFoundException(id));
 
         // 2. Domain 로직 실행 (Health Score → 100)
-        userAgent.resetHealth(clockHolder.getClock());
+        userAgent.resetHealth(timeProvider.now());
 
         // 3. Redis Pool 업데이트 (Pool에 있는 경우만)
         cacheManager.updateHealthScore(id, INITIAL_HEALTH_SCORE);

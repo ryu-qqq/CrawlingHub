@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.product.CrawledProductEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.dto.query.SearchCrawledProductsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.dto.response.CrawledProductDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.dto.response.CrawledProductSummaryApiResponse;
@@ -47,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.CrawledProducts.BASE)
+@RequestMapping(CrawledProductEndpoints.BASE)
 @Validated
 @Tag(name = "CrawledProduct", description = "크롤링 상품 관리 API")
 public class CrawledProductQueryController {
@@ -67,6 +68,7 @@ public class CrawledProductQueryController {
 
     @GetMapping
     @PreAuthorize("@access.hasPermission('product:read')")
+    @RequirePermission(value = "product:read", description = "크롤 상품 목록 조회")
     @Operation(
             summary = "크롤링 상품 목록 조회",
             description = "크롤링 상품 목록을 페이징하여 조회합니다. 다양한 필터 조건을 지원합니다. product:read 권한이 필요합니다.",
@@ -92,11 +94,12 @@ public class CrawledProductQueryController {
                 searchCrawledProductsUseCase.execute(query);
         PageApiResponse<CrawledProductSummaryApiResponse> apiPageResponse =
                 mapper.toPageApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 
-    @GetMapping(ApiPaths.CrawledProducts.BY_ID)
+    @GetMapping(CrawledProductEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('product:read')")
+    @RequirePermission(value = "product:read", description = "크롤 상품 상세 조회")
     @Operation(
             summary = "크롤링 상품 상세 조회",
             description =
@@ -131,6 +134,6 @@ public class CrawledProductQueryController {
                     Long id) {
         CrawledProductDetailResponse useCaseResponse = getCrawledProductDetailUseCase.execute(id);
         CrawledProductDetailApiResponse apiResponse = mapper.toDetailApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

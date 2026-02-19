@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.product.factory;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.DetailProcessBundle;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.ImageUploadData;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.MiniShopProcessBundle;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.product.vo.DetailCrawlData;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopCrawlData;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 /**
  * CrawledProduct 생성을 위한 Factory
  *
- * <p>MiniShopItem을 MiniShopCrawlData VO로 변환합니다. ClockHolder를 통해 생성 시점을 관리합니다.
+ * <p>MiniShopItem을 MiniShopCrawlData VO로 변환합니다. TimeProvider를 통해 생성 시점을 관리합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -29,10 +29,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CrawledProductFactory {
 
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
-    public CrawledProductFactory(ClockHolder clockHolder) {
-        this.clockHolder = clockHolder;
+    public CrawledProductFactory(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -55,7 +55,7 @@ public class CrawledProductFactory {
                 price,
                 images,
                 freeShipping,
-                clockHolder.getClock().instant());
+                timeProvider.now());
     }
 
     /**
@@ -73,7 +73,7 @@ public class CrawledProductFactory {
                 detailInfo.originCountry(),
                 null,
                 detailInfo.detailImages(),
-                clockHolder.getClock().instant());
+                timeProvider.now());
     }
 
     /**
@@ -84,7 +84,7 @@ public class CrawledProductFactory {
      */
     public OptionCrawlData createOptionCrawlData(List<ProductOption> options) {
         ProductOptions productOptions = ProductOptions.from(options);
-        return OptionCrawlData.of(productOptions, clockHolder.getClock().instant());
+        return OptionCrawlData.of(productOptions, timeProvider.now());
     }
 
     // === Bundle 생성 메서드 ===

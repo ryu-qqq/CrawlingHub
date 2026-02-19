@@ -11,16 +11,15 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
-import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,14 +49,14 @@ class UserAgentPoolManagerTest {
 
     @Mock private UserAgentTransactionManager transactionManager;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private UserAgentPoolManager manager;
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = FixedClock.aDefaultClock();
-        lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
+        lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested

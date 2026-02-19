@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.execution.vo;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -12,8 +11,8 @@ import java.time.Instant;
  * <p><strong>생명주기</strong>:
  *
  * <ol>
- *   <li>{@code start(Clock)} - 실행 시작 (startedAt만 기록)
- *   <li>{@code complete(Clock)} - 실행 완료 (completedAt, durationMs 계산)
+ *   <li>{@code start(Instant)} - 실행 시작 (startedAt만 기록)
+ *   <li>{@code complete(Instant)} - 실행 완료 (completedAt, durationMs 계산)
  * </ol>
  *
  * @param startedAt 실행 시작 시간
@@ -40,11 +39,11 @@ public record ExecutionDuration(Instant startedAt, Instant completedAt, Long dur
     /**
      * 실행 시작
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 시작 상태의 ExecutionDuration
      */
-    public static ExecutionDuration start(Clock clock) {
-        return new ExecutionDuration(clock.instant(), null, null);
+    public static ExecutionDuration start(Instant now) {
+        return new ExecutionDuration(now, null, null);
     }
 
     /**
@@ -73,11 +72,10 @@ public record ExecutionDuration(Instant startedAt, Instant completedAt, Long dur
     /**
      * 실행 완료 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 완료 상태의 ExecutionDuration (새 인스턴스)
      */
-    public ExecutionDuration complete(Clock clock) {
-        Instant now = clock.instant();
+    public ExecutionDuration complete(Instant now) {
         long duration = Duration.between(this.startedAt, now).toMillis();
         return new ExecutionDuration(this.startedAt, now, duration);
     }

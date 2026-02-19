@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.image.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.image.dto.response.ImageOutboxTimeoutResponse;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.port.in.command.HandleImageOutboxTimeoutUseCase;
 import com.ryuqq.crawlinghub.application.product.port.out.query.ImageOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
-import java.time.Clock;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +44,15 @@ public class HandleImageOutboxTimeoutService implements HandleImageOutboxTimeout
 
     private final ImageOutboxQueryPort imageOutboxQueryPort;
     private final ProductImageOutboxTransactionManager outboxTransactionManager;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public HandleImageOutboxTimeoutService(
             ImageOutboxQueryPort imageOutboxQueryPort,
             ProductImageOutboxTransactionManager outboxTransactionManager,
-            Clock clock) {
+            TimeProvider timeProvider) {
         this.imageOutboxQueryPort = imageOutboxQueryPort;
         this.outboxTransactionManager = outboxTransactionManager;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class HandleImageOutboxTimeoutService implements HandleImageOutboxTimeout
         log.info("타임아웃된 ImageOutbox {} 건 발견", timedOutOutboxes.size());
 
         for (ProductImageOutbox outbox : timedOutOutboxes) {
-            outbox.markAsFailed(TIMEOUT_ERROR_MESSAGE, clock);
+            outbox.markAsFailed(TIMEOUT_ERROR_MESSAGE, timeProvider.now());
             outboxTransactionManager.persist(outbox);
 
             log.debug(

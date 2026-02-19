@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 
 /**
  * CrawlSchedulerOutBoxId 테스트 Fixture

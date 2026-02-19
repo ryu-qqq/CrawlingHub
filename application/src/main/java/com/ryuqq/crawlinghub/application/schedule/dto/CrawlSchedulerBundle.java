@@ -3,9 +3,9 @@ package com.ryuqq.crawlinghub.application.schedule.dto;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
-import java.time.Clock;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import java.time.Instant;
 
 /**
  * 크롤 스케줄러 번들 DTO (Immutable)
@@ -80,11 +80,11 @@ public record CrawlSchedulerBundle(
      *
      * <p><strong>주의</strong>: 이 메서드는 등록 이벤트를 자동 발행합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlScheduler with ID (이벤트 발행됨)
      * @throws IllegalStateException ID 또는 히스토리 ID가 아직 할당되지 않은 경우
      */
-    public CrawlScheduler getSavedScheduler(Clock clock) {
+    public CrawlScheduler getSavedScheduler(Instant now) {
         if (savedSchedulerId == null) {
             throw new IllegalStateException("스케줄러 ID가 아직 할당되지 않았습니다.");
         }
@@ -92,7 +92,7 @@ public record CrawlSchedulerBundle(
             throw new IllegalStateException("히스토리 ID가 아직 할당되지 않았습니다.");
         }
         CrawlScheduler savedScheduler =
-                CrawlScheduler.of(
+                CrawlScheduler.reconstitute(
                         savedSchedulerId,
                         scheduler.getSellerId(),
                         scheduler.getSchedulerName(),
@@ -101,23 +101,23 @@ public record CrawlSchedulerBundle(
                         scheduler.getCreatedAt(),
                         scheduler.getUpdatedAt());
 
-        savedScheduler.addRegisteredEvent(savedHistoryId, clock);
+        savedScheduler.addRegisteredEvent(savedHistoryId, now);
         return savedScheduler;
     }
 
     /**
      * 히스토리 생성 (스케줄러 ID 할당 후)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlSchedulerHistory
      * @throws IllegalStateException 스케줄러 ID가 아직 할당되지 않은 경우
      */
-    public CrawlSchedulerHistory createHistory(Clock clock) {
+    public CrawlSchedulerHistory createHistory(Instant now) {
         if (savedSchedulerId == null) {
             throw new IllegalStateException("스케줄러 ID가 아직 할당되지 않았습니다.");
         }
         CrawlScheduler schedulerForHistory =
-                CrawlScheduler.of(
+                CrawlScheduler.reconstitute(
                         savedSchedulerId,
                         scheduler.getSellerId(),
                         scheduler.getSchedulerName(),
@@ -125,21 +125,21 @@ public record CrawlSchedulerBundle(
                         scheduler.getStatus(),
                         scheduler.getCreatedAt(),
                         scheduler.getUpdatedAt());
-        return CrawlSchedulerHistory.fromScheduler(schedulerForHistory, clock);
+        return CrawlSchedulerHistory.fromScheduler(schedulerForHistory, now);
     }
 
     /**
      * 아웃박스 생성 (히스토리 ID 할당 후)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlSchedulerOutBox
      * @throws IllegalStateException 히스토리 ID가 아직 할당되지 않은 경우
      */
-    public CrawlSchedulerOutBox createOutBox(Clock clock) {
+    public CrawlSchedulerOutBox createOutBox(Instant now) {
         if (savedHistoryId == null) {
             throw new IllegalStateException("히스토리 ID가 아직 할당되지 않았습니다.");
         }
-        return CrawlSchedulerOutBox.forNew(savedHistoryId, eventPayload, clock);
+        return CrawlSchedulerOutBox.forNew(savedHistoryId, eventPayload, now);
     }
 
     /**

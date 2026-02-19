@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper.MappedError;
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import java.net.URI;
@@ -12,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
@@ -60,10 +64,10 @@ class CrawlSchedulerErrorMapperTest {
         @DisplayName("SCHEDULE- prefix를 가진 에러 코드는 supports()가 true를 반환한다")
         void supports_WhenSchedulePrefix_ShouldReturnTrue() {
             // given
-            String code = "SCHEDULE-001";
+            DomainException ex = createDomainException("SCHEDULE-001");
 
             // when
-            boolean result = crawlSchedulerErrorMapper.supports(code);
+            boolean result = crawlSchedulerErrorMapper.supports(ex);
 
             // then
             assertThat(result).isTrue();
@@ -73,10 +77,10 @@ class CrawlSchedulerErrorMapperTest {
         @DisplayName("SCHEDULE- prefix가 없는 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNonSchedulePrefix_ShouldReturnFalse() {
             // given
-            String code = "SELLER-001";
+            DomainException ex = createDomainException("SELLER-001");
 
             // when
-            boolean result = crawlSchedulerErrorMapper.supports(code);
+            boolean result = crawlSchedulerErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -85,11 +89,8 @@ class CrawlSchedulerErrorMapperTest {
         @Test
         @DisplayName("null 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNullCode_ShouldReturnFalse() {
-            // given
-            String code = null;
-
             // when
-            boolean result = crawlSchedulerErrorMapper.supports(code);
+            boolean result = crawlSchedulerErrorMapper.supports(null);
 
             // then
             assertThat(result).isFalse();
@@ -99,10 +100,10 @@ class CrawlSchedulerErrorMapperTest {
         @DisplayName("빈 문자열 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenEmptyCode_ShouldReturnFalse() {
             // given
-            String code = "";
+            DomainException ex = createDomainException("");
 
             // when
-            boolean result = crawlSchedulerErrorMapper.supports(code);
+            boolean result = crawlSchedulerErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -213,5 +214,16 @@ class CrawlSchedulerErrorMapperTest {
             assertThat(typeUri).isEqualTo("https://api.example.com/problems/schedule/schedule-001");
             assertThat(typeUri).doesNotContain("SCHEDULE");
         }
+    }
+
+    private DomainException createDomainException(String code) {
+        ErrorCode errorCode = Mockito.mock(ErrorCode.class);
+        given(errorCode.getCode()).willReturn(code);
+        return new DomainException(errorCode, "test") {
+            @Override
+            public String code() {
+                return code;
+            }
+        };
     }
 }

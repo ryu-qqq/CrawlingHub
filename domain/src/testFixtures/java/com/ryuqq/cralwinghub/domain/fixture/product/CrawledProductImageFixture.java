@@ -3,7 +3,6 @@ package com.ryuqq.cralwinghub.domain.fixture.product;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductImage;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -27,7 +26,7 @@ public final class CrawledProductImageFixture {
                 "https://example.com/thumbnail.jpg",
                 ImageType.THUMBNAIL,
                 0,
-                Clock.systemDefaultZone());
+                Instant.now());
     }
 
     /**
@@ -41,7 +40,7 @@ public final class CrawledProductImageFixture {
                 "https://example.com/detail.jpg",
                 ImageType.DESCRIPTION,
                 0,
-                Clock.systemDefaultZone());
+                Instant.now());
     }
 
     /**

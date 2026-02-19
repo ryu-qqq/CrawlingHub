@@ -14,8 +14,9 @@ import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlScheduler
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.factory.query.CrawlSchedulerQueryFactory;
 import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.util.Collections;
@@ -59,8 +60,8 @@ class SearchCrawlSchedulersServiceTest {
             SearchCrawlSchedulersQuery query =
                     new SearchCrawlSchedulersQuery(
                             1L, List.of(SchedulerStatus.ACTIVE), null, null, 0, 10);
-            CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, null, null, 0, 10);
+            CrawlSchedulerPageCriteria criteria =
+                    CrawlSchedulerPageCriteria.of(null, null, null, PageRequest.of(0, 10));
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 1L;
 
@@ -100,8 +101,8 @@ class SearchCrawlSchedulersServiceTest {
             // Given
             SearchCrawlSchedulersQuery query =
                     new SearchCrawlSchedulersQuery(999L, null, null, null, 0, 10);
-            CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, null, null, 0, 10);
+            CrawlSchedulerPageCriteria criteria =
+                    CrawlSchedulerPageCriteria.of(null, null, null, PageRequest.of(0, 10));
             List<CrawlScheduler> emptySchedulers = Collections.emptyList();
             long totalElements = 0L;
 
@@ -130,8 +131,8 @@ class SearchCrawlSchedulersServiceTest {
             int size = 20;
             SearchCrawlSchedulersQuery query =
                     new SearchCrawlSchedulersQuery(null, null, null, null, page, size);
-            CrawlSchedulerQueryCriteria criteria =
-                    new CrawlSchedulerQueryCriteria(null, null, null, null, page, size);
+            CrawlSchedulerPageCriteria criteria =
+                    CrawlSchedulerPageCriteria.of(null, null, null, PageRequest.of(page, size));
             List<CrawlScheduler> schedulers = List.of(CrawlSchedulerFixture.anActiveScheduler());
             long totalElements = 50L;
 

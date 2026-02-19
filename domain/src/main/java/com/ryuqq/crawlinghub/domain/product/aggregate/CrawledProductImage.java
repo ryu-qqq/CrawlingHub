@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -71,7 +70,7 @@ public class CrawledProductImage {
      * @param originalUrl 원본 이미지 URL
      * @param imageType 이미지 타입
      * @param displayOrder 표시 순서
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 CrawledProductImage
      */
     public static CrawledProductImage forNew(
@@ -79,9 +78,8 @@ public class CrawledProductImage {
             String originalUrl,
             ImageType imageType,
             int displayOrder,
-            Clock clock) {
+            Instant now) {
         validateOriginalUrl(originalUrl);
-        Instant now = clock.instant();
         return new CrawledProductImage(
                 null,
                 crawledProductId,
@@ -141,15 +139,15 @@ public class CrawledProductImage {
      *
      * @param s3Url 업로드된 S3 URL
      * @param fileAssetId Fileflow 파일 자산 ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void completeUpload(String s3Url, String fileAssetId, Clock clock) {
+    public void completeUpload(String s3Url, String fileAssetId, Instant now) {
         if (s3Url == null || s3Url.isBlank()) {
             throw new IllegalArgumentException("s3Url은 필수입니다.");
         }
         this.s3Url = s3Url;
         this.fileAssetId = fileAssetId;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**

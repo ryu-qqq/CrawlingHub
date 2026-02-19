@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.task.aggregate;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
@@ -10,7 +10,6 @@ import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +81,7 @@ public class CrawlTask {
      * @param sellerId 셀러 ID
      * @param taskType 태스크 유형
      * @param endpoint 크롤링 엔드포인트
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 CrawlTask (WAITING 상태)
      */
     public static CrawlTask forNew(
@@ -90,8 +89,7 @@ public class CrawlTask {
             SellerId sellerId,
             CrawlTaskType taskType,
             CrawlEndpoint endpoint,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new CrawlTask(
                 CrawlTaskId.unassigned(),
                 crawlSchedulerId,
@@ -158,61 +156,61 @@ public class CrawlTask {
     /**
      * WAITING → PUBLISHED 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlTaskStateException 현재 상태가 WAITING이 아닌 경우
      */
-    public void markAsPublished(Clock clock) {
+    public void markAsPublished(Instant now) {
         validateStatus(CrawlTaskStatus.WAITING, CrawlTaskStatus.PUBLISHED);
         this.status = CrawlTaskStatus.PUBLISHED;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * PUBLISHED → RUNNING 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlTaskStateException 현재 상태가 PUBLISHED가 아닌 경우
      */
-    public void markAsRunning(Clock clock) {
+    public void markAsRunning(Instant now) {
         validateStatus(CrawlTaskStatus.PUBLISHED, CrawlTaskStatus.RUNNING);
         this.status = CrawlTaskStatus.RUNNING;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * RUNNING → SUCCESS 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsSuccess(Clock clock) {
+    public void markAsSuccess(Instant now) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.SUCCESS);
         this.status = CrawlTaskStatus.SUCCESS;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * RUNNING → FAILED 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsFailed(Clock clock) {
+    public void markAsFailed(Instant now) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.FAILED);
         this.status = CrawlTaskStatus.FAILED;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * RUNNING → TIMEOUT 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlTaskStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void markAsTimeout(Clock clock) {
+    public void markAsTimeout(Instant now) {
         validateStatus(CrawlTaskStatus.RUNNING, CrawlTaskStatus.TIMEOUT);
         this.status = CrawlTaskStatus.TIMEOUT;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -229,30 +227,30 @@ public class CrawlTask {
     /**
      * 재시도 수행
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 재시도 성공 여부
      */
-    public boolean attemptRetry(Clock clock) {
+    public boolean attemptRetry(Instant now) {
         if (!canRetry()) {
             return false;
         }
         this.retryCount = this.retryCount.increment();
         this.status = CrawlTaskStatus.RETRY;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
         return true;
     }
 
     /**
      * 재시도 후 다시 PUBLISHED 상태로 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsPublishedAfterRetry(Clock clock) {
+    public void markAsPublishedAfterRetry(Instant now) {
         if (this.status != CrawlTaskStatus.RETRY) {
             throw new InvalidCrawlTaskStateException(this.status, CrawlTaskStatus.PUBLISHED);
         }
         this.status = CrawlTaskStatus.PUBLISHED;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -272,37 +270,37 @@ public class CrawlTask {
      * <p>Task 저장 전에 Outbox를 생성하여 같은 트랜잭션에서 저장
      *
      * @param payload SQS로 발행할 메시지 페이로드 (JSON)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void initializeOutbox(String payload, Clock clock) {
+    public void initializeOutbox(String payload, Instant now) {
         if (this.outbox != null) {
             throw new IllegalStateException("Outbox가 이미 초기화되었습니다.");
         }
-        this.outbox = CrawlTaskOutbox.forNew(this.id, payload, clock);
+        this.outbox = CrawlTaskOutbox.forNew(this.id, payload, now);
     }
 
     /**
      * Outbox 발행 성공 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markOutboxAsSent(Clock clock) {
+    public void markOutboxAsSent(Instant now) {
         if (this.outbox == null) {
             throw new IllegalStateException("Outbox가 초기화되지 않았습니다.");
         }
-        this.outbox.markAsSent(clock);
+        this.outbox.markAsSent(now);
     }
 
     /**
      * Outbox 발행 실패 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markOutboxAsFailed(Clock clock) {
+    public void markOutboxAsFailed(Instant now) {
         if (this.outbox == null) {
             throw new IllegalStateException("Outbox가 초기화되지 않았습니다.");
         }
-        this.outbox.markAsFailed(clock);
+        this.outbox.markAsFailed(now);
     }
 
     /**
@@ -402,9 +400,9 @@ public class CrawlTask {
      * <p>ID 할당 후 호출해야 합니다.
      *
      * @param outboxPayload Outbox 페이로드 (JSON)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void addRegisteredEvent(String outboxPayload, Clock clock) {
+    public void addRegisteredEvent(String outboxPayload, Instant now) {
         if (this.id == null || !this.id.isAssigned()) {
             throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
         }
@@ -416,7 +414,7 @@ public class CrawlTask {
                         this.taskType,
                         this.endpoint,
                         outboxPayload,
-                        clock));
+                        now));
     }
 
     /**

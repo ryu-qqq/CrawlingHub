@@ -54,6 +54,6 @@ public record SearchCrawlSchedulersQuery(
      * @return 첫 번째 상태 또는 null
      */
     public SchedulerStatus status() {
-        return hasStatusFilter() ? statuses.get(0) : null;
+        return hasStatusFilter() ? statuses.getFirst() : null;
     }
 }

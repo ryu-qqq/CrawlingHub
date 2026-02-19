@@ -17,11 +17,26 @@ package com.ryuqq.crawlinghub.domain.schedule.vo;
 public enum CrawlSchedulerOubBoxStatus {
 
     /** 동기화 대기 중 */
-    PENDING,
+    PENDING("대기"),
 
     /** 동기화 완료 */
-    COMPLETED,
+    COMPLETED("완료"),
 
     /** 동기화 실패 */
-    FAILED
+    FAILED("실패");
+
+    private final String displayName;
+
+    CrawlSchedulerOubBoxStatus(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /**
+     * 사용자 표시용 이름 반환
+     *
+     * @return 표시명
+     */
+    public String displayName() {
+        return displayName;
+    }
 }

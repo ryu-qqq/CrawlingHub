@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  *   <li>규칙 1: Common Response DTOs는 common.dto 패키지에 위치
  *   <li>규칙 2: Common Response DTOs는 Record 타입이어야 함
  *   <li>규칙 3: ApiResponse는 static factory method 패턴 사용
- *   <li>규칙 4: PageApiResponse는 from() 메서드 필수
+ *   <li>규칙 4: PageApiResponse는 of() 메서드 필수
  *   <li>규칙 5: ErrorInfo는 validation 필수
  *   <li>규칙 6: Common Response DTOs는 Lombok 금지
  *   <li>규칙 7: Common Response DTOs는 public이어야 함
@@ -120,55 +120,41 @@ class ApiResponseArchTest {
 
     /** 규칙 3: ApiResponse는 static factory method 패턴 사용 */
     @Test
-    @DisplayName("[필수] ApiResponse는 ofSuccess/ofFailure static factory methods를 가져야 한다")
+    @DisplayName("[필수] ApiResponse는 of static factory methods를 가져야 한다")
     void apiResponse_MustHaveStaticFactoryMethods() {
-        ArchRule successRule =
+        ArchRule rule =
                 methods()
                         .that()
                         .areDeclaredInClassesThat()
                         .haveSimpleName("ApiResponse")
                         .and()
-                        .haveName("ofSuccess")
+                        .haveName("of")
                         .should()
                         .bePublic()
                         .andShould()
                         .beStatic()
-                        .because("ApiResponse는 ofSuccess() static factory method가 필수입니다");
+                        .because("ApiResponse는 of() static factory method가 필수입니다");
 
-        ArchRule failureRule =
-                methods()
-                        .that()
-                        .areDeclaredInClassesThat()
-                        .haveSimpleName("ApiResponse")
-                        .and()
-                        .haveName("ofFailure")
-                        .should()
-                        .bePublic()
-                        .andShould()
-                        .beStatic()
-                        .because("ApiResponse는 ofFailure() static factory method가 필수입니다");
-
-        successRule.allowEmptyShould(true).check(classes);
-        failureRule.allowEmptyShould(true).check(classes);
+        rule.allowEmptyShould(true).check(classes);
     }
 
-    /** 규칙 4: PageApiResponse는 from() 메서드 필수 */
+    /** 규칙 4: PageApiResponse는 of() 메서드 필수 */
     @Test
-    @DisplayName("[필수] PageApiResponse는 from() static factory method를 가져야 한다")
-    void pageApiResponse_MustHaveFromMethod() {
+    @DisplayName("[필수] PageApiResponse는 of() static factory method를 가져야 한다")
+    void pageApiResponse_MustHaveOfMethod() {
         ArchRule rule =
                 methods()
                         .that()
                         .areDeclaredInClassesThat()
                         .haveSimpleName("PageApiResponse")
                         .and()
-                        .haveName("from")
+                        .haveName("of")
                         .should()
                         .bePublic()
                         .andShould()
                         .beStatic()
                         .because(
-                                "PageApiResponse는 Application Layer PageResponse를 변환하는 from()"
+                                "PageApiResponse는 Application Layer PageResponse를 변환하는 of()"
                                         + " static method가 필수입니다");
 
         rule.allowEmptyShould(true).check(classes);

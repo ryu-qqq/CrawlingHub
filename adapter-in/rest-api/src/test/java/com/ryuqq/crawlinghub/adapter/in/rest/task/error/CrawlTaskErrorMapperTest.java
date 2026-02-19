@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper.MappedError;
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskRetryException;
 import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
@@ -62,10 +66,10 @@ class CrawlTaskErrorMapperTest {
         @DisplayName("CRAWL-TASK- prefix를 가진 에러 코드는 supports()가 true를 반환한다")
         void supports_WhenCrawlTaskPrefix_ShouldReturnTrue() {
             // given
-            String code = "CRAWL-TASK-001";
+            DomainException ex = createDomainException("CRAWL-TASK-001");
 
             // when
-            boolean result = crawlTaskErrorMapper.supports(code);
+            boolean result = crawlTaskErrorMapper.supports(ex);
 
             // then
             assertThat(result).isTrue();
@@ -75,10 +79,10 @@ class CrawlTaskErrorMapperTest {
         @DisplayName("CRAWL-TASK- prefix가 없는 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNonCrawlTaskPrefix_ShouldReturnFalse() {
             // given
-            String code = "SCHEDULE-001";
+            DomainException ex = createDomainException("SCHEDULE-001");
 
             // when
-            boolean result = crawlTaskErrorMapper.supports(code);
+            boolean result = crawlTaskErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -87,11 +91,8 @@ class CrawlTaskErrorMapperTest {
         @Test
         @DisplayName("null 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenNullCode_ShouldReturnFalse() {
-            // given
-            String code = null;
-
             // when
-            boolean result = crawlTaskErrorMapper.supports(code);
+            boolean result = crawlTaskErrorMapper.supports(null);
 
             // then
             assertThat(result).isFalse();
@@ -101,10 +102,10 @@ class CrawlTaskErrorMapperTest {
         @DisplayName("빈 문자열 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenEmptyCode_ShouldReturnFalse() {
             // given
-            String code = "";
+            DomainException ex = createDomainException("");
 
             // when
-            boolean result = crawlTaskErrorMapper.supports(code);
+            boolean result = crawlTaskErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -114,10 +115,10 @@ class CrawlTaskErrorMapperTest {
         @DisplayName("CRAWL- prefix만 있는 에러 코드는 supports()가 false를 반환한다")
         void supports_WhenOnlyCrawlPrefix_ShouldReturnFalse() {
             // given
-            String code = "CRAWL-EXEC-001";
+            DomainException ex = createDomainException("CRAWL-EXEC-001");
 
             // when
-            boolean result = crawlTaskErrorMapper.supports(code);
+            boolean result = crawlTaskErrorMapper.supports(ex);
 
             // then
             assertThat(result).isFalse();
@@ -279,5 +280,16 @@ class CrawlTaskErrorMapperTest {
                     .isEqualTo("https://api.example.com/problems/crawl-task/crawl-task-001");
             assertThat(typeUri).doesNotContain("CRAWL-TASK");
         }
+    }
+
+    private DomainException createDomainException(String code) {
+        ErrorCode errorCode = Mockito.mock(ErrorCode.class);
+        given(errorCode.getCode()).willReturn(code);
+        return new DomainException(errorCode, "test") {
+            @Override
+            public String code() {
+                return code;
+            }
+        };
     }
 }

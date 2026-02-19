@@ -6,7 +6,6 @@ import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -19,8 +18,8 @@ import java.time.Instant;
  */
 public final class SellerFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
-    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
+    private static final Instant DEFAULT_TIME = DEFAULT_INSTANT;
 
     /**
      * 신규 활성 셀러 생성
@@ -31,7 +30,7 @@ public final class SellerFixture {
         return Seller.forNew(
                 MustItSellerNameFixture.aDefaultName(),
                 SellerNameFixture.aDefaultName(),
-                DEFAULT_CLOCK);
+                DEFAULT_INSTANT);
     }
 
     /**
@@ -43,18 +42,18 @@ public final class SellerFixture {
      */
     public static Seller aNewActiveSeller(String mustItSellerName, String sellerName) {
         return Seller.forNew(
-                MustItSellerName.of(mustItSellerName), SellerName.of(sellerName), DEFAULT_CLOCK);
+                MustItSellerName.of(mustItSellerName), SellerName.of(sellerName), DEFAULT_INSTANT);
     }
 
     /**
-     * 신규 활성 셀러 생성 (특정 Clock)
+     * 신규 활성 셀러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return 신규 Seller (ID = null, ACTIVE)
      */
-    public static Seller aNewActiveSeller(Clock clock) {
+    public static Seller aNewActiveSeller(Instant now) {
         return Seller.forNew(
-                MustItSellerNameFixture.aDefaultName(), SellerNameFixture.aDefaultName(), clock);
+                MustItSellerNameFixture.aDefaultName(), SellerNameFixture.aDefaultName(), now);
     }
 
     /**
@@ -91,13 +90,12 @@ public final class SellerFixture {
     }
 
     /**
-     * 할당된 ID를 가진 활성 셀러 생성 (특정 Clock)
+     * 할당된 ID를 가진 활성 셀러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return Seller (ID = 1L, ACTIVE)
      */
-    public static Seller anActiveSeller(Clock clock) {
-        Instant now = clock.instant();
+    public static Seller anActiveSeller(Instant now) {
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
@@ -125,13 +123,12 @@ public final class SellerFixture {
     }
 
     /**
-     * 할당된 ID를 가진 비활성 셀러 생성 (특정 Clock)
+     * 할당된 ID를 가진 비활성 셀러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return Seller (ID = 1L, INACTIVE)
      */
-    public static Seller anInactiveSeller(Clock clock) {
-        Instant now = clock.instant();
+    public static Seller anInactiveSeller(Instant now) {
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),
@@ -160,14 +157,13 @@ public final class SellerFixture {
     }
 
     /**
-     * 상품 수가 있는 활성 셀러 생성 (특정 Clock)
+     * 상품 수가 있는 활성 셀러 생성 (특정 시간)
      *
      * @param productCount 상품 수
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return Seller (ID = 1L, ACTIVE, productCount)
      */
-    public static Seller anActiveSellerWithProducts(int productCount, Clock clock) {
-        Instant now = clock.instant();
+    public static Seller anActiveSellerWithProducts(int productCount, Instant now) {
         return Seller.of(
                 SellerIdFixture.anAssignedId(),
                 MustItSellerNameFixture.aDefaultName(),

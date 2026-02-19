@@ -46,6 +46,9 @@ dependencies {
     implementation libs.spring.boot.starter.validation
     implementation libs.spring.boot.starter.actuator
 
+    // AuthHub SDK (for EndpointSyncRunner)
+    implementation libs.authhub.sdk.spring.boot.starter
+
     // Configuration Processing
     annotationProcessor libs.spring.boot.configuration.processor
 

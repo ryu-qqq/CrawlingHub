@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.ProductOutboxEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.dto.response.OutboxRetryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.outbox.mapper.ProductOutboxCommandApiMapper;
 import com.ryuqq.crawlinghub.application.product.dto.command.RetryImageOutboxCommand;
@@ -41,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.ProductOutbox.BASE)
+@RequestMapping(ProductOutboxEndpoints.BASE)
 @Validated
 @Tag(name = "ProductOutbox", description = "상품 Outbox 관리 API")
 public class ProductOutboxCommandController {
@@ -81,8 +82,9 @@ public class ProductOutboxCommandController {
      * @param id SyncOutbox ID
      * @return 재시도 결과 (200 OK)
      */
-    @PostMapping(ApiPaths.ProductOutbox.SYNC_RETRY)
+    @PostMapping(ProductOutboxEndpoints.SYNC_RETRY)
     @PreAuthorize("@access.hasPermission('outbox:update')")
+    @RequirePermission(value = "outbox:update", description = "동기화 아웃박스 재시도")
     @Operation(
             summary = "SyncOutbox 재시도",
             description =
@@ -120,7 +122,7 @@ public class ProductOutboxCommandController {
         RetrySyncOutboxCommand command = mapper.toRetrySyncOutboxCommand(id);
         OutboxRetryResponse useCaseResponse = retrySyncOutboxUseCase.execute(command);
         OutboxRetryApiResponse apiResponse = mapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -145,8 +147,9 @@ public class ProductOutboxCommandController {
      * @param id ImageOutbox ID
      * @return 재시도 결과 (200 OK)
      */
-    @PostMapping(ApiPaths.ProductOutbox.IMAGE_RETRY)
+    @PostMapping(ProductOutboxEndpoints.IMAGE_RETRY)
     @PreAuthorize("@access.hasPermission('outbox:update')")
+    @RequirePermission(value = "outbox:update", description = "이미지 아웃박스 재시도")
     @Operation(
             summary = "ImageOutbox 재시도",
             description =
@@ -184,6 +187,6 @@ public class ProductOutboxCommandController {
         RetryImageOutboxCommand command = mapper.toRetryImageOutboxCommand(id);
         OutboxRetryResponse useCaseResponse = retryImageOutboxUseCase.execute(command);
         OutboxRetryApiResponse apiResponse = mapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

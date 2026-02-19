@@ -8,22 +8,20 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskRetryException;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,8 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RetryCrawlTaskService 테스트")
 class RetryCrawlTaskServiceTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
 
     @Mock private CrawlTaskReadManager readManager;
 
@@ -56,7 +53,7 @@ class RetryCrawlTaskServiceTest {
 
     @Mock private CrawlTaskFacade facade;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private RetryCrawlTaskService service;
 
@@ -72,9 +69,7 @@ class RetryCrawlTaskServiceTest {
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask failedTask = CrawlTaskFixture.aFailedTask();
             CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
-            Clock clock = FIXED_CLOCK;
             String outboxPayload = "{\"taskId\":1}";
-            Instant clockNow = Instant.now(clock);
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
                             1L,
@@ -84,11 +79,11 @@ class RetryCrawlTaskServiceTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.META,
                             1,
-                            clockNow,
-                            clockNow);
+                            FIXED_INSTANT,
+                            FIXED_INSTANT);
 
             given(readManager.findById(any(CrawlTaskId.class))).willReturn(Optional.of(failedTask));
-            given(clockHolder.getClock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
             given(commandFactory.toOutboxPayload(failedTask)).willReturn(outboxPayload);
             given(facade.retry(failedTask, outboxPayload)).willReturn(retriedTask);
             given(assembler.toResponse(retriedTask)).willReturn(expectedResponse);
@@ -99,7 +94,7 @@ class RetryCrawlTaskServiceTest {
             // Then
             assertThat(result).isEqualTo(expectedResponse);
             then(readManager).should().findById(CrawlTaskId.of(crawlTaskId));
-            then(clockHolder).should().getClock();
+            then(timeProvider).should().now();
             then(commandFactory).should().toOutboxPayload(failedTask);
             then(facade).should().retry(failedTask, outboxPayload);
             then(assembler).should().toResponse(retriedTask);
@@ -113,9 +108,7 @@ class RetryCrawlTaskServiceTest {
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask timeoutTask = CrawlTaskFixture.aTimeoutTask();
             CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
-            Clock clock = FIXED_CLOCK;
             String outboxPayload = "{\"taskId\":2}";
-            Instant clockNow = Instant.now(clock);
             CrawlTaskResponse expectedResponse =
                     new CrawlTaskResponse(
                             2L,
@@ -125,12 +118,12 @@ class RetryCrawlTaskServiceTest {
                             CrawlTaskStatus.RETRY,
                             CrawlTaskType.META,
                             1,
-                            clockNow,
-                            clockNow);
+                            FIXED_INSTANT,
+                            FIXED_INSTANT);
 
             given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(timeoutTask));
-            given(clockHolder.getClock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
             given(commandFactory.toOutboxPayload(timeoutTask)).willReturn(outboxPayload);
             given(facade.retry(timeoutTask, outboxPayload)).willReturn(retriedTask);
             given(assembler.toResponse(retriedTask)).willReturn(expectedResponse);
@@ -157,7 +150,7 @@ class RetryCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.retry(command))
                     .isInstanceOf(CrawlTaskNotFoundException.class);
 
-            then(clockHolder).should(never()).getClock();
+            then(timeProvider).should(never()).now();
             then(commandFactory).should(never()).toOutboxPayload(any());
             then(facade).should(never()).retry(any(), any());
         }
@@ -169,11 +162,10 @@ class RetryCrawlTaskServiceTest {
             Long crawlTaskId = 3L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask maxRetryTask = CrawlTaskFixture.aFailedTaskWithMaxRetry();
-            Clock clock = FIXED_CLOCK;
 
             given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(maxRetryTask));
-            given(clockHolder.getClock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When & Then
             assertThatThrownBy(() -> service.retry(command))
@@ -190,11 +182,10 @@ class RetryCrawlTaskServiceTest {
             Long crawlTaskId = 4L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask successTask = CrawlTaskFixture.aSuccessTask();
-            Clock clock = FIXED_CLOCK;
 
             given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(successTask));
-            given(clockHolder.getClock()).willReturn(clock);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When & Then
             assertThatThrownBy(() -> service.retry(command))

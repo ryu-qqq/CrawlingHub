@@ -8,12 +8,12 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentStatusCommand;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -23,9 +23,7 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +55,7 @@ class UpdateUserAgentStatusServiceTest {
 
     @Mock private UserAgentPoolCacheManager cacheManager;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private UpdateUserAgentStatusService service;
 
@@ -65,11 +63,11 @@ class UpdateUserAgentStatusServiceTest {
 
     @Captor private ArgumentCaptor<List<CachedUserAgent>> cachedUserAgentsCaptor;
 
-    private Clock fixedClock;
+    private Instant fixedInstant;
 
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(Instant.parse("2025-12-28T10:00:00Z"), ZoneId.of("UTC"));
+        fixedInstant = Instant.parse("2025-12-28T10:00:00Z");
     }
 
     @Nested
@@ -91,7 +89,7 @@ class UpdateUserAgentStatusServiceTest {
                             createUserAgent(3L, UserAgentStatus.SUSPENDED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             int result = service.execute(command);
@@ -124,7 +122,7 @@ class UpdateUserAgentStatusServiceTest {
                             createUserAgent(2L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             int result = service.execute(command);
@@ -152,7 +150,7 @@ class UpdateUserAgentStatusServiceTest {
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             int result = service.execute(command);
@@ -180,7 +178,7 @@ class UpdateUserAgentStatusServiceTest {
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.BLOCKED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             int result = service.execute(command);
@@ -231,7 +229,7 @@ class UpdateUserAgentStatusServiceTest {
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.READY));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             int result = service.execute(command);
@@ -275,7 +273,7 @@ class UpdateUserAgentStatusServiceTest {
             List<UserAgent> userAgents = List.of(createUserAgent(1L, UserAgentStatus.SUSPENDED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             service.execute(command);
@@ -302,7 +300,7 @@ class UpdateUserAgentStatusServiceTest {
                             createUserAgent(2L, UserAgentStatus.SUSPENDED));
 
             given(readManager.findByIds(any())).willReturn(userAgents);
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
             service.execute(command);

@@ -1,5 +1,7 @@
 package com.ryuqq.crawlinghub.domain.common.vo;
 
+import java.util.Locale;
+
 /**
  * SortDirection - 정렬 방향 Value Object
  *
@@ -33,7 +35,7 @@ public enum SortDirection {
      *   <li>문자: A → Z
      * </ul>
      */
-    ASC("오름차순"),
+    ASC,
 
     /**
      * 내림차순 (Descending)
@@ -46,22 +48,7 @@ public enum SortDirection {
      *   <li>문자: Z → A
      * </ul>
      */
-    DESC("내림차순");
-
-    private final String displayName;
-
-    SortDirection(String displayName) {
-        this.displayName = displayName;
-    }
-
-    /**
-     * 한글 표시명 반환
-     *
-     * @return 표시명
-     */
-    public String displayName() {
-        return displayName;
-    }
+    DESC;
 
     /**
      * 기본 정렬 방향 (내림차순)
@@ -100,6 +87,18 @@ public enum SortDirection {
     }
 
     /**
+     * 화면 표시용 이름 반환
+     *
+     * @return 한글 표시 이름
+     */
+    public String displayName() {
+        return switch (this) {
+            case ASC -> "오름차순";
+            case DESC -> "내림차순";
+        };
+    }
+
+    /**
      * 문자열로부터 SortDirection 파싱 (대소문자 무관)
      *
      * @param value 문자열 ("asc", "ASC", "desc", "DESC")
@@ -110,7 +109,7 @@ public enum SortDirection {
             return defaultDirection();
         }
         try {
-            return SortDirection.valueOf(value.toUpperCase().trim());
+            return SortDirection.valueOf(value.toUpperCase(Locale.ROOT).trim());
         } catch (IllegalArgumentException e) {
             return defaultDirection();
         }

@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.task.CrawlTaskEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskCommandApiMapper;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
@@ -38,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Tasks.BASE)
+@RequestMapping(CrawlTaskEndpoints.BASE)
 @Validated
 @Tag(name = "Task", description = "크롤 태스크 관리 API")
 public class CrawlTaskCommandController {
@@ -75,8 +76,9 @@ public class CrawlTaskCommandController {
      * @param id 크롤 태스크 ID
      * @return 재시도된 크롤 태스크 정보 (200 OK)
      */
-    @PostMapping("/{id}/retry")
+    @PostMapping(CrawlTaskEndpoints.RETRY)
     @PreAuthorize("@access.hasPermission('task:update')")
+    @RequirePermission(value = "task:update", description = "크롤 태스크 재시도")
     @Operation(
             summary = "크롤 태스크 재시도",
             description =
@@ -112,6 +114,6 @@ public class CrawlTaskCommandController {
         RetryCrawlTaskCommand command = crawlTaskCommandApiMapper.toRetryCommand(id);
         CrawlTaskResponse useCaseResponse = retryCrawlTaskUseCase.retry(command);
         CrawlTaskApiResponse apiResponse = crawlTaskCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

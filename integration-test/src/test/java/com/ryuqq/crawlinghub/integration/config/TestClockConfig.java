@@ -1,13 +1,12 @@
 package com.ryuqq.crawlinghub.integration.config;
 
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import java.time.Clock;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 /**
- * Test configuration for Clock and ClockHolder beans.
+ * Test configuration for Clock bean.
  *
  * <p>Provides {@link Primary} beans to resolve conflicts between multiple ClockConfig classes from
  * different bootstrap modules:
@@ -37,33 +36,5 @@ public class TestClockConfig {
     @Primary
     public Clock testClock() {
         return Clock.systemDefaultZone();
-    }
-
-    /**
-     * Primary ClockHolder bean for testing.
-     *
-     * <p>Returns a SystemClockHolder implementation.
-     *
-     * @param clock the clock to use
-     * @return SystemClockHolder instance
-     */
-    @Bean
-    @Primary
-    public ClockHolder testClockHolder(Clock clock) {
-        return new TestSystemClockHolder(clock);
-    }
-
-    /** System clock holder implementation for tests. */
-    private static class TestSystemClockHolder implements ClockHolder {
-        private final Clock clock;
-
-        TestSystemClockHolder(Clock clock) {
-            this.clock = clock;
-        }
-
-        @Override
-        public Clock getClock() {
-            return clock;
-        }
     }
 }

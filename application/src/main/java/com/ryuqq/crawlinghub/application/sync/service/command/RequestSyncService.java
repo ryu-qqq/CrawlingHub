@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.sync.service.command;
 
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.component.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
 import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.sync.port.in.command.RequestSyncUseCase;

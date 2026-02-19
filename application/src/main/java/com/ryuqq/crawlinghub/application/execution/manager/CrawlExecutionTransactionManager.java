@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.execution.manager;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.execution.port.out.command.CrawlExecutionPersistencePort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import org.slf4j.Logger;
@@ -33,12 +33,13 @@ public class CrawlExecutionTransactionManager {
             LoggerFactory.getLogger(CrawlExecutionTransactionManager.class);
 
     private final CrawlExecutionPersistencePort crawlExecutionPersistencePort;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public CrawlExecutionTransactionManager(
-            CrawlExecutionPersistencePort crawlExecutionPersistencePort, ClockHolder clockHolder) {
+            CrawlExecutionPersistencePort crawlExecutionPersistencePort,
+            TimeProvider timeProvider) {
         this.crawlExecutionPersistencePort = crawlExecutionPersistencePort;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -59,8 +60,7 @@ public class CrawlExecutionTransactionManager {
                 crawlSchedulerId.value());
 
         CrawlExecution execution =
-                CrawlExecution.start(
-                        crawlTaskId, crawlSchedulerId, sellerId, clockHolder.getClock());
+                CrawlExecution.start(crawlTaskId, crawlSchedulerId, sellerId, timeProvider.now());
         CrawlExecutionId savedId = crawlExecutionPersistencePort.persist(execution);
 
         log.info(
@@ -81,7 +81,7 @@ public class CrawlExecutionTransactionManager {
      */
     public CrawlExecutionId completeWithSuccess(
             CrawlExecution execution, String responseBody, Integer httpStatusCode) {
-        execution.completeWithSuccess(responseBody, httpStatusCode, clockHolder.getClock());
+        execution.completeWithSuccess(responseBody, httpStatusCode, timeProvider.now());
 
         CrawlExecutionId savedId = crawlExecutionPersistencePort.persist(execution);
 
@@ -104,7 +104,7 @@ public class CrawlExecutionTransactionManager {
      */
     public CrawlExecutionId completeWithFailure(
             CrawlExecution execution, Integer httpStatusCode, String errorMessage) {
-        execution.completeWithFailure(httpStatusCode, errorMessage, clockHolder.getClock());
+        execution.completeWithFailure(httpStatusCode, errorMessage, timeProvider.now());
 
         CrawlExecutionId savedId = crawlExecutionPersistencePort.persist(execution);
 
@@ -135,7 +135,7 @@ public class CrawlExecutionTransactionManager {
             Integer httpStatusCode,
             String errorMessage) {
         execution.completeWithFailure(
-                responseBody, httpStatusCode, errorMessage, clockHolder.getClock());
+                responseBody, httpStatusCode, errorMessage, timeProvider.now());
 
         CrawlExecutionId savedId = crawlExecutionPersistencePort.persist(execution);
 
@@ -159,7 +159,7 @@ public class CrawlExecutionTransactionManager {
      * @return 저장된 CrawlExecution ID
      */
     public CrawlExecutionId completeWithTimeout(CrawlExecution execution, String errorMessage) {
-        execution.completeWithTimeout(errorMessage, clockHolder.getClock());
+        execution.completeWithTimeout(errorMessage, timeProvider.now());
 
         CrawlExecutionId savedId = crawlExecutionPersistencePort.persist(execution);
 

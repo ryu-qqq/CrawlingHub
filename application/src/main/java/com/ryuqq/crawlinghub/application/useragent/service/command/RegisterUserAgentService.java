@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RegisterUserAgentCommand;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RegisterUserAgentUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.out.command.TokenGeneratorPort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
@@ -38,15 +38,15 @@ public class RegisterUserAgentService implements RegisterUserAgentUseCase {
 
     private final TokenGeneratorPort tokenGeneratorPort;
     private final UserAgentTransactionManager transactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public RegisterUserAgentService(
             TokenGeneratorPort tokenGeneratorPort,
             UserAgentTransactionManager transactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.tokenGeneratorPort = tokenGeneratorPort;
         this.transactionManager = transactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -67,7 +67,7 @@ public class RegisterUserAgentService implements RegisterUserAgentUseCase {
         Token token = tokenGeneratorPort.generate();
         UserAgentString userAgentString = UserAgentString.of(command.userAgentString());
 
-        UserAgent userAgent = UserAgent.forNew(token, userAgentString, clockHolder.getClock());
+        UserAgent userAgent = UserAgent.forNew(token, userAgentString, timeProvider.now());
 
         UserAgentId persistedId = transactionManager.persist(userAgent);
 

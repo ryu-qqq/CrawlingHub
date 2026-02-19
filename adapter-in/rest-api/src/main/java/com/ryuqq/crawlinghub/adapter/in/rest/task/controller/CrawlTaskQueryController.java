@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.task.CrawlTaskEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskDetailApiResponse;
@@ -67,7 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Tasks.BASE)
+@RequestMapping(CrawlTaskEndpoints.BASE)
 @Validated
 @Tag(name = "Task", description = "크롤 태스크 관리 API")
 public class CrawlTaskQueryController {
@@ -150,6 +151,7 @@ public class CrawlTaskQueryController {
      */
     @GetMapping
     @PreAuthorize("@access.hasPermission('task:read')")
+    @RequirePermission(value = "task:read", description = "크롤 태스크 목록 조회")
     @Operation(
             summary = "크롤 태스크 목록 조회",
             description = "크롤 태스크 목록을 페이징하여 조회합니다. task:read 권한이 필요합니다.",
@@ -185,7 +187,7 @@ public class CrawlTaskQueryController {
                 crawlTaskQueryApiMapper.toPageApiResponse(useCasePageResponse);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 
     /**
@@ -233,8 +235,9 @@ public class CrawlTaskQueryController {
      * @param id 크롤 태스크 ID
      * @return 크롤 태스크 상세 정보 (200 OK)
      */
-    @GetMapping(ApiPaths.Tasks.BY_ID)
+    @GetMapping(CrawlTaskEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('task:read')")
+    @RequirePermission(value = "task:read", description = "크롤 태스크 상세 조회")
     @Operation(
             summary = "크롤 태스크 상세 조회",
             description = "크롤 태스크 ID로 상세 정보를 조회합니다. task:read 권한이 필요합니다.",
@@ -276,6 +279,6 @@ public class CrawlTaskQueryController {
                 crawlTaskQueryApiMapper.toDetailApiResponse(useCaseResponse);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.CrawlSchedulerEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.query.SearchCrawlSchedulersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerSummaryApiResponse;
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Schedules.BASE)
+@RequestMapping(CrawlSchedulerEndpoints.BASE)
 @Validated
 @Tag(name = "Scheduler", description = "크롤 스케줄러 관리 API")
 public class CrawlSchedulerQueryController {
@@ -59,6 +60,7 @@ public class CrawlSchedulerQueryController {
 
     @GetMapping
     @PreAuthorize("@access.hasPermission('scheduler:read')")
+    @RequirePermission(value = "scheduler:read", description = "크롤 스케줄러 목록 조회")
     @Operation(
             summary = "크롤 스케줄러 목록 조회",
             description = "크롤 스케줄러 목록을 페이징하여 조회합니다. scheduler:read 권한이 필요합니다.",
@@ -91,11 +93,12 @@ public class CrawlSchedulerQueryController {
                 searchCrawlSchedulesUseCase.execute(query);
         PageApiResponse<CrawlSchedulerSummaryApiResponse> apiPageResponse =
                 crawlSchedulerQueryApiMapper.toPageApiResponse(useCasePageResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 
-    @GetMapping("/{crawlSchedulerId}")
+    @GetMapping(CrawlSchedulerEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('scheduler:read')")
+    @RequirePermission(value = "scheduler:read", description = "크롤 스케줄러 상세 조회")
     @Operation(
             summary = "크롤 스케줄러 상세 조회",
             description =
@@ -131,6 +134,6 @@ public class CrawlSchedulerQueryController {
                 searchCrawlScheduleUseCase.execute(crawlSchedulerId);
         CrawlSchedulerDetailApiResponse apiResponse =
                 crawlSchedulerQueryApiMapper.toDetailApiResponse(detailResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

@@ -1,12 +1,12 @@
 package com.ryuqq.crawlinghub.application.useragent.service.query;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse;
 import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentDetailResponse.PoolInfo;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.query.GetUserAgentByIdUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -26,15 +26,15 @@ public class GetUserAgentByIdService implements GetUserAgentByIdUseCase {
 
     private final UserAgentReadManager readManager;
     private final UserAgentPoolCacheManager cacheManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public GetUserAgentByIdService(
             UserAgentReadManager readManager,
             UserAgentPoolCacheManager cacheManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.cacheManager = cacheManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class GetUserAgentByIdService implements GetUserAgentByIdUseCase {
     }
 
     private PoolInfo toPoolInfo(CachedUserAgent cached) {
-        Instant now = Instant.now(clockHolder.getClock());
+        Instant now = timeProvider.now();
         boolean hasValidSession = cached.hasValidSession(now);
         return PoolInfo.of(cached.remainingTokens(), hasValidSession, cached.sessionExpiresAt());
     }

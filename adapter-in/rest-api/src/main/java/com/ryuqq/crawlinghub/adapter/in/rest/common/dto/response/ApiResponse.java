@@ -1,41 +1,28 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
+import org.slf4j.MDC;
 
 /**
  * ApiResponse - 표준 API 응답 래퍼
  *
  * <p>모든 REST API 성공 응답의 일관된 형식을 제공합니다.
  *
- * <p><strong>사용 예시:</strong>
- *
- * <pre>{@code
- * // 성공 응답 (데이터 포함)
- * ApiResponse<UserDto> response = ApiResponse.ofSuccess(userDto);
- *
- * // 성공 응답 (데이터 없음)
- * ApiResponse<Void> response = ApiResponse.ofSuccess();
- * }</pre>
- *
- * <p><strong>응답 형식:</strong>
- *
- * <pre>{@code
- * {
- *   "data": { ... },
- *   "timestamp": "2025-12-22T10:30:00",
- *   "requestId": "550e8400-e29b-41d4-a716-446655440000"
- * }
- * }</pre>
- *
- * <p><strong>에러 응답:</strong> 에러 응답은 RFC 7807 ProblemDetail 형식을 사용합니다. GlobalExceptionHandler 및
- * SecurityExceptionHandler를 참조하세요.
- *
  * @param <T> 응답 데이터 타입
  * @author ryu-qqq
  * @since 2025-10-23
  */
-public record ApiResponse<T>(T data, String timestamp, String requestId) {
+@Schema(description = "표준 API 응답 래퍼")
+public record ApiResponse<T>(
+        @Schema(description = "응답 데이터") T data,
+        @Schema(description = "응답 시각 (ISO 8601)", example = "2025-12-22T10:30:00+09:00")
+                String timestamp,
+        @Schema(
+                        description = "요청 추적 ID (MDC traceId 우선, 없으면 UUID)",
+                        example = "550e8400-e29b-41d4-a716-446655440000")
+                String requestId) {
 
     /**
      * 성공 응답 생성
@@ -43,11 +30,9 @@ public record ApiResponse<T>(T data, String timestamp, String requestId) {
      * @param data 응답 데이터
      * @param <T> 데이터 타입
      * @return 성공 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
      */
-    public static <T> ApiResponse<T> ofSuccess(T data) {
-        return new ApiResponse<>(data, DateTimeFormatUtils.nowIso8601(), generateRequestId());
+    public static <T> ApiResponse<T> of(T data) {
+        return new ApiResponse<>(data, DateTimeFormatUtils.nowIso8601(), resolveRequestId());
     }
 
     /**
@@ -55,23 +40,13 @@ public record ApiResponse<T>(T data, String timestamp, String requestId) {
      *
      * @param <T> 데이터 타입
      * @return 성공 ApiResponse
-     * @author ryu-qqq
-     * @since 2025-10-23
      */
-    public static <T> ApiResponse<T> ofSuccess() {
-        return ofSuccess(null);
+    public static <T> ApiResponse<T> of() {
+        return of(null);
     }
 
-    /**
-     * Request ID 생성
-     *
-     * <p>UUID v4 형식으로 생성합니다.
-     *
-     * @return UUID 형식의 Request ID
-     * @author ryu-qqq
-     * @since 2025-10-23
-     */
-    private static String generateRequestId() {
-        return UUID.randomUUID().toString();
+    private static String resolveRequestId() {
+        String traceId = MDC.get("traceId");
+        return (traceId != null && !traceId.isBlank()) ? traceId : UUID.randomUUID().toString();
     }
 }

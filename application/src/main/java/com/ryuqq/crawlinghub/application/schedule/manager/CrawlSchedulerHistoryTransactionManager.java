@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.application.schedule.manager;
 
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlScheduleHistoryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import org.springframework.stereotype.Component;
 
 @Component

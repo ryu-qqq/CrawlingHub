@@ -2,8 +2,8 @@ package com.ryuqq.crawlinghub.application.schedule.manager.query;
 
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +55,7 @@ public class CrawlSchedulerReadManager {
      * @param criteria 조회 조건
      * @return 크롤 스케줄러 리스트
      */
-    public List<CrawlScheduler> findByCriteria(CrawlSchedulerQueryCriteria criteria) {
+    public List<CrawlScheduler> findByCriteria(CrawlSchedulerPageCriteria criteria) {
         return crawlScheduleQueryPort.findByCriteria(criteria);
     }
 
@@ -65,7 +65,7 @@ public class CrawlSchedulerReadManager {
      * @param criteria 조회 조건
      * @return 총 개수
      */
-    public long count(CrawlSchedulerQueryCriteria criteria) {
+    public long count(CrawlSchedulerPageCriteria criteria) {
         return crawlScheduleQueryPort.count(criteria);
     }
 

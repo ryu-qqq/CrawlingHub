@@ -77,6 +77,11 @@ opentelemetry = "1.35.0"
 observabilityStarter = "v1.1.1"
 
 # ========================================
+# AuthHub SDK (JitPack)
+# ========================================
+authhub = "v2.0.4"
+
+# ========================================
 # Sentry
 # ========================================
 sentry = "8.29.0"
@@ -192,6 +197,11 @@ opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref
 # Observability Starter (JitPack)
 # ========================================
 observability-starter = { module = "com.github.ryu-qqq.observability-spring-boot-starter:observability-starter", version.ref = "observabilityStarter" }
+
+# ========================================
+# AuthHub SDK (JitPack)
+# ========================================
+authhub-sdk-spring-boot-starter = { module = "com.github.ryu-qqq.AuthHub:authhub-sdk-spring-boot-starter", version.ref = "authhub" }
 
 # ========================================
 # Sentry

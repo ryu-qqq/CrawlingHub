@@ -1,12 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.auth.component;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContextHolder;
+import com.ryuqq.authhub.sdk.access.BaseAccessChecker;
 import org.springframework.stereotype.Component;
 
 /**
  * 리소스 접근 권한 검사기
  *
- * <p>@PreAuthorize 어노테이션에서 SpEL 함수로 사용합니다.
+ * <p>AuthHub SDK의 BaseAccessChecker를 상속하여 @PreAuthorize 어노테이션에서 SpEL 함수로 사용합니다.
  *
  * <p>사용 예시:
  *
@@ -32,92 +32,13 @@ import org.springframework.stereotype.Component;
  *
  * @author development-team
  * @since 1.0.0
+ * @see BaseAccessChecker
  */
 @Component("access")
-public class ResourceAccessChecker {
+public class ResourceAccessChecker extends BaseAccessChecker {
 
-    private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
-
-    /**
-     * 현재 사용자가 SUPER_ADMIN인지 확인
-     *
-     * @return SUPER_ADMIN이면 true
-     */
-    public boolean superAdmin() {
-        return SecurityContextHolder.hasRole(ROLE_SUPER_ADMIN);
-    }
-
-    /**
-     * 특정 권한 보유 여부 확인
-     *
-     * <p>SUPER_ADMIN은 모든 권한을 가집니다.
-     *
-     * @param permission 확인할 권한 (예: seller:read, scheduler:create)
-     * @return 권한이 있으면 true
-     */
-    public boolean hasPermission(String permission) {
-        if (superAdmin()) {
-            return true;
-        }
-        return SecurityContextHolder.hasPermission(permission);
-    }
-
-    /**
-     * 여러 권한 중 하나라도 보유 여부 확인
-     *
-     * <p>SUPER_ADMIN은 모든 권한을 가집니다.
-     *
-     * @param permissions 확인할 권한들
-     * @return 하나라도 있으면 true
-     */
-    public boolean hasAnyPermission(String... permissions) {
-        if (superAdmin()) {
-            return true;
-        }
-        return SecurityContextHolder.hasAnyPermission(permissions);
-    }
-
-    /**
-     * 모든 권한 보유 여부 확인
-     *
-     * <p>SUPER_ADMIN은 모든 권한을 가집니다.
-     *
-     * @param permissions 확인할 권한들
-     * @return 모두 있으면 true
-     */
-    public boolean hasAllPermissions(String... permissions) {
-        if (superAdmin()) {
-            return true;
-        }
-        return SecurityContextHolder.hasAllPermissions(permissions);
-    }
-
-    /**
-     * 특정 역할 보유 여부 확인
-     *
-     * @param role 확인할 역할 (예: ROLE_ADMIN)
-     * @return 역할이 있으면 true
-     */
-    public boolean hasRole(String role) {
-        return SecurityContextHolder.hasRole(role);
-    }
-
-    /**
-     * 여러 역할 중 하나라도 보유 여부 확인
-     *
-     * @param roles 확인할 역할들
-     * @return 하나라도 있으면 true
-     */
-    public boolean hasAnyRole(String... roles) {
-        return SecurityContextHolder.hasAnyRole(roles);
-    }
-
-    /**
-     * 인증된 사용자인지 확인
-     *
-     * @return 인증되었으면 true
-     */
-    public boolean authenticated() {
-        return SecurityContextHolder.isAuthenticated();
-    }
+    // SDK의 BaseAccessChecker가 superAdmin(), hasPermission(), hasRole(),
+    // hasAnyPermission(), hasAllPermissions(), hasAnyRole(), authenticated(),
+    // sameTenant(), sameOrganization(), myself(), myselfOr(), serviceAccount() 등 제공
+    // 도메인별 확장 메서드가 필요하면 여기에 추가
 }

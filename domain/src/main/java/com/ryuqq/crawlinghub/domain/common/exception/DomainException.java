@@ -75,6 +75,18 @@ public class DomainException extends RuntimeException {
     }
 
     /**
+     * Constructor - ErrorCode + 원인 예외
+     *
+     * @param errorCode 에러 코드 (필수)
+     * @param cause 원인 예외
+     */
+    protected DomainException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
+        this.args = Collections.emptyMap();
+    }
+
+    /**
      * 에러 코드 객체 반환
      *
      * @return ErrorCode 객체

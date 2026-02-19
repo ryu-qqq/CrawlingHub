@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.execution.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.execution.CrawlExecutionEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.query.SearchCrawlExecutionsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.response.CrawlExecutionApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.execution.dto.response.CrawlExecutionDetailApiResponse;
@@ -67,7 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Executions.BASE)
+@RequestMapping(CrawlExecutionEndpoints.BASE)
 @Validated
 @Tag(name = "Execution", description = "크롤 실행 기록 API")
 public class CrawlExecutionQueryController {
@@ -119,6 +120,7 @@ public class CrawlExecutionQueryController {
      */
     @GetMapping
     @PreAuthorize("@access.hasPermission('execution:read')")
+    @RequirePermission(value = "execution:read", description = "크롤 실행 이력 목록 조회")
     @Operation(
             summary = "크롤 실행 기록 목록 조회",
             description = "크롤 실행 기록 목록을 필터링 및 페이징하여 조회합니다. execution:read 권한이 필요합니다.",
@@ -156,7 +158,7 @@ public class CrawlExecutionQueryController {
                 mapper.toPageApiResponse(useCaseResponse);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -179,8 +181,9 @@ public class CrawlExecutionQueryController {
      * @param id CrawlExecution ID
      * @return CrawlExecution 상세 정보 (200 OK)
      */
-    @GetMapping(ApiPaths.Executions.BY_ID)
+    @GetMapping(CrawlExecutionEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('execution:read')")
+    @RequirePermission(value = "execution:read", description = "크롤 실행 이력 상세 조회")
     @Operation(
             summary = "크롤 실행 기록 상세 조회",
             description = "크롤 실행 기록 ID로 상세 정보를 조회합니다. execution:read 권한이 필요합니다.",
@@ -221,6 +224,6 @@ public class CrawlExecutionQueryController {
         CrawlExecutionDetailApiResponse apiResponse = mapper.toDetailApiResponse(useCaseResponse);
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

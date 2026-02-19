@@ -1,0 +1,14 @@
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+  cache:
+    disabled: false
+
+api:
+  server:
+    url: ${API_SERVER_URL:}
+  error:
+    base-url: ${API_ERROR_DOCS_URL:https://api.example.com/problems}
+    use-about-blank: false

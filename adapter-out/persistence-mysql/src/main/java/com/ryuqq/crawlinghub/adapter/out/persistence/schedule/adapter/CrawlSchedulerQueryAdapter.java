@@ -5,8 +5,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedu
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerQueryDslRepository;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
@@ -82,7 +82,7 @@ public class CrawlSchedulerQueryAdapter implements CrawlScheduleQueryPort {
      * @return CrawlScheduler Domain 목록
      */
     @Override
-    public List<CrawlScheduler> findByCriteria(CrawlSchedulerQueryCriteria criteria) {
+    public List<CrawlScheduler> findByCriteria(CrawlSchedulerPageCriteria criteria) {
         List<CrawlSchedulerJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
         return entities.stream().map(mapper::toDomain).toList();
     }
@@ -94,7 +94,7 @@ public class CrawlSchedulerQueryAdapter implements CrawlScheduleQueryPort {
      * @return CrawlScheduler 개수
      */
     @Override
-    public long count(CrawlSchedulerQueryCriteria criteria) {
+    public long count(CrawlSchedulerPageCriteria criteria) {
         return queryDslRepository.countByCriteria(criteria);
     }
 

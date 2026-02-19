@@ -2,12 +2,12 @@ package com.ryuqq.crawlinghub.application.task.factory.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
@@ -41,11 +41,11 @@ import org.springframework.stereotype.Component;
 public class CrawlTaskCommandFactory {
 
     private final ObjectMapper objectMapper;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
-    public CrawlTaskCommandFactory(ObjectMapper objectMapper, ClockHolder clockHolder) {
+    public CrawlTaskCommandFactory(ObjectMapper objectMapper, TimeProvider timeProvider) {
         this.objectMapper = objectMapper;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -73,7 +73,7 @@ public class CrawlTaskCommandFactory {
                         scheduler.getSellerId(),
                         CrawlTaskType.SEARCH,
                         endpoint,
-                        clockHolder.getClock());
+                        timeProvider.now());
 
         String outboxPayload = toOutboxPayload(crawlTask, scheduler);
         return CrawlTaskBundle.of(crawlTask, outboxPayload);
@@ -95,7 +95,7 @@ public class CrawlTaskCommandFactory {
                         SellerId.of(command.sellerId()),
                         command.taskType(),
                         endpoint,
-                        clockHolder.getClock());
+                        timeProvider.now());
 
         String outboxPayload = toOutboxPayload(crawlTask);
         return CrawlTaskBundle.of(crawlTask, outboxPayload);

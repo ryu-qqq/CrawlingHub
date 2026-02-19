@@ -7,7 +7,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.component.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.factory.SyncOutboxFactory;
 import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
@@ -20,9 +20,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,8 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RequestSyncService 테스트")
 class RequestSyncServiceTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
 
     @Mock private SyncOutboxFactory syncOutboxFactory;
 
@@ -73,7 +70,7 @@ class RequestSyncServiceTest {
                             outbox.getItemNo(),
                             outbox.getIdempotencyKey(),
                             ExternalSyncRequestedEvent.SyncType.CREATE,
-                            FIXED_CLOCK.instant());
+                            FIXED_INSTANT);
             SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
 
             given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
@@ -111,7 +108,7 @@ class RequestSyncServiceTest {
                             outbox.getItemNo(),
                             outbox.getIdempotencyKey(),
                             ExternalSyncRequestedEvent.SyncType.UPDATE,
-                            FIXED_CLOCK.instant());
+                            FIXED_INSTANT);
             SyncOutboxBundle bundle = new SyncOutboxBundle(outbox, event);
 
             given(syncOutboxFactory.createBundle(any())).willReturn(Optional.of(bundle));
@@ -178,7 +175,7 @@ class RequestSyncServiceTest {
 
     /** 동기화 준비 완료된 CrawledProduct 생성 - MINI_SHOP, DETAIL, OPTION 모두 크롤링 완료 - needsSync = true */
     private CrawledProduct createSyncReadyProduct(Long externalProductId) {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(1L),
                 SellerId.of(100L),
@@ -206,7 +203,7 @@ class RequestSyncServiceTest {
 
     /** needsSync=false인 CrawledProduct 생성 */
     private CrawledProduct createNotNeedsSyncProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(2L),
                 SellerId.of(100L),
@@ -234,7 +231,7 @@ class RequestSyncServiceTest {
 
     /** 크롤링 미완료 CrawledProduct 생성 (MINI_SHOP만 완료) */
     private CrawledProduct createCrawlingIncompleteProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(3L),
                 SellerId.of(100L),

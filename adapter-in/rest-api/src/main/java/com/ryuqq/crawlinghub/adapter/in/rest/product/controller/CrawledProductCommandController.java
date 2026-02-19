@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.product.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.product.CrawledProductEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.dto.response.ManualSyncTriggerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.product.mapper.CrawledProductCommandApiMapper;
 import com.ryuqq.crawlinghub.application.product.dto.command.TriggerManualSyncCommand;
@@ -38,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.CrawledProducts.BASE)
+@RequestMapping(CrawledProductEndpoints.BASE)
 @Validated
 @Tag(name = "CrawledProduct", description = "크롤링 상품 관리 API")
 public class CrawledProductCommandController {
@@ -75,8 +76,9 @@ public class CrawledProductCommandController {
      * @param id CrawledProduct ID
      * @return 동기화 트리거 결과 (200 OK)
      */
-    @PostMapping(ApiPaths.CrawledProducts.SYNC)
+    @PostMapping(CrawledProductEndpoints.SYNC)
     @PreAuthorize("@access.hasPermission('product:update')")
+    @RequirePermission(value = "product:update", description = "크롤 상품 수동 동기화")
     @Operation(
             summary = "수동 동기화 트리거",
             description =
@@ -117,6 +119,6 @@ public class CrawledProductCommandController {
         TriggerManualSyncCommand command = mapper.toTriggerManualSyncCommand(id);
         ManualSyncTriggerResponse useCaseResponse = triggerManualSyncUseCase.execute(command);
         ManualSyncTriggerApiResponse apiResponse = mapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

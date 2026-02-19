@@ -15,7 +15,7 @@ import com.ryuqq.crawlinghub.application.dashboard.dto.response.DashboardStatsRe
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
@@ -68,7 +68,7 @@ class GetDashboardStatsServiceTest {
 
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(todayStats);
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class)))
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class)))
                     .willReturn(50L, 40L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(10L, 100L, 5L);
@@ -103,7 +103,7 @@ class GetDashboardStatsServiceTest {
 
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(todayStats);
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -129,7 +129,7 @@ class GetDashboardStatsServiceTest {
 
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(stats);
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -151,7 +151,7 @@ class GetDashboardStatsServiceTest {
 
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(emptyStats);
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -174,7 +174,7 @@ class GetDashboardStatsServiceTest {
 
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(dailyStats);
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -199,7 +199,7 @@ class GetDashboardStatsServiceTest {
             // Given
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(Collections.emptyMap());
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class)))
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class)))
                     .willReturn(100L, 75L); // total, active
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
@@ -222,7 +222,7 @@ class GetDashboardStatsServiceTest {
             // Given
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(Collections.emptyMap());
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(50L, 200L, 10L); // pending, sent, failed
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -244,7 +244,7 @@ class GetDashboardStatsServiceTest {
             // Given
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(Collections.emptyMap());
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -264,7 +264,7 @@ class GetDashboardStatsServiceTest {
             // Given
             given(taskQueryPort.countByStatus(any(CrawlTaskStatisticsCriteria.class)))
                     .willReturn(Collections.emptyMap());
-            given(scheduleQueryPort.count(any(CrawlSchedulerQueryCriteria.class))).willReturn(0L);
+            given(scheduleQueryPort.count(any(CrawlSchedulerPageCriteria.class))).willReturn(0L);
             given(outboxQueryPort.countByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(0L);
             given(taskQueryPort.findByCriteria(any(CrawlTaskCriteria.class)))
@@ -277,7 +277,7 @@ class GetDashboardStatsServiceTest {
             then(taskQueryPort).should().findByCriteria(any(CrawlTaskCriteria.class));
             then(scheduleQueryPort)
                     .should(atLeastOnce())
-                    .count(any(CrawlSchedulerQueryCriteria.class));
+                    .count(any(CrawlSchedulerPageCriteria.class));
             then(outboxQueryPort)
                     .should(atLeastOnce())
                     .countByCriteria(any(CrawlTaskOutboxCriteria.class));
