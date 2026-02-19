@@ -4,7 +4,6 @@ import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -71,9 +70,8 @@ public class CrawledProductSyncOutbox {
 
     /** 신규 등록용 Outbox 생성 */
     public static CrawledProductSyncOutbox forCreate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Clock clock) {
+            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Instant now) {
         String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.CREATE);
-        Instant now = clock.instant();
         return new CrawledProductSyncOutbox(
                 null,
                 crawledProductId,
@@ -95,12 +93,11 @@ public class CrawledProductSyncOutbox {
             SellerId sellerId,
             long itemNo,
             Long externalProductId,
-            Clock clock) {
+            Instant now) {
         if (externalProductId == null) {
             throw new IllegalArgumentException("갱신 시 externalProductId는 필수입니다.");
         }
         String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.UPDATE);
-        Instant now = clock.instant();
         return new CrawledProductSyncOutbox(
                 null,
                 crawledProductId,
@@ -162,11 +159,11 @@ public class CrawledProductSyncOutbox {
     /**
      * 처리 시작 (API 호출 시작)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsProcessing(Clock clock) {
+    public void markAsProcessing(Instant now) {
         this.status = ProductOutboxStatus.PROCESSING;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /**
@@ -174,11 +171,11 @@ public class CrawledProductSyncOutbox {
      *
      * <p>PENDING/FAILED → SENT 상태 전환
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsSent(Clock clock) {
+    public void markAsSent(Instant now) {
         this.status = ProductOutboxStatus.SENT;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
         this.errorMessage = null;
     }
 
@@ -195,9 +192,9 @@ public class CrawledProductSyncOutbox {
      * 동기화 완료 (신규 등록 시 외부 ID 저장)
      *
      * @param externalProductId 외부 상품 ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsCompleted(Long externalProductId, Clock clock) {
+    public void markAsCompleted(Long externalProductId, Instant now) {
         if (this.syncType == SyncType.CREATE && externalProductId == null) {
             throw new IllegalArgumentException("신규 등록 완료 시 externalProductId는 필수입니다.");
         }
@@ -205,20 +202,20 @@ public class CrawledProductSyncOutbox {
             this.externalProductId = externalProductId;
         }
         this.status = ProductOutboxStatus.COMPLETED;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /**
      * 처리 실패
      *
      * @param errorMessage 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsFailed(String errorMessage, Clock clock) {
+    public void markAsFailed(String errorMessage, Instant now) {
         this.status = ProductOutboxStatus.FAILED;
         this.retryCount++;
         this.errorMessage = errorMessage;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */
@@ -262,10 +259,10 @@ public class CrawledProductSyncOutbox {
      * <p>Outbox의 데이터를 기반으로 ExternalSyncRequestedEvent를 생성합니다. 이벤트 발행은 TransactionEventRegistry를 통해
      * 트랜잭션 커밋 후에 수행되어야 합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 동기화 요청 이벤트
      */
-    public ExternalSyncRequestedEvent createSyncRequestedEvent(Clock clock) {
+    public ExternalSyncRequestedEvent createSyncRequestedEvent(Instant now) {
         ExternalSyncRequestedEvent.SyncType eventSyncType = mapToEventSyncType();
         return new ExternalSyncRequestedEvent(
                 this.crawledProductId,
@@ -273,7 +270,7 @@ public class CrawledProductSyncOutbox {
                 this.itemNo,
                 this.idempotencyKey,
                 eventSyncType,
-                clock.instant());
+                now);
     }
 
     private ExternalSyncRequestedEvent.SyncType mapToEventSyncType() {

@@ -9,14 +9,14 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -47,11 +47,11 @@ class CrawlTaskOutboxRetrySchedulerTest {
 
     @Mock private CrawlTaskMessageManager crawlTaskMessageManager;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private CrawlTaskOutboxRetryScheduler scheduler;
 
-    private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant FIXED_INSTANT = FixedClock.aDefaultClock().instant();
 
     @Nested
     @DisplayName("processOutbox() 테스트")
@@ -67,14 +67,15 @@ class CrawlTaskOutboxRetrySchedulerTest {
 
             given(outboxQueryPort.findByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(outboxes);
-            given(clockHolder.getClock()).willReturn(FIXED_CLOCK);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When
             scheduler.processOutbox();
 
             // Then
             verify(outboxQueryPort).findByCriteria(any(CrawlTaskOutboxCriteria.class));
-            verify(crawlTaskTransactionManager, times(2)).markAsPublished(any(), any(Clock.class));
+            verify(crawlTaskTransactionManager, times(2))
+                    .markAsPublished(any(), any(Instant.class));
             verify(crawlTaskMessageManager, times(2)).publishFromOutbox(any());
             verify(outboxTransactionManager, times(2)).markAsSent(any());
             verify(outboxTransactionManager, never()).markAsFailed(any());
@@ -106,7 +107,7 @@ class CrawlTaskOutboxRetrySchedulerTest {
 
             given(outboxQueryPort.findByCriteria(any(CrawlTaskOutboxCriteria.class)))
                     .willReturn(outboxes);
-            given(clockHolder.getClock()).willReturn(FIXED_CLOCK);
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
             doThrow(new RuntimeException("SQS publish error"))
                     .when(crawlTaskMessageManager)
                     .publishFromOutbox(outbox);
@@ -116,7 +117,7 @@ class CrawlTaskOutboxRetrySchedulerTest {
 
             // Then
             verify(outboxQueryPort).findByCriteria(any(CrawlTaskOutboxCriteria.class));
-            verify(crawlTaskTransactionManager).markAsPublished(any(), any(Clock.class));
+            verify(crawlTaskTransactionManager).markAsPublished(any(), any(Instant.class));
             verify(crawlTaskMessageManager).publishFromOutbox(outbox);
             verify(outboxTransactionManager, never()).markAsSent(any());
             verify(outboxTransactionManager).markAsFailed(outbox);

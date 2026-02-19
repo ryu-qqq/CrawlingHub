@@ -70,7 +70,7 @@ public class DeactivateSchedulersBySellerService implements DeactivateSchedulers
 
         log.info("Deactivating {} schedulers for sellerId={}", activeSchedulers.size(), sellerId);
 
-        // 2. Facade에서 비활성화 + 저장 + 이벤트 발행 (ClockHolder 캡슐화)
+        // 2. Facade에서 비활성화 + 저장 + 이벤트 발행 (TimeProvider 캡슐화)
         crawlerSchedulerFacade.deactivateSchedulers(activeSchedulers);
 
         log.info(

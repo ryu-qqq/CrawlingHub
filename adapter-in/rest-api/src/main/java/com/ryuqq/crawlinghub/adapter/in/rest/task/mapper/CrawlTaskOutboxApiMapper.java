@@ -115,7 +115,13 @@ public class CrawlTaskOutboxApiMapper {
      */
     public PageApiResponse<CrawlTaskOutboxApiResponse> toPageApiResponse(
             PageResponse<OutboxResponse> appPageResponse) {
-        return PageApiResponse.from(appPageResponse, this::toApiResponse);
+        List<CrawlTaskOutboxApiResponse> content =
+                appPageResponse.content().stream().map(this::toApiResponse).toList();
+        return PageApiResponse.of(
+                content,
+                appPageResponse.page(),
+                appPageResponse.size(),
+                appPageResponse.totalElements());
     }
 
     /**

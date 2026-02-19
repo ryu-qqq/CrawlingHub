@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.webhook.controller;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.webhook.WebhookEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.webhook.dto.command.ImageUploadWebhookApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.webhook.mapper.WebhookApiMapper;
 import com.ryuqq.crawlinghub.application.image.dto.command.ImageUploadWebhookCommand;
@@ -34,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Tag(name = "Webhook", description = "외부 서비스 웹훅 API")
 @RestController
-@RequestMapping("/api/v1/webhook")
+@RequestMapping(WebhookEndpoints.BASE)
 @Validated
 public class ImageUploadWebhookController {
 
@@ -70,7 +71,7 @@ public class ImageUploadWebhookController {
                 responseCode = "404",
                 description = "Outbox를 찾을 수 없음")
     })
-    @PostMapping("/image-upload")
+    @PostMapping(WebhookEndpoints.IMAGE_UPLOAD)
     public ResponseEntity<ApiResponse<Void>> handleImageUploadWebhook(
             @RequestBody @Valid ImageUploadWebhookApiRequest request) {
 
@@ -82,6 +83,6 @@ public class ImageUploadWebhookController {
         ImageUploadWebhookCommand command = webhookApiMapper.toCommand(request);
         handleImageUploadWebhookUseCase.execute(command);
 
-        return ResponseEntity.ok(ApiResponse.ofSuccess());
+        return ResponseEntity.ok(ApiResponse.of());
     }
 }

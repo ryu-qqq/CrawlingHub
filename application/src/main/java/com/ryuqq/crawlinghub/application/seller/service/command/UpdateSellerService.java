@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
  *   <li>두 Seller 객체 비교로 변경 감지
  *   <li>Tell, Don't Ask 패턴: Seller.update()가 내부적으로 판단
  *   <li>Domain Event 수집 및 발행 (비활성화 시 스케줄러 중지)
- *   <li>ClockHolder 의존성 없음 (Facade → Manager가 관리)
+ *   <li>TimeProvider 의존성 없음 (Facade → Manager가 관리)
  * </ul>
  *
  * @author development-team
@@ -68,7 +68,7 @@ public class UpdateSellerService implements UpdateSellerUseCase {
             validateSellerNameDuplicate(requestedSeller, existingSeller.getSellerId());
         }
 
-        // 4. Domain 로직 + 영속화 (Facade가 ClockHolder 관리)
+        // 4. Domain 로직 + 영속화 (Facade가 TimeProvider 관리)
         Seller updatedSeller =
                 sellerCommandFacade.update(
                         existingSeller,

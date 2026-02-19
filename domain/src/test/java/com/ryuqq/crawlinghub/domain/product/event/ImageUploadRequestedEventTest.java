@@ -6,9 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent.ImageUploadTarget;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +21,6 @@ import org.junit.jupiter.api.Test;
 class ImageUploadRequestedEventTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2024-01-15T10:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
 
     @Nested
@@ -162,7 +159,7 @@ class ImageUploadRequestedEventTest {
 
             // When
             ImageUploadRequestedEvent event =
-                    ImageUploadRequestedEvent.of(PRODUCT_ID, targets, FIXED_CLOCK);
+                    ImageUploadRequestedEvent.of(PRODUCT_ID, targets, FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -188,7 +185,7 @@ class ImageUploadRequestedEventTest {
             // When
             ImageUploadRequestedEvent event =
                     ImageUploadRequestedEvent.ofUrls(
-                            PRODUCT_ID, imageUrls, ImageType.THUMBNAIL, FIXED_CLOCK);
+                            PRODUCT_ID, imageUrls, ImageType.THUMBNAIL, FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);

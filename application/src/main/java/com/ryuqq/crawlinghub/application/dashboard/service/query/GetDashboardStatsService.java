@@ -10,7 +10,8 @@ import com.ryuqq.crawlinghub.application.dashboard.port.in.query.GetDashboardSta
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
@@ -130,11 +131,15 @@ public class GetDashboardStatsService implements GetDashboardStatsUseCase {
 
     /** 스케줄 통계 조회 */
     private ScheduleStats getScheduleStats() {
-        CrawlSchedulerQueryCriteria allCriteria =
-                new CrawlSchedulerQueryCriteria(null, null, null, null, 0, Integer.MAX_VALUE);
-        CrawlSchedulerQueryCriteria activeCriteria =
-                new CrawlSchedulerQueryCriteria(
-                        null, List.of(SchedulerStatus.ACTIVE), null, null, 0, Integer.MAX_VALUE);
+        CrawlSchedulerPageCriteria allCriteria =
+                CrawlSchedulerPageCriteria.of(
+                        null, null, null, PageRequest.first(PageRequest.MAX_SIZE));
+        CrawlSchedulerPageCriteria activeCriteria =
+                CrawlSchedulerPageCriteria.of(
+                        null,
+                        List.of(SchedulerStatus.ACTIVE),
+                        null,
+                        PageRequest.first(PageRequest.MAX_SIZE));
 
         long total = scheduleQueryPort.count(allCriteria);
         long active = scheduleQueryPort.count(activeCriteria);

@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.seller.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -31,11 +30,11 @@ public record SellerDeActiveEvent(SellerId sellerId, Instant occurredAt) impleme
      * 팩토리 메서드 (도메인 규칙)
      *
      * @param sellerId 셀러 ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return SellerDeActiveEvent
      */
-    public static SellerDeActiveEvent of(SellerId sellerId, Clock clock) {
-        return new SellerDeActiveEvent(sellerId, clock.instant());
+    public static SellerDeActiveEvent of(SellerId sellerId, Instant now) {
+        return new SellerDeActiveEvent(sellerId, now);
     }
 
     public long getSellerIdValue() {

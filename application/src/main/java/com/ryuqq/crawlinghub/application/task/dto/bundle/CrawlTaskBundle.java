@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.task.dto.bundle;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import java.time.Clock;
+import java.time.Instant;
 
 /**
  * CrawlTask 번들 DTO (Immutable)
@@ -72,11 +72,11 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
      *
      * <p><strong>주의</strong>: 이 메서드는 등록 이벤트를 자동 발행합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlTask with ID (이벤트 발행됨)
      * @throws IllegalStateException ID가 아직 할당되지 않은 경우
      */
-    public CrawlTask getSavedCrawlTask(Clock clock) {
+    public CrawlTask getSavedCrawlTask(Instant now) {
         if (savedTaskId == null) {
             throw new IllegalStateException("CrawlTask ID가 아직 할당되지 않았습니다.");
         }
@@ -95,7 +95,7 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
 
         // 이벤트에도 taskId가 포함된 payload 전달 (SQS 발행 시 사용됨)
         String enrichedPayload = enrichPayloadWithTaskId(outboxPayload, savedTaskId.value());
-        savedTask.addRegisteredEvent(enrichedPayload, clock);
+        savedTask.addRegisteredEvent(enrichedPayload, now);
         return savedTask;
     }
 
@@ -104,16 +104,16 @@ public record CrawlTaskBundle(CrawlTask crawlTask, String outboxPayload, CrawlTa
      *
      * <p>페이로드에 taskId를 자동으로 추가합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlTaskOutbox
      * @throws IllegalStateException Task ID가 아직 할당되지 않은 경우
      */
-    public CrawlTaskOutbox createOutbox(Clock clock) {
+    public CrawlTaskOutbox createOutbox(Instant now) {
         if (savedTaskId == null) {
             throw new IllegalStateException("CrawlTask ID가 아직 할당되지 않았습니다.");
         }
         String enrichedPayload = enrichPayloadWithTaskId(outboxPayload, savedTaskId.value());
-        return CrawlTaskOutbox.forNew(savedTaskId, enrichedPayload, clock);
+        return CrawlTaskOutbox.forNew(savedTaskId, enrichedPayload, now);
     }
 
     /**

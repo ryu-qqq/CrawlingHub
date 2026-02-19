@@ -11,15 +11,14 @@ import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.execution.port.out.command.CrawlExecutionPersistencePort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,14 +42,14 @@ class CrawlExecutionTransactionManagerTest {
 
     @Mock private CrawlExecutionPersistencePort crawlExecutionPersistencePort;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private CrawlExecutionTransactionManager manager;
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = FixedClock.aDefaultClock();
-        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
+        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested

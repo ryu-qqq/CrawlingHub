@@ -44,8 +44,7 @@ import org.junit.jupiter.api.Test;
  * │   ├── exception/         # Base Exception
  * │   │   ├── DomainException.java
  * │   │   └── ErrorCode.java
- * │   └── util/              # Utilities (DIP)
- * │       └── ClockHolder.java
+ * │   └── vo/                # Common Value Objects
  * │
  * └── {boundedContext}/      # 각 Bounded Context
  *     ├── aggregate/         # Aggregate Root + 내부 Entity
@@ -134,9 +133,8 @@ class PackageStructureArchTest {
                         .because(
                                 "domain.common.util 패키지는 Utility 인터페이스만 포함해야 합니다 (DIP)\n"
                                     + "예시:\n"
-                                    + "  - ClockHolder.java ✅ (interface, 구현은 Application Layer)\n"
-                                    + "  - SystemClockHolder.java ❌ (concrete class, Application"
-                                    + " Layer에 위치해야 함)");
+                                    + "  - 유틸리티 인터페이스 ✅ (interface, 구현은 Application Layer)\n"
+                                    + "  - 구현 클래스 ❌ (concrete class, Application Layer에 위치해야 함)");
 
         rule.check(classes);
     }

@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.ResetCircuitBreakerUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import java.util.List;
@@ -30,17 +30,17 @@ public class ResetCircuitBreakerService implements ResetCircuitBreakerUseCase {
     private final UserAgentPoolCacheManager cacheManager;
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public ResetCircuitBreakerService(
             UserAgentPoolCacheManager cacheManager,
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.cacheManager = cacheManager;
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ResetCircuitBreakerService implements ResetCircuitBreakerUseCase {
             }
 
             // Domain 로직 실행
-            userAgent.recover(clockHolder.getClock());
+            userAgent.recover(timeProvider.now());
 
             // Redis Pool 복구
             String userAgentValue = userAgent.getUserAgentString().value();

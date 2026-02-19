@@ -6,9 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -26,7 +24,6 @@ import org.junit.jupiter.api.Test;
 class ProductImageOutboxTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final String ORIGINAL_URL = "https://example.com/image.jpg";
 
@@ -51,7 +48,7 @@ class ProductImageOutboxTest {
                             null);
 
             // When
-            ProductImageOutbox outbox = ProductImageOutbox.forNew(savedImage, FIXED_CLOCK);
+            ProductImageOutbox outbox = ProductImageOutbox.forNew(savedImage, FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getId()).isNull();
@@ -70,10 +67,10 @@ class ProductImageOutboxTest {
             // Given
             CrawledProductImage unsavedImage =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // When & Then
-            assertThatThrownBy(() -> ProductImageOutbox.forNew(unsavedImage, FIXED_CLOCK))
+            assertThatThrownBy(() -> ProductImageOutbox.forNew(unsavedImage, FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("먼저 저장");
         }
@@ -88,7 +85,7 @@ class ProductImageOutboxTest {
         void shouldCreateNewOutboxWithImageId() {
             // When
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getId()).isNull();
@@ -137,11 +134,11 @@ class ProductImageOutboxTest {
         void shouldMarkAsProcessing() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
-            outbox.markAsProcessing(laterClock);
+            outbox.markAsProcessing(laterInstant);
 
             // Then
             assertThat(outbox.getStatus()).isEqualTo(ProductOutboxStatus.PROCESSING);
@@ -154,12 +151,12 @@ class ProductImageOutboxTest {
         void shouldMarkAsCompleted() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsProcessing(FIXED_CLOCK);
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T02:00:00Z"), ZoneId.of("UTC"));
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsProcessing(FIXED_INSTANT);
+            Instant laterInstant = Instant.parse("2025-01-01T02:00:00Z");
 
             // When
-            outbox.markAsCompleted(laterClock);
+            outbox.markAsCompleted(laterInstant);
 
             // Then
             assertThat(outbox.getStatus()).isEqualTo(ProductOutboxStatus.COMPLETED);
@@ -172,11 +169,11 @@ class ProductImageOutboxTest {
         void shouldMarkAsFailed() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsProcessing(FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsProcessing(FIXED_INSTANT);
 
             // When
-            outbox.markAsFailed("Network timeout", FIXED_CLOCK);
+            outbox.markAsFailed("Network timeout", FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getStatus()).isEqualTo(ProductOutboxStatus.FAILED);
@@ -190,12 +187,12 @@ class ProductImageOutboxTest {
         void shouldIncrementRetryCountOnMultipleFailures() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
 
             // When
-            outbox.markAsFailed("Error 1", FIXED_CLOCK);
-            outbox.markAsFailed("Error 2", FIXED_CLOCK);
-            outbox.markAsFailed("Error 3", FIXED_CLOCK);
+            outbox.markAsFailed("Error 1", FIXED_INSTANT);
+            outbox.markAsFailed("Error 2", FIXED_INSTANT);
+            outbox.markAsFailed("Error 3", FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getRetryCount()).isEqualTo(3);
@@ -212,8 +209,8 @@ class ProductImageOutboxTest {
         void shouldResetToPendingWhenCanRetry() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsFailed("Error", FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsFailed("Error", FIXED_INSTANT);
 
             // When
             outbox.resetToPending();
@@ -230,10 +227,10 @@ class ProductImageOutboxTest {
         void shouldNotResetWhenCannotRetry() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsFailed("Error 1", FIXED_CLOCK);
-            outbox.markAsFailed("Error 2", FIXED_CLOCK);
-            outbox.markAsFailed("Error 3", FIXED_CLOCK); // MAX_RETRY_COUNT = 3
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsFailed("Error 1", FIXED_INSTANT);
+            outbox.markAsFailed("Error 2", FIXED_INSTANT);
+            outbox.markAsFailed("Error 3", FIXED_INSTANT); // MAX_RETRY_COUNT = 3
 
             // When
             outbox.resetToPending();
@@ -253,7 +250,7 @@ class ProductImageOutboxTest {
         void shouldAllowRetryWhenRetryCountIsZero() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
 
             // Then
             assertThat(outbox.canRetry()).isTrue();
@@ -264,9 +261,9 @@ class ProductImageOutboxTest {
         void shouldAllowRetryWhenRetryCountIsLessThanMax() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsFailed("Error 1", FIXED_CLOCK);
-            outbox.markAsFailed("Error 2", FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsFailed("Error 1", FIXED_INSTANT);
+            outbox.markAsFailed("Error 2", FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getRetryCount()).isEqualTo(2);
@@ -278,10 +275,10 @@ class ProductImageOutboxTest {
         void shouldNotAllowRetryWhenRetryCountReachesMax() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsFailed("Error 1", FIXED_CLOCK);
-            outbox.markAsFailed("Error 2", FIXED_CLOCK);
-            outbox.markAsFailed("Error 3", FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsFailed("Error 1", FIXED_INSTANT);
+            outbox.markAsFailed("Error 2", FIXED_INSTANT);
+            outbox.markAsFailed("Error 3", FIXED_INSTANT);
 
             // Then
             assertThat(outbox.getRetryCount()).isEqualTo(3);
@@ -298,7 +295,7 @@ class ProductImageOutboxTest {
         void shouldCheckPendingStatus() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
 
             // Then
             assertThat(outbox.isPending()).isTrue();
@@ -311,8 +308,8 @@ class ProductImageOutboxTest {
         void shouldCheckCompletedStatus() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsCompleted(FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsCompleted(FIXED_INSTANT);
 
             // Then
             assertThat(outbox.isPending()).isFalse();
@@ -325,8 +322,8 @@ class ProductImageOutboxTest {
         void shouldCheckFailedStatus() {
             // Given
             ProductImageOutbox outbox =
-                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_CLOCK);
-            outbox.markAsFailed("Error", FIXED_CLOCK);
+                    ProductImageOutbox.forNewWithImageId(100L, ORIGINAL_URL, FIXED_INSTANT);
+            outbox.markAsFailed("Error", FIXED_INSTANT);
 
             // Then
             assertThat(outbox.isPending()).isFalse();

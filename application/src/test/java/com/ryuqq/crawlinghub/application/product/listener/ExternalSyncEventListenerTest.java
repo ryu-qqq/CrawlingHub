@@ -7,7 +7,6 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
 import com.ryuqq.crawlinghub.application.sync.manager.command.SyncOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.sync.manager.messaging.ProductSyncMessageManager;
@@ -16,7 +15,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +55,7 @@ class ExternalSyncEventListenerTest {
 
     @InjectMocks private ExternalSyncEventListener listener;
 
-    private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-11-27T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -158,6 +157,6 @@ class ExternalSyncEventListenerTest {
 
     private ExternalSyncRequestedEvent createEvent(ExternalSyncRequestedEvent.SyncType syncType) {
         return new ExternalSyncRequestedEvent(
-                PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, syncType, FIXED_CLOCK.instant());
+                PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, syncType, FIXED_INSTANT);
     }
 }

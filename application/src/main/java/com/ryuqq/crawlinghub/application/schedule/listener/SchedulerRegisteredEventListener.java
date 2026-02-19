@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeCli
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlSchedulerOutBoxQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;

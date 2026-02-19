@@ -20,9 +20,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,8 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("ProcessOptionsService 테스트")
 class ProcessOptionsServiceTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -151,15 +148,15 @@ class ProcessOptionsServiceTest {
 
     private OptionCrawlData createOptionCrawlData() {
         ProductOptions productOptions = ProductOptions.from(createProductOptions());
-        return OptionCrawlData.of(productOptions, FIXED_CLOCK.instant());
+        return OptionCrawlData.of(productOptions, FIXED_INSTANT);
     }
 
     private OptionCrawlData createEmptyOptionCrawlData() {
-        return OptionCrawlData.of(ProductOptions.empty(), FIXED_CLOCK.instant());
+        return OptionCrawlData.of(ProductOptions.empty(), FIXED_INSTANT);
     }
 
     private CrawledProduct createMockProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
                 SELLER_ID,
@@ -186,7 +183,7 @@ class ProcessOptionsServiceTest {
     }
 
     private CrawledProduct createUpdatedMockProduct() {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
                 SELLER_ID,

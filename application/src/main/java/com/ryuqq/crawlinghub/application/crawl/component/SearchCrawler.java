@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.application.crawl.component;
 
-import com.ryuqq.crawlinghub.application.common.metrics.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.dto.HttpRequest;
@@ -46,7 +45,6 @@ public class SearchCrawler extends Crawler {
     }
 
     @Override
-    @CrawlMetric(crawlerType = "search")
     public CrawlResult crawl(CrawlContext context) {
         String searchEndpoint = context.buildSearchEndpoint();
 

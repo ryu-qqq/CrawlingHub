@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecoverSingleUserAgentUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -30,17 +30,17 @@ public class RecoverSingleUserAgentService implements RecoverSingleUserAgentUseC
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
     private final UserAgentPoolCacheManager cacheManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public RecoverSingleUserAgentService(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
             UserAgentPoolCacheManager cacheManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
         this.cacheManager = cacheManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class RecoverSingleUserAgentService implements RecoverSingleUserAgentUseC
                 readManager.findById(id).orElseThrow(() -> new UserAgentNotFoundException(id));
 
         // 2. Domain 로직 실행 (SUSPENDED → AVAILABLE, Health 70)
-        userAgent.recover(clockHolder.getClock());
+        userAgent.recover(timeProvider.now());
 
         // 3. Redis Pool에 복구 (세션은 Lazy 발급)
         String userAgentValue = userAgent.getUserAgentString().value();

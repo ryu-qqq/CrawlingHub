@@ -6,7 +6,6 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -19,8 +18,8 @@ import java.time.Instant;
  */
 public final class CrawlExecutionFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
-    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
+    private static final Instant DEFAULT_TIME = DEFAULT_INSTANT;
 
     /**
      * 신규 실행 시작 (ID 미할당, RUNNING 상태)
@@ -32,21 +31,21 @@ public final class CrawlExecutionFixture {
                 CrawlTaskIdFixture.anAssignedId(),
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
-                DEFAULT_CLOCK);
+                DEFAULT_INSTANT);
     }
 
     /**
-     * 신규 실행 시작 (Clock 지정)
+     * 신규 실행 시작 (시간 지정)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return CrawlExecution (ID = null, RUNNING)
      */
-    public static CrawlExecution forNew(Clock clock) {
+    public static CrawlExecution forNew(Instant now) {
         return CrawlExecution.start(
                 CrawlTaskIdFixture.anAssignedId(),
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
-                clock);
+                now);
     }
 
     /**

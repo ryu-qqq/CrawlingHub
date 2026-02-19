@@ -4,7 +4,6 @@ import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -17,8 +16,8 @@ import java.time.Instant;
  */
 public final class CrawlTaskOutboxFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
-    private static final Instant DEFAULT_TIME = DEFAULT_CLOCK.instant();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
+    private static final Instant DEFAULT_TIME = DEFAULT_INSTANT;
 
     private CrawlTaskOutboxFixture() {
         throw new UnsupportedOperationException("Fixture 클래스입니다.");

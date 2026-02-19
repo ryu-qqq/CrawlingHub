@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.task.listener;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
@@ -49,19 +49,19 @@ public class CrawlTaskRegisteredEventListener {
     private final CrawlTaskOutboxQueryPort crawlTaskOutboxQueryPort;
     private final CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager;
     private final CrawlTaskTransactionManager crawlTaskTransactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public CrawlTaskRegisteredEventListener(
             CrawlTaskMessageManager crawlTaskMessageManager,
             CrawlTaskOutboxQueryPort crawlTaskOutboxQueryPort,
             CrawlTaskOutboxTransactionManager crawlTaskOutboxTransactionManager,
             CrawlTaskTransactionManager crawlTaskTransactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.crawlTaskMessageManager = crawlTaskMessageManager;
         this.crawlTaskOutboxQueryPort = crawlTaskOutboxQueryPort;
         this.crawlTaskOutboxTransactionManager = crawlTaskOutboxTransactionManager;
         this.crawlTaskTransactionManager = crawlTaskTransactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -92,7 +92,7 @@ public class CrawlTaskRegisteredEventListener {
         try {
             // 1. CrawlTask 상태 업데이트 (WAITING → PUBLISHED)
             // SQS 발행 전에 상태를 변경하여 Worker의 Race Condition 방지
-            crawlTaskTransactionManager.markAsPublished(crawlTaskId, clockHolder.getClock());
+            crawlTaskTransactionManager.markAsPublished(crawlTaskId, timeProvider.now());
 
             // 2. SQS 메시지 발행
             crawlTaskMessageManager.publishFromEvent(event);

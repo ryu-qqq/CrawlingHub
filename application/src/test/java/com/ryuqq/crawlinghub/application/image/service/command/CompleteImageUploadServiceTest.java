@@ -7,7 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.component.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.query.CrawledProductImageReadManager;
@@ -18,9 +19,7 @@ import com.ryuqq.crawlinghub.domain.product.event.ImageUploadCompletedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CompleteImageUploadServiceTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final Long OUTBOX_ID = 100L;
     private static final Long IMAGE_ID = 1L;
@@ -61,6 +59,8 @@ class CompleteImageUploadServiceTest {
 
     @Mock private TransactionEventRegistry eventRegistry;
 
+    @Mock private TimeProvider timeProvider;
+
     @Captor private ArgumentCaptor<ImageUploadCompletedEvent> eventCaptor;
 
     @Captor private ArgumentCaptor<CrawledProductImage> imageCaptor;
@@ -76,7 +76,8 @@ class CompleteImageUploadServiceTest {
                         imageTransactionManager,
                         outboxTransactionManager,
                         eventRegistry,
-                        FIXED_CLOCK);
+                        timeProvider);
+        given(timeProvider.now()).willReturn(FIXED_INSTANT);
     }
 
     @Nested

@@ -1,12 +1,12 @@
 package com.ryuqq.crawlinghub.application.useragent.scheduler;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,15 +38,15 @@ public class SessionDbStatusUpdater {
 
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public SessionDbStatusUpdater(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -79,10 +79,10 @@ public class SessionDbStatusUpdater {
             log.warn("DB에서 일부 UserAgent를 찾을 수 없음. 누락된 ID: {}", notFoundIds);
         }
 
-        Clock clock = clockHolder.getClock();
+        Instant now = timeProvider.now();
 
         for (UserAgent userAgent : userAgents) {
-            userAgent.changeStatus(UserAgentStatus.READY, clock);
+            userAgent.changeStatus(UserAgentStatus.READY, now);
         }
 
         transactionManager.persistAll(userAgents);

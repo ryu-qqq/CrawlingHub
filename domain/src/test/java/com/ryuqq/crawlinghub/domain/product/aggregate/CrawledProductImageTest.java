@@ -5,9 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -25,7 +23,6 @@ import org.junit.jupiter.api.Test;
 class CrawledProductImageTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final String ORIGINAL_URL = "https://example.com/image.jpg";
     private static final String S3_URL = "https://s3.amazonaws.com/bucket/image.jpg";
@@ -41,7 +38,7 @@ class CrawledProductImageTest {
             // When
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // Then
             assertThat(image.getId()).isNull();
@@ -62,7 +59,7 @@ class CrawledProductImageTest {
             // When
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.DESCRIPTION, 5, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.DESCRIPTION, 5, FIXED_INSTANT);
 
             // Then
             assertThat(image.getImageType()).isEqualTo(ImageType.DESCRIPTION);
@@ -76,7 +73,11 @@ class CrawledProductImageTest {
             assertThatThrownBy(
                             () ->
                                     CrawledProductImage.forNew(
-                                            PRODUCT_ID, null, ImageType.THUMBNAIL, 0, FIXED_CLOCK))
+                                            PRODUCT_ID,
+                                            null,
+                                            ImageType.THUMBNAIL,
+                                            0,
+                                            FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("originalUrl은 필수");
         }
@@ -88,7 +89,11 @@ class CrawledProductImageTest {
             assertThatThrownBy(
                             () ->
                                     CrawledProductImage.forNew(
-                                            PRODUCT_ID, "  ", ImageType.THUMBNAIL, 0, FIXED_CLOCK))
+                                            PRODUCT_ID,
+                                            "  ",
+                                            ImageType.THUMBNAIL,
+                                            0,
+                                            FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("originalUrl은 필수");
         }
@@ -155,12 +160,12 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
-            Clock laterClock = Clock.fixed(Instant.parse("2025-01-01T01:00:00Z"), ZoneId.of("UTC"));
+            Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
 
             // When
-            image.completeUpload(S3_URL, FILE_ASSET_ID, laterClock);
+            image.completeUpload(S3_URL, FILE_ASSET_ID, laterInstant);
 
             // Then
             assertThat(image.getS3Url()).isEqualTo(S3_URL);
@@ -175,10 +180,10 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // When
-            image.completeUpload(S3_URL, null, FIXED_CLOCK);
+            image.completeUpload(S3_URL, null, FIXED_INSTANT);
 
             // Then
             assertThat(image.getS3Url()).isEqualTo(S3_URL);
@@ -192,10 +197,10 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // When & Then
-            assertThatThrownBy(() -> image.completeUpload(null, FILE_ASSET_ID, FIXED_CLOCK))
+            assertThatThrownBy(() -> image.completeUpload(null, FILE_ASSET_ID, FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("s3Url은 필수");
         }
@@ -206,10 +211,10 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // When & Then
-            assertThatThrownBy(() -> image.completeUpload("  ", FILE_ASSET_ID, FIXED_CLOCK))
+            assertThatThrownBy(() -> image.completeUpload("  ", FILE_ASSET_ID, FIXED_INSTANT))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("s3Url은 필수");
         }
@@ -225,7 +230,7 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // Then
             assertThat(image.isThumbnail()).isTrue();
@@ -238,7 +243,7 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.DESCRIPTION, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.DESCRIPTION, 0, FIXED_INSTANT);
 
             // Then
             assertThat(image.isThumbnail()).isFalse();
@@ -256,7 +261,7 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
 
             // Then
             assertThat(image.isUploaded()).isFalse();
@@ -268,8 +273,8 @@ class CrawledProductImageTest {
             // Given
             CrawledProductImage image =
                     CrawledProductImage.forNew(
-                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_CLOCK);
-            image.completeUpload(S3_URL, FILE_ASSET_ID, FIXED_CLOCK);
+                            PRODUCT_ID, ORIGINAL_URL, ImageType.THUMBNAIL, 0, FIXED_INSTANT);
+            image.completeUpload(S3_URL, FILE_ASSET_ID, FIXED_INSTANT);
 
             // Then
             assertThat(image.isUploaded()).isTrue();

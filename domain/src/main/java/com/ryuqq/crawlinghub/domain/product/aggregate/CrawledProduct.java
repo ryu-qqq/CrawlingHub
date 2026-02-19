@@ -12,7 +12,6 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -136,7 +135,7 @@ public class CrawledProduct {
      * @param price 가격 정보
      * @param images 이미지 목록
      * @param freeShipping 무료 배송 여부
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 CrawledProduct
      */
     public static CrawledProduct fromMiniShop(
@@ -147,8 +146,7 @@ public class CrawledProduct {
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new CrawledProduct(
                 CrawledProductId.unassigned(),
                 sellerId,
@@ -268,7 +266,7 @@ public class CrawledProduct {
      * @param price 가격 정보
      * @param images 이미지 목록
      * @param freeShipping 무료 배송 여부
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
     public void updateFromMiniShop(
             String itemName,
@@ -276,10 +274,9 @@ public class CrawledProduct {
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
-            Clock clock) {
+            Instant now) {
         boolean hasChanges = detectMiniShopChanges(itemName, brandName, price, images);
 
-        Instant now = clock.instant();
         this.itemName = itemName;
         this.brandName = brandName;
         this.price = price;
@@ -325,7 +322,7 @@ public class CrawledProduct {
      * @param originCountry 원산지
      * @param shippingLocation 배송 출발지
      * @param descriptionImages 상세 설명 내 이미지 URL 목록
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로 업로드가 필요한 이미지 URL 목록
      */
     public List<String> updateFromDetail(
@@ -336,8 +333,7 @@ public class CrawledProduct {
             String originCountry,
             String shippingLocation,
             List<String> descriptionImages,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         this.category = category;
         this.shippingInfo = shippingInfo;
         this.itemStatus = itemStatus;
@@ -434,12 +430,11 @@ public class CrawledProduct {
      * OPTION 크롤링 결과로 업데이트
      *
      * @param options 옵션 목록
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void updateFromOption(ProductOptions options, Clock clock) {
+    public void updateFromOption(ProductOptions options, Instant now) {
         boolean hasChanges = this.options != null && this.options.hasChanges(options);
 
-        Instant now = clock.instant();
         this.options = options;
         this.crawlCompletionStatus = this.crawlCompletionStatus.withOptionCrawled(now);
         this.updatedAt = now;
@@ -488,9 +483,9 @@ public class CrawledProduct {
      *
      * @param originalUrl 원본 URL
      * @param s3Url S3 URL
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markImageAsUploaded(String originalUrl, String s3Url, Clock clock) {
+    public void markImageAsUploaded(String originalUrl, String s3Url, Instant now) {
         if (this.images != null) {
             this.images = this.images.updateS3Url(originalUrl, s3Url);
         }
@@ -500,7 +495,7 @@ public class CrawledProduct {
             this.descriptionMarkUp = this.descriptionMarkUp.replace(originalUrl, s3Url);
         }
 
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /** 모든 이미지가 업로드 완료되었는지 확인 */
@@ -534,10 +529,9 @@ public class CrawledProduct {
      * 외부 서버 동기화 완료 처리
      *
      * @param externalProductId 외부 서버에서 할당받은 상품 ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsSynced(Long externalProductId, Clock clock) {
-        Instant now = clock.instant();
+    public void markAsSynced(Long externalProductId, Instant now) {
         this.externalProductId = externalProductId;
         this.lastSyncedAt = now;
         this.needsSync = false;
@@ -547,11 +541,11 @@ public class CrawledProduct {
     /**
      * 동기화 실패 처리
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markSyncFailed(Clock clock) {
+    public void markSyncFailed(Instant now) {
         // needsSync는 true로 유지하여 재시도 가능
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**

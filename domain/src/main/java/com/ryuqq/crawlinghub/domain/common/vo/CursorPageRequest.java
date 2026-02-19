@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.common.vo;
 
 /**
- * CursorPageRequest - 커서 기반 페이징 Value Object
+ * CursorPageRequest - 커서 기반 페이징 Value Object (제네릭)
  *
  * <p>전체 개수를 세지 않고 다음 페이지 존재 여부만 확인하는 효율적인 페이징 방식입니다.
  *
@@ -17,39 +17,33 @@ package com.ryuqq.crawlinghub.domain.common.vo;
  * <p><strong>커서 전략:</strong>
  *
  * <ul>
- *   <li>ID 기반: 마지막 항목의 ID를 커서로 사용
+ *   <li>ID 기반: 마지막 항목의 ID를 커서로 사용 (Long, String 등)
  *   <li>복합 커서: ID + 정렬키를 인코딩하여 사용
- *   <li>타임스탬프: 마지막 항목의 시간을 커서로 사용
+ *   <li>타임스탬프: 마지막 항목의 시간을 커서로 사용 (Instant, LocalDateTime 등)
  * </ul>
  *
  * <p><strong>사용 예시:</strong>
  *
  * <pre>{@code
- * // 첫 페이지 요청
- * CursorPageRequest firstPage = CursorPageRequest.first(20);
+ * // ID 기반 커서 (Long)
+ * CursorPageRequest<Long> firstPage = CursorPageRequest.first(20);
+ * CursorPageRequest<Long> nextPage = CursorPageRequest.afterId(lastId, 20);
  *
- * // 다음 페이지 요청 (이전 응답의 커서 사용)
- * CursorPageRequest nextPage = CursorPageRequest.of("cursor-xyz", 20);
- *
- * // ID 기반 커서
- * CursorPageRequest afterId = CursorPageRequest.afterId(lastId, 20);
+ * // String 기반 커서
+ * CursorPageRequest<String> stringCursor = CursorPageRequest.of("cursor-xyz", 20);
  *
  * // Criteria에서 사용
- * OrderSearchCriteria criteria = new OrderSearchCriteria(
- *     memberId,
- *     dateRange,
- *     sortKey,
- *     sortDirection,
- *     CursorPageRequest.of(cursor, size)
- * );
+ * TechStackSliceCriteria criteria =
+ *         new TechStackSliceCriteria(CursorPageRequest.afterId(lastId, 20));
  * }</pre>
  *
+ * @param <C> 커서 타입 (Long, String, Instant 등)
  * @param cursor 커서 값 (마지막 항목의 식별자, null이면 첫 페이지)
  * @param size 페이지 크기
  * @author development-team
  * @since 1.0.0
  */
-public record CursorPageRequest(String cursor, int size) {
+public record CursorPageRequest<C>(C cursor, int size) {
 
     /** 기본 페이지 크기 */
     public static final int DEFAULT_SIZE = 20;
@@ -65,8 +59,8 @@ public record CursorPageRequest(String cursor, int size) {
         if (size > MAX_SIZE) {
             size = MAX_SIZE;
         }
-        // 빈 문자열은 null로 정규화
-        if (cursor != null && cursor.isBlank()) {
+        // String 타입인 경우 빈 문자열을 null로 정규화
+        if (cursor instanceof String str && str.isBlank()) {
             cursor = null;
         }
     }
@@ -74,43 +68,56 @@ public record CursorPageRequest(String cursor, int size) {
     /**
      * CursorPageRequest 생성
      *
+     * @param <C> 커서 타입
      * @param cursor 커서 값
      * @param size 페이지 크기
      * @return CursorPageRequest
      */
-    public static CursorPageRequest of(String cursor, int size) {
-        return new CursorPageRequest(cursor, size);
+    public static <C> CursorPageRequest<C> of(C cursor, int size) {
+        return new CursorPageRequest<>(cursor, size);
     }
 
     /**
      * 첫 페이지 요청 생성
      *
+     * @param <C> 커서 타입
      * @param size 페이지 크기
      * @return CursorPageRequest (cursor=null)
      */
-    public static CursorPageRequest first(int size) {
-        return new CursorPageRequest(null, size);
+    public static <C> CursorPageRequest<C> first(int size) {
+        return new CursorPageRequest<>(null, size);
     }
 
     /**
      * 기본 설정 CursorPageRequest 생성
      *
+     * @param <C> 커서 타입
      * @return CursorPageRequest (cursor=null, size=DEFAULT_SIZE)
      */
-    public static CursorPageRequest defaultPage() {
-        return new CursorPageRequest(null, DEFAULT_SIZE);
+    public static <C> CursorPageRequest<C> defaultPage() {
+        return new CursorPageRequest<>(null, DEFAULT_SIZE);
     }
 
     /**
-     * ID 기반 커서 요청 생성
+     * ID 기반 커서 요청 생성 (Long)
      *
      * @param lastId 마지막 항목의 ID
      * @param size 페이지 크기
-     * @return CursorPageRequest
+     * @return CursorPageRequest<Long>
      */
-    public static CursorPageRequest afterId(Long lastId, int size) {
-        String cursor = lastId != null ? String.valueOf(lastId) : null;
-        return new CursorPageRequest(cursor, size);
+    public static CursorPageRequest<Long> afterId(Long lastId, int size) {
+        return new CursorPageRequest<>(lastId, size);
+    }
+
+    /**
+     * String 기반 커서 요청 생성
+     *
+     * @param cursor 커서 값 (String)
+     * @param size 페이지 크기
+     * @return CursorPageRequest<String>
+     */
+    public static CursorPageRequest<String> ofString(String cursor, int size) {
+        return new CursorPageRequest<>(cursor, size);
     }
 
     /**
@@ -132,31 +139,13 @@ public record CursorPageRequest(String cursor, int size) {
     }
 
     /**
-     * 커서를 Long ID로 파싱
-     *
-     * <p>ID 기반 커서 전략 사용 시 유틸리티 메서드
-     *
-     * @return Long ID (파싱 실패 또는 null이면 null 반환)
-     */
-    public Long cursorAsLong() {
-        if (cursor == null) {
-            return null;
-        }
-        try {
-            return Long.parseLong(cursor);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /**
      * 다음 페이지 요청 생성
      *
      * @param nextCursor 다음 커서 값
      * @return 다음 페이지 CursorPageRequest
      */
-    public CursorPageRequest next(String nextCursor) {
-        return new CursorPageRequest(nextCursor, size);
+    public CursorPageRequest<C> next(C nextCursor) {
+        return new CursorPageRequest<>(nextCursor, size);
     }
 
     /**

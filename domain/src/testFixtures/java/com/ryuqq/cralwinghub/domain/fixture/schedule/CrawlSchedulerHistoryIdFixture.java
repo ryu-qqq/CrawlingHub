@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 
 /**
  * CrawlSchedulerHistoryId Test Fixture

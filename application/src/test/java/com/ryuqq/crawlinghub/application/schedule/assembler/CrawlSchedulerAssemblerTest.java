@@ -7,7 +7,7 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -69,7 +69,7 @@ class CrawlSchedulerAssemblerTest {
     class ToCriteria {
 
         @Test
-        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerQueryCriteria 변환 (전체 필드)")
+        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerPageCriteria 변환 (전체 필드)")
         void shouldConvertQueryToCriteria() {
             // Given
             SearchCrawlSchedulersQuery query =
@@ -77,25 +77,25 @@ class CrawlSchedulerAssemblerTest {
                             1L, List.of(SchedulerStatus.ACTIVE), null, null, 0, 20);
 
             // When
-            CrawlSchedulerQueryCriteria result = assembler.toCriteria(query);
+            CrawlSchedulerPageCriteria result = assembler.toCriteria(query);
 
             // Then
             assertThat(result.sellerId()).isNotNull();
             assertThat(result.sellerId().value()).isEqualTo(1L);
             assertThat(result.status()).isEqualTo(SchedulerStatus.ACTIVE);
-            assertThat(result.page()).isZero();
+            assertThat(result.pageRequest().page()).isZero();
             assertThat(result.size()).isEqualTo(20);
         }
 
         @Test
-        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerQueryCriteria 변환 (null 필드)")
+        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerPageCriteria 변환 (null 필드)")
         void shouldConvertQueryToCriteriaWithNullFields() {
             // Given
             SearchCrawlSchedulersQuery query =
                     new SearchCrawlSchedulersQuery(null, null, null, null, 0, 10);
 
             // When
-            CrawlSchedulerQueryCriteria result = assembler.toCriteria(query);
+            CrawlSchedulerPageCriteria result = assembler.toCriteria(query);
 
             // Then
             assertThat(result.sellerId()).isNull();

@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.seller.manager;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.port.out.command.SellerPersistencePort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <ul>
  *   <li>상태 변경 + 영속화 캡슐화
- *   <li>ClockHolder 의존성 관리
+ *   <li>TimeProvider 의존성 관리
  *   <li>QueryPort 의존성 없음 (Service에서 조회)
  *   <li>단일 PersistencePort 의존성만 보유
  * </ul>
@@ -29,12 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SellerTransactionManager {
 
     private final SellerPersistencePort sellerPersistencePort;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public SellerTransactionManager(
-            SellerPersistencePort sellerPersistencePort, ClockHolder clockHolder) {
+            SellerPersistencePort sellerPersistencePort, TimeProvider timeProvider) {
         this.sellerPersistencePort = sellerPersistencePort;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -53,7 +53,7 @@ public class SellerTransactionManager {
     /**
      * Seller 정보 수정 + 영속화
      *
-     * <p>ClockHolder를 사용하여 updatedAt 자동 설정
+     * <p>TimeProvider를 사용하여 updatedAt 자동 설정
      *
      * @param seller 수정 대상 Seller
      * @param newMustItSellerName 새로운 머스트잇 셀러명 (null이면 변경 안 함)
@@ -66,7 +66,7 @@ public class SellerTransactionManager {
             MustItSellerName newMustItSellerName,
             SellerName newSellerName,
             SellerStatus newStatus) {
-        seller.update(newMustItSellerName, newSellerName, newStatus, clockHolder.getClock());
+        seller.update(newMustItSellerName, newSellerName, newStatus, timeProvider.now());
         sellerPersistencePort.persist(seller);
     }
 
@@ -80,7 +80,7 @@ public class SellerTransactionManager {
      */
     @Transactional
     public void updateProductCount(Seller seller, int productCount) {
-        seller.updateProductCount(productCount, clockHolder.getClock());
+        seller.updateProductCount(productCount, timeProvider.now());
         sellerPersistencePort.persist(seller);
     }
 }

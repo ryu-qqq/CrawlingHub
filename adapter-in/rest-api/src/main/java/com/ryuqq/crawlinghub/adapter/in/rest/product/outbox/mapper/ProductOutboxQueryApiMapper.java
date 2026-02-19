@@ -72,7 +72,10 @@ public class ProductOutboxQueryApiMapper {
      */
     public PageApiResponse<ProductSyncOutboxApiResponse> toSyncPageApiResponse(
             PageResponse<ProductSyncOutboxResponse> pageResponse) {
-        return PageApiResponse.from(pageResponse, this::toSyncApiResponse);
+        List<ProductSyncOutboxApiResponse> content =
+                pageResponse.content().stream().map(this::toSyncApiResponse).toList();
+        return PageApiResponse.of(
+                content, pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
     }
 
     /**
@@ -107,7 +110,10 @@ public class ProductOutboxQueryApiMapper {
      */
     public PageApiResponse<ProductImageOutboxApiResponse> toImagePageApiResponse(
             PageResponse<ProductImageOutboxWithImageResponse> pageResponse) {
-        return PageApiResponse.from(pageResponse, this::toImageApiResponse);
+        List<ProductImageOutboxApiResponse> content =
+                pageResponse.content().stream().map(this::toImageApiResponse).toList();
+        return PageApiResponse.of(
+                content, pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
     }
 
     /**

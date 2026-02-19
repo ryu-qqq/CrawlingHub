@@ -3,7 +3,6 @@ package com.ryuqq.crawlinghub.domain.product.event;
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -50,8 +49,7 @@ public record ExternalSyncRequestedEvent(
             SellerId sellerId,
             long itemNo,
             String idempotencyKey,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new ExternalSyncRequestedEvent(
                 crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.CREATE, now);
     }
@@ -62,8 +60,7 @@ public record ExternalSyncRequestedEvent(
             SellerId sellerId,
             long itemNo,
             String idempotencyKey,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new ExternalSyncRequestedEvent(
                 crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.UPDATE, now);
     }

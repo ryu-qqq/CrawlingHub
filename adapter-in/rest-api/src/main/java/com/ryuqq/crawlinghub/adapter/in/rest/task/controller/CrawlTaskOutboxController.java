@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.task.CrawlTaskOutboxEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksOutboxApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskOutboxApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.RepublishResultApiResponse;
@@ -48,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Outbox.BASE)
+@RequestMapping(CrawlTaskOutboxEndpoints.BASE)
 @Validated
 @Tag(name = "Outbox", description = "Outbox 상태 관리 API")
 public class CrawlTaskOutboxController {
@@ -89,6 +90,7 @@ public class CrawlTaskOutboxController {
      */
     @GetMapping
     @PreAuthorize("@access.hasPermission('outbox:read')")
+    @RequirePermission(value = "outbox:read", description = "태스크 아웃박스 목록 조회")
     @Operation(
             summary = "Outbox 목록 조회",
             description =
@@ -121,7 +123,7 @@ public class CrawlTaskOutboxController {
         PageResponse<OutboxResponse> useCaseResponse = getOutboxListUseCase.execute(query);
         PageApiResponse<CrawlTaskOutboxApiResponse> apiResponse =
                 crawlTaskOutboxApiMapper.toPageApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -138,8 +140,9 @@ public class CrawlTaskOutboxController {
      * @param crawlTaskId 재발행할 Task ID
      * @return 재발행 결과
      */
-    @PostMapping(ApiPaths.Outbox.REPUBLISH)
+    @PostMapping(CrawlTaskOutboxEndpoints.REPUBLISH)
     @PreAuthorize("@access.hasPermission('outbox:update')")
+    @RequirePermission(value = "outbox:update", description = "태스크 아웃박스 재발행")
     @Operation(
             summary = "Outbox 재발행",
             description =
@@ -173,6 +176,6 @@ public class CrawlTaskOutboxController {
         RepublishResultResponse useCaseResponse = republishOutboxUseCase.republish(crawlTaskId);
         RepublishResultApiResponse apiResponse =
                 crawlTaskOutboxApiMapper.toRepublishApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

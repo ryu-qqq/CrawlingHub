@@ -39,6 +39,9 @@ dependencies {
     // Spring Security
     implementation libs.spring.boot.starter.security
 
+    // AuthHub SDK (Gateway 인증/인가)
+    implementation libs.authhub.sdk.spring.boot.starter
+
     // JSON Processing
     implementation libs.jackson.databind
     implementation libs.jackson.datatype.jsr310
@@ -113,7 +116,7 @@ tasks.named('asciidoctor') {
 tasks.register('copyDocument', Copy) {
     dependsOn asciidoctor
     from file("build/docs/asciidoc")
-    into file("src/main/resources/static/docs")
+    into file("src/main/resources/static/api/v1/crawling/docs")
 }
 
 // ========================================

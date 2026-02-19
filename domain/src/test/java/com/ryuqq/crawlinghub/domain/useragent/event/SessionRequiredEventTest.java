@@ -4,9 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -22,7 +20,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 class SessionRequiredEventTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2024-01-15T10:00:00Z");
-    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.of("UTC"));
     private static final UserAgentId USER_AGENT_ID = UserAgentId.of(1L);
     private static final String USER_AGENT_VALUE =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
@@ -85,7 +82,7 @@ class SessionRequiredEventTest {
         void shouldCreateEventWithOf() {
             // When
             SessionRequiredEvent event =
-                    SessionRequiredEvent.of(USER_AGENT_ID, USER_AGENT_VALUE, FIXED_CLOCK);
+                    SessionRequiredEvent.of(USER_AGENT_ID, USER_AGENT_VALUE, FIXED_INSTANT);
 
             // Then
             assertThat(event.userAgentId()).isEqualTo(USER_AGENT_ID);

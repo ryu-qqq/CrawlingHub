@@ -3,8 +3,10 @@ package com.ryuqq.crawlinghub.application.product.factory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.port.out.query.SyncOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
@@ -16,14 +18,15 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * SyncOutboxFactory 단위 테스트
@@ -31,19 +34,21 @@ import org.junit.jupiter.api.Test;
  * @author development-team
  * @since 1.0.0
  */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("SyncOutboxFactory 테스트")
 class SyncOutboxFactoryTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
 
-    private SyncOutboxQueryPort syncOutboxQueryPort;
+    @Mock private SyncOutboxQueryPort syncOutboxQueryPort;
+    @Mock private TimeProvider timeProvider;
+
     private SyncOutboxFactory factory;
 
     @BeforeEach
     void setUp() {
-        syncOutboxQueryPort = mock(SyncOutboxQueryPort.class);
-        factory = new SyncOutboxFactory(syncOutboxQueryPort, FIXED_CLOCK);
+        factory = new SyncOutboxFactory(syncOutboxQueryPort, timeProvider);
+        lenient().when(timeProvider.now()).thenReturn(FIXED_INSTANT);
     }
 
     @Nested
@@ -129,7 +134,7 @@ class SyncOutboxFactoryTest {
     // === Helper Methods ===
 
     private CrawledProduct createSyncReadyProduct(Long externalProductId) {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(1L),
                 SellerId.of(100L),

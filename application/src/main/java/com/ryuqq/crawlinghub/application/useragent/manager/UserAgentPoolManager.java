@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.manager;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
@@ -43,17 +43,17 @@ public class UserAgentPoolManager {
     private final UserAgentPoolCacheManager cacheManager;
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public UserAgentPoolManager(
             UserAgentPoolCacheManager cacheManager,
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.cacheManager = cacheManager;
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -111,7 +111,7 @@ public class UserAgentPoolManager {
                     .findById(userAgentId)
                     .ifPresent(
                             userAgent -> {
-                                userAgent.recordFailure(httpStatusCode, clockHolder.getClock());
+                                userAgent.recordFailure(httpStatusCode, timeProvider.now());
                                 transactionManager.persist(userAgent);
                             });
             log.warn("UserAgent {} Health Score 부족으로 SUSPENDED 처리", userAgentId.value());
@@ -139,7 +139,7 @@ public class UserAgentPoolManager {
                 .findById(userAgentId)
                 .ifPresent(
                         userAgent -> {
-                            userAgent.recordFailure(429, clockHolder.getClock());
+                            userAgent.recordFailure(429, timeProvider.now());
                             transactionManager.persist(userAgent);
                         });
 
@@ -214,7 +214,7 @@ public class UserAgentPoolManager {
         }
 
         UserAgent userAgent = userAgentOptional.get();
-        userAgent.recover(clockHolder.getClock());
+        userAgent.recover(timeProvider.now());
 
         String userAgentValue = userAgent.getUserAgentString().value();
         cacheManager.restoreToPool(userAgentId, userAgentValue);

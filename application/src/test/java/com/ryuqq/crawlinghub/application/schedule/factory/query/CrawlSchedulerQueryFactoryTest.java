@@ -3,7 +3,7 @@ package com.ryuqq.crawlinghub.application.schedule.factory.query;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,12 +38,12 @@ class CrawlSchedulerQueryFactoryTest {
                             100L, List.of(SchedulerStatus.ACTIVE), null, null, 1, 20);
 
             // When
-            CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
+            CrawlSchedulerPageCriteria criteria = factory.createCriteria(query);
 
             // Then
             assertThat(criteria.sellerId().value()).isEqualTo(100L);
             assertThat(criteria.status()).isEqualTo(SchedulerStatus.ACTIVE);
-            assertThat(criteria.page()).isEqualTo(1);
+            assertThat(criteria.pageRequest().page()).isEqualTo(1);
             assertThat(criteria.size()).isEqualTo(20);
         }
 
@@ -56,7 +56,7 @@ class CrawlSchedulerQueryFactoryTest {
                             null, List.of(SchedulerStatus.ACTIVE), null, null, 1, 10);
 
             // When
-            CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
+            CrawlSchedulerPageCriteria criteria = factory.createCriteria(query);
 
             // Then
             assertThat(criteria.sellerId()).isNull();
@@ -71,12 +71,12 @@ class CrawlSchedulerQueryFactoryTest {
                     new SearchCrawlSchedulersQuery(100L, null, null, null, 2, 50);
 
             // When
-            CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
+            CrawlSchedulerPageCriteria criteria = factory.createCriteria(query);
 
             // Then
             assertThat(criteria.sellerId().value()).isEqualTo(100L);
             assertThat(criteria.status()).isNull();
-            assertThat(criteria.page()).isEqualTo(2);
+            assertThat(criteria.pageRequest().page()).isEqualTo(2);
             assertThat(criteria.size()).isEqualTo(50);
         }
 
@@ -89,7 +89,7 @@ class CrawlSchedulerQueryFactoryTest {
                             200L, List.of(SchedulerStatus.INACTIVE), null, null, 0, 10);
 
             // When
-            CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
+            CrawlSchedulerPageCriteria criteria = factory.createCriteria(query);
 
             // Then
             assertThat(criteria.status()).isEqualTo(SchedulerStatus.INACTIVE);
@@ -103,12 +103,12 @@ class CrawlSchedulerQueryFactoryTest {
                     new SearchCrawlSchedulersQuery(null, null, null, null, 5, 50);
 
             // When
-            CrawlSchedulerQueryCriteria criteria = factory.createCriteria(query);
+            CrawlSchedulerPageCriteria criteria = factory.createCriteria(query);
 
             // Then
             assertThat(criteria.sellerId()).isNull();
             assertThat(criteria.status()).isNull();
-            assertThat(criteria.page()).isEqualTo(5);
+            assertThat(criteria.pageRequest().page()).isEqualTo(5);
             assertThat(criteria.size()).isEqualTo(50);
         }
     }

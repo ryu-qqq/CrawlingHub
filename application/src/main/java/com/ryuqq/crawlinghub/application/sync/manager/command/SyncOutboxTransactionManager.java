@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.sync.manager.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.dto.bundle.SyncOutboxBundle;
 import com.ryuqq.crawlinghub.application.product.port.out.command.SyncOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
-import java.time.Clock;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,12 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SyncOutboxTransactionManager {
 
     private final SyncOutboxPersistencePort syncOutboxPersistencePort;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public SyncOutboxTransactionManager(
-            SyncOutboxPersistencePort syncOutboxPersistencePort, Clock clock) {
+            SyncOutboxPersistencePort syncOutboxPersistencePort, TimeProvider timeProvider) {
         this.syncOutboxPersistencePort = syncOutboxPersistencePort;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     // === 영속화 ===
@@ -79,7 +79,7 @@ public class SyncOutboxTransactionManager {
      */
     @Transactional
     public void markAsSent(CrawledProductSyncOutbox outbox) {
-        outbox.markAsSent(clock);
+        outbox.markAsSent(timeProvider.now());
         syncOutboxPersistencePort.update(outbox);
     }
 
@@ -90,7 +90,7 @@ public class SyncOutboxTransactionManager {
      */
     @Transactional
     public void markAsProcessing(CrawledProductSyncOutbox outbox) {
-        outbox.markAsProcessing(clock);
+        outbox.markAsProcessing(timeProvider.now());
         syncOutboxPersistencePort.update(outbox);
     }
 
@@ -102,7 +102,7 @@ public class SyncOutboxTransactionManager {
      */
     @Transactional
     public void markAsCompleted(CrawledProductSyncOutbox outbox, Long externalProductId) {
-        outbox.markAsCompleted(externalProductId, clock);
+        outbox.markAsCompleted(externalProductId, timeProvider.now());
         syncOutboxPersistencePort.update(outbox);
     }
 
@@ -114,7 +114,7 @@ public class SyncOutboxTransactionManager {
      */
     @Transactional
     public void markAsFailed(CrawledProductSyncOutbox outbox, String errorMessage) {
-        outbox.markAsFailed(errorMessage, clock);
+        outbox.markAsFailed(errorMessage, timeProvider.now());
         syncOutboxPersistencePort.update(outbox);
     }
 

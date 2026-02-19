@@ -1,8 +1,8 @@
 package com.ryuqq.crawlinghub.application.image.manager.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.port.out.command.ImageOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
-import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductImageOutboxTransactionManager {
 
     private final ImageOutboxPersistencePort outboxPersistencePort;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public ProductImageOutboxTransactionManager(
-            ImageOutboxPersistencePort outboxPersistencePort, Clock clock) {
+            ImageOutboxPersistencePort outboxPersistencePort, TimeProvider timeProvider) {
         this.outboxPersistencePort = outboxPersistencePort;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     // === 생성 ===
@@ -82,7 +82,7 @@ public class ProductImageOutboxTransactionManager {
      */
     @Transactional
     public void markAsSent(ProductImageOutbox outbox) {
-        outbox.markAsSent(clock);
+        outbox.markAsSent(timeProvider.now());
         outboxPersistencePort.update(outbox);
     }
 
@@ -93,7 +93,7 @@ public class ProductImageOutboxTransactionManager {
      */
     @Transactional
     public void markAsProcessing(ProductImageOutbox outbox) {
-        outbox.markAsProcessing(clock);
+        outbox.markAsProcessing(timeProvider.now());
         outboxPersistencePort.update(outbox);
     }
 
@@ -104,7 +104,7 @@ public class ProductImageOutboxTransactionManager {
      */
     @Transactional
     public void markAsCompleted(ProductImageOutbox outbox) {
-        outbox.markAsCompleted(clock);
+        outbox.markAsCompleted(timeProvider.now());
         outboxPersistencePort.update(outbox);
     }
 
@@ -116,7 +116,7 @@ public class ProductImageOutboxTransactionManager {
      */
     @Transactional
     public void markAsFailed(ProductImageOutbox outbox, String errorMessage) {
-        outbox.markAsFailed(errorMessage, clock);
+        outbox.markAsFailed(errorMessage, timeProvider.now());
         outboxPersistencePort.update(outbox);
     }
 

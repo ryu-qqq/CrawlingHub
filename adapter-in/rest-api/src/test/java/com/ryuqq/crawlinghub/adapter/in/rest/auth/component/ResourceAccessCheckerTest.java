@@ -2,8 +2,8 @@ package com.ryuqq.crawlinghub.adapter.in.rest.auth.component;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContext;
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.context.SecurityContextHolder;
+import com.ryuqq.authhub.sdk.context.UserContext;
+import com.ryuqq.authhub.sdk.context.UserContextHolder;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ class ResourceAccessCheckerTest {
 
     @AfterEach
     void tearDown() {
-        SecurityContextHolder.clearContext();
+        UserContextHolder.clearContext();
     }
 
     @Nested
@@ -38,12 +38,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("ROLE_SUPER_ADMIN 역할이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasSuperAdminRole() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("admin-user")
                             .roles(Set.of("ROLE_SUPER_ADMIN"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.superAdmin()).isTrue();
@@ -53,12 +53,9 @@ class ResourceAccessCheckerTest {
         @DisplayName("ROLE_SUPER_ADMIN 역할이 없으면 false를 반환한다")
         void shouldReturnFalseWhenNoSuperAdminRole() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
-                            .userId("regular-user")
-                            .roles(Set.of("ROLE_USER"))
-                            .build();
-            SecurityContextHolder.setContext(context);
+            UserContext context =
+                    UserContext.builder().userId("regular-user").roles(Set.of("ROLE_USER")).build();
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.superAdmin()).isFalse();
@@ -80,12 +77,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("SUPER_ADMIN이면 모든 권한에 대해 true를 반환한다")
         void shouldReturnTrueForAnyPermissionWhenSuperAdmin() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("admin-user")
                             .roles(Set.of("ROLE_SUPER_ADMIN"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasPermission("seller:create")).isTrue();
@@ -97,12 +94,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("해당 권한이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasPermission() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("seller:create", "seller:read"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasPermission("seller:create")).isTrue();
@@ -113,12 +110,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("해당 권한이 없으면 false를 반환한다")
         void shouldReturnFalseWhenNoPermission() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("seller:read"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasPermission("seller:create")).isFalse();
@@ -141,12 +138,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("SUPER_ADMIN이면 true를 반환한다")
         void shouldReturnTrueWhenSuperAdmin() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("admin-user")
                             .roles(Set.of("ROLE_SUPER_ADMIN"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAnyPermission("seller:create", "scheduler:read"))
@@ -157,12 +154,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("하나 이상의 권한이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasAtLeastOnePermission() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("seller:create"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAnyPermission("seller:create", "scheduler:read"))
@@ -173,12 +170,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("모든 권한이 없으면 false를 반환한다")
         void shouldReturnFalseWhenNoPermissions() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("task:read"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAnyPermission("seller:create", "scheduler:read"))
@@ -194,12 +191,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("SUPER_ADMIN이면 true를 반환한다")
         void shouldReturnTrueWhenSuperAdmin() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("admin-user")
                             .roles(Set.of("ROLE_SUPER_ADMIN"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAllPermissions("seller:create", "scheduler:read"))
@@ -210,12 +207,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("모든 권한이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasAllPermissions() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("seller:create", "scheduler:read", "task:read"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAllPermissions("seller:create", "scheduler:read"))
@@ -226,12 +223,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("일부 권한만 있으면 false를 반환한다")
         void shouldReturnFalseWhenMissingSomePermissions() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .permissions(Set.of("seller:create"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAllPermissions("seller:create", "scheduler:read"))
@@ -247,12 +244,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("해당 역할이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasRole() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("user-123")
                             .roles(Set.of("ROLE_ADMIN", "ROLE_USER"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasRole("ROLE_ADMIN")).isTrue();
@@ -263,9 +260,9 @@ class ResourceAccessCheckerTest {
         @DisplayName("해당 역할이 없으면 false를 반환한다")
         void shouldReturnFalseWhenNoRole() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder().userId("user-123").roles(Set.of("ROLE_USER")).build();
-            SecurityContextHolder.setContext(context);
+            UserContext context =
+                    UserContext.builder().userId("user-123").roles(Set.of("ROLE_USER")).build();
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasRole("ROLE_ADMIN")).isFalse();
@@ -280,9 +277,9 @@ class ResourceAccessCheckerTest {
         @DisplayName("하나 이상의 역할이 있으면 true를 반환한다")
         void shouldReturnTrueWhenHasAtLeastOneRole() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder().userId("user-123").roles(Set.of("ROLE_USER")).build();
-            SecurityContextHolder.setContext(context);
+            UserContext context =
+                    UserContext.builder().userId("user-123").roles(Set.of("ROLE_USER")).build();
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAnyRole("ROLE_ADMIN", "ROLE_USER")).isTrue();
@@ -292,12 +289,9 @@ class ResourceAccessCheckerTest {
         @DisplayName("모든 역할이 없으면 false를 반환한다")
         void shouldReturnFalseWhenNoRoles() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
-                            .userId("user-123")
-                            .roles(Set.of("ROLE_GUEST"))
-                            .build();
-            SecurityContextHolder.setContext(context);
+            UserContext context =
+                    UserContext.builder().userId("user-123").roles(Set.of("ROLE_GUEST")).build();
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.hasAnyRole("ROLE_ADMIN", "ROLE_USER")).isFalse();
@@ -312,8 +306,8 @@ class ResourceAccessCheckerTest {
         @DisplayName("인증된 상태면 true를 반환한다")
         void shouldReturnTrueWhenAuthenticated() {
             // Given
-            SecurityContext context = SecurityContext.builder().userId("user-123").build();
-            SecurityContextHolder.setContext(context);
+            UserContext context = UserContext.builder().userId("user-123").build();
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.authenticated()).isTrue();
@@ -335,13 +329,13 @@ class ResourceAccessCheckerTest {
         @DisplayName("일반 사용자가 seller 도메인 권한만 가진 경우")
         void sellerManagerScenario() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("seller-manager-001")
                             .roles(Set.of("ROLE_USER"))
                             .permissions(Set.of("seller:create", "seller:read", "seller:update"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.authenticated()).isTrue();
@@ -359,12 +353,12 @@ class ResourceAccessCheckerTest {
         @DisplayName("SUPER_ADMIN은 모든 권한에 접근 가능")
         void superAdminScenario() {
             // Given
-            SecurityContext context =
-                    SecurityContext.builder()
+            UserContext context =
+                    UserContext.builder()
                             .userId("super-admin-001")
                             .roles(Set.of("ROLE_SUPER_ADMIN"))
                             .build();
-            SecurityContextHolder.setContext(context);
+            UserContextHolder.setContext(context);
 
             // When & Then
             assertThat(resourceAccessChecker.authenticated()).isTrue();

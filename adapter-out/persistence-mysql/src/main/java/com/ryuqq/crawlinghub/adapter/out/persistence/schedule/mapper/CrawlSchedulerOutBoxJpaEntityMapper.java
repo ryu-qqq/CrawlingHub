@@ -2,8 +2,8 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

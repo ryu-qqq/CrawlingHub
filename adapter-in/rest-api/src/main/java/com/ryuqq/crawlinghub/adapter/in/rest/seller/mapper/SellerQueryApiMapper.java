@@ -169,7 +169,13 @@ public class SellerQueryApiMapper {
      */
     public PageApiResponse<SellerSummaryApiResponse> toPageApiResponse(
             PageResponse<SellerSummaryResponse> appPageResponse) {
-        return PageApiResponse.from(appPageResponse, this::toSummaryApiResponse);
+        List<SellerSummaryApiResponse> content =
+                appPageResponse.content().stream().map(this::toSummaryApiResponse).toList();
+        return PageApiResponse.of(
+                content,
+                appPageResponse.page(),
+                appPageResponse.size(),
+                appPageResponse.totalElements());
     }
 
     /**

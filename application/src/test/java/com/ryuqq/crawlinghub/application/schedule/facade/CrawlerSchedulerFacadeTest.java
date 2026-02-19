@@ -9,17 +9,17 @@ import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerHistoryTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxTransactionManager;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerTransactionManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerHistory;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,16 +52,16 @@ class CrawlerSchedulerFacadeTest {
 
     @Mock private ApplicationEventPublisher eventPublisher;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private CrawlerSchedulerFacade facade;
 
-    private java.time.Clock fixedClock;
+    private java.time.Instant fixedInstant;
 
     @BeforeEach
     void setUp() {
-        fixedClock = FixedClock.aDefaultClock();
-        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        fixedInstant = FixedClock.aDefaultClock().instant();
+        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested
@@ -105,7 +105,7 @@ class CrawlerSchedulerFacadeTest {
             // Given
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             // 이벤트 클리어 (없는 상태로 시작)
-            scheduler.clearDomainEvents();
+            scheduler.pollEvents();
 
             // When
             facade.update(scheduler);

@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.SellerEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
@@ -41,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Sellers.BASE)
+@RequestMapping(SellerEndpoints.BASE)
 @Validated
 @Tag(name = "Seller", description = "셀러 관리 API")
 public class SellerQueryController {
@@ -59,8 +60,9 @@ public class SellerQueryController {
         this.sellerQueryApiMapper = sellerQueryApiMapper;
     }
 
-    @GetMapping(ApiPaths.Sellers.BY_ID)
+    @GetMapping(SellerEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('seller:read')")
+    @RequirePermission(value = "seller:read", description = "셀러 상세 조회")
     @Operation(
             summary = "셀러 단건 조회",
             description = "셀러 ID로 상세 정보를 조회합니다. seller:read 권한이 필요합니다.",
@@ -92,11 +94,12 @@ public class SellerQueryController {
         SellerDetailResponse useCaseResponse = getSellerUseCase.execute(query);
         SellerDetailApiResponse apiResponse =
                 sellerQueryApiMapper.toDetailApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     @GetMapping
     @PreAuthorize("@access.hasPermission('seller:read')")
+    @RequirePermission(value = "seller:read", description = "셀러 목록 조회")
     @Operation(
             summary = "셀러 목록 조회",
             description = "셀러 목록을 페이징하여 조회합니다. seller:read 권한이 필요합니다.",
@@ -122,6 +125,6 @@ public class SellerQueryController {
                 searchSellersUseCase.execute(query);
         PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                 sellerQueryApiMapper.toPageApiResponse(useCasePageResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiPageResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
     }
 }

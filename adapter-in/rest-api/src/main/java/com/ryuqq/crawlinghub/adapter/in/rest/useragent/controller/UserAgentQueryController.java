@@ -1,8 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.useragent.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.useragent.UserAgentEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.query.SearchUserAgentsApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.useragent.dto.response.UserAgentPoolStatusApiResponse;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -66,7 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.UserAgents.BASE)
+@RequestMapping(UserAgentEndpoints.BASE)
 @Validated
 @Tag(name = "UserAgent", description = "UserAgent 관리 API")
 public class UserAgentQueryController {
@@ -130,8 +132,9 @@ public class UserAgentQueryController {
      *
      * @return UserAgent Pool 상태 (200 OK)
      */
-    @GetMapping(ApiPaths.UserAgents.POOL_STATUS)
+    @GetMapping(UserAgentEndpoints.POOL_STATUS)
     @PreAuthorize("@access.hasPermission('useragent:read')")
+    @RequirePermission(value = "useragent:read", description = "유저에이전트 풀 상태 조회")
     @Operation(
             summary = "UserAgent Pool 상태 조회",
             description = "UserAgent Pool의 상태를 조회합니다. useragent:read 권한이 필요합니다.",
@@ -163,7 +166,7 @@ public class UserAgentQueryController {
                 userAgentApiMapper.toApiResponse(useCaseResponse);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -192,6 +195,7 @@ public class UserAgentQueryController {
      */
     @GetMapping
     @PreAuthorize("@access.hasPermission('useragent:read')")
+    @RequirePermission(value = "useragent:read", description = "유저에이전트 목록 조회")
     @Operation(
             summary = "UserAgent 목록 조회",
             description =
@@ -224,11 +228,19 @@ public class UserAgentQueryController {
                 getUserAgentsUseCase.execute(criteria);
 
         // 3. UseCase Response → API Response 변환 (Mapper 활용)
+        List<UserAgentSummaryApiResponse> content =
+                useCaseResponse.content().stream()
+                        .map(userAgentApiMapper::toSummaryApiResponse)
+                        .toList();
         PageApiResponse<UserAgentSummaryApiResponse> apiResponse =
-                PageApiResponse.from(useCaseResponse, userAgentApiMapper::toSummaryApiResponse);
+                PageApiResponse.of(
+                        content,
+                        useCaseResponse.page(),
+                        useCaseResponse.size(),
+                        useCaseResponse.totalElements());
 
         // 4. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     /**
@@ -271,8 +283,9 @@ public class UserAgentQueryController {
      * @param userAgentId UserAgent ID
      * @return UserAgent 상세 정보 (200 OK)
      */
-    @GetMapping(ApiPaths.UserAgents.BY_ID)
+    @GetMapping(UserAgentEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('useragent:read')")
+    @RequirePermission(value = "useragent:read", description = "유저에이전트 상세 조회")
     @Operation(
             summary = "UserAgent 단건 상세 조회",
             description =
@@ -311,6 +324,6 @@ public class UserAgentQueryController {
                 userAgentApiMapper.toDetailApiResponse(useCaseResponse);
 
         // 3. ResponseEntity<ApiResponse<T>> 래핑
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

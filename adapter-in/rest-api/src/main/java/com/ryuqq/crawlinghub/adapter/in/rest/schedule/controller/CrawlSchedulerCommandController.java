@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.controller;
 
-import com.ryuqq.crawlinghub.adapter.in.rest.auth.paths.ApiPaths;
+import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.schedule.CrawlSchedulerEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateSchedulerStatusApiRequest;
@@ -45,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping(ApiPaths.Schedules.BASE)
+@RequestMapping(CrawlSchedulerEndpoints.BASE)
 @Validated
 @Tag(name = "Scheduler", description = "크롤 스케줄러 관리 API")
 public class CrawlSchedulerCommandController {
@@ -68,6 +69,7 @@ public class CrawlSchedulerCommandController {
 
     @PostMapping
     @PreAuthorize("@access.hasPermission('scheduler:create')")
+    @RequirePermission(value = "scheduler:create", description = "크롤 스케줄러 등록")
     @Operation(
             summary = "크롤 스케줄러 등록",
             description = "새로운 크롤 스케줄러를 등록합니다. scheduler:create 권한이 필요합니다.",
@@ -103,11 +105,12 @@ public class CrawlSchedulerCommandController {
         CrawlSchedulerResponse useCaseResponse = registerCrawlSchedulerUseCase.register(command);
         CrawlSchedulerApiResponse apiResponse =
                 crawlSchedulerCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(apiResponse));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(CrawlSchedulerEndpoints.BY_ID)
     @PreAuthorize("@access.hasPermission('scheduler:update')")
+    @RequirePermission(value = "scheduler:update", description = "크롤 스케줄러 수정")
     @Operation(
             summary = "크롤 스케줄러 수정",
             description = "크롤 스케줄러 정보를 수정합니다. scheduler:update 권한이 필요합니다.",
@@ -144,11 +147,12 @@ public class CrawlSchedulerCommandController {
         CrawlSchedulerResponse useCaseResponse = updateCrawlSchedulerUseCase.update(command);
         CrawlSchedulerApiResponse apiResponse =
                 crawlSchedulerCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping(CrawlSchedulerEndpoints.STATUS)
     @PreAuthorize("@access.hasPermission('scheduler:update')")
+    @RequirePermission(value = "scheduler:update", description = "크롤 스케줄러 상태 변경")
     @Operation(
             summary = "크롤 스케줄러 상태 변경",
             description = "크롤 스케줄러를 활성화/비활성화합니다. scheduler:update 권한이 필요합니다.",
@@ -186,11 +190,12 @@ public class CrawlSchedulerCommandController {
         CrawlSchedulerResponse useCaseResponse = updateCrawlSchedulerUseCase.update(command);
         CrawlSchedulerApiResponse apiResponse =
                 crawlSchedulerCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
-    @PostMapping("/{id}/trigger")
+    @PostMapping(CrawlSchedulerEndpoints.TRIGGER)
     @PreAuthorize("@access.hasPermission('scheduler:update')")
+    @RequirePermission(value = "scheduler:update", description = "크롤 스케줄러 수동 트리거")
     @Operation(
             summary = "크롤 스케줄러 수동 트리거",
             description = "크롤 스케줄러를 수동으로 트리거하여 CrawlTask를 생성합니다. scheduler:update 권한이 필요합니다.",
@@ -228,6 +233,6 @@ public class CrawlSchedulerCommandController {
         CrawlTaskResponse useCaseResponse = triggerCrawlTaskUseCase.execute(command);
         CrawlTaskApiResponse apiResponse =
                 crawlSchedulerCommandApiMapper.toTaskApiResponse(useCaseResponse);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ofSuccess(apiResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(apiResponse));
     }
 }

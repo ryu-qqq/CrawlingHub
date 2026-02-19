@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
-import java.time.Clock;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * 크롤 스케줄러 아웃박스 Aggregate Root
@@ -22,82 +22,41 @@ import java.time.Instant;
  */
 public class CrawlSchedulerOutBox {
 
-    // ==================== 필드 ====================
-
     private final CrawlSchedulerOutBoxId outBoxId;
     private final CrawlSchedulerHistoryId historyId;
     private CrawlSchedulerOubBoxStatus status;
-    private String eventPayload; // JSON 형태의 이벤트 데이터
-    private String errorMessage; // 실패 시 에러 메시지
-    private Long version; // Optimistic Locking
+    private String eventPayload;
+    private String errorMessage;
+    private Long version;
 
     private final Instant createdAt;
     private Instant processedAt;
-
-    // ==================== 생성 메서드 (3종) ====================
 
     /**
      * 신규 생성 (Auto Increment ID)
      *
      * @param historyId 스케줄러 히스토리 ID
      * @param eventPayload 이벤트 페이로드 (JSON)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 신규 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox forNew(
-            CrawlSchedulerHistoryId historyId, String eventPayload, Clock clock) {
-        Instant now = clock.instant();
+            CrawlSchedulerHistoryId historyId, String eventPayload, Instant now) {
         return new CrawlSchedulerOutBox(
-                null, // Auto Increment: ID null
+                null,
                 historyId,
                 CrawlSchedulerOubBoxStatus.PENDING,
                 eventPayload,
-                null, // errorMessage null
-                0L, // version 초기값
+                null,
+                0L,
                 now,
-                null); // processedAt null
-    }
-
-    /**
-     * ID 기반 생성 (비즈니스 로직용)
-     *
-     * @param outBoxId 아웃박스 ID (null 불가)
-     * @param historyId 스케줄러 히스토리 ID
-     * @param status 아웃박스 상태
-     * @param eventPayload 이벤트 페이로드 (JSON)
-     * @param errorMessage 에러 메시지
-     * @param version 버전 (Optimistic Locking)
-     * @param createdAt 생성 시각
-     * @param processedAt 처리 시각
-     * @return CrawlSchedulerOutBox
-     */
-    public static CrawlSchedulerOutBox of(
-            CrawlSchedulerOutBoxId outBoxId,
-            CrawlSchedulerHistoryId historyId,
-            CrawlSchedulerOubBoxStatus status,
-            String eventPayload,
-            String errorMessage,
-            Long version,
-            Instant createdAt,
-            Instant processedAt) {
-        if (outBoxId == null) {
-            throw new IllegalArgumentException("outBoxId는 null일 수 없습니다.");
-        }
-        return new CrawlSchedulerOutBox(
-                outBoxId,
-                historyId,
-                status,
-                eventPayload,
-                errorMessage,
-                version,
-                createdAt,
-                processedAt);
+                null);
     }
 
     /**
      * 영속성 복원 (Mapper 전용)
      *
-     * @param outBoxId 아웃박스 ID (null 불가)
+     * @param outBoxId 아웃박스 ID
      * @param historyId 스케줄러 히스토리 ID
      * @param status 아웃박스 상태
      * @param eventPayload 이벤트 페이로드 (JSON)
@@ -116,9 +75,6 @@ public class CrawlSchedulerOutBox {
             Long version,
             Instant createdAt,
             Instant processedAt) {
-        if (outBoxId == null) {
-            throw new IllegalArgumentException("outBoxId는 null일 수 없습니다.");
-        }
         return new CrawlSchedulerOutBox(
                 outBoxId,
                 historyId,
@@ -130,7 +86,6 @@ public class CrawlSchedulerOutBox {
                 processedAt);
     }
 
-    /** 생성자 (private) */
     private CrawlSchedulerOutBox(
             CrawlSchedulerOutBoxId outBoxId,
             CrawlSchedulerHistoryId historyId,
@@ -155,14 +110,14 @@ public class CrawlSchedulerOutBox {
     /**
      * AWS EventBridge 동기화 완료
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsCompleted(Clock clock) {
+    public void markAsCompleted(Instant now) {
         if (this.status == CrawlSchedulerOubBoxStatus.COMPLETED) {
-            return; // 이미 완료 상태면 무시
+            return;
         }
         this.status = CrawlSchedulerOubBoxStatus.COMPLETED;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
         this.errorMessage = null;
     }
 
@@ -170,14 +125,14 @@ public class CrawlSchedulerOutBox {
      * AWS EventBridge 동기화 실패
      *
      * @param errorMessage 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsFailed(String errorMessage, Clock clock) {
+    public void markAsFailed(String errorMessage, Instant now) {
         if (errorMessage == null || errorMessage.isBlank()) {
             throw new IllegalArgumentException("에러 메시지는 null이거나 빈 문자열일 수 없습니다.");
         }
         this.status = CrawlSchedulerOubBoxStatus.FAILED;
-        this.processedAt = clock.instant();
+        this.processedAt = now;
         this.errorMessage = errorMessage;
     }
 
@@ -197,7 +152,6 @@ public class CrawlSchedulerOutBox {
         return outBoxId;
     }
 
-    /** Law of Demeter: 원시 타입이 필요한 경우 별도 메서드 제공 */
     public Long getOutBoxIdValue() {
         return outBoxId != null ? outBoxId.value() : null;
     }
@@ -206,7 +160,6 @@ public class CrawlSchedulerOutBox {
         return historyId;
     }
 
-    /** Law of Demeter: 히스토리 ID의 원시값 */
     public Long getHistoryIdValue() {
         return historyId.value();
     }
@@ -235,18 +188,30 @@ public class CrawlSchedulerOutBox {
         return version;
     }
 
-    /** 완료 상태 여부 */
     public boolean isCompleted() {
         return this.status == CrawlSchedulerOubBoxStatus.COMPLETED;
     }
 
-    /** 실패 상태 여부 */
     public boolean isFailed() {
         return this.status == CrawlSchedulerOubBoxStatus.FAILED;
     }
 
-    /** 대기 상태 여부 */
     public boolean isPending() {
         return this.status == CrawlSchedulerOubBoxStatus.PENDING;
+    }
+
+    // ==================== equals/hashCode (ID 기반) ====================
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CrawlSchedulerOutBox that = (CrawlSchedulerOutBox) o;
+        return Objects.equals(outBoxId, that.outBoxId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(outBoxId);
     }
 }

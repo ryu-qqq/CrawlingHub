@@ -6,8 +6,8 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,7 @@ class CrawlSchedulerReadManagerTest {
 
     @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
     @Mock private CrawlScheduler crawlScheduler;
-    @Mock private CrawlSchedulerQueryCriteria criteria;
+    @Mock private CrawlSchedulerPageCriteria criteria;
 
     private CrawlSchedulerReadManager manager;
 

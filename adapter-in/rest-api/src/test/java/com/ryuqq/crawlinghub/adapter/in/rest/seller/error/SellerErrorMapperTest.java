@@ -1,8 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.mapper.ErrorMapper.MappedError;
+import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
+import com.ryuqq.crawlinghub.domain.common.exception.ErrorCode;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerHasActiveSchedulersException;
@@ -12,6 +15,7 @@ import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
@@ -58,10 +62,10 @@ class SellerErrorMapperTest {
     @DisplayName("SELLER- prefix를 가진 에러 코드는 supports()가 true를 반환한다")
     void supports_WhenSellerPrefix_ShouldReturnTrue() {
         // given
-        String code = "SELLER-001";
+        DomainException ex = createDomainException("SELLER-001");
 
         // when
-        boolean result = sellerErrorMapper.supports(code);
+        boolean result = sellerErrorMapper.supports(ex);
 
         // then
         assertThat(result).isTrue();
@@ -71,10 +75,10 @@ class SellerErrorMapperTest {
     @DisplayName("SELLER- prefix가 없는 에러 코드는 supports()가 false를 반환한다")
     void supports_WhenNonSellerPrefix_ShouldReturnFalse() {
         // given
-        String code = "ORDER-001";
+        DomainException ex = createDomainException("ORDER-001");
 
         // when
-        boolean result = sellerErrorMapper.supports(code);
+        boolean result = sellerErrorMapper.supports(ex);
 
         // then
         assertThat(result).isFalse();
@@ -83,11 +87,8 @@ class SellerErrorMapperTest {
     @Test
     @DisplayName("null 에러 코드는 supports()가 false를 반환한다")
     void supports_WhenNullCode_ShouldReturnFalse() {
-        // given
-        String code = null;
-
         // when
-        boolean result = sellerErrorMapper.supports(code);
+        boolean result = sellerErrorMapper.supports(null);
 
         // then
         assertThat(result).isFalse();
@@ -287,5 +288,16 @@ class SellerErrorMapperTest {
         assertThat(result.title()).contains("Cannot deactivate seller");
         assertThat(result.title()).contains("123");
         assertThat(result.title()).contains("5");
+    }
+
+    private DomainException createDomainException(String code) {
+        ErrorCode errorCode = Mockito.mock(ErrorCode.class);
+        given(errorCode.getCode()).willReturn(code);
+        return new DomainException(errorCode, "test") {
+            @Override
+            public String code() {
+                return code;
+            }
+        };
     }
 }

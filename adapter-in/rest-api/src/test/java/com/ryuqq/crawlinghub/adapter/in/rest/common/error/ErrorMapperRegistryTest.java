@@ -47,7 +47,7 @@ class ErrorMapperRegistryTest {
                             "Resource not found",
                             URI.create("https://error.example.com/TEST_ERROR"));
 
-            given(mapper1.supports("TEST_ERROR")).willReturn(true);
+            given(mapper1.supports(exception)).willReturn(true);
             given(mapper1.map(exception, locale)).willReturn(expectedError);
 
             // When
@@ -76,7 +76,7 @@ class ErrorMapperRegistryTest {
                             "First mapper detail",
                             URI.create("about:blank"));
 
-            given(mapper1.supports("TEST_ERROR")).willReturn(true);
+            given(mapper1.supports(exception)).willReturn(true);
             given(mapper1.map(exception, locale)).willReturn(firstMapperError);
 
             // When
@@ -99,8 +99,8 @@ class ErrorMapperRegistryTest {
             DomainException exception = createDomainException("UNKNOWN_ERROR", "Unknown error");
             Locale locale = Locale.KOREAN;
 
-            given(mapper1.supports("UNKNOWN_ERROR")).willReturn(false);
-            given(mapper2.supports("UNKNOWN_ERROR")).willReturn(false);
+            given(mapper1.supports(exception)).willReturn(false);
+            given(mapper2.supports(exception)).willReturn(false);
 
             // When
             Optional<MappedError> result = registry.map(exception, locale);
@@ -126,8 +126,8 @@ class ErrorMapperRegistryTest {
                             "Resource conflict",
                             URI.create("about:blank"));
 
-            given(mapper1.supports("TEST_ERROR")).willReturn(false);
-            given(mapper2.supports("TEST_ERROR")).willReturn(true);
+            given(mapper1.supports(exception)).willReturn(false);
+            given(mapper2.supports(exception)).willReturn(true);
             given(mapper2.map(exception, locale)).willReturn(expectedError);
 
             // When

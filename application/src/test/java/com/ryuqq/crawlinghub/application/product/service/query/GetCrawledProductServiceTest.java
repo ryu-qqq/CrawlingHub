@@ -12,9 +12,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,8 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetCrawledProductService 테스트")
 class GetCrawledProductServiceTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
     private static final CrawledProductId PRODUCT_ID = CrawledProductId.of(1L);
     private static final SellerId SELLER_ID = SellerId.of(100L);
     private static final long ITEM_NO = 12345L;
@@ -169,7 +166,7 @@ class GetCrawledProductServiceTest {
     }
 
     private CrawledProduct createMockProductWithId(CrawledProductId productId) {
-        Instant now = FIXED_CLOCK.instant();
+        Instant now = FIXED_INSTANT;
         return CrawledProduct.reconstitute(
                 productId,
                 SELLER_ID,

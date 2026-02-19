@@ -1,16 +1,16 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
- * 크롤 스케줄러 히스토리 Aggregate Root
+ * 크롤 스케줄러 히스토리
  *
  * <p><strong>도메인 규칙</strong>:
  *
@@ -25,8 +25,6 @@ import java.time.Instant;
  */
 public class CrawlSchedulerHistory {
 
-    // ==================== 필드 ====================
-
     private final CrawlSchedulerHistoryId historyId;
     private final CrawlSchedulerId crawlSchedulerId;
     private final SellerId sellerId;
@@ -34,8 +32,6 @@ public class CrawlSchedulerHistory {
     private final CronExpression cronExpression;
     private final SchedulerStatus status;
     private final Instant createdAt;
-
-    // ==================== 생성 메서드 (3종) ====================
 
     /**
      * 신규 생성 (Auto Increment ID)
@@ -45,7 +41,7 @@ public class CrawlSchedulerHistory {
      * @param schedulerName 스케줄러 이름
      * @param cronExpression 크론 표현식
      * @param status 스케줄러 상태
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 신규 CrawlSchedulerHistory
      */
     public static CrawlSchedulerHistory forNew(
@@ -54,55 +50,15 @@ public class CrawlSchedulerHistory {
             SchedulerName schedulerName,
             CronExpression cronExpression,
             SchedulerStatus status,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new CrawlSchedulerHistory(
-                null, // Auto Increment: ID null
-                crawlSchedulerId,
-                sellerId,
-                schedulerName,
-                cronExpression,
-                status,
-                now);
-    }
-
-    /**
-     * ID 기반 생성 (비즈니스 로직용)
-     *
-     * @param historyId 히스토리 ID (null 불가)
-     * @param crawlSchedulerId 스케줄러 ID
-     * @param sellerId 셀러 ID
-     * @param schedulerName 스케줄러 이름
-     * @param cronExpression 크론 표현식
-     * @param status 스케줄러 상태
-     * @param createdAt 생성 시각
-     * @return CrawlSchedulerHistory
-     */
-    public static CrawlSchedulerHistory of(
-            CrawlSchedulerHistoryId historyId,
-            CrawlSchedulerId crawlSchedulerId,
-            SellerId sellerId,
-            SchedulerName schedulerName,
-            CronExpression cronExpression,
-            SchedulerStatus status,
-            Instant createdAt) {
-        if (historyId == null) {
-            throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
-        }
-        return new CrawlSchedulerHistory(
-                historyId,
-                crawlSchedulerId,
-                sellerId,
-                schedulerName,
-                cronExpression,
-                status,
-                createdAt);
+                null, crawlSchedulerId, sellerId, schedulerName, cronExpression, status, now);
     }
 
     /**
      * 영속성 복원 (Mapper 전용)
      *
-     * @param historyId 히스토리 ID (null 불가)
+     * @param historyId 히스토리 ID
      * @param crawlSchedulerId 스케줄러 ID
      * @param sellerId 셀러 ID
      * @param schedulerName 스케줄러 이름
@@ -119,9 +75,6 @@ public class CrawlSchedulerHistory {
             CronExpression cronExpression,
             SchedulerStatus status,
             Instant createdAt) {
-        if (historyId == null) {
-            throw new IllegalArgumentException("historyId는 null일 수 없습니다.");
-        }
         return new CrawlSchedulerHistory(
                 historyId,
                 crawlSchedulerId,
@@ -133,23 +86,22 @@ public class CrawlSchedulerHistory {
     }
 
     /**
-     * CrawlScheduler로부터 히스토리 생성 (팩토리 메서드)
+     * CrawlScheduler로부터 히스토리 생성
      *
      * @param scheduler 스케줄러
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawlSchedulerHistory
      */
-    public static CrawlSchedulerHistory fromScheduler(CrawlScheduler scheduler, Clock clock) {
+    public static CrawlSchedulerHistory fromScheduler(CrawlScheduler scheduler, Instant now) {
         return forNew(
                 scheduler.getCrawlSchedulerId(),
                 scheduler.getSellerId(),
                 scheduler.getSchedulerName(),
                 scheduler.getCronExpression(),
                 scheduler.getStatus(),
-                clock);
+                now);
     }
 
-    /** 생성자 (private) */
     private CrawlSchedulerHistory(
             CrawlSchedulerHistoryId historyId,
             CrawlSchedulerId crawlSchedulerId,
@@ -173,7 +125,6 @@ public class CrawlSchedulerHistory {
         return historyId;
     }
 
-    /** Law of Demeter: 원시 타입이 필요한 경우 별도 메서드 제공 */
     public Long getHistoryIdValue() {
         return historyId != null ? historyId.value() : null;
     }
@@ -182,7 +133,6 @@ public class CrawlSchedulerHistory {
         return crawlSchedulerId;
     }
 
-    /** Law of Demeter: 스케줄러 ID의 원시값 */
     public Long getCrawlSchedulerIdValue() {
         return crawlSchedulerId.value();
     }
@@ -191,7 +141,6 @@ public class CrawlSchedulerHistory {
         return sellerId;
     }
 
-    /** Law of Demeter: Seller ID의 원시값 */
     public Long getSellerIdValue() {
         return sellerId.value();
     }
@@ -200,7 +149,6 @@ public class CrawlSchedulerHistory {
         return schedulerName;
     }
 
-    /** Law of Demeter: 스케줄러 이름의 원시값 */
     public String getSchedulerNameValue() {
         return schedulerName.value();
     }
@@ -209,7 +157,6 @@ public class CrawlSchedulerHistory {
         return cronExpression;
     }
 
-    /** Law of Demeter: 크론 표현식의 원시값 */
     public String getCronExpressionValue() {
         return cronExpression.value();
     }
@@ -220,5 +167,20 @@ public class CrawlSchedulerHistory {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    // ==================== equals/hashCode (ID 기반) ====================
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CrawlSchedulerHistory that = (CrawlSchedulerHistory) o;
+        return Objects.equals(historyId, that.historyId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(historyId);
     }
 }

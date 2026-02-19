@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.dto.command.BatchRetryCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.BatchRetryResultResponse;
 import com.ryuqq.crawlinghub.application.task.dto.response.BatchRetryResultResponse.RetryFailureItem;
@@ -7,7 +8,6 @@ import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.BatchRetryCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import java.util.ArrayList;
@@ -35,17 +35,17 @@ public class BatchRetryCrawlTaskService implements BatchRetryCrawlTaskUseCase {
     private final CrawlTaskReadManager readManager;
     private final CrawlTaskCommandFactory commandFactory;
     private final CrawlTaskFacade facade;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public BatchRetryCrawlTaskService(
             CrawlTaskReadManager readManager,
             CrawlTaskCommandFactory commandFactory,
             CrawlTaskFacade facade,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.commandFactory = commandFactory;
         this.facade = facade;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class BatchRetryCrawlTaskService implements BatchRetryCrawlTaskUseCase {
 
         CrawlTask crawlTask = taskOptional.get();
 
-        boolean canRetry = crawlTask.attemptRetry(clockHolder.getClock());
+        boolean canRetry = crawlTask.attemptRetry(timeProvider.now());
         if (!canRetry) {
             String reason =
                     String.format(

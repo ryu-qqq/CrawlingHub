@@ -5,10 +5,9 @@ import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -81,15 +80,14 @@ public class CrawlExecution {
      * @param crawlTaskId CrawlTask ID
      * @param crawlSchedulerId CrawlScheduler ID
      * @param sellerId Seller ID
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 CrawlExecution (RUNNING 상태)
      */
     public static CrawlExecution start(
             CrawlTaskId crawlTaskId,
             CrawlSchedulerId crawlSchedulerId,
             SellerId sellerId,
-            Clock clock) {
-        Instant now = clock.instant();
+            Instant now) {
         return new CrawlExecution(
                 CrawlExecutionId.unassigned(),
                 crawlTaskId,
@@ -97,7 +95,7 @@ public class CrawlExecution {
                 sellerId,
                 CrawlExecutionStatus.RUNNING,
                 CrawlExecutionResult.empty(),
-                ExecutionDuration.start(clock),
+                ExecutionDuration.start(now),
                 now);
     }
 
@@ -132,14 +130,14 @@ public class CrawlExecution {
      *
      * @param responseBody 응답 본문
      * @param httpStatusCode HTTP 상태 코드
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlExecutionStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void completeWithSuccess(String responseBody, Integer httpStatusCode, Clock clock) {
+    public void completeWithSuccess(String responseBody, Integer httpStatusCode, Instant now) {
         validateRunningStatus();
         this.status = CrawlExecutionStatus.SUCCESS;
         this.result = CrawlExecutionResult.success(responseBody, httpStatusCode);
-        this.duration = this.duration.complete(clock);
+        this.duration = this.duration.complete(now);
     }
 
     /**
@@ -147,14 +145,14 @@ public class CrawlExecution {
      *
      * @param httpStatusCode HTTP 상태 코드 (nullable)
      * @param errorMessage 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlExecutionStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void completeWithFailure(Integer httpStatusCode, String errorMessage, Clock clock) {
+    public void completeWithFailure(Integer httpStatusCode, String errorMessage, Instant now) {
         validateRunningStatus();
         this.status = CrawlExecutionStatus.FAILED;
         this.result = CrawlExecutionResult.failure(httpStatusCode, errorMessage);
-        this.duration = this.duration.complete(clock);
+        this.duration = this.duration.complete(now);
     }
 
     /**
@@ -163,30 +161,30 @@ public class CrawlExecution {
      * @param responseBody 에러 응답 본문
      * @param httpStatusCode HTTP 상태 코드
      * @param errorMessage 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlExecutionStateException 현재 상태가 RUNNING이 아닌 경우
      */
     public void completeWithFailure(
-            String responseBody, Integer httpStatusCode, String errorMessage, Clock clock) {
+            String responseBody, Integer httpStatusCode, String errorMessage, Instant now) {
         validateRunningStatus();
         this.status = CrawlExecutionStatus.FAILED;
         this.result =
                 CrawlExecutionResult.failureWithBody(responseBody, httpStatusCode, errorMessage);
-        this.duration = this.duration.complete(clock);
+        this.duration = this.duration.complete(now);
     }
 
     /**
      * 타임아웃으로 완료
      *
      * @param errorMessage 타임아웃 에러 메시지
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidCrawlExecutionStateException 현재 상태가 RUNNING이 아닌 경우
      */
-    public void completeWithTimeout(String errorMessage, Clock clock) {
+    public void completeWithTimeout(String errorMessage, Instant now) {
         validateRunningStatus();
         this.status = CrawlExecutionStatus.TIMEOUT;
         this.result = CrawlExecutionResult.timeout(errorMessage);
-        this.duration = this.duration.complete(clock);
+        this.duration = this.duration.complete(now);
     }
 
     /**

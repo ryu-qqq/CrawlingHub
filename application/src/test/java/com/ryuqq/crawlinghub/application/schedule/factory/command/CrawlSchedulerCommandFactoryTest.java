@@ -7,14 +7,12 @@ import static org.mockito.BDDMockito.given;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,17 +30,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlSchedulerCommandFactory 단위 테스트")
 class CrawlSchedulerCommandFactoryTest {
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     private ObjectMapper objectMapper;
     private CrawlSchedulerCommandFactory factory;
-    private Clock fixedClock;
+    private Instant fixedInstant;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        factory = new CrawlSchedulerCommandFactory(clockHolder, objectMapper);
-        fixedClock = Clock.fixed(Instant.parse("2024-01-15T10:00:00Z"), ZoneId.of("UTC"));
+        factory = new CrawlSchedulerCommandFactory(timeProvider, objectMapper);
+        fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
     }
 
     @Nested
@@ -53,7 +51,7 @@ class CrawlSchedulerCommandFactoryTest {
         @DisplayName("RegisterCrawlSchedulerCommand로 CrawlSchedulerBundle을 생성한다")
         void shouldCreateBundleFromCommand() {
             // Given
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
                     new RegisterCrawlSchedulerCommand(100L, "test-scheduler", "cron(0 0 * * ? *)");
 
@@ -73,7 +71,7 @@ class CrawlSchedulerCommandFactoryTest {
         @DisplayName("생성된 Bundle의 eventPayload는 JSON 형식이다")
         void shouldCreateBundleWithJsonEventPayload() throws JsonProcessingException {
             // Given
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
                     new RegisterCrawlSchedulerCommand(100L, "scheduler-name", "cron(0 12 * * ? *)");
 
@@ -91,7 +89,7 @@ class CrawlSchedulerCommandFactoryTest {
         @DisplayName("이벤트 페이로드에 필수 필드가 포함된다")
         void shouldIncludeRequiredFieldsInEventPayload() {
             // Given
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
                     new RegisterCrawlSchedulerCommand(100L, "scheduler-name", "cron(0 12 * * ? *)");
 
@@ -115,7 +113,7 @@ class CrawlSchedulerCommandFactoryTest {
         @DisplayName("RegisterCrawlSchedulerCommand로 CrawlScheduler를 생성한다")
         void shouldCreateSchedulerFromCommand() {
             // Given
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
                     new RegisterCrawlSchedulerCommand(200L, "my-scheduler", "cron(30 6 * * ? *)");
 
@@ -133,7 +131,7 @@ class CrawlSchedulerCommandFactoryTest {
         @DisplayName("생성된 스케줄러는 ID가 null이다 (영속화 전)")
         void shouldCreateSchedulerWithNullId() {
             // Given
-            given(clockHolder.getClock()).willReturn(fixedClock);
+            given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
                     new RegisterCrawlSchedulerCommand(100L, "new-scheduler", "cron(0 0 * * ? *)");
 
@@ -206,7 +204,7 @@ class CrawlSchedulerCommandFactoryTest {
             // Given
             ObjectMapper failingMapper = Mockito.mock(ObjectMapper.class);
             CrawlSchedulerCommandFactory failingFactory =
-                    new CrawlSchedulerCommandFactory(clockHolder, failingMapper);
+                    new CrawlSchedulerCommandFactory(timeProvider, failingMapper);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             given(failingMapper.writeValueAsString(Mockito.any()))

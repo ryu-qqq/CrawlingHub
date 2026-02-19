@@ -8,7 +8,7 @@ import com.ryuqq.crawlinghub.application.schedule.factory.query.CrawlSchedulerQu
 import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulesUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +47,7 @@ public class SearchCrawlSchedulersService implements SearchCrawlSchedulesUseCase
     @Override
     public PageResponse<CrawlSchedulerResponse> execute(SearchCrawlSchedulersQuery query) {
         // 1. Query → Criteria 변환 (QueryFactory)
-        CrawlSchedulerQueryCriteria criteria = queryFactory.createCriteria(query);
+        CrawlSchedulerPageCriteria criteria = queryFactory.createCriteria(query);
 
         // 2. 조회
         List<CrawlScheduler> schedulers = readManager.findByCriteria(criteria);
@@ -55,6 +55,6 @@ public class SearchCrawlSchedulersService implements SearchCrawlSchedulesUseCase
 
         // 3. Domain → PageResponse 변환 (Assembler)
         return assembler.toPageResponse(
-                schedulers, criteria.page(), criteria.size(), totalElements);
+                schedulers, criteria.pageRequest().page(), criteria.size(), totalElements);
     }
 }

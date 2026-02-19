@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.IssueTokenUseCase;
 import com.ryuqq.crawlinghub.application.useragent.port.out.command.TokenGeneratorPort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -40,17 +40,17 @@ public class IssueTokenService implements IssueTokenUseCase {
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
     private final TokenGeneratorPort tokenGeneratorPort;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public IssueTokenService(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
             TokenGeneratorPort tokenGeneratorPort,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
         this.tokenGeneratorPort = tokenGeneratorPort;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -81,7 +81,7 @@ public class IssueTokenService implements IssueTokenUseCase {
         Token token = tokenGeneratorPort.generate();
 
         // 4. Domain 로직 실행 (토큰 발급)
-        userAgent.issueToken(token, clockHolder.getClock());
+        userAgent.issueToken(token, timeProvider.now());
 
         // 5. DB 저장
         transactionManager.persist(userAgent);

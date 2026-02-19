@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.event.ImageUploadRequestedEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ImageType;
-import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -68,10 +68,10 @@ public final class ImageUploadData {
      *
      * <p>ID가 설정되지 않은 경우 IllegalStateException 발생
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return CrawledProductImage 목록
      */
-    public List<CrawledProductImage> createImages(Clock clock) {
+    public List<CrawledProductImage> createImages(Instant now) {
         validateProductIdSet();
         int displayOrder = 0;
         return imageUrls.stream()
@@ -79,7 +79,7 @@ public final class ImageUploadData {
                         url -> {
                             int order = displayOrder;
                             return CrawledProductImage.forNew(
-                                    crawledProductId, url, imageType, order, clock);
+                                    crawledProductId, url, imageType, order, now);
                         })
                 .toList();
     }
@@ -90,16 +90,16 @@ public final class ImageUploadData {
      * <p>이미지가 저장된 후, 이미지 ID로 Outbox를 생성합니다.
      *
      * @param savedImages 저장된 이미지 목록 (ID 포함)
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return ProductImageOutbox 목록
      */
     public List<ProductImageOutbox> createOutboxes(
-            List<CrawledProductImage> savedImages, Clock clock) {
+            List<CrawledProductImage> savedImages, Instant now) {
         return savedImages.stream()
                 .map(
                         image ->
                                 ProductImageOutbox.forNewWithImageId(
-                                        image.getId(), image.getOriginalUrl(), clock))
+                                        image.getId(), image.getOriginalUrl(), now))
                 .toList();
     }
 
@@ -108,12 +108,12 @@ public final class ImageUploadData {
      *
      * <p>ID가 설정되지 않은 경우 IllegalStateException 발생
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return ImageUploadRequestedEvent
      */
-    public ImageUploadRequestedEvent createEvent(Clock clock) {
+    public ImageUploadRequestedEvent createEvent(Instant now) {
         validateProductIdSet();
-        return ImageUploadRequestedEvent.ofUrls(crawledProductId, imageUrls, imageType, clock);
+        return ImageUploadRequestedEvent.ofUrls(crawledProductId, imageUrls, imageType, now);
     }
 
     private void validateProductIdSet() {

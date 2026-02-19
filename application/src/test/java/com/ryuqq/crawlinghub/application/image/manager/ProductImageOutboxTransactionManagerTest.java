@@ -1,16 +1,16 @@
 package com.ryuqq.crawlinghub.application.image.manager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.out.command.ImageOutboxPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.ProductImageOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,13 +36,14 @@ class ProductImageOutboxTransactionManagerTest {
 
     @Mock private ImageOutboxPersistencePort outboxPersistencePort;
 
-    private Clock fixedClock;
+    @Mock private TimeProvider timeProvider;
+
     private ProductImageOutboxTransactionManager manager;
 
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(FIXED_TIME, ZoneId.of("UTC"));
-        manager = new ProductImageOutboxTransactionManager(outboxPersistencePort, fixedClock);
+        manager = new ProductImageOutboxTransactionManager(outboxPersistencePort, timeProvider);
+        given(timeProvider.now()).willReturn(FIXED_TIME);
     }
 
     @Nested

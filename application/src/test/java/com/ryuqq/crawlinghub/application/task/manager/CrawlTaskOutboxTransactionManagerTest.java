@@ -5,12 +5,11 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskOutboxTransactionManager;
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskOutboxPersistencePort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
-import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,14 +33,14 @@ class CrawlTaskOutboxTransactionManagerTest {
 
     @Mock private CrawlTaskOutboxPersistencePort crawlTaskOutboxPersistencePort;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private CrawlTaskOutboxTransactionManager manager;
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = FixedClock.aDefaultClock();
-        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
+        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested

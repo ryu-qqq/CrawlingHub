@@ -1,16 +1,16 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.dto.command.UpdateUserAgentMetadataCommand;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.UpdateUserAgentMetadataUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
-import java.time.Clock;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -40,15 +40,15 @@ public class UpdateUserAgentMetadataService implements UpdateUserAgentMetadataUs
 
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public UpdateUserAgentMetadataService(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -70,7 +70,7 @@ public class UpdateUserAgentMetadataService implements UpdateUserAgentMetadataUs
                         .findById(userAgentId)
                         .orElseThrow(() -> new UserAgentNotFoundException(userAgentId));
 
-        Clock clock = clockHolder.getClock();
+        Instant now = timeProvider.now();
 
         UserAgentString newUserAgentString =
                 command.userAgentString() != null
@@ -108,7 +108,7 @@ public class UpdateUserAgentMetadataService implements UpdateUserAgentMetadataUs
                         userAgent.getLastUsedAt(),
                         userAgent.getRequestsPerDay(),
                         userAgent.getCreatedAt(),
-                        clock.instant());
+                        now);
 
         transactionManager.persist(updatedUserAgent);
 

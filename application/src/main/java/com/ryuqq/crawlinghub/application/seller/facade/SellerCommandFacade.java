@@ -29,7 +29,7 @@ public class SellerCommandFacade {
     /**
      * Seller 정보 수정 + 영속화 + 이벤트 발행
      *
-     * <p>TransactionManager에 위임하여 ClockHolder 의존성 캡슐화
+     * <p>TransactionManager에 위임하여 TimeProvider 의존성 캡슐화
      *
      * @param seller 수정 대상 Seller
      * @param newMustItSellerName 새로운 머스트잇 셀러명

@@ -10,7 +10,7 @@ import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.port.in.command.TriggerCrawlTaskUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
  *   <li>EventBridge에서 호출되어 CrawlTask 생성
  *   <li>CommandFactory로 번들 생성
  *   <li>Facade에 위임하여 트랜잭션 처리
- *   <li>ClockHolder 의존성 없음 (Facade가 관리)
+ *   <li>TimeProvider 의존성 없음 (Facade가 관리)
  * </ul>
  *
  * <p><strong>처리 흐름</strong>:

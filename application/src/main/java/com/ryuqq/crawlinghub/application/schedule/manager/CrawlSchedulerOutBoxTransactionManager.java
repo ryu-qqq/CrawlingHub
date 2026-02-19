@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.application.schedule.manager;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.schedule.port.out.command.PersistCrawlScheduleOutBoxPort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CrawlSchedulerOutBoxTransactionManager {
 
     private final PersistCrawlScheduleOutBoxPort persistCrawlScheduleOutBoxPort;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public CrawlSchedulerOutBoxTransactionManager(
             PersistCrawlScheduleOutBoxPort persistCrawlScheduleOutBoxPort,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.persistCrawlScheduleOutBoxPort = persistCrawlScheduleOutBoxPort;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -48,7 +48,7 @@ public class CrawlSchedulerOutBoxTransactionManager {
      */
     @Transactional
     public void markAsCompleted(CrawlSchedulerOutBox outBox) {
-        outBox.markAsCompleted(clockHolder.getClock());
+        outBox.markAsCompleted(timeProvider.now());
         persistCrawlScheduleOutBoxPort.persist(outBox);
     }
 
@@ -62,7 +62,7 @@ public class CrawlSchedulerOutBoxTransactionManager {
      */
     @Transactional
     public void markAsFailed(CrawlSchedulerOutBox outBox, String errorMessage) {
-        outBox.markAsFailed(errorMessage, clockHolder.getClock());
+        outBox.markAsFailed(errorMessage, timeProvider.now());
         persistCrawlScheduleOutBoxPort.persist(outBox);
     }
 }

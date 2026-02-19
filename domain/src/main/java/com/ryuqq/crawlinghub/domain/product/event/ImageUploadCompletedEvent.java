@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.domain.product.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -42,11 +41,11 @@ public record ImageUploadCompletedEvent(
      * @param crawledProductId CrawledProduct ID
      * @param originalUrl 원본 이미지 URL
      * @param s3Url 업로드된 S3 URL
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 이벤트 인스턴스
      */
     public static ImageUploadCompletedEvent of(
-            CrawledProductId crawledProductId, String originalUrl, String s3Url, Clock clock) {
-        return new ImageUploadCompletedEvent(crawledProductId, originalUrl, s3Url, clock.instant());
+            CrawledProductId crawledProductId, String originalUrl, String s3Url, Instant now) {
+        return new ImageUploadCompletedEvent(crawledProductId, originalUrl, s3Url, now);
     }
 }

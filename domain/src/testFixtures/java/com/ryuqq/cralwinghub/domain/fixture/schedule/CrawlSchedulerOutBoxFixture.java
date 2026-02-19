@@ -2,10 +2,9 @@ package com.ryuqq.cralwinghub.domain.fixture.schedule;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerOutBoxId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -18,7 +17,7 @@ import java.time.Instant;
  */
 public final class CrawlSchedulerOutBoxFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
 
     private CrawlSchedulerOutBoxFixture() {
         throw new UnsupportedOperationException("Fixture 클래스입니다.");
@@ -30,8 +29,8 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return PENDING 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aPendingOutBox() {
-        Instant now = DEFAULT_CLOCK.instant();
-        return CrawlSchedulerOutBox.of(
+        Instant now = DEFAULT_INSTANT;
+        return CrawlSchedulerOutBox.reconstitute(
                 CrawlSchedulerOutBoxId.of(1L),
                 CrawlSchedulerHistoryId.of(1L),
                 CrawlSchedulerOubBoxStatus.PENDING,
@@ -48,9 +47,9 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return COMPLETED 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aCompletedOutBox() {
-        Instant now = DEFAULT_CLOCK.instant();
+        Instant now = DEFAULT_INSTANT;
         Instant fiveMinutesAgo = now.minusSeconds(300);
-        return CrawlSchedulerOutBox.of(
+        return CrawlSchedulerOutBox.reconstitute(
                 CrawlSchedulerOutBoxId.of(2L),
                 CrawlSchedulerHistoryId.of(2L),
                 CrawlSchedulerOubBoxStatus.COMPLETED,
@@ -67,10 +66,10 @@ public final class CrawlSchedulerOutBoxFixture {
      * @return FAILED 상태 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox aFailedOutBox() {
-        Instant now = DEFAULT_CLOCK.instant();
+        Instant now = DEFAULT_INSTANT;
         Instant tenMinutesAgo = now.minusSeconds(600);
         Instant fiveMinutesAgo = now.minusSeconds(300);
-        return CrawlSchedulerOutBox.of(
+        return CrawlSchedulerOutBox.reconstitute(
                 CrawlSchedulerOutBoxId.of(3L),
                 CrawlSchedulerHistoryId.of(3L),
                 CrawlSchedulerOubBoxStatus.FAILED,

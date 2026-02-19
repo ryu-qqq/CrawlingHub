@@ -8,7 +8,6 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentMetadata;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -85,11 +84,10 @@ public class UserAgent {
      *
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 새로운 UserAgent (AVAILABLE, Health Score 100)
      */
-    public static UserAgent forNew(Token token, UserAgentString userAgentString, Clock clock) {
-        Instant now = clock.instant();
+    public static UserAgent forNew(Token token, UserAgentString userAgentString, Instant now) {
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
         UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
         return new UserAgent(
@@ -109,15 +107,14 @@ public class UserAgent {
     /**
      * 토큰 없이 신규 UserAgent 생성 (Lazy Token Issuance)
      *
-     * <p>토큰 발급을 나중으로 미루고 UserAgent만 먼저 등록할 때 사용합니다. 토큰이 필요한 시점에 {@link #issueToken(Token, Clock)}
+     * <p>토큰 발급을 나중으로 미루고 UserAgent만 먼저 등록할 때 사용합니다. 토큰이 필요한 시점에 {@link #issueToken(Token, Instant)}
      * 메서드로 발급합니다.
      *
      * @param userAgentString User-Agent 헤더 문자열
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @return 토큰이 없는 새로운 UserAgent (AVAILABLE, Health Score 100)
      */
-    public static UserAgent forNewWithoutToken(UserAgentString userAgentString, Clock clock) {
-        Instant now = clock.instant();
+    public static UserAgent forNewWithoutToken(UserAgentString userAgentString, Instant now) {
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
         UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
         return new UserAgent(
@@ -184,11 +181,11 @@ public class UserAgent {
      * <p>토큰이 없는 UserAgent에 토큰을 발급합니다. 이미 토큰이 발급된 경우 예외가 발생합니다.
      *
      * @param token 발급할 토큰
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws IllegalStateException 이미 토큰이 발급된 경우
      * @throws IllegalArgumentException 토큰이 비어있는 경우
      */
-    public void issueToken(Token token, Clock clock) {
+    public void issueToken(Token token, Instant now) {
         if (hasToken()) {
             throw new IllegalStateException("이미 토큰이 발급되었습니다: userAgentId=" + this.id.value());
         }
@@ -196,7 +193,7 @@ public class UserAgent {
             throw new IllegalArgumentException("발급할 토큰은 비어있을 수 없습니다.");
         }
         this.token = token;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -211,10 +208,9 @@ public class UserAgent {
     /**
      * 사용 기록 (lastUsedAt, requestsPerDay 업데이트)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void markAsUsed(Clock clock) {
-        Instant now = clock.instant();
+    public void markAsUsed(Instant now) {
         this.lastUsedAt = now;
         this.requestsPerDay++;
         this.updatedAt = now;
@@ -223,10 +219,9 @@ public class UserAgent {
     /**
      * 성공 기록 (Health Score +5, 최대 100)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void recordSuccess(Clock clock) {
-        Instant now = clock.instant();
+    public void recordSuccess(Instant now) {
         this.healthScore = this.healthScore.recordSuccess();
         this.lastUsedAt = now;
         this.updatedAt = now;
@@ -242,9 +237,9 @@ public class UserAgent {
      * </ul>
      *
      * @param httpStatusCode HTTP 응답 상태 코드
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void recordFailure(int httpStatusCode, Clock clock) {
+    public void recordFailure(int httpStatusCode, Instant now) {
         if (httpStatusCode == 429) {
             this.healthScore = this.healthScore.recordRateLimitFailure();
             this.status = UserAgentStatus.SUSPENDED;
@@ -256,7 +251,6 @@ public class UserAgent {
             checkAndSuspend();
         }
 
-        Instant now = clock.instant();
         this.lastUsedAt = now;
         this.updatedAt = now;
     }
@@ -271,44 +265,44 @@ public class UserAgent {
     /**
      * 수동 정지 (AVAILABLE → SUSPENDED)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidUserAgentStateException 현재 상태가 AVAILABLE이 아닌 경우
      */
-    public void suspend(Clock clock) {
+    public void suspend(Instant now) {
         if (!this.status.isAvailable()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.SUSPENDED);
         }
         this.status = UserAgentStatus.SUSPENDED;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * 복구 (SUSPENDED → READY, Health Score 70)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidUserAgentStateException 복구 불가능한 상태인 경우
      */
-    public void recover(Clock clock) {
+    public void recover(Instant now) {
         if (!this.status.canRecover()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
         }
         this.status = UserAgentStatus.READY;
         this.healthScore = HealthScore.recovered();
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * 영구 차단 (READY/SUSPENDED → BLOCKED)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidUserAgentStateException 이미 BLOCKED 상태인 경우
      */
-    public void block(Clock clock) {
+    public void block(Instant now) {
         if (this.status.isBlocked()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.BLOCKED);
         }
         this.status = UserAgentStatus.BLOCKED;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -316,16 +310,16 @@ public class UserAgent {
      *
      * <p>관리자가 차단된 UserAgent를 다시 활성화할 때 사용합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidUserAgentStateException BLOCKED 상태가 아닌 경우
      */
-    public void unblock(Clock clock) {
+    public void unblock(Instant now) {
         if (!this.status.isBlocked()) {
             throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
         }
         this.status = UserAgentStatus.READY;
         this.healthScore = HealthScore.recovered();
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -334,10 +328,10 @@ public class UserAgent {
      * <p>관리자가 명시적으로 상태를 변경할 때 사용합니다. 모든 상태 전환이 가능합니다.
      *
      * @param newStatus 변경할 상태
-     * @param clock 시간 제어
+     * @param now 현재 시각
      * @throws InvalidUserAgentStateException 동일한 상태로 변경하려는 경우
      */
-    public void changeStatus(UserAgentStatus newStatus, Clock clock) {
+    public void changeStatus(UserAgentStatus newStatus, Instant now) {
         if (this.status == newStatus) {
             throw new InvalidUserAgentStateException(this.status, newStatus);
         }
@@ -348,17 +342,17 @@ public class UserAgent {
         }
 
         this.status = newStatus;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
      * 일일 요청 수 초기화 (매일 자정 실행)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void resetDailyRequests(Clock clock) {
+    public void resetDailyRequests(Instant now) {
         this.requestsPerDay = 0;
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     /**
@@ -366,11 +360,11 @@ public class UserAgent {
      *
      * <p>관리자가 수동으로 Health Score를 초기화할 때 사용합니다.
      *
-     * @param clock 시간 제어
+     * @param now 현재 시각
      */
-    public void resetHealth(Clock clock) {
+    public void resetHealth(Instant now) {
         this.healthScore = HealthScore.initial();
-        this.updatedAt = clock.instant();
+        this.updatedAt = now;
     }
 
     // === 상태 확인 메서드 ===

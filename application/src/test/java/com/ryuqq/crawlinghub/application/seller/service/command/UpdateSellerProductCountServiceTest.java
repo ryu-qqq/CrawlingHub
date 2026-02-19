@@ -8,13 +8,12 @@ import static org.mockito.Mockito.never;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
 import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,14 +40,14 @@ class UpdateSellerProductCountServiceTest {
 
     @Mock private SellerReadManager sellerReadManager;
 
-    @Mock private ClockHolder clockHolder;
+    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private UpdateSellerProductCountService service;
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = FixedClock.aDefaultClock();
-        org.mockito.Mockito.lenient().when(clockHolder.getClock()).thenReturn(fixedClock);
+        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
+        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
     }
 
     @Nested

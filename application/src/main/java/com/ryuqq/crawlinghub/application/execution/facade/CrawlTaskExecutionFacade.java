@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.execution.facade;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
 import com.ryuqq.crawlinghub.application.crawl.processor.CrawlResultProcessor;
 import com.ryuqq.crawlinghub.application.crawl.processor.CrawlResultProcessorProvider;
@@ -10,9 +11,8 @@ import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionTransac
 import com.ryuqq.crawlinghub.application.task.manager.command.CrawlTaskTransactionManager;
 import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.CreateCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
@@ -54,7 +54,7 @@ public class CrawlTaskExecutionFacade {
     private final CrawlExecutionTransactionManager crawlExecutionManager;
     private final CrawlResultProcessorProvider processorProvider;
     private final CreateCrawlTaskUseCase createCrawlTaskUseCase;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public CrawlTaskExecutionFacade(
             CrawlTaskReadManager crawlTaskReadManager,
@@ -62,13 +62,13 @@ public class CrawlTaskExecutionFacade {
             CrawlExecutionTransactionManager crawlExecutionManager,
             CrawlResultProcessorProvider processorProvider,
             CreateCrawlTaskUseCase createCrawlTaskUseCase,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.crawlTaskReadManager = crawlTaskReadManager;
         this.crawlTaskTransactionManager = crawlTaskTransactionManager;
         this.crawlExecutionManager = crawlExecutionManager;
         this.processorProvider = processorProvider;
         this.createCrawlTaskUseCase = createCrawlTaskUseCase;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     /**
@@ -120,7 +120,7 @@ public class CrawlTaskExecutionFacade {
         }
 
         // 4. CrawlTask 상태 → RUNNING
-        crawlTask.markAsRunning(clockHolder.getClock());
+        crawlTask.markAsRunning(timeProvider.now());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.debug("CrawlTask 상태 업데이트: taskId={}, status=RUNNING", taskId);
@@ -168,7 +168,7 @@ public class CrawlTaskExecutionFacade {
         log.debug("✅ Step 1 완료: CrawlExecution 성공 처리");
 
         // 2. CrawlTask 상태 → SUCCESS
-        crawlTask.markAsSuccess(clockHolder.getClock());
+        crawlTask.markAsSuccess(timeProvider.now());
         crawlTaskTransactionManager.persist(crawlTask);
         log.debug("✅ Step 2 완료: CrawlTask SUCCESS 마킹");
 
@@ -240,7 +240,7 @@ public class CrawlTaskExecutionFacade {
         crawlExecutionManager.completeWithFailure(execution, httpStatusCode, errorMessage);
 
         // 2. CrawlTask 상태 → FAILED
-        crawlTask.markAsFailed(clockHolder.getClock());
+        crawlTask.markAsFailed(timeProvider.now());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.warn(
@@ -275,7 +275,7 @@ public class CrawlTaskExecutionFacade {
         crawlExecutionManager.completeWithTimeout(execution, errorMessage);
 
         // 2. CrawlTask 상태 → FAILED
-        crawlTask.markAsFailed(clockHolder.getClock());
+        crawlTask.markAsFailed(timeProvider.now());
         crawlTaskTransactionManager.persist(crawlTask);
 
         log.warn(

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.application.image.orchestrator;
 
-import com.ryuqq.crawlinghub.application.common.config.TransactionEventRegistry;
+import com.ryuqq.crawlinghub.application.common.component.TransactionEventRegistry;
 import com.ryuqq.crawlinghub.application.image.factory.ImageUploadBundleFactory;
 import com.ryuqq.crawlinghub.application.image.manager.command.CrawledProductImageTransactionManager;
 import com.ryuqq.crawlinghub.application.image.manager.command.ProductImageOutboxTransactionManager;

@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
@@ -7,7 +8,6 @@ import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.RetryCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskRetryException;
@@ -45,19 +45,19 @@ public class RetryCrawlTaskService implements RetryCrawlTaskUseCase {
     private final CrawlTaskCommandFactory commandFactory;
     private final CrawlTaskAssembler assembler;
     private final CrawlTaskFacade facade;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public RetryCrawlTaskService(
             CrawlTaskReadManager readManager,
             CrawlTaskCommandFactory commandFactory,
             CrawlTaskAssembler assembler,
             CrawlTaskFacade facade,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.commandFactory = commandFactory;
         this.assembler = assembler;
         this.facade = facade;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class RetryCrawlTaskService implements RetryCrawlTaskUseCase {
                         .orElseThrow(() -> new CrawlTaskNotFoundException(command.crawlTaskId()));
 
         // 2. 재시도 시도 (도메인 로직: 상태/횟수 검증)
-        boolean success = crawlTask.attemptRetry(clockHolder.getClock());
+        boolean success = crawlTask.attemptRetry(timeProvider.now());
         if (!success) {
             throw new CrawlTaskRetryException(
                     command.crawlTaskId(),

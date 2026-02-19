@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.service.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentTransactionManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.in.command.SuspendUserAgentUseCase;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.exception.UserAgentNotFoundException;
 import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
@@ -28,17 +28,17 @@ public class SuspendUserAgentService implements SuspendUserAgentUseCase {
     private final UserAgentReadManager readManager;
     private final UserAgentTransactionManager transactionManager;
     private final UserAgentPoolCacheManager cacheManager;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public SuspendUserAgentService(
             UserAgentReadManager readManager,
             UserAgentTransactionManager transactionManager,
             UserAgentPoolCacheManager cacheManager,
-            ClockHolder clockHolder) {
+            TimeProvider timeProvider) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
         this.cacheManager = cacheManager;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class SuspendUserAgentService implements SuspendUserAgentUseCase {
                 readManager.findById(id).orElseThrow(() -> new UserAgentNotFoundException(id));
 
         // 2. Domain 로직 실행 (AVAILABLE → SUSPENDED)
-        userAgent.suspend(clockHolder.getClock());
+        userAgent.suspend(timeProvider.now());
 
         // 3. Redis Pool에서 제거
         cacheManager.removeFromPool(id);

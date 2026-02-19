@@ -14,9 +14,7 @@ import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,8 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskTransactionManager 테스트")
 class CrawlTaskTransactionManagerTest {
 
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2024-01-01T10:00:00Z"), ZoneId.of("UTC"));
+    private static final Instant FIXED_INSTANT = Instant.parse("2024-01-01T10:00:00Z");
 
     @Mock private CrawlTaskPersistencePort crawlTaskPersistencePort;
     @Mock private CrawlTaskQueryPort crawlTaskQueryPort;
@@ -100,7 +97,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskPersistencePort.persist(any(CrawlTask.class))).willReturn(taskId);
 
             // When
-            manager.markAsPublished(taskId, FIXED_CLOCK);
+            manager.markAsPublished(taskId, FIXED_INSTANT);
 
             // Then
             ArgumentCaptor<CrawlTask> captor = ArgumentCaptor.forClass(CrawlTask.class);
@@ -121,7 +118,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskPersistencePort.persist(any(CrawlTask.class))).willReturn(taskId);
 
             // When
-            manager.markAsPublished(taskId, FIXED_CLOCK);
+            manager.markAsPublished(taskId, FIXED_INSTANT);
 
             // Then
             ArgumentCaptor<CrawlTask> captor = ArgumentCaptor.forClass(CrawlTask.class);
@@ -143,7 +140,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskPersistencePort.persist(any(CrawlTask.class))).willReturn(taskId);
 
             // When
-            manager.markAsPublished(taskId, FIXED_CLOCK);
+            manager.markAsPublished(taskId, FIXED_INSTANT);
 
             // Then
             ArgumentCaptor<CrawlTask> captor = ArgumentCaptor.forClass(CrawlTask.class);
@@ -165,7 +162,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskPersistencePort.persist(any(CrawlTask.class))).willReturn(taskId);
 
             // When
-            manager.markAsPublished(taskId, FIXED_CLOCK);
+            manager.markAsPublished(taskId, FIXED_INSTANT);
 
             // Then
             ArgumentCaptor<CrawlTask> captor = ArgumentCaptor.forClass(CrawlTask.class);
@@ -185,7 +182,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskQueryPort.findById(taskId)).willReturn(Optional.of(publishedTask));
 
             // When
-            manager.markAsPublished(taskId, FIXED_CLOCK);
+            manager.markAsPublished(taskId, FIXED_INSTANT);
 
             // Then - persist가 호출되지 않아야 함 (early return)
             verify(crawlTaskPersistencePort, org.mockito.Mockito.never())
@@ -202,7 +199,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskQueryPort.findById(taskId)).willReturn(Optional.of(maxRetryTask));
 
             // When & Then
-            assertThatThrownBy(() -> manager.markAsPublished(taskId, FIXED_CLOCK))
+            assertThatThrownBy(() -> manager.markAsPublished(taskId, FIXED_INSTANT))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("재시도 횟수를 초과했습니다");
         }
@@ -216,7 +213,7 @@ class CrawlTaskTransactionManagerTest {
             given(crawlTaskQueryPort.findById(taskId)).willReturn(Optional.empty());
 
             // When & Then
-            assertThatThrownBy(() -> manager.markAsPublished(taskId, FIXED_CLOCK))
+            assertThatThrownBy(() -> manager.markAsPublished(taskId, FIXED_INSTANT))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("CrawlTask를 찾을 수 없습니다");
         }

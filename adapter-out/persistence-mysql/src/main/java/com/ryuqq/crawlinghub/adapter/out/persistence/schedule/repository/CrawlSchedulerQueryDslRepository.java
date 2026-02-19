@@ -4,7 +4,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QCrawlSchedulerJpaEntity;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -99,16 +99,14 @@ public class CrawlSchedulerQueryDslRepository {
      *
      * <p>Offset 페이징을 지원합니다.
      *
-     * @param criteria 검색 조건 (CrawlSchedulerQueryCriteria)
+     * @param criteria 검색 조건 (CrawlSchedulerPageCriteria)
      * @return CrawlSchedulerJpaEntity 목록
      */
-    public List<CrawlSchedulerJpaEntity> findByCriteria(CrawlSchedulerQueryCriteria criteria) {
+    public List<CrawlSchedulerJpaEntity> findByCriteria(CrawlSchedulerPageCriteria criteria) {
         var query = queryFactory.selectFrom(qScheduler).where(buildSearchConditions(criteria));
 
         // Offset 페이징
-        if (criteria.page() != null && criteria.size() != null) {
-            query = query.offset((long) criteria.page() * criteria.size()).limit(criteria.size());
-        }
+        query = query.offset(criteria.offset()).limit(criteria.size());
 
         // 기본 정렬: createdAt 내림차순 (등록 최신순)
         query = query.orderBy(qScheduler.createdAt.desc());
@@ -119,10 +117,10 @@ public class CrawlSchedulerQueryDslRepository {
     /**
      * 검색 조건으로 CrawlScheduler 개수 조회
      *
-     * @param criteria 검색 조건 (CrawlSchedulerQueryCriteria)
+     * @param criteria 검색 조건 (CrawlSchedulerPageCriteria)
      * @return CrawlScheduler 개수
      */
-    public long countByCriteria(CrawlSchedulerQueryCriteria criteria) {
+    public long countByCriteria(CrawlSchedulerPageCriteria criteria) {
         Long count =
                 queryFactory
                         .select(qScheduler.count())
@@ -204,7 +202,7 @@ public class CrawlSchedulerQueryDslRepository {
      *
      * <p>BooleanExpression을 사용하여 동적 쿼리를 구성합니다.
      */
-    private BooleanExpression buildSearchConditions(CrawlSchedulerQueryCriteria criteria) {
+    private BooleanExpression buildSearchConditions(CrawlSchedulerPageCriteria criteria) {
         BooleanExpression expression = null;
 
         // 조건 1: 셀러 ID
@@ -220,20 +218,24 @@ public class CrawlSchedulerQueryDslRepository {
             expression = expression != null ? expression.and(statusesCondition) : statusesCondition;
         }
 
-        // 조건 3: 생성일 시작
-        BooleanExpression createdFromCondition = createdAtGoe(criteria.createdFrom());
-        if (createdFromCondition != null) {
-            expression =
-                    expression != null
-                            ? expression.and(createdFromCondition)
-                            : createdFromCondition;
-        }
+        // 조건 3-4: 생성일 범위
+        if (criteria.hasDateFilter()) {
+            BooleanExpression createdFromCondition =
+                    createdAtGoe(criteria.dateRange().startInstant());
+            if (createdFromCondition != null) {
+                expression =
+                        expression != null
+                                ? expression.and(createdFromCondition)
+                                : createdFromCondition;
+            }
 
-        // 조건 4: 생성일 종료
-        BooleanExpression createdToCondition = createdAtLoe(criteria.createdTo());
-        if (createdToCondition != null) {
-            expression =
-                    expression != null ? expression.and(createdToCondition) : createdToCondition;
+            BooleanExpression createdToCondition = createdAtLoe(criteria.dateRange().endInstant());
+            if (createdToCondition != null) {
+                expression =
+                        expression != null
+                                ? expression.and(createdToCondition)
+                                : createdToCondition;
+            }
         }
 
         return expression;

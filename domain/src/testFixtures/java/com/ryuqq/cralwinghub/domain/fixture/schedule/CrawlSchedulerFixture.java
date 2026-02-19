@@ -3,10 +3,9 @@ package com.ryuqq.cralwinghub.domain.fixture.schedule;
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.identifier.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -19,7 +18,7 @@ import java.time.Instant;
  */
 public final class CrawlSchedulerFixture {
 
-    private static final Clock DEFAULT_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant DEFAULT_INSTANT = FixedClock.aDefaultClock().instant();
 
     /**
      * 신규 활성 스케줄러 생성 (ID = null)
@@ -31,21 +30,21 @@ public final class CrawlSchedulerFixture {
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
-                DEFAULT_CLOCK);
+                DEFAULT_INSTANT);
     }
 
     /**
-     * 신규 활성 스케줄러 생성 (특정 Clock)
+     * 신규 활성 스케줄러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return 신규 CrawlScheduler (ID = null, ACTIVE)
      */
-    public static CrawlScheduler aNewActiveScheduler(Clock clock) {
+    public static CrawlScheduler aNewActiveScheduler(Instant now) {
         return CrawlScheduler.forNew(
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
-                clock);
+                now);
     }
 
     /**
@@ -59,7 +58,7 @@ public final class CrawlSchedulerFixture {
                 sellerId,
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
-                DEFAULT_CLOCK);
+                DEFAULT_INSTANT);
     }
 
     /**
@@ -68,15 +67,14 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, ACTIVE)
      */
     public static CrawlScheduler anActiveScheduler() {
-        Instant now = DEFAULT_CLOCK.instant();
-        return CrawlScheduler.of(
+        return CrawlScheduler.reconstitute(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.ACTIVE,
-                now,
-                now);
+                DEFAULT_INSTANT,
+                DEFAULT_INSTANT);
     }
 
     /**
@@ -86,26 +84,24 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ACTIVE)
      */
     public static CrawlScheduler anActiveScheduler(Long id) {
-        Instant now = DEFAULT_CLOCK.instant();
-        return CrawlScheduler.of(
+        return CrawlScheduler.reconstitute(
                 CrawlSchedulerId.of(id),
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.ACTIVE,
-                now,
-                now);
+                DEFAULT_INSTANT,
+                DEFAULT_INSTANT);
     }
 
     /**
-     * 할당된 ID를 가진 활성 스케줄러 생성 (특정 Clock)
+     * 할당된 ID를 가진 활성 스케줄러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return CrawlScheduler (ID = 1L, ACTIVE)
      */
-    public static CrawlScheduler anActiveScheduler(Clock clock) {
-        Instant now = clock.instant();
-        return CrawlScheduler.of(
+    public static CrawlScheduler anActiveScheduler(Instant now) {
+        return CrawlScheduler.reconstitute(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
@@ -121,26 +117,24 @@ public final class CrawlSchedulerFixture {
      * @return CrawlScheduler (ID = 1L, INACTIVE)
      */
     public static CrawlScheduler anInactiveScheduler() {
-        Instant now = DEFAULT_CLOCK.instant();
-        return CrawlScheduler.of(
+        return CrawlScheduler.reconstitute(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),
                 CronExpressionFixture.aDefaultCron(),
                 SchedulerStatus.INACTIVE,
-                now,
-                now);
+                DEFAULT_INSTANT,
+                DEFAULT_INSTANT);
     }
 
     /**
-     * 할당된 ID를 가진 비활성 스케줄러 생성 (특정 Clock)
+     * 할당된 ID를 가진 비활성 스케줄러 생성 (특정 시간)
      *
-     * @param clock 시간 제어
+     * @param now 현재 시간
      * @return CrawlScheduler (ID = 1L, INACTIVE)
      */
-    public static CrawlScheduler anInactiveScheduler(Clock clock) {
-        Instant now = clock.instant();
-        return CrawlScheduler.of(
+    public static CrawlScheduler anInactiveScheduler(Instant now) {
+        return CrawlScheduler.reconstitute(
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 SchedulerNameFixture.aDefaultName(),

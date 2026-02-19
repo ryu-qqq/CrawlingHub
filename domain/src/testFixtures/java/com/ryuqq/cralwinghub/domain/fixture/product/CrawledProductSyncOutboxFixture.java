@@ -5,7 +5,6 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.S
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -25,7 +24,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aPendingForCreate() {
         return CrawledProductSyncOutbox.forCreate(
-                CrawledProductId.of(1L), SellerId.of(100L), 12345L, Clock.systemDefaultZone());
+                CrawledProductId.of(1L), SellerId.of(100L), 12345L, Instant.now());
     }
 
     /**
@@ -35,11 +34,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aPendingForUpdate() {
         return CrawledProductSyncOutbox.forUpdate(
-                CrawledProductId.of(1L),
-                SellerId.of(100L),
-                12345L,
-                99999L,
-                Clock.systemDefaultZone());
+                CrawledProductId.of(1L), SellerId.of(100L), 12345L, 99999L, Instant.now());
     }
 
     /**

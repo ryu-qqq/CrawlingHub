@@ -2,7 +2,6 @@ package com.ryuqq.crawlinghub.application.task.manager;
 
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
@@ -15,7 +14,7 @@ import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessag
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
 import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
-import java.time.Clock;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,7 @@ class CrawlTaskMessageManagerTest {
 
     @InjectMocks private CrawlTaskMessageManager manager;
 
-    private static final Clock FIXED_CLOCK = FixedClock.aDefaultClock();
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-11-27T00:00:00Z");
 
     @Nested
     @DisplayName("publishFromEvent() 테스트")
@@ -58,7 +57,7 @@ class CrawlTaskMessageManagerTest {
                             CrawlTaskTypeFixture.defaultType(),
                             CrawlEndpointFixture.aMiniShopListEndpoint(),
                             "{\"payload\": \"test\"}",
-                            FIXED_CLOCK);
+                            FIXED_INSTANT);
 
             // When
             manager.publishFromEvent(event);

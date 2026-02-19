@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  *
  * <p><strong>트랜잭션</strong>: CommandService는 @Transactional 금지 (Facade 책임)
  *
- * <p><strong>ClockHolder</strong>: Facade가 관리 (Service는 시간 의존성 없음)
+ * <p><strong>TimeProvider</strong>: Facade가 관리 (Service는 시간 의존성 없음)
  */
 @Service
 public class RegisterCrawlSchedulerService implements RegisterCrawlSchedulerUseCase {

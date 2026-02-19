@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.manager.command;
 
+import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledProductPersistencePort;
-import com.ryuqq.crawlinghub.domain.common.util.ClockHolder;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.DetailCrawlData;
@@ -42,12 +42,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CrawledProductTransactionManager {
 
     private final CrawledProductPersistencePort crawledProductPersistencePort;
-    private final ClockHolder clockHolder;
+    private final TimeProvider timeProvider;
 
     public CrawledProductTransactionManager(
-            CrawledProductPersistencePort crawledProductPersistencePort, ClockHolder clockHolder) {
+            CrawledProductPersistencePort crawledProductPersistencePort,
+            TimeProvider timeProvider) {
         this.crawledProductPersistencePort = crawledProductPersistencePort;
-        this.clockHolder = clockHolder;
+        this.timeProvider = timeProvider;
     }
 
     // === 생성 ===
@@ -111,7 +112,7 @@ public class CrawledProductTransactionManager {
             ProductImages images,
             boolean freeShipping) {
         product.updateFromMiniShop(
-                itemName, brandName, price, images, freeShipping, clockHolder.getClock());
+                itemName, brandName, price, images, freeShipping, timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return product;
     }
@@ -167,7 +168,7 @@ public class CrawledProductTransactionManager {
                         originCountry,
                         shippingLocation,
                         descriptionImages,
-                        clockHolder.getClock());
+                        timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return new DetailUpdateResult(product, newImageUrls);
     }
@@ -198,7 +199,7 @@ public class CrawledProductTransactionManager {
      */
     @Transactional
     public CrawledProduct updateFromOption(CrawledProduct product, ProductOptions options) {
-        product.updateFromOption(options, clockHolder.getClock());
+        product.updateFromOption(options, timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return product;
     }
@@ -231,7 +232,7 @@ public class CrawledProductTransactionManager {
     @Transactional
     public CrawledProduct markImageAsUploaded(
             CrawledProduct product, String originalUrl, String s3Url) {
-        product.markImageAsUploaded(originalUrl, s3Url, clockHolder.getClock());
+        product.markImageAsUploaded(originalUrl, s3Url, timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return product;
     }
@@ -247,7 +248,7 @@ public class CrawledProductTransactionManager {
      */
     @Transactional
     public CrawledProduct markAsSynced(CrawledProduct product, Long externalProductId) {
-        product.markAsSynced(externalProductId, clockHolder.getClock());
+        product.markAsSynced(externalProductId, timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return product;
     }
@@ -260,7 +261,7 @@ public class CrawledProductTransactionManager {
      */
     @Transactional
     public CrawledProduct markSyncFailed(CrawledProduct product) {
-        product.markSyncFailed(clockHolder.getClock());
+        product.markSyncFailed(timeProvider.now());
         crawledProductPersistencePort.persist(product);
         return product;
     }
