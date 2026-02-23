@@ -1,6 +1,8 @@
 package com.ryuqq.crawlinghub.domain.task.vo;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -78,5 +80,16 @@ public enum CrawlTaskStatus {
      */
     public boolean isTerminal() {
         return TERMINAL_STATUSES.contains(this);
+    }
+
+    /**
+     * 비종료 상태 목록 반환
+     *
+     * <p>중복 Task 생성 방지 등에 사용됩니다. 아직 완료되지 않은 Task가 있으면 동일 조건의 새 Task 생성을 차단합니다.
+     *
+     * @return 비종료 상태 목록 (WAITING, PUBLISHED, RUNNING, RETRY, TIMEOUT)
+     */
+    public static List<CrawlTaskStatus> nonTerminalStatuses() {
+        return Arrays.stream(values()).filter(s -> !s.isTerminal()).toList();
     }
 }

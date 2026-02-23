@@ -2,27 +2,14 @@ package com.ryuqq.crawlinghub.application.seller.service.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
-import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
-import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
-import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
-import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.application.seller.dto.composite.SellerDetailResult;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerCompositionReadManager;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * GetSellerService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: ReadManager 의존성 Mocking
+ * <p>Mockist 스타일 테스트: CompositionReadManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -43,13 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("GetSellerService 테스트")
 class GetSellerServiceTest {
 
-    @Mock private SellerReadManager sellerReadManager;
-
-    @Mock private CrawlSchedulerReadManager crawlSchedulerReadManager;
-
-    @Mock private CrawlTaskReadManager crawlTaskReadManager;
-
-    @Mock private SellerAssembler sellerAssembler;
+    @Mock private SellerCompositionReadManager compositionReadManager;
 
     @InjectMocks private GetSellerService service;
 
@@ -58,48 +39,33 @@ class GetSellerServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 존재하는 셀러 조회 시 SellerDetailResponse 반환")
-        void shouldReturnSellerDetailResponseWhenSellerExists() {
+        @DisplayName("[성공] 존재하는 셀러 조회 시 SellerDetailResult 반환")
+        void shouldReturnSellerDetailResultWhenSellerExists() {
             // Given
             Long sellerId = 1L;
-            GetSellerQuery query = new GetSellerQuery(sellerId);
-            Seller seller = SellerFixture.anActiveSeller();
             Instant now = Instant.now();
-            List<CrawlScheduler> schedulers = Collections.emptyList();
-            List<CrawlTask> recentTasks = Collections.emptyList();
-            SellerDetailResponse expectedResponse =
-                    new SellerDetailResponse(
-                            sellerId,
-                            "mustit-seller",
-                            "seller-name",
-                            true,
-                            now,
-                            now,
+            SellerDetailResult expectedResult =
+                    new SellerDetailResult(
+                            new SellerDetailResult.SellerInfo(
+                                    sellerId,
+                                    "mustit-seller",
+                                    "seller-name",
+                                    "ACTIVE",
+                                    100,
+                                    now,
+                                    now),
                             Collections.emptyList(),
                             Collections.emptyList(),
-                            SellerDetailStatistics.empty());
+                            new SellerDetailResult.SellerStatistics(0L, 0L, 0L, 0.0));
 
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
-            given(crawlSchedulerReadManager.findBySellerId(any(SellerId.class)))
-                    .willReturn(schedulers);
-            given(
-                            crawlTaskReadManager.findRecentBySellerId(
-                                    any(SellerId.class), any(Integer.class)))
-                    .willReturn(recentTasks);
-            given(sellerAssembler.toDetailResponse(seller, schedulers, recentTasks))
-                    .willReturn(expectedResponse);
+            given(compositionReadManager.getSellerDetail(sellerId)).willReturn(expectedResult);
 
             // When
-            SellerDetailResponse result = service.execute(query);
+            SellerDetailResult result = service.execute(sellerId);
 
             // Then
-            assertThat(result).isEqualTo(expectedResponse);
-            then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(crawlSchedulerReadManager).should().findBySellerId(any(SellerId.class));
-            then(crawlTaskReadManager)
-                    .should()
-                    .findRecentBySellerId(any(SellerId.class), any(Integer.class));
-            then(sellerAssembler).should().toDetailResponse(seller, schedulers, recentTasks);
+            assertThat(result).isEqualTo(expectedResult);
+            then(compositionReadManager).should().getSellerDetail(sellerId);
         }
 
         @Test
@@ -107,16 +73,15 @@ class GetSellerServiceTest {
         void shouldThrowExceptionWhenSellerNotFound() {
             // Given
             Long sellerId = 999L;
-            GetSellerQuery query = new GetSellerQuery(sellerId);
 
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(compositionReadManager.getSellerDetail(sellerId))
+                    .willThrow(new SellerNotFoundException(sellerId));
 
             // When & Then
-            assertThatThrownBy(() -> service.execute(query))
+            assertThatThrownBy(() -> service.execute(sellerId))
                     .isInstanceOf(SellerNotFoundException.class);
 
-            then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(sellerAssembler).shouldHaveNoInteractions();
+            then(compositionReadManager).should().getSellerDetail(sellerId);
         }
     }
 }

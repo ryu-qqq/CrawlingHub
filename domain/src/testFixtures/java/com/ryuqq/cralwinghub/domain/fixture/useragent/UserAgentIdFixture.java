@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.useragent;
 
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 
 /**
  * UserAgentId Test Fixture
@@ -39,7 +39,7 @@ public final class UserAgentIdFixture {
      * @return UserAgentId (value = null)
      */
     public static UserAgentId anUnassignedId() {
-        return UserAgentId.unassigned();
+        return UserAgentId.forNew();
     }
 
     private UserAgentIdFixture() {

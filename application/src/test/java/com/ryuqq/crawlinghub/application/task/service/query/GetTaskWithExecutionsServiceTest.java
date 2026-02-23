@@ -5,21 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskWithExecutionsQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskWithExecutionsResponse;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +45,6 @@ class GetTaskWithExecutionsServiceTest {
     @Mock private CrawlTask task;
     @Mock private CrawlExecution execution;
     @Mock private CrawlEndpoint endpoint;
-    @Mock private RetryCount retryCount;
     @Mock private CrawlExecutionResult executionResult;
     @Mock private ExecutionDuration executionDuration;
 
@@ -78,9 +76,8 @@ class GetTaskWithExecutionsServiceTest {
             given(task.getCrawlSchedulerIdValue()).willReturn(100L);
             given(task.getSellerIdValue()).willReturn(200L);
             given(task.getStatus()).willReturn(CrawlTaskStatus.SUCCESS);
-            given(task.getTaskType()).willReturn(CrawlTaskType.META);
-            given(task.getRetryCount()).willReturn(retryCount);
-            given(retryCount.value()).willReturn(0);
+            given(task.getTaskType()).willReturn(CrawlTaskType.SEARCH);
+            given(task.getRetryCountValue()).willReturn(0);
             given(task.getEndpoint()).willReturn(endpoint);
             given(endpoint.baseUrl()).willReturn("https://example.com");
             given(endpoint.path()).willReturn("/api/products");
@@ -89,10 +86,7 @@ class GetTaskWithExecutionsServiceTest {
             given(task.getUpdatedAt()).willReturn(Instant.now());
 
             // Mock execution
-            given(execution.getId())
-                    .willReturn(
-                            new com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId(
-                                    1L));
+            given(execution.getIdValue()).willReturn(1L);
             given(execution.getStatus()).willReturn(CrawlExecutionStatus.SUCCESS);
             given(execution.getResult()).willReturn(executionResult);
             given(executionResult.httpStatusCode()).willReturn(200);
@@ -144,9 +138,8 @@ class GetTaskWithExecutionsServiceTest {
             given(task.getCrawlSchedulerIdValue()).willReturn(100L);
             given(task.getSellerIdValue()).willReturn(200L);
             given(task.getStatus()).willReturn(CrawlTaskStatus.WAITING);
-            given(task.getTaskType()).willReturn(CrawlTaskType.META);
-            given(task.getRetryCount()).willReturn(retryCount);
-            given(retryCount.value()).willReturn(0);
+            given(task.getTaskType()).willReturn(CrawlTaskType.SEARCH);
+            given(task.getRetryCountValue()).willReturn(0);
             given(task.getEndpoint()).willReturn(endpoint);
             given(endpoint.baseUrl()).willReturn("https://example.com");
             given(endpoint.path()).willReturn("/api");
@@ -180,8 +173,7 @@ class GetTaskWithExecutionsServiceTest {
             given(task.getSellerIdValue()).willReturn(200L);
             given(task.getStatus()).willReturn(CrawlTaskStatus.RUNNING);
             given(task.getTaskType()).willReturn(CrawlTaskType.DETAIL);
-            given(task.getRetryCount()).willReturn(retryCount);
-            given(retryCount.value()).willReturn(1);
+            given(task.getRetryCountValue()).willReturn(1);
             given(task.getEndpoint()).willReturn(endpoint);
             given(endpoint.baseUrl()).willReturn("https://example.com");
             given(endpoint.path()).willReturn("/detail");
@@ -190,10 +182,7 @@ class GetTaskWithExecutionsServiceTest {
             given(task.getUpdatedAt()).willReturn(Instant.now());
 
             // Mock execution with null result and duration
-            given(execution.getId())
-                    .willReturn(
-                            new com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId(
-                                    2L));
+            given(execution.getIdValue()).willReturn(2L);
             given(execution.getStatus()).willReturn(CrawlExecutionStatus.RUNNING);
             given(execution.getResult()).willReturn(null);
             given(execution.getDuration()).willReturn(null);

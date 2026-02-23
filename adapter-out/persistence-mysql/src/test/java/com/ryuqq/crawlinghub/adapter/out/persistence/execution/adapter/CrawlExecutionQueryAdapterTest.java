@@ -9,8 +9,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecu
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.mapper.CrawlExecutionJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.repository.CrawlExecutionQueryDslRepository;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.LocalDateTime;
 import java.util.List;

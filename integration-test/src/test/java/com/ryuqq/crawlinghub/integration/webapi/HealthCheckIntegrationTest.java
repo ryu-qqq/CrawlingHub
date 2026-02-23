@@ -44,7 +44,6 @@ class HealthCheckIntegrationTest extends WebApiIntegrationTest {
     @Test
     @DisplayName("WireMock servers should be available")
     void wireMockServers_shouldBeAvailable() {
-        assertThat(fileflowWireMock.isRunning()).isTrue();
         assertThat(marketplaceWireMock.isRunning()).isTrue();
     }
 }

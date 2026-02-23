@@ -5,11 +5,11 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskQueryDslRepository;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
@@ -175,5 +175,19 @@ public class CrawlTaskQueryAdapter implements CrawlTaskQueryPort {
         List<CrawlTaskJpaEntity> entities =
                 queryDslRepository.findRecentBySellerId(sellerId.value(), limit);
         return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    /**
+     * RUNNING 상태에서 일정 시간 이상 머물러 있는 CrawlTask 조회
+     *
+     * @param limit 조회할 최대 개수
+     * @param timeoutSeconds RUNNING 상태 유지 시간 기준 (초)
+     * @return 고아 CrawlTask 목록
+     */
+    @Override
+    public List<CrawlTask> findRunningOlderThan(int limit, long timeoutSeconds) {
+        return queryDslRepository.findRunningOlderThan(limit, timeoutSeconds).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

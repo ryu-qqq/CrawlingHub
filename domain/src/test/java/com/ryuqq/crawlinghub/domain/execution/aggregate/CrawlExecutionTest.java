@@ -37,15 +37,15 @@ class CrawlExecutionTest {
     private static final Instant FIXED_INSTANT = FixedClock.aDefaultClock().instant();
 
     @Nested
-    @DisplayName("start() 실행 시작 테스트")
-    class Start {
+    @DisplayName("forNew() 신규 생성 테스트")
+    class ForNew {
 
         @Test
-        @DisplayName("실행 시작 시 RUNNING 상태, ID 미할당")
+        @DisplayName("신규 생성 시 RUNNING 상태, ID 미할당")
         void shouldStartExecutionWithRunningStatusAndUnassignedId() {
             // when
             CrawlExecution execution =
-                    CrawlExecution.start(
+                    CrawlExecution.forNew(
                             CrawlTaskIdFixture.anAssignedId(),
                             CrawlSchedulerIdFixture.anAssignedId(),
                             SellerIdFixture.anAssignedId(),
@@ -53,7 +53,7 @@ class CrawlExecutionTest {
 
             // then
             assertThat(execution.getId()).isNotNull();
-            assertThat(execution.getId().isAssigned()).isFalse();
+            assertThat(execution.getId().isNew()).isTrue();
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.RUNNING);
             assertThat(execution.isRunning()).isTrue();
             assertThat(execution.isCompleted()).isFalse();
@@ -96,7 +96,7 @@ class CrawlExecutionTest {
             CrawlExecution execution = CrawlExecutionFixture.aSuccessExecution();
 
             // then
-            assertThat(execution.getId().isAssigned()).isTrue();
+            assertThat(execution.getId().isNew()).isFalse();
             assertThat(execution.getStatus()).isEqualTo(CrawlExecutionStatus.SUCCESS);
             assertThat(execution.isSuccess()).isTrue();
         }

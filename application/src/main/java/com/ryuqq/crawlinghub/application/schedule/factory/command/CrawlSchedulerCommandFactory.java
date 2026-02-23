@@ -1,15 +1,17 @@
 package com.ryuqq.crawlinghub.application.schedule.factory.command;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
-import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
+import com.ryuqq.crawlinghub.application.schedule.dto.bundle.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
+import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import java.util.Map;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>Command → Domain 변환
  *   <li>Bundle 생성
- *   <li>이벤트 페이로드 생성
  * </ul>
  *
  * <p><strong>금지</strong>:
@@ -37,11 +38,9 @@ import org.springframework.stereotype.Component;
 public class CrawlSchedulerCommandFactory {
 
     private final TimeProvider timeProvider;
-    private final ObjectMapper objectMapper;
 
-    public CrawlSchedulerCommandFactory(TimeProvider timeProvider, ObjectMapper objectMapper) {
+    public CrawlSchedulerCommandFactory(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -51,9 +50,9 @@ public class CrawlSchedulerCommandFactory {
      * @return CrawlSchedulerBundle
      */
     public CrawlSchedulerBundle createBundle(RegisterCrawlSchedulerCommand command) {
-        CrawlScheduler scheduler = createScheduler(command);
-        String eventPayload = buildEventPayload(command);
-        return CrawlSchedulerBundle.of(scheduler, eventPayload);
+        java.time.Instant now = timeProvider.now();
+        CrawlScheduler scheduler = createScheduler(command, now);
+        return CrawlSchedulerBundle.of(scheduler, now);
     }
 
     /**
@@ -63,51 +62,32 @@ public class CrawlSchedulerCommandFactory {
      * @return 신규 CrawlScheduler Aggregate
      */
     public CrawlScheduler createScheduler(RegisterCrawlSchedulerCommand command) {
+        return createScheduler(command, timeProvider.now());
+    }
+
+    private CrawlScheduler createScheduler(
+            RegisterCrawlSchedulerCommand command, java.time.Instant now) {
         return CrawlScheduler.forNew(
                 SellerId.of(command.sellerId()),
                 SchedulerName.of(command.schedulerName()),
                 CronExpression.of(command.cronExpression()),
-                timeProvider.now());
+                now);
     }
 
     /**
-     * RegisterCrawlSchedulerCommand → 이벤트 페이로드 생성
+     * UpdateCrawlSchedulerCommand → UpdateContext 변환
      *
-     * @param command 등록 명령
-     * @return JSON 문자열
+     * @param command 수정 명령
+     * @return UpdateContext (ID, UpdateData, changedAt)
      */
-    private String buildEventPayload(RegisterCrawlSchedulerCommand command) {
-        try {
-            Map<String, Object> payload =
-                    Map.of(
-                            "sellerId", command.sellerId(),
-                            "schedulerName", command.schedulerName(),
-                            "cronExpression", command.cronExpression(),
-                            "status", "ACTIVE");
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("이벤트 페이로드 생성 실패", e);
-        }
-    }
-
-    /**
-     * CrawlScheduler Aggregate → 이벤트 페이로드 JSON 변환
-     *
-     * @param crawlScheduler 크롤 스케줄러 Aggregate
-     * @return 이벤트 페이로드 JSON 문자열
-     */
-    public String toEventPayload(CrawlScheduler crawlScheduler) {
-        try {
-            Map<String, Object> payload =
-                    Map.of(
-                            "schedulerId", crawlScheduler.getCrawlSchedulerIdValue(),
-                            "sellerId", crawlScheduler.getSellerIdValue(),
-                            "schedulerName", crawlScheduler.getSchedulerNameValue(),
-                            "cronExpression", crawlScheduler.getCronExpressionValue(),
-                            "status", crawlScheduler.getStatus().name());
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("이벤트 페이로드 생성 실패", e);
-        }
+    public UpdateContext<CrawlSchedulerId, CrawlSchedulerUpdateData> createUpdateContext(
+            UpdateCrawlSchedulerCommand command) {
+        CrawlSchedulerId id = CrawlSchedulerId.of(command.crawlSchedulerId());
+        CrawlSchedulerUpdateData updateData =
+                CrawlSchedulerUpdateData.of(
+                        SchedulerName.of(command.schedulerName()),
+                        CronExpression.of(command.cronExpression()),
+                        command.active() ? SchedulerStatus.ACTIVE : SchedulerStatus.INACTIVE);
+        return new UpdateContext<>(id, updateData, timeProvider.now());
     }
 }

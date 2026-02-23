@@ -4,14 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.application.seller.dto.composite.SellerDetailResult;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerSearchParams;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerPageResult;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResult;
+import com.ryuqq.crawlinghub.domain.common.vo.PageMeta;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,15 +21,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * SellerQueryApiMapper 단위 테스트
- *
- * <p>검증 범위:
- *
- * <ul>
- *   <li>API Request → Application Query 변환
- *   <li>Application Response → API Response 변환
- *   <li>페이징 응답 변환
- *   <li>Enum 변환 (String ↔ SellerStatus)
- * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -48,249 +38,223 @@ class SellerQueryApiMapperTest {
     }
 
     @Nested
-    @DisplayName("toQuery(Long) - ID → GetSellerQuery 변환")
-    class ToGetSellerQueryTests {
+    @DisplayName("toDetailApiResponse(SellerDetailResult) - 상세 응답 변환")
+    class ToDetailApiResponseTests {
 
         @Test
-        @DisplayName("성공: Long ID → GetSellerQuery 변환")
-        void toQuery_GetSeller_Success() {
+        @DisplayName("성공: SellerDetailResult → SellerDetailApiResponse 변환")
+        void toDetailApiResponse_Success() {
             // Given
-            Long sellerId = 1L;
+            Instant now = Instant.parse("2025-11-19T10:30:00Z");
+            SellerDetailResult result =
+                    new SellerDetailResult(
+                            new SellerDetailResult.SellerInfo(
+                                    1L, "머스트잇셀러", "커머스셀러", "ACTIVE", 100, now, now),
+                            List.of(
+                                    new SellerDetailResult.SchedulerSummary(
+                                            1L, "일일 크롤링", "ACTIVE", "0 0 9 * * ?")),
+                            List.of(
+                                    new SellerDetailResult.TaskSummary(
+                                            1L, "SUCCESS", "FULL_SYNC", now, now)),
+                            new SellerDetailResult.SellerStatistics(100L, 95L, 5L, 0.95));
 
             // When
-            GetSellerQuery query = mapper.toQuery(sellerId);
+            SellerDetailApiResponse apiResponse = mapper.toDetailApiResponse(result);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerId()).isEqualTo(1L);
+            assertThat(apiResponse).isNotNull();
+            assertThat(apiResponse.sellerId()).isEqualTo(1L);
+            assertThat(apiResponse.mustItSellerName()).isEqualTo("머스트잇셀러");
+            assertThat(apiResponse.sellerName()).isEqualTo("커머스셀러");
+            assertThat(apiResponse.status()).isEqualTo("ACTIVE");
+            assertThat(apiResponse.schedulers()).hasSize(1);
+            assertThat(apiResponse.schedulers().get(0).schedulerId()).isEqualTo(1L);
+            assertThat(apiResponse.recentTasks()).hasSize(1);
+            assertThat(apiResponse.recentTasks().get(0).taskId()).isEqualTo(1L);
+            assertThat(apiResponse.statistics().totalProducts()).isEqualTo(100L);
+            assertThat(apiResponse.statistics().successRate()).isEqualTo(0.95);
         }
 
         @Test
-        @DisplayName("성공: 큰 ID 값 변환")
-        void toQuery_GetSeller_LargeId() {
+        @DisplayName("성공: 빈 목록 포함 결과 변환")
+        void toDetailApiResponse_EmptyLists() {
             // Given
-            Long sellerId = 999999999L;
+            Instant now = Instant.now();
+            SellerDetailResult result =
+                    new SellerDetailResult(
+                            new SellerDetailResult.SellerInfo(
+                                    2L, "머스트잇셀러2", "커머스셀러2", "INACTIVE", 0, now, null),
+                            List.of(),
+                            List.of(),
+                            new SellerDetailResult.SellerStatistics(0L, 0L, 0L, 0.0));
 
             // When
-            GetSellerQuery query = mapper.toQuery(sellerId);
+            SellerDetailApiResponse apiResponse = mapper.toDetailApiResponse(result);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerId()).isEqualTo(999999999L);
+            assertThat(apiResponse).isNotNull();
+            assertThat(apiResponse.sellerId()).isEqualTo(2L);
+            assertThat(apiResponse.status()).isEqualTo("INACTIVE");
+            assertThat(apiResponse.schedulers()).isEmpty();
+            assertThat(apiResponse.recentTasks()).isEmpty();
+            assertThat(apiResponse.statistics().totalProducts()).isEqualTo(0L);
         }
     }
 
     @Nested
-    @DisplayName("toQuery(SearchSellersApiRequest) - 목록 조회 요청 변환")
-    class ToSearchSellersQueryTests {
+    @DisplayName("toSearchParams(SearchSellersApiRequest) - 목록 조회 요청 변환")
+    class ToSearchParamsTests {
 
         @Test
         @DisplayName("성공: status=ACTIVE 변환")
-        void toQuery_SearchSellers_StatusActive() {
+        void toSearchParams_StatusActive() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 0, 20);
+                    new SearchSellersApiRequest(
+                            null, null, List.of("ACTIVE"), null, null, null, null, 0, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerStatus()).isEqualTo(SellerStatus.ACTIVE);
-            assertThat(query.page()).isEqualTo(0);
-            assertThat(query.size()).isEqualTo(20);
-        }
-
-        @Test
-        @DisplayName("성공: status=INACTIVE 변환")
-        void toQuery_SearchSellers_StatusInactive() {
-            // Given
-            SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, List.of("INACTIVE"), null, null, 0, 20);
-
-            // When
-            SearchSellersQuery query = mapper.toQuery(request);
-
-            // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerStatus()).isEqualTo(SellerStatus.INACTIVE);
+            assertThat(params).isNotNull();
+            assertThat(params.statuses()).containsExactly("ACTIVE");
+            assertThat(params.page()).isEqualTo(0);
+            assertThat(params.size()).isEqualTo(20);
         }
 
         @Test
         @DisplayName("성공: status=null (전체 조회)")
-        void toQuery_SearchSellers_StatusNull() {
+        void toSearchParams_StatusNull() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, null, null, null, null, 20);
+                    new SearchSellersApiRequest(null, null, null, null, null, null, null, null, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerStatus()).isNull();
+            assertThat(params).isNotNull();
+            assertThat(params.statuses()).isNull();
         }
 
         @Test
-        @DisplayName("성공: status=빈 문자열 (전체 조회)")
-        void toQuery_SearchSellers_StatusBlank() {
+        @DisplayName("성공: status=빈 리스트 (전체 조회)")
+        void toSearchParams_StatusBlank() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, List.of(), null, null, 0, 20);
+                    new SearchSellersApiRequest(
+                            null, null, List.of(), null, null, null, null, 0, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerStatus()).isNull();
+            assertThat(params).isNotNull();
+            assertThat(params.statuses()).isEmpty();
         }
 
         @Test
         @DisplayName("성공: 기본 페이징 파라미터")
-        void toQuery_SearchSellers_DefaultPagination() {
+        void toSearchParams_DefaultPagination() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, null, null, null, null, 20);
+                    new SearchSellersApiRequest(null, null, null, null, null, null, null, null, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.page()).isEqualTo(0);
-            assertThat(query.size()).isEqualTo(20);
+            assertThat(params).isNotNull();
+            assertThat(params.page()).isEqualTo(0);
+            assertThat(params.size()).isEqualTo(20);
         }
 
         @Test
         @DisplayName("성공: 커스텀 페이징 파라미터")
-        void toQuery_SearchSellers_CustomPagination() {
+        void toSearchParams_CustomPagination() {
             // Given
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 5, 50);
+                    new SearchSellersApiRequest(
+                            null, null, List.of("ACTIVE"), null, null, null, null, 5, 50);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.page()).isEqualTo(5);
-            assertThat(query.size()).isEqualTo(50);
+            assertThat(params).isNotNull();
+            assertThat(params.page()).isEqualTo(5);
+            assertThat(params.size()).isEqualTo(50);
         }
 
         @Test
         @DisplayName("성공: sellerName, mustItSellerName 필터 변환")
-        void toQuery_SearchSellers_WithNameFilters() {
+        void toSearchParams_WithNameFilters() {
             // Given
             SearchSellersApiRequest request =
                     new SearchSellersApiRequest(
-                            "테스트셀러", "머스트잇셀러", List.of("ACTIVE"), null, null, 0, 20);
+                            "테스트셀러", "머스트잇셀러", List.of("ACTIVE"), null, null, null, null, 0, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.sellerName()).isEqualTo("테스트셀러");
-            assertThat(query.mustItSellerName()).isEqualTo("머스트잇셀러");
-            assertThat(query.sellerStatus()).isEqualTo(SellerStatus.ACTIVE);
+            assertThat(params).isNotNull();
+            assertThat(params.sellerName()).isEqualTo("테스트셀러");
+            assertThat(params.mustItSellerName()).isEqualTo("머스트잇셀러");
+            assertThat(params.statuses()).containsExactly("ACTIVE");
         }
 
         @Test
         @DisplayName("성공: createdFrom, createdTo 필터 변환")
-        void toQuery_SearchSellers_WithDateFilters() {
+        void toSearchParams_WithDateFilters() {
             // Given
             Instant from = Instant.parse("2024-01-01T00:00:00Z");
             Instant to = Instant.parse("2024-12-31T23:59:59Z");
             SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, null, from, to, 0, 20);
+                    new SearchSellersApiRequest(null, null, null, from, to, null, null, 0, 20);
 
             // When
-            SearchSellersQuery query = mapper.toQuery(request);
+            SellerSearchParams params = mapper.toSearchParams(request);
 
             // Then
-            assertThat(query).isNotNull();
-            assertThat(query.createdFrom()).isEqualTo(from);
-            assertThat(query.createdTo()).isEqualTo(to);
+            assertThat(params).isNotNull();
+            assertThat(params.createdFrom()).isEqualTo(from);
+            assertThat(params.createdTo()).isEqualTo(to);
+        }
+
+        @Test
+        @DisplayName("성공: sortKey, sortDirection 변환")
+        void toSearchParams_WithSortParams() {
+            // Given
+            SearchSellersApiRequest request =
+                    new SearchSellersApiRequest(
+                            null, null, null, null, null, "sellerName", "ASC", 0, 20);
+
+            // When
+            SellerSearchParams params = mapper.toSearchParams(request);
+
+            // Then
+            assertThat(params).isNotNull();
+            assertThat(params.sortKey()).isEqualTo("sellerName");
+            assertThat(params.sortDirection()).isEqualTo("ASC");
         }
     }
 
     @Nested
-    @DisplayName("toApiResponse(SellerResponse) - 단건 응답 변환")
-    class ToApiResponseTests {
-
-        @Test
-        @DisplayName("성공: active=true → status=ACTIVE 변환")
-        void toApiResponse_ActiveTrue() {
-            // Given
-            SellerResponse appResponse =
-                    new SellerResponse(
-                            1L,
-                            "머스트잇 테스트 셀러",
-                            "테스트 셀러",
-                            true,
-                            Instant.parse("2024-11-27T10:00:00Z"),
-                            null);
-
-            // When
-            SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
-
-            // Then
-            assertThat(apiResponse).isNotNull();
-            assertThat(apiResponse.sellerId()).isEqualTo(1L);
-            assertThat(apiResponse.mustItSellerName()).isEqualTo("머스트잇 테스트 셀러");
-            assertThat(apiResponse.sellerName()).isEqualTo("테스트 셀러");
-            assertThat(apiResponse.status()).isEqualTo("ACTIVE");
-            assertThat(apiResponse.createdAt()).isEqualTo("2024-11-27T10:00:00Z");
-            assertThat(apiResponse.updatedAt()).isNull();
-        }
-
-        @Test
-        @DisplayName("성공: active=false → status=INACTIVE 변환")
-        void toApiResponse_ActiveFalse() {
-            // Given
-            SellerResponse appResponse =
-                    new SellerResponse(
-                            2L,
-                            "머스트잇 테스트 셀러",
-                            "테스트 셀러",
-                            false,
-                            Instant.parse("2024-11-27T10:00:00Z"),
-                            Instant.parse("2024-11-27T11:00:00Z"));
-
-            // When
-            SellerApiResponse apiResponse = mapper.toApiResponse(appResponse);
-
-            // Then
-            assertThat(apiResponse).isNotNull();
-            assertThat(apiResponse.status()).isEqualTo("INACTIVE");
-        }
-    }
-
-    @Nested
-    @DisplayName("toSummaryApiResponse(SellerSummaryResponse) - 요약 응답 변환")
+    @DisplayName("toSummaryApiResponse(SellerResult) - 요약 응답 변환")
     class ToSummaryApiResponseTests {
 
         @Test
-        @DisplayName("성공: active=true → status=ACTIVE 변환")
-        void toSummaryApiResponse_ActiveTrue() {
+        @DisplayName("성공: ACTIVE 셀러 변환")
+        void toSummaryApiResponse_Active() {
             // Given
-            SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(
-                            1L,
-                            "머스트잇 테스트 셀러",
-                            "테스트 셀러",
-                            true,
-                            Instant.now(),
-                            Instant.now(),
-                            2,
-                            3,
-                            "COMPLETED",
-                            Instant.now(),
-                            50L);
+            SellerResult result =
+                    new SellerResult(
+                            1L, "머스트잇 테스트 셀러", "테스트 셀러", "ACTIVE", Instant.now(), Instant.now());
 
             // When
-            SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
+            SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(result);
 
             // Then
             assertThat(apiResponse).isNotNull();
@@ -301,25 +265,14 @@ class SellerQueryApiMapperTest {
         }
 
         @Test
-        @DisplayName("성공: active=false → status=INACTIVE 변환")
-        void toSummaryApiResponse_ActiveFalse() {
+        @DisplayName("성공: INACTIVE 셀러 변환")
+        void toSummaryApiResponse_Inactive() {
             // Given
-            SellerSummaryResponse appResponse =
-                    new SellerSummaryResponse(
-                            2L,
-                            "머스트잇 테스트 셀러",
-                            "테스트 셀러",
-                            false,
-                            Instant.now(),
-                            null,
-                            0,
-                            1,
-                            null,
-                            null,
-                            0L);
+            SellerResult result =
+                    new SellerResult(2L, "머스트잇 테스트 셀러", "테스트 셀러", "INACTIVE", Instant.now(), null);
 
             // When
-            SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(appResponse);
+            SellerSummaryApiResponse apiResponse = mapper.toSummaryApiResponse(result);
 
             // Then
             assertThat(apiResponse).isNotNull();
@@ -329,46 +282,25 @@ class SellerQueryApiMapperTest {
     }
 
     @Nested
-    @DisplayName("toPageApiResponse(PageResponse) - 페이징 응답 변환")
-    class ToPageApiResponseTests {
+    @DisplayName("toPageResponse(SellerPageResult) - 페이징 응답 변환")
+    class ToPageResponseTests {
 
         @Test
         @DisplayName("성공: 첫 페이지 변환 (first=true, last=false)")
-        void toPageApiResponse_FirstPage() {
+        void toPageResponse_FirstPage() {
             // Given
-            List<SellerSummaryResponse> content =
+            List<SellerResult> results =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L,
-                                    "머스트잇 셀러1",
-                                    "셀러1",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L),
-                            new SellerSummaryResponse(
-                                    2L,
-                                    "머스트잇 셀러2",
-                                    "셀러2",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    1,
-                                    2,
-                                    "RUNNING",
-                                    Instant.now(),
-                                    30L));
+                            new SellerResult(
+                                    1L, "머스트잇 셀러1", "셀러1", "ACTIVE", Instant.now(), Instant.now()),
+                            new SellerResult(
+                                    2L, "머스트잇 셀러2", "셀러2", "ACTIVE", Instant.now(), Instant.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse =
-                    new PageResponse<>(content, 0, 20, 100L, 5, true, false);
+            SellerPageResult pageResult = SellerPageResult.of(results, PageMeta.of(0, 20, 100L));
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                    mapper.toPageApiResponse(appPageResponse);
+                    mapper.toPageResponse(pageResult);
 
             // Then
             assertThat(apiPageResponse).isNotNull();
@@ -386,41 +318,25 @@ class SellerQueryApiMapperTest {
 
         @Test
         @DisplayName("성공: 마지막 페이지 변환 (first=false, last=true)")
-        void toPageApiResponse_LastPage() {
+        void toPageResponse_LastPage() {
             // Given
-            List<SellerSummaryResponse> content =
+            List<SellerResult> results =
                     List.of(
-                            new SellerSummaryResponse(
+                            new SellerResult(
                                     99L,
                                     "머스트잇 셀러99",
                                     "셀러99",
-                                    true,
+                                    "ACTIVE",
                                     Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L),
-                            new SellerSummaryResponse(
-                                    100L,
-                                    "머스트잇 셀러100",
-                                    "셀러100",
-                                    false,
-                                    Instant.now(),
-                                    null,
-                                    0,
-                                    0,
-                                    null,
-                                    null,
-                                    0L));
+                                    Instant.now()),
+                            new SellerResult(
+                                    100L, "머스트잇 셀러100", "셀러100", "INACTIVE", Instant.now(), null));
 
-            PageResponse<SellerSummaryResponse> appPageResponse =
-                    new PageResponse<>(content, 4, 20, 100L, 5, false, true);
+            SellerPageResult pageResult = SellerPageResult.of(results, PageMeta.of(4, 20, 100L));
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                    mapper.toPageApiResponse(appPageResponse);
+                    mapper.toPageResponse(pageResult);
 
             // Then
             assertThat(apiPageResponse).isNotNull();
@@ -432,14 +348,13 @@ class SellerQueryApiMapperTest {
 
         @Test
         @DisplayName("성공: 빈 결과 변환")
-        void toPageApiResponse_EmptyContent() {
+        void toPageResponse_EmptyContent() {
             // Given
-            PageResponse<SellerSummaryResponse> appPageResponse =
-                    new PageResponse<>(List.of(), 0, 20, 0L, 0, true, true);
+            SellerPageResult pageResult = SellerPageResult.empty();
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                    mapper.toPageApiResponse(appPageResponse);
+                    mapper.toPageResponse(pageResult);
 
             // Then
             assertThat(apiPageResponse).isNotNull();
@@ -452,29 +367,18 @@ class SellerQueryApiMapperTest {
 
         @Test
         @DisplayName("성공: 단일 페이지 (first=true, last=true)")
-        void toPageApiResponse_SinglePage() {
+        void toPageResponse_SinglePage() {
             // Given
-            List<SellerSummaryResponse> content =
+            List<SellerResult> results =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L,
-                                    "머스트잇 셀러1",
-                                    "셀러1",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L));
+                            new SellerResult(
+                                    1L, "머스트잇 셀러1", "셀러1", "ACTIVE", Instant.now(), Instant.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse =
-                    new PageResponse<>(content, 0, 20, 1L, 1, true, true);
+            SellerPageResult pageResult = SellerPageResult.of(results, PageMeta.of(0, 20, 1L));
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                    mapper.toPageApiResponse(appPageResponse);
+                    mapper.toPageResponse(pageResult);
 
             // Then
             assertThat(apiPageResponse).isNotNull();
@@ -487,53 +391,22 @@ class SellerQueryApiMapperTest {
 
         @Test
         @DisplayName("성공: ACTIVE와 INACTIVE 혼합 변환")
-        void toPageApiResponse_MixedStatus() {
+        void toPageResponse_MixedStatus() {
             // Given
-            List<SellerSummaryResponse> content =
+            List<SellerResult> results =
                     List.of(
-                            new SellerSummaryResponse(
-                                    1L,
-                                    "머스트잇 셀러1",
-                                    "셀러1",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L),
-                            new SellerSummaryResponse(
-                                    2L,
-                                    "머스트잇 셀러2",
-                                    "셀러2",
-                                    false,
-                                    Instant.now(),
-                                    null,
-                                    0,
-                                    0,
-                                    null,
-                                    null,
-                                    0L),
-                            new SellerSummaryResponse(
-                                    3L,
-                                    "머스트잇 셀러3",
-                                    "셀러3",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    1,
-                                    1,
-                                    "RUNNING",
-                                    Instant.now(),
-                                    25L));
+                            new SellerResult(
+                                    1L, "머스트잇 셀러1", "셀러1", "ACTIVE", Instant.now(), Instant.now()),
+                            new SellerResult(
+                                    2L, "머스트잇 셀러2", "셀러2", "INACTIVE", Instant.now(), null),
+                            new SellerResult(
+                                    3L, "머스트잇 셀러3", "셀러3", "ACTIVE", Instant.now(), Instant.now()));
 
-            PageResponse<SellerSummaryResponse> appPageResponse =
-                    new PageResponse<>(content, 0, 20, 3L, 1, true, true);
+            SellerPageResult pageResult = SellerPageResult.of(results, PageMeta.of(0, 20, 3L));
 
             // When
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                    mapper.toPageApiResponse(appPageResponse);
+                    mapper.toPageResponse(pageResult);
 
             // Then
             assertThat(apiPageResponse).isNotNull();

@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 
 /**
  * CrawlTaskId Test Fixture
@@ -39,7 +39,7 @@ public final class CrawlTaskIdFixture {
      * @return CrawlTaskId (value = null)
      */
     public static CrawlTaskId anUnassignedId() {
-        return CrawlTaskId.unassigned();
+        return CrawlTaskId.forNew();
     }
 
     private CrawlTaskIdFixture() {

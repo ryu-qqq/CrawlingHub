@@ -2,7 +2,7 @@ package com.ryuqq.cralwinghub.domain.fixture.seller;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;

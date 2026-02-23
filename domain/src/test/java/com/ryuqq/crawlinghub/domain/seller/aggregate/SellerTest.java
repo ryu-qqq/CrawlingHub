@@ -7,12 +7,15 @@ import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.MustItSellerNameFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerNameFixture;
+import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerUpdateData;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -264,10 +267,11 @@ class SellerTest {
             seller.deactivate(FIXED_INSTANT);
 
             // then
-            assertThat(seller.getDomainEvents()).hasSize(1);
-            assertThat(seller.getDomainEvents().get(0)).isInstanceOf(SellerDeActiveEvent.class);
+            List<DomainEvent> events = seller.pollEvents();
+            assertThat(events).hasSize(1);
+            assertThat(events.get(0)).isInstanceOf(SellerDeActiveEvent.class);
 
-            SellerDeActiveEvent event = (SellerDeActiveEvent) seller.getDomainEvents().get(0);
+            SellerDeActiveEvent event = (SellerDeActiveEvent) events.get(0);
             assertThat(event.sellerId()).isEqualTo(seller.getSellerId());
         }
 
@@ -282,40 +286,31 @@ class SellerTest {
 
             // then
             assertThat(seller.isInactive()).isTrue();
-            assertThat(seller.getDomainEvents()).isEmpty();
+            assertThat(seller.pollEvents()).isEmpty();
         }
     }
 
     @Nested
-    @DisplayName("update() - 통합 수정")
+    @DisplayName("update() - SellerUpdateData 기반 수정")
     class Update {
 
         @Test
-        @DisplayName("[성공] MustItSellerName 변경")
-        void shouldUpdateMustItSellerName() {
+        @DisplayName("[성공] 모든 필드 변경")
+        void shouldUpdateAllFields() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            MustItSellerName newName = MustItSellerName.of("new-mustit-name");
+            MustItSellerName newMustItName = MustItSellerName.of("new-mustit-name");
+            SellerName newSellerName = SellerName.of("new-seller-name");
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(newMustItName, newSellerName, SellerStatus.ACTIVE);
 
             // when
-            seller.update(newName, null, null, FIXED_INSTANT);
+            seller.update(updateData, FIXED_INSTANT);
 
             // then
-            assertThat(seller.getMustItSellerName()).isEqualTo(newName);
-        }
-
-        @Test
-        @DisplayName("[성공] SellerName 변경")
-        void shouldUpdateSellerName() {
-            // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            SellerName newName = SellerName.of("new-seller-name");
-
-            // when
-            seller.update(null, newName, null, FIXED_INSTANT);
-
-            // then
-            assertThat(seller.getSellerName()).isEqualTo(newName);
+            assertThat(seller.getMustItSellerName()).isEqualTo(newMustItName);
+            assertThat(seller.getSellerName()).isEqualTo(newSellerName);
+            assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
         }
 
         @Test
@@ -323,62 +318,87 @@ class SellerTest {
         void shouldPublishEventWhenDeactivating() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.INACTIVE);
 
             // when
-            seller.update(null, null, SellerStatus.INACTIVE, FIXED_INSTANT);
+            seller.update(updateData, FIXED_INSTANT);
 
             // then
             assertThat(seller.isInactive()).isTrue();
-            assertThat(seller.getDomainEvents()).hasSize(1);
-            assertThat(seller.getDomainEvents().get(0)).isInstanceOf(SellerDeActiveEvent.class);
+            List<DomainEvent> events = seller.pollEvents();
+            assertThat(events).hasSize(1);
+            assertThat(events.get(0)).isInstanceOf(SellerDeActiveEvent.class);
         }
 
         @Test
-        @DisplayName("[성공] 상태 INACTIVE → ACTIVE 변경")
-        void shouldActivateWhenStatusChangedToActive() {
+        @DisplayName("[성공] 상태 INACTIVE → ACTIVE 변경 시 이벤트 발행 안 함")
+        void shouldNotPublishEventWhenActivating() {
             // given
             Seller seller = SellerFixture.anInactiveSeller(FIXED_INSTANT);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.ACTIVE);
 
             // when
-            seller.update(null, null, SellerStatus.ACTIVE, FIXED_INSTANT);
+            seller.update(updateData, FIXED_INSTANT);
 
             // then
             assertThat(seller.isActive()).isTrue();
+            assertThat(seller.pollEvents()).isEmpty();
         }
 
         @Test
-        @DisplayName("[성공] 동일한 값으로 update 시 변경 없음")
-        void shouldNotUpdateWhenSameValue() {
+        @DisplayName("[성공] 동일한 상태 유지 시 이벤트 발행 안 함")
+        void shouldNotPublishEventWhenSameStatus() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            MustItSellerName sameMustItName = seller.getMustItSellerName();
-            SellerName sameName = seller.getSellerName();
-            Instant originalUpdatedAt = seller.getUpdatedAt();
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.ACTIVE);
 
             // when
-            seller.update(sameMustItName, sameName, SellerStatus.ACTIVE, FIXED_INSTANT);
+            seller.update(updateData, FIXED_INSTANT);
 
             // then
-            assertThat(seller.getUpdatedAt()).isEqualTo(originalUpdatedAt);
-            assertThat(seller.getDomainEvents()).isEmpty();
+            assertThat(seller.pollEvents()).isEmpty();
         }
 
         @Test
-        @DisplayName("[성공] null 파라미터는 해당 필드를 변경하지 않음")
-        void shouldNotChangeWhenParameterIsNull() {
+        @DisplayName("[성공] update 시 updatedAt 갱신됨")
+        void shouldUpdateTimestamp() {
             // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            MustItSellerName originalMustItName = seller.getMustItSellerName();
-            SellerName originalName = seller.getSellerName();
-            SellerStatus originalStatus = seller.getStatus();
+            Instant initialTime = Instant.parse("2025-01-01T00:00:00Z");
+            Instant updateTime = Instant.parse("2025-11-27T12:00:00Z");
+
+            Seller seller =
+                    Seller.of(
+                            SellerId.of(1L),
+                            MustItSellerNameFixture.aDefaultName(),
+                            SellerNameFixture.aDefaultName(),
+                            SellerStatus.ACTIVE,
+                            0,
+                            initialTime,
+                            initialTime);
+
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("updated-mustit"),
+                            SellerName.of("updated-seller"),
+                            SellerStatus.ACTIVE);
 
             // when
-            seller.update(null, null, null, FIXED_INSTANT);
+            seller.update(updateData, updateTime);
 
             // then
-            assertThat(seller.getMustItSellerName()).isEqualTo(originalMustItName);
-            assertThat(seller.getSellerName()).isEqualTo(originalName);
-            assertThat(seller.getStatus()).isEqualTo(originalStatus);
+            assertThat(seller.getUpdatedAt()).isEqualTo(updateTime);
         }
     }
 
@@ -464,103 +484,100 @@ class SellerTest {
     }
 
     @Nested
-    @DisplayName("clearDomainEvents() - 이벤트 초기화")
-    class ClearDomainEvents {
+    @DisplayName("pollEvents() - 이벤트 폴링")
+    class PollEvents {
 
         @Test
-        @DisplayName("[성공] 이벤트 목록이 비워짐")
-        void shouldClearEvents() {
+        @DisplayName("[성공] 이벤트 폴링 시 이벤트 목록 반환 후 내부 목록 비워짐")
+        void shouldReturnEventsAndClearInternalList() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
             seller.deactivate(FIXED_INSTANT); // 이벤트 발행
-            assertThat(seller.getDomainEvents()).hasSize(1);
 
             // when
-            seller.clearDomainEvents();
+            List<DomainEvent> events = seller.pollEvents();
 
             // then
-            assertThat(seller.getDomainEvents()).isEmpty();
+            assertThat(events).hasSize(1);
+            assertThat(seller.pollEvents()).isEmpty(); // 두 번째 호출은 비어있음
         }
 
         @Test
-        @DisplayName("[성공] 이벤트가 없어도 예외 없이 동작")
-        void shouldNotThrowWhenNoEvents() {
+        @DisplayName("[성공] 이벤트가 없어도 예외 없이 빈 목록 반환")
+        void shouldReturnEmptyListWhenNoEvents() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            assertThat(seller.getDomainEvents()).isEmpty();
 
-            // when & then (예외 없이 동작)
-            seller.clearDomainEvents();
-            assertThat(seller.getDomainEvents()).isEmpty();
+            // when
+            List<DomainEvent> events = seller.pollEvents();
+
+            // then
+            assertThat(events).isEmpty();
         }
     }
 
     @Nested
-    @DisplayName("needsUpdate*() - 변경 필요 여부")
-    class NeedsUpdate {
+    @DisplayName("isBeingDeactivatedBy() - 비활성화 전환 판단")
+    class IsBeingDeactivatedBy {
 
         @Test
-        @DisplayName("[성공] 다른 MustItSellerName이면 true 반환")
-        void shouldReturnTrueWhenDifferentMustItSellerName() {
+        @DisplayName("[성공] ACTIVE → INACTIVE 전환이면 true")
+        void shouldReturnTrueWhenActiveToInactive() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            MustItSellerName newName = MustItSellerName.of("different-name");
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.INACTIVE);
 
             // when & then
-            assertThat(seller.needsUpdateMustItSellerName(newName)).isTrue();
+            assertThat(seller.isBeingDeactivatedBy(updateData)).isTrue();
         }
 
         @Test
-        @DisplayName("[성공] 동일한 MustItSellerName이면 false 반환")
-        void shouldReturnFalseWhenSameMustItSellerName() {
+        @DisplayName("[성공] ACTIVE → ACTIVE 유지면 false")
+        void shouldReturnFalseWhenActiveToActive() {
             // given
             Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            MustItSellerName sameName = seller.getMustItSellerName();
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.ACTIVE);
 
             // when & then
-            assertThat(seller.needsUpdateMustItSellerName(sameName)).isFalse();
+            assertThat(seller.isBeingDeactivatedBy(updateData)).isFalse();
         }
 
         @Test
-        @DisplayName("[성공] null MustItSellerName이면 false 반환")
-        void shouldReturnFalseWhenNullMustItSellerName() {
+        @DisplayName("[성공] INACTIVE → INACTIVE 유지면 false")
+        void shouldReturnFalseWhenInactiveToInactive() {
             // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
+            Seller seller = SellerFixture.anInactiveSeller();
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.INACTIVE);
 
             // when & then
-            assertThat(seller.needsUpdateMustItSellerName(null)).isFalse();
+            assertThat(seller.isBeingDeactivatedBy(updateData)).isFalse();
         }
 
         @Test
-        @DisplayName("[성공] 다른 SellerName이면 true 반환")
-        void shouldReturnTrueWhenDifferentSellerName() {
+        @DisplayName("[성공] INACTIVE → ACTIVE 전환이면 false")
+        void shouldReturnFalseWhenInactiveToActive() {
             // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            SellerName newName = SellerName.of("different-name");
+            Seller seller = SellerFixture.anInactiveSeller();
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            seller.getMustItSellerName(),
+                            seller.getSellerName(),
+                            SellerStatus.ACTIVE);
 
             // when & then
-            assertThat(seller.needsUpdateSellerName(newName)).isTrue();
-        }
-
-        @Test
-        @DisplayName("[성공] 동일한 SellerName이면 false 반환")
-        void shouldReturnFalseWhenSameSellerName() {
-            // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-            SellerName sameName = seller.getSellerName();
-
-            // when & then
-            assertThat(seller.needsUpdateSellerName(sameName)).isFalse();
-        }
-
-        @Test
-        @DisplayName("[성공] null SellerName이면 false 반환")
-        void shouldReturnFalseWhenNullSellerName() {
-            // given
-            Seller seller = SellerFixture.anActiveSeller(FIXED_INSTANT);
-
-            // when & then
-            assertThat(seller.needsUpdateSellerName(null)).isFalse();
+            assertThat(seller.isBeingDeactivatedBy(updateData)).isFalse();
         }
     }
 

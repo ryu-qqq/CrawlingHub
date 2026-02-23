@@ -6,9 +6,9 @@ package com.ryuqq.crawlinghub.domain.task.vo;
  * <p><strong>상태 전환 규칙</strong>:
  *
  * <pre>
- * PENDING → SENT → (삭제)
- *    ↓
- * FAILED → PENDING (재시도)
+ * PENDING → PROCESSING → SENT → (삭제)
+ *              ↓
+ *           FAILED → PENDING (재시도)
  * </pre>
  *
  * @author development-team
@@ -18,6 +18,9 @@ public enum OutboxStatus {
 
     /** 발행 대기 중 */
     PENDING,
+
+    /** 처리 중 (중복 발행 방지) */
+    PROCESSING,
 
     /** 발행 완료 (SQS 전송 성공) */
     SENT,
@@ -32,6 +35,15 @@ public enum OutboxStatus {
      */
     public boolean isPending() {
         return this == PENDING;
+    }
+
+    /**
+     * 처리 중 상태인지 확인
+     *
+     * @return PROCESSING이면 true
+     */
+    public boolean isProcessing() {
+        return this == PROCESSING;
     }
 
     /**

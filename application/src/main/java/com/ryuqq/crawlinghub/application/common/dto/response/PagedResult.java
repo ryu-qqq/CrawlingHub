@@ -12,6 +12,10 @@ import java.util.List;
  */
 public record PagedResult<T>(List<T> content, PageMeta pageMeta) {
 
+    public PagedResult {
+        content = content == null ? List.of() : List.copyOf(content);
+    }
+
     public static <T> PagedResult<T> of(List<T> content, PageMeta pageMeta) {
         return new PagedResult<>(content, pageMeta);
     }

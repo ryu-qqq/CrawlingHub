@@ -10,11 +10,14 @@ spring:
   config:
     import:
       - classpath:persistence.yml
+      - optional:classpath:persistence-${spring.profiles.active:local}.yml
       - classpath:redis.yml
+      - optional:classpath:redis-${spring.profiles.active:local}.yml
       - classpath:eventbridge.yml
+      - optional:classpath:eventbridge-${spring.profiles.active:local}.yml
       - classpath:sqs.yml
+      - optional:classpath:sqs-${spring.profiles.active:local}.yml
       - classpath:http-client.yml
-      - classpath:fileflow.yml
 
   # ========================================
   # Flyway Configuration
@@ -95,22 +98,88 @@ sentry:
 # Scheduler Feature Toggles
 # ========================================
 scheduler:
-  # CrawlScheduler OutBox Retry (EventBridge sync)
-  outbox:
-    enabled: true
+  jobs:
+    crawl-scheduler-outbox:
+      process-pending:
+        enabled: true
+        cron: "0 */5 * * * *"          # 5분마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        delay-seconds: 30
+      recover-timeout:
+        enabled: true
+        cron: "0 */10 * * * *"         # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300            # 5분
 
-  # CrawlTaskOutbox Retry (SQS message publishing)
-  crawl-task-outbox:
-    enabled: true
+    crawl-task-outbox:
+      process-pending:
+        enabled: true
+        cron: "0 */5 * * * *"          # 5분마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        delay-seconds: 30
+      recover-timeout:
+        enabled: true
+        cron: "0 */10 * * * *"         # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300            # 5분
+      recover-failed:
+        enabled: true
+        cron: "0 */10 * * * *"         # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60              # 1분 후 복구
 
-  # UserAgent Session Token Issuance
-  session-issuance:
-    enabled: true
+    crawl-task:
+      recover-stuck:
+        enabled: true
+        cron: "0 */10 * * * *"         # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 600            # 10분
 
-  # SyncOutbox Retry (External product server sync retry)
-  sync-outbox-retry:
-    enabled: true
-    fixed-delay: 300000  # 5분 (밀리초)
+    crawled-raw-processing:
+      process-mini-shop:
+        enabled: true
+        cron: "*/30 * * * * *"          # 30초마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+      process-detail:
+        enabled: true
+        cron: "*/30 * * * * *"          # 30초마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+      process-option:
+        enabled: true
+        cron: "*/30 * * * * *"          # 30초마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+
+    user-agent-housekeeper:
+      enabled: true
+      fixed-delay-ms: 30000              # 30초
+      renewal-buffer-minutes: 5           # 세션 만료 5분 전 갱신
+      max-session-batch-size: 10          # 한 번에 최대 10건
+      session-delay-millis: 500           # 발급 간 500ms 대기
+      leak-threshold-millis: 120000       # 2분 BORROWED 초과 시 Leak
+      db-sync-interval: 10               # 30초 × 10 = 5분 주기
+
+    sync-outbox:
+      publish-pending:
+        enabled: true
+        cron: "*/30 * * * * *"            # 30초마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        max-retry-count: 3
+      retry-failed:
+        enabled: true
+        cron: "0 */5 * * * *"            # 5분마다
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        max-retry-count: 3
 
 ---
 # ========================================
@@ -127,14 +196,115 @@ app:
       enabled: false  # 로컬에서는 SQS 컴포넌트 비활성화
 
 scheduler:
-  outbox:
-    enabled: false
-  crawl-task-outbox:
-    enabled: false
+  jobs:
+    crawl-scheduler-outbox:
+      process-pending:
+        enabled: false
+        cron: "0 */5 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        delay-seconds: 30
+      recover-timeout:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300
+    crawl-task-outbox:
+      process-pending:
+        enabled: false
+        cron: "0 */5 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        delay-seconds: 30
+      recover-timeout:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300
+      recover-failed:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60
+    crawl-task:
+      recover-stuck:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 600
+    crawled-raw-processing:
+      process-mini-shop:
+        enabled: false
+        cron: "*/30 * * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+      process-detail:
+        enabled: false
+        cron: "*/30 * * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+      process-option:
+        enabled: false
+        cron: "*/30 * * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+    user-agent-housekeeper:
+      enabled: false
+      fixed-delay-ms: 30000
+      renewal-buffer-minutes: 5
+      max-session-batch-size: 10
+      session-delay-millis: 500
+      leak-threshold-millis: 120000
+      db-sync-interval: 10
+    sync-outbox:
+      publish-pending:
+        enabled: false
+        cron: "*/30 * * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        max-retry-count: 3
+      retry-failed:
+        enabled: false
+        cron: "0 */5 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 100
+        max-retry-count: 3
   session-issuance:
     enabled: false
-  sync-outbox-retry:
-    enabled: false
+
+---
+# ========================================
+# Stage Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: stage
+
+logging:
+  level:
+    root: INFO
+    com.ryuqq.crawlinghub: INFO
+
+# Sentry 활성화 (stage 환경)
+sentry:
+  enabled: true
+  dsn: ${SENTRY_DSN}
+  environment: stage
+  release: ${APP_VERSION:unknown}
+  server-name: ${HOSTNAME:unknown}
+  send-default-pii: false
+  traces-sample-rate: 0.1
+  ignored-exceptions-for-type:
+    - org.springframework.web.HttpRequestMethodNotSupportedException
+    - org.springframework.web.servlet.NoHandlerFoundException
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: info
 
 ---
 # ========================================

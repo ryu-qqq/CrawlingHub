@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.useragent.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import java.time.Instant;
 
 /**

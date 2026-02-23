@@ -1,0 +1,48 @@
+package com.ryuqq.crawlinghub.adapter.out.http.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * 세션 토큰 발급 전용 설정 Properties
+ *
+ * <p>외부 사이트 세션 토큰 발급에 필요한 설정을 관리합니다.
+ *
+ * @author development-team
+ * @since 1.0.0
+ */
+@ConfigurationProperties(prefix = "http-client.session")
+public class SessionTokenProperties {
+
+    /** 세션 토큰 발급 대상 URL */
+    private String targetUrl = "https://m.web.mustit.co.kr/";
+
+    /** 세션 쿠키 이름 */
+    private String sessionCookieName = "PHPSESSID";
+
+    /** 기본 세션 유지 시간 (시간, expires가 없을 때) */
+    private int defaultSessionDurationHours = 2;
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
+    public String getSessionCookieName() {
+        return sessionCookieName;
+    }
+
+    public void setSessionCookieName(String sessionCookieName) {
+        this.sessionCookieName = sessionCookieName;
+    }
+
+    public int getDefaultSessionDurationHours() {
+        return defaultSessionDurationHours;
+    }
+
+    public void setDefaultSessionDurationHours(int defaultSessionDurationHours) {
+        this.defaultSessionDurationHours = defaultSessionDurationHours;
+    }
+}

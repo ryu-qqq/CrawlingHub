@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent.SyncType;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -199,16 +199,21 @@ class ExternalSyncRequestedEventTest {
     }
 
     @Nested
-    @DisplayName("forCreate 팩토리 메서드")
-    class ForCreateMethod {
+    @DisplayName("of 팩토리 메서드")
+    class OfMethod {
 
         @Test
         @DisplayName("신규 등록용 이벤트를 생성한다")
         void shouldCreateEventForCreate() {
             // When
             ExternalSyncRequestedEvent event =
-                    ExternalSyncRequestedEvent.forCreate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_INSTANT);
+                    ExternalSyncRequestedEvent.of(
+                            PRODUCT_ID,
+                            SELLER_ID,
+                            ITEM_NO,
+                            IDEMPOTENCY_KEY,
+                            SyncType.CREATE,
+                            FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);
@@ -218,19 +223,19 @@ class ExternalSyncRequestedEventTest {
             assertThat(event.syncType()).isEqualTo(SyncType.CREATE);
             assertThat(event.occurredAt()).isEqualTo(FIXED_INSTANT);
         }
-    }
-
-    @Nested
-    @DisplayName("forUpdate 팩토리 메서드")
-    class ForUpdateMethod {
 
         @Test
         @DisplayName("갱신용 이벤트를 생성한다")
         void shouldCreateEventForUpdate() {
             // When
             ExternalSyncRequestedEvent event =
-                    ExternalSyncRequestedEvent.forUpdate(
-                            PRODUCT_ID, SELLER_ID, ITEM_NO, IDEMPOTENCY_KEY, FIXED_INSTANT);
+                    ExternalSyncRequestedEvent.of(
+                            PRODUCT_ID,
+                            SELLER_ID,
+                            ITEM_NO,
+                            IDEMPOTENCY_KEY,
+                            SyncType.UPDATE,
+                            FIXED_INSTANT);
 
             // Then
             assertThat(event.crawledProductId()).isEqualTo(PRODUCT_ID);

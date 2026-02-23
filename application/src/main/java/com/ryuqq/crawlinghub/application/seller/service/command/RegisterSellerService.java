@@ -1,17 +1,12 @@
 package com.ryuqq.crawlinghub.application.seller.service.command;
 
-import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
+import com.ryuqq.crawlinghub.application.seller.component.SellerPersistenceValidator;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
-import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
-import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerCommandManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
-import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
-import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import org.springframework.stereotype.Service;
 
 /**
@@ -20,9 +15,8 @@ import org.springframework.stereotype.Service;
  * <p>셀러 등록 UseCase 구현
  *
  * <ul>
- *   <li>비즈니스 규칙: MustItSellerName, SellerName 중복 불가
- *   <li>Service에서 ReadManager로 중복 검사 수행
- *   <li>Manager는 영속화만 담당
+ *   <li>Validator: MustItSellerName, SellerName 중복 검증
+ *   <li>CommandManager: 트랜잭션 경계 내 persist
  * </ul>
  *
  * @author development-team
@@ -31,59 +25,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class RegisterSellerService implements RegisterSellerUseCase {
 
-    private final SellerTransactionManager transactionManager;
-    private final SellerReadManager sellerReadManager;
+    private final SellerPersistenceValidator validator;
     private final SellerCommandFactory commandFactory;
-    private final SellerAssembler assembler;
+    private final SellerCommandManager commandManager;
 
     public RegisterSellerService(
-            SellerTransactionManager transactionManager,
-            SellerReadManager sellerReadManager,
+            SellerPersistenceValidator validator,
             SellerCommandFactory commandFactory,
-            SellerAssembler assembler) {
-        this.transactionManager = transactionManager;
-        this.sellerReadManager = sellerReadManager;
+            SellerCommandManager commandManager) {
+        this.validator = validator;
         this.commandFactory = commandFactory;
-        this.assembler = assembler;
+        this.commandManager = commandManager;
     }
 
     @Override
-    public SellerResponse execute(RegisterSellerCommand command) {
-        // 1. 비즈니스 검증 (Service 책임)
-        validateMustItSellerNameDuplicate(command.mustItSellerName());
-        validateSellerNameDuplicate(command.sellerName());
-
-        // 2. Domain 생성 (CommandFactory)
+    public long execute(RegisterSellerCommand command) {
         Seller seller = commandFactory.create(command);
-
-        // 3. 영속화 (Manager 책임)
-        transactionManager.persist(seller);
-
-        // 4. 응답 변환 (Assembler)
-        return assembler.toResponse(seller);
-    }
-
-    /**
-     * MustItSellerName 중복 검증
-     *
-     * @param mustItSellerName 머스트잇 셀러명
-     * @throws DuplicateMustItSellerIdException 중복 시
-     */
-    private void validateMustItSellerNameDuplicate(String mustItSellerName) {
-        if (sellerReadManager.existsByMustItSellerName(MustItSellerName.of(mustItSellerName))) {
-            throw new DuplicateMustItSellerIdException(mustItSellerName);
-        }
-    }
-
-    /**
-     * SellerName 중복 검증
-     *
-     * @param sellerName 셀러명
-     * @throws DuplicateSellerNameException 중복 시
-     */
-    private void validateSellerNameDuplicate(String sellerName) {
-        if (sellerReadManager.existsBySellerName(SellerName.of(sellerName))) {
-            throw new DuplicateSellerNameException(sellerName);
-        }
+        validator.validateForRegistration(seller);
+        SellerId sellerId = commandManager.persist(seller);
+        return sellerId.value();
     }
 }

@@ -39,7 +39,7 @@ dependencies {
     // Spring Security
     implementation libs.spring.boot.starter.security
 
-    // AuthHub SDK (Gateway 인증/인가)
+    // AuthHub SDK
     implementation libs.authhub.sdk.spring.boot.starter
 
     // JSON Processing

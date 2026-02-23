@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledRawJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
 import com.ryuqq.crawlinghub.domain.product.vo.RawDataStatus;
 import java.time.Instant;
@@ -151,7 +151,7 @@ class CrawledRawJpaEntityMapperTest {
             Instant now = Instant.now();
             CrawledRaw domain =
                     CrawledRaw.reconstitute(
-                            CrawledRawId.unassigned(),
+                            CrawledRawId.forNew(),
                             100L,
                             200L,
                             12345L,

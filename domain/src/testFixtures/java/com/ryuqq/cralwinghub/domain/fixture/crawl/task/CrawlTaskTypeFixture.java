@@ -25,10 +25,10 @@ public final class CrawlTaskTypeFixture {
     /**
      * 기본 유형 반환
      *
-     * @return META 유형
+     * @return SEARCH 유형
      */
     public static CrawlTaskType defaultType() {
-        return CrawlTaskType.META;
+        return CrawlTaskType.SEARCH;
     }
 
     private CrawlTaskTypeFixture() {

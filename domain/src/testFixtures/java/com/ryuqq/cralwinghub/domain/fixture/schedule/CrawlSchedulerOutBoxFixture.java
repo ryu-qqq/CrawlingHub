@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 
 /**
@@ -34,7 +35,11 @@ public final class CrawlSchedulerOutBoxFixture {
                 CrawlSchedulerOutBoxId.of(1L),
                 CrawlSchedulerHistoryId.of(1L),
                 CrawlSchedulerOubBoxStatus.PENDING,
-                "{\"schedulerId\": 1, \"action\": \"CREATE\"}",
+                1L,
+                1L,
+                "test-scheduler",
+                "cron(0 0 * * ? *)",
+                SchedulerStatus.ACTIVE,
                 null,
                 0L,
                 now,
@@ -53,7 +58,11 @@ public final class CrawlSchedulerOutBoxFixture {
                 CrawlSchedulerOutBoxId.of(2L),
                 CrawlSchedulerHistoryId.of(2L),
                 CrawlSchedulerOubBoxStatus.COMPLETED,
-                "{\"schedulerId\": 2, \"action\": \"CREATE\"}",
+                2L,
+                2L,
+                "test-scheduler-2",
+                "cron(0 0 * * ? *)",
+                SchedulerStatus.ACTIVE,
                 null,
                 1L,
                 fiveMinutesAgo,
@@ -73,7 +82,11 @@ public final class CrawlSchedulerOutBoxFixture {
                 CrawlSchedulerOutBoxId.of(3L),
                 CrawlSchedulerHistoryId.of(3L),
                 CrawlSchedulerOubBoxStatus.FAILED,
-                "{\"schedulerId\": 3, \"action\": \"CREATE\"}",
+                3L,
+                3L,
+                "test-scheduler-3",
+                "cron(0 0 * * ? *)",
+                SchedulerStatus.ACTIVE,
                 "EventBridge connection failed",
                 1L,
                 tenMinutesAgo,

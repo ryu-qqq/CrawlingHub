@@ -3,8 +3,10 @@ package com.ryuqq.crawlinghub.application.crawl.component;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.Crawler;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.CrawlerProvider;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,13 +27,13 @@ class CrawlerProviderTest {
 
     private CrawlerProvider provider;
     private TestCrawler detailCrawler;
-    private TestCrawler metaCrawler;
+    private TestCrawler searchCrawler;
 
     @BeforeEach
     void setUp() {
         detailCrawler = new TestCrawler(CrawlTaskType.DETAIL);
-        metaCrawler = new TestCrawler(CrawlTaskType.META);
-        provider = new CrawlerProvider(List.of(detailCrawler, metaCrawler));
+        searchCrawler = new TestCrawler(CrawlTaskType.SEARCH);
+        provider = new CrawlerProvider(List.of(detailCrawler, searchCrawler));
     }
 
     @Nested
@@ -50,14 +52,14 @@ class CrawlerProviderTest {
         }
 
         @Test
-        @DisplayName("[성공] META 타입 크롤러 반환")
-        void shouldReturnMetaCrawler() {
+        @DisplayName("[성공] SEARCH 타입 크롤러 반환")
+        void shouldReturnSearchCrawler() {
             // When
-            Crawler result = provider.getCrawler(CrawlTaskType.META);
+            Crawler result = provider.getCrawler(CrawlTaskType.SEARCH);
 
             // Then
-            assertThat(result).isEqualTo(metaCrawler);
-            assertThat(result.supportedType()).isEqualTo(CrawlTaskType.META);
+            assertThat(result).isEqualTo(searchCrawler);
+            assertThat(result.supportedType()).isEqualTo(CrawlTaskType.SEARCH);
         }
 
         @Test
@@ -79,7 +81,7 @@ class CrawlerProviderTest {
         void shouldSupportRegisteredType() {
             // When & Then
             assertThat(provider.supports(CrawlTaskType.DETAIL)).isTrue();
-            assertThat(provider.supports(CrawlTaskType.META)).isTrue();
+            assertThat(provider.supports(CrawlTaskType.SEARCH)).isTrue();
         }
 
         @Test

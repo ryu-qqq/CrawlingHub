@@ -37,11 +37,11 @@ class CrawlSchedulerCommandAdapterTest {
 
     @Mock private CrawlSchedulerJpaEntityMapper mapper;
 
-    private CrawlSchedulerCommandAdapter commandAdapter;
+    private CrawlSchedulerCommandAdapterCommand commandAdapter;
 
     @BeforeEach
     void setUp() {
-        commandAdapter = new CrawlSchedulerCommandAdapter(jpaRepository, mapper);
+        commandAdapter = new CrawlSchedulerCommandAdapterCommand(jpaRepository, mapper);
     }
 
     @Test

@@ -18,14 +18,10 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApi
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailStatisticsApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.composite.SellerDetailResult;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerPageResult;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellerByOffsetUseCase;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -63,18 +59,18 @@ class SellerQueryControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
     private GetSellerUseCase getSellerUseCase;
-    private SearchSellersUseCase searchSellersUseCase;
+    private SearchSellerByOffsetUseCase searchSellerByOffsetUseCase;
     private SellerQueryApiMapper sellerQueryApiMapper;
 
     @BeforeEach
     void setUp() {
         getSellerUseCase = mock(GetSellerUseCase.class);
-        searchSellersUseCase = mock(SearchSellersUseCase.class);
+        searchSellerByOffsetUseCase = mock(SearchSellerByOffsetUseCase.class);
         sellerQueryApiMapper = mock(SellerQueryApiMapper.class);
 
         SellerQueryController controller =
                 new SellerQueryController(
-                        getSellerUseCase, searchSellersUseCase, sellerQueryApiMapper);
+                        getSellerUseCase, searchSellerByOffsetUseCase, sellerQueryApiMapper);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -104,19 +100,19 @@ class SellerQueryControllerTest {
             // Given
             Long sellerId = 1L;
 
-            GetSellerQuery query = new GetSellerQuery(sellerId);
-
-            SellerDetailResponse useCaseResponse =
-                    new SellerDetailResponse(
-                            sellerId,
-                            "머스트잇 테스트 셀러",
-                            "테스트 셀러",
-                            true,
-                            Instant.now(),
-                            null,
+            SellerDetailResult useCaseResult =
+                    new SellerDetailResult(
+                            new SellerDetailResult.SellerInfo(
+                                    sellerId,
+                                    "머스트잇 테스트 셀러",
+                                    "테스트 셀러",
+                                    "ACTIVE",
+                                    0,
+                                    Instant.now(),
+                                    null),
                             Collections.emptyList(),
                             Collections.emptyList(),
-                            SellerDetailStatistics.empty());
+                            new SellerDetailResult.SellerStatistics(0L, 0L, 0L, 0.0));
 
             SellerDetailApiResponse apiResponse =
                     new SellerDetailApiResponse(
@@ -130,9 +126,8 @@ class SellerQueryControllerTest {
                             Collections.emptyList(),
                             new SellerDetailStatisticsApiResponse(0L, 0L, 0L, 0.0));
 
-            given(sellerQueryApiMapper.toQuery(any(Long.class))).willReturn(query);
-            given(getSellerUseCase.execute(any(GetSellerQuery.class))).willReturn(useCaseResponse);
-            given(sellerQueryApiMapper.toDetailApiResponse(any(SellerDetailResponse.class)))
+            given(getSellerUseCase.execute(any(Long.class))).willReturn(useCaseResult);
+            given(sellerQueryApiMapper.toDetailApiResponse(any(SellerDetailResult.class)))
                     .willReturn(apiResponse);
 
             // When & Then
@@ -150,9 +145,8 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.statistics").exists());
 
             // UseCase 호출 검증
-            verify(sellerQueryApiMapper).toQuery(any(Long.class));
-            verify(getSellerUseCase).execute(any(GetSellerQuery.class));
-            verify(sellerQueryApiMapper).toDetailApiResponse(any(SellerDetailResponse.class));
+            verify(getSellerUseCase).execute(any(Long.class));
+            verify(sellerQueryApiMapper).toDetailApiResponse(any(SellerDetailResult.class));
         }
 
         /**
@@ -200,41 +194,6 @@ class SellerQueryControllerTest {
         @DisplayName("성공: 200 OK, 페이징 응답 구조 검증")
         void listSellers_Success() throws Exception {
             // Given
-            SearchSellersApiRequest request =
-                    new SearchSellersApiRequest(null, null, List.of("ACTIVE"), null, null, 0, 20);
-
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
-
-            List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    1L,
-                                    "머스트잇 셀러1",
-                                    "셀러1",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L),
-                            new SellerSummaryResponse(
-                                    2L,
-                                    "머스트잇 셀러2",
-                                    "셀러2",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    1,
-                                    2,
-                                    "RUNNING",
-                                    Instant.now(),
-                                    30L));
-
-            PageResponse<SellerSummaryResponse> useCasePageResponse =
-                    new PageResponse<>(content, 0, 20, 100L, 5, true, false);
-
             List<SellerSummaryApiResponse> apiContent =
                     List.of(
                             new SellerSummaryApiResponse(
@@ -255,17 +214,16 @@ class SellerQueryControllerTest {
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 100L, 5, true, false);
 
-            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
-                    .willReturn(query);
-            given(searchSellersUseCase.execute(any(SearchSellersQuery.class)))
-                    .willReturn(useCasePageResponse);
-            given(sellerQueryApiMapper.toPageApiResponse(any(PageResponse.class)))
+            given(sellerQueryApiMapper.toSearchParams(any(SearchSellersApiRequest.class)))
+                    .willReturn(null);
+            given(searchSellerByOffsetUseCase.execute(any())).willReturn(SellerPageResult.empty());
+            given(sellerQueryApiMapper.toPageResponse(any(SellerPageResult.class)))
                     .willReturn(apiPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/sellers")
-                                    .param("status", "ACTIVE")
+                                    .param("statuses", "ACTIVE")
                                     .param("page", "0")
                                     .param("size", "20")
                                     .accept(MediaType.APPLICATION_JSON))
@@ -283,35 +241,15 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.last").value(false));
 
             // UseCase 호출 검증
-            verify(sellerQueryApiMapper).toQuery(any(SearchSellersApiRequest.class));
-            verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
-            verify(sellerQueryApiMapper).toPageApiResponse(any(PageResponse.class));
+            verify(sellerQueryApiMapper).toSearchParams(any(SearchSellersApiRequest.class));
+            verify(searchSellerByOffsetUseCase).execute(any());
+            verify(sellerQueryApiMapper).toPageResponse(any(SellerPageResult.class));
         }
 
         @Test
         @DisplayName("성공: 기본 페이징 파라미터 (page=0, size=20)")
         void listSellers_DefaultPagination() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
-
-            List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    1L,
-                                    "머스트잇 셀러1",
-                                    "셀러1",
-                                    true,
-                                    Instant.now(),
-                                    Instant.now(),
-                                    2,
-                                    3,
-                                    "COMPLETED",
-                                    Instant.now(),
-                                    50L));
-
-            PageResponse<SellerSummaryResponse> useCasePageResponse =
-                    new PageResponse<>(content, 0, 20, 1L, 1, true, true);
-
             List<SellerSummaryApiResponse> apiContent =
                     List.of(
                             new SellerSummaryApiResponse(
@@ -325,11 +263,10 @@ class SellerQueryControllerTest {
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 1L, 1, true, true);
 
-            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
-                    .willReturn(query);
-            given(searchSellersUseCase.execute(any(SearchSellersQuery.class)))
-                    .willReturn(useCasePageResponse);
-            given(sellerQueryApiMapper.toPageApiResponse(any(PageResponse.class)))
+            given(sellerQueryApiMapper.toSearchParams(any(SearchSellersApiRequest.class)))
+                    .willReturn(null);
+            given(searchSellerByOffsetUseCase.execute(any())).willReturn(SellerPageResult.empty());
+            given(sellerQueryApiMapper.toPageResponse(any(SellerPageResult.class)))
                     .willReturn(apiPageResponse);
 
             // When & Then
@@ -339,33 +276,13 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.size").value(20));
 
             // UseCase 호출 검증
-            verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
+            verify(searchSellerByOffsetUseCase).execute(any());
         }
 
         @Test
         @DisplayName("성공: INACTIVE 상태 필터링")
         void listSellers_FilterByInactiveStatus() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
-
-            List<SellerSummaryResponse> content =
-                    List.of(
-                            new SellerSummaryResponse(
-                                    3L,
-                                    "머스트잇 셀러3",
-                                    "셀러3",
-                                    false,
-                                    Instant.now(),
-                                    null,
-                                    0,
-                                    1,
-                                    null,
-                                    null,
-                                    0L));
-
-            PageResponse<SellerSummaryResponse> useCasePageResponse =
-                    new PageResponse<>(content, 0, 20, 1L, 1, true, true);
-
             List<SellerSummaryApiResponse> apiContent =
                     List.of(
                             new SellerSummaryApiResponse(
@@ -379,42 +296,35 @@ class SellerQueryControllerTest {
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 1L, 1, true, true);
 
-            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
-                    .willReturn(query);
-            given(searchSellersUseCase.execute(any(SearchSellersQuery.class)))
-                    .willReturn(useCasePageResponse);
-            given(sellerQueryApiMapper.toPageApiResponse(any(PageResponse.class)))
+            given(sellerQueryApiMapper.toSearchParams(any(SearchSellersApiRequest.class)))
+                    .willReturn(null);
+            given(searchSellerByOffsetUseCase.execute(any())).willReturn(SellerPageResult.empty());
+            given(sellerQueryApiMapper.toPageResponse(any(SellerPageResult.class)))
                     .willReturn(apiPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/sellers")
-                                    .param("status", "INACTIVE")
+                                    .param("statuses", "INACTIVE")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content[0].status").value("INACTIVE"));
 
             // UseCase 호출 검증
-            verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
+            verify(searchSellerByOffsetUseCase).execute(any());
         }
 
         @Test
         @DisplayName("성공: 빈 결과 (content가 빈 배열)")
         void listSellers_EmptyResult() throws Exception {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 0, 20);
-
-            PageResponse<SellerSummaryResponse> useCasePageResponse =
-                    new PageResponse<>(List.of(), 0, 20, 0L, 0, true, true);
-
             PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                     new PageApiResponse<>(List.of(), 0, 20, 0L, 0, true, true);
 
-            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
-                    .willReturn(query);
-            given(searchSellersUseCase.execute(any(SearchSellersQuery.class)))
-                    .willReturn(useCasePageResponse);
-            given(sellerQueryApiMapper.toPageApiResponse(any(PageResponse.class)))
+            given(sellerQueryApiMapper.toSearchParams(any(SearchSellersApiRequest.class)))
+                    .willReturn(null);
+            given(searchSellerByOffsetUseCase.execute(any())).willReturn(SellerPageResult.empty());
+            given(sellerQueryApiMapper.toPageResponse(any(SellerPageResult.class)))
                     .willReturn(apiPageResponse);
 
             // When & Then
@@ -425,20 +335,20 @@ class SellerQueryControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(0));
 
             // UseCase 호출 검증
-            verify(searchSellersUseCase).execute(any(SearchSellersQuery.class));
+            verify(searchSellerByOffsetUseCase).execute(any());
         }
 
         @Test
         @DisplayName("실패: 잘못된 status 값 (400 Bad Request)")
         void listSellers_InvalidStatus_BadRequest() throws Exception {
             // Given
-            given(sellerQueryApiMapper.toQuery(any(SearchSellersApiRequest.class)))
+            given(sellerQueryApiMapper.toSearchParams(any(SearchSellersApiRequest.class)))
                     .willThrow(new IllegalArgumentException("Invalid status: INVALID_STATUS"));
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/sellers")
-                                    .param("status", "INVALID_STATUS")
+                                    .param("statuses", "INVALID_STATUS")
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }

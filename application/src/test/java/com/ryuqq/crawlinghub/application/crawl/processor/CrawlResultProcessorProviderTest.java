@@ -3,7 +3,10 @@ package com.ryuqq.crawlinghub.application.crawl.processor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.CrawlResultProcessor;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.CrawlResultProcessorProvider;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
@@ -22,14 +25,14 @@ import org.junit.jupiter.api.Test;
 class CrawlResultProcessorProviderTest {
 
     private CrawlResultProcessorProvider provider;
-    private TestProcessor metaProcessor;
+    private TestProcessor searchProcessor;
     private TestProcessor detailProcessor;
 
     @BeforeEach
     void setUp() {
-        metaProcessor = new TestProcessor(CrawlTaskType.META);
+        searchProcessor = new TestProcessor(CrawlTaskType.SEARCH);
         detailProcessor = new TestProcessor(CrawlTaskType.DETAIL);
-        provider = new CrawlResultProcessorProvider(List.of(metaProcessor, detailProcessor));
+        provider = new CrawlResultProcessorProvider(List.of(searchProcessor, detailProcessor));
     }
 
     @Nested
@@ -37,14 +40,14 @@ class CrawlResultProcessorProviderTest {
     class GetProcessor {
 
         @Test
-        @DisplayName("[성공] META 타입 프로세서 반환")
-        void shouldReturnMetaProcessor() {
+        @DisplayName("[성공] SEARCH 타입 프로세서 반환")
+        void shouldReturnSearchProcessor() {
             // When
-            CrawlResultProcessor result = provider.getProcessor(CrawlTaskType.META);
+            CrawlResultProcessor result = provider.getProcessor(CrawlTaskType.SEARCH);
 
             // Then
-            assertThat(result).isEqualTo(metaProcessor);
-            assertThat(result.supportedType()).isEqualTo(CrawlTaskType.META);
+            assertThat(result).isEqualTo(searchProcessor);
+            assertThat(result.supportedType()).isEqualTo(CrawlTaskType.SEARCH);
         }
 
         @Test
@@ -76,7 +79,7 @@ class CrawlResultProcessorProviderTest {
         @DisplayName("[성공] 지원하는 타입 확인")
         void shouldReturnTrueForSupportedType() {
             // When & Then
-            assertThat(provider.supports(CrawlTaskType.META)).isTrue();
+            assertThat(provider.supports(CrawlTaskType.SEARCH)).isTrue();
             assertThat(provider.supports(CrawlTaskType.DETAIL)).isTrue();
         }
 

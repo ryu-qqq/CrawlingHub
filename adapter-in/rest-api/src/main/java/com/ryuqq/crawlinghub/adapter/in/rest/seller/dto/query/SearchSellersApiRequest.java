@@ -20,6 +20,8 @@ import java.util.List;
  *   <li>statuses: 선택, "ACTIVE" 또는 "INACTIVE" 목록 (다중 선택 가능)
  *   <li>createdFrom: 선택, 생성일 시작 (ISO-8601 형식)
  *   <li>createdTo: 선택, 생성일 종료 (ISO-8601 형식)
+ *   <li>sortKey: 정렬 키 (선택, 기본값: createdAt)
+ *   <li>sortDirection: 정렬 방향 (선택, 기본값: DESC)
  *   <li>page: 최소 0 (기본값: 0)
  *   <li>size: 1-100 (기본값: 20)
  * </ul>
@@ -29,6 +31,8 @@ import java.util.List;
  * @param statuses 셀러 상태 필터 목록 (다중 선택 가능, 선택)
  * @param createdFrom 생성일 시작 (선택)
  * @param createdTo 생성일 종료 (선택)
+ * @param sortKey 정렬 키 (선택, 기본값: createdAt)
+ * @param sortDirection 정렬 방향 (선택, 기본값: DESC)
  * @param page 페이지 번호 (0부터 시작, 기본값: 0)
  * @param size 페이지 크기 (기본값: 20, 최대: 100)
  * @author development-team
@@ -47,6 +51,8 @@ public record SearchSellersApiRequest(
                 Instant createdFrom,
         @Schema(description = "생성일 종료 (ISO-8601)", example = "2025-12-31T23:59:59Z")
                 Instant createdTo,
+        @Schema(description = "정렬 키 (기본값: createdAt)", example = "createdAt") String sortKey,
+        @Schema(description = "정렬 방향 (ASC/DESC, 기본값: DESC)", example = "DESC") String sortDirection,
         @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
                 @Schema(description = "페이지 번호 (0부터 시작)", example = "0")
                 Integer page,

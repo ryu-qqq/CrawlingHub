@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.task.aggregate;
 
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
 
@@ -105,6 +105,18 @@ public class CrawlTaskOutbox {
     }
 
     /**
+     * 처리 중 상태로 전환
+     *
+     * <p>PENDING → PROCESSING 전환. 중복 발행 방지를 위한 선점 처리
+     *
+     * @param now 현재 시각
+     */
+    public void markAsProcessing(Instant now) {
+        this.status = OutboxStatus.PROCESSING;
+        this.processedAt = now;
+    }
+
+    /**
      * 발행 성공 처리
      *
      * @param now 현재 시각
@@ -151,6 +163,15 @@ public class CrawlTaskOutbox {
     }
 
     /**
+     * 처리 중 상태인지 확인
+     *
+     * @return PROCESSING 상태이면 true
+     */
+    public boolean isProcessing() {
+        return this.status.isProcessing();
+    }
+
+    /**
      * 발행 완료 상태인지 확인
      *
      * @return SENT 상태이면 true
@@ -163,6 +184,10 @@ public class CrawlTaskOutbox {
 
     public CrawlTaskId getCrawlTaskId() {
         return crawlTaskId;
+    }
+
+    public Long getCrawlTaskIdValue() {
+        return crawlTaskId.value();
     }
 
     public String getIdempotencyKey() {

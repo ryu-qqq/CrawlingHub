@@ -5,9 +5,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskJpaEntity;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
 import java.time.Instant;
@@ -81,15 +81,15 @@ public class CrawlTaskJpaEntityMapper {
         CrawlEndpoint endpoint = domain.getEndpoint();
 
         return CrawlTaskJpaEntity.of(
-                domain.getId().value(),
-                domain.getCrawlSchedulerId().value(),
-                domain.getSellerId().value(),
+                domain.getIdValue(),
+                domain.getCrawlSchedulerIdValue(),
+                domain.getSellerIdValue(),
                 domain.getTaskType(),
                 endpoint.baseUrl(),
                 endpoint.path(),
                 serializeQueryParams(endpoint.queryParams()),
                 domain.getStatus(),
-                domain.getRetryCount().value(),
+                domain.getRetryCountValue(),
                 toLocalDateTime(domain.getCreatedAt()),
                 toLocalDateTime(domain.getUpdatedAt()));
     }

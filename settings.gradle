@@ -11,16 +11,18 @@ include 'application'
 // ========================================
 // Inbound Adapters (Driving) - {type}-in-{subject}-{middleware}
 include 'adapter-in:rest-api'
-include 'adapter-in:sqs-listener'
+include 'adapter-in:sqs-consumer'
+include 'adapter-in:scheduler'
 
-// Outbound Adapters (Driven) - {purpose}-{technology}
+// Outbound Adapters (Driven) - Persistence
 include 'adapter-out:persistence-mysql'
 include 'adapter-out:persistence-redis'
-include 'adapter-out:aws-eventbridge'
-include 'adapter-out:aws-sqs'
-include 'adapter-out:http-client'
-include 'adapter-out:fileflow-client'
-include 'adapter-out:marketplace-client'
+
+// Outbound Adapters (Driven) - Client
+include 'adapter-out:client:sqs-client'
+include 'adapter-out:client:eventbridge-client'
+include 'adapter-out:client:http-client'
+include 'adapter-out:client:marketplace-client'
 
 // ========================================
 // Bootstrap Modules (Runnable Applications)
@@ -40,14 +42,14 @@ include 'integration-test'
 project(':domain').projectDir = file('domain')
 project(':application').projectDir = file('application')
 project(':adapter-in:rest-api').projectDir = file('adapter-in/rest-api')
-project(':adapter-in:sqs-listener').projectDir = file('adapter-in/sqs-listener')
+project(':adapter-in:sqs-consumer').projectDir = file('adapter-in/sqs-consumer')
+project(':adapter-in:scheduler').projectDir = file('adapter-in/scheduler')
 project(':adapter-out:persistence-mysql').projectDir = file('adapter-out/persistence-mysql')
 project(':adapter-out:persistence-redis').projectDir = file('adapter-out/persistence-redis')
-project(':adapter-out:aws-eventbridge').projectDir = file('adapter-out/aws-eventbridge')
-project(':adapter-out:aws-sqs').projectDir = file('adapter-out/aws-sqs')
-project(':adapter-out:http-client').projectDir = file('adapter-out/http-client')
-project(':adapter-out:fileflow-client').projectDir = file('adapter-out/fileflow-client')
-project(':adapter-out:marketplace-client').projectDir = file('adapter-out/marketplace-client')
+project(':adapter-out:client:sqs-client').projectDir = file('adapter-out/client/sqs-client')
+project(':adapter-out:client:eventbridge-client').projectDir = file('adapter-out/client/eventbridge-client')
+project(':adapter-out:client:http-client').projectDir = file('adapter-out/client/http-client')
+project(':adapter-out:client:marketplace-client').projectDir = file('adapter-out/client/marketplace-client')
 project(':bootstrap:bootstrap-web-api').projectDir = file('bootstrap/bootstrap-web-api')
 project(':bootstrap:bootstrap-scheduler').projectDir = file('bootstrap/bootstrap-scheduler')
 project(':bootstrap:bootstrap-crawl-worker').projectDir = file('bootstrap/bootstrap-crawl-worker')

@@ -1,0 +1,52 @@
+# ========================================
+# SQS Listener Configuration (Local Development)
+# ========================================
+# LocalStack SQS configuration for local testing
+# docker run -d --name localstack -p 4566:4566 localstack/localstack
+# ========================================
+
+spring:
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      sqs:
+        # LocalStack endpoint
+        endpoint: http://localhost:4566
+        # SQS 리스너 기본 설정
+        listener:
+          max-concurrent-messages: 5
+          max-messages-per-poll: 5
+      # LocalStack 인증 비활성화
+      credentials:
+        access-key: test
+        secret-key: test
+
+aws:
+  sqs:
+    listener:
+      # ========================================
+      # Queue URLs (LocalStack)
+      # ========================================
+      # Create queues in LocalStack:
+      # awslocal sqs create-queue --queue-name crawl-task-queue
+      # awslocal sqs create-queue --queue-name crawl-task-dlq
+      # awslocal sqs create-queue --queue-name eventbridge-trigger-queue
+      # awslocal sqs create-queue --queue-name product-sync-queue
+      crawl-task-queue-url: http://localhost:4566/000000000000/crawl-task-queue
+      event-bridge-trigger-queue-url: http://localhost:4566/000000000000/eventbridge-trigger-queue
+      product-sync-queue-url: http://localhost:4566/000000000000/product-sync-queue
+      crawl-task-dlq-url: http://localhost:4566/000000000000/crawl-task-dlq
+
+      # ========================================
+      # Feature Toggles (Local)
+      # ========================================
+      crawl-task-listener-enabled: true
+      event-bridge-trigger-listener-enabled: true
+      product-sync-listener-enabled: true
+      crawl-task-dlq-listener-enabled: true
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.in.sqs: DEBUG
+    io.awspring.cloud.sqs: DEBUG

@@ -7,12 +7,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksOutboxApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskOutboxApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.RepublishResultApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskOutboxApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetOutboxListQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.OutboxResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.RepublishResultResponse;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
 import java.util.List;
@@ -50,17 +48,14 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("모든 필드가 있는 요청을 쿼리로 변환한다")
         void toQuery_WithAllFields_ShouldConvertCorrectly() {
-            // given
             List<String> statuses = List.of("PENDING", "FAILED");
             Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
             Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(statuses, createdFrom, createdTo, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.statuses())
                     .containsExactly(OutboxStatus.PENDING, OutboxStatus.FAILED);
             assertThat(result.createdFrom()).isEqualTo(createdFrom);
@@ -72,16 +67,13 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("statuses가 null인 요청을 쿼리로 변환한다 (기본값 PENDING, FAILED)")
         void toQuery_WithNullStatuses_ShouldUseDefaults() {
-            // given
             Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
             Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(null, createdFrom, createdTo, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.statuses())
                     .containsExactly(OutboxStatus.PENDING, OutboxStatus.FAILED);
         }
@@ -89,14 +81,11 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("빈 statuses 리스트를 쿼리로 변환한다 (기본값 PENDING, FAILED)")
         void toQuery_WithEmptyStatuses_ShouldUseDefaults() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(List.of(), null, null, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.statuses())
                     .containsExactly(OutboxStatus.PENDING, OutboxStatus.FAILED);
         }
@@ -104,14 +93,11 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("날짜 필터가 null인 요청을 쿼리로 변환한다")
         void toQuery_WithNullDateRange_ShouldConvertWithNullDates() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(List.of("SENT"), null, null, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.createdFrom()).isNull();
             assertThat(result.createdTo()).isNull();
         }
@@ -119,29 +105,23 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("단일 상태 필터를 쿼리로 변환한다")
         void toQuery_WithSingleStatus_ShouldConvertCorrectly() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(List.of("SENT"), null, null, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.statuses()).containsExactly(OutboxStatus.SENT);
         }
 
         @Test
         @DisplayName("소문자 상태 값도 변환한다 (case-insensitive)")
         void toQuery_WithLowercaseStatus_ShouldConvertCorrectly() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(
                             List.of("pending", "failed"), null, null, 0, 20);
 
-            // when
             GetOutboxListQuery result = mapper.toQuery(request);
 
-            // then
             assertThat(result.statuses())
                     .containsExactly(OutboxStatus.PENDING, OutboxStatus.FAILED);
         }
@@ -149,12 +129,10 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("유효하지 않은 상태 값은 IllegalArgumentException을 발생시킨다")
         void toQuery_WithInvalidStatus_ShouldThrowException() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(
                             List.of("INVALID_STATUS"), null, null, 0, 20);
 
-            // when & then
             assertThatThrownBy(() -> mapper.toQuery(request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Invalid outbox status: 'INVALID_STATUS'")
@@ -167,11 +145,9 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("빈 문자열 상태 값은 IllegalArgumentException을 발생시킨다")
         void toQuery_WithBlankStatus_ShouldThrowException() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(List.of("  "), null, null, 0, 20);
 
-            // when & then
             assertThatThrownBy(() -> mapper.toQuery(request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Status cannot be null or blank");
@@ -180,12 +156,10 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("여러 상태 중 하나가 유효하지 않으면 IllegalArgumentException을 발생시킨다")
         void toQuery_WithOneInvalidStatus_ShouldThrowException() {
-            // given
             SearchCrawlTasksOutboxApiRequest request =
                     new SearchCrawlTasksOutboxApiRequest(
                             List.of("PENDING", "UNKNOWN"), null, null, 0, 20);
 
-            // when & then
             assertThatThrownBy(() -> mapper.toQuery(request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Invalid outbox status: 'UNKNOWN'");
@@ -199,16 +173,13 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("OutboxResponse를 OutboxApiResponse로 변환한다")
         void toApiResponse_ShouldConvertCorrectly() {
-            // given
             Instant now = Instant.now();
             OutboxResponse response =
                     new OutboxResponse(
                             1L, "idempotency-key-123", OutboxStatus.PENDING, 0, now, null, null);
 
-            // when
             CrawlTaskOutboxApiResponse result = mapper.toApiResponse(response);
 
-            // then
             assertThat(result.crawlTaskId()).isEqualTo(1L);
             assertThat(result.idempotencyKey()).isEqualTo("idempotency-key-123");
             assertThat(result.status()).isEqualTo("PENDING");
@@ -221,16 +192,13 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("processedAt이 있는 OutboxResponse를 변환한다")
         void toApiResponse_WithProcessedAt_ShouldConvertCorrectly() {
-            // given
             Instant now = Instant.now();
             Instant processedAt = now.plusSeconds(60);
             OutboxResponse response =
                     new OutboxResponse(2L, "key-456", OutboxStatus.SENT, 1, now, now, processedAt);
 
-            // when
             CrawlTaskOutboxApiResponse result = mapper.toApiResponse(response);
 
-            // then
             assertThat(result.crawlTaskId()).isEqualTo(2L);
             assertThat(result.status()).isEqualTo("SENT");
             assertThat(result.retryCount()).isEqualTo(1);
@@ -246,7 +214,6 @@ class CrawlTaskOutboxApiMapperTest {
         @Test
         @DisplayName("PageResponse를 PageApiResponse로 변환한다")
         void toPageApiResponse_ShouldConvertCorrectly() {
-            // given
             Instant now = Instant.now();
             OutboxResponse response1 =
                     new OutboxResponse(1L, "key-1", OutboxStatus.PENDING, 0, now, null, null);
@@ -256,11 +223,9 @@ class CrawlTaskOutboxApiMapperTest {
             PageResponse<OutboxResponse> pageResponse =
                     new PageResponse<>(List.of(response1, response2), 0, 20, 2, 1, true, true);
 
-            // when
             PageApiResponse<CrawlTaskOutboxApiResponse> result =
                     mapper.toPageApiResponse(pageResponse);
 
-            // then
             assertThat(result.content()).hasSize(2);
             assertThat(result.page()).isZero();
             assertThat(result.size()).isEqualTo(20);
@@ -271,42 +236,6 @@ class CrawlTaskOutboxApiMapperTest {
 
             assertThat(result.content().get(0).crawlTaskId()).isEqualTo(1L);
             assertThat(result.content().get(1).crawlTaskId()).isEqualTo(2L);
-        }
-    }
-
-    @Nested
-    @DisplayName("toRepublishApiResponse() 테스트")
-    class ToRepublishApiResponseTests {
-
-        @Test
-        @DisplayName("성공 RepublishResultResponse를 변환한다")
-        void toRepublishApiResponse_Success_ShouldConvertCorrectly() {
-            // given
-            RepublishResultResponse response = new RepublishResultResponse(1L, true, "SQS 재발행 완료");
-
-            // when
-            RepublishResultApiResponse result = mapper.toRepublishApiResponse(response);
-
-            // then
-            assertThat(result.crawlTaskId()).isEqualTo(1L);
-            assertThat(result.success()).isTrue();
-            assertThat(result.message()).isEqualTo("SQS 재발행 완료");
-        }
-
-        @Test
-        @DisplayName("실패 RepublishResultResponse를 변환한다")
-        void toRepublishApiResponse_Failure_ShouldConvertCorrectly() {
-            // given
-            RepublishResultResponse response =
-                    new RepublishResultResponse(999L, false, "Outbox를 찾을 수 없습니다.");
-
-            // when
-            RepublishResultApiResponse result = mapper.toRepublishApiResponse(response);
-
-            // then
-            assertThat(result.crawlTaskId()).isEqualTo(999L);
-            assertThat(result.success()).isFalse();
-            assertThat(result.message()).isEqualTo("Outbox를 찾을 수 없습니다.");
         }
     }
 }

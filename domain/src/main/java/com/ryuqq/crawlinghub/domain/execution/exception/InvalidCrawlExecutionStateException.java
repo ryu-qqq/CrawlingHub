@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.execution.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.util.Map;
 
@@ -12,7 +11,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public final class InvalidCrawlExecutionStateException extends DomainException {
+public final class InvalidCrawlExecutionStateException extends CrawlExecutionException {
 
     private static final CrawlExecutionErrorCode ERROR_CODE =
             CrawlExecutionErrorCode.INVALID_CRAWL_EXECUTION_STATE;

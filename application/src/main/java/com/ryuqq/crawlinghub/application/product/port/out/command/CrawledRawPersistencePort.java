@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import java.util.List;
 
 /**

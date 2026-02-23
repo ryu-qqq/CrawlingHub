@@ -10,11 +10,13 @@ spring:
   config:
     import:
       - classpath:persistence.yml
+      - optional:classpath:persistence-${spring.profiles.active:local}.yml
       - classpath:redis.yml
+      - optional:classpath:redis-${spring.profiles.active:local}.yml
       - classpath:sqs.yml
+      - optional:classpath:sqs-${spring.profiles.active:local}.yml
       - classpath:sqs-listener.yml
       - classpath:http-client.yml
-      - classpath:fileflow.yml
 
   # ========================================
   # Flyway Configuration
@@ -91,11 +93,9 @@ aws:
     listener:
       crawl-task-listener-enabled: true
       event-bridge-trigger-listener-enabled: true
+      product-sync-listener-enabled: true
       # DLQ listeners enabled - ECS Task Definition has DLQ URL env vars
       crawl-task-dlq-listener-enabled: true
-      product-image-dlq-listener-enabled: true
-      product-sync-dlq-listener-enabled: true
-      event-bridge-trigger-dlq-listener-enabled: true
 
 ---
 # ========================================
@@ -113,6 +113,36 @@ aws:
       crawl-task-listener-enabled: false
       event-bridge-trigger-listener-enabled: false
       crawl-task-dlq-listener-enabled: false
+
+---
+# ========================================
+# Stage Profile
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: stage
+
+logging:
+  level:
+    root: INFO
+    com.ryuqq.crawlinghub: INFO
+
+# Sentry 활성화 (stage 환경)
+sentry:
+  enabled: true
+  dsn: ${SENTRY_DSN}
+  environment: stage
+  release: ${APP_VERSION:unknown}
+  server-name: ${HOSTNAME:unknown}
+  send-default-pii: false
+  traces-sample-rate: 0.1
+  ignored-exceptions-for-type:
+    - org.springframework.web.HttpRequestMethodNotSupportedException
+    - org.springframework.web.servlet.NoHandlerFoundException
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: info
 
 ---
 # ========================================

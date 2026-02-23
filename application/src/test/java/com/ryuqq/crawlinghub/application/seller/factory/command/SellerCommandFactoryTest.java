@@ -3,11 +3,14 @@ package com.ryuqq.crawlinghub.application.seller.factory.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerUpdateData;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,77 +79,104 @@ class SellerCommandFactoryTest {
     }
 
     @Nested
-    @DisplayName("createForComparison() 메서드는")
-    class CreateForComparisonMethod {
+    @DisplayName("createUpdateContext() 메서드는")
+    class CreateUpdateContextMethod {
 
         @Test
-        @DisplayName("모든 필드가 있는 UpdateSellerCommand를 Seller로 변환한다")
-        void shouldConvertCommandWithAllFields() {
+        @DisplayName("active=true인 UpdateSellerCommand를 UpdateContext로 변환한다")
+        void shouldConvertCommandWithActiveTrue() {
             // Given
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
+
             UpdateSellerCommand command =
                     new UpdateSellerCommand(1L, "updated-mustit", "업데이트된 셀러", true);
 
             // When
-            Seller seller = factory.createForComparison(command);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    factory.createUpdateContext(command);
 
             // Then
-            assertThat(seller.getSellerId().value()).isEqualTo(1L);
-            assertThat(seller.getMustItSellerNameValue()).isEqualTo("updated-mustit");
-            assertThat(seller.getSellerNameValue()).isEqualTo("업데이트된 셀러");
-            assertThat(seller.getStatus()).isEqualTo(SellerStatus.ACTIVE);
+            assertThat(context.id().value()).isEqualTo(1L);
+            assertThat(context.updateData().mustItSellerName().value()).isEqualTo("updated-mustit");
+            assertThat(context.updateData().sellerName().value()).isEqualTo("업데이트된 셀러");
+            assertThat(context.updateData().status()).isEqualTo(SellerStatus.ACTIVE);
+            assertThat(context.changedAt()).isEqualTo(fixedInstant);
         }
 
         @Test
-        @DisplayName("active가 false이면 INACTIVE 상태로 설정한다")
+        @DisplayName("active=false이면 INACTIVE 상태로 설정한다")
         void shouldSetInactiveStatusWhenActiveFalse() {
             // Given
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
+
             UpdateSellerCommand command =
                     new UpdateSellerCommand(1L, "mustit-seller", "셀러명", false);
 
             // When
-            Seller seller = factory.createForComparison(command);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    factory.createUpdateContext(command);
 
             // Then
-            assertThat(seller.getStatus()).isEqualTo(SellerStatus.INACTIVE);
+            assertThat(context.updateData().status()).isEqualTo(SellerStatus.INACTIVE);
         }
 
         @Test
-        @DisplayName("mustItSellerName이 null이면 Seller에도 null로 설정한다")
-        void shouldSetNullMustItSellerNameWhenCommandHasNull() {
+        @DisplayName("changedAt에 TimeProvider의 현재 시간이 설정된다")
+        void shouldSetChangedAtFromTimeProvider() {
             // Given
-            UpdateSellerCommand command = new UpdateSellerCommand(1L, null, "셀러명", true);
+            Instant fixedInstant = Instant.parse("2025-06-01T12:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
+
+            UpdateSellerCommand command = new UpdateSellerCommand(1L, "mustit-seller", "셀러명", true);
 
             // When
-            Seller seller = factory.createForComparison(command);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    factory.createUpdateContext(command);
 
             // Then
-            assertThat(seller.getMustItSellerName()).isNull();
+            assertThat(context.changedAt()).isEqualTo(fixedInstant);
+        }
+    }
+
+    @Nested
+    @DisplayName("createProductCountUpdateContext() 메서드는")
+    class CreateProductCountUpdateContextMethod {
+
+        @Test
+        @DisplayName("sellerId와 productCount로 UpdateContext를 생성한다")
+        void shouldCreateProductCountUpdateContext() {
+            // Given
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
+
+            Long sellerId = 1L;
+            int productCount = 100;
+
+            // When
+            UpdateContext<SellerId, Integer> context =
+                    factory.createProductCountUpdateContext(sellerId, productCount);
+
+            // Then
+            assertThat(context.id().value()).isEqualTo(1L);
+            assertThat(context.updateData()).isEqualTo(100);
+            assertThat(context.changedAt()).isEqualTo(fixedInstant);
         }
 
         @Test
-        @DisplayName("sellerName이 null이면 Seller에도 null로 설정한다")
-        void shouldSetNullSellerNameWhenCommandHasNull() {
+        @DisplayName("상품 수 0도 정상적으로 컨텍스트가 생성된다")
+        void shouldCreateContextWithZeroProductCount() {
             // Given
-            UpdateSellerCommand command = new UpdateSellerCommand(1L, "mustit-seller", null, true);
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            given(timeProvider.now()).willReturn(fixedInstant);
 
             // When
-            Seller seller = factory.createForComparison(command);
+            UpdateContext<SellerId, Integer> context =
+                    factory.createProductCountUpdateContext(1L, 0);
 
             // Then
-            assertThat(seller.getSellerName()).isNull();
-        }
-
-        @Test
-        @DisplayName("active가 null이면 status도 null로 설정한다")
-        void shouldSetNullStatusWhenActiveIsNull() {
-            // Given
-            UpdateSellerCommand command = new UpdateSellerCommand(1L, "mustit-seller", "셀러명", null);
-
-            // When
-            Seller seller = factory.createForComparison(command);
-
-            // Then
-            assertThat(seller.getStatus()).isNull();
+            assertThat(context.updateData()).isZero();
         }
     }
 }

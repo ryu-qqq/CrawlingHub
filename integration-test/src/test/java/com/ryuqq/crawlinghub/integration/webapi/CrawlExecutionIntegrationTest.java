@@ -52,7 +52,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 실행 기록 목록을 조회할 수 있다")
         void shouldReturnExecutionListWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -79,7 +79,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("태스크 ID 필터로 해당 태스크의 실행 기록만 조회된다")
         void shouldFilterByTaskId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -108,7 +108,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("스케줄러 ID 필터로 해당 스케줄러의 실행 기록만 조회된다")
         void shouldFilterBySchedulerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -137,7 +137,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("셀러 ID 필터로 해당 셀러의 실행 기록만 조회된다")
         void shouldFilterBySellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -166,7 +166,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 실행 기록만 조회된다 (SUCCESS)")
         void shouldFilterBySuccessStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -191,7 +191,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 실행 기록만 조회된다 (FAILED)")
         void shouldFilterByFailedStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -216,7 +216,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 실행 기록만 조회된다 (RUNNING)")
         void shouldFilterByRunningStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -241,7 +241,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 실행 기록만 조회된다 (TIMEOUT)")
         void shouldFilterByTimeoutStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -266,7 +266,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("복합 필터로 조건에 맞는 실행 기록만 조회된다")
         void shouldFilterByMultipleConditions() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -296,7 +296,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션이 정상 동작한다")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -324,7 +324,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 권한 없이도 조회할 수 있다")
         void superAdminShouldAccessWithoutPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -347,7 +347,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 실행 기록 상세를 조회할 수 있다")
         void shouldReturnExecutionDetailWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long executionId = 1L;
 
             // when
@@ -373,7 +373,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상세 조회 시 responseBody와 errorMessage가 포함된다")
         void shouldReturnDetailedFields() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long executionId = 1L; // SUCCESS 상태, responseBody 있음
 
             // when
@@ -405,7 +405,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("실패한 실행 기록 조회 시 에러 메시지가 포함된다")
         void shouldReturnErrorMessageForFailedExecution() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long failedExecutionId = 4L; // FAILED 상태
 
             // when
@@ -431,7 +431,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("RUNNING 상태의 실행 기록은 completedAt이 null이다")
         void runningExecutionShouldHaveNullCompletedAt() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long runningExecutionId = 2L; // RUNNING 상태
 
             // when
@@ -457,7 +457,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 실행 기록 조회 시 404를 반환한다")
         void shouldReturn404ForNonExistentExecution() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long nonExistentExecutionId = 99999L;
 
             // when
@@ -517,7 +517,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 없으면 403을 반환한다 (목록 조회)")
         void shouldReturn403WithoutPermissionForList() {
             // given - 인증은 되어 있지만 execution:read 권한이 없음
-            HttpHeaders headers = AuthTestHelper.authenticated();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -535,7 +535,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 없으면 403을 반환한다 (상세 조회)")
         void shouldReturn403WithoutPermissionForDetail() {
             // given - 인증은 되어 있지만 execution:read 권한이 없음
-            HttpHeaders headers = AuthTestHelper.authenticated();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -553,7 +553,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 권한으로는 접근할 수 없다")
         void shouldReturn403WithWrongPermission() {
             // given - task:read 권한만 있고 execution:read는 없음
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -571,7 +571,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN 역할은 모든 권한을 우회한다")
         void superAdminShouldBypassAllPermissions() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - 목록 조회
             ResponseEntity<Map<String, Object>> listResponse =
@@ -603,7 +603,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 상태값으로 조회 시 400을 반환한다")
         void shouldReturn400ForInvalidStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -621,7 +621,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 페이지 번호로 조회 시 400을 반환한다")
         void shouldReturn400ForNegativePage() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -639,7 +639,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지 크기 초과 시 400을 반환한다")
         void shouldReturn400ForExcessivePageSize() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -657,7 +657,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("0 이하의 페이지 크기로 조회 시 400을 반환한다")
         void shouldReturn400ForZeroPageSize() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -675,7 +675,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 실행 기록 ID로 조회 시 400을 반환한다")
         void shouldReturn400ForNegativeExecutionId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -693,7 +693,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 태스크 ID 필터 시 400을 반환한다")
         void shouldReturn400ForNegativeTaskIdFilter() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -711,7 +711,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 스케줄러 ID 필터 시 400을 반환한다")
         void shouldReturn400ForNegativeSchedulerIdFilter() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -729,7 +729,7 @@ class CrawlExecutionIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 셀러 ID 필터 시 400을 반환한다")
         void shouldReturn400ForNegativeSellerIdFilter() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("execution:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =

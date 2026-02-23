@@ -5,14 +5,10 @@ import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUt
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskDetailApiResponse;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.task.dto.query.GetCrawlTaskQuery;
-import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.application.task.dto.query.CrawlTaskSearchParams;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskPageResult;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
+import com.ryuqq.crawlinghub.domain.common.vo.PageMeta;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -24,14 +20,8 @@ import org.springframework.stereotype.Component;
  * <p><strong>변환 방향:</strong>
  *
  * <ul>
- *   <li>API Query Request → Application Query (Controller → Application)
- *   <li>Application Response → API Response (Application → Controller)
- * </ul>
- *
- * <p><strong>CQRS 패턴 적용:</strong>
- *
- * <ul>
- *   <li>Query: ListCrawlTasks, GetCrawlTask 요청 변환
+ *   <li>API Query Request → Application SearchParams (Controller → Application)
+ *   <li>Application Result → API Response (Application → Controller)
  * </ul>
  *
  * <p><strong>책임:</strong>
@@ -39,8 +29,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>필드 매핑만 수행 (비즈니스 로직 포함 금지)
  *   <li>API DTO ↔ Application DTO 단순 변환
- *   <li>Enum 변환 (String ↔ CrawlTaskStatus)
- *   <li>페이징 응답 변환 (PageResponse → PageApiResponse)
+ *   <li>페이징 응답 변환 (CrawlTaskPageResult → PageApiResponse)
  * </ul>
  *
  * @author development-team
@@ -50,20 +39,17 @@ import org.springframework.stereotype.Component;
 public class CrawlTaskQueryApiMapper {
 
     /**
-     * SearchCrawlTasksApiRequest → ListCrawlTasksQuery 변환
+     * SearchCrawlTasksApiRequest → CrawlTaskSearchParams 변환
      *
      * @param request REST API 크롤 태스크 목록 조회 요청
-     * @return Application Layer 크롤 태스크 목록 조회 쿼리
+     * @return Application Layer 크롤 태스크 검색 파라미터
      */
-    public ListCrawlTasksQuery toQuery(SearchCrawlTasksApiRequest request) {
-        List<CrawlTaskStatus> statuses = parseStatuses(request.statuses());
-        List<CrawlTaskType> taskTypes = parseTaskTypes(request.taskTypes());
-
-        return new ListCrawlTasksQuery(
-                request.crawlSchedulerId(),
-                request.sellerId(),
-                statuses,
-                taskTypes,
+    public CrawlTaskSearchParams toSearchParams(SearchCrawlTasksApiRequest request) {
+        return new CrawlTaskSearchParams(
+                request.crawlSchedulerIds(),
+                request.sellerIds(),
+                request.statuses(),
+                request.taskTypes(),
                 request.createdFrom(),
                 request.createdTo(),
                 request.page(),
@@ -71,122 +57,37 @@ public class CrawlTaskQueryApiMapper {
     }
 
     /**
-     * 상태 문자열 목록 → CrawlTaskStatus Enum 목록 변환
+     * CrawlTaskResult → CrawlTaskApiResponse 변환
      *
-     * @param statusStrings 상태 문자열 목록
-     * @return CrawlTaskStatus Enum 목록 (null이거나 빈 리스트면 null)
-     * @throws IllegalArgumentException 유효하지 않은 상태값이 포함된 경우
-     */
-    private List<CrawlTaskStatus> parseStatuses(List<String> statusStrings) {
-        if (statusStrings == null || statusStrings.isEmpty()) {
-            return null;
-        }
-        return statusStrings.stream()
-                .filter(s -> s != null && !s.isBlank())
-                .map(this::parseStatus)
-                .toList();
-    }
-
-    private CrawlTaskStatus parseStatus(String status) {
-        try {
-            return CrawlTaskStatus.valueOf(status);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status value: " + status);
-        }
-    }
-
-    /**
-     * 태스크 유형 문자열 목록 → CrawlTaskType Enum 목록 변환
-     *
-     * @param taskTypeStrings 태스크 유형 문자열 목록
-     * @return CrawlTaskType Enum 목록 (null이거나 빈 리스트면 null)
-     * @throws IllegalArgumentException 유효하지 않은 태스크 유형이 포함된 경우
-     */
-    private List<CrawlTaskType> parseTaskTypes(List<String> taskTypeStrings) {
-        if (taskTypeStrings == null || taskTypeStrings.isEmpty()) {
-            return null;
-        }
-        return taskTypeStrings.stream()
-                .filter(s -> s != null && !s.isBlank())
-                .map(this::parseTaskType)
-                .toList();
-    }
-
-    private CrawlTaskType parseTaskType(String taskType) {
-        try {
-            return CrawlTaskType.valueOf(taskType);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid task type value: " + taskType);
-        }
-    }
-
-    /**
-     * Long → GetCrawlTaskQuery 변환
-     *
-     * @param crawlTaskId 크롤 태스크 ID
-     * @return Application Layer 크롤 태스크 단건 조회 쿼리
-     */
-    public GetCrawlTaskQuery toGetQuery(Long crawlTaskId) {
-        return new GetCrawlTaskQuery(crawlTaskId);
-    }
-
-    /**
-     * CrawlTaskResponse → CrawlTaskApiResponse 변환
-     *
-     * @param appResponse Application Layer 크롤 태스크 응답
+     * @param result Application Layer 크롤 태스크 결과
      * @return REST API 크롤 태스크 응답
      */
-    public CrawlTaskApiResponse toApiResponse(CrawlTaskResponse appResponse) {
+    public CrawlTaskApiResponse toApiResponse(CrawlTaskResult result) {
         return new CrawlTaskApiResponse(
-                appResponse.crawlTaskId(),
-                appResponse.crawlSchedulerId(),
-                appResponse.sellerId(),
-                appResponse.requestUrl(),
-                appResponse.status().name(),
-                appResponse.taskType().name(),
-                appResponse.retryCount(),
-                format(appResponse.createdAt()),
-                format(appResponse.updatedAt()));
+                result.crawlTaskId(),
+                result.crawlSchedulerId(),
+                result.sellerId(),
+                result.requestUrl(),
+                result.baseUrl(),
+                result.path(),
+                result.queryParams(),
+                result.status(),
+                result.taskType(),
+                result.retryCount(),
+                format(result.createdAt()),
+                format(result.updatedAt()));
     }
 
     /**
-     * CrawlTaskDetailResponse → CrawlTaskDetailApiResponse 변환
+     * CrawlTaskPageResult → PageApiResponse 변환
      *
-     * @param appResponse Application Layer 크롤 태스크 상세 응답
-     * @return REST API 크롤 태스크 상세 응답
-     */
-    public CrawlTaskDetailApiResponse toDetailApiResponse(CrawlTaskDetailResponse appResponse) {
-        return new CrawlTaskDetailApiResponse(
-                appResponse.crawlTaskId(),
-                appResponse.crawlSchedulerId(),
-                appResponse.sellerId(),
-                appResponse.status().name(),
-                appResponse.taskType().name(),
-                appResponse.retryCount(),
-                appResponse.baseUrl(),
-                appResponse.path(),
-                appResponse.queryParams(),
-                appResponse.fullUrl(),
-                format(appResponse.createdAt()),
-                format(appResponse.updatedAt()));
-    }
-
-    /**
-     * PageResponse → PageApiResponse 변환
-     *
-     * <p>Application Layer의 페이지 응답을 REST API Layer의 페이지 응답으로 변환합니다.
-     *
-     * @param appPageResponse Application Layer 페이지 응답
+     * @param pageResult Application Layer 페이지 결과
      * @return REST API 페이지 응답
      */
-    public PageApiResponse<CrawlTaskApiResponse> toPageApiResponse(
-            PageResponse<CrawlTaskResponse> appPageResponse) {
+    public PageApiResponse<CrawlTaskApiResponse> toPageApiResponse(CrawlTaskPageResult pageResult) {
         List<CrawlTaskApiResponse> content =
-                appPageResponse.content().stream().map(this::toApiResponse).toList();
-        return PageApiResponse.of(
-                content,
-                appPageResponse.page(),
-                appPageResponse.size(),
-                appPageResponse.totalElements());
+                pageResult.results().stream().map(this::toApiResponse).toList();
+        PageMeta meta = pageResult.pageMeta();
+        return PageApiResponse.of(content, meta.page(), meta.size(), meta.totalElements());
     }
 }

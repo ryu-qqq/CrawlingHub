@@ -5,12 +5,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.crawl.dto.HttpRequest;
-import com.ryuqq.crawlinghub.application.crawl.dto.HttpResponse;
-import com.ryuqq.crawlinghub.application.crawl.port.out.client.HttpClientPort;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.OptionCrawler;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpRequest;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpResponse;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlContextMapper;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlResultMapper;
+import com.ryuqq.crawlinghub.application.execution.port.out.client.HttpClient;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,13 +35,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("OptionCrawler 테스트")
 class OptionCrawlerTest {
 
-    @Mock private HttpClientPort httpClientPort;
+    @Mock private HttpClient httpClient;
+    @Mock private CrawlContextMapper crawlContextMapper;
+    @Mock private CrawlResultMapper crawlResultMapper;
 
     private OptionCrawler crawler;
 
     @BeforeEach
     void setUp() {
-        crawler = new OptionCrawler(httpClientPort);
+        crawler = new OptionCrawler(httpClient, crawlContextMapper, crawlResultMapper);
     }
 
     @Nested
@@ -71,7 +77,7 @@ class OptionCrawlerTest {
         void shouldNotSupportOtherTypes() {
             // When & Then
             assertThat(crawler.supports(CrawlTaskType.DETAIL)).isFalse();
-            assertThat(crawler.supports(CrawlTaskType.META)).isFalse();
+            assertThat(crawler.supports(CrawlTaskType.SEARCH)).isFalse();
         }
     }
 
@@ -85,16 +91,21 @@ class OptionCrawlerTest {
             // Given
             CrawlContext context = createContext();
             HttpResponse response = HttpResponse.of(200, "{\"options\": []}");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.success("{\"options\": []}", 200);
+
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
 
             // Then
             assertThat(result.isSuccess()).isTrue();
-            assertThat(result.getHttpStatusCode()).isEqualTo(200);
-            assertThat(result.getResponseBody()).isEqualTo("{\"options\": []}");
-            verify(httpClientPort).get(any(HttpRequest.class));
+            assertThat(result.httpStatusCode()).isEqualTo(200);
+            assertThat(result.responseBody()).isEqualTo("{\"options\": []}");
+            verify(httpClient).get(any(HttpRequest.class));
         }
 
         @Test
@@ -103,15 +114,20 @@ class OptionCrawlerTest {
             // Given
             CrawlContext context = createContext();
             HttpResponse response = HttpResponse.of(400, "Bad Request");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.failure(400, "Client error: 400");
+
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
 
             // Then
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.getHttpStatusCode()).isEqualTo(400);
-            assertThat(result.getErrorMessage()).contains("Client error");
+            assertThat(result.httpStatusCode()).isEqualTo(400);
+            assertThat(result.errorMessage()).contains("Client error");
         }
     }
 

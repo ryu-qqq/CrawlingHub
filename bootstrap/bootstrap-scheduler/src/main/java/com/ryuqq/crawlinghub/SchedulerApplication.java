@@ -37,21 +37,21 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         scanBasePackages = {
             "com.ryuqq.crawlinghub",
             "com.ryuqq.crawlinghub.application",
+            "com.ryuqq.crawlinghub.adapter.in.scheduler",
             "com.ryuqq.crawlinghub.adapter.out.persistence",
             "com.ryuqq.crawlinghub.adapter.out.redis",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge",
             "com.ryuqq.crawlinghub.adapter.out.sqs",
-            "com.ryuqq.crawlinghub.adapter.out.http",
-            "com.ryuqq.crawlinghub.adapter.out.fileflow"
+            "com.ryuqq.crawlinghub.adapter.out.http"
         })
 @EntityScan(basePackages = {"com.ryuqq.crawlinghub.adapter.out.persistence"})
 @ConfigurationPropertiesScan(
         basePackages = {
+            "com.ryuqq.crawlinghub.adapter.in.scheduler.config",
             "com.ryuqq.crawlinghub.adapter.out.eventbridge.config",
             "com.ryuqq.crawlinghub.adapter.out.sqs.config",
             "com.ryuqq.crawlinghub.adapter.out.http.config",
-            "com.ryuqq.crawlinghub.adapter.out.redis.config",
-            "com.ryuqq.crawlinghub.adapter.out.fileflow.config"
+            "com.ryuqq.crawlinghub.adapter.out.redis.config"
         })
 @EnableScheduling
 public class SchedulerApplication {

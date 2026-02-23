@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJ
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper.UserAgentJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository.UserAgentJpaRepository;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,8 +61,10 @@ class UserAgentCommandAdapterTest {
                         "5.10",
                         "CHROME",
                         "120.0.0.0",
-                        UserAgentStatus.READY,
+                        UserAgentStatus.IDLE,
                         100,
+                        null,
+                        0,
                         null,
                         0,
                         now,
@@ -78,8 +80,10 @@ class UserAgentCommandAdapterTest {
                         "5.10",
                         "CHROME",
                         "120.0.0.0",
-                        UserAgentStatus.READY,
+                        UserAgentStatus.IDLE,
                         100,
+                        null,
+                        0,
                         null,
                         0,
                         now,
@@ -119,6 +123,8 @@ class UserAgentCommandAdapterTest {
                         50,
                         now,
                         5,
+                        null,
+                        0,
                         now,
                         now);
 

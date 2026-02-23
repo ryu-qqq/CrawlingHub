@@ -9,8 +9,6 @@ import java.util.Optional;
 /**
  * 크롤 스케줄러 아웃박스 조회 Port (Port Out).
  *
- * <p><strong>용도</strong>: 재시도 스케줄러에서 PENDING/FAILED 상태 아웃박스 조회
- *
  * @author development-team
  * @since 1.0.0
  */
@@ -34,10 +32,20 @@ public interface CrawlSchedulerOutBoxQueryPort {
     List<CrawlSchedulerOutBox> findByStatus(CrawlSchedulerOubBoxStatus status, int limit);
 
     /**
-     * PENDING 또는 FAILED 상태의 아웃박스 목록 조회.
+     * 지정 시간(초) 이상 경과한 PENDING 상태의 아웃박스 조회.
      *
      * @param limit 조회 개수 제한
-     * @return 재처리 대상 아웃박스 목록
+     * @param delaySeconds 최소 경과 시간 (초)
+     * @return PENDING 아웃박스 목록
      */
-    List<CrawlSchedulerOutBox> findPendingOrFailed(int limit);
+    List<CrawlSchedulerOutBox> findPendingOlderThan(int limit, int delaySeconds);
+
+    /**
+     * 지정 시간(초) 이상 PROCESSING 상태인 좀비 아웃박스 조회.
+     *
+     * @param limit 조회 개수 제한
+     * @param timeoutSeconds 타임아웃 기준 (초)
+     * @return PROCESSING 좀비 아웃박스 목록
+     */
+    List<CrawlSchedulerOutBox> findStaleProcessing(int limit, long timeoutSeconds);
 }

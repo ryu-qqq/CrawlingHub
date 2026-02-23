@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.port.out.query.UserAgentQueryPort;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.List;
 import java.util.Optional;
@@ -112,7 +113,7 @@ class UserAgentReadManagerTest {
         @DisplayName("[성공] 상태별 UserAgent 개수 조회")
         void shouldDelegateToQueryPort() {
             // Given
-            UserAgentStatus status = UserAgentStatus.READY;
+            UserAgentStatus status = UserAgentStatus.IDLE;
             given(userAgentQueryPort.countByStatus(status)).willReturn(5L);
 
             // When
@@ -151,7 +152,7 @@ class UserAgentReadManagerTest {
         @DisplayName("[성공] 상태별 UserAgent 목록 조회")
         void shouldDelegateToQueryPort() {
             // Given
-            UserAgentStatus status = UserAgentStatus.READY;
+            UserAgentStatus status = UserAgentStatus.IDLE;
             given(userAgentQueryPort.findByStatus(status)).willReturn(List.of(userAgent));
 
             // When

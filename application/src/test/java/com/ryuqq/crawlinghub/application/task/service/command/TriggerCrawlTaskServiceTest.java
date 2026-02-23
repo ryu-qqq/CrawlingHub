@@ -1,33 +1,27 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
-import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
-import com.ryuqq.crawlinghub.application.task.component.CrawlTaskPersistenceValidator;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
+import com.ryuqq.crawlinghub.application.task.internal.CrawlTaskCommandFacade;
+import com.ryuqq.crawlinghub.application.task.validator.CrawlTaskPersistenceValidator;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
 import com.ryuqq.crawlinghub.domain.schedule.exception.InvalidSchedulerStateException;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,11 +47,9 @@ class TriggerCrawlTaskServiceTest {
 
     @Mock private CrawlTaskCommandFactory commandFactory;
 
-    @Mock private CrawlTaskAssembler assembler;
+    @Mock private CrawlTaskCommandFacade coordinator;
 
-    @Mock private CrawlTaskFacade facade;
-
-    @Mock private SellerQueryPort sellerQueryPort;
+    @Mock private SellerReadManager sellerReadManager;
 
     @Mock private CrawlTaskBundle mockBundle;
 
@@ -68,46 +60,33 @@ class TriggerCrawlTaskServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 활성 스케줄러로 태스크 트리거 시 CrawlTaskResponse 반환")
-        void shouldTriggerTaskAndReturnResponse() {
+        @DisplayName("[성공] 활성 스케줄러로 태스크 트리거 시 정상 실행")
+        void shouldTriggerTaskSuccessfully() {
             // Given
             Long crawlSchedulerId = 1L;
             TriggerCrawlTaskCommand command = new TriggerCrawlTaskCommand(crawlSchedulerId);
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
             Seller seller = SellerFixture.anActiveSeller();
-            CrawlTask savedTask = CrawlTaskFixture.aWaitingTask();
-            Instant now = Instant.now();
-            CrawlTaskResponse expectedResponse =
-                    new CrawlTaskResponse(
-                            1L,
-                            crawlSchedulerId,
-                            1L,
-                            "https://example.com/api",
-                            CrawlTaskStatus.WAITING,
-                            CrawlTaskType.META,
-                            0,
-                            now,
-                            now);
+            CrawlTask crawlTask =
+                    com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture.aWaitingTask();
 
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willReturn(scheduler);
-            given(sellerQueryPort.findById(any(SellerId.class))).willReturn(Optional.of(seller));
-            given(commandFactory.createBundle(command, scheduler, seller)).willReturn(mockBundle);
-            given(facade.persist(mockBundle)).willReturn(savedTask);
-            given(assembler.toResponse(savedTask)).willReturn(expectedResponse);
+            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
+            given(commandFactory.createBundle(scheduler, seller)).willReturn(mockBundle);
+            given(mockBundle.crawlTask()).willReturn(crawlTask);
 
             // When
-            CrawlTaskResponse result = service.execute(command);
+            service.execute(command);
 
             // Then
-            assertThat(result).isEqualTo(expectedResponse);
             then(validator)
                     .should()
                     .findAndValidateScheduler(CrawlSchedulerId.of(crawlSchedulerId));
-            then(sellerQueryPort).should().findById(any(SellerId.class));
-            then(commandFactory).should().createBundle(command, scheduler, seller);
-            then(facade).should().persist(mockBundle);
-            then(assembler).should().toResponse(savedTask);
+            then(sellerReadManager).should().findById(any(SellerId.class));
+            then(commandFactory).should().createBundle(scheduler, seller);
+            then(validator).should().validateNoDuplicateTask(crawlTask);
+            then(coordinator).should().persist(mockBundle);
         }
 
         @Test
@@ -124,8 +103,8 @@ class TriggerCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(CrawlSchedulerNotFoundException.class);
 
-            then(commandFactory).should(never()).createBundle(any(), any(), any());
-            then(facade).should(never()).persist(any());
+            then(commandFactory).should(never()).createBundle(any(CrawlScheduler.class), any());
+            then(coordinator).should(never()).persist(any());
         }
 
         @Test
@@ -138,17 +117,14 @@ class TriggerCrawlTaskServiceTest {
             given(validator.findAndValidateScheduler(any(CrawlSchedulerId.class)))
                     .willThrow(
                             new InvalidSchedulerStateException(
-                                    com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus
-                                            .INACTIVE,
-                                    com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus
-                                            .ACTIVE));
+                                    SchedulerStatus.INACTIVE, SchedulerStatus.ACTIVE));
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(InvalidSchedulerStateException.class);
 
-            then(commandFactory).should(never()).createBundle(any(), any(), any());
-            then(facade).should(never()).persist(any());
+            then(commandFactory).should(never()).createBundle(any(CrawlScheduler.class), any());
+            then(coordinator).should(never()).persist(any());
         }
     }
 }

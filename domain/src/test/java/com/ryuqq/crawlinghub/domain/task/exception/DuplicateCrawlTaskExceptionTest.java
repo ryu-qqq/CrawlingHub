@@ -22,7 +22,7 @@ class DuplicateCrawlTaskExceptionTest {
     void shouldCreateWithSellerIdAndTaskType() {
         // given
         Long sellerId = 12345L;
-        CrawlTaskType taskType = CrawlTaskType.META;
+        CrawlTaskType taskType = CrawlTaskType.SEARCH;
 
         // when
         DuplicateCrawlTaskException exception = new DuplicateCrawlTaskException(sellerId, taskType);

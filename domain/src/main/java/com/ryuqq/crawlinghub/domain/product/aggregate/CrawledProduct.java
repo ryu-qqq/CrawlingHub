@@ -1,21 +1,25 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.DetailCrawlData;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopCrawlData;
 import com.ryuqq.crawlinghub.domain.product.vo.OptionCrawlData;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * CrawledProduct Aggregate Root
@@ -68,6 +72,10 @@ public class CrawledProduct {
     private Long externalProductId;
     private Instant lastSyncedAt;
     private boolean needsSync;
+    private final Set<ProductChangeType> pendingChanges;
+
+    // Soft Delete 상태
+    private DeletionStatus deletionStatus;
 
     // 감사 정보
     private final Instant createdAt;
@@ -97,6 +105,8 @@ public class CrawledProduct {
             Long externalProductId,
             Instant lastSyncedAt,
             boolean needsSync,
+            Set<ProductChangeType> pendingChanges,
+            DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
         this.id = id;
@@ -119,6 +129,11 @@ public class CrawledProduct {
         this.externalProductId = externalProductId;
         this.lastSyncedAt = lastSyncedAt;
         this.needsSync = needsSync;
+        this.pendingChanges =
+                pendingChanges != null
+                        ? EnumSet.copyOf(pendingChanges)
+                        : EnumSet.noneOf(ProductChangeType.class);
+        this.deletionStatus = deletionStatus;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -148,7 +163,7 @@ public class CrawledProduct {
             boolean freeShipping,
             Instant now) {
         return new CrawledProduct(
-                CrawledProductId.unassigned(),
+                CrawledProductId.forNew(),
                 sellerId,
                 itemNo,
                 itemName,
@@ -168,6 +183,8 @@ public class CrawledProduct {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -181,7 +198,7 @@ public class CrawledProduct {
     public static CrawledProduct fromMiniShopCrawlData(MiniShopCrawlData crawlData) {
         Instant now = crawlData.createdAt();
         return new CrawledProduct(
-                CrawledProductId.unassigned(),
+                CrawledProductId.forNew(),
                 crawlData.sellerId(),
                 crawlData.itemNo(),
                 crawlData.itemName(),
@@ -201,6 +218,8 @@ public class CrawledProduct {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -227,6 +246,8 @@ public class CrawledProduct {
             Long externalProductId,
             Instant lastSyncedAt,
             boolean needsSync,
+            Set<ProductChangeType> pendingChanges,
+            DeletionStatus deletionStatus,
             Instant createdAt,
             Instant updatedAt) {
         return new CrawledProduct(
@@ -250,6 +271,8 @@ public class CrawledProduct {
                 externalProductId,
                 lastSyncedAt,
                 needsSync,
+                pendingChanges,
+                deletionStatus,
                 createdAt,
                 updatedAt);
     }
@@ -257,55 +280,39 @@ public class CrawledProduct {
     // === MINI_SHOP 업데이트 ===
 
     /**
-     * MINI_SHOP 크롤링 결과로 업데이트
+     * MINI_SHOP 크롤링 데이터 VO로 업데이트
      *
      * <p>이름, 브랜드, 가격, 이미지 변경을 감지하고 needsSync 플래그 설정
      *
-     * @param itemName 상품명
-     * @param brandName 브랜드명
-     * @param price 가격 정보
-     * @param images 이미지 목록
-     * @param freeShipping 무료 배송 여부
-     * @param now 현재 시각
+     * @param crawlData MINI_SHOP 크롤링 데이터 VO
      */
-    public void updateFromMiniShop(
-            String itemName,
-            String brandName,
-            ProductPrice price,
-            ProductImages images,
-            boolean freeShipping,
-            Instant now) {
-        boolean hasChanges = detectMiniShopChanges(itemName, brandName, price, images);
+    public void updateFromMiniShopCrawlData(MiniShopCrawlData crawlData) {
+        Instant now = crawlData.createdAt();
 
-        this.itemName = itemName;
-        this.brandName = brandName;
-        this.price = price;
-        this.images = images;
-        this.freeShipping = freeShipping;
+        boolean nameChanged = !equalsNullSafe(this.itemName, crawlData.itemName());
+        boolean brandChanged = !equalsNullSafe(this.brandName, crawlData.brandName());
+        boolean priceChanged = this.price == null || this.price.hasPriceChange(crawlData.price());
+        boolean imagesChanged = this.images == null || this.images.hasChanges(crawlData.images());
+
+        this.itemName = crawlData.itemName();
+        this.brandName = crawlData.brandName();
+        this.price = crawlData.price();
+        this.images = crawlData.images();
+        this.freeShipping = crawlData.freeShipping();
         this.crawlCompletionStatus = this.crawlCompletionStatus.withMiniShopCrawled(now);
         this.updatedAt = now;
 
-        if (hasChanges && canSyncToExternalServer()) {
-            this.needsSync = true;
+        if (canSyncToExternalServer()) {
+            if (nameChanged || brandChanged) {
+                addPendingChange(ProductChangeType.PRODUCT_INFO);
+            }
+            if (priceChanged) {
+                addPendingChange(ProductChangeType.PRICE);
+            }
+            if (imagesChanged) {
+                addPendingChange(ProductChangeType.IMAGE);
+            }
         }
-    }
-
-    /**
-     * MINI_SHOP 데이터 변경 감지
-     *
-     * @return 이름, 브랜드, 가격, 이미지 중 하나라도 변경되었으면 true
-     */
-    private boolean detectMiniShopChanges(
-            String newItemName,
-            String newBrandName,
-            ProductPrice newPrice,
-            ProductImages newImages) {
-        boolean nameChanged = !equalsNullSafe(this.itemName, newItemName);
-        boolean brandChanged = !equalsNullSafe(this.brandName, newBrandName);
-        boolean priceChanged = this.price == null || this.price.hasPriceChange(newPrice);
-        boolean imagesChanged = this.images == null || this.images.hasChanges(newImages);
-
-        return nameChanged || brandChanged || priceChanged || imagesChanged;
     }
 
     // === DETAIL 업데이트 ===
@@ -334,6 +341,10 @@ public class CrawledProduct {
             String shippingLocation,
             List<String> descriptionImages,
             Instant now) {
+        boolean productInfoChanged =
+                detectDetailProductInfoChanges(
+                        category, shippingInfo, itemStatus, originCountry, shippingLocation);
+
         this.category = category;
         this.shippingInfo = shippingInfo;
         this.itemStatus = itemStatus;
@@ -344,15 +355,11 @@ public class CrawledProduct {
 
         List<String> newImageUrls = Collections.emptyList();
 
-        // 상세 설명 변경 감지 및 이미지 교체
         boolean descriptionChanged = hasDescriptionChanged(descriptionMarkUp);
         if (descriptionChanged) {
-            // 비교 기준: 원본 URL 유지
             this.originalDescriptionMarkUp = descriptionMarkUp;
-            // 실제 사용: 나중에 S3 URL로 치환됨
             this.descriptionMarkUp = descriptionMarkUp;
 
-            // 상세 이미지가 변경되었으면 교체
             if (descriptionImages != null && !descriptionImages.isEmpty()) {
                 newImageUrls = this.images.getNewDescriptionImageUrls(descriptionImages);
                 this.images = this.images.replaceDescriptionImages(descriptionImages);
@@ -360,7 +367,12 @@ public class CrawledProduct {
         }
 
         if (canSyncToExternalServer()) {
-            this.needsSync = true;
+            if (descriptionChanged) {
+                addPendingChange(ProductChangeType.DESCRIPTION);
+            }
+            if (productInfoChanged) {
+                addPendingChange(ProductChangeType.PRODUCT_INFO);
+            }
         }
 
         return newImageUrls;
@@ -374,6 +386,14 @@ public class CrawledProduct {
      */
     public List<String> updateFromDetailCrawlData(DetailCrawlData crawlData) {
         Instant now = crawlData.updatedAt();
+        boolean productInfoChanged =
+                detectDetailProductInfoChanges(
+                        crawlData.category(),
+                        crawlData.shippingInfo(),
+                        crawlData.itemStatus(),
+                        crawlData.originCountry(),
+                        crawlData.shippingLocation());
+
         this.category = crawlData.category();
         this.shippingInfo = crawlData.shippingInfo();
         this.itemStatus = crawlData.itemStatus();
@@ -386,9 +406,7 @@ public class CrawledProduct {
 
         boolean descriptionChanged = hasDescriptionChanged(crawlData.descriptionMarkUp());
         if (descriptionChanged) {
-            // 비교 기준: 원본 URL 유지
             this.originalDescriptionMarkUp = crawlData.descriptionMarkUp();
-            // 실제 사용: 나중에 S3 URL로 치환됨
             this.descriptionMarkUp = crawlData.descriptionMarkUp();
 
             List<String> descriptionImages = crawlData.descriptionImages();
@@ -399,7 +417,12 @@ public class CrawledProduct {
         }
 
         if (canSyncToExternalServer()) {
-            this.needsSync = true;
+            if (descriptionChanged) {
+                addPendingChange(ProductChangeType.DESCRIPTION);
+            }
+            if (productInfoChanged) {
+                addPendingChange(ProductChangeType.PRODUCT_INFO);
+            }
         }
 
         return newImageUrls;
@@ -440,7 +463,7 @@ public class CrawledProduct {
         this.updatedAt = now;
 
         if (hasChanges && canSyncToExternalServer()) {
-            this.needsSync = true;
+            addPendingChange(ProductChangeType.OPTION_STOCK);
         }
     }
 
@@ -458,7 +481,7 @@ public class CrawledProduct {
         this.updatedAt = now;
 
         if (hasChanges && canSyncToExternalServer()) {
-            this.needsSync = true;
+            addPendingChange(ProductChangeType.OPTION_STOCK);
         }
     }
 
@@ -522,11 +545,11 @@ public class CrawledProduct {
      * @return 동기화가 필요하면 true
      */
     public boolean needsExternalSync() {
-        return this.needsSync && canSyncToExternalServer();
+        return (!this.pendingChanges.isEmpty() || this.needsSync) && canSyncToExternalServer();
     }
 
     /**
-     * 외부 서버 동기화 완료 처리
+     * 외부 서버 동기화 완료 처리 (CREATE 전용 - 전체 초기화)
      *
      * @param externalProductId 외부 서버에서 할당받은 상품 ID
      * @param now 현재 시각
@@ -535,6 +558,22 @@ public class CrawledProduct {
         this.externalProductId = externalProductId;
         this.lastSyncedAt = now;
         this.needsSync = false;
+        this.pendingChanges.clear();
+        this.updatedAt = now;
+    }
+
+    /**
+     * 특정 변경 유형 동기화 완료 처리 (부분 동기화 완료용)
+     *
+     * @param changeTypes 동기화 완료된 변경 유형들
+     * @param now 현재 시각
+     */
+    public void markChangesSynced(Set<ProductChangeType> changeTypes, Instant now) {
+        this.pendingChanges.removeAll(changeTypes);
+        this.lastSyncedAt = now;
+        if (this.pendingChanges.isEmpty()) {
+            this.needsSync = false;
+        }
         this.updatedAt = now;
     }
 
@@ -544,7 +583,6 @@ public class CrawledProduct {
      * @param now 현재 시각
      */
     public void markSyncFailed(Instant now) {
-        // needsSync는 true로 유지하여 재시도 가능
         this.updatedAt = now;
     }
 
@@ -557,6 +595,23 @@ public class CrawledProduct {
         return this.externalProductId != null;
     }
 
+    // === Soft Delete ===
+
+    /**
+     * 상품 소프트 삭제
+     *
+     * @param occurredAt 삭제 발생 시각
+     */
+    public void delete(Instant occurredAt) {
+        this.deletionStatus = DeletionStatus.deletedAt(occurredAt);
+        this.updatedAt = occurredAt;
+    }
+
+    /** 삭제 여부 확인 */
+    public boolean isDeleted() {
+        return this.deletionStatus != null && this.deletionStatus.isDeleted();
+    }
+
     // === 상태 조회 ===
 
     /** 품절 여부 확인 */
@@ -567,6 +622,43 @@ public class CrawledProduct {
     /** 총 재고 수량 */
     public int getTotalStock() {
         return this.options != null ? this.options.getTotalStock() : 0;
+    }
+
+    /** 보류 중인 변경 유형 목록 (불변) */
+    public Set<ProductChangeType> getPendingChanges() {
+        return Collections.unmodifiableSet(pendingChanges);
+    }
+
+    // === 내부 헬퍼 ===
+
+    private void addPendingChange(ProductChangeType changeType) {
+        this.pendingChanges.add(changeType);
+        this.needsSync = true;
+    }
+
+    private boolean detectDetailProductInfoChanges(
+            ProductCategory newCategory,
+            ShippingInfo newShippingInfo,
+            String newItemStatus,
+            String newOriginCountry,
+            String newShippingLocation) {
+        boolean categoryChanged =
+                (this.category == null && newCategory != null)
+                        || (this.category != null && !this.category.equals(newCategory));
+        boolean shippingInfoChanged =
+                (this.shippingInfo == null && newShippingInfo != null)
+                        || (this.shippingInfo != null
+                                && !this.shippingInfo.equals(newShippingInfo));
+        boolean itemStatusChanged = !equalsNullSafe(this.itemStatus, newItemStatus);
+        boolean originCountryChanged = !equalsNullSafe(this.originCountry, newOriginCountry);
+        boolean shippingLocationChanged =
+                !equalsNullSafe(this.shippingLocation, newShippingLocation);
+
+        return categoryChanged
+                || shippingInfoChanged
+                || itemStatusChanged
+                || originCountryChanged
+                || shippingLocationChanged;
     }
 
     // === 유틸리티 ===
@@ -671,6 +763,10 @@ public class CrawledProduct {
         return needsSync;
     }
 
+    public DeletionStatus getDeletionStatus() {
+        return deletionStatus;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -681,15 +777,25 @@ public class CrawledProduct {
 
     // === 도메인 이벤트 ===
 
-    public List<DomainEvent> getDomainEvents() {
-        return Collections.unmodifiableList(domainEvents);
-    }
-
-    public void clearDomainEvents() {
-        this.domainEvents.clear();
-    }
-
-    protected void addDomainEvent(DomainEvent event) {
+    /**
+     * 도메인 이벤트 등록
+     *
+     * @param event 등록할 도메인 이벤트
+     */
+    protected void registerEvent(DomainEvent event) {
         this.domainEvents.add(event);
+    }
+
+    /**
+     * 도메인 이벤트 폴링 (읽기 + 초기화)
+     *
+     * <p>이벤트 목록을 불변 복사본으로 반환하고 내부 목록을 비웁니다.
+     *
+     * @return 불변 이벤트 목록
+     */
+    public List<DomainEvent> pollEvents() {
+        List<DomainEvent> events = Collections.unmodifiableList(new ArrayList<>(domainEvents));
+        domainEvents.clear();
+        return events;
     }
 }

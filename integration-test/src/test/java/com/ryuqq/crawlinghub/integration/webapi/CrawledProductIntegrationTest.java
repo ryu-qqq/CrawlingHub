@@ -73,7 +73,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한 없이 목록 조회 시 403 Forbidden 반환")
         void shouldReturn403WhenNoReadPermission() {
             // given - 다른 권한으로 인증
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -91,7 +91,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("product:read 권한이 있으면 목록 조회 가능")
         void shouldAllowListWithReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -109,7 +109,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한 없이 동기화 시도 시 403 Forbidden 반환")
         void shouldReturn403WhenNoUpdatePermissionForSync() {
             // given - 읽기 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -127,7 +127,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("product:update 권한이 있으면 동기화 가능")
         void shouldAllowSyncWithUpdatePermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -145,7 +145,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 모든 권한을 가진다")
         void superAdminShouldHaveAllPermissions() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - 목록 조회
             ResponseEntity<Map<String, Object>> listResponse =
@@ -183,7 +183,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있으면 상품 목록을 조회할 수 있다")
         void shouldReturnProductListWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -211,7 +211,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("sellerId 필터로 해당 셀러의 상품만 조회된다")
         void shouldFilterBySellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -241,7 +241,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("brandName 필터로 해당 브랜드의 상품만 조회된다")
         void shouldFilterByBrandName() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -268,7 +268,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("needsSync=true 필터로 동기화 필요한 상품만 조회된다")
         void shouldFilterByNeedsSync() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -295,7 +295,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("allCrawled=true 필터로 모든 크롤링 완료된 상품만 조회된다")
         void shouldFilterByAllCrawled() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -321,7 +321,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("hasExternalId=true 필터로 외부 서버 등록된 상품만 조회된다")
         void shouldFilterByHasExternalId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -348,7 +348,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션이 정상 동작한다")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -378,7 +378,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("복합 필터링이 정상 동작한다")
         void shouldWorkWithMultipleFilters() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - sellerId=1이면서 allCrawled=true인 상품
             ResponseEntity<Map<String, Object>> response =
@@ -413,7 +413,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하는 상품을 상세 조회할 수 있다")
         void shouldReturnProductDetail() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -439,7 +439,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상세 조회 시 가격 정보가 포함된다")
         void shouldIncludePriceInfo() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -469,7 +469,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상세 조회 시 크롤링 상태가 포함된다")
         void shouldIncludeCrawlStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -498,7 +498,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 상품 조회 시 404 반환")
         void shouldReturn404WhenProductNotFound() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -525,7 +525,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("모든 크롤링 완료된 상품은 동기화할 수 있다")
         void shouldSyncCompletedProduct() {
             // given - id=1: 모든 크롤링 완료, needs_sync=true
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -550,7 +550,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("외부 서버에 등록되지 않은 상품은 CREATE 타입으로 동기화된다")
         void shouldUseCREATETypeForNewProduct() {
             // given - id=1: externalProductId가 null
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -572,7 +572,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("외부 서버에 등록된 상품은 UPDATE 타입으로 동기화된다")
         void shouldUseUPDATETypeForExistingProduct() {
             // given - id=2: externalProductId가 99001
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -594,7 +594,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("크롤링 미완료 상품 동기화 시 409 Conflict 반환")
         void shouldReturn409WhenCrawlNotCompleted() {
             // given - id=3: MINI_SHOP만 완료 (동기화 불가)
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -612,7 +612,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("OPTION 미완료 상품 동기화 시 409 Conflict 반환")
         void shouldReturn409WhenOptionCrawlNotCompleted() {
             // given - id=5: MINI_SHOP, DETAIL 완료, OPTION 미완료
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -630,7 +630,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 상품 동기화 시 404 반환")
         void shouldReturn404WhenProductNotFoundForSync() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -657,7 +657,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 sellerId는 400 Bad Request 반환")
         void shouldReturn400ForNegativeSellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -675,7 +675,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 page는 400 Bad Request 반환")
         void shouldReturn400ForNegativePage() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -693,7 +693,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("size가 100을 초과하면 400 Bad Request 반환")
         void shouldReturn400ForSizeOver100() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -711,7 +711,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 ID로 상세 조회 시 400 Bad Request 반환")
         void shouldReturn400ForNegativeId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -729,7 +729,7 @@ class CrawledProductIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("0 ID로 상세 조회 시 400 Bad Request 반환")
         void shouldReturn400ForZeroId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("product:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =

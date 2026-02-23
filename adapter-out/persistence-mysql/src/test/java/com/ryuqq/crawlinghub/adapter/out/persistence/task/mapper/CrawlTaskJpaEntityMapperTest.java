@@ -63,13 +63,12 @@ class CrawlTaskJpaEntityMapperTest {
 
             // Then
             assertThat(entity).isNotNull();
-            assertThat(entity.getId()).isEqualTo(domain.getId().value());
-            assertThat(entity.getCrawlSchedulerId())
-                    .isEqualTo(domain.getCrawlSchedulerId().value());
-            assertThat(entity.getSellerId()).isEqualTo(domain.getSellerId().value());
+            assertThat(entity.getId()).isEqualTo(domain.getIdValue());
+            assertThat(entity.getCrawlSchedulerId()).isEqualTo(domain.getCrawlSchedulerIdValue());
+            assertThat(entity.getSellerId()).isEqualTo(domain.getSellerIdValue());
             assertThat(entity.getTaskType()).isEqualTo(domain.getTaskType());
             assertThat(entity.getStatus()).isEqualTo(CrawlTaskStatus.WAITING);
-            assertThat(entity.getRetryCount()).isEqualTo(domain.getRetryCount().value());
+            assertThat(entity.getRetryCount()).isEqualTo(domain.getRetryCountValue());
             assertThat(entity.getCreatedAt()).isNotNull();
             assertThat(entity.getUpdatedAt()).isNotNull();
         }
@@ -175,12 +174,12 @@ class CrawlTaskJpaEntityMapperTest {
 
             // Then
             assertThat(domain).isNotNull();
-            assertThat(domain.getId().value()).isEqualTo(1L);
-            assertThat(domain.getCrawlSchedulerId().value()).isEqualTo(100L);
-            assertThat(domain.getSellerId().value()).isEqualTo(200L);
+            assertThat(domain.getIdValue()).isEqualTo(1L);
+            assertThat(domain.getCrawlSchedulerIdValue()).isEqualTo(100L);
+            assertThat(domain.getSellerIdValue()).isEqualTo(200L);
             assertThat(domain.getTaskType()).isEqualTo(CrawlTaskType.MINI_SHOP);
             assertThat(domain.getStatus()).isEqualTo(CrawlTaskStatus.WAITING);
-            assertThat(domain.getRetryCount().value()).isEqualTo(0);
+            assertThat(domain.getRetryCountValue()).isEqualTo(0);
         }
 
         @Test
@@ -332,14 +331,13 @@ class CrawlTaskJpaEntityMapperTest {
             CrawlTask restored = mapper.toDomain(entity);
 
             // Then
-            assertThat(restored.getId().value()).isEqualTo(original.getId().value());
-            assertThat(restored.getCrawlSchedulerId().value())
-                    .isEqualTo(original.getCrawlSchedulerId().value());
-            assertThat(restored.getSellerId().value()).isEqualTo(original.getSellerId().value());
+            assertThat(restored.getIdValue()).isEqualTo(original.getIdValue());
+            assertThat(restored.getCrawlSchedulerIdValue())
+                    .isEqualTo(original.getCrawlSchedulerIdValue());
+            assertThat(restored.getSellerIdValue()).isEqualTo(original.getSellerIdValue());
             assertThat(restored.getTaskType()).isEqualTo(original.getTaskType());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());
-            assertThat(restored.getRetryCount().value())
-                    .isEqualTo(original.getRetryCount().value());
+            assertThat(restored.getRetryCountValue()).isEqualTo(original.getRetryCountValue());
         }
 
         @Test

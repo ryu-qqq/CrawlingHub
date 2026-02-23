@@ -1,22 +1,25 @@
 package com.ryuqq.crawlinghub.application.seller.service.command;
 
-import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
-import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
-import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
+import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerCommandManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerProductCountUseCase;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import org.springframework.stereotype.Service;
 
 /**
- * 셀러 상품 수 업데이트 Service
+ * Update Seller Product Count Service
  *
- * <p>META 크롤링 결과에서 파싱된 총 상품 수를 셀러에 업데이트합니다.
+ * <p>셀러 상품 수 업데이트 UseCase 구현
  *
- * <p><strong>TODO</strong>: 실제 DB 업데이트 로직 구현 필요
+ * <ul>
+ *   <li>Factory: Command → UpdateContext 변환
+ *   <li>ReadManager: 기존 셀러 조회
+ *   <li>CommandManager: 트랜잭션 경계 내 persist
+ * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -24,32 +27,30 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateSellerProductCountService implements UpdateSellerProductCountUseCase {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(UpdateSellerProductCountService.class);
-
-    private final SellerTransactionManager sellerTransactionManager;
-    private final SellerReadManager sellerReadManager;
-    private final TimeProvider timeProvider;
+    private final SellerReadManager readManager;
+    private final SellerCommandFactory commandFactory;
+    private final SellerCommandManager commandManager;
 
     public UpdateSellerProductCountService(
-            SellerTransactionManager sellerTransactionManager,
-            SellerReadManager sellerReadManager,
-            TimeProvider timeProvider) {
-        this.sellerTransactionManager = sellerTransactionManager;
-        this.sellerReadManager = sellerReadManager;
-        this.timeProvider = timeProvider;
+            SellerReadManager readManager,
+            SellerCommandFactory commandFactory,
+            SellerCommandManager commandManager) {
+        this.readManager = readManager;
+        this.commandFactory = commandFactory;
+        this.commandManager = commandManager;
     }
 
     @Override
     public void execute(Long sellerId, int productCount) {
+        UpdateContext<SellerId, Integer> context =
+                commandFactory.createProductCountUpdateContext(sellerId, productCount);
+
         Seller seller =
-                sellerReadManager
-                        .findById(SellerId.of(sellerId))
+                readManager
+                        .findById(context.id())
                         .orElseThrow(() -> new SellerNotFoundException(sellerId));
 
-        seller.updateProductCount(productCount, timeProvider.now());
-
-        sellerTransactionManager.persist(seller);
-        log.info("셀러 상품 수 업데이트: sellerId={}, productCount={}", sellerId, productCount);
+        seller.updateProductCount(context.updateData(), context.changedAt());
+        commandManager.persist(seller);
     }
 }

@@ -2,8 +2,8 @@ package com.ryuqq.crawlinghub.application.schedule.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerSearchCriteria;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,20 +30,18 @@ public interface CrawlScheduleQueryPort {
     /**
      * 크롤 스케줄러 다건 조회.
      *
-     * <p>등록 최신순(createdAt DESC) 정렬
-     *
-     * @param criteria 조회 조건 (sellerId, status, page, size)
+     * @param criteria 조회 조건
      * @return 크롤 스케줄러 리스트
      */
-    List<CrawlScheduler> findByCriteria(CrawlSchedulerPageCriteria criteria);
+    List<CrawlScheduler> findByCriteria(CrawlSchedulerSearchCriteria criteria);
 
     /**
      * 크롤 스케줄러 총 개수 조회.
      *
-     * @param criteria 조회 조건 (sellerId, status)
+     * @param criteria 조회 조건
      * @return 총 개수
      */
-    long count(CrawlSchedulerPageCriteria criteria);
+    long countByCriteria(CrawlSchedulerSearchCriteria criteria);
 
     /**
      * 셀러별 활성 스케줄러 목록 조회.

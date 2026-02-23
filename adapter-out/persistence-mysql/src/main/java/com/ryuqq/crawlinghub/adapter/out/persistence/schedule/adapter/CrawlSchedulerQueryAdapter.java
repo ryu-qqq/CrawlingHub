@@ -6,8 +6,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSc
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerSearchCriteria;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -82,7 +82,7 @@ public class CrawlSchedulerQueryAdapter implements CrawlScheduleQueryPort {
      * @return CrawlScheduler Domain 목록
      */
     @Override
-    public List<CrawlScheduler> findByCriteria(CrawlSchedulerPageCriteria criteria) {
+    public List<CrawlScheduler> findByCriteria(CrawlSchedulerSearchCriteria criteria) {
         List<CrawlSchedulerJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
         return entities.stream().map(mapper::toDomain).toList();
     }
@@ -94,7 +94,7 @@ public class CrawlSchedulerQueryAdapter implements CrawlScheduleQueryPort {
      * @return CrawlScheduler 개수
      */
     @Override
-    public long count(CrawlSchedulerPageCriteria criteria) {
+    public long countByCriteria(CrawlSchedulerSearchCriteria criteria) {
         return queryDslRepository.countByCriteria(criteria);
     }
 

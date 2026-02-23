@@ -2,7 +2,7 @@ package com.ryuqq.cralwinghub.domain.fixture.crawl.task;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
 
@@ -90,6 +90,23 @@ public final class CrawlTaskOutboxFixture {
                 2,
                 fifteenMinutesAgo,
                 tenMinutesAgo);
+    }
+
+    /**
+     * PROCESSING 상태의 Outbox 생성
+     *
+     * @return PROCESSING 상태 CrawlTaskOutbox
+     */
+    public static CrawlTaskOutbox aProcessingOutbox() {
+        Instant fiveMinutesAgo = DEFAULT_TIME.minusSeconds(300);
+        return CrawlTaskOutbox.reconstitute(
+                CrawlTaskId.of(6L),
+                "outbox-6-uvwx1234",
+                "{\"taskId\": 6, \"sellerId\": 100}",
+                OutboxStatus.PROCESSING,
+                0,
+                fiveMinutesAgo,
+                DEFAULT_TIME);
     }
 
     /**

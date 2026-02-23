@@ -16,13 +16,13 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskCommandApiMapper;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 import com.ryuqq.crawlinghub.application.task.port.in.command.RetryCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,6 +35,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @since 1.0.0
  */
 @WebMvcTest(CrawlTaskCommandController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("CrawlTaskCommandController REST Docs")
 class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
@@ -49,31 +50,37 @@ class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
         // given
         Long taskId = 100L;
 
-        CrawlTaskResponse useCaseResponse =
-                new CrawlTaskResponse(
+        CrawlTaskResult useCaseResult =
+                new CrawlTaskResult(
                         100L,
                         1L,
                         1L,
                         "https://api.example.com/sellers/1/meta",
-                        CrawlTaskStatus.RETRY,
-                        CrawlTaskType.META,
+                        "https://api.example.com",
+                        "/sellers/1/meta",
+                        Map.of(),
+                        "RETRY",
+                        "META",
                         1,
                         Instant.parse("2025-11-20T10:30:00Z"),
                         Instant.parse("2025-11-20T10:30:00Z"));
 
         given(crawlTaskCommandApiMapper.toRetryCommand(any())).willReturn(null);
-        given(retryCrawlTaskUseCase.retry(any())).willReturn(useCaseResponse);
+        given(retryCrawlTaskUseCase.retry(any())).willReturn(useCaseResult);
         given(crawlTaskCommandApiMapper.toApiResponse(any()))
                 .willAnswer(
                         invocation -> {
-                            CrawlTaskResponse resp = invocation.getArgument(0);
+                            CrawlTaskResult resp = invocation.getArgument(0);
                             return new CrawlTaskApiResponse(
                                     resp.crawlTaskId(),
                                     resp.crawlSchedulerId(),
                                     resp.sellerId(),
                                     resp.requestUrl(),
-                                    resp.status().name(),
-                                    resp.taskType().name(),
+                                    resp.baseUrl(),
+                                    resp.path(),
+                                    resp.queryParams(),
+                                    resp.status(),
+                                    resp.taskType(),
                                     resp.retryCount(),
                                     resp.createdAt() != null ? resp.createdAt().toString() : null,
                                     resp.updatedAt() != null ? resp.updatedAt().toString() : null);
@@ -106,7 +113,16 @@ class CrawlTaskCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .description("셀러 ID"),
                                         fieldWithPath("data.requestUrl")
                                                 .type(JsonFieldType.STRING)
-                                                .description("요청 URL"),
+                                                .description("전체 요청 URL"),
+                                        fieldWithPath("data.baseUrl")
+                                                .type(JsonFieldType.STRING)
+                                                .description("기본 URL"),
+                                        fieldWithPath("data.path")
+                                                .type(JsonFieldType.STRING)
+                                                .description("경로"),
+                                        fieldWithPath("data.queryParams")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("쿼리 파라미터"),
                                         fieldWithPath("data.status")
                                                 .type(JsonFieldType.STRING)
                                                 .description("상태 (RETRY)"),

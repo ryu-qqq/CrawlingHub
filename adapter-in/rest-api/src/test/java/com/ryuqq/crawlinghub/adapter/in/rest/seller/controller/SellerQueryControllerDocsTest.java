@@ -22,18 +22,15 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailSta
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.TaskSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SchedulerSummary;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailStatistics;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.TaskSummary;
+import com.ryuqq.crawlinghub.application.seller.dto.composite.SellerDetailResult;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerPageResult;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellerByOffsetUseCase;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,13 +43,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @since 1.0.0
  */
 @WebMvcTest(SellerQueryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("SellerQueryController REST Docs")
 class SellerQueryControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private GetSellerUseCase getSellerUseCase;
 
-    @MockitoBean private SearchSellersUseCase searchSellersUseCase;
+    @MockitoBean private SearchSellerByOffsetUseCase searchSellerByOffsetUseCase;
 
     @MockitoBean private SellerQueryApiMapper sellerQueryApiMapper;
 
@@ -61,29 +59,27 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
     void getSeller() throws Exception {
         // given
         Long sellerId = 1L;
-        List<SchedulerSummary> schedulerSummaries =
-                List.of(
-                        new SchedulerSummary(
+        SellerDetailResult useCaseResult =
+                new SellerDetailResult(
+                        new SellerDetailResult.SellerInfo(
                                 1L,
-                                "일일 크롤링 스케줄러",
+                                "머스트잇 셀러명",
+                                "커머스 셀러명",
                                 "ACTIVE",
-                                "0 0 9 * * ?",
-                                Instant.parse("2025-11-20T09:00:00Z")));
-        List<TaskSummary> taskSummaries =
-                List.of(
-                        new TaskSummary(
-                                1L, "SUCCESS", "FULL_SYNC", Instant.parse("2025-11-19T10:00:00Z")));
-        SellerDetailResponse useCaseResponse =
-                new SellerDetailResponse(
-                        1L,
-                        "머스트잇 셀러명",
-                        "커머스 셀러명",
-                        true,
-                        Instant.parse("2025-11-19T10:30:00Z"),
-                        null,
-                        schedulerSummaries,
-                        taskSummaries,
-                        new SellerDetailStatistics(100L, 95L, 5L, 0.95));
+                                100,
+                                Instant.parse("2025-11-19T10:30:00Z"),
+                                null),
+                        List.of(
+                                new SellerDetailResult.SchedulerSummary(
+                                        1L, "일일 크롤링 스케줄러", "ACTIVE", "0 0 9 * * ?")),
+                        List.of(
+                                new SellerDetailResult.TaskSummary(
+                                        1L,
+                                        "SUCCESS",
+                                        "FULL_SYNC",
+                                        Instant.parse("2025-11-19T10:00:00Z"),
+                                        Instant.parse("2025-11-19T10:00:00Z"))),
+                        new SellerDetailResult.SellerStatistics(100L, 95L, 5L, 0.95));
 
         List<SchedulerSummaryApiResponse> schedulerApiResponses =
                 List.of(
@@ -109,9 +105,9 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                         taskApiResponses,
                         new SellerDetailStatisticsApiResponse(100L, 95L, 5L, 0.95));
 
-        given(sellerQueryApiMapper.toQuery(any(Long.class))).willReturn(null);
-        given(getSellerUseCase.execute(any())).willReturn(useCaseResponse);
-        given(sellerQueryApiMapper.toDetailApiResponse(any())).willReturn(apiResponse);
+        given(getSellerUseCase.execute(any(Long.class))).willReturn(useCaseResult);
+        given(sellerQueryApiMapper.toDetailApiResponse(any(SellerDetailResult.class)))
+                .willReturn(apiResponse);
 
         // when & then
         mockMvc.perform(get("/api/v1/crawling/sellers/{id}", sellerId))
@@ -205,36 +201,6 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/crawling/sellers - 셀러 목록 조회 API 문서")
     void listSellers() throws Exception {
         // given
-        List<SellerSummaryResponse> content =
-                List.of(
-                        new SellerSummaryResponse(
-                                1L,
-                                "머스트잇 셀러1",
-                                "커머스 셀러1",
-                                true,
-                                Instant.parse("2025-11-19T10:30:00Z"),
-                                Instant.parse("2025-11-19T10:30:00Z"),
-                                2,
-                                3,
-                                "COMPLETED",
-                                Instant.parse("2025-11-19T11:00:00Z"),
-                                50L),
-                        new SellerSummaryResponse(
-                                2L,
-                                "머스트잇 셀러2",
-                                "커머스 셀러2",
-                                false,
-                                Instant.parse("2025-11-19T10:30:00Z"),
-                                null,
-                                0,
-                                0,
-                                null,
-                                null,
-                                0L));
-
-        PageResponse<SellerSummaryResponse> pageResponse =
-                new PageResponse<>(content, 0, 20, 2, 1, true, true);
-
         List<SellerSummaryApiResponse> apiContent =
                 List.of(
                         new SellerSummaryApiResponse(
@@ -255,19 +221,14 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
 
-        given(
-                        sellerQueryApiMapper.toQuery(
-                                any(
-                                        com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query
-                                                .SearchSellersApiRequest.class)))
-                .willReturn(null);
-        given(searchSellersUseCase.execute(any())).willReturn(pageResponse);
-        given(sellerQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
+        given(sellerQueryApiMapper.toSearchParams(any())).willReturn(null);
+        given(searchSellerByOffsetUseCase.execute(any())).willReturn(SellerPageResult.empty());
+        given(sellerQueryApiMapper.toPageResponse(any())).willReturn(apiPageResponse);
 
         // when & then
         mockMvc.perform(
                         get("/api/v1/crawling/sellers")
-                                .param("status", "ACTIVE")
+                                .param("statuses", "ACTIVE")
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -278,7 +239,7 @@ class SellerQueryControllerDocsTest extends RestDocsTestSupport {
                                 "seller-query/list",
                                 RestDocsSecuritySnippets.authorization("seller:read"),
                                 queryParameters(
-                                        parameterWithName("status")
+                                        parameterWithName("statuses")
                                                 .description("상태 필터 (ACTIVE/INACTIVE, 선택)")
                                                 .optional(),
                                         parameterWithName("page")

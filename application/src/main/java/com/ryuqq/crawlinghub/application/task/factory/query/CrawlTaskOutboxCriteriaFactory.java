@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.factory.query;
 
 import com.ryuqq.crawlinghub.application.task.dto.query.GetOutboxListQuery;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskOutboxCriteria;
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,18 +1,32 @@
 package com.ryuqq.crawlinghub.domain.useragent.vo;
 
 /**
- * UserAgent 상태 Enum
+ * UserAgent 상태 Enum (HikariCP 벤치마킹)
  *
  * <p><strong>상태 흐름</strong>:
  *
  * <pre>
- * SESSION_REQUIRED (Pool 추가, 복구)
- *       ↓ 세션 발급 성공
- *     READY (세션 있음, 사용 가능)
- *       ↓ 429 응답 또는 Health &lt; 30
- *   SUSPENDED (일시 정지)
- *       ↓ 1시간 경과 + Health ≥ 30
- * SESSION_REQUIRED (복구 대기)
+ *           register()
+ *               │
+ *               ▼
+ *       SESSION_REQUIRED ◄─── expireSession() ───┐
+ *               │                                 │
+ *         issueSession()                          │
+ *               │                                 │
+ *               ▼                                 │
+ *      ┌──── IDLE ◄──── return(success) ─────────┤
+ *      │       │                                  │
+ *  borrow()    │                                  │
+ *      │       ▼                                  │
+ *      │   BORROWED ── return(success) ──► IDLE   │
+ *      │       │                                  │
+ *      │       │ return(429)                      │
+ *      │       ▼                                  │
+ *      │   COOLDOWN ── cooldown만료 ──► IDLE ─────┘
+ *      │       │         (or SESSION_REQUIRED)
+ *      │       │ (연속429, health&lt;threshold)
+ *      │       ▼
+ *      └── SUSPENDED ── admin recover ──► SESSION_REQUIRED
  *
  * BLOCKED (영구 차단 - Pool에서 제외)
  * </pre>
@@ -22,8 +36,14 @@ package com.ryuqq.crawlinghub.domain.useragent.vo;
  */
 public enum UserAgentStatus {
 
-    /** 세션이 있고 즉시 사용 가능한 상태 */
-    READY("사용 가능"),
+    /** 풀에서 대기 중, 즉시 사용 가능 (HikariCP NOT_IN_USE 대응) */
+    IDLE("대기 중"),
+
+    /** 크롤링에 사용 중 - Redis only (HikariCP IN_USE 대응) */
+    BORROWED("사용 중"),
+
+    /** 429 후 자동 회복 대기 (Graduated Backoff) */
+    COOLDOWN("쿨다운 대기"),
 
     /**
      * 세션 발급이 필요한 상태
@@ -31,16 +51,16 @@ public enum UserAgentStatus {
      * <ul>
      *   <li>Pool에 새로 추가됨
      *   <li>세션이 만료됨
-     *   <li>SUSPENDED에서 복구됨
+     *   <li>COOLDOWN에서 복구 시 세션 만료
      * </ul>
      */
     SESSION_REQUIRED("세션 발급 필요"),
 
     /**
-     * 일시 정지 상태
+     * 관리자 개입 필요 (HikariCP REMOVED 대응)
      *
      * <ul>
-     *   <li>429 응답 수신
+     *   <li>연속 429 5회 이상
      *   <li>Health Score &lt; 30
      * </ul>
      */
@@ -65,12 +85,39 @@ public enum UserAgentStatus {
     }
 
     /**
-     * 즉시 사용 가능한지 확인
+     * 풀에서 대기 중인지 확인
      *
-     * @return READY이면 true
+     * @return IDLE이면 true
+     */
+    public boolean isIdle() {
+        return this == IDLE;
+    }
+
+    /**
+     * 사용 중인지 확인
+     *
+     * @return BORROWED이면 true
+     */
+    public boolean isBorrowed() {
+        return this == BORROWED;
+    }
+
+    /**
+     * 쿨다운 대기 중인지 확인
+     *
+     * @return COOLDOWN이면 true
+     */
+    public boolean isCooldown() {
+        return this == COOLDOWN;
+    }
+
+    /**
+     * 즉시 사용 가능한지 확인 (기존 isReady 대체)
+     *
+     * @return IDLE이면 true
      */
     public boolean isReady() {
-        return this == READY;
+        return this == IDLE;
     }
 
     /**
@@ -92,12 +139,30 @@ public enum UserAgentStatus {
     }
 
     /**
-     * 복구 가능 상태인지 확인
+     * borrow 가능한 상태인지 확인
+     *
+     * @return IDLE이면 true
+     */
+    public boolean canBorrow() {
+        return this == IDLE;
+    }
+
+    /**
+     * 복구 가능 상태인지 확인 (관리자 개입)
      *
      * @return SUSPENDED이면 true (BLOCKED는 복구 불가)
      */
     public boolean canRecover() {
         return this == SUSPENDED;
+    }
+
+    /**
+     * 쿨다운에서 자동 복구 가능한 상태인지 확인
+     *
+     * @return COOLDOWN이면 true
+     */
+    public boolean canAutoRecover() {
+        return this == COOLDOWN;
     }
 
     /**
@@ -115,17 +180,22 @@ public enum UserAgentStatus {
      * <p><strong>활성 Pool 상태</strong>:
      *
      * <ul>
-     *   <li>READY: 세션 있음, 즉시 사용 가능
-     *   <li>SESSION_REQUIRED: 세션 발급 대기 중 (스케줄러가 1분 주기로 처리)
+     *   <li>IDLE: 즉시 사용 가능
+     *   <li>SESSION_REQUIRED: 세션 발급 대기 중
      * </ul>
      *
-     * <p><strong>주의</strong>: 이 메서드는 "즉시 사용 가능" 여부가 아닌 "활성 Pool 포함" 여부를 확인합니다. 즉시 사용 가능 여부는 {@link
-     * #isReady()}를 사용하세요.
+     * @return IDLE 또는 SESSION_REQUIRED이면 true
+     */
+    public boolean isAvailableInPool() {
+        return this == IDLE || this == SESSION_REQUIRED;
+    }
+
+    /**
+     * 활성 Pool에 포함된 상태인지 확인 (기존 호환용)
      *
-     * @return READY 또는 SESSION_REQUIRED이면 true
-     * @see #isReady()
+     * @return IDLE 또는 SESSION_REQUIRED이면 true
      */
     public boolean isAvailable() {
-        return this == READY || this == SESSION_REQUIRED;
+        return isAvailableInPool();
     }
 }

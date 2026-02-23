@@ -5,8 +5,9 @@ import static com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.QProduct
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
+import com.ryuqq.crawlinghub.domain.product.query.ProductSyncOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncOutboxCriteria;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /**
- * ProductSyncOutboxQueryDslRepository - SyncOutbox QueryDSL Repository
+ * ProductSyncOutboxQueryDslRepository - CrawledProductSyncOutbox QueryDSL Repository
  *
  * <p>복잡한 조회 쿼리를 QueryDSL로 처리합니다.
  *
@@ -141,6 +142,46 @@ public class ProductSyncOutboxQueryDslRepository {
     }
 
     /**
+     * FAILED 상태에서 일정 시간 경과한 Outbox 조회 (복구 스케줄러용)
+     *
+     * @param limit 조회 개수 제한
+     * @param delaySeconds FAILED 후 경과해야 할 최소 시간 (초)
+     * @return Entity 목록
+     */
+    public List<ProductSyncOutboxJpaEntity> findFailedOlderThan(int limit, int delaySeconds) {
+        LocalDateTime threshold =
+                LocalDateTime.now(ZoneId.systemDefault()).minusSeconds(delaySeconds);
+        return queryFactory
+                .selectFrom(productSyncOutboxJpaEntity)
+                .where(
+                        productSyncOutboxJpaEntity.status.eq(ProductOutboxStatus.FAILED),
+                        productSyncOutboxJpaEntity.processedAt.loe(threshold))
+                .orderBy(productSyncOutboxJpaEntity.processedAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * PROCESSING 상태에서 타임아웃된 좀비 Outbox 조회
+     *
+     * @param limit 조회 개수 제한
+     * @param timeoutSeconds PROCESSING 상태 타임아웃 기준 (초)
+     * @return Entity 목록
+     */
+    public List<ProductSyncOutboxJpaEntity> findStaleProcessing(int limit, long timeoutSeconds) {
+        LocalDateTime threshold =
+                LocalDateTime.now(ZoneId.systemDefault()).minusSeconds(timeoutSeconds);
+        return queryFactory
+                .selectFrom(productSyncOutboxJpaEntity)
+                .where(
+                        productSyncOutboxJpaEntity.status.eq(ProductOutboxStatus.PROCESSING),
+                        productSyncOutboxJpaEntity.processedAt.loe(threshold))
+                .orderBy(productSyncOutboxJpaEntity.processedAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
      * Criteria 기반 Outbox 조회 (SQS 스케줄러용)
      *
      * <p>ProductSyncOutboxCriteria VO를 사용하여 유연한 조건 조회를 지원합니다.
@@ -227,7 +268,7 @@ public class ProductSyncOutboxQueryDslRepository {
     }
 
     /**
-     * 조건으로 SyncOutbox 목록 검색 (페이징)
+     * 조건으로 CrawledProductSyncOutbox 목록 검색 (페이징)
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
@@ -264,7 +305,7 @@ public class ProductSyncOutboxQueryDslRepository {
     }
 
     /**
-     * 조건으로 SyncOutbox 개수 조회
+     * 조건으로 CrawledProductSyncOutbox 개수 조회
      *
      * @param crawledProductId CrawledProduct ID (nullable)
      * @param sellerId 셀러 ID (nullable)
@@ -332,5 +373,27 @@ public class ProductSyncOutboxQueryDslRepository {
         }
         LocalDateTime localDateTime = LocalDateTime.ofInstant(createdTo, ZoneId.systemDefault());
         return productSyncOutboxJpaEntity.createdAt.loe(localDateTime);
+    }
+
+    /**
+     * 특정 상품의 특정 SyncType에 대해 활성 상태 Outbox 존재 여부 확인
+     *
+     * @param crawledProductId CrawledProduct ID
+     * @param syncType 동기화 타입
+     * @param statuses 확인할 상태 목록
+     * @return 존재하면 true
+     */
+    public boolean existsByProductIdAndSyncTypeAndStatuses(
+            Long crawledProductId, SyncType syncType, List<ProductOutboxStatus> statuses) {
+        Integer result =
+                queryFactory
+                        .selectOne()
+                        .from(productSyncOutboxJpaEntity)
+                        .where(
+                                productSyncOutboxJpaEntity.crawledProductId.eq(crawledProductId),
+                                productSyncOutboxJpaEntity.syncType.eq(syncType),
+                                productSyncOutboxJpaEntity.status.in(statuses))
+                        .fetchFirst();
+        return result != null;
     }
 }

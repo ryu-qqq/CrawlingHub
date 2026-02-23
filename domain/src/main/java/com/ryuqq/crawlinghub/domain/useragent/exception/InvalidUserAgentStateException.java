@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.useragent.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.Map;
 
@@ -10,7 +9,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public class InvalidUserAgentStateException extends DomainException {
+public class InvalidUserAgentStateException extends UserAgentException {
 
     private static final UserAgentErrorCode ERROR_CODE =
             UserAgentErrorCode.INVALID_USER_AGENT_STATE;

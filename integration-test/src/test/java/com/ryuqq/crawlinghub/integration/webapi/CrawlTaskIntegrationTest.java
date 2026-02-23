@@ -53,7 +53,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 태스크 목록을 조회할 수 있다")
         void shouldReturnTaskListWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -80,7 +80,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("스케줄러 ID 필터로 해당 스케줄러의 태스크만 조회된다")
         void shouldFilterBySchedulerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -109,7 +109,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 태스크만 조회된다")
         void shouldFilterByStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -134,7 +134,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("태스크 유형 필터로 해당 유형의 태스크만 조회된다")
         void shouldFilterByTaskType() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -159,7 +159,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션이 정상 동작한다")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -187,7 +187,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 권한 없이도 조회할 수 있다")
         void superAdminShouldAccessWithoutPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -210,7 +210,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 태스크 상세를 조회할 수 있다")
         void shouldReturnTaskDetailWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long taskId = 1L;
 
             // when
@@ -235,7 +235,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 태스크 조회 시 404를 반환한다")
         void shouldReturn404ForNonExistentTask() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long nonExistentTaskId = 99999L;
 
             // when
@@ -259,7 +259,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 FAILED 상태의 태스크를 재시도할 수 있다")
         void shouldRetryFailedTaskWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long failedTaskId = 4L; // FAILED 상태인 태스크
 
             // when
@@ -279,7 +279,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 TIMEOUT 상태의 태스크를 재시도할 수 있다")
         void shouldRetryTimeoutTaskWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long timeoutTaskId = 5L; // TIMEOUT 상태인 태스크
 
             // when
@@ -298,7 +298,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("WAITING 상태의 태스크는 재시도할 수 없다 (400)")
         void shouldNotRetryWaitingTask() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long waitingTaskId = 1L; // WAITING 상태인 태스크
 
             // when
@@ -317,7 +317,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("task:read 권한만 있으면 재시도할 수 없다 (403)")
         void shouldNotRetryWithReadOnlyPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long failedTaskId = 4L;
 
             // when
@@ -336,7 +336,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 태스크 재시도 시 404를 반환한다")
         void shouldReturn404ForNonExistentTask() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long nonExistentTaskId = 99999L;
 
             // when
@@ -378,7 +378,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 없으면 403을 반환한다")
         void shouldReturn403WithoutPermission() {
             // given - 인증은 되어 있지만 task:read 권한이 없음
-            HttpHeaders headers = AuthTestHelper.authenticated();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -396,7 +396,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 권한으로는 접근할 수 없다")
         void shouldReturn403WithWrongPermission() {
             // given - scheduler:read 권한만 있고 task:read는 없음
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -414,7 +414,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN 역할은 모든 권한을 우회한다")
         void superAdminShouldBypassAllPermissions() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - 읽기
             ResponseEntity<Map<String, Object>> readResponse =
@@ -446,7 +446,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 상태값으로 조회 시 400을 반환한다")
         void shouldReturn400ForInvalidStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -464,7 +464,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 태스크 유형으로 조회 시 400을 반환한다")
         void shouldReturn400ForInvalidTaskType() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -482,7 +482,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 페이지 번호로 조회 시 400을 반환한다")
         void shouldReturn400ForNegativePage() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -500,7 +500,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지 크기 초과 시 400을 반환한다")
         void shouldReturn400ForExcessivePageSize() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -518,7 +518,7 @@ class CrawlTaskIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 태스크 ID로 조회 시 400을 반환한다")
         void shouldReturn400ForNegativeTaskId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =

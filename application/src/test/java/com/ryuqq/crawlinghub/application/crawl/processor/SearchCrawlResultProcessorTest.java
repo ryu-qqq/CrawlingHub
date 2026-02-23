@@ -7,17 +7,17 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.crawl.parser.SearchResponseParser;
-import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
-import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessMiniShopItemUseCase;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.SearchResponseParser;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.SearchCrawlResultProcessor;
+import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
+import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.MiniShopItem;
 import com.ryuqq.crawlinghub.domain.product.vo.SearchParseResult;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
@@ -42,9 +42,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SearchCrawlResultProcessorTest {
 
     @Mock private SearchResponseParser searchResponseParser;
-    @Mock private CrawledRawAssembler crawledRawAssembler;
+    @Mock private CrawledRawMapper crawledRawMapper;
     @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
-    @Mock private ProcessMiniShopItemUseCase processMiniShopItemUseCase;
     @Mock private CrawledRaw crawledRaw;
 
     private SearchCrawlResultProcessor processor;
@@ -53,10 +52,7 @@ class SearchCrawlResultProcessorTest {
     void setUp() {
         processor =
                 new SearchCrawlResultProcessor(
-                        searchResponseParser,
-                        crawledRawAssembler,
-                        crawledRawTransactionManager,
-                        processMiniShopItemUseCase);
+                        searchResponseParser, crawledRawMapper, crawledRawTransactionManager);
     }
 
     @Nested
@@ -90,7 +86,7 @@ class SearchCrawlResultProcessorTest {
                     new SearchParseResult(List.of(item), "/v1/search?page=2");
 
             given(searchResponseParser.parse(anyString())).willReturn(parseResult);
-            given(crawledRawAssembler.toMiniShopRaws(anyLong(), anyLong(), anyList()))
+            given(crawledRawMapper.toMiniShopRaws(anyLong(), anyLong(), anyList(), any()))
                     .willReturn(List.of(crawledRaw));
             given(crawledRawTransactionManager.saveAll(anyList()))
                     .willReturn(List.of(CrawledRawId.of(1L)));
@@ -104,8 +100,6 @@ class SearchCrawlResultProcessorTest {
             assertThat(result.getFollowUpCommands()).hasSize(3);
             assertThat(result.getParsedItemCount()).isEqualTo(1);
             assertThat(result.getSavedItemCount()).isEqualTo(1);
-
-            verify(processMiniShopItemUseCase, times(1)).process(any(), any());
         }
 
         @Test
@@ -119,7 +113,7 @@ class SearchCrawlResultProcessorTest {
             SearchParseResult parseResult = new SearchParseResult(List.of(item), null);
 
             given(searchResponseParser.parse(anyString())).willReturn(parseResult);
-            given(crawledRawAssembler.toMiniShopRaws(anyLong(), anyLong(), anyList()))
+            given(crawledRawMapper.toMiniShopRaws(anyLong(), anyLong(), anyList(), any()))
                     .willReturn(List.of(crawledRaw));
             given(crawledRawTransactionManager.saveAll(anyList()))
                     .willReturn(List.of(CrawledRawId.of(1L)));

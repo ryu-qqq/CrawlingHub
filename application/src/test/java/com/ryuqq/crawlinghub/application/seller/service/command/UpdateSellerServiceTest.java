@@ -1,27 +1,29 @@
 package com.ryuqq.crawlinghub.application.seller.service.command;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.crawlinghub.application.seller.assembler.SellerAssembler;
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
+import com.ryuqq.crawlinghub.application.seller.component.SellerPersistenceValidator;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
-import com.ryuqq.crawlinghub.application.seller.facade.SellerCommandFacade;
 import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
-import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerCommandManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateMustItSellerIdException;
 import com.ryuqq.crawlinghub.domain.seller.exception.DuplicateSellerNameException;
+import com.ryuqq.crawlinghub.domain.seller.exception.SellerHasActiveSchedulersException;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerUpdateData;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * UpdateSellerService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Manager/Factory 의존성 Mocking
+ * <p>Mockist 스타일 테스트: Validator/ReadManager/Factory/CommandManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -44,13 +46,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateSellerService 테스트")
 class UpdateSellerServiceTest {
 
-    @Mock private SellerCommandFacade sellerCommandFacade;
+    @Mock private SellerPersistenceValidator validator;
 
-    @Mock private SellerReadManager sellerReadManager;
+    @Mock private SellerReadManager readManager;
 
     @Mock private SellerCommandFactory commandFactory;
 
-    @Mock private SellerAssembler assembler;
+    @Mock private SellerCommandManager commandManager;
 
     @InjectMocks private UpdateSellerService service;
 
@@ -59,45 +61,34 @@ class UpdateSellerServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 셀러 정보 수정 시 SellerResponse 반환")
-        void shouldUpdateSellerAndReturnResponse() {
+        @DisplayName("[성공] 셀러 정보 수정 시 정상 실행")
+        void shouldUpdateSellerSuccessfully() {
             // Given
             Long sellerId = 1L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
             UpdateSellerCommand command =
                     new UpdateSellerCommand(sellerId, "new-mustit", "new-name", true);
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("new-mustit"),
+                            SellerName.of("new-name"),
+                            SellerStatus.ACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
             Seller existingSeller = SellerFixture.anActiveSeller();
-            Seller requestedSeller = SellerFixture.anActiveSeller();
-            Instant now = Instant.now();
-            SellerResponse expectedResponse =
-                    new SellerResponse(sellerId, "new-mustit", "new-name", true, now, now);
 
-            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
-            given(sellerReadManager.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(existingSeller));
-            given(
-                            sellerCommandFacade.update(
-                                    any(Seller.class),
-                                    any(MustItSellerName.class),
-                                    any(SellerName.class),
-                                    any(SellerStatus.class)))
-                    .willReturn(existingSeller);
-            given(assembler.toResponse(any(Seller.class))).willReturn(expectedResponse);
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(existingSeller));
 
             // When
-            SellerResponse result = service.execute(command);
+            service.execute(command);
 
             // Then
-            assertThat(result).isEqualTo(expectedResponse);
-            then(commandFactory).should().createForComparison(command);
-            then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(sellerCommandFacade)
-                    .should()
-                    .update(
-                            any(Seller.class),
-                            any(MustItSellerName.class),
-                            any(SellerName.class),
-                            any(SellerStatus.class));
-            then(assembler).should().toResponse(any(Seller.class));
+            then(commandFactory).should().createUpdateContext(command);
+            then(readManager).should().findById(id);
+            then(validator).should().validateForUpdate(existingSeller, updateData);
+            then(commandManager).should().persist(existingSeller);
         }
 
         @Test
@@ -105,18 +96,26 @@ class UpdateSellerServiceTest {
         void shouldThrowExceptionWhenSellerNotFound() {
             // Given
             Long sellerId = 999L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
             UpdateSellerCommand command =
                     new UpdateSellerCommand(sellerId, "new-mustit", "new-name", true);
-            Seller requestedSeller = SellerFixture.anActiveSeller();
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("new-mustit"),
+                            SellerName.of("new-name"),
+                            SellerStatus.ACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
 
-            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(SellerNotFoundException.class);
 
-            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
+            then(commandManager).should(never()).persist(any());
         }
 
         @Test
@@ -124,24 +123,30 @@ class UpdateSellerServiceTest {
         void shouldThrowExceptionWhenMustItSellerNameDuplicated() {
             // Given
             Long sellerId = 1L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
             UpdateSellerCommand command =
-                    new UpdateSellerCommand(sellerId, "duplicate-mustit", null, null);
+                    new UpdateSellerCommand(sellerId, "duplicate-mustit", "seller-name", true);
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("duplicate-mustit"),
+                            SellerName.of("seller-name"),
+                            SellerStatus.ACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
             Seller existingSeller = SellerFixture.anActiveSeller();
-            Seller requestedSeller = SellerFixture.aNewActiveSeller("duplicate-mustit", "seller");
 
-            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
-            given(sellerReadManager.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(existingSeller));
-            given(
-                            sellerReadManager.existsByMustItSellerNameExcludingId(
-                                    any(MustItSellerName.class), any(SellerId.class)))
-                    .willReturn(true);
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(existingSeller));
+            doThrow(new DuplicateMustItSellerIdException("duplicate-mustit"))
+                    .when(validator)
+                    .validateForUpdate(existingSeller, updateData);
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateMustItSellerIdException.class);
 
-            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
+            then(commandManager).should(never()).persist(any());
         }
 
         @Test
@@ -149,24 +154,90 @@ class UpdateSellerServiceTest {
         void shouldThrowExceptionWhenSellerNameDuplicated() {
             // Given
             Long sellerId = 1L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
             UpdateSellerCommand command =
-                    new UpdateSellerCommand(sellerId, null, "duplicate-name", null);
+                    new UpdateSellerCommand(sellerId, "mustit-name", "duplicate-name", true);
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("mustit-name"),
+                            SellerName.of("duplicate-name"),
+                            SellerStatus.ACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
             Seller existingSeller = SellerFixture.anActiveSeller();
-            Seller requestedSeller = SellerFixture.aNewActiveSeller("mustit", "duplicate-name");
 
-            given(commandFactory.createForComparison(command)).willReturn(requestedSeller);
-            given(sellerReadManager.findById(any(SellerId.class)))
-                    .willReturn(Optional.of(existingSeller));
-            given(
-                            sellerReadManager.existsBySellerNameExcludingId(
-                                    any(SellerName.class), any(SellerId.class)))
-                    .willReturn(true);
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(existingSeller));
+            doThrow(new DuplicateSellerNameException("duplicate-name"))
+                    .when(validator)
+                    .validateForUpdate(existingSeller, updateData);
 
             // When & Then
             assertThatThrownBy(() -> service.execute(command))
                     .isInstanceOf(DuplicateSellerNameException.class);
 
-            then(sellerCommandFacade).should(never()).update(any(), any(), any(), any());
+            then(commandManager).should(never()).persist(any());
+        }
+
+        @Test
+        @DisplayName("[실패] 활성 스케줄러 존재 시 비활성화하면 SellerHasActiveSchedulersException 발생")
+        void shouldThrowExceptionWhenDeactivatingSellerWithActiveSchedulers() {
+            // Given
+            Long sellerId = 1L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            UpdateSellerCommand command =
+                    new UpdateSellerCommand(sellerId, "mustit-name", "seller-name", false);
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("mustit-name"),
+                            SellerName.of("seller-name"),
+                            SellerStatus.INACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
+            Seller existingSeller = SellerFixture.anActiveSeller();
+
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(existingSeller));
+            doThrow(new SellerHasActiveSchedulersException(sellerId, 3))
+                    .when(validator)
+                    .validateForUpdate(existingSeller, updateData);
+
+            // When & Then
+            assertThatThrownBy(() -> service.execute(command))
+                    .isInstanceOf(SellerHasActiveSchedulersException.class);
+
+            then(commandManager).should(never()).persist(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 활성 스케줄러 없으면 비활성화 성공")
+        void shouldDeactivateSellerWhenNoActiveSchedulers() {
+            // Given
+            Long sellerId = 1L;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            UpdateSellerCommand command =
+                    new UpdateSellerCommand(sellerId, "mustit-name", "seller-name", false);
+            SellerId id = SellerId.of(sellerId);
+            SellerUpdateData updateData =
+                    SellerUpdateData.of(
+                            MustItSellerName.of("mustit-name"),
+                            SellerName.of("seller-name"),
+                            SellerStatus.INACTIVE);
+            UpdateContext<SellerId, SellerUpdateData> context =
+                    new UpdateContext<>(id, updateData, fixedInstant);
+            Seller existingSeller = SellerFixture.anActiveSeller();
+
+            given(commandFactory.createUpdateContext(command)).willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(existingSeller));
+
+            // When
+            service.execute(command);
+
+            // Then
+            then(validator).should().validateForUpdate(existingSeller, updateData);
+            then(commandManager).should().persist(existingSeller);
         }
     }
 }

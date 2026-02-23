@@ -4,16 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
+import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -232,7 +235,7 @@ class CrawledProductJpaEntityMapperTest {
                     CrawledProductJpaEntity.of(
                             1L, 100L, 12345L, "상품명", "브랜드", null, null, null, // 가격 필드 null
                             null, true, null, null, null, null, null, null, null, null, now, null,
-                            null, null, null, false, now, now);
+                            null, null, null, false, null, null, now, now);
 
             // When
             CrawledProduct domain = mapper.toDomain(entity);
@@ -277,6 +280,8 @@ class CrawledProductJpaEntityMapperTest {
                             null,
                             null,
                             false,
+                            null,
+                            null,
                             now,
                             now);
 
@@ -297,7 +302,7 @@ class CrawledProductJpaEntityMapperTest {
                     CrawledProductJpaEntity.of(
                             1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
-                            false, now, now);
+                            false, null, null, now, now);
 
             // When
             CrawledProduct domain = mapper.toDomain(entity);
@@ -511,6 +516,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -542,6 +549,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -574,6 +583,8 @@ class CrawledProductJpaEntityMapperTest {
                 999L,
                 syncedAt,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -601,6 +612,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -628,6 +641,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -659,6 +674,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 true,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -689,6 +706,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }
@@ -696,7 +715,8 @@ class CrawledProductJpaEntityMapperTest {
     private CrawledProductJpaEntity createBasicEntity(LocalDateTime now) {
         return CrawledProductJpaEntity.of(
                 1L, 100L, 12345L, "테스트 상품", "테스트 브랜드", 20000L, 15000L, 25, null, true, null, null,
-                null, null, null, null, null, null, now, null, null, null, null, false, now, now);
+                null, null, null, null, null, null, now, null, null, null, null, false, null, null,
+                now, now);
     }
 
     private CrawledProductJpaEntity createEntityWithCompletionStatus(
@@ -727,6 +747,8 @@ class CrawledProductJpaEntityMapperTest {
                 null,
                 null,
                 false,
+                null,
+                null,
                 now,
                 now);
     }

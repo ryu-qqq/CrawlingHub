@@ -8,21 +8,14 @@ import static org.mockito.Mockito.never;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
-import com.ryuqq.crawlinghub.application.crawl.component.Crawler;
-import com.ryuqq.crawlinghub.application.crawl.component.CrawlerProvider;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.execution.dto.ExecutionContext;
+import com.ryuqq.crawlinghub.application.execution.dto.bundle.CrawlTaskExecutionBundle;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.execution.facade.CrawlTaskExecutionFacade;
-import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
-import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
-import com.ryuqq.crawlinghub.application.useragent.port.in.command.ConsumeUserAgentUseCase;
-import com.ryuqq.crawlinghub.application.useragent.port.in.command.RecordUserAgentResultUseCase;
-import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
+import com.ryuqq.crawlinghub.application.execution.factory.command.CrawlExecutionCommandFactory;
+import com.ryuqq.crawlinghub.application.execution.internal.CrawlTaskExecutionCoordinator;
+import com.ryuqq.crawlinghub.application.execution.service.command.CrawlTaskExecutionService;
+import com.ryuqq.crawlinghub.application.execution.validator.CrawlTaskExecutionValidator;
+import com.ryuqq.crawlinghub.domain.execution.exception.RetryableExecutionException;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
-import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * CrawlTaskExecutionService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Validator/Factory/Coordinator mock 기반 테스트
  *
  * @author development-team
  * @since 1.0.0
@@ -45,15 +38,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskExecutionService 테스트")
 class CrawlTaskExecutionServiceTest {
 
-    @Mock private CrawlTaskExecutionFacade crawlTaskExecutionFacade;
+    @Mock private CrawlTaskExecutionValidator validator;
 
-    @Mock private CrawlerProvider crawlerProvider;
+    @Mock private CrawlExecutionCommandFactory commandFactory;
 
-    @Mock private ConsumeUserAgentUseCase consumeUserAgentUseCase;
-
-    @Mock private RecordUserAgentResultUseCase recordUserAgentResultUseCase;
-
-    @Mock private Crawler mockCrawler;
+    @Mock private CrawlTaskExecutionCoordinator coordinator;
 
     @InjectMocks private CrawlTaskExecutionService service;
 
@@ -62,187 +51,78 @@ class CrawlTaskExecutionServiceTest {
     class Execute {
 
         @Test
-        @DisplayName("[성공] 크롤링 성공 시 completeWithSuccess 호출")
-        void shouldCompleteWithSuccessWhenCrawlingSucceeds() {
+        @DisplayName("[성공] 검증 통과 → Factory Bundle 생성 → Coordinator.execute 호출")
+        void shouldCreateBundleAndDelegateToCoordinator() {
             // Given
             ExecuteCrawlTaskCommand command =
                     new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
-            CrawlTask task = CrawlTaskFixture.aRunningTask();
-            CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            ExecutionContext context = new ExecutionContext(task, execution);
-            CachedUserAgent userAgent = createReadyUserAgent();
-            CrawlResult successResult = CrawlResult.success("{\"data\": []}", 200);
+            CrawlTask task = CrawlTaskFixture.aPublishedTask();
+            CrawlTaskExecutionBundle bundle =
+                    CrawlTaskExecutionBundle.of(
+                            task, CrawlExecutionFixture.forNew(), command, Instant.now());
 
-            given(crawlTaskExecutionFacade.prepareExecution(command))
-                    .willReturn(Optional.of(context));
-            given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
-            given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
-            given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(successResult);
+            given(validator.validateAndGet(1L)).willReturn(Optional.of(task));
+            given(commandFactory.createExecutionBundle(task, command)).willReturn(bundle);
 
             // When
             service.execute(command);
 
             // Then
-            then(crawlTaskExecutionFacade).should().prepareExecution(command);
-            then(consumeUserAgentUseCase).should().execute();
-            then(crawlerProvider).should().getCrawler(any(CrawlTaskType.class));
-            then(mockCrawler).should().crawl(any(CrawlContext.class));
-            then(recordUserAgentResultUseCase)
-                    .should()
-                    .execute(any(RecordUserAgentResultCommand.class));
-            then(crawlTaskExecutionFacade).should().completeWithSuccess(context, successResult);
+            then(validator).should().validateAndGet(1L);
+            then(commandFactory).should().createExecutionBundle(task, command);
+            then(coordinator).should().execute(bundle);
         }
 
         @Test
-        @DisplayName("[성공] 크롤링 실패(HTTP 에러) 시 completeWithFailure 호출")
-        void shouldCompleteWithFailureWhenCrawlingFails() {
-            // Given
-            ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
-            CrawlTask task = CrawlTaskFixture.aRunningTask();
-            CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            ExecutionContext context = new ExecutionContext(task, execution);
-            CachedUserAgent userAgent = createReadyUserAgent();
-            CrawlResult failResult = CrawlResult.failure(500, "Internal Server Error");
-
-            given(crawlTaskExecutionFacade.prepareExecution(command))
-                    .willReturn(Optional.of(context));
-            given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
-            given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
-            given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(failResult);
-
-            // When
-            service.execute(command);
-
-            // Then
-            then(crawlTaskExecutionFacade)
-                    .should()
-                    .completeWithFailure(context, 500, "Internal Server Error");
-            then(crawlTaskExecutionFacade).should(never()).completeWithSuccess(any(), any());
-        }
-
-        @Test
-        @DisplayName("[성공] 429 Rate Limit 시 UserAgent 실패 기록 및 completeWithFailure 호출")
-        void shouldRecordFailureAndCompleteWithFailureWhenRateLimited() {
-            // Given
-            ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
-            CrawlTask task = CrawlTaskFixture.aRunningTask();
-            CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            ExecutionContext context = new ExecutionContext(task, execution);
-            CachedUserAgent userAgent = createReadyUserAgent();
-            CrawlResult rateLimitResult = CrawlResult.failure(429, "Rate limited (429)");
-
-            given(crawlTaskExecutionFacade.prepareExecution(command))
-                    .willReturn(Optional.of(context));
-            given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
-            given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
-            given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(rateLimitResult);
-
-            // When
-            service.execute(command);
-
-            // Then
-            then(recordUserAgentResultUseCase)
-                    .should()
-                    .execute(any(RecordUserAgentResultCommand.class));
-            then(crawlTaskExecutionFacade)
-                    .should()
-                    .completeWithFailure(context, 429, "Rate limited (429)");
-        }
-
-        @Test
-        @DisplayName("[실패] 크롤링 중 예외 발생 시 UserAgent 실패 기록 후 예외 재전파")
-        void shouldRecordFailureAndRethrowExceptionWhenCrawlingThrows() {
-            // Given
-            ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
-            CrawlTask task = CrawlTaskFixture.aRunningTask();
-            CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            ExecutionContext context = new ExecutionContext(task, execution);
-            CachedUserAgent userAgent = createReadyUserAgent();
-
-            given(crawlTaskExecutionFacade.prepareExecution(command))
-                    .willReturn(Optional.of(context));
-            given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
-            given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
-            given(mockCrawler.crawl(any(CrawlContext.class)))
-                    .willThrow(new RuntimeException("Connection timeout"));
-
-            // When & Then
-            assertThatThrownBy(() -> service.execute(command))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Connection timeout");
-
-            then(recordUserAgentResultUseCase)
-                    .should()
-                    .execute(any(RecordUserAgentResultCommand.class));
-            then(crawlTaskExecutionFacade)
-                    .should()
-                    .completeWithFailure(context, null, "Connection timeout");
-        }
-
-        @Test
-        @DisplayName("[성공] 다양한 TaskType에 대해 적절한 Crawler 선택")
-        void shouldSelectCorrectCrawlerForTaskType() {
-            // Given
-            ExecuteCrawlTaskCommand command =
-                    new ExecuteCrawlTaskCommand(
-                            1L, 1L, 1L, "DETAIL", "https://example.com/api/product/123");
-            CrawlTask task = CrawlTaskFixture.aRunningTask();
-            CrawlExecution execution = CrawlExecutionFixture.aRunningExecution();
-            ExecutionContext context = new ExecutionContext(task, execution);
-            CachedUserAgent userAgent = createReadyUserAgent();
-            CrawlResult successResult = CrawlResult.success("{\"product\": {}}", 200);
-
-            given(crawlTaskExecutionFacade.prepareExecution(command))
-                    .willReturn(Optional.of(context));
-            given(consumeUserAgentUseCase.execute()).willReturn(userAgent);
-            given(crawlerProvider.getCrawler(any(CrawlTaskType.class))).willReturn(mockCrawler);
-            given(mockCrawler.crawl(any(CrawlContext.class))).willReturn(successResult);
-
-            // When
-            service.execute(command);
-
-            // Then
-            then(crawlerProvider).should().getCrawler(any(CrawlTaskType.class));
-        }
-
-        @Test
-        @DisplayName("[멱등성] 이미 처리된 Task인 경우 정상 종료 (UserAgent 소비하지 않음)")
+        @DisplayName("[멱등성] 이미 처리된 Task인 경우 정상 종료 (Coordinator 호출하지 않음)")
         void shouldSkipExecutionWhenTaskAlreadyProcessed() {
             // Given
             ExecuteCrawlTaskCommand command =
                     new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
 
-            given(crawlTaskExecutionFacade.prepareExecution(command)).willReturn(Optional.empty());
+            given(validator.validateAndGet(1L)).willReturn(Optional.empty());
 
             // When
             service.execute(command);
 
             // Then
-            then(crawlTaskExecutionFacade).should().prepareExecution(command);
-            then(consumeUserAgentUseCase).should(never()).execute();
-            then(crawlerProvider).should(never()).getCrawler(any(CrawlTaskType.class));
-            then(crawlTaskExecutionFacade).should(never()).completeWithSuccess(any(), any());
-            then(crawlTaskExecutionFacade).should(never()).completeWithFailure(any(), any(), any());
+            then(validator).should().validateAndGet(1L);
+            then(coordinator).should(never()).execute(any());
         }
 
-        private CachedUserAgent createReadyUserAgent() {
-            return new CachedUserAgent(
-                    1L,
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "session-token-123",
-                    null, // nid
-                    null, // mustitUid
-                    Instant.now().plusSeconds(3600),
-                    80,
-                    80,
-                    Instant.now(),
-                    Instant.now().plusSeconds(60),
-                    100,
-                    UserAgentStatus.READY,
-                    null);
+        @Test
+        @DisplayName("[실패] Validator 인프라 오류 시 RetryableExecutionException 전파")
+        void shouldThrowRetryableExceptionWhenValidatorFailsWithDbError() {
+            // Given
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
+
+            given(validator.validateAndGet(1L))
+                    .willThrow(
+                            new org.springframework.dao.DataAccessResourceFailureException(
+                                    "DB 커넥션 실패"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.execute(command))
+                    .isInstanceOf(RetryableExecutionException.class)
+                    .hasMessageContaining("prepareExecution 인프라 오류")
+                    .hasCauseInstanceOf(
+                            org.springframework.dao.DataAccessResourceFailureException.class);
+        }
+
+        @Test
+        @DisplayName("[실패] Validator 비즈니스 오류 시 예외 전파")
+        void shouldPropagateBusinessExceptionFromValidator() {
+            // Given
+            ExecuteCrawlTaskCommand command =
+                    new ExecuteCrawlTaskCommand(1L, 1L, 1L, "META", "https://example.com/api");
+
+            given(validator.validateAndGet(1L)).willThrow(new RuntimeException("비즈니스 예외"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.execute(command))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("비즈니스 예외");
         }
     }
 }

@@ -10,12 +10,9 @@ import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
-import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
 import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.time.Instant;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,7 +27,6 @@ import org.junit.jupiter.api.Test;
  *   <li>상태 전환 메서드 - markAsPublished, markAsRunning, markAsSuccess, markAsFailed, markAsTimeout
  *   <li>재시도 로직 - canRetry(), attemptRetry(), markAsPublishedAfterRetry()
  *   <li>Outbox 관리 - initializeOutbox, markOutboxAsSent, markOutboxAsFailed
- *   <li>도메인 이벤트 - addRegisteredEvent, clearDomainEvents
  * </ul>
  *
  * @author development-team
@@ -59,11 +55,10 @@ class CrawlTaskTest {
 
             // then
             assertThat(task.getId()).isNotNull();
-            assertThat(task.getId().isAssigned()).isFalse();
+            assertThat(task.getId().isNew()).isTrue();
             assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.WAITING);
             assertThat(task.getRetryCount().value()).isZero();
             assertThat(task.getOutbox()).isNull();
-            assertThat(task.getDomainEvents()).isEmpty();
         }
 
         @Test
@@ -528,79 +523,6 @@ class CrawlTaskTest {
                 assertThat(task.hasOutbox()).isFalse();
                 assertThat(task.hasOutboxPending()).isFalse();
             }
-        }
-    }
-
-    @Nested
-    @DisplayName("도메인 이벤트 테스트")
-    class DomainEvents {
-
-        @Nested
-        @DisplayName("addRegisteredEvent() 테스트")
-        class AddRegisteredEvent {
-
-            @Test
-            @DisplayName("ID 할당 후 등록 이벤트 발행 성공")
-            void shouldAddRegisteredEventWhenIdAssigned() {
-                // given
-                CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                String payload = "{\"taskId\":1}";
-
-                // when
-                task.addRegisteredEvent(payload, FIXED_INSTANT);
-
-                // then
-                List<DomainEvent> events = task.getDomainEvents();
-                assertThat(events).hasSize(1);
-                assertThat(events.get(0)).isInstanceOf(CrawlTaskRegisteredEvent.class);
-            }
-
-            @Test
-            @DisplayName("ID 미할당 상태에서 등록 이벤트 발행 시 예외 발생")
-            void shouldThrowExceptionWhenIdNotAssigned() {
-                // given
-                CrawlTask task = CrawlTaskFixture.forNew();
-
-                // when & then
-                assertThatThrownBy(() -> task.addRegisteredEvent("{\"taskId\":1}", FIXED_INSTANT))
-                        .isInstanceOf(IllegalStateException.class)
-                        .hasMessage("등록 이벤트는 ID 할당 후 발행해야 합니다.");
-            }
-        }
-
-        @Nested
-        @DisplayName("clearDomainEvents() 테스트")
-        class ClearDomainEvents {
-
-            @Test
-            @DisplayName("이벤트 초기화 성공")
-            void shouldClearAllDomainEvents() {
-                // given
-                CrawlTask task = CrawlTaskFixture.aWaitingTask();
-                task.addRegisteredEvent("{\"taskId\":1}", FIXED_INSTANT);
-                assertThat(task.getDomainEvents()).isNotEmpty();
-
-                // when
-                task.clearDomainEvents();
-
-                // then
-                assertThat(task.getDomainEvents()).isEmpty();
-            }
-        }
-
-        @Test
-        @DisplayName("getDomainEvents()는 읽기 전용 목록 반환")
-        void shouldReturnUnmodifiableEventList() {
-            // given
-            CrawlTask task = CrawlTaskFixture.aWaitingTask();
-            task.addRegisteredEvent("{\"taskId\":1}", FIXED_INSTANT);
-
-            // when
-            List<DomainEvent> events = task.getDomainEvents();
-
-            // then
-            assertThatThrownBy(() -> events.add(null))
-                    .isInstanceOf(UnsupportedOperationException.class);
         }
     }
 

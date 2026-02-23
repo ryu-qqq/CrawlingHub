@@ -1,7 +1,8 @@
 package com.ryuqq.crawlinghub.domain.useragent.aggregate;
 
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.CooldownPolicy;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
 import com.ryuqq.crawlinghub.domain.useragent.vo.Token;
@@ -11,16 +12,18 @@ import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentString;
 import java.time.Instant;
 
 /**
- * UserAgent Aggregate Root
+ * UserAgent Aggregate Root (HikariCP 벤치마킹)
  *
  * <p>크롤러 UserAgent의 핵심 비즈니스 규칙과 불변식을 관리하는 Aggregate Root
  *
  * <p><strong>상태 전환 규칙</strong>:
  *
  * <pre>
- * AVAILABLE ←→ SUSPENDED (Health Score < 30 또는 429 응답)
- *     ↓              ↓
- *  BLOCKED        1시간 후 자동 복구 (Health Score 70)
+ * IDLE ←→ BORROWED (borrow/return)
+ *   ↓
+ * COOLDOWN (429 Graduated Backoff)
+ *   ↓
+ * SUSPENDED (연속 429 또는 Health &lt; 30)
  * </pre>
  *
  * <p><strong>Health Score 규칙</strong>:
@@ -28,11 +31,11 @@ import java.time.Instant;
  * <ul>
  *   <li>초기값: 100
  *   <li>성공 시: +5 (최대 100)
- *   <li>429 응답: -20, SUSPENDED
+ *   <li>429 응답: -20, COOLDOWN/SUSPENDED
  *   <li>5xx 응답: -10
  *   <li>기타 실패: -5
- *   <li>Health Score < 30: 자동 SUSPENDED
- *   <li>복구 시: Health Score 70, AVAILABLE
+ *   <li>Health Score &lt; 30: 자동 SUSPENDED
+ *   <li>복구 시: Health Score 70
  * </ul>
  *
  * @author development-team
@@ -47,6 +50,7 @@ public class UserAgent {
     private final UserAgentMetadata metadata;
     private UserAgentStatus status;
     private HealthScore healthScore;
+    private CooldownPolicy cooldownPolicy;
     private Instant lastUsedAt;
     private int requestsPerDay;
     private final Instant createdAt;
@@ -60,6 +64,7 @@ public class UserAgent {
             UserAgentMetadata metadata,
             UserAgentStatus status,
             HealthScore healthScore,
+            CooldownPolicy cooldownPolicy,
             Instant lastUsedAt,
             int requestsPerDay,
             Instant createdAt,
@@ -71,6 +76,7 @@ public class UserAgent {
         this.metadata = metadata;
         this.status = status;
         this.healthScore = healthScore;
+        this.cooldownPolicy = cooldownPolicy != null ? cooldownPolicy : CooldownPolicy.none();
         this.lastUsedAt = lastUsedAt;
         this.requestsPerDay = requestsPerDay;
         this.createdAt = createdAt;
@@ -80,24 +86,23 @@ public class UserAgent {
     /**
      * 신규 UserAgent 생성
      *
-     * <p>User-Agent 문자열에서 DeviceType과 UserAgentMetadata를 자동으로 파싱합니다.
-     *
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param now 현재 시각
-     * @return 새로운 UserAgent (AVAILABLE, Health Score 100)
+     * @return 새로운 UserAgent (IDLE, Health Score 100)
      */
     public static UserAgent forNew(Token token, UserAgentString userAgentString, Instant now) {
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
         UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
         return new UserAgent(
-                UserAgentId.unassigned(),
+                UserAgentId.forNew(),
                 token,
                 userAgentString,
                 deviceType,
                 metadata,
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScore.initial(),
+                CooldownPolicy.none(),
                 null,
                 0,
                 now,
@@ -107,24 +112,22 @@ public class UserAgent {
     /**
      * 토큰 없이 신규 UserAgent 생성 (Lazy Token Issuance)
      *
-     * <p>토큰 발급을 나중으로 미루고 UserAgent만 먼저 등록할 때 사용합니다. 토큰이 필요한 시점에 {@link #issueToken(Token, Instant)}
-     * 메서드로 발급합니다.
-     *
      * @param userAgentString User-Agent 헤더 문자열
      * @param now 현재 시각
-     * @return 토큰이 없는 새로운 UserAgent (AVAILABLE, Health Score 100)
+     * @return 토큰이 없는 새로운 UserAgent (IDLE, Health Score 100)
      */
     public static UserAgent forNewWithoutToken(UserAgentString userAgentString, Instant now) {
         DeviceType deviceType = DeviceType.parse(userAgentString.value());
         UserAgentMetadata metadata = UserAgentMetadata.parseFrom(userAgentString.value());
         return new UserAgent(
-                UserAgentId.unassigned(),
+                UserAgentId.forNew(),
                 Token.empty(),
                 userAgentString,
                 deviceType,
                 metadata,
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScore.initial(),
+                CooldownPolicy.none(),
                 null,
                 0,
                 now,
@@ -138,7 +141,52 @@ public class UserAgent {
      * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
-     * @param metadata User-Agent 메타데이터 (DeviceBrand, OsType, BrowserType 정보)
+     * @param metadata User-Agent 메타데이터
+     * @param status 현재 상태
+     * @param healthScore 건강 점수
+     * @param cooldownPolicy 쿨다운 정책
+     * @param lastUsedAt 마지막 사용 시각
+     * @param requestsPerDay 일일 요청 수
+     * @param createdAt 생성 시각
+     * @param updatedAt 수정 시각
+     * @return 복원된 UserAgent
+     */
+    public static UserAgent reconstitute(
+            UserAgentId id,
+            Token token,
+            UserAgentString userAgentString,
+            DeviceType deviceType,
+            UserAgentMetadata metadata,
+            UserAgentStatus status,
+            HealthScore healthScore,
+            CooldownPolicy cooldownPolicy,
+            Instant lastUsedAt,
+            int requestsPerDay,
+            Instant createdAt,
+            Instant updatedAt) {
+        return new UserAgent(
+                id,
+                token,
+                userAgentString,
+                deviceType,
+                metadata,
+                status,
+                healthScore,
+                cooldownPolicy,
+                lastUsedAt,
+                requestsPerDay,
+                createdAt,
+                updatedAt);
+    }
+
+    /**
+     * 기존 데이터로 UserAgent 복원 (cooldownPolicy 없는 버전, 하위 호환)
+     *
+     * @param id UserAgent ID
+     * @param token 암호화된 토큰
+     * @param userAgentString User-Agent 헤더 문자열
+     * @param deviceType 디바이스 타입
+     * @param metadata User-Agent 메타데이터
      * @param status 현재 상태
      * @param healthScore 건강 점수
      * @param lastUsedAt 마지막 사용 시각
@@ -167,23 +215,96 @@ public class UserAgent {
                 metadata,
                 status,
                 healthScore,
+                CooldownPolicy.none(),
                 lastUsedAt,
                 requestsPerDay,
                 createdAt,
                 updatedAt);
     }
 
-    // === 비즈니스 로직 ===
+    // === Borrow/Return 비즈니스 로직 (HikariCP 패턴) ===
+
+    /**
+     * IDLE → BORROWED (HikariCP getConnection 대응)
+     *
+     * @param now 현재 시각
+     * @throws InvalidUserAgentStateException IDLE이 아닌 경우
+     */
+    public void markBorrowed(Instant now) {
+        validateState(UserAgentStatus.IDLE, "borrow");
+        this.status = UserAgentStatus.BORROWED;
+        this.lastUsedAt = now;
+        this.requestsPerDay++;
+        this.updatedAt = now;
+    }
+
+    /**
+     * BORROWED → IDLE (성공 반납, HikariCP connection.close 대응)
+     *
+     * @param now 현재 시각
+     */
+    public void returnSuccess(Instant now) {
+        validateState(UserAgentStatus.BORROWED, "return");
+        this.healthScore = this.healthScore.recordSuccess();
+        this.cooldownPolicy = CooldownPolicy.none();
+        this.status = UserAgentStatus.IDLE;
+        this.lastUsedAt = now;
+        this.updatedAt = now;
+    }
+
+    /**
+     * BORROWED → COOLDOWN/SUSPENDED/IDLE (실패 반납)
+     *
+     * <ul>
+     *   <li>429: COOLDOWN (Graduated Backoff), 연속 5회 시 SUSPENDED
+     *   <li>Health &lt; threshold: SUSPENDED
+     *   <li>경미한 실패: IDLE 복귀
+     * </ul>
+     *
+     * @param httpStatusCode HTTP 상태 코드
+     * @param now 현재 시각
+     */
+    public void returnWithCooldown(int httpStatusCode, Instant now) {
+        validateState(UserAgentStatus.BORROWED, "return");
+        this.healthScore = this.healthScore.applyPenalty(httpStatusCode);
+
+        if (httpStatusCode == HealthScore.RATE_LIMIT_STATUS_CODE) {
+            this.cooldownPolicy =
+                    CooldownPolicy.escalate(this.cooldownPolicy.consecutiveRateLimits(), now);
+
+            if (this.cooldownPolicy.shouldEscalateToSuspended()) {
+                this.status = UserAgentStatus.SUSPENDED;
+            } else {
+                this.status = UserAgentStatus.COOLDOWN;
+            }
+        } else if (this.healthScore.isBelowSuspensionThreshold()) {
+            this.status = UserAgentStatus.SUSPENDED;
+        } else {
+            this.status = UserAgentStatus.IDLE;
+        }
+        this.lastUsedAt = now;
+        this.updatedAt = now;
+    }
+
+    /**
+     * COOLDOWN → IDLE 또는 SESSION_REQUIRED (쿨다운 만료 후 자동 복구)
+     *
+     * @param now 현재 시각
+     * @param hasValidSession 세션이 유효한지 여부
+     */
+    public void recoverFromCooldown(Instant now, boolean hasValidSession) {
+        validateState(UserAgentStatus.COOLDOWN, "recoverFromCooldown");
+        this.status = hasValidSession ? UserAgentStatus.IDLE : UserAgentStatus.SESSION_REQUIRED;
+        this.updatedAt = now;
+    }
+
+    // === 기존 비즈니스 로직 (호환 유지) ===
 
     /**
      * 토큰 발급 (Lazy Token Issuance)
      *
-     * <p>토큰이 없는 UserAgent에 토큰을 발급합니다. 이미 토큰이 발급된 경우 예외가 발생합니다.
-     *
      * @param token 발급할 토큰
      * @param now 현재 시각
-     * @throws IllegalStateException 이미 토큰이 발급된 경우
-     * @throws IllegalArgumentException 토큰이 비어있는 경우
      */
     public void issueToken(Token token, Instant now) {
         if (hasToken()) {
@@ -223,6 +344,7 @@ public class UserAgent {
      */
     public void recordSuccess(Instant now) {
         this.healthScore = this.healthScore.recordSuccess();
+        this.cooldownPolicy = CooldownPolicy.none();
         this.lastUsedAt = now;
         this.updatedAt = now;
     }
@@ -230,19 +352,19 @@ public class UserAgent {
     /**
      * 실패 기록 (HTTP 상태 코드 기반)
      *
-     * <ul>
-     *   <li>429: Health Score -20, 즉시 SUSPENDED
-     *   <li>5xx: Health Score -10
-     *   <li>기타: Health Score -5
-     * </ul>
-     *
      * @param httpStatusCode HTTP 응답 상태 코드
      * @param now 현재 시각
      */
     public void recordFailure(int httpStatusCode, Instant now) {
-        if (httpStatusCode == 429) {
+        if (httpStatusCode == HealthScore.RATE_LIMIT_STATUS_CODE) {
             this.healthScore = this.healthScore.recordRateLimitFailure();
-            this.status = UserAgentStatus.SUSPENDED;
+            this.cooldownPolicy =
+                    CooldownPolicy.escalate(this.cooldownPolicy.consecutiveRateLimits(), now);
+            if (this.cooldownPolicy.shouldEscalateToSuspended()) {
+                this.status = UserAgentStatus.SUSPENDED;
+            } else {
+                this.status = UserAgentStatus.COOLDOWN;
+            }
         } else if (httpStatusCode >= 500) {
             this.healthScore = this.healthScore.recordServerError();
             checkAndSuspend();
@@ -263,10 +385,10 @@ public class UserAgent {
     }
 
     /**
-     * 수동 정지 (AVAILABLE → SUSPENDED)
+     * 수동 정지
      *
      * @param now 현재 시각
-     * @throws InvalidUserAgentStateException 현재 상태가 AVAILABLE이 아닌 경우
+     * @throws InvalidUserAgentStateException 현재 상태가 활성이 아닌 경우
      */
     public void suspend(Instant now) {
         if (!this.status.isAvailable()) {
@@ -277,22 +399,23 @@ public class UserAgent {
     }
 
     /**
-     * 복구 (SUSPENDED → READY, Health Score 70)
+     * 복구 (SUSPENDED → IDLE, Health Score 70)
      *
      * @param now 현재 시각
      * @throws InvalidUserAgentStateException 복구 불가능한 상태인 경우
      */
     public void recover(Instant now) {
         if (!this.status.canRecover()) {
-            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
+            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.IDLE);
         }
-        this.status = UserAgentStatus.READY;
+        this.status = UserAgentStatus.IDLE;
         this.healthScore = HealthScore.recovered();
+        this.cooldownPolicy = CooldownPolicy.none();
         this.updatedAt = now;
     }
 
     /**
-     * 영구 차단 (READY/SUSPENDED → BLOCKED)
+     * 영구 차단
      *
      * @param now 현재 시각
      * @throws InvalidUserAgentStateException 이미 BLOCKED 상태인 경우
@@ -306,26 +429,23 @@ public class UserAgent {
     }
 
     /**
-     * 차단 해제 (BLOCKED → READY, Health Score 70)
-     *
-     * <p>관리자가 차단된 UserAgent를 다시 활성화할 때 사용합니다.
+     * 차단 해제 (BLOCKED → IDLE, Health Score 70)
      *
      * @param now 현재 시각
      * @throws InvalidUserAgentStateException BLOCKED 상태가 아닌 경우
      */
     public void unblock(Instant now) {
         if (!this.status.isBlocked()) {
-            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.READY);
+            throw new InvalidUserAgentStateException(this.status, UserAgentStatus.IDLE);
         }
-        this.status = UserAgentStatus.READY;
+        this.status = UserAgentStatus.IDLE;
         this.healthScore = HealthScore.recovered();
+        this.cooldownPolicy = CooldownPolicy.none();
         this.updatedAt = now;
     }
 
     /**
      * 상태 변경 (관리자용 배치 처리)
-     *
-     * <p>관리자가 명시적으로 상태를 변경할 때 사용합니다. 모든 상태 전환이 가능합니다.
      *
      * @param newStatus 변경할 상태
      * @param now 현재 시각
@@ -336,9 +456,9 @@ public class UserAgent {
             throw new InvalidUserAgentStateException(this.status, newStatus);
         }
 
-        // AVAILABLE로 변경 시 Health Score 복구
         if (newStatus.isAvailable()) {
             this.healthScore = HealthScore.recovered();
+            this.cooldownPolicy = CooldownPolicy.none();
         }
 
         this.status = newStatus;
@@ -346,7 +466,7 @@ public class UserAgent {
     }
 
     /**
-     * 일일 요청 수 초기화 (매일 자정 실행)
+     * 일일 요청 수 초기화
      *
      * @param now 현재 시각
      */
@@ -358,46 +478,30 @@ public class UserAgent {
     /**
      * Health Score 초기화 (100으로 리셋)
      *
-     * <p>관리자가 수동으로 Health Score를 초기화할 때 사용합니다.
-     *
      * @param now 현재 시각
      */
     public void resetHealth(Instant now) {
         this.healthScore = HealthScore.initial();
+        this.cooldownPolicy = CooldownPolicy.none();
         this.updatedAt = now;
     }
 
     // === 상태 확인 메서드 ===
 
-    /**
-     * 사용 가능한 상태인지 확인
-     *
-     * @return AVAILABLE이면 true
-     */
     public boolean isAvailable() {
         return this.status.isAvailable();
     }
 
-    /**
-     * 정지 상태인지 확인
-     *
-     * @return SUSPENDED면 true
-     */
     public boolean isSuspended() {
         return this.status == UserAgentStatus.SUSPENDED;
     }
 
-    /**
-     * 차단 상태인지 확인
-     *
-     * @return BLOCKED면 true
-     */
     public boolean isBlocked() {
         return this.status.isBlocked();
     }
 
     /**
-     * 복구 대상인지 확인 (SUSPENDED + lastUsedAt < 기준 시각)
+     * 복구 대상인지 확인
      *
      * @param threshold 복구 기준 시각
      * @return 복구 대상이면 true
@@ -408,29 +512,44 @@ public class UserAgent {
                 && this.lastUsedAt.isBefore(threshold);
     }
 
+    // === Private helpers ===
+
+    private void validateState(UserAgentStatus expected, String operation) {
+        if (this.status != expected) {
+            throw new InvalidUserAgentStateException(this.status, expected);
+        }
+    }
+
     // === Getters ===
 
     public UserAgentId getId() {
         return id;
     }
 
+    public Long getIdValue() {
+        return id.value();
+    }
+
     public Token getToken() {
         return token;
+    }
+
+    public String getTokenValue() {
+        return token != null ? token.encryptedValue() : null;
     }
 
     public UserAgentString getUserAgentString() {
         return userAgentString;
     }
 
+    public String getUserAgentStringValue() {
+        return userAgentString.value();
+    }
+
     public DeviceType getDeviceType() {
         return deviceType;
     }
 
-    /**
-     * User-Agent 메타데이터 반환
-     *
-     * @return User-Agent 메타데이터 (DeviceBrand, OsType, BrowserType 정보)
-     */
     public UserAgentMetadata getMetadata() {
         return metadata;
     }
@@ -445,6 +564,10 @@ public class UserAgent {
 
     public int getHealthScoreValue() {
         return healthScore.value();
+    }
+
+    public CooldownPolicy getCooldownPolicy() {
+        return cooldownPolicy;
     }
 
     public Instant getLastUsedAt() {

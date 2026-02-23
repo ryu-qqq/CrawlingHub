@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.port.in.command;
 
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 
 /**
  * CrawlTask 재실행 UseCase (Port In - Command)
@@ -31,5 +31,5 @@ public interface RetryCrawlTaskUseCase {
      * @throws com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskRetryException 재시도 불가 상태이거나 최대
      *     재시도 횟수 초과 시
      */
-    CrawlTaskResponse retry(RetryCrawlTaskCommand command);
+    CrawlTaskResult retry(RetryCrawlTaskCommand command);
 }

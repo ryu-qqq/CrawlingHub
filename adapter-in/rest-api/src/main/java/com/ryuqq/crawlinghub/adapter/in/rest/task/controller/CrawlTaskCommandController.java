@@ -1,12 +1,11 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.task.controller;
 
-import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.CrawlTaskEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskCommandApiMapper;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 import com.ryuqq.crawlinghub.application.task.port.in.command.RetryCrawlTaskUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,7 +16,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,8 +75,6 @@ public class CrawlTaskCommandController {
      * @return 재시도된 크롤 태스크 정보 (200 OK)
      */
     @PostMapping(CrawlTaskEndpoints.RETRY)
-    @PreAuthorize("@access.hasPermission('task:update')")
-    @RequirePermission(value = "task:update", description = "크롤 태스크 재시도")
     @Operation(
             summary = "크롤 태스크 재시도",
             description =
@@ -112,8 +108,8 @@ public class CrawlTaskCommandController {
                     @Positive
                     Long id) {
         RetryCrawlTaskCommand command = crawlTaskCommandApiMapper.toRetryCommand(id);
-        CrawlTaskResponse useCaseResponse = retryCrawlTaskUseCase.retry(command);
-        CrawlTaskApiResponse apiResponse = crawlTaskCommandApiMapper.toApiResponse(useCaseResponse);
+        CrawlTaskResult useCaseResult = retryCrawlTaskUseCase.retry(command);
+        CrawlTaskApiResponse apiResponse = crawlTaskCommandApiMapper.toApiResponse(useCaseResult);
         return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

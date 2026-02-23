@@ -5,7 +5,7 @@
     <!-- ========================================
          JSON + Sentry for Production/Staging
          ======================================== -->
-    <springProfile name="prod,staging">
+    <springProfile name="prod,stage">
         <!-- JSON Console Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
@@ -63,6 +63,11 @@
         <logger name="org.hibernate" level="WARN" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="SENTRY"/>
+        </logger>
+
+        <!-- Sentry SDK 내부 로깅 억제 -->
+        <logger name="io.sentry" level="WARN" additivity="false">
+            <appender-ref ref="CONSOLE"/>
         </logger>
 
         <!-- Root Logger -->

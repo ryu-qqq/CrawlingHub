@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.execution.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -9,7 +8,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public final class CrawlExecutionNotFoundException extends DomainException {
+public final class CrawlExecutionNotFoundException extends CrawlExecutionException {
 
     private static final CrawlExecutionErrorCode ERROR_CODE =
             CrawlExecutionErrorCode.CRAWL_EXECUTION_NOT_FOUND;

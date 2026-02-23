@@ -1,13 +1,15 @@
 package com.ryuqq.crawlinghub.application.seller.factory.command;
 
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerUpdateData;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,34 +54,31 @@ public class SellerCommandFactory {
     }
 
     /**
-     * UpdateSellerCommand → Seller (비교용 임시 객체)
-     *
-     * <p>Command의 값들을 Domain 객체로 변환하여 기존 Seller와 비교 가능하게 함
-     *
-     * <p>주의: 이 객체는 영속화되지 않으며, 비교 목적으로만 사용
+     * UpdateSellerCommand → UpdateContext (수정 컨텍스트 생성)
      *
      * @param command 셀러 수정 Command
-     * @return 비교용 Seller 객체
+     * @return UpdateContext (ID + UpdateData + changedAt)
      */
-    public Seller createForComparison(UpdateSellerCommand command) {
-        MustItSellerName mustItSellerName =
-                command.mustItSellerName() != null
-                        ? MustItSellerName.of(command.mustItSellerName())
-                        : null;
-        SellerName sellerName =
-                command.sellerName() != null ? SellerName.of(command.sellerName()) : null;
-        SellerStatus status =
-                command.active() != null
-                        ? (command.active() ? SellerStatus.ACTIVE : SellerStatus.INACTIVE)
-                        : null;
+    public UpdateContext<SellerId, SellerUpdateData> createUpdateContext(
+            UpdateSellerCommand command) {
+        SellerId id = SellerId.of(command.sellerId());
+        SellerUpdateData updateData =
+                SellerUpdateData.of(
+                        MustItSellerName.of(command.mustItSellerName()),
+                        SellerName.of(command.sellerName()),
+                        command.active() ? SellerStatus.ACTIVE : SellerStatus.INACTIVE);
+        return new UpdateContext<>(id, updateData, timeProvider.now());
+    }
 
-        return Seller.of(
-                SellerId.of(command.sellerId()),
-                mustItSellerName,
-                sellerName,
-                status,
-                0, // productCount (비교 불필요)
-                null, // createdAt (비교 불필요)
-                null); // updatedAt (비교 불필요)
+    /**
+     * 상품 수 업데이트 컨텍스트 생성
+     *
+     * @param sellerId 셀러 ID
+     * @param productCount 새로운 상품 수
+     * @return UpdateContext (ID + productCount + changedAt)
+     */
+    public UpdateContext<SellerId, Integer> createProductCountUpdateContext(
+            Long sellerId, int productCount) {
+        return new UpdateContext<>(SellerId.of(sellerId), productCount, timeProvider.now());
     }
 }

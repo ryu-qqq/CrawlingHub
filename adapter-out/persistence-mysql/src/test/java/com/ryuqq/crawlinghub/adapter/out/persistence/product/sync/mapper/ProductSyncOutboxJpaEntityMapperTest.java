@@ -7,7 +7,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutb
 import com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper.ProductSyncOutboxJpaEntityMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class ProductSyncOutboxJpaEntityMapperTest {
 
         // Then
         assertThat(entity).isNotNull();
-        assertThat(entity.getId()).isEqualTo(domain.getId());
+        assertThat(entity.getId()).isEqualTo(domain.getIdValue());
         assertThat(entity.getCrawledProductId()).isEqualTo(domain.getCrawledProductIdValue());
         assertThat(entity.getSellerId()).isEqualTo(domain.getSellerIdValue());
         assertThat(entity.getItemNo()).isEqualTo(domain.getItemNo());
@@ -112,7 +112,7 @@ class ProductSyncOutboxJpaEntityMapperTest {
 
         // Then
         assertThat(domain).isNotNull();
-        assertThat(domain.getId()).isEqualTo(1L);
+        assertThat(domain.getIdValue()).isEqualTo(1L);
         assertThat(domain.getCrawledProductId()).isEqualTo(CrawledProductId.of(1L));
         assertThat(domain.getSellerIdValue()).isEqualTo(100L);
         assertThat(domain.getItemNo()).isEqualTo(12345L);
@@ -133,7 +133,7 @@ class ProductSyncOutboxJpaEntityMapperTest {
                         1L,
                         100L,
                         12345L,
-                        SyncType.UPDATE,
+                        SyncType.UPDATE_PRICE,
                         "sync-key-123",
                         99999L,
                         ProductOutboxStatus.COMPLETED,
@@ -149,7 +149,7 @@ class ProductSyncOutboxJpaEntityMapperTest {
         assertThat(domain).isNotNull();
         assertThat(domain.getStatus()).isEqualTo(ProductOutboxStatus.COMPLETED);
         assertThat(domain.getExternalProductId()).isEqualTo(99999L);
-        assertThat(domain.getSyncType()).isEqualTo(SyncType.UPDATE);
+        assertThat(domain.getSyncType()).isEqualTo(SyncType.UPDATE_PRICE);
         assertThat(domain.isCompleted()).isTrue();
     }
 

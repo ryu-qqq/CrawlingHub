@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEnti
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper.SellerJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.SellerJpaRepository;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;

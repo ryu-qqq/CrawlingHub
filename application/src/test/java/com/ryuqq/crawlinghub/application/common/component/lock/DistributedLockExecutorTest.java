@@ -46,12 +46,12 @@ class DistributedLockExecutorTest {
         @DisplayName("[성공] 락 획득 후 작업 실행")
         void shouldExecuteActionWhenLockAcquired() {
             // Given
-            Long schedulerId = 123L;
+            Long taskId = 123L;
             String expectedResult = "success";
 
             given(
                             distributedLockPort.executeWithLock(
-                                    eq("trigger:123"),
+                                    eq("task:123"),
                                     eq(0L),
                                     eq(60000L),
                                     eq(TimeUnit.MILLISECONDS),
@@ -60,8 +60,7 @@ class DistributedLockExecutorTest {
 
             // When
             Optional<String> result =
-                    executor.tryExecuteWithLock(
-                            LockType.CRAWL_TRIGGER, schedulerId, () -> expectedResult);
+                    executor.tryExecuteWithLock(LockType.CRAWL_TASK, taskId, () -> expectedResult);
 
             // Then
             assertThat(result).isPresent().contains(expectedResult);
@@ -71,11 +70,11 @@ class DistributedLockExecutorTest {
         @DisplayName("[성공] 락 획득 실패 시 empty 반환")
         void shouldReturnEmptyWhenLockNotAcquired() {
             // Given
-            Long schedulerId = 123L;
+            Long taskId = 123L;
 
             given(
                             distributedLockPort.executeWithLock(
-                                    eq("trigger:123"),
+                                    eq("task:123"),
                                     anyLong(),
                                     anyLong(),
                                     any(TimeUnit.class),
@@ -84,7 +83,7 @@ class DistributedLockExecutorTest {
 
             // When
             Optional<String> result =
-                    executor.tryExecuteWithLock(LockType.CRAWL_TRIGGER, schedulerId, () -> "value");
+                    executor.tryExecuteWithLock(LockType.CRAWL_TASK, taskId, () -> "value");
 
             // Then
             assertThat(result).isEmpty();
@@ -148,14 +147,14 @@ class DistributedLockExecutorTest {
         @DisplayName("[성공] 커스텀 타임아웃으로 락 획득")
         void shouldUseCustomTimeout() {
             // Given
-            Long schedulerId = 123L;
+            Long taskId = 123L;
             long waitTime = 1000L;
             long leaseTime = 30000L;
             String expectedResult = "custom-result";
 
             given(
                             distributedLockPort.executeWithLock(
-                                    eq("trigger:123"),
+                                    eq("task:123"),
                                     eq(waitTime),
                                     eq(leaseTime),
                                     eq(TimeUnit.MILLISECONDS),
@@ -165,17 +164,13 @@ class DistributedLockExecutorTest {
             // When
             Optional<String> result =
                     executor.tryExecuteWithLock(
-                            LockType.CRAWL_TRIGGER,
-                            schedulerId,
-                            waitTime,
-                            leaseTime,
-                            () -> expectedResult);
+                            LockType.CRAWL_TASK, taskId, waitTime, leaseTime, () -> expectedResult);
 
             // Then
             assertThat(result).isPresent().contains(expectedResult);
             verify(distributedLockPort)
                     .executeWithLock(
-                            eq("trigger:123"),
+                            eq("task:123"),
                             eq(waitTime),
                             eq(leaseTime),
                             eq(TimeUnit.MILLISECONDS),

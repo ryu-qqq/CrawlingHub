@@ -4,10 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.product.manager.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

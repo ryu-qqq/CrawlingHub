@@ -7,5 +7,4 @@ public final class CrawlTaskOutboxEndpoints {
     }
 
     public static final String BASE = "/api/v1/crawling/outbox";
-    public static final String REPUBLISH = "/{crawlTaskId}/republish";
 }

@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.domain.useragent.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import java.util.Map;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public class UserAgentNotFoundException extends DomainException {
+public class UserAgentNotFoundException extends UserAgentException {
 
     private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.USER_AGENT_NOT_FOUND;
 

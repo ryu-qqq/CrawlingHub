@@ -28,10 +28,9 @@ import org.springframework.http.ResponseEntity;
  * <p><strong>테스트 대상 엔드포인트:</strong>
  *
  * <ul>
- *   <li>GET /api/v1/crawling/product-outbox/sync - SyncOutbox 목록 조회 (outbox:read)
- *   <li>GET /api/v1/crawling/product-outbox/image - ImageOutbox 목록 조회 (outbox:read)
- *   <li>POST /api/v1/crawling/product-outbox/sync/{id}/retry - SyncOutbox 재시도 (outbox:update)
- *   <li>POST /api/v1/crawling/product-outbox/image/{id}/retry - ImageOutbox 재시도 (outbox:update)
+ *   <li>GET /api/v1/crawling/product-outbox/sync - CrawledProductSyncOutbox 목록 조회 (outbox:read)
+ *   <li>POST /api/v1/crawling/product-outbox/sync/{id}/retry - CrawledProductSyncOutbox 재시도
+ *       (outbox:update)
  * </ul>
  *
  * @author development-team
@@ -42,12 +41,11 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
 
     private static final String PRODUCT_OUTBOX_BASE_URL = "/api/v1/crawling/product-outbox";
     private static final String SYNC_URL = PRODUCT_OUTBOX_BASE_URL + "/sync";
-    private static final String IMAGE_URL = PRODUCT_OUTBOX_BASE_URL + "/image";
 
     @Autowired private TestDataHelper testDataHelper;
 
     @Nested
-    @DisplayName("GET /api/v1/crawling/product-outbox/sync - SyncOutbox 목록 조회")
+    @DisplayName("GET /api/v1/crawling/product-outbox/sync - CrawledProductSyncOutbox 목록 조회")
     class SearchSyncOutbox {
 
         @BeforeEach
@@ -56,10 +54,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("전체 SyncOutbox 목록 조회 성공")
+        @DisplayName("전체 CrawledProductSyncOutbox 목록 조회 성공")
         void shouldSearchAllSyncOutboxSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -84,10 +82,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("상태별 SyncOutbox 필터링 조회")
+        @DisplayName("상태별 CrawledProductSyncOutbox 필터링 조회")
         void shouldFilterSyncOutboxByStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -110,10 +108,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("Seller ID로 SyncOutbox 필터링 조회")
+        @DisplayName("Seller ID로 CrawledProductSyncOutbox 필터링 조회")
         void shouldFilterSyncOutboxBySellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -139,7 +137,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션 정상 동작")
         void shouldPaginateSyncOutboxCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -167,7 +165,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("outbox:read 권한 없으면 403 반환")
         void shouldReturn403WithoutReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -198,100 +196,8 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/v1/crawling/product-outbox/image - ImageOutbox 목록 조회")
-    class SearchImageOutbox {
-
-        @BeforeEach
-        void setUp() {
-            testDataHelper.insertProductOutboxTestData();
-        }
-
-        @Test
-        @DisplayName("전체 ImageOutbox 목록 조회 성공")
-        void shouldSearchAllImageOutboxSuccessfully() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data).isNotNull();
-            assertThat(data.get("totalElements")).isEqualTo(5);
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> content = (List<Map<String, Object>>) data.get("content");
-            assertThat(content).hasSize(5);
-        }
-
-        @Test
-        @DisplayName("상태별 ImageOutbox 필터링 조회")
-        void shouldFilterImageOutboxByStatus() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL + "?statuses=COMPLETED"),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("totalElements")).isEqualTo(1); // COMPLETED 1개
-        }
-
-        @Test
-        @DisplayName("outbox:read 권한 없으면 403 반환")
-        void shouldReturn403WithoutReadPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-
-        @Test
-        @DisplayName("인증 없이 조회 시 401 반환")
-        void shouldReturn401WithoutAuthentication() {
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL),
-                            HttpMethod.GET,
-                            null,
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    @Nested
-    @DisplayName("POST /api/v1/crawling/product-outbox/sync/{id}/retry - SyncOutbox 재시도")
+    @DisplayName(
+            "POST /api/v1/crawling/product-outbox/sync/{id}/retry - CrawledProductSyncOutbox 재시도")
     class RetrySyncOutbox {
 
         @BeforeEach
@@ -300,10 +206,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("FAILED 상태의 SyncOutbox 재시도 성공")
+        @DisplayName("FAILED 상태의 CrawledProductSyncOutbox 재시도 성공")
         void shouldRetrySyncOutboxSuccessfully() {
             // given - id=4: FAILED 상태, 재시도 1회 (재시도 가능)
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -327,10 +233,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 SyncOutbox 재시도 시 404 반환")
+        @DisplayName("존재하지 않는 CrawledProductSyncOutbox 재시도 시 404 반환")
         void shouldReturn404WhenSyncOutboxNotFound() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -349,7 +255,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("outbox:update 권한 없으면 403 반환")
         void shouldReturn403WithoutUpdatePermission() {
             // given - outbox:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -371,96 +277,6 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
                             url(SYNC_URL + "/4/retry"),
-                            HttpMethod.POST,
-                            null,
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    @Nested
-    @DisplayName("POST /api/v1/crawling/product-outbox/image/{id}/retry - ImageOutbox 재시도")
-    class RetryImageOutbox {
-
-        @BeforeEach
-        void setUp() {
-            testDataHelper.insertProductOutboxTestData();
-        }
-
-        @Test
-        @DisplayName("FAILED 상태의 ImageOutbox 재시도 성공")
-        void shouldRetryImageOutboxSuccessfully() {
-            // given - id=4: FAILED 상태, 재시도 1회 (재시도 가능)
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:update");
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL + "/4/retry"),
-                            HttpMethod.POST,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data).isNotNull();
-            assertThat(data.get("outboxId")).isEqualTo(4);
-            assertThat(data.get("previousStatus")).isEqualTo("FAILED");
-            assertThat(data.get("newStatus")).isEqualTo("PENDING");
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 ImageOutbox 재시도 시 404 반환")
-        void shouldReturn404WhenImageOutboxNotFound() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:update");
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL + "/9999/retry"),
-                            HttpMethod.POST,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("outbox:update 권한 없으면 403 반환")
-        void shouldReturn403WithoutUpdatePermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL + "/4/retry"),
-                            HttpMethod.POST,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-
-        @Test
-        @DisplayName("인증 없이 재시도 시 401 반환")
-        void shouldReturn401WithoutAuthentication() {
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL + "/4/retry"),
                             HttpMethod.POST,
                             null,
                             new ParameterizedTypeReference<>() {});
@@ -480,10 +296,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("outbox:read 권한으로 SyncOutbox 조회 가능")
+        @DisplayName("outbox:read 권한으로 CrawledProductSyncOutbox 조회 가능")
         void shouldAllowSyncOutboxSearchWithReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -498,31 +314,13 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("outbox:read 권한으로 ImageOutbox 조회 가능")
-        void shouldAllowImageOutboxSearchWithReadPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(IMAGE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        }
-
-        @Test
         @DisplayName("outbox:update 권한으로 재시도 가능")
         void shouldAllowRetryWithUpdatePermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // when - SyncOutbox 재시도
+            // when - CrawledProductSyncOutbox 재시도
             ResponseEntity<Map<String, Object>> syncResponse =
                     restTemplate.exchange(
                             url(SYNC_URL + "/4/retry"),
@@ -538,7 +336,7 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("여러 권한이 있는 경우 정상 동작")
         void shouldWorkWithMultiplePermissions() {
             // given - 여러 권한을 가진 사용자
-            HttpHeaders headers = AuthTestHelper.withPermissions("outbox:read", "outbox:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when - 조회 요청
@@ -552,10 +350,10 @@ class ProductOutboxIntegrationTest extends WebApiIntegrationTest {
             // then - 조회 성공
             assertThat(readResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-            // when - 재시도 요청
+            // when - CrawledProductSyncOutbox 재시도 요청
             ResponseEntity<Map<String, Object>> retryResponse =
                     restTemplate.exchange(
-                            url(IMAGE_URL + "/4/retry"),
+                            url(SYNC_URL + "/4/retry"),
                             HttpMethod.POST,
                             new HttpEntity<>(headers),
                             new ParameterizedTypeReference<>() {});

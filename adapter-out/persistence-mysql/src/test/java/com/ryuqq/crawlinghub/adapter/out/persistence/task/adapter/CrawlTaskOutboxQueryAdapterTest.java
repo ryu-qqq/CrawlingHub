@@ -9,8 +9,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskOutbox
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskOutboxJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskOutboxQueryDslRepository;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskOutboxCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.LocalDateTime;
 import java.util.List;

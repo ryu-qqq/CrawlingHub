@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import java.time.Instant;

@@ -4,13 +4,10 @@ import static com.ryuqq.crawlinghub.adapter.in.rest.common.util.DateTimeFormatUt
 
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateSchedulerStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import org.springframework.stereotype.Component;
 
 /**
@@ -84,37 +81,6 @@ public class CrawlSchedulerCommandApiMapper {
                 appResponse.schedulerName(),
                 appResponse.cronExpression(),
                 appResponse.status().name(),
-                format(appResponse.createdAt()),
-                format(appResponse.updatedAt()));
-    }
-
-    /**
-     * UpdateSchedulerStatusApiRequest → UpdateCrawlSchedulerCommand 변환 (상태만 변경)
-     *
-     * @param crawlSchedulerId 크롤 스케줄러 ID (PathVariable)
-     * @param request REST API 스케줄러 상태 변경 요청
-     * @return Application Layer 크롤 스케줄러 수정 명령 (상태만 포함)
-     */
-    public UpdateCrawlSchedulerCommand toStatusCommand(
-            Long crawlSchedulerId, UpdateSchedulerStatusApiRequest request) {
-        return new UpdateCrawlSchedulerCommand(crawlSchedulerId, null, null, request.active());
-    }
-
-    /**
-     * CrawlTaskResponse → CrawlTaskApiResponse 변환 (트리거 응답용)
-     *
-     * @param appResponse Application Layer 크롤 태스크 응답
-     * @return REST API 크롤 태스크 응답
-     */
-    public CrawlTaskApiResponse toTaskApiResponse(CrawlTaskResponse appResponse) {
-        return new CrawlTaskApiResponse(
-                appResponse.crawlTaskId(),
-                appResponse.crawlSchedulerId(),
-                appResponse.sellerId(),
-                appResponse.requestUrl(),
-                appResponse.status().name(),
-                appResponse.taskType().name(),
-                appResponse.retryCount(),
                 format(appResponse.createdAt()),
                 format(appResponse.updatedAt()));
     }

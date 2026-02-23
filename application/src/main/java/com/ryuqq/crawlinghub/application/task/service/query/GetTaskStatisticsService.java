@@ -1,15 +1,15 @@
 package com.ryuqq.crawlinghub.application.task.service.query;
 
-import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskStatisticsQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskStatisticsResponse;
 import com.ryuqq.crawlinghub.application.task.factory.query.CrawlTaskQueryFactory;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.query.GetTaskStatisticsUseCase;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;

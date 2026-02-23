@@ -58,7 +58,7 @@ class UserAgentTest {
             assertThat(userAgent.getId()).isNotNull();
             assertThat(userAgent.getId().value()).isNull();
             assertThat(userAgent.getToken()).isEqualTo(TokenFixture.aDefaultToken());
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
             assertThat(userAgent.isAvailable()).isTrue();
             assertThat(userAgent.getRequestsPerDay()).isZero();
@@ -99,7 +99,7 @@ class UserAgentTest {
             assertThat(userAgent.getToken()).isNotNull();
             assertThat(userAgent.getToken().isEmpty()).isTrue();
             assertThat(userAgent.hasToken()).isFalse();
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
         }
     }
@@ -217,7 +217,7 @@ class UserAgentTest {
 
             // then
             assertThat(userAgent.getId().value()).isNotNull();
-            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.READY);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
         }
 
@@ -316,8 +316,8 @@ class UserAgentTest {
     class RecordFailure {
 
         @Test
-        @DisplayName("429 응답 시 Health Score -20, 즉시 SUSPENDED")
-        void shouldApplyRateLimitPenaltyAndSuspend() {
+        @DisplayName("429 응답 시 Health Score -20, COOLDOWN (Graduated Backoff)")
+        void shouldApplyRateLimitPenaltyAndCooldown() {
             // given
             UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
 
@@ -326,7 +326,7 @@ class UserAgentTest {
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(80);
-            assertThat(userAgent.isSuspended()).isTrue();
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.COOLDOWN);
         }
 
         @Test

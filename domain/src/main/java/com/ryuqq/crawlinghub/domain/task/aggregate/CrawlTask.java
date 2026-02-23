@@ -1,19 +1,14 @@
 package com.ryuqq.crawlinghub.domain.task.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.exception.InvalidCrawlTaskStateException;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlEndpoint;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import com.ryuqq.crawlinghub.domain.task.vo.RetryCount;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -46,8 +41,6 @@ public class CrawlTask {
     private CrawlTaskOutbox outbox;
     private final Instant createdAt;
     private Instant updatedAt;
-
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     private CrawlTask(
             CrawlTaskId id,
@@ -91,7 +84,7 @@ public class CrawlTask {
             CrawlEndpoint endpoint,
             Instant now) {
         return new CrawlTask(
-                CrawlTaskId.unassigned(),
+                CrawlTaskId.forNew(),
                 crawlSchedulerId,
                 sellerId,
                 taskType,
@@ -202,6 +195,23 @@ public class CrawlTask {
     }
 
     /**
+     * 비종료 상태 → FAILED 즉시 전환 (비정상 경로)
+     *
+     * <p>PUBLISHED/WAITING 등 비종료 상태에서 FAILED로 직접 전환합니다. SQS 리스너에서 영구적 오류 발생 시 PUBLISHED 고아를 방지하기 위해
+     * 사용합니다.
+     *
+     * @param now 현재 시각
+     * @throws InvalidCrawlTaskStateException 이미 종료 상태(SUCCESS, FAILED)인 경우
+     */
+    public void failDirectly(Instant now) {
+        if (this.status.isTerminal()) {
+            throw new InvalidCrawlTaskStateException(this.status, CrawlTaskStatus.FAILED);
+        }
+        this.status = CrawlTaskStatus.FAILED;
+        this.updatedAt = now;
+    }
+
+    /**
      * RUNNING → TIMEOUT 상태 전환
      *
      * @param now 현재 시각
@@ -251,6 +261,15 @@ public class CrawlTask {
         }
         this.status = CrawlTaskStatus.PUBLISHED;
         this.updatedAt = now;
+    }
+
+    /**
+     * 종료 상태 여부 확인
+     *
+     * @return SUCCESS, FAILED 중 하나면 true
+     */
+    public boolean isTerminal() {
+        return this.status.isTerminal();
     }
 
     /**
@@ -380,6 +399,10 @@ public class CrawlTask {
         return retryCount;
     }
 
+    public int getRetryCountValue() {
+        return retryCount.value();
+    }
+
     public CrawlTaskOutbox getOutbox() {
         return outbox;
     }
@@ -390,44 +413,5 @@ public class CrawlTask {
 
     public Instant getUpdatedAt() {
         return updatedAt;
-    }
-
-    // === 도메인 이벤트 관련 메서드 ===
-
-    /**
-     * 등록 이벤트 추가 (영속화 후 호출)
-     *
-     * <p>ID 할당 후 호출해야 합니다.
-     *
-     * @param outboxPayload Outbox 페이로드 (JSON)
-     * @param now 현재 시각
-     */
-    public void addRegisteredEvent(String outboxPayload, Instant now) {
-        if (this.id == null || !this.id.isAssigned()) {
-            throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
-        }
-        this.domainEvents.add(
-                CrawlTaskRegisteredEvent.of(
-                        this.id,
-                        this.crawlSchedulerId,
-                        this.sellerId,
-                        this.taskType,
-                        this.endpoint,
-                        outboxPayload,
-                        now));
-    }
-
-    /**
-     * 도메인 이벤트 목록 (읽기 전용)
-     *
-     * @return 불변 이벤트 목록
-     */
-    public List<DomainEvent> getDomainEvents() {
-        return Collections.unmodifiableList(domainEvents);
-    }
-
-    /** 도메인 이벤트 초기화 */
-    public void clearDomainEvents() {
-        this.domainEvents.clear();
     }
 }

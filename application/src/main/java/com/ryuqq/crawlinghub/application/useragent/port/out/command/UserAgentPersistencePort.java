@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.useragent.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import java.util.List;
 
 /**

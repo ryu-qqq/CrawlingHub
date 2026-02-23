@@ -7,7 +7,6 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,20 +16,17 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.application.task.port.in.query.GetCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.application.task.port.in.query.ListCrawlTasksUseCase;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskPageResult;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
+import com.ryuqq.crawlinghub.application.task.port.in.query.SearchCrawlTaskByOffsetUseCase;
+import com.ryuqq.crawlinghub.domain.common.vo.PageMeta;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,13 +39,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @since 1.0.0
  */
 @WebMvcTest(CrawlTaskQueryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("CrawlTaskQueryController REST Docs")
 class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean private ListCrawlTasksUseCase listCrawlTasksUseCase;
-
-    @MockitoBean private GetCrawlTaskUseCase getCrawlTaskUseCase;
+    @MockitoBean private SearchCrawlTaskByOffsetUseCase searchCrawlTaskByOffsetUseCase;
 
     @MockitoBean private CrawlTaskQueryApiMapper crawlTaskQueryApiMapper;
 
@@ -57,31 +52,36 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/crawling/tasks - 크롤 태스크 목록 조회 API 문서")
     void listCrawlTasks() throws Exception {
         // given
-        List<CrawlTaskResponse> content =
+        List<CrawlTaskResult> results =
                 List.of(
-                        new CrawlTaskResponse(
+                        new CrawlTaskResult(
                                 1L,
                                 1L,
                                 1L,
                                 "https://api.example.com/products",
-                                CrawlTaskStatus.WAITING,
-                                CrawlTaskType.META,
+                                "https://api.example.com",
+                                "/products",
+                                Map.of(),
+                                "WAITING",
+                                "META",
                                 0,
                                 Instant.parse("2025-11-20T10:30:00Z"),
                                 Instant.parse("2025-11-20T10:30:00Z")),
-                        new CrawlTaskResponse(
+                        new CrawlTaskResult(
                                 2L,
                                 1L,
                                 1L,
                                 "https://api.example.com/products/detail",
-                                CrawlTaskStatus.SUCCESS,
-                                CrawlTaskType.DETAIL,
+                                "https://api.example.com",
+                                "/products/detail",
+                                Map.of(),
+                                "SUCCESS",
+                                "DETAIL",
                                 1,
                                 Instant.parse("2025-11-20T10:35:00Z"),
                                 Instant.parse("2025-11-20T10:35:00Z")));
 
-        PageResponse<CrawlTaskResponse> pageResponse =
-                new PageResponse<>(content, 0, 20, 2, 1, true, true);
+        CrawlTaskPageResult pageResult = CrawlTaskPageResult.of(results, PageMeta.of(0, 20, 2L));
 
         List<CrawlTaskApiResponse> apiContent =
                 List.of(
@@ -90,6 +90,9 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 1L,
                                 1L,
                                 "https://api.example.com/products",
+                                "https://api.example.com",
+                                "/products",
+                                Map.of(),
                                 "PENDING",
                                 "META",
                                 0,
@@ -100,6 +103,9 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 1L,
                                 1L,
                                 "https://api.example.com/products/detail",
+                                "https://api.example.com",
+                                "/products/detail",
+                                Map.of(),
                                 "SUCCESS",
                                 "DETAIL",
                                 1,
@@ -109,17 +115,17 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
 
-        given(crawlTaskQueryApiMapper.toQuery(any())).willReturn(null);
-        given(listCrawlTasksUseCase.execute(any())).willReturn(pageResponse);
+        given(crawlTaskQueryApiMapper.toSearchParams(any())).willReturn(null);
+        given(searchCrawlTaskByOffsetUseCase.execute(any())).willReturn(pageResult);
         given(crawlTaskQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
         // when & then
         mockMvc.perform(
                         get("/api/v1/crawling/tasks")
-                                .param("crawlSchedulerId", "1")
-                                .param("sellerId", "1")
-                                .param("status", "WAITING")
-                                .param("taskType", "META")
+                                .param("crawlSchedulerIds", "1")
+                                .param("sellerIds", "1")
+                                .param("statuses", "WAITING")
+                                .param("taskTypes", "META")
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -130,18 +136,19 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                 "task-query/list",
                                 RestDocsSecuritySnippets.authorization("task:read"),
                                 queryParameters(
-                                        parameterWithName("crawlSchedulerId")
-                                                .description("크롤 스케줄러 ID 필터 (양수, 선택)"),
-                                        parameterWithName("sellerId")
-                                                .description("셀러 ID 필터 (양수, 선택)")
+                                        parameterWithName("crawlSchedulerIds")
+                                                .description("크롤 스케줄러 ID 필터 목록 (다중 선택 가능, 선택)")
                                                 .optional(),
-                                        parameterWithName("status")
+                                        parameterWithName("sellerIds")
+                                                .description("셀러 ID 필터 목록 (다중 선택 가능, 선택)")
+                                                .optional(),
+                                        parameterWithName("statuses")
                                                 .description(
                                                         "상태 필터"
                                                             + " (WAITING/PUBLISHED/RUNNING/SUCCESS/FAILED/RETRY/TIMEOUT,"
                                                             + " 선택)")
                                                 .optional(),
-                                        parameterWithName("taskType")
+                                        parameterWithName("taskTypes")
                                                 .description(
                                                         "태스크 유형 필터 (META/MINI_SHOP/DETAIL/OPTION,"
                                                                 + " 선택)")
@@ -170,7 +177,16 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("셀러 ID"),
                                         fieldWithPath("data.content[].requestUrl")
                                                 .type(JsonFieldType.STRING)
-                                                .description("요청 URL"),
+                                                .description("전체 요청 URL"),
+                                        fieldWithPath("data.content[].baseUrl")
+                                                .type(JsonFieldType.STRING)
+                                                .description("기본 URL"),
+                                        fieldWithPath("data.content[].path")
+                                                .type(JsonFieldType.STRING)
+                                                .description("경로"),
+                                        fieldWithPath("data.content[].queryParams")
+                                                .type(JsonFieldType.OBJECT)
+                                                .description("쿼리 파라미터"),
                                         fieldWithPath("data.content[].status")
                                                 .type(JsonFieldType.STRING)
                                                 .description(
@@ -207,110 +223,6 @@ class CrawlTaskQueryControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("timestamp")
-                                                .type(JsonFieldType.STRING)
-                                                .description("응답 시각"),
-                                        fieldWithPath("requestId")
-                                                .type(JsonFieldType.STRING)
-                                                .description("요청 ID"))));
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/crawling/tasks/{id} - 크롤 태스크 상세 조회 API 문서")
-    void getCrawlTask() throws Exception {
-        // given
-        Long taskId = 1L;
-        CrawlTaskDetailResponse useCaseResponse =
-                new CrawlTaskDetailResponse(
-                        1L,
-                        1L,
-                        1L,
-                        CrawlTaskStatus.WAITING,
-                        CrawlTaskType.META,
-                        0,
-                        "https://api.example.com",
-                        "/products",
-                        Map.of("page", "1", "size", "100"),
-                        "https://api.example.com/products?page=1&size=100",
-                        Instant.parse("2025-11-20T10:30:00Z"),
-                        Instant.parse("2025-11-20T10:30:00Z"));
-
-        CrawlTaskDetailApiResponse apiResponse =
-                new CrawlTaskDetailApiResponse(
-                        1L,
-                        1L,
-                        1L,
-                        "PENDING",
-                        "META",
-                        0,
-                        "https://api.example.com",
-                        "/products",
-                        Map.of("page", "1", "size", "100"),
-                        "https://api.example.com/products?page=1&size=100",
-                        "2025-11-20T10:30:00Z",
-                        "2025-11-20T10:30:00Z");
-
-        given(crawlTaskQueryApiMapper.toGetQuery(any())).willReturn(null);
-        given(getCrawlTaskUseCase.execute(any())).willReturn(useCaseResponse);
-        given(crawlTaskQueryApiMapper.toDetailApiResponse(any())).willReturn(apiResponse);
-
-        // when & then
-        mockMvc.perform(get("/api/v1/crawling/tasks/{id}", taskId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.crawlTaskId").value(1))
-                .andDo(
-                        document(
-                                "task-query/get",
-                                RestDocsSecuritySnippets.authorization("task:read"),
-                                pathParameters(parameterWithName("id").description("크롤 태스크 ID")),
-                                responseFields(
-                                        fieldWithPath("data")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("응답 데이터"),
-                                        fieldWithPath("data.crawlTaskId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("크롤 태스크 ID"),
-                                        fieldWithPath("data.crawlSchedulerId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("크롤 스케줄러 ID"),
-                                        fieldWithPath("data.sellerId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("셀러 ID"),
-                                        fieldWithPath("data.status")
-                                                .type(JsonFieldType.STRING)
-                                                .description(
-                                                        "상태 (WAITING/PUBLISHED/RUNNING/SUCCESS/FAILED/RETRY/TIMEOUT)"),
-                                        fieldWithPath("data.taskType")
-                                                .type(JsonFieldType.STRING)
-                                                .description(
-                                                        "태스크 유형 (META/MINI_SHOP/DETAIL/OPTION)"),
-                                        fieldWithPath("data.retryCount")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("재시도 횟수"),
-                                        fieldWithPath("data.baseUrl")
-                                                .type(JsonFieldType.STRING)
-                                                .description("기본 URL"),
-                                        fieldWithPath("data.path")
-                                                .type(JsonFieldType.STRING)
-                                                .description("경로"),
-                                        fieldWithPath("data.queryParams")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("쿼리 파라미터"),
-                                        fieldWithPath("data.queryParams.page")
-                                                .type(JsonFieldType.STRING)
-                                                .description("페이지 파라미터"),
-                                        fieldWithPath("data.queryParams.size")
-                                                .type(JsonFieldType.STRING)
-                                                .description("크기 파라미터"),
-                                        fieldWithPath("data.fullUrl")
-                                                .type(JsonFieldType.STRING)
-                                                .description("전체 URL"),
-                                        fieldWithPath("data.createdAt")
-                                                .type(JsonFieldType.STRING)
-                                                .description("생성 시각"),
-                                        fieldWithPath("data.updatedAt")
-                                                .type(JsonFieldType.STRING)
-                                                .description("수정 시각"),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

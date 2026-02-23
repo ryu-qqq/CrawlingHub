@@ -19,6 +19,9 @@ public enum CrawlSchedulerOubBoxStatus {
     /** 동기화 대기 중 */
     PENDING("대기"),
 
+    /** 처리 중 (EventBridge 동기화 진행 중) */
+    PROCESSING("처리중"),
+
     /** 동기화 완료 */
     COMPLETED("완료"),
 

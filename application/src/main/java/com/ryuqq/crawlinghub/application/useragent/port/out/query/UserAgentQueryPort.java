@@ -1,10 +1,7 @@
 package com.ryuqq.crawlinghub.application.useragent.port.out.query;
 
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
-import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.List;
 import java.util.Optional;
@@ -58,14 +55,6 @@ public interface UserAgentQueryPort {
      * @return 해당 상태의 UserAgent 목록
      */
     List<UserAgent> findByStatus(UserAgentStatus status);
-
-    /**
-     * 검색 조건에 따른 UserAgent 페이징 조회
-     *
-     * @param criteria 검색 조건 (상태 필터, 페이징)
-     * @return 페이징된 UserAgent 요약 정보 목록
-     */
-    PageResponse<UserAgentSummaryResponse> findByCriteria(UserAgentSearchCriteria criteria);
 
     /**
      * 여러 ID로 UserAgent 조회 (배치 처리용)

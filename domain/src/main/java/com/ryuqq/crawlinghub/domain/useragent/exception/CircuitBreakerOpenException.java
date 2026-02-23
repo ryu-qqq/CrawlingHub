@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.useragent.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -9,7 +8,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public class CircuitBreakerOpenException extends DomainException {
+public class CircuitBreakerOpenException extends UserAgentException {
 
     private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.CIRCUIT_BREAKER_OPEN;
 

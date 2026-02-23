@@ -82,6 +82,7 @@ observabilityStarter = "v1.1.1"
 authhub = "v2.0.4"
 
 # ========================================
+# ========================================
 # Sentry
 # ========================================
 sentry = "8.29.0"
@@ -209,6 +210,7 @@ authhub-sdk-spring-boot-starter = { module = "com.github.ryu-qqq.AuthHub:authhub
 sentry-spring-boot-starter = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 
+# ========================================
 # ========================================
 # Utilities
 # ========================================

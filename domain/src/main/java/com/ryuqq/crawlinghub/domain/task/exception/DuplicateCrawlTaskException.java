@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.task.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.Map;
 
@@ -10,7 +9,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public final class DuplicateCrawlTaskException extends DomainException {
+public final class DuplicateCrawlTaskException extends CrawlTaskException {
 
     private static final CrawlTaskErrorCode ERROR_CODE = CrawlTaskErrorCode.DUPLICATE_CRAWL_TASK;
 

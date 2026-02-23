@@ -128,10 +128,13 @@ spring:
       - classpath:rest-api.yml
       - optional:classpath:rest-api-${spring.profiles.active:local}.yml
       - classpath:persistence.yml
+      - optional:classpath:persistence-${spring.profiles.active:local}.yml
       - classpath:eventbridge.yml
+      - optional:classpath:eventbridge-${spring.profiles.active:local}.yml
       - classpath:redis.yml
-      - classpath:fileflow.yml
+      - optional:classpath:redis-${spring.profiles.active:local}.yml
       - classpath:sqs.yml
+      - optional:classpath:sqs-${spring.profiles.active:local}.yml
 
   # ===============================================
   # Flyway Migration
@@ -203,19 +206,6 @@ api:
       base: /sellers
       by-id: /{id}
       status: /{id}/status
-
-# ===============================================
-# AuthHub SDK Configuration
-# ===============================================
-authhub:
-  base-url: ${AUTHHUB_BASE_URL:https://auth.example.com}
-  service-token: ${AUTHHUB_SERVICE_TOKEN:}
-  service-code: ${AUTHHUB_SERVICE_CODE:crawlinghub}
-  timeout:
-    connect: 5s
-    read: 30s
-  endpoint-sync:
-    enabled: false
 
 # ===============================================
 # Sentry Configuration (Error Tracking)
@@ -336,6 +326,48 @@ server:
   tomcat:
     threads:
       max: 100
+
+---
+# Stage 환경
+spring:
+  config:
+    activate:
+      on-profile: stage
+
+logging:
+  level:
+    root: INFO
+    com.ryuqq: INFO
+    org.hibernate.SQL: INFO
+
+server:
+  tomcat:
+    threads:
+      max: 100
+
+  graceful-shutdown-timeout: 30s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+
+# Sentry 활성화 (stage 환경)
+sentry:
+  enabled: true
+  dsn: ${SENTRY_DSN}
+  environment: stage
+  release: ${APP_VERSION:unknown}
+  server-name: ${HOSTNAME:unknown}
+  send-default-pii: false
+  traces-sample-rate: 0.1
+  ignored-exceptions-for-type:
+    - org.springframework.web.HttpRequestMethodNotSupportedException
+    - org.springframework.web.servlet.NoHandlerFoundException
+  logging:
+    minimum-event-level: error
+    minimum-breadcrumb-level: info
 
 ---
 # Production 환경

@@ -17,17 +17,6 @@ import org.junit.jupiter.api.Test;
 class CrawlTaskTypeTest {
 
     @Test
-    @DisplayName("META 유형은 설명을 가짐")
-    void shouldHaveDescriptionForMeta() {
-        // given & when
-        String description = CrawlTaskType.META.getDescription();
-
-        // then
-        assertThat(description).isNotBlank();
-        assertThat(description).contains("메타");
-    }
-
-    @Test
     @DisplayName("MINI_SHOP 유형은 설명을 가짐")
     void shouldHaveDescriptionForMiniShop() {
         // given & when
@@ -72,9 +61,9 @@ class CrawlTaskTypeTest {
     }
 
     @Test
-    @DisplayName("모든 유형은 5개")
-    void shouldHaveFiveTypes() {
+    @DisplayName("모든 유형은 4개")
+    void shouldHaveFourTypes() {
         // given & when & then
-        assertThat(CrawlTaskType.values()).hasSize(5);
+        assertThat(CrawlTaskType.values()).hasSize(4);
     }
 }

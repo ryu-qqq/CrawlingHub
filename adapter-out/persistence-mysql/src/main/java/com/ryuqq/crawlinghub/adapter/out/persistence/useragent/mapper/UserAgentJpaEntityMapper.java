@@ -2,8 +2,9 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJpaEntity;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.BrowserType;
+import com.ryuqq.crawlinghub.domain.useragent.vo.CooldownPolicy;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceBrand;
 import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
@@ -65,6 +66,9 @@ public class UserAgentJpaEntityMapper {
      *   <li>HealthScore: Domain.getHealthScoreValue() → Entity.healthScore
      *   <li>LastUsedAt: Domain.getLastUsedAt() → Entity.lastUsedAt (null 가능)
      *   <li>RequestsPerDay: Domain.getRequestsPerDay() → Entity.requestsPerDay
+     *   <li>CooldownUntil: Domain.getCooldownPolicy().cooldownUntil() → Entity.cooldownUntil
+     *   <li>ConsecutiveRateLimits: Domain.getCooldownPolicy().consecutiveRateLimits() →
+     *       Entity.consecutiveRateLimits
      *   <li>CreatedAt: Domain.getCreatedAt() → Entity.createdAt
      *   <li>UpdatedAt: Domain.getUpdatedAt() → Entity.updatedAt
      * </ul>
@@ -75,10 +79,11 @@ public class UserAgentJpaEntityMapper {
     public UserAgentJpaEntity toEntity(UserAgent domain) {
         UserAgentMetadata metadata = domain.getMetadata();
         Token token = domain.getToken();
+        CooldownPolicy cooldownPolicy = domain.getCooldownPolicy();
         return UserAgentJpaEntity.of(
-                domain.getId().value(),
+                domain.getIdValue(),
                 token != null ? token.encryptedValue() : null,
-                domain.getUserAgentString().value(),
+                domain.getUserAgentStringValue(),
                 domain.getDeviceType().getTypeName(),
                 metadata.getDeviceBrand().name(),
                 metadata.getOsType().name(),
@@ -89,6 +94,8 @@ public class UserAgentJpaEntityMapper {
                 domain.getHealthScoreValue(),
                 toLocalDateTime(domain.getLastUsedAt()),
                 domain.getRequestsPerDay(),
+                toLocalDateTime(cooldownPolicy.cooldownUntil()),
+                cooldownPolicy.consecutiveRateLimits(),
                 toLocalDateTime(domain.getCreatedAt()),
                 toLocalDateTime(domain.getUpdatedAt()));
     }
@@ -115,6 +122,8 @@ public class UserAgentJpaEntityMapper {
      *   <li>HealthScore: Entity.healthScore → Domain.HealthScore
      *   <li>LastUsedAt: Entity.lastUsedAt → Domain.lastUsedAt
      *   <li>RequestsPerDay: Entity.requestsPerDay → Domain.requestsPerDay
+     *   <li>CooldownPolicy: Entity.consecutiveRateLimits, Entity.cooldownUntil →
+     *       Domain.CooldownPolicy.reconstitute()
      *   <li>CreatedAt/UpdatedAt: Entity → Domain
      * </ul>
      *
@@ -130,6 +139,10 @@ public class UserAgentJpaEntityMapper {
                         BrowserType.valueOf(entity.getBrowserType()),
                         entity.getBrowserVersion());
 
+        CooldownPolicy cooldownPolicy =
+                CooldownPolicy.reconstitute(
+                        entity.getConsecutiveRateLimits(), toInstant(entity.getCooldownUntil()));
+
         return UserAgent.reconstitute(
                 UserAgentId.of(entity.getId()),
                 Token.ofNullable(entity.getToken()),
@@ -138,6 +151,7 @@ public class UserAgentJpaEntityMapper {
                 metadata,
                 entity.getStatus(),
                 HealthScore.of(entity.getHealthScore()),
+                cooldownPolicy,
                 toInstant(entity.getLastUsedAt()),
                 entity.getRequestsPerDay(),
                 toInstant(entity.getCreatedAt()),

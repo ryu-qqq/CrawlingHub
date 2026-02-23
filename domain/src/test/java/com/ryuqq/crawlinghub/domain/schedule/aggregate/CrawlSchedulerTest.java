@@ -1,26 +1,20 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerHistoryIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
-import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
-import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,10 +27,8 @@ import org.junit.jupiter.api.Test;
  * <ul>
  *   <li>신규 생성 {@code forNew()} - ACTIVE 상태, ID=null
  *   <li>영속성 복원 {@code reconstitute()} - 모든 필드 복원
- *   <li>등록 이벤트 {@code addRegisteredEvent()} - ID 미할당 시 예외
- *   <li>통합 수정 {@code update()} - 이벤트 발행 조건 검증
+ *   <li>통합 수정 {@code update()} - 필드 변경 및 updatedAt 갱신
  *   <li>이름 비교 {@code hasSameSchedulerName()} - 동일 이름 확인
- *   <li>이벤트 수확 {@code pollEvents()} - 이벤트 반환 및 초기화
  * </ul>
  *
  * @author development-team
@@ -70,7 +62,6 @@ class CrawlSchedulerTest {
             assertThat(scheduler.getCronExpression()).isEqualTo(cronExpression);
             assertThat(scheduler.getStatus()).isEqualTo(SchedulerStatus.ACTIVE);
             assertThat(scheduler.isActive()).isTrue();
-            assertThat(scheduler.pollEvents()).isEmpty();
         }
 
         @Test
@@ -154,40 +145,6 @@ class CrawlSchedulerTest {
     }
 
     @Nested
-    @DisplayName("addRegisteredEvent() 등록 이벤트 발행 테스트")
-    class AddRegisteredEvent {
-
-        @Test
-        @DisplayName("ID 할당 후 등록 이벤트 발행 성공")
-        void shouldAddRegisteredEventWhenIdAssigned() {
-            // given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-            CrawlSchedulerHistoryId historyId = CrawlSchedulerHistoryIdFixture.anAssignedId();
-
-            // when
-            scheduler.addRegisteredEvent(historyId, DEFAULT_INSTANT);
-
-            // then
-            List<DomainEvent> events = scheduler.pollEvents();
-            assertThat(events).hasSize(1);
-            assertThat(events.get(0)).isInstanceOf(SchedulerRegisteredEvent.class);
-        }
-
-        @Test
-        @DisplayName("ID 미할당 상태에서 등록 이벤트 발행 시 IllegalStateException 발생")
-        void shouldThrowExceptionWhenIdNotAssigned() {
-            // given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.aNewActiveScheduler();
-            CrawlSchedulerHistoryId historyId = CrawlSchedulerHistoryIdFixture.anAssignedId();
-
-            // when & then
-            assertThatThrownBy(() -> scheduler.addRegisteredEvent(historyId, DEFAULT_INSTANT))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("등록 이벤트는 ID 할당 후 발행해야 합니다.");
-        }
-    }
-
-    @Nested
     @DisplayName("update() 통합 수정 테스트")
     class Update {
 
@@ -201,7 +158,9 @@ class CrawlSchedulerTest {
             SchedulerStatus newStatus = SchedulerStatus.INACTIVE;
 
             // when
-            scheduler.update(newName, newCron, newStatus, DEFAULT_INSTANT);
+            CrawlSchedulerUpdateData updateData =
+                    CrawlSchedulerUpdateData.of(newName, newCron, newStatus);
+            scheduler.update(updateData, DEFAULT_INSTANT);
 
             // then
             assertThat(scheduler.getSchedulerName()).isEqualTo(newName);
@@ -218,93 +177,15 @@ class CrawlSchedulerTest {
             CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             // when
-            scheduler.update(
-                    SchedulerNameFixture.aDefaultName(),
-                    CronExpressionFixture.aDefaultCron(),
-                    SchedulerStatus.ACTIVE,
-                    updateTime);
+            CrawlSchedulerUpdateData updateData =
+                    CrawlSchedulerUpdateData.of(
+                            SchedulerNameFixture.aDefaultName(),
+                            CronExpressionFixture.aDefaultCron(),
+                            SchedulerStatus.ACTIVE);
+            scheduler.update(updateData, updateTime);
 
             // then
             assertThat(scheduler.getUpdatedAt()).isEqualTo(updateTime);
-        }
-
-        @Nested
-        @DisplayName("이벤트 발행 조건 테스트")
-        class EventPublishing {
-
-            @Test
-            @DisplayName("ACTIVE 상태 유지 시 SchedulerUpdatedEvent 발행")
-            void shouldPublishEventWhenActiveToActive() {
-                // given
-                CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-
-                // when
-                scheduler.update(
-                        SchedulerNameFixture.aName("new-name"),
-                        CronExpressionFixture.aDailyMidnightCron(),
-                        SchedulerStatus.ACTIVE,
-                        DEFAULT_INSTANT);
-
-                // then
-                List<DomainEvent> events = scheduler.pollEvents();
-                assertThat(events).hasSize(1);
-                assertThat(events.get(0)).isInstanceOf(SchedulerUpdatedEvent.class);
-            }
-
-            @Test
-            @DisplayName("ACTIVE → INACTIVE 전환 시 SchedulerUpdatedEvent 발행")
-            void shouldPublishEventWhenActiveToInactive() {
-                // given
-                CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-
-                // when
-                scheduler.update(
-                        SchedulerNameFixture.aDefaultName(),
-                        CronExpressionFixture.aDefaultCron(),
-                        SchedulerStatus.INACTIVE,
-                        DEFAULT_INSTANT);
-
-                // then
-                List<DomainEvent> events = scheduler.pollEvents();
-                assertThat(events).hasSize(1);
-                assertThat(events.get(0)).isInstanceOf(SchedulerUpdatedEvent.class);
-            }
-
-            @Test
-            @DisplayName("INACTIVE → ACTIVE 전환 시 SchedulerUpdatedEvent 발행")
-            void shouldPublishEventWhenInactiveToActive() {
-                // given
-                CrawlScheduler scheduler = CrawlSchedulerFixture.anInactiveScheduler();
-
-                // when
-                scheduler.update(
-                        SchedulerNameFixture.aDefaultName(),
-                        CronExpressionFixture.aDefaultCron(),
-                        SchedulerStatus.ACTIVE,
-                        DEFAULT_INSTANT);
-
-                // then
-                List<DomainEvent> events = scheduler.pollEvents();
-                assertThat(events).hasSize(1);
-                assertThat(events.get(0)).isInstanceOf(SchedulerUpdatedEvent.class);
-            }
-
-            @Test
-            @DisplayName("INACTIVE 상태 유지 시 이벤트 발행하지 않음")
-            void shouldNotPublishEventWhenInactiveToInactive() {
-                // given
-                CrawlScheduler scheduler = CrawlSchedulerFixture.anInactiveScheduler();
-
-                // when
-                scheduler.update(
-                        SchedulerNameFixture.aName("new-name"),
-                        CronExpressionFixture.aDailyMidnightCron(),
-                        SchedulerStatus.INACTIVE,
-                        DEFAULT_INSTANT);
-
-                // then
-                assertThat(scheduler.pollEvents()).isEmpty();
-            }
         }
     }
 
@@ -330,43 +211,6 @@ class CrawlSchedulerTest {
 
             // when & then
             assertThat(scheduler.hasSameSchedulerName("other-scheduler")).isFalse();
-        }
-    }
-
-    @Nested
-    @DisplayName("pollEvents() 이벤트 수확 테스트")
-    class PollEvents {
-
-        @Test
-        @DisplayName("이벤트 수확 후 내부 목록 비워짐")
-        void shouldClearEventsAfterPolling() {
-            // given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-            scheduler.addRegisteredEvent(
-                    CrawlSchedulerHistoryIdFixture.anAssignedId(), DEFAULT_INSTANT);
-
-            // when
-            List<DomainEvent> events = scheduler.pollEvents();
-
-            // then
-            assertThat(events).hasSize(1);
-            assertThat(scheduler.pollEvents()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("pollEvents()는 읽기 전용 목록 반환")
-        void shouldReturnUnmodifiableEventList() {
-            // given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-            scheduler.addRegisteredEvent(
-                    CrawlSchedulerHistoryIdFixture.anAssignedId(), DEFAULT_INSTANT);
-
-            // when
-            List<DomainEvent> events = scheduler.pollEvents();
-
-            // then
-            assertThatThrownBy(() -> events.add(null))
-                    .isInstanceOf(UnsupportedOperationException.class);
         }
     }
 

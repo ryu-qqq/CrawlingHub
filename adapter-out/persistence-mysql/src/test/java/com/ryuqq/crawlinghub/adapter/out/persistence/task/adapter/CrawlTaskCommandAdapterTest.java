@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskJpaRepository;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.LocalDateTime;

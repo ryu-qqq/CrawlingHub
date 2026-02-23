@@ -1,0 +1,7 @@
+# ========================================
+# HTTP Client - Local Profile
+# ========================================
+
+http-client:
+  connect-timeout: 10
+  request-timeout: 30

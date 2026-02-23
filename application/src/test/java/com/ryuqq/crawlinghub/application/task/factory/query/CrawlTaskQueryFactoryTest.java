@@ -2,8 +2,8 @@ package com.ryuqq.crawlinghub.application.task.factory.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.application.task.dto.query.CrawlTaskSearchParams;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,83 +30,117 @@ class CrawlTaskQueryFactoryTest {
     class CreateCriteriaMethod {
 
         @Test
-        @DisplayName("모든 필드가 있는 Query를 Criteria로 변환한다")
-        void shouldConvertQueryWithAllFields() {
+        @DisplayName("모든 필드가 있는 SearchParams를 Criteria로 변환한다")
+        void shouldConvertSearchParamsWithAllFields() {
             // Given
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(
-                            100L, null, List.of(CrawlTaskStatus.WAITING), null, null, null, 1, 20);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(100L), null, List.of("WAITING"), null, null, null, 1, 20);
 
             // When
-            CrawlTaskCriteria criteria = factory.createCriteria(query);
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
 
             // Then
-            assertThat(criteria.crawlSchedulerId().value()).isEqualTo(100L);
-            assertThat(criteria.status()).isEqualTo(CrawlTaskStatus.WAITING);
+            assertThat(criteria.crawlSchedulerIds()).hasSize(1);
+            assertThat(criteria.crawlSchedulerIds().get(0).value()).isEqualTo(100L);
+            assertThat(criteria.statuses()).containsExactly(CrawlTaskStatus.WAITING);
             assertThat(criteria.page()).isEqualTo(1);
             assertThat(criteria.size()).isEqualTo(20);
         }
 
         @Test
         @DisplayName("status가 null이어도 Criteria로 변환한다")
-        void shouldConvertQueryWithNullStatus() {
+        void shouldConvertSearchParamsWithNullStatus() {
             // Given
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(100L, null, null, null, null, null, 2, 50);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(List.of(100L), null, null, null, null, null, 2, 50);
 
             // When
-            CrawlTaskCriteria criteria = factory.createCriteria(query);
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
 
             // Then
-            assertThat(criteria.crawlSchedulerId().value()).isEqualTo(100L);
-            assertThat(criteria.status()).isNull();
+            assertThat(criteria.crawlSchedulerIds()).hasSize(1);
+            assertThat(criteria.crawlSchedulerIds().get(0).value()).isEqualTo(100L);
+            assertThat(criteria.statuses()).isNull();
             assertThat(criteria.page()).isEqualTo(2);
             assertThat(criteria.size()).isEqualTo(50);
         }
 
         @Test
         @DisplayName("RUNNING 상태로 필터링할 수 있다")
-        void shouldConvertQueryWithRunningStatus() {
+        void shouldConvertSearchParamsWithRunningStatus() {
             // Given
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(
-                            200L, null, List.of(CrawlTaskStatus.RUNNING), null, null, null, 0, 10);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(200L), null, List.of("RUNNING"), null, null, null, 0, 10);
 
             // When
-            CrawlTaskCriteria criteria = factory.createCriteria(query);
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
 
             // Then
-            assertThat(criteria.status()).isEqualTo(CrawlTaskStatus.RUNNING);
+            assertThat(criteria.statuses()).containsExactly(CrawlTaskStatus.RUNNING);
         }
 
         @Test
         @DisplayName("SUCCESS 상태로 필터링할 수 있다")
-        void shouldConvertQueryWithSuccessStatus() {
+        void shouldConvertSearchParamsWithSuccessStatus() {
             // Given
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(
-                            300L, null, List.of(CrawlTaskStatus.SUCCESS), null, null, null, 0, 10);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(300L), null, List.of("SUCCESS"), null, null, null, 0, 10);
 
             // When
-            CrawlTaskCriteria criteria = factory.createCriteria(query);
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
 
             // Then
-            assertThat(criteria.status()).isEqualTo(CrawlTaskStatus.SUCCESS);
+            assertThat(criteria.statuses()).containsExactly(CrawlTaskStatus.SUCCESS);
         }
 
         @Test
         @DisplayName("FAILED 상태로 필터링할 수 있다")
-        void shouldConvertQueryWithFailedStatus() {
+        void shouldConvertSearchParamsWithFailedStatus() {
             // Given
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(
-                            400L, null, List.of(CrawlTaskStatus.FAILED), null, null, null, 0, 10);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(400L), null, List.of("FAILED"), null, null, null, 0, 10);
 
             // When
-            CrawlTaskCriteria criteria = factory.createCriteria(query);
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
 
             // Then
-            assertThat(criteria.status()).isEqualTo(CrawlTaskStatus.FAILED);
+            assertThat(criteria.statuses()).containsExactly(CrawlTaskStatus.FAILED);
+        }
+
+        @Test
+        @DisplayName("다중 schedulerIds를 변환한다")
+        void shouldConvertMultipleSchedulerIds() {
+            // Given
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(100L, 200L, 300L), null, null, null, null, null, 0, 10);
+
+            // When
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
+
+            // Then
+            assertThat(criteria.crawlSchedulerIds()).hasSize(3);
+            assertThat(criteria.hasSchedulerIdFilter()).isTrue();
+        }
+
+        @Test
+        @DisplayName("다중 sellerIds를 변환한다")
+        void shouldConvertMultipleSellerIds() {
+            // Given
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            null, List.of(10L, 20L), null, null, null, null, 0, 10);
+
+            // When
+            CrawlTaskCriteria criteria = factory.createCriteria(params);
+
+            // Then
+            assertThat(criteria.sellerIds()).hasSize(2);
+            assertThat(criteria.hasSellerIdFilter()).isTrue();
         }
     }
 }

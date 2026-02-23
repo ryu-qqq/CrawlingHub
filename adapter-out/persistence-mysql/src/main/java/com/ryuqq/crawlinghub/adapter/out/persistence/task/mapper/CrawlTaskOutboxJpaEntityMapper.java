@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,7 +49,7 @@ public class CrawlTaskOutboxJpaEntityMapper {
      */
     public CrawlTaskOutboxJpaEntity toEntity(CrawlTaskOutbox domain) {
         return CrawlTaskOutboxJpaEntity.of(
-                domain.getCrawlTaskId().value(),
+                domain.getCrawlTaskIdValue(),
                 domain.getIdempotencyKey(),
                 domain.getPayload(),
                 domain.getStatus(),

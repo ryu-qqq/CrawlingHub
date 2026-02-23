@@ -1,0 +1,15 @@
+# ============================================================
+# AWS SQS Client 공통 설정
+# ============================================================
+# 환경별 설정은 sqs-{profile}.yml 참조
+# - sqs-local.yml: 로컬 개발 환경 (LocalStack)
+# - sqs-stage.yml: 스테이징 환경
+# - sqs-prod.yml: 운영 환경
+# ============================================================
+
+sqs:
+  region: ${AWS_REGION:ap-northeast-2}
+  message-group-id-prefix: crawl-task-
+  queues:
+    crawl-task: ${SQS_CRAWL_TASK_QUEUE_URL:}
+    product-sync: ${SQS_PRODUCT_SYNC_QUEUE_URL:}

@@ -10,8 +10,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskQueryDslRepository;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.LocalDateTime;
@@ -189,7 +189,7 @@ class CrawlTaskQueryAdapterTest {
             // Given
             CrawlTaskCriteria criteria =
                     new CrawlTaskCriteria(
-                            CrawlSchedulerId.of(1L),
+                            List.of(CrawlSchedulerId.of(1L)),
                             null,
                             List.of(CrawlTaskStatus.WAITING),
                             null,
@@ -234,7 +234,7 @@ class CrawlTaskQueryAdapterTest {
             // Given
             CrawlTaskCriteria criteria =
                     new CrawlTaskCriteria(
-                            CrawlSchedulerId.of(1L),
+                            List.of(CrawlSchedulerId.of(1L)),
                             null,
                             List.of(CrawlTaskStatus.SUCCESS),
                             null,

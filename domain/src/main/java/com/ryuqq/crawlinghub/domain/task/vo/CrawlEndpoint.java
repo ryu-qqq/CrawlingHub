@@ -35,16 +35,6 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     }
 
     /**
-     * 미니샵 상품 목록(메타데이터) 엔드포인트 생성
-     *
-     * @param mustItSellerName 머스트잇 셀러명 (API 조회 시 필요)
-     * @return CrawlEndpoint
-     */
-    public static CrawlEndpoint forMeta(String mustItSellerName) {
-        return forMiniShopList(mustItSellerName, 1, 1);
-    }
-
-    /**
      * 미니샵 상품 목록 엔드포인트 생성 (MINI_SHOP 타입 전용)
      *
      * <p>미니샵 페이지 크롤링용. 스케줄러 초기 트리거에는 {@link #forSearchItems}를 사용하세요.
@@ -206,6 +196,20 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
     }
 
     /**
+     * queryParams를 JSON 문자열로 직렬화 (Jackson 미사용)
+     *
+     * @return JSON 문자열 (null 또는 빈 맵인 경우 null 반환)
+     */
+    public String toQueryParamsJson() {
+        if (queryParams == null || queryParams.isEmpty()) {
+            return null;
+        }
+        return queryParams.entrySet().stream()
+                .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
+                .collect(Collectors.joining(",", "{", "}"));
+    }
+
+    /**
      * 머스트잇 셀러명 조회
      *
      * <p>queryParams에서 셀러명을 조회합니다.
@@ -213,14 +217,14 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
      * <p><strong>조회 순서</strong>:
      *
      * <ol>
-     *   <li>sellerId: META, MINI_SHOP 타입에서 사용
+     *   <li>sellerId: MINI_SHOP 타입에서 사용
      *   <li>keyword: SEARCH 타입에서 사용 (검색어가 셀러명)
      * </ol>
      *
      * @return 머스트잇 셀러명 (없으면 null)
      */
     public String getMustItSellerName() {
-        // META, MINI_SHOP 타입: sellerId 파라미터 사용
+        // MINI_SHOP 타입: sellerId 파라미터 사용
         String sellerId = queryParams.get("sellerId");
         if (sellerId != null && !sellerId.isBlank()) {
             return sellerId;

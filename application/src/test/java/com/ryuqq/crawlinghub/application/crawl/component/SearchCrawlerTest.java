@@ -5,12 +5,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlContext;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.crawl.dto.HttpRequest;
-import com.ryuqq.crawlinghub.application.crawl.dto.HttpResponse;
-import com.ryuqq.crawlinghub.application.crawl.port.out.client.HttpClientPort;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.SearchCrawler;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpRequest;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpResponse;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlContextMapper;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlResultMapper;
+import com.ryuqq.crawlinghub.application.execution.port.out.client.HttpClient;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,13 +36,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SearchCrawler 테스트")
 class SearchCrawlerTest {
 
-    @Mock private HttpClientPort httpClientPort;
+    @Mock private HttpClient httpClient;
+    @Mock private CrawlContextMapper crawlContextMapper;
+    @Mock private CrawlResultMapper crawlResultMapper;
 
     private SearchCrawler crawler;
 
     @BeforeEach
     void setUp() {
-        crawler = new SearchCrawler(httpClientPort);
+        crawler = new SearchCrawler(httpClient, crawlContextMapper, crawlResultMapper);
     }
 
     @Nested
@@ -85,8 +91,16 @@ class SearchCrawlerTest {
         void shouldAddQueryParamsWithSearchCookies() {
             // Given
             CrawlContext context = createContextWithSearchCookies();
+            String searchEndpoint =
+                    "https://api.example.com/search?nid=test-nid&uid=test-mustit-uid&adId=test-mustit-uid&beforeItemType=Normal";
             HttpResponse response = HttpResponse.of(200, "{\"items\": []}");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.success("{\"items\": []}", 200);
+
+            given(crawlContextMapper.buildSearchEndpoint(context)).willReturn(searchEndpoint);
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
@@ -95,7 +109,7 @@ class SearchCrawlerTest {
             assertThat(result.isSuccess()).isTrue();
 
             ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-            verify(httpClientPort).get(captor.capture());
+            verify(httpClient).get(captor.capture());
 
             String requestUrl = captor.getValue().url();
             assertThat(requestUrl).contains("nid=test-nid");
@@ -109,8 +123,15 @@ class SearchCrawlerTest {
         void shouldUseDefaultEndpointWithoutSearchCookies() {
             // Given
             CrawlContext context = createContextWithoutSearchCookies();
+            String searchEndpoint = "https://api.example.com/search";
             HttpResponse response = HttpResponse.of(200, "{\"items\": []}");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.success("{\"items\": []}", 200);
+
+            given(crawlContextMapper.buildSearchEndpoint(context)).willReturn(searchEndpoint);
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
@@ -119,7 +140,7 @@ class SearchCrawlerTest {
             assertThat(result.isSuccess()).isTrue();
 
             ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-            verify(httpClientPort).get(captor.capture());
+            verify(httpClient).get(captor.capture());
 
             String requestUrl = captor.getValue().url();
             assertThat(requestUrl).doesNotContain("nid=");
@@ -131,16 +152,25 @@ class SearchCrawlerTest {
         void shouldReturnSuccessResult() {
             // Given
             CrawlContext context = createContextWithSearchCookies();
+            String searchEndpoint =
+                    "https://api.example.com/search?nid=test-nid&uid=test-mustit-uid&adId=test-mustit-uid&beforeItemType=Normal";
             HttpResponse response = HttpResponse.of(200, "{\"items\": [], \"nextApiUrl\": null}");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult =
+                    CrawlResult.success("{\"items\": [], \"nextApiUrl\": null}", 200);
+
+            given(crawlContextMapper.buildSearchEndpoint(context)).willReturn(searchEndpoint);
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
 
             // Then
             assertThat(result.isSuccess()).isTrue();
-            assertThat(result.getHttpStatusCode()).isEqualTo(200);
-            assertThat(result.getResponseBody()).contains("items");
+            assertThat(result.httpStatusCode()).isEqualTo(200);
+            assertThat(result.responseBody()).contains("items");
         }
 
         @Test
@@ -148,15 +178,23 @@ class SearchCrawlerTest {
         void shouldReturnFailureOnHttpError() {
             // Given
             CrawlContext context = createContextWithSearchCookies();
+            String searchEndpoint =
+                    "https://api.example.com/search?nid=test-nid&uid=test-mustit-uid&adId=test-mustit-uid&beforeItemType=Normal";
             HttpResponse response = HttpResponse.of(500, "Internal Server Error");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.failure(500, "Server error: 500");
+
+            given(crawlContextMapper.buildSearchEndpoint(context)).willReturn(searchEndpoint);
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             CrawlResult result = crawler.crawl(context);
 
             // Then
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.getHttpStatusCode()).isEqualTo(500);
+            assertThat(result.httpStatusCode()).isEqualTo(500);
         }
 
         @Test
@@ -175,15 +213,23 @@ class SearchCrawlerTest {
                             "session-token",
                             "test-nid",
                             "test-mustit-uid");
+            String searchEndpoint =
+                    "https://api.example.com/search?page=1&size=20&nid=test-nid&uid=test-mustit-uid&adId=test-mustit-uid&beforeItemType=Normal";
             HttpResponse response = HttpResponse.of(200, "{}");
-            given(httpClientPort.get(any(HttpRequest.class))).willReturn(response);
+            CrawlResult expectedResult = CrawlResult.success("{}", 200);
+
+            given(crawlContextMapper.buildSearchEndpoint(context)).willReturn(searchEndpoint);
+            given(crawlContextMapper.buildHeaders(context))
+                    .willReturn(Map.of("User-Agent", "Mozilla/5.0"));
+            given(httpClient.get(any(HttpRequest.class))).willReturn(response);
+            given(crawlResultMapper.toCrawlResult(response)).willReturn(expectedResult);
 
             // When
             crawler.crawl(context);
 
             // Then
             ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-            verify(httpClientPort).get(captor.capture());
+            verify(httpClient).get(captor.capture());
 
             String requestUrl = captor.getValue().url();
             assertThat(requestUrl).contains("page=1&size=20");

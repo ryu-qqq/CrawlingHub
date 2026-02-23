@@ -1,15 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
-import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.SellerEndpoints;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.UpdateSellerApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerCommandApiMapper;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +20,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,8 +56,6 @@ public class SellerCommandController {
     }
 
     @PostMapping
-    @PreAuthorize("@access.hasPermission('seller:create')")
-    @RequirePermission(value = "seller:create", description = "셀러 등록")
     @Operation(
             summary = "셀러 등록",
             description = "새로운 셀러를 등록합니다. seller:create 권한이 필요합니다.",
@@ -73,7 +67,7 @@ public class SellerCommandController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SellerApiResponse.class))),
+                                schema = @Schema(implementation = Long.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 (유효성 검증 실패)"),
@@ -87,17 +81,14 @@ public class SellerCommandController {
                 responseCode = "409",
                 description = "중복된 셀러명")
     })
-    public ResponseEntity<ApiResponse<SellerApiResponse>> registerSeller(
+    public ResponseEntity<ApiResponse<Long>> registerSeller(
             @RequestBody @Valid RegisterSellerApiRequest request) {
         RegisterSellerCommand command = sellerCommandApiMapper.toCommand(request);
-        SellerResponse useCaseResponse = registerSellerUseCase.execute(command);
-        SellerApiResponse apiResponse = sellerCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(apiResponse));
+        long sellerId = registerSellerUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(sellerId));
     }
 
     @PatchMapping(SellerEndpoints.BY_ID)
-    @PreAuthorize("@access.hasPermission('seller:update')")
-    @RequirePermission(value = "seller:update", description = "셀러 수정")
     @Operation(
             summary = "셀러 수정",
             description = "셀러 정보를 수정합니다. seller:update 권한이 필요합니다.",
@@ -105,11 +96,7 @@ public class SellerCommandController {
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
-                description = "셀러 수정 성공",
-                content =
-                        @Content(
-                                mediaType = "application/json",
-                                schema = @Schema(implementation = SellerApiResponse.class))),
+                description = "셀러 수정 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청"),
@@ -123,15 +110,14 @@ public class SellerCommandController {
                 responseCode = "404",
                 description = "셀러를 찾을 수 없음")
     })
-    public ResponseEntity<ApiResponse<SellerApiResponse>> updateSeller(
+    public ResponseEntity<ApiResponse<Void>> updateSeller(
             @Parameter(description = "셀러 ID", required = true, example = "1")
                     @PathVariable
                     @Positive
                     Long id,
             @RequestBody @Valid UpdateSellerApiRequest request) {
         UpdateSellerCommand command = sellerCommandApiMapper.toCommand(id, request);
-        SellerResponse useCaseResponse = updateSellerUseCase.execute(command);
-        SellerApiResponse apiResponse = sellerCommandApiMapper.toApiResponse(useCaseResponse);
-        return ResponseEntity.ok(ApiResponse.of(apiResponse));
+        updateSellerUseCase.execute(command);
+        return ResponseEntity.ok(ApiResponse.of(null));
     }
 }

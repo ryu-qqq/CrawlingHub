@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.schedule.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.util.Map;
 
@@ -12,7 +11,7 @@ import java.util.Map;
  * @author development-team
  * @since 1.0.0
  */
-public final class InvalidSchedulerStateException extends DomainException {
+public final class InvalidSchedulerStateException extends CrawlSchedulerException {
 
     private static final ScheduleErrorCode ERROR_CODE = ScheduleErrorCode.INVALID_SCHEDULER_STATE;
 

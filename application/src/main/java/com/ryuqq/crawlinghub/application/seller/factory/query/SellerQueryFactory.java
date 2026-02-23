@@ -1,9 +1,11 @@
 package com.ryuqq.crawlinghub.application.seller.factory.query;
 
-import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerSearchParams;
+import com.ryuqq.crawlinghub.domain.seller.query.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +14,8 @@ import org.springframework.stereotype.Component;
  * <p><strong>책임</strong>:
  *
  * <ul>
- *   <li>Query → Criteria 변환
+ *   <li>SearchParams → Criteria 변환
+ *   <li>String 상태값 → SellerStatus Enum 파싱
  * </ul>
  *
  * <p><strong>금지</strong>:
@@ -29,26 +32,44 @@ import org.springframework.stereotype.Component;
 public class SellerQueryFactory {
 
     /**
-     * SearchSellersQuery → SellerQueryCriteria 변환
+     * SellerSearchParams → SellerQueryCriteria 변환
      *
-     * @param query 셀러 검색 Query
+     * @param params 셀러 검색 파라미터
      * @return Domain 조회 조건 객체
      */
-    public SellerQueryCriteria createCriteria(SearchSellersQuery query) {
+    public SellerQueryCriteria createCriteria(SellerSearchParams params) {
         MustItSellerName mustItSellerName =
-                query.mustItSellerName() != null
-                        ? MustItSellerName.of(query.mustItSellerName())
+                params.mustItSellerName() != null
+                        ? MustItSellerName.of(params.mustItSellerName())
                         : null;
         SellerName sellerName =
-                query.sellerName() != null ? SellerName.of(query.sellerName()) : null;
+                params.sellerName() != null ? SellerName.of(params.sellerName()) : null;
+
+        List<SellerStatus> sellerStatuses = parseStatuses(params.statuses());
 
         return new SellerQueryCriteria(
                 mustItSellerName,
                 sellerName,
-                query.sellerStatuses(),
-                query.createdFrom(),
-                query.createdTo(),
-                query.page(),
-                query.size());
+                sellerStatuses,
+                params.createdFrom(),
+                params.createdTo(),
+                params.page(),
+                params.size());
+    }
+
+    /**
+     * 상태 문자열 목록 → SellerStatus Enum 목록 변환
+     *
+     * @param statuses 상태 문자열 목록
+     * @return SellerStatus 목록 (null이거나 빈 리스트면 null)
+     */
+    private List<SellerStatus> parseStatuses(List<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return null;
+        }
+        return statuses.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(SellerStatus::valueOf)
+                .toList();
     }
 }

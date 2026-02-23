@@ -11,4 +11,8 @@ public record ProductSyncResult(
     public static ProductSyncResult failure(String errorCode, String errorMessage) {
         return new ProductSyncResult(false, null, errorCode, errorMessage);
     }
+
+    public String toErrorMessage() {
+        return String.format("API 호출 실패: errorCode=%s, errorMessage=%s", errorCode, errorMessage);
+    }
 }

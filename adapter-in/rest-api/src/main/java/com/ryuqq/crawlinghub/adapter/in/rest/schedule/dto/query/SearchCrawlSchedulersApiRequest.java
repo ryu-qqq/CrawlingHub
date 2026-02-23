@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -12,21 +11,12 @@ import java.util.List;
  *
  * <p>크롤 스케줄러 목록 조회 API 요청 DTO
  *
- * <p><strong>Query Parameters:</strong>
- *
- * <ul>
- *   <li>sellerId: 셀러 ID 필터 (선택적)
- *   <li>statuses: 상태 필터 목록 (선택적, ACTIVE/INACTIVE, 다중 선택 가능)
- *   <li>createdFrom: 생성일 시작 (선택적, ISO-8601 형식)
- *   <li>createdTo: 생성일 종료 (선택적, ISO-8601 형식)
- *   <li>page: 페이지 번호 (선택적, 기본값: 0)
- *   <li>size: 페이지 크기 (선택적, 기본값: 20, 최대: 100)
- * </ul>
- *
  * @param sellerId 셀러 ID 필터 (선택적)
  * @param statuses 상태 필터 목록 (선택적, 다중 선택 가능)
- * @param createdFrom 생성일 시작 (선택적)
- * @param createdTo 생성일 종료 (선택적)
+ * @param searchField 검색 필드 (선택적, schedulerName)
+ * @param searchWord 검색어 (선택적)
+ * @param sortKey 정렬 키 (선택적, createdAt/updatedAt/schedulerName)
+ * @param sortDirection 정렬 방향 (선택적, ASC/DESC)
  * @param page 페이지 번호
  * @param size 페이지 크기
  * @author development-team
@@ -37,10 +27,11 @@ public record SearchCrawlSchedulersApiRequest(
                 Long sellerId,
         @Schema(description = "상태 필터 목록 (다중 선택 가능)", example = "[\"ACTIVE\", \"INACTIVE\"]")
                 List<String> statuses,
-        @Schema(description = "생성일 시작 (ISO-8601)", example = "2025-01-01T00:00:00Z")
-                Instant createdFrom,
-        @Schema(description = "생성일 종료 (ISO-8601)", example = "2025-12-31T23:59:59Z")
-                Instant createdTo,
+        @Schema(description = "검색 필드", example = "schedulerName") String searchField,
+        @Schema(description = "검색어", example = "DAILY") String searchWord,
+        @Schema(description = "정렬 키 (createdAt, updatedAt, schedulerName)", example = "createdAt")
+                String sortKey,
+        @Schema(description = "정렬 방향 (ASC, DESC)", example = "DESC") String sortDirection,
         @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
                 @Schema(description = "페이지 번호 (0부터 시작)", example = "0")
                 Integer page,
@@ -49,16 +40,6 @@ public record SearchCrawlSchedulersApiRequest(
                 @Schema(description = "페이지 크기 (최대 100)", example = "20")
                 Integer size) {
 
-    /**
-     * 기본값 적용 생성자
-     *
-     * @param sellerId 셀러 ID
-     * @param statuses 상태 목록
-     * @param createdFrom 생성일 시작
-     * @param createdTo 생성일 종료
-     * @param page 페이지 번호 (null이면 0)
-     * @param size 페이지 크기 (null이면 20)
-     */
     public SearchCrawlSchedulersApiRequest {
         if (page == null) {
             page = 0;

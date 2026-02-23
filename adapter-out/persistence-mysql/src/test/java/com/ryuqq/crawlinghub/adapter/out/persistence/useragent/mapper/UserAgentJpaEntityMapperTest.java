@@ -50,11 +50,11 @@ class UserAgentJpaEntityMapperTest {
 
             // Then
             assertThat(entity).isNotNull();
-            assertThat(entity.getId()).isEqualTo(domain.getId().value());
+            assertThat(entity.getId()).isEqualTo(domain.getIdValue());
             assertThat(entity.getToken()).isEqualTo(domain.getToken().encryptedValue());
-            assertThat(entity.getUserAgentString()).isEqualTo(domain.getUserAgentString().value());
+            assertThat(entity.getUserAgentString()).isEqualTo(domain.getUserAgentStringValue());
             assertThat(entity.getDeviceType()).isEqualTo(domain.getDeviceType().getTypeName());
-            assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.READY);
+            assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(entity.getHealthScore()).isEqualTo(domain.getHealthScoreValue());
             assertThat(entity.getRequestsPerDay()).isEqualTo(domain.getRequestsPerDay());
         }
@@ -120,9 +120,11 @@ class UserAgentJpaEntityMapperTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.READY,
+                            UserAgentStatus.IDLE,
                             100,
                             now,
+                            0,
+                            null,
                             0,
                             now,
                             now);
@@ -132,11 +134,11 @@ class UserAgentJpaEntityMapperTest {
 
             // Then
             assertThat(domain).isNotNull();
-            assertThat(domain.getId().value()).isEqualTo(1L);
+            assertThat(domain.getIdValue()).isEqualTo(1L);
             assertThat(domain.getToken().encryptedValue()).isEqualTo(validToken);
-            assertThat(domain.getUserAgentString().value()).isEqualTo("Mozilla/5.0 Test Browser");
+            assertThat(domain.getUserAgentStringValue()).isEqualTo("Mozilla/5.0 Test Browser");
             assertThat(domain.getDeviceType().getTypeName()).isEqualTo("DESKTOP");
-            assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.READY);
+            assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(domain.getHealthScoreValue()).isEqualTo(100);
         }
 
@@ -161,6 +163,8 @@ class UserAgentJpaEntityMapperTest {
                             25,
                             now,
                             50,
+                            null,
+                            0,
                             now,
                             now);
 
@@ -189,9 +193,11 @@ class UserAgentJpaEntityMapperTest {
                             "5.10",
                             "CHROME",
                             "120.0.0.0",
-                            UserAgentStatus.READY,
+                            UserAgentStatus.IDLE,
                             100,
                             null, // lastUsedAt is null
+                            0,
+                            null,
                             0,
                             now,
                             now);
@@ -219,11 +225,11 @@ class UserAgentJpaEntityMapperTest {
             UserAgent restored = mapper.toDomain(entity);
 
             // Then
-            assertThat(restored.getId().value()).isEqualTo(original.getId().value());
+            assertThat(restored.getIdValue()).isEqualTo(original.getIdValue());
             assertThat(restored.getToken().encryptedValue())
                     .isEqualTo(original.getToken().encryptedValue());
-            assertThat(restored.getUserAgentString().value())
-                    .isEqualTo(original.getUserAgentString().value());
+            assertThat(restored.getUserAgentStringValue())
+                    .isEqualTo(original.getUserAgentStringValue());
             assertThat(restored.getDeviceType().getTypeName())
                     .isEqualTo(original.getDeviceType().getTypeName());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());

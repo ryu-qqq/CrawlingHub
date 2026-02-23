@@ -6,15 +6,18 @@ import static org.mockito.BDDMockito.given;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.CrawledProductJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.CrawledProductQueryDslRepository;
+import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -210,7 +213,7 @@ class CrawledProductQueryAdapterTest {
         return CrawledProductJpaEntity.of(
                 id, sellerId, itemNo, "테스트 상품", "테스트 브랜드", 100000L, 90000L, 10, null, false, null,
                 null, null, null, "NORMAL", "대한민국", null, null, now, now, now, null, null, true,
-                now, now);
+                null, null, now, now);
     }
 
     private CrawledProduct createTestDomain(long id, long sellerId, long itemNo) {
@@ -239,6 +242,8 @@ class CrawledProductQueryAdapterTest {
                 null,
                 null,
                 true,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 now,
                 now);
     }

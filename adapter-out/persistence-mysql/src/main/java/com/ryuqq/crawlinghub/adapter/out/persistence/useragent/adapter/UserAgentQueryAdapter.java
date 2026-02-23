@@ -3,18 +3,10 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.useragent.adapter;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.entity.UserAgentJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper.UserAgentJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository.UserAgentQueryDslRepository;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.useragent.dto.query.UserAgentSearchCriteria;
-import com.ryuqq.crawlinghub.application.useragent.dto.response.UserAgentSummaryResponse;
 import com.ryuqq.crawlinghub.application.useragent.port.out.query.UserAgentQueryPort;
-import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
-import com.ryuqq.crawlinghub.domain.useragent.vo.DeviceType;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -60,11 +52,11 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
     /**
      * 활성화된 UserAgent 전체 조회 (Pool 초기화용)
      *
-     * @return READY 상태인 UserAgent 목록
+     * @return IDLE 상태인 UserAgent 목록
      */
     @Override
     public List<UserAgent> findAllAvailable() {
-        List<UserAgentJpaEntity> entities = queryDslRepository.findByStatus(UserAgentStatus.READY);
+        List<UserAgentJpaEntity> entities = queryDslRepository.findByStatus(UserAgentStatus.IDLE);
         return entities.stream().map(mapper::toDomain).toList();
     }
 
@@ -110,68 +102,6 @@ public class UserAgentQueryAdapter implements UserAgentQueryPort {
     public List<UserAgent> findByStatus(UserAgentStatus status) {
         List<UserAgentJpaEntity> entities = queryDslRepository.findByStatus(status);
         return entities.stream().map(mapper::toDomain).toList();
-    }
-
-    /**
-     * 검색 조건에 따른 UserAgent 페이징 조회
-     *
-     * @param criteria 검색 조건 (상태 필터, 기간 필터, 페이징)
-     * @return 페이징된 UserAgent 요약 정보 목록
-     */
-    @Override
-    public PageResponse<UserAgentSummaryResponse> findByCriteria(UserAgentSearchCriteria criteria) {
-        PageRequest pageRequest = criteria.pageRequest();
-
-        List<UserAgentJpaEntity> entities = queryDslRepository.findByCriteria(criteria);
-        long totalElements = queryDslRepository.countByCriteria(criteria);
-
-        List<UserAgentSummaryResponse> content =
-                entities.stream().map(this::toSummaryResponse).toList();
-
-        int totalPages = pageRequest.totalPages(totalElements);
-        boolean isFirst = pageRequest.isFirst();
-        boolean isLast = pageRequest.isLast(totalElements);
-
-        return PageResponse.of(
-                content,
-                pageRequest.page(),
-                pageRequest.size(),
-                totalElements,
-                totalPages,
-                isFirst,
-                isLast);
-    }
-
-    /**
-     * Entity → SummaryResponse 변환
-     *
-     * @param entity UserAgentJpaEntity
-     * @return UserAgentSummaryResponse
-     */
-    private UserAgentSummaryResponse toSummaryResponse(UserAgentJpaEntity entity) {
-        return UserAgentSummaryResponse.of(
-                entity.getId(),
-                entity.getUserAgentString(),
-                DeviceType.of(entity.getDeviceType()),
-                entity.getStatus(),
-                entity.getHealthScore(),
-                entity.getRequestsPerDay(),
-                toInstant(entity.getLastUsedAt()),
-                toInstant(entity.getCreatedAt()),
-                toInstant(entity.getUpdatedAt()));
-    }
-
-    /**
-     * LocalDateTime → Instant 변환
-     *
-     * @param localDateTime LocalDateTime (null 가능)
-     * @return Instant (null 가능)
-     */
-    private Instant toInstant(LocalDateTime localDateTime) {
-        if (localDateTime == null) {
-            return null;
-        }
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 
     /**

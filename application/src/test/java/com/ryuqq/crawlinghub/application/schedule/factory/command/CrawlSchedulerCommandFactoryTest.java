@@ -1,16 +1,16 @@
 package com.ryuqq.crawlinghub.application.schedule.factory.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
-import com.ryuqq.crawlinghub.application.schedule.dto.CrawlSchedulerBundle;
+import com.ryuqq.crawlinghub.application.schedule.dto.bundle.CrawlSchedulerBundle;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
+import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
@@ -32,14 +31,12 @@ class CrawlSchedulerCommandFactoryTest {
 
     @Mock private TimeProvider timeProvider;
 
-    private ObjectMapper objectMapper;
     private CrawlSchedulerCommandFactory factory;
     private Instant fixedInstant;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        factory = new CrawlSchedulerCommandFactory(timeProvider, objectMapper);
+        factory = new CrawlSchedulerCommandFactory(timeProvider);
         fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
     }
 
@@ -68,8 +65,8 @@ class CrawlSchedulerCommandFactoryTest {
         }
 
         @Test
-        @DisplayName("생성된 Bundle의 eventPayload는 JSON 형식이다")
-        void shouldCreateBundleWithJsonEventPayload() throws JsonProcessingException {
+        @DisplayName("생성된 Bundle의 registeredAt이 설정된다")
+        void shouldCreateBundleWithRegisteredAt() {
             // Given
             given(timeProvider.now()).willReturn(fixedInstant);
             RegisterCrawlSchedulerCommand command =
@@ -79,29 +76,7 @@ class CrawlSchedulerCommandFactoryTest {
             CrawlSchedulerBundle bundle = factory.createBundle(command);
 
             // Then
-            assertThat(bundle.eventPayload()).isNotBlank();
-            // JSON 유효성 검증
-            Object parsed = objectMapper.readValue(bundle.eventPayload(), Object.class);
-            assertThat(parsed).isNotNull();
-        }
-
-        @Test
-        @DisplayName("이벤트 페이로드에 필수 필드가 포함된다")
-        void shouldIncludeRequiredFieldsInEventPayload() {
-            // Given
-            given(timeProvider.now()).willReturn(fixedInstant);
-            RegisterCrawlSchedulerCommand command =
-                    new RegisterCrawlSchedulerCommand(100L, "scheduler-name", "cron(0 12 * * ? *)");
-
-            // When
-            CrawlSchedulerBundle bundle = factory.createBundle(command);
-
-            // Then
-            String payload = bundle.eventPayload();
-            assertThat(payload).contains("sellerId");
-            assertThat(payload).contains("schedulerName");
-            assertThat(payload).contains("cronExpression");
-            assertThat(payload).contains("status");
+            assertThat(bundle.registeredAt()).isEqualTo(fixedInstant);
         }
     }
 
@@ -144,76 +119,46 @@ class CrawlSchedulerCommandFactoryTest {
     }
 
     @Nested
-    @DisplayName("toEventPayload() 메서드는")
-    class ToEventPayloadMethod {
+    @DisplayName("createUpdateContext() 메서드는")
+    class CreateUpdateContextMethod {
 
         @Test
-        @DisplayName("CrawlScheduler를 JSON 페이로드로 변환한다")
-        void shouldConvertSchedulerToJsonPayload() throws JsonProcessingException {
+        @DisplayName("UpdateCrawlSchedulerCommand로 UpdateContext를 생성한다")
+        void shouldCreateUpdateContextFromCommand() {
             // Given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler(100L);
+            given(timeProvider.now()).willReturn(fixedInstant);
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(
+                            10L, "updated-scheduler", "cron(0 12 * * ? *)", true);
 
             // When
-            String payload = factory.toEventPayload(scheduler);
+            UpdateContext<CrawlSchedulerId, CrawlSchedulerUpdateData> context =
+                    factory.createUpdateContext(command);
 
             // Then
-            assertThat(payload).isNotBlank();
-            Object parsed = objectMapper.readValue(payload, Object.class);
-            assertThat(parsed).isNotNull();
+            assertThat(context).isNotNull();
+            assertThat(context.id()).isEqualTo(CrawlSchedulerId.of(10L));
+            assertThat(context.updateData().schedulerName().value()).isEqualTo("updated-scheduler");
+            assertThat(context.updateData().cronExpression().value())
+                    .isEqualTo("cron(0 12 * * ? *)");
+            assertThat(context.updateData().status()).isEqualTo(SchedulerStatus.ACTIVE);
+            assertThat(context.changedAt()).isEqualTo(fixedInstant);
         }
 
         @Test
-        @DisplayName("페이로드에 schedulerId, sellerId, schedulerName, cronExpression, status가 포함된다")
-        void shouldIncludeRequiredFieldsInPayload() {
+        @DisplayName("active=false일 때 INACTIVE 상태로 생성한다")
+        void shouldCreateInactiveStatusWhenActiveFalse() {
             // Given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler(999L);
+            given(timeProvider.now()).willReturn(fixedInstant);
+            UpdateCrawlSchedulerCommand command =
+                    new UpdateCrawlSchedulerCommand(10L, "scheduler", "cron(0 0 * * ? *)", false);
 
             // When
-            String payload = factory.toEventPayload(scheduler);
+            UpdateContext<CrawlSchedulerId, CrawlSchedulerUpdateData> context =
+                    factory.createUpdateContext(command);
 
             // Then
-            assertThat(payload).contains("\"schedulerId\"");
-            assertThat(payload).contains("\"sellerId\"");
-            assertThat(payload).contains("\"schedulerName\"");
-            assertThat(payload).contains("\"cronExpression\"");
-            assertThat(payload).contains("\"status\"");
-        }
-
-        @Test
-        @DisplayName("INACTIVE 상태의 스케줄러도 변환한다")
-        void shouldConvertInactiveScheduler() {
-            // Given
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anInactiveScheduler();
-
-            // When
-            String payload = factory.toEventPayload(scheduler);
-
-            // Then
-            assertThat(payload).contains("\"status\":\"INACTIVE\"");
-        }
-    }
-
-    @Nested
-    @DisplayName("JSON 직렬화 실패 시")
-    class JsonSerializationFailure {
-
-        @Test
-        @DisplayName("toEventPayload 실패 시 IllegalStateException을 던진다")
-        void shouldThrowIllegalStateExceptionWhenSerializationFails()
-                throws JsonProcessingException {
-            // Given
-            ObjectMapper failingMapper = Mockito.mock(ObjectMapper.class);
-            CrawlSchedulerCommandFactory failingFactory =
-                    new CrawlSchedulerCommandFactory(timeProvider, failingMapper);
-            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
-
-            given(failingMapper.writeValueAsString(Mockito.any()))
-                    .willThrow(new JsonProcessingException("Serialization failed") {});
-
-            // When & Then
-            assertThatThrownBy(() -> failingFactory.toEventPayload(scheduler))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("이벤트 페이로드 생성 실패");
+            assertThat(context.updateData().status()).isEqualTo(SchedulerStatus.INACTIVE);
         }
     }
 }

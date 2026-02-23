@@ -33,9 +33,9 @@ public record CrawlTaskPayload(
      */
     public static CrawlTaskPayload from(CrawlTask crawlTask) {
         return new CrawlTaskPayload(
-                crawlTask.getId().value(),
-                crawlTask.getCrawlSchedulerId().value(),
-                crawlTask.getSellerId().value(),
+                crawlTask.getIdValue(),
+                crawlTask.getCrawlSchedulerIdValue(),
+                crawlTask.getSellerIdValue(),
                 crawlTask.getTaskType().name(),
                 crawlTask.getEndpoint().toFullUrl());
     }

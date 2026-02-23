@@ -75,7 +75,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -96,7 +96,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -110,7 +110,7 @@ public final class UserAgentFixture {
      * @return UserAgent (ID = 1L, READY, Health Score 100)
      */
     public static UserAgent anAvailableUserAgent() {
-        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.initial());
+        return reconstitute(UserAgentStatus.IDLE, HealthScoreFixture.initial());
     }
 
     /**
@@ -126,7 +126,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.initial(),
                 now,
                 0,
@@ -180,7 +180,7 @@ public final class UserAgentFixture {
      * @return UserAgent (READY, Health Score 35)
      */
     public static UserAgent anAlmostSuspendedUserAgent() {
-        return reconstitute(UserAgentStatus.READY, HealthScoreFixture.of(35));
+        return reconstitute(UserAgentStatus.IDLE, HealthScoreFixture.of(35));
     }
 
     /**
@@ -195,7 +195,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 100,
@@ -216,7 +216,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.initial(),
                 DEFAULT_TIME,
                 0,
@@ -238,7 +238,7 @@ public final class UserAgentFixture {
                 UserAgentStringFixture.aDefaultUserAgentString(),
                 DeviceTypeFixture.aDefaultDeviceType(),
                 UserAgentMetadataFixture.aDefaultMetadata(),
-                UserAgentStatus.READY,
+                UserAgentStatus.IDLE,
                 HealthScoreFixture.of(healthScoreValue),
                 now,
                 0,
@@ -264,6 +264,30 @@ public final class UserAgentFixture {
                 UserAgentMetadataFixture.aDefaultMetadata(),
                 status,
                 healthScore,
+                DEFAULT_TIME,
+                0,
+                DEFAULT_TIME,
+                DEFAULT_TIME);
+    }
+
+    /**
+     * 특정 ID와 Health Score를 가진 READY UserAgent 생성
+     *
+     * <p>AvailableUserAgentPool 테스트에서 서로 다른 ID + healthScore 조합이 필요할 때 사용
+     *
+     * @param id UserAgent ID
+     * @param healthScore 건강 점수
+     * @return UserAgent (READY)
+     */
+    public static UserAgent anAvailableUserAgent(Long id, int healthScore) {
+        return UserAgent.reconstitute(
+                UserAgentIdFixture.anAssignedId(id),
+                TokenFixture.aDefaultToken(),
+                UserAgentStringFixture.aDefaultUserAgentString(),
+                DeviceTypeFixture.aDefaultDeviceType(),
+                UserAgentMetadataFixture.aDefaultMetadata(),
+                UserAgentStatus.IDLE,
+                HealthScoreFixture.of(healthScore),
                 DEFAULT_TIME,
                 0,
                 DEFAULT_TIME,

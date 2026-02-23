@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.schedule.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -61,7 +60,18 @@ class CrawlSchedulerOutBoxQueryAdapterTest {
             LocalDateTime now = LocalDateTime.now();
             CrawlSchedulerOutBoxJpaEntity entity =
                     CrawlSchedulerOutBoxJpaEntity.of(
-                            1L, 1L, CrawlSchedulerOubBoxStatus.PENDING, "{}", null, 0L, now, null);
+                            1L,
+                            1L,
+                            CrawlSchedulerOubBoxStatus.PENDING,
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
+                            null,
+                            0L,
+                            now,
+                            null);
             CrawlSchedulerOutBox domain = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
             given(queryDslRepository.findByHistoryId(1L)).willReturn(Optional.of(entity));
@@ -101,7 +111,18 @@ class CrawlSchedulerOutBoxQueryAdapterTest {
             LocalDateTime now = LocalDateTime.now();
             CrawlSchedulerOutBoxJpaEntity entity =
                     CrawlSchedulerOutBoxJpaEntity.of(
-                            1L, 1L, CrawlSchedulerOubBoxStatus.PENDING, "{}", null, 0L, now, null);
+                            1L,
+                            1L,
+                            CrawlSchedulerOubBoxStatus.PENDING,
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
+                            null,
+                            0L,
+                            now,
+                            null);
             CrawlSchedulerOutBox domain = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
             given(queryDslRepository.findByStatus(CrawlSchedulerOubBoxStatus.PENDING, 10))
@@ -118,24 +139,73 @@ class CrawlSchedulerOutBoxQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("findPendingOrFailed 테스트")
-    class FindPendingOrFailedTests {
+    @DisplayName("findPendingOlderThan 테스트")
+    class FindPendingOlderThanTests {
 
         @Test
-        @DisplayName("성공 - PENDING 또는 FAILED 상태의 OutBox 조회")
-        void shouldFindPendingOrFailed() {
+        @DisplayName("성공 - 지정 시간 이상 경과한 PENDING OutBox 조회")
+        void shouldFindPendingOlderThan() {
             // Given
             LocalDateTime now = LocalDateTime.now();
             CrawlSchedulerOutBoxJpaEntity entity =
                     CrawlSchedulerOutBoxJpaEntity.of(
-                            1L, 1L, CrawlSchedulerOubBoxStatus.PENDING, "{}", null, 0L, now, null);
+                            1L,
+                            1L,
+                            CrawlSchedulerOubBoxStatus.PENDING,
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
+                            null,
+                            0L,
+                            now,
+                            null);
             CrawlSchedulerOutBox domain = CrawlSchedulerOutBoxFixture.aPendingOutBox();
 
-            given(queryDslRepository.findByStatusIn(anyList(), eq(10))).willReturn(List.of(entity));
+            given(queryDslRepository.findPendingOlderThan(eq(10), eq(30)))
+                    .willReturn(List.of(entity));
             given(mapper.toDomain(entity)).willReturn(domain);
 
             // When
-            List<CrawlSchedulerOutBox> result = queryAdapter.findPendingOrFailed(10);
+            List<CrawlSchedulerOutBox> result = queryAdapter.findPendingOlderThan(10, 30);
+
+            // Then
+            assertThat(result).hasSize(1);
+        }
+    }
+
+    @Nested
+    @DisplayName("findStaleProcessing 테스트")
+    class FindStaleProcessingTests {
+
+        @Test
+        @DisplayName("성공 - 타임아웃된 PROCESSING OutBox 조회")
+        void shouldFindStaleProcessing() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawlSchedulerOutBoxJpaEntity entity =
+                    CrawlSchedulerOutBoxJpaEntity.of(
+                            1L,
+                            1L,
+                            CrawlSchedulerOubBoxStatus.PROCESSING,
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
+                            null,
+                            0L,
+                            now,
+                            now);
+            CrawlSchedulerOutBox domain = CrawlSchedulerOutBoxFixture.aPendingOutBox();
+
+            given(queryDslRepository.findStaleProcessing(eq(10), eq(300L)))
+                    .willReturn(List.of(entity));
+            given(mapper.toDomain(entity)).willReturn(domain);
+
+            // When
+            List<CrawlSchedulerOutBox> result = queryAdapter.findStaleProcessing(10, 300L);
 
             // Then
             assertThat(result).hasSize(1);

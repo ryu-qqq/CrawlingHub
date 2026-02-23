@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedu
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,7 +32,11 @@ public class CrawlSchedulerOutBoxJpaEntityMapper {
                 domain.getOutBoxIdValue(),
                 domain.getHistoryIdValue(),
                 domain.getStatus(),
-                domain.getEventPayload(),
+                domain.getSchedulerId(),
+                domain.getSellerId(),
+                domain.getSchedulerName(),
+                domain.getCronExpression(),
+                domain.getSchedulerStatus().name(),
                 domain.getErrorMessage(),
                 domain.getVersion(),
                 toLocalDateTime(domain.getCreatedAt()),
@@ -49,7 +54,11 @@ public class CrawlSchedulerOutBoxJpaEntityMapper {
                 CrawlSchedulerOutBoxId.of(entity.getId()),
                 CrawlSchedulerHistoryId.of(entity.getHistoryId()),
                 entity.getStatus(),
-                entity.getEventPayload(),
+                entity.getSchedulerId(),
+                entity.getSellerId(),
+                entity.getSchedulerName(),
+                entity.getCronExpression(),
+                SchedulerStatus.valueOf(entity.getSchedulerStatus()),
                 entity.getErrorMessage(),
                 entity.getVersion(),
                 toInstant(entity.getCreatedAt()),

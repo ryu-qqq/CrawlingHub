@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.domain.seller.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 
 /**

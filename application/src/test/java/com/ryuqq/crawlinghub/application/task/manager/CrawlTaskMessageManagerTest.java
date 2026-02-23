@@ -2,19 +2,11 @@ package com.ryuqq.crawlinghub.application.task.manager;
 
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlEndpointFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskOutboxFixture;
-import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskTypeFixture;
-import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
-import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
-import com.ryuqq.crawlinghub.application.task.manager.messaging.CrawlTaskMessageManager;
-import com.ryuqq.crawlinghub.application.task.port.out.messaging.CrawlTaskMessagePort;
+import com.ryuqq.crawlinghub.application.task.port.out.client.CrawlTaskMessageClient;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.event.CrawlTaskRegisteredEvent;
-import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,37 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlTaskMessageManager 테스트")
 class CrawlTaskMessageManagerTest {
 
-    @Mock private CrawlTaskMessagePort crawlTaskMessagePort;
+    @Mock private CrawlTaskMessageClient crawlTaskMessageClient;
 
     @InjectMocks private CrawlTaskMessageManager manager;
-
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-11-27T00:00:00Z");
-
-    @Nested
-    @DisplayName("publishFromEvent() 테스트")
-    class PublishFromEvent {
-
-        @Test
-        @DisplayName("[성공] CrawlTaskRegisteredEvent 기반 메시지 발행")
-        void shouldPublishFromEvent() {
-            // Given
-            CrawlTaskRegisteredEvent event =
-                    CrawlTaskRegisteredEvent.of(
-                            CrawlTaskIdFixture.anAssignedId(),
-                            CrawlSchedulerIdFixture.anAssignedId(),
-                            SellerIdFixture.anAssignedId(),
-                            CrawlTaskTypeFixture.defaultType(),
-                            CrawlEndpointFixture.aMiniShopListEndpoint(),
-                            "{\"payload\": \"test\"}",
-                            FIXED_INSTANT);
-
-            // When
-            manager.publishFromEvent(event);
-
-            // Then
-            verify(crawlTaskMessagePort).publishFromEvent(event);
-        }
-    }
 
     @Nested
     @DisplayName("publishFromOutbox() 테스트")
@@ -81,7 +45,7 @@ class CrawlTaskMessageManagerTest {
             manager.publishFromOutbox(outbox);
 
             // Then
-            verify(crawlTaskMessagePort).publishFromOutbox(outbox);
+            verify(crawlTaskMessageClient).publishFromOutbox(outbox);
         }
     }
 
@@ -100,7 +64,7 @@ class CrawlTaskMessageManagerTest {
             manager.publish(task, idempotencyKey);
 
             // Then
-            verify(crawlTaskMessagePort).publish(task, idempotencyKey);
+            verify(crawlTaskMessageClient).publish(task, idempotencyKey);
         }
     }
 }
