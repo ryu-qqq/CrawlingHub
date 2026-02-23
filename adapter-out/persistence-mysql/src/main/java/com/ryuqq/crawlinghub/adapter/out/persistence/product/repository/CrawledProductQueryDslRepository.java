@@ -2,13 +2,8 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.product.repository;
 
 import static com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.QCrawledProductJpaEntity.crawledProductJpaEntity;
 
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
-import com.ryuqq.crawlinghub.application.product.dto.query.SearchCrawledProductsQuery;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -133,43 +128,6 @@ public class CrawledProductQueryDslRepository {
     }
 
     /**
-     * 검색 조건에 따른 CrawledProduct 목록 조회 (페이징)
-     *
-     * @param query 검색 조건
-     * @return Entity 목록
-     */
-    public List<CrawledProductJpaEntity> search(SearchCrawledProductsQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
-
-        return queryFactory
-                .selectFrom(crawledProductJpaEntity)
-                .where(builder)
-                .orderBy(crawledProductJpaEntity.createdAt.desc())
-                .offset(query.getOffset())
-                .limit(query.size())
-                .fetch();
-    }
-
-    /**
-     * 검색 조건에 따른 CrawledProduct 개수 조회
-     *
-     * @param query 검색 조건
-     * @return 총 개수
-     */
-    public long count(SearchCrawledProductsQuery query) {
-        BooleanBuilder builder = buildSearchCondition(query);
-
-        Long count =
-                queryFactory
-                        .select(crawledProductJpaEntity.count())
-                        .from(crawledProductJpaEntity)
-                        .where(builder)
-                        .fetchOne();
-
-        return count != null ? count : 0L;
-    }
-
-    /**
      * 셀러별 CrawledProduct 개수 조회
      *
      * @param sellerId 셀러 ID
@@ -184,95 +142,5 @@ public class CrawledProductQueryDslRepository {
                         .fetchOne();
 
         return count != null ? count : 0L;
-    }
-
-    /**
-     * 검색 조건 BooleanBuilder 생성
-     *
-     * @param query 검색 조건
-     * @return BooleanBuilder
-     */
-    private BooleanBuilder buildSearchCondition(SearchCrawledProductsQuery query) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-        // sellerId 정확히 일치
-        if (query.sellerId() != null) {
-            builder.and(crawledProductJpaEntity.sellerId.eq(query.sellerId()));
-        }
-
-        // itemNos 다중 선택 (IN 절)
-        if (query.hasItemNosFilter()) {
-            builder.and(crawledProductJpaEntity.itemNo.in(query.itemNos()));
-        }
-
-        // itemName 부분 일치 (LIKE)
-        if (query.itemName() != null && !query.itemName().isBlank()) {
-            builder.and(crawledProductJpaEntity.itemName.containsIgnoreCase(query.itemName()));
-        }
-
-        // brandName 부분 일치 (LIKE)
-        if (query.brandName() != null && !query.brandName().isBlank()) {
-            builder.and(crawledProductJpaEntity.brandName.containsIgnoreCase(query.brandName()));
-        }
-
-        // 가격 범위 필터 (할인가 기준)
-        if (query.minPrice() != null) {
-            builder.and(crawledProductJpaEntity.discountPrice.goe(query.minPrice()));
-        }
-        if (query.maxPrice() != null) {
-            builder.and(crawledProductJpaEntity.discountPrice.loe(query.maxPrice()));
-        }
-
-        // needsSync 여부
-        if (query.needsSync() != null) {
-            builder.and(crawledProductJpaEntity.needsSync.eq(query.needsSync()));
-        }
-
-        // allCrawled 여부 (MINI_SHOP, DETAIL, OPTION 모두 완료)
-        if (query.allCrawled() != null) {
-            if (query.allCrawled()) {
-                builder.and(crawledProductJpaEntity.miniShopCrawledAt.isNotNull());
-                builder.and(crawledProductJpaEntity.detailCrawledAt.isNotNull());
-                builder.and(crawledProductJpaEntity.optionCrawledAt.isNotNull());
-            } else {
-                builder.and(
-                        crawledProductJpaEntity
-                                .miniShopCrawledAt
-                                .isNull()
-                                .or(crawledProductJpaEntity.detailCrawledAt.isNull())
-                                .or(crawledProductJpaEntity.optionCrawledAt.isNull()));
-            }
-        }
-
-        // hasExternalId 여부 (외부 상품 ID 존재)
-        if (query.hasExternalId() != null) {
-            if (query.hasExternalId()) {
-                builder.and(crawledProductJpaEntity.externalProductId.isNotNull());
-            } else {
-                builder.and(crawledProductJpaEntity.externalProductId.isNull());
-            }
-        }
-
-        // 생성일시 범위 필터 (Instant → LocalDateTime 변환)
-        if (query.createdFrom() != null) {
-            LocalDateTime fromDateTime = toLocalDateTime(query.createdFrom());
-            builder.and(crawledProductJpaEntity.createdAt.goe(fromDateTime));
-        }
-        if (query.createdTo() != null) {
-            LocalDateTime toDateTime = toLocalDateTime(query.createdTo());
-            builder.and(crawledProductJpaEntity.createdAt.loe(toDateTime));
-        }
-
-        return builder;
-    }
-
-    /**
-     * Instant를 LocalDateTime으로 변환
-     *
-     * @param instant Instant 객체
-     * @return LocalDateTime 객체
-     */
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

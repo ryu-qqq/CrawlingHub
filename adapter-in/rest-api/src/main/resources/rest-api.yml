@@ -28,8 +28,7 @@ springdoc:
 # ===============================================
 # Security Configuration
 # ===============================================
-# Gateway 헤더 파싱은 AuthHub SDK의 GatewayHeaderParser가 처리
-# SDK의 SecurityHeaders 상수로 헤더명 관리
+# Service Token 인증 설정
 security:
   # Service Token 인증 설정 (서버 간 내부 통신용)
   # SSM Parameter Store에서 환경변수로 주입됨

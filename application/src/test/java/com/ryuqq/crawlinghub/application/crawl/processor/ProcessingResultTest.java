@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.crawl.processor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
 import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.mapper.UserAgentJ
 import com.ryuqq.crawlinghub.adapter.out.persistence.useragent.repository.UserAgentJpaRepository;
 import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPersistencePort;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import java.util.List;
 import org.springframework.stereotype.Component;
 

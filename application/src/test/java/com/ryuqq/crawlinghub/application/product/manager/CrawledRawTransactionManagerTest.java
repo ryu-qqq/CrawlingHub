@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledRawPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -116,12 +116,13 @@ class CrawledRawTransactionManagerTest {
             // Given
             CrawledRaw crawledRaw = createPendingRaw(1L, 100L, 12345L);
             CrawledRawId expectedId = CrawledRawId.of(1L);
+            Instant now = Instant.now();
 
-            given(crawledRawPersistencePort.persist(crawledRaw.markAsProcessed()))
+            given(crawledRawPersistencePort.persist(crawledRaw.markAsProcessed(now)))
                     .willReturn(expectedId);
 
             // When
-            CrawledRawId result = manager.markAsProcessed(crawledRaw);
+            CrawledRawId result = manager.markAsProcessed(crawledRaw, now);
 
             // Then
             assertThat(result).isEqualTo(expectedId);
@@ -139,12 +140,13 @@ class CrawledRawTransactionManagerTest {
             CrawledRaw crawledRaw = createPendingRaw(1L, 100L, 12345L);
             String errorMessage = "JSON 파싱 실패";
             CrawledRawId expectedId = CrawledRawId.of(1L);
+            Instant now = Instant.now();
 
-            given(crawledRawPersistencePort.persist(crawledRaw.markAsFailed(errorMessage)))
+            given(crawledRawPersistencePort.persist(crawledRaw.markAsFailed(errorMessage, now)))
                     .willReturn(expectedId);
 
             // When
-            CrawledRawId result = manager.markAsFailed(crawledRaw, errorMessage);
+            CrawledRawId result = manager.markAsFailed(crawledRaw, errorMessage, now);
 
             // Then
             assertThat(result).isEqualTo(expectedId);
@@ -154,7 +156,12 @@ class CrawledRawTransactionManagerTest {
     // === Helper Methods ===
 
     private CrawledRaw createPendingRaw(long schedulerId, long sellerId, long itemNo) {
-        return CrawledRaw.create(
-                schedulerId, sellerId, itemNo, CrawlType.MINI_SHOP, "{\"test\": \"data\"}");
+        return CrawledRaw.forNew(
+                schedulerId,
+                sellerId,
+                itemNo,
+                CrawlType.MINI_SHOP,
+                "{\"test\": \"data\"}",
+                Instant.now());
     }
 }

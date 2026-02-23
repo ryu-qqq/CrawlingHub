@@ -58,7 +58,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("전체 UserAgent 목록 조회 성공")
         void shouldListAllUserAgentsSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -86,7 +86,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("READY 상태 필터링 조회")
         void shouldFilterByReadyStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -112,7 +112,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("BLOCKED 상태 필터링 조회")
         void shouldFilterByBlockedStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -134,7 +134,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션 정상 동작")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - 페이지 크기 2로 첫 페이지 조회
             ResponseEntity<Map<String, Object>> response =
@@ -163,7 +163,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 status 값으로 조회 시 400 반환")
         void shouldReturn400WhenInvalidStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -181,7 +181,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:read 권한 없으면 403 반환")
         void shouldReturn403WithoutReadPermission() {
             // given - seller:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -224,7 +224,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("Pool 상태 조회 성공")
         void shouldGetPoolStatusSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -252,7 +252,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:read 권한 없으면 403 반환")
         void shouldReturn403WithoutReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -295,7 +295,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("UserAgent 복구 성공")
         void shouldRecoverUserAgentsSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:manage");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -321,7 +321,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:manage 권한 없으면 403 반환")
         void shouldReturn403WithoutManagePermission() {
             // given - useragent:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -365,7 +365,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:read 권한이 있으면 목록 조회 가능")
         void shouldAllowListWithReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -383,7 +383,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:read 권한이 있으면 Pool 상태 조회 가능")
         void shouldAllowPoolStatusWithReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -401,7 +401,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("useragent:manage 권한이 있으면 복구 가능")
         void shouldAllowRecoverWithManagePermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("useragent:manage");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when
@@ -420,8 +420,7 @@ class UserAgentIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("여러 권한이 있는 경우 정상 동작")
         void shouldWorkWithMultiplePermissions() {
             // given - 여러 권한을 가진 사용자
-            HttpHeaders headers =
-                    AuthTestHelper.withPermissions("useragent:read", "useragent:manage");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when - 읽기 요청

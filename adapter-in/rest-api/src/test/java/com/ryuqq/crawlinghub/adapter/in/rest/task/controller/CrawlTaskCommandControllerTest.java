@@ -12,11 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskCommandApiMapper;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 import com.ryuqq.crawlinghub.application.task.port.in.command.RetryCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -80,14 +79,17 @@ class CrawlTaskCommandControllerTest {
             Long taskId = 1L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(taskId);
 
-            CrawlTaskResponse useCaseResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult useCaseResult =
+                    new CrawlTaskResult(
                             taskId,
                             100L,
                             10L,
                             "https://example.com/products",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.DETAIL,
+                            "https://example.com",
+                            "/products",
+                            Map.of(),
+                            "RETRY",
+                            "DETAIL",
                             1,
                             Instant.now(),
                             Instant.now());
@@ -98,6 +100,9 @@ class CrawlTaskCommandControllerTest {
                             100L,
                             10L,
                             "https://example.com/products",
+                            "https://example.com",
+                            "/products",
+                            Map.of(),
                             "RETRY",
                             "DETAIL",
                             1,
@@ -106,8 +111,8 @@ class CrawlTaskCommandControllerTest {
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResponse.class)))
+                    .willReturn(useCaseResult);
+            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResult.class)))
                     .willReturn(apiResponse);
 
             // When & Then
@@ -127,7 +132,7 @@ class CrawlTaskCommandControllerTest {
             // UseCase 호출 검증
             verify(crawlTaskCommandApiMapper).toRetryCommand(taskId);
             verify(retryCrawlTaskUseCase).retry(any(RetryCrawlTaskCommand.class));
-            verify(crawlTaskCommandApiMapper).toApiResponse(any(CrawlTaskResponse.class));
+            verify(crawlTaskCommandApiMapper).toApiResponse(any(CrawlTaskResult.class));
         }
 
         @Test
@@ -137,14 +142,17 @@ class CrawlTaskCommandControllerTest {
             Long taskId = 2L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(taskId);
 
-            CrawlTaskResponse useCaseResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult useCaseResult =
+                    new CrawlTaskResult(
                             taskId,
                             101L,
                             11L,
                             "https://example.com/minishop",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.MINI_SHOP,
+                            "https://example.com",
+                            "/minishop",
+                            Map.of(),
+                            "RETRY",
+                            "MINI_SHOP",
                             2,
                             Instant.now(),
                             Instant.now());
@@ -155,6 +163,9 @@ class CrawlTaskCommandControllerTest {
                             101L,
                             11L,
                             "https://example.com/minishop",
+                            "https://example.com",
+                            "/minishop",
+                            Map.of(),
                             "RETRY",
                             "MINI_SHOP",
                             2,
@@ -163,8 +174,8 @@ class CrawlTaskCommandControllerTest {
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResponse.class)))
+                    .willReturn(useCaseResult);
+            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResult.class)))
                     .willReturn(apiResponse);
 
             // When & Then
@@ -188,14 +199,17 @@ class CrawlTaskCommandControllerTest {
             Long taskId = 3L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(taskId);
 
-            CrawlTaskResponse useCaseResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult useCaseResult =
+                    new CrawlTaskResult(
                             taskId,
                             102L,
                             12L,
                             "https://example.com/meta",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.META,
+                            "https://example.com",
+                            "/meta",
+                            Map.of(),
+                            "RETRY",
+                            "META",
                             3,
                             Instant.now(),
                             Instant.now());
@@ -206,6 +220,9 @@ class CrawlTaskCommandControllerTest {
                             102L,
                             12L,
                             "https://example.com/meta",
+                            "https://example.com",
+                            "/meta",
+                            Map.of(),
                             "RETRY",
                             "META",
                             3,
@@ -214,8 +231,8 @@ class CrawlTaskCommandControllerTest {
 
             given(crawlTaskCommandApiMapper.toRetryCommand(taskId)).willReturn(command);
             given(retryCrawlTaskUseCase.retry(any(RetryCrawlTaskCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResponse.class)))
+                    .willReturn(useCaseResult);
+            given(crawlTaskCommandApiMapper.toApiResponse(any(CrawlTaskResult.class)))
                     .willReturn(apiResponse);
 
             // When & Then

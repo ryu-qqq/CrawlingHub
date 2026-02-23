@@ -59,7 +59,7 @@ class CrawlTaskOutboxJpaEntityMapperTest {
 
             // Then
             assertThat(entity).isNotNull();
-            assertThat(entity.getCrawlTaskId()).isEqualTo(domain.getCrawlTaskId().value());
+            assertThat(entity.getCrawlTaskId()).isEqualTo(domain.getCrawlTaskIdValue());
             assertThat(entity.getIdempotencyKey()).isEqualTo(domain.getIdempotencyKey());
             assertThat(entity.getPayload()).isEqualTo(domain.getPayload());
             assertThat(entity.getStatus()).isEqualTo(OutboxStatus.PENDING);
@@ -136,7 +136,7 @@ class CrawlTaskOutboxJpaEntityMapperTest {
 
             // Then
             assertThat(domain).isNotNull();
-            assertThat(domain.getCrawlTaskId().value()).isEqualTo(1L);
+            assertThat(domain.getCrawlTaskIdValue()).isEqualTo(1L);
             assertThat(domain.getIdempotencyKey()).isEqualTo("outbox-1-abcd1234");
             assertThat(domain.getPayload()).isEqualTo("{\"taskId\": 1, \"sellerId\": 100}");
             assertThat(domain.getStatus()).isEqualTo(OutboxStatus.PENDING);
@@ -208,8 +208,7 @@ class CrawlTaskOutboxJpaEntityMapperTest {
             CrawlTaskOutbox restored = mapper.toDomain(entity);
 
             // Then
-            assertThat(restored.getCrawlTaskId().value())
-                    .isEqualTo(original.getCrawlTaskId().value());
+            assertThat(restored.getCrawlTaskIdValue()).isEqualTo(original.getCrawlTaskIdValue());
             assertThat(restored.getIdempotencyKey()).isEqualTo(original.getIdempotencyKey());
             assertThat(restored.getPayload()).isEqualTo(original.getPayload());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());

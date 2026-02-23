@@ -4,16 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.RegisterCrawlSchedulerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateCrawlSchedulerApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.command.UpdateSchedulerStatusApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -102,42 +97,6 @@ class CrawlSchedulerCommandApiMapperTest {
     }
 
     @Nested
-    @DisplayName("toStatusCommand() 테스트")
-    class ToStatusCommandTests {
-
-        @Test
-        @DisplayName("상태 변경 요청을 명령으로 변환한다")
-        void toStatusCommand_ShouldConvertCorrectly() {
-            // given
-            Long crawlSchedulerId = 1L;
-            UpdateSchedulerStatusApiRequest request = new UpdateSchedulerStatusApiRequest(true);
-
-            // when
-            UpdateCrawlSchedulerCommand result = mapper.toStatusCommand(crawlSchedulerId, request);
-
-            // then
-            assertThat(result.crawlSchedulerId()).isEqualTo(1L);
-            assertThat(result.schedulerName()).isNull();
-            assertThat(result.cronExpression()).isNull();
-            assertThat(result.active()).isTrue();
-        }
-
-        @Test
-        @DisplayName("비활성화 요청을 명령으로 변환한다")
-        void toStatusCommand_WithFalse_ShouldConvertCorrectly() {
-            // given
-            Long crawlSchedulerId = 2L;
-            UpdateSchedulerStatusApiRequest request = new UpdateSchedulerStatusApiRequest(false);
-
-            // when
-            UpdateCrawlSchedulerCommand result = mapper.toStatusCommand(crawlSchedulerId, request);
-
-            // then
-            assertThat(result.active()).isFalse();
-        }
-    }
-
-    @Nested
     @DisplayName("toApiResponse() 테스트")
     class ToApiResponseTests {
 
@@ -177,65 +136,6 @@ class CrawlSchedulerCommandApiMapperTest {
             // then
             assertThat(result.createdAt()).isNull();
             assertThat(result.updatedAt()).isNull();
-        }
-    }
-
-    @Nested
-    @DisplayName("toTaskApiResponse() 테스트")
-    class ToTaskApiResponseTests {
-
-        @Test
-        @DisplayName("CrawlTask 응답을 API 응답으로 변환한다")
-        void toTaskApiResponse_ShouldConvertCorrectly() {
-            // given
-            Instant now = Instant.now();
-            CrawlTaskResponse appResponse =
-                    new CrawlTaskResponse(
-                            1L,
-                            10L,
-                            100L,
-                            "https://example.com",
-                            CrawlTaskStatus.RUNNING,
-                            CrawlTaskType.MINI_SHOP,
-                            0,
-                            now,
-                            now);
-
-            // when
-            CrawlTaskApiResponse result = mapper.toTaskApiResponse(appResponse);
-
-            // then
-            assertThat(result.crawlTaskId()).isEqualTo(1L);
-            assertThat(result.crawlSchedulerId()).isEqualTo(10L);
-            assertThat(result.sellerId()).isEqualTo(100L);
-            assertThat(result.requestUrl()).isEqualTo("https://example.com");
-            assertThat(result.status()).isEqualTo("RUNNING");
-            assertThat(result.taskType()).isEqualTo("MINI_SHOP");
-            assertThat(result.retryCount()).isZero();
-            assertThat(result.createdAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("null createdAt을 처리한다")
-        void toTaskApiResponse_WithNullCreatedAt_ShouldHandleNullValue() {
-            // given
-            CrawlTaskResponse appResponse =
-                    new CrawlTaskResponse(
-                            1L,
-                            10L,
-                            100L,
-                            "https://example.com",
-                            CrawlTaskStatus.WAITING,
-                            CrawlTaskType.DETAIL,
-                            1,
-                            null,
-                            null);
-
-            // when
-            CrawlTaskApiResponse result = mapper.toTaskApiResponse(appResponse);
-
-            // then
-            assertThat(result.createdAt()).isNull();
         }
     }
 }

@@ -1,0 +1,13 @@
+# ============================================================
+# AWS SQS Client 스테이징 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=stage
+# ============================================================
+
+sqs:
+  region: ap-northeast-2
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.sqs: INFO
+    software.amazon.awssdk: WARN

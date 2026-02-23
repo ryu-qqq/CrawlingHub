@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.seller.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.query.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import java.util.List;
 import java.util.Optional;
 

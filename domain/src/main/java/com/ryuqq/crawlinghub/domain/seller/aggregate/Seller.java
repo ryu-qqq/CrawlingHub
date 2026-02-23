@@ -2,10 +2,11 @@ package com.ryuqq.crawlinghub.domain.seller.aggregate;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
 import com.ryuqq.crawlinghub.domain.seller.event.SellerDeActiveEvent;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerUpdateData;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -162,64 +163,27 @@ public class Seller {
         this.updatedAt = now;
 
         // 이벤트 발행: 크롤링 스케줄 중지
-        this.domainEvents.add(SellerDeActiveEvent.of(this.sellerId, now));
+        registerEvent(SellerDeActiveEvent.of(this.sellerId, now));
     }
 
     /**
-     * 셀러 정보 수정 (통합 메서드)
+     * 셀러 정보 수정
      *
-     * <p>Tell, Don't Ask 패턴 적용: 객체가 스스로 판단하여 처리
+     * <p>모든 필드가 non-null인 SellerUpdateData를 받아 처리합니다.
      *
-     * @param newMustItSellerName 새로운 머스트잇 셀러명 (null이면 변경 안 함)
-     * @param newSellerName 새로운 셀러명 (null이면 변경 안 함)
-     * @param newStatus 새로운 상태 (null이면 변경 안 함)
+     * @param updateData 수정 데이터 (모든 필드 non-null)
      * @param now 현재 시각
      */
-    public void update(
-            MustItSellerName newMustItSellerName,
-            SellerName newSellerName,
-            SellerStatus newStatus,
-            Instant now) {
-        // 머스트잇 셀러명 변경 (자기 자신이 판단)
-        if (newMustItSellerName != null && !this.mustItSellerName.equals(newMustItSellerName)) {
-            this.mustItSellerName = newMustItSellerName;
-            this.updatedAt = now;
+    public void update(SellerUpdateData updateData, Instant now) {
+        SellerStatus oldStatus = this.status;
+        this.mustItSellerName = updateData.mustItSellerName();
+        this.sellerName = updateData.sellerName();
+        this.status = updateData.status();
+        this.updatedAt = now;
+
+        if (oldStatus == SellerStatus.ACTIVE && this.status == SellerStatus.INACTIVE) {
+            registerEvent(SellerDeActiveEvent.of(this.sellerId, now));
         }
-
-        // 셀러명 변경 (자기 자신이 판단)
-        if (newSellerName != null && !this.sellerName.equals(newSellerName)) {
-            this.sellerName = newSellerName;
-            this.updatedAt = now;
-        }
-
-        // 상태 변경 (자기 자신이 판단)
-        if (newStatus != null && this.status != newStatus) {
-            if (newStatus == SellerStatus.ACTIVE) {
-                activate(now);
-            } else if (newStatus == SellerStatus.INACTIVE) {
-                deactivate(now);
-            }
-        }
-    }
-
-    /**
-     * 머스트잇 셀러명 변경 필요 여부
-     *
-     * @param newMustItSellerName 새로운 머스트잇 셀러명
-     * @return 변경 필요 시 true
-     */
-    public boolean needsUpdateMustItSellerName(MustItSellerName newMustItSellerName) {
-        return newMustItSellerName != null && !this.mustItSellerName.equals(newMustItSellerName);
-    }
-
-    /**
-     * 셀러명 변경 필요 여부
-     *
-     * @param newSellerName 새로운 셀러명
-     * @return 변경 필요 시 true
-     */
-    public boolean needsUpdateSellerName(SellerName newSellerName) {
-        return newSellerName != null && !this.sellerName.equals(newSellerName);
     }
 
     /**
@@ -295,13 +259,35 @@ public class Seller {
         return this.status == SellerStatus.INACTIVE;
     }
 
-    /** 도메인 이벤트 목록 (읽기 전용) */
-    public List<DomainEvent> getDomainEvents() {
-        return Collections.unmodifiableList(domainEvents);
+    /**
+     * 수정 데이터 적용 시 비활성화 전환 여부 판단
+     *
+     * @param updateData 수정 데이터
+     * @return ACTIVE → INACTIVE 전환이면 true
+     */
+    public boolean isBeingDeactivatedBy(SellerUpdateData updateData) {
+        return this.status == SellerStatus.ACTIVE && updateData.status() == SellerStatus.INACTIVE;
     }
 
-    /** 도메인 이벤트 초기화 */
-    public void clearDomainEvents() {
-        this.domainEvents.clear();
+    /**
+     * 도메인 이벤트 등록
+     *
+     * @param event 등록할 도메인 이벤트
+     */
+    protected void registerEvent(DomainEvent event) {
+        this.domainEvents.add(event);
+    }
+
+    /**
+     * 도메인 이벤트 폴링 (읽기 + 초기화)
+     *
+     * <p>이벤트 목록을 불변 복사본으로 반환하고 내부 목록을 비웁니다.
+     *
+     * @return 불변 이벤트 목록
+     */
+    public List<DomainEvent> pollEvents() {
+        List<DomainEvent> events = Collections.unmodifiableList(new ArrayList<>(domainEvents));
+        domainEvents.clear();
+        return events;
     }
 }

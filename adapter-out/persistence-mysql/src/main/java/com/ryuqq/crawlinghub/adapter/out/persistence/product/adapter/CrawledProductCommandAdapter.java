@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.CrawledProdu
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.CrawledProductJpaRepository;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledProductPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,15 +60,5 @@ public class CrawledProductCommandAdapter implements CrawledProductPersistencePo
         CrawledProductJpaEntity entity = crawledProductJpaEntityMapper.toEntity(crawledProduct);
         CrawledProductJpaEntity savedEntity = crawledProductJpaRepository.save(entity);
         return CrawledProductId.of(savedEntity.getId());
-    }
-
-    /**
-     * CrawledProduct 삭제
-     *
-     * @param crawledProductId 삭제할 CrawledProduct ID
-     */
-    @Override
-    public void delete(CrawledProductId crawledProductId) {
-        crawledProductJpaRepository.deleteById(crawledProductId.value());
     }
 }

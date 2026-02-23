@@ -1,8 +1,8 @@
 package com.ryuqq.crawlinghub.domain.product.event;
 
 import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 
 /**
@@ -43,26 +43,16 @@ public record ExternalSyncRequestedEvent(
         }
     }
 
-    /** 신규 등록용 이벤트 생성 */
-    public static ExternalSyncRequestedEvent forCreate(
+    /** 동기화 요청 이벤트 생성 */
+    public static ExternalSyncRequestedEvent of(
             CrawledProductId crawledProductId,
             SellerId sellerId,
             long itemNo,
             String idempotencyKey,
+            SyncType syncType,
             Instant now) {
         return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.CREATE, now);
-    }
-
-    /** 갱신용 이벤트 생성 */
-    public static ExternalSyncRequestedEvent forUpdate(
-            CrawledProductId crawledProductId,
-            SellerId sellerId,
-            long itemNo,
-            String idempotencyKey,
-            Instant now) {
-        return new ExternalSyncRequestedEvent(
-                crawledProductId, sellerId, itemNo, idempotencyKey, SyncType.UPDATE, now);
+                crawledProductId, sellerId, itemNo, idempotencyKey, syncType, now);
     }
 
     /** 동기화 타입 */

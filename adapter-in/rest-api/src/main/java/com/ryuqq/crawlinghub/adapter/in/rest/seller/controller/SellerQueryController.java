@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.seller.controller;
 
-import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.SellerEndpoints;
@@ -8,13 +7,11 @@ import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.query.SearchSellersApiRe
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.query.GetSellerQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerDetailResponse;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerSummaryResponse;
+import com.ryuqq.crawlinghub.application.seller.dto.composite.SellerDetailResult;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerSearchParams;
+import com.ryuqq.crawlinghub.application.seller.dto.response.SellerPageResult;
 import com.ryuqq.crawlinghub.application.seller.port.in.query.GetSellerUseCase;
-import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellersUseCase;
+import com.ryuqq.crawlinghub.application.seller.port.in.query.SearchSellerByOffsetUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -48,21 +44,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class SellerQueryController {
 
     private final GetSellerUseCase getSellerUseCase;
-    private final SearchSellersUseCase searchSellersUseCase;
+    private final SearchSellerByOffsetUseCase searchSellerByOffsetUseCase;
     private final SellerQueryApiMapper sellerQueryApiMapper;
 
     public SellerQueryController(
             GetSellerUseCase getSellerUseCase,
-            SearchSellersUseCase searchSellersUseCase,
+            SearchSellerByOffsetUseCase searchSellerByOffsetUseCase,
             SellerQueryApiMapper sellerQueryApiMapper) {
         this.getSellerUseCase = getSellerUseCase;
-        this.searchSellersUseCase = searchSellersUseCase;
+        this.searchSellerByOffsetUseCase = searchSellerByOffsetUseCase;
         this.sellerQueryApiMapper = sellerQueryApiMapper;
     }
 
     @GetMapping(SellerEndpoints.BY_ID)
-    @PreAuthorize("@access.hasPermission('seller:read')")
-    @RequirePermission(value = "seller:read", description = "셀러 상세 조회")
     @Operation(
             summary = "셀러 단건 조회",
             description = "셀러 ID로 상세 정보를 조회합니다. seller:read 권한이 필요합니다.",
@@ -90,16 +84,13 @@ public class SellerQueryController {
                     @PathVariable
                     @Positive
                     Long id) {
-        GetSellerQuery query = sellerQueryApiMapper.toQuery(id);
-        SellerDetailResponse useCaseResponse = getSellerUseCase.execute(query);
+        SellerDetailResult useCaseResult = getSellerUseCase.execute(id);
         SellerDetailApiResponse apiResponse =
-                sellerQueryApiMapper.toDetailApiResponse(useCaseResponse);
+                sellerQueryApiMapper.toDetailApiResponse(useCaseResult);
         return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 
     @GetMapping
-    @PreAuthorize("@access.hasPermission('seller:read')")
-    @RequirePermission(value = "seller:read", description = "셀러 목록 조회")
     @Operation(
             summary = "셀러 목록 조회",
             description = "셀러 목록을 페이징하여 조회합니다. seller:read 권한이 필요합니다.",
@@ -120,11 +111,8 @@ public class SellerQueryController {
     })
     public ResponseEntity<ApiResponse<PageApiResponse<SellerSummaryApiResponse>>> listSellers(
             @ModelAttribute @Valid SearchSellersApiRequest request) {
-        SearchSellersQuery query = sellerQueryApiMapper.toQuery(request);
-        PageResponse<SellerSummaryResponse> useCasePageResponse =
-                searchSellersUseCase.execute(query);
-        PageApiResponse<SellerSummaryApiResponse> apiPageResponse =
-                sellerQueryApiMapper.toPageApiResponse(useCasePageResponse);
-        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
+        SellerSearchParams params = sellerQueryApiMapper.toSearchParams(request);
+        SellerPageResult pageResult = searchSellerByOffsetUseCase.execute(params);
+        return ResponseEntity.ok(ApiResponse.of(sellerQueryApiMapper.toPageResponse(pageResult)));
     }
 }

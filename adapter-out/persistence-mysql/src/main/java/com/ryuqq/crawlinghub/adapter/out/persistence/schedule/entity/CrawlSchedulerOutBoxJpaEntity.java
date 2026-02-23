@@ -52,9 +52,25 @@ public class CrawlSchedulerOutBoxJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private CrawlSchedulerOubBoxStatus status;
 
-    /** 이벤트 페이로드 (JSON) */
-    @Column(name = "event_payload", nullable = false, columnDefinition = "TEXT")
-    private String eventPayload;
+    /** 스케줄러 ID */
+    @Column(name = "scheduler_id", nullable = false)
+    private Long schedulerId;
+
+    /** 셀러 ID */
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
+
+    /** 스케줄러 이름 */
+    @Column(name = "scheduler_name", nullable = false, length = 100)
+    private String schedulerName;
+
+    /** 크론 표현식 */
+    @Column(name = "cron_expression", nullable = false, length = 100)
+    private String cronExpression;
+
+    /** 스케줄러 상태 (ACTIVE/INACTIVE) */
+    @Column(name = "scheduler_status", nullable = false, length = 20)
+    private String schedulerStatus;
 
     /** 에러 메시지 (실패 시) */
     @Column(name = "error_message", length = 500)
@@ -81,7 +97,11 @@ public class CrawlSchedulerOutBoxJpaEntity {
             Long id,
             Long historyId,
             CrawlSchedulerOubBoxStatus status,
-            String eventPayload,
+            Long schedulerId,
+            Long sellerId,
+            String schedulerName,
+            String cronExpression,
+            String schedulerStatus,
             String errorMessage,
             Long version,
             LocalDateTime createdAt,
@@ -89,7 +109,11 @@ public class CrawlSchedulerOutBoxJpaEntity {
         this.id = id;
         this.historyId = historyId;
         this.status = status;
-        this.eventPayload = eventPayload;
+        this.schedulerId = schedulerId;
+        this.sellerId = sellerId;
+        this.schedulerName = schedulerName;
+        this.cronExpression = cronExpression;
+        this.schedulerStatus = schedulerStatus;
         this.errorMessage = errorMessage;
         this.version = version;
         this.createdAt = createdAt;
@@ -102,7 +126,11 @@ public class CrawlSchedulerOutBoxJpaEntity {
      * @param id 기본 키
      * @param historyId 히스토리 ID
      * @param status 아웃박스 상태
-     * @param eventPayload 이벤트 페이로드
+     * @param schedulerId 스케줄러 ID
+     * @param sellerId 셀러 ID
+     * @param schedulerName 스케줄러 이름
+     * @param cronExpression 크론 표현식
+     * @param schedulerStatus 스케줄러 상태
      * @param errorMessage 에러 메시지
      * @param version 버전
      * @param createdAt 생성 일시
@@ -113,13 +141,28 @@ public class CrawlSchedulerOutBoxJpaEntity {
             Long id,
             Long historyId,
             CrawlSchedulerOubBoxStatus status,
-            String eventPayload,
+            Long schedulerId,
+            Long sellerId,
+            String schedulerName,
+            String cronExpression,
+            String schedulerStatus,
             String errorMessage,
             Long version,
             LocalDateTime createdAt,
             LocalDateTime processedAt) {
         return new CrawlSchedulerOutBoxJpaEntity(
-                id, historyId, status, eventPayload, errorMessage, version, createdAt, processedAt);
+                id,
+                historyId,
+                status,
+                schedulerId,
+                sellerId,
+                schedulerName,
+                cronExpression,
+                schedulerStatus,
+                errorMessage,
+                version,
+                createdAt,
+                processedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
@@ -136,8 +179,24 @@ public class CrawlSchedulerOutBoxJpaEntity {
         return status;
     }
 
-    public String getEventPayload() {
-        return eventPayload;
+    public Long getSchedulerId() {
+        return schedulerId;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
+    }
+
+    public String getSchedulerName() {
+        return schedulerName;
+    }
+
+    public String getCronExpression() {
+        return cronExpression;
+    }
+
+    public String getSchedulerStatus() {
+        return schedulerStatus;
     }
 
     public String getErrorMessage() {

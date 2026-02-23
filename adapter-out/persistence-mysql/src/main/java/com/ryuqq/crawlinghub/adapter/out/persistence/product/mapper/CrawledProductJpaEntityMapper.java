@@ -4,21 +4,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
+import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImage;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -90,6 +96,10 @@ public class CrawledProductJpaEntityMapper {
                 domain.getExternalProductId(),
                 toLocalDateTime(domain.getLastSyncedAt()),
                 domain.isNeedsSync(),
+                toPendingChangesString(domain.getPendingChanges()),
+                domain.getDeletionStatus() != null
+                        ? toLocalDateTime(domain.getDeletionStatus().deletedAt())
+                        : null,
                 toLocalDateTime(domain.getCreatedAt()),
                 toLocalDateTime(domain.getUpdatedAt()));
     }
@@ -112,6 +122,9 @@ public class CrawledProductJpaEntityMapper {
                         toInstant(entity.getDetailCrawledAt()),
                         toInstant(entity.getOptionCrawledAt()));
 
+        DeletionStatus deletionStatus =
+                DeletionStatus.reconstitute(entity.isDeleted(), toInstant(entity.getDeletedAt()));
+
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(entity.getId()),
                 SellerId.of(entity.getSellerId()),
@@ -133,6 +146,8 @@ public class CrawledProductJpaEntityMapper {
                 entity.getExternalProductId(),
                 toInstant(entity.getLastSyncedAt()),
                 entity.isNeedsSync(),
+                fromPendingChangesString(entity.getPendingChanges()),
+                deletionStatus,
                 toInstant(entity.getCreatedAt()),
                 toInstant(entity.getUpdatedAt()));
     }
@@ -239,6 +254,24 @@ public class CrawledProductJpaEntityMapper {
             log.error("ProductOptions JSON 역직렬화 실패: {}", json, e);
             return ProductOptions.empty();
         }
+    }
+
+    // === 변경 유형 변환 ===
+
+    private String toPendingChangesString(Set<ProductChangeType> pendingChanges) {
+        if (pendingChanges == null || pendingChanges.isEmpty()) {
+            return null;
+        }
+        return pendingChanges.stream().map(Enum::name).sorted().collect(Collectors.joining(","));
+    }
+
+    private Set<ProductChangeType> fromPendingChangesString(String str) {
+        if (str == null || str.isBlank()) {
+            return EnumSet.noneOf(ProductChangeType.class);
+        }
+        return Arrays.stream(str.split(","))
+                .map(ProductChangeType::valueOf)
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(ProductChangeType.class)));
     }
 
     // === 가격 변환 ===

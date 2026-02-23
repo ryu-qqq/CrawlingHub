@@ -10,18 +10,18 @@ import static org.mockito.Mockito.never;
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
+import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.application.task.facade.CrawlTaskFacade;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.application.task.internal.CrawlTaskCommandFacade;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskNotFoundException;
 import com.ryuqq.crawlinghub.domain.task.exception.CrawlTaskRetryException;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -51,7 +51,7 @@ class RetryCrawlTaskServiceTest {
 
     @Mock private CrawlTaskAssembler assembler;
 
-    @Mock private CrawlTaskFacade facade;
+    @Mock private CrawlTaskCommandFacade coordinator;
 
     @Mock private TimeProvider timeProvider;
 
@@ -62,61 +62,64 @@ class RetryCrawlTaskServiceTest {
     class Retry {
 
         @Test
-        @DisplayName("[성공] 실패한 Task 재시도 시 CrawlTaskResponse 반환")
-        void shouldRetryTaskAndReturnResponse() {
+        @DisplayName("[성공] 실패한 Task 재시도 시 CrawlTaskResult 반환")
+        void shouldRetryTaskAndReturnResult() {
             // Given
             Long crawlTaskId = 1L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask failedTask = CrawlTaskFixture.aFailedTask();
-            CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
-            String outboxPayload = "{\"taskId\":1}";
-            CrawlTaskResponse expectedResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskBundle retryBundle = org.mockito.Mockito.mock(CrawlTaskBundle.class);
+            CrawlTaskResult expectedResult =
+                    new CrawlTaskResult(
                             1L,
                             1L,
                             1L,
                             "https://example.com/api",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.META,
+                            "https://example.com",
+                            "/api",
+                            Map.of(),
+                            "RETRY",
+                            "META",
                             1,
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
             given(readManager.findById(any(CrawlTaskId.class))).willReturn(Optional.of(failedTask));
             given(timeProvider.now()).willReturn(FIXED_INSTANT);
-            given(commandFactory.toOutboxPayload(failedTask)).willReturn(outboxPayload);
-            given(facade.retry(failedTask, outboxPayload)).willReturn(retriedTask);
-            given(assembler.toResponse(retriedTask)).willReturn(expectedResponse);
+            given(commandFactory.createRetryBundle(failedTask)).willReturn(retryBundle);
+            given(assembler.toResult(failedTask)).willReturn(expectedResult);
 
             // When
-            CrawlTaskResponse result = service.retry(command);
+            CrawlTaskResult result = service.retry(command);
 
             // Then
-            assertThat(result).isEqualTo(expectedResponse);
+            assertThat(result).isEqualTo(expectedResult);
             then(readManager).should().findById(CrawlTaskId.of(crawlTaskId));
             then(timeProvider).should().now();
-            then(commandFactory).should().toOutboxPayload(failedTask);
-            then(facade).should().retry(failedTask, outboxPayload);
-            then(assembler).should().toResponse(retriedTask);
+            then(commandFactory).should().createRetryBundle(failedTask);
+            then(coordinator).should().retry(failedTask, retryBundle);
+            then(assembler).should().toResult(failedTask);
         }
 
         @Test
-        @DisplayName("[성공] 타임아웃된 Task 재시도 시 CrawlTaskResponse 반환")
-        void shouldRetryTimeoutTaskAndReturnResponse() {
+        @DisplayName("[성공] 타임아웃된 Task 재시도 시 CrawlTaskResult 반환")
+        void shouldRetryTimeoutTaskAndReturnResult() {
             // Given
             Long crawlTaskId = 2L;
             RetryCrawlTaskCommand command = new RetryCrawlTaskCommand(crawlTaskId);
             CrawlTask timeoutTask = CrawlTaskFixture.aTimeoutTask();
-            CrawlTask retriedTask = CrawlTaskFixture.aRetryTask();
-            String outboxPayload = "{\"taskId\":2}";
-            CrawlTaskResponse expectedResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskBundle retryBundle = org.mockito.Mockito.mock(CrawlTaskBundle.class);
+            CrawlTaskResult expectedResult =
+                    new CrawlTaskResult(
                             2L,
                             1L,
                             1L,
                             "https://example.com/api",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.META,
+                            "https://example.com",
+                            "/api",
+                            Map.of(),
+                            "RETRY",
+                            "META",
                             1,
                             FIXED_INSTANT,
                             FIXED_INSTANT);
@@ -124,17 +127,16 @@ class RetryCrawlTaskServiceTest {
             given(readManager.findById(any(CrawlTaskId.class)))
                     .willReturn(Optional.of(timeoutTask));
             given(timeProvider.now()).willReturn(FIXED_INSTANT);
-            given(commandFactory.toOutboxPayload(timeoutTask)).willReturn(outboxPayload);
-            given(facade.retry(timeoutTask, outboxPayload)).willReturn(retriedTask);
-            given(assembler.toResponse(retriedTask)).willReturn(expectedResponse);
+            given(commandFactory.createRetryBundle(timeoutTask)).willReturn(retryBundle);
+            given(assembler.toResult(timeoutTask)).willReturn(expectedResult);
 
             // When
-            CrawlTaskResponse result = service.retry(command);
+            CrawlTaskResult result = service.retry(command);
 
             // Then
-            assertThat(result).isEqualTo(expectedResponse);
+            assertThat(result).isEqualTo(expectedResult);
             then(readManager).should().findById(CrawlTaskId.of(crawlTaskId));
-            then(facade).should().retry(timeoutTask, outboxPayload);
+            then(coordinator).should().retry(timeoutTask, retryBundle);
         }
 
         @Test
@@ -151,8 +153,8 @@ class RetryCrawlTaskServiceTest {
                     .isInstanceOf(CrawlTaskNotFoundException.class);
 
             then(timeProvider).should(never()).now();
-            then(commandFactory).should(never()).toOutboxPayload(any());
-            then(facade).should(never()).retry(any(), any());
+            then(commandFactory).should(never()).createRetryBundle(any());
+            then(coordinator).should(never()).retry(any(), any());
         }
 
         @Test
@@ -171,8 +173,8 @@ class RetryCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.retry(command))
                     .isInstanceOf(CrawlTaskRetryException.class);
 
-            then(commandFactory).should(never()).toOutboxPayload(any());
-            then(facade).should(never()).retry(any(), any());
+            then(commandFactory).should(never()).createRetryBundle(any());
+            then(coordinator).should(never()).retry(any(), any());
         }
 
         @Test
@@ -191,8 +193,8 @@ class RetryCrawlTaskServiceTest {
             assertThatThrownBy(() -> service.retry(command))
                     .isInstanceOf(CrawlTaskRetryException.class);
 
-            then(commandFactory).should(never()).toOutboxPayload(any());
-            then(facade).should(never()).retry(any(), any());
+            then(commandFactory).should(never()).createRetryBundle(any());
+            then(coordinator).should(never()).retry(any(), any());
         }
     }
 }

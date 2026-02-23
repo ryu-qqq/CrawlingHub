@@ -13,17 +13,12 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse
 import com.ryuqq.crawlinghub.adapter.in.rest.common.error.ErrorMapperRegistry;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.query.SearchCrawlTasksApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.task.dto.query.GetCrawlTaskQuery;
-import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskDetailResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.application.task.port.in.query.GetCrawlTaskUseCase;
-import com.ryuqq.crawlinghub.application.task.port.in.query.ListCrawlTasksUseCase;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.application.task.dto.query.CrawlTaskSearchParams;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskPageResult;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
+import com.ryuqq.crawlinghub.application.task.port.in.query.SearchCrawlTaskByOffsetUseCase;
+import com.ryuqq.crawlinghub.domain.common.vo.PageMeta;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +41,6 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
  * <ul>
  *   <li>HTTP 요청/응답 매핑
  *   <li>Query Parameter Validation
- *   <li>Path Variable Validation
  *   <li>Response DTO 직렬화
  *   <li>HTTP Status Code
  *   <li>UseCase 호출 검증
@@ -61,19 +55,17 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 class CrawlTaskQueryControllerTest {
 
     private MockMvc mockMvc;
-    private ListCrawlTasksUseCase listCrawlTasksUseCase;
-    private GetCrawlTaskUseCase getCrawlTaskUseCase;
+    private SearchCrawlTaskByOffsetUseCase searchCrawlTaskByOffsetUseCase;
     private CrawlTaskQueryApiMapper crawlTaskQueryApiMapper;
 
     @BeforeEach
     void setUp() {
-        listCrawlTasksUseCase = mock(ListCrawlTasksUseCase.class);
-        getCrawlTaskUseCase = mock(GetCrawlTaskUseCase.class);
+        searchCrawlTaskByOffsetUseCase = mock(SearchCrawlTaskByOffsetUseCase.class);
         crawlTaskQueryApiMapper = mock(CrawlTaskQueryApiMapper.class);
 
         CrawlTaskQueryController controller =
                 new CrawlTaskQueryController(
-                        listCrawlTasksUseCase, getCrawlTaskUseCase, crawlTaskQueryApiMapper);
+                        searchCrawlTaskByOffsetUseCase, crawlTaskQueryApiMapper);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -97,44 +89,52 @@ class CrawlTaskQueryControllerTest {
         @DisplayName("성공: 200 OK, 페이징 응답 반환")
         void listCrawlTasks_Success() throws Exception {
             // Given
-            Long crawlSchedulerId = 100L;
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, null, null, null, 0, 20);
-
             Instant now = Instant.now();
-            List<CrawlTaskResponse> useCaseContent =
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(List.of(100L), null, null, null, null, null, 0, 20);
+
+            List<CrawlTaskResult> results =
                     List.of(
-                            new CrawlTaskResponse(
+                            new CrawlTaskResult(
                                     1L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/products/1",
-                                    CrawlTaskStatus.SUCCESS,
-                                    CrawlTaskType.DETAIL,
+                                    "https://example.com",
+                                    "/products/1",
+                                    Map.of(),
+                                    "SUCCESS",
+                                    "DETAIL",
                                     0,
                                     now,
                                     now),
-                            new CrawlTaskResponse(
+                            new CrawlTaskResult(
                                     2L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/products/2",
-                                    CrawlTaskStatus.RUNNING,
-                                    CrawlTaskType.DETAIL,
+                                    "https://example.com",
+                                    "/products/2",
+                                    Map.of(),
+                                    "RUNNING",
+                                    "DETAIL",
                                     0,
                                     now,
                                     now));
 
-            PageResponse<CrawlTaskResponse> useCasePageResponse =
-                    new PageResponse<>(useCaseContent, 0, 20, 2, 1, true, true);
+            CrawlTaskPageResult pageResult =
+                    CrawlTaskPageResult.of(results, PageMeta.of(0, 20, 2L));
 
             List<CrawlTaskApiResponse> apiContent =
                     List.of(
                             new CrawlTaskApiResponse(
                                     1L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/products/1",
+                                    "https://example.com",
+                                    "/products/1",
+                                    Map.of(),
                                     "SUCCESS",
                                     "DETAIL",
                                     0,
@@ -142,9 +142,12 @@ class CrawlTaskQueryControllerTest {
                                     now.toString()),
                             new CrawlTaskApiResponse(
                                     2L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/products/2",
+                                    "https://example.com",
+                                    "/products/2",
+                                    Map.of(),
                                     "RUNNING",
                                     "DETAIL",
                                     0,
@@ -154,16 +157,16 @@ class CrawlTaskQueryControllerTest {
             PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
 
-            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
-                    .willReturn(query);
-            given(listCrawlTasksUseCase.execute(any(ListCrawlTasksQuery.class)))
-                    .willReturn(useCasePageResponse);
+            given(crawlTaskQueryApiMapper.toSearchParams(any(SearchCrawlTasksApiRequest.class)))
+                    .willReturn(params);
+            given(searchCrawlTaskByOffsetUseCase.execute(any(CrawlTaskSearchParams.class)))
+                    .willReturn(pageResult);
             given(crawlTaskQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
+                                    .param("crawlSchedulerIds", "100")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
@@ -180,8 +183,8 @@ class CrawlTaskQueryControllerTest {
                     .andExpect(jsonPath("$.data.last").value(true));
 
             // UseCase 호출 검증
-            verify(crawlTaskQueryApiMapper).toQuery(any(SearchCrawlTasksApiRequest.class));
-            verify(listCrawlTasksUseCase).execute(any(ListCrawlTasksQuery.class));
+            verify(crawlTaskQueryApiMapper).toSearchParams(any(SearchCrawlTasksApiRequest.class));
+            verify(searchCrawlTaskByOffsetUseCase).execute(any(CrawlTaskSearchParams.class));
             verify(crawlTaskQueryApiMapper).toPageApiResponse(any());
         }
 
@@ -189,42 +192,47 @@ class CrawlTaskQueryControllerTest {
         @DisplayName("성공: 필터 조건 적용 (status, taskType)")
         void listCrawlTasks_WithFilters_Success() throws Exception {
             // Given
-            Long crawlSchedulerId = 100L;
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(
-                            crawlSchedulerId,
+            Instant now = Instant.now();
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(
+                            List.of(100L),
                             null,
-                            List.of(CrawlTaskStatus.FAILED),
-                            List.of(CrawlTaskType.META),
+                            List.of("FAILED"),
+                            List.of("META"),
                             null,
                             null,
                             0,
                             20);
 
-            Instant now = Instant.now();
-            List<CrawlTaskResponse> useCaseContent =
+            List<CrawlTaskResult> results =
                     List.of(
-                            new CrawlTaskResponse(
+                            new CrawlTaskResult(
                                     3L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/meta",
-                                    CrawlTaskStatus.FAILED,
-                                    CrawlTaskType.META,
+                                    "https://example.com",
+                                    "/meta",
+                                    Map.of(),
+                                    "FAILED",
+                                    "META",
                                     2,
                                     now,
                                     now));
 
-            PageResponse<CrawlTaskResponse> useCasePageResponse =
-                    new PageResponse<>(useCaseContent, 0, 20, 1, 1, true, true);
+            CrawlTaskPageResult pageResult =
+                    CrawlTaskPageResult.of(results, PageMeta.of(0, 20, 1L));
 
             List<CrawlTaskApiResponse> apiContent =
                     List.of(
                             new CrawlTaskApiResponse(
                                     3L,
-                                    crawlSchedulerId,
+                                    100L,
                                     10L,
                                     "https://example.com/meta",
+                                    "https://example.com",
+                                    "/meta",
+                                    Map.of(),
                                     "FAILED",
                                     "META",
                                     2,
@@ -234,18 +242,18 @@ class CrawlTaskQueryControllerTest {
             PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
                     new PageApiResponse<>(apiContent, 0, 20, 1, 1, true, true);
 
-            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
-                    .willReturn(query);
-            given(listCrawlTasksUseCase.execute(any(ListCrawlTasksQuery.class)))
-                    .willReturn(useCasePageResponse);
+            given(crawlTaskQueryApiMapper.toSearchParams(any(SearchCrawlTasksApiRequest.class)))
+                    .willReturn(params);
+            given(searchCrawlTaskByOffsetUseCase.execute(any(CrawlTaskSearchParams.class)))
+                    .willReturn(pageResult);
             given(crawlTaskQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
-                                    .param("status", "FAILED")
-                                    .param("taskType", "META")
+                                    .param("crawlSchedulerIds", "100")
+                                    .param("statuses", "FAILED")
+                                    .param("taskTypes", "META")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
@@ -254,33 +262,32 @@ class CrawlTaskQueryControllerTest {
                     .andExpect(jsonPath("$.data.content[0].retryCount").value(2));
 
             // UseCase 호출 검증
-            verify(listCrawlTasksUseCase).execute(any(ListCrawlTasksQuery.class));
+            verify(searchCrawlTaskByOffsetUseCase).execute(any(CrawlTaskSearchParams.class));
         }
 
         @Test
         @DisplayName("성공: 페이징 파라미터 적용")
         void listCrawlTasks_WithPaging_Success() throws Exception {
             // Given
-            Long crawlSchedulerId = 100L;
-            ListCrawlTasksQuery query =
-                    new ListCrawlTasksQuery(crawlSchedulerId, null, null, null, null, null, 2, 10);
+            CrawlTaskSearchParams params =
+                    new CrawlTaskSearchParams(List.of(100L), null, null, null, null, null, 2, 10);
 
-            PageResponse<CrawlTaskResponse> useCasePageResponse =
-                    new PageResponse<>(List.of(), 2, 10, 25, 3, false, true);
+            CrawlTaskPageResult pageResult =
+                    CrawlTaskPageResult.of(List.of(), PageMeta.of(2, 10, 25L));
 
             PageApiResponse<CrawlTaskApiResponse> apiPageResponse =
                     new PageApiResponse<>(List.of(), 2, 10, 25, 3, false, true);
 
-            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
-                    .willReturn(query);
-            given(listCrawlTasksUseCase.execute(any(ListCrawlTasksQuery.class)))
-                    .willReturn(useCasePageResponse);
+            given(crawlTaskQueryApiMapper.toSearchParams(any(SearchCrawlTasksApiRequest.class)))
+                    .willReturn(params);
+            given(searchCrawlTaskByOffsetUseCase.execute(any(CrawlTaskSearchParams.class)))
+                    .willReturn(pageResult);
             given(crawlTaskQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
+                                    .param("crawlSchedulerIds", "100")
                                     .param("page", "2")
                                     .param("size", "10")
                                     .contentType(MediaType.APPLICATION_JSON))
@@ -297,15 +304,13 @@ class CrawlTaskQueryControllerTest {
         @DisplayName("실패: 잘못된 status 값인 경우 400 Bad Request")
         void listCrawlTasks_InvalidStatus_BadRequest() throws Exception {
             // Given
-            Long crawlSchedulerId = 100L;
-            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
+            given(crawlTaskQueryApiMapper.toSearchParams(any(SearchCrawlTasksApiRequest.class)))
                     .willThrow(new IllegalArgumentException("Invalid status: INVALID_STATUS"));
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
-                                    .param("status", "INVALID_STATUS")
+                                    .param("statuses", "INVALID_STATUS")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -314,15 +319,13 @@ class CrawlTaskQueryControllerTest {
         @DisplayName("실패: 잘못된 taskType 값인 경우 400 Bad Request")
         void listCrawlTasks_InvalidTaskType_BadRequest() throws Exception {
             // Given
-            Long crawlSchedulerId = 100L;
-            given(crawlTaskQueryApiMapper.toQuery(any(SearchCrawlTasksApiRequest.class)))
+            given(crawlTaskQueryApiMapper.toSearchParams(any(SearchCrawlTasksApiRequest.class)))
                     .willThrow(new IllegalArgumentException("Invalid taskType: INVALID_TYPE"));
 
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
-                                    .param("taskType", "INVALID_TYPE")
+                                    .param("taskTypes", "INVALID_TYPE")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -330,13 +333,9 @@ class CrawlTaskQueryControllerTest {
         @Test
         @DisplayName("실패: page가 음수인 경우 400 Bad Request")
         void listCrawlTasks_NegativePage_BadRequest() throws Exception {
-            // Given
-            Long crawlSchedulerId = 100L;
-
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
                                     .param("page", "-1")
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
@@ -345,171 +344,10 @@ class CrawlTaskQueryControllerTest {
         @Test
         @DisplayName("실패: size가 100 초과인 경우 400 Bad Request")
         void listCrawlTasks_SizeExceedsMax_BadRequest() throws Exception {
-            // Given
-            Long crawlSchedulerId = 100L;
-
             // When & Then
             mockMvc.perform(
                             get("/api/v1/crawling/tasks")
-                                    .param("crawlSchedulerId", crawlSchedulerId.toString())
                                     .param("size", "101")
-                                    .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/crawling/tasks/{id} - 크롤 태스크 상세 조회")
-    class GetCrawlTaskTests {
-
-        @Test
-        @DisplayName("성공: 200 OK, 상세 정보 반환")
-        void getCrawlTask_Success() throws Exception {
-            // Given
-            Long taskId = 1L;
-            GetCrawlTaskQuery query = new GetCrawlTaskQuery(taskId);
-
-            Instant now = Instant.now();
-            Map<String, String> queryParams = Map.of("page", "1", "size", "100");
-
-            CrawlTaskDetailResponse useCaseResponse =
-                    new CrawlTaskDetailResponse(
-                            taskId,
-                            100L,
-                            10L,
-                            CrawlTaskStatus.SUCCESS,
-                            CrawlTaskType.DETAIL,
-                            0,
-                            "https://example.com",
-                            "/products",
-                            queryParams,
-                            "https://example.com/products?page=1&size=100",
-                            now,
-                            now);
-
-            CrawlTaskDetailApiResponse apiResponse =
-                    new CrawlTaskDetailApiResponse(
-                            taskId,
-                            100L,
-                            10L,
-                            "SUCCESS",
-                            "DETAIL",
-                            0,
-                            "https://example.com",
-                            "/products",
-                            queryParams,
-                            "https://example.com/products?page=1&size=100",
-                            now.toString(),
-                            now.toString());
-
-            given(crawlTaskQueryApiMapper.toGetQuery(taskId)).willReturn(query);
-            given(getCrawlTaskUseCase.execute(any(GetCrawlTaskQuery.class)))
-                    .willReturn(useCaseResponse);
-            given(crawlTaskQueryApiMapper.toDetailApiResponse(any(CrawlTaskDetailResponse.class)))
-                    .willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/crawling/tasks/{id}", taskId)
-                                    .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
-                    .andExpect(jsonPath("$.data.crawlSchedulerId").value(100))
-                    .andExpect(jsonPath("$.data.sellerId").value(10))
-                    .andExpect(jsonPath("$.data.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.data.taskType").value("DETAIL"))
-                    .andExpect(jsonPath("$.data.retryCount").value(0))
-                    .andExpect(jsonPath("$.data.baseUrl").value("https://example.com"))
-                    .andExpect(jsonPath("$.data.path").value("/products"))
-                    .andExpect(jsonPath("$.data.queryParams.page").value("1"))
-                    .andExpect(jsonPath("$.data.queryParams.size").value("100"))
-                    .andExpect(
-                            jsonPath("$.data.fullUrl")
-                                    .value("https://example.com/products?page=1&size=100"))
-                    .andExpect(jsonPath("$.data.createdAt").exists())
-                    .andExpect(jsonPath("$.data.updatedAt").exists());
-
-            // UseCase 호출 검증
-            verify(crawlTaskQueryApiMapper).toGetQuery(taskId);
-            verify(getCrawlTaskUseCase).execute(any(GetCrawlTaskQuery.class));
-            verify(crawlTaskQueryApiMapper).toDetailApiResponse(any(CrawlTaskDetailResponse.class));
-        }
-
-        @Test
-        @DisplayName("성공: FAILED 상태 태스크 상세 조회")
-        void getCrawlTask_FailedTask_Success() throws Exception {
-            // Given
-            Long taskId = 2L;
-            GetCrawlTaskQuery query = new GetCrawlTaskQuery(taskId);
-
-            Instant createdAt = Instant.now().minusSeconds(3600);
-            Instant updatedAt = Instant.now();
-            Map<String, String> queryParams = Map.of();
-
-            CrawlTaskDetailResponse useCaseResponse =
-                    new CrawlTaskDetailResponse(
-                            taskId,
-                            101L,
-                            11L,
-                            CrawlTaskStatus.FAILED,
-                            CrawlTaskType.META,
-                            3,
-                            "https://example.com",
-                            "/meta",
-                            queryParams,
-                            "https://example.com/meta",
-                            createdAt,
-                            updatedAt);
-
-            CrawlTaskDetailApiResponse apiResponse =
-                    new CrawlTaskDetailApiResponse(
-                            taskId,
-                            101L,
-                            11L,
-                            "FAILED",
-                            "META",
-                            3,
-                            "https://example.com",
-                            "/meta",
-                            queryParams,
-                            "https://example.com/meta",
-                            createdAt.toString(),
-                            updatedAt.toString());
-
-            given(crawlTaskQueryApiMapper.toGetQuery(taskId)).willReturn(query);
-            given(getCrawlTaskUseCase.execute(any(GetCrawlTaskQuery.class)))
-                    .willReturn(useCaseResponse);
-            given(crawlTaskQueryApiMapper.toDetailApiResponse(any(CrawlTaskDetailResponse.class)))
-                    .willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/crawling/tasks/{id}", taskId)
-                                    .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.crawlTaskId").value(taskId))
-                    .andExpect(jsonPath("$.data.status").value("FAILED"))
-                    .andExpect(jsonPath("$.data.taskType").value("META"))
-                    .andExpect(jsonPath("$.data.retryCount").value(3));
-
-            // UseCase 호출 검증
-            verify(getCrawlTaskUseCase).execute(any(GetCrawlTaskQuery.class));
-        }
-
-        /**
-         * PathVariable @Positive validation은 AOP 기반 MethodValidationInterceptor가 필요합니다.
-         * standaloneSetup에서는 지원되지 않으므로 통합 테스트에서 검증합니다.
-         */
-        @Test
-        @DisplayName("실패: taskId가 0 이하인 경우 400 Bad Request")
-        @org.junit.jupiter.api.Disabled("PathVariable validation은 통합 테스트에서 검증")
-        void getCrawlTask_InvalidTaskId_BadRequest() throws Exception {
-            // Given
-            Long invalidTaskId = 0L;
-
-            // When & Then
-            mockMvc.perform(
-                            get("/api/v1/crawling/tasks/{id}", invalidTaskId)
                                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }

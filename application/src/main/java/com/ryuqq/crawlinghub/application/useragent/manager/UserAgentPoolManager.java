@@ -1,14 +1,15 @@
 package com.ryuqq.crawlinghub.application.useragent.manager;
 
-import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
-import com.ryuqq.crawlinghub.application.useragent.dto.command.RecordUserAgentResultCommand;
-import com.ryuqq.crawlinghub.application.useragent.manager.query.UserAgentReadManager;
+import com.ryuqq.crawlinghub.application.useragent.validator.UserAgentPoolValidator;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
-import com.ryuqq.crawlinghub.domain.useragent.exception.CircuitBreakerOpenException;
 import com.ryuqq.crawlinghub.domain.useragent.exception.NoAvailableUserAgentException;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
+import com.ryuqq.crawlinghub.domain.useragent.vo.CooldownPolicy;
+import com.ryuqq.crawlinghub.domain.useragent.vo.HealthScore;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -23,13 +24,11 @@ import org.springframework.stereotype.Component;
  * <p><strong>주요 기능</strong>:
  *
  * <ul>
- *   <li>토큰 소비 (consume)
+ *   <li>borrow / returnAgent (HikariCP getConnection/close 패턴)
+ *   <li>토큰 소비 (consume) - 하위 호환용, 내부적으로 borrow 위임
  *   <li>결과 기록 (recordResult)
- *   <li>Circuit Breaker 체크
  *   <li>SUSPENDED UserAgent 복구
  * </ul>
- *
- * <p><strong>리팩토링</strong>: 직접 Port 의존 대신 분리된 Manager들을 사용
  *
  * @author development-team
  * @since 1.0.0
@@ -38,80 +37,136 @@ import org.springframework.stereotype.Component;
 public class UserAgentPoolManager {
 
     private static final Logger log = LoggerFactory.getLogger(UserAgentPoolManager.class);
-    private static final double CIRCUIT_BREAKER_THRESHOLD = 20.0;
 
-    private final UserAgentPoolCacheManager cacheManager;
+    private final UserAgentPoolValidator poolValidator;
+    private final UserAgentPoolCacheCommandManager cacheCommandManager;
+    private final UserAgentPoolCacheStateManager cacheStateManager;
+    private final UserAgentPoolCacheQueryManager cacheQueryManager;
     private final UserAgentReadManager readManager;
-    private final UserAgentTransactionManager transactionManager;
-    private final TimeProvider timeProvider;
+    private final UserAgentCommandManager transactionManager;
 
     public UserAgentPoolManager(
-            UserAgentPoolCacheManager cacheManager,
+            UserAgentPoolValidator poolValidator,
+            UserAgentPoolCacheCommandManager cacheCommandManager,
+            UserAgentPoolCacheStateManager cacheStateManager,
+            UserAgentPoolCacheQueryManager cacheQueryManager,
             UserAgentReadManager readManager,
-            UserAgentTransactionManager transactionManager,
-            TimeProvider timeProvider) {
-        this.cacheManager = cacheManager;
+            UserAgentCommandManager transactionManager) {
+        this.poolValidator = poolValidator;
+        this.cacheCommandManager = cacheCommandManager;
+        this.cacheStateManager = cacheStateManager;
+        this.cacheQueryManager = cacheQueryManager;
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.timeProvider = timeProvider;
     }
 
     /**
-     * 토큰 소비 (핵심 메서드)
+     * UserAgent borrow (HikariCP getConnection() 대응)
      *
      * <ol>
-     *   <li>Circuit Breaker 체크
+     *   <li>Circuit Breaker 체크 (Validator)
+     *   <li>Redis에서 IDLE -> BORROWED 전환 (Lua Script)
+     * </ol>
+     *
+     * @return BorrowedUserAgent (크롤링에 필요한 최소 정보)
+     * @throws NoAvailableUserAgentException IDLE 상태의 UserAgent가 없을 때
+     */
+    public BorrowedUserAgent borrow() {
+        poolValidator.validateAvailability();
+        CachedUserAgent cached =
+                cacheCommandManager.borrow().orElseThrow(NoAvailableUserAgentException::new);
+        return BorrowedUserAgent.from(cached);
+    }
+
+    /**
+     * UserAgent 반납 (HikariCP connection.close() 대응)
+     *
+     * <p>크롤링 결과에 따라 BORROWED -> IDLE/COOLDOWN/SUSPENDED 전환
+     *
+     * @param userAgentId UserAgent ID
+     * @param success 성공 여부
+     * @param httpStatusCode HTTP 상태 코드 (성공 시 무시)
+     * @param consecutiveRateLimits 현재 연속 429 횟수
+     */
+    public void returnAgent(
+            long userAgentId, boolean success, int httpStatusCode, int consecutiveRateLimits) {
+        int healthDelta =
+                success ? HealthScore.successIncrement() : -HealthScore.penaltyFor(httpStatusCode);
+        Long cooldownUntil = null;
+        int newConsecutive = consecutiveRateLimits;
+
+        if (!success && httpStatusCode == HealthScore.RATE_LIMIT_STATUS_CODE) {
+            CooldownPolicy policy = CooldownPolicy.escalate(consecutiveRateLimits, Instant.now());
+            cooldownUntil = policy.cooldownUntil().toEpochMilli();
+            newConsecutive = policy.consecutiveRateLimits();
+        }
+
+        try {
+            int result =
+                    cacheCommandManager.returnAgent(
+                            userAgentId,
+                            success,
+                            httpStatusCode,
+                            healthDelta,
+                            cooldownUntil,
+                            newConsecutive);
+
+            if (result == 2) {
+                syncSuspendedToDb(userAgentId, httpStatusCode);
+            }
+        } catch (Exception e) {
+            log.warn("Redis return 실패 - DB에 직접 기록: userAgentId={}", userAgentId, e);
+            syncResultToDb(userAgentId, success, httpStatusCode);
+        }
+    }
+
+    /**
+     * 토큰 소비 (하위 호환용)
+     *
+     * <p>내부적으로 borrow()를 호출합니다.
+     *
+     * <ol>
+     *   <li>Circuit Breaker 체크 (Validator)
      *   <li>Redis에서 토큰 소비 (Lua Script)
      * </ol>
      *
      * @return 선택된 CachedUserAgent
-     * @throws CircuitBreakerOpenException 가용률 < 20%일 때
-     * @throws NoAvailableUserAgentException 사용 가능한 UserAgent가 없을 때
      */
     public CachedUserAgent consume() {
-        checkCircuitBreaker();
-
-        return cacheManager.consumeToken().orElseThrow(NoAvailableUserAgentException::new);
+        poolValidator.validateAvailability();
+        return cacheCommandManager.consumeToken().orElseThrow(NoAvailableUserAgentException::new);
     }
 
     /**
      * 결과 기록
      *
-     * <ul>
-     *   <li>성공: Health Score +5 (Redis만)
-     *   <li>429: 즉시 SUSPENDED, Pool에서 제거, DB 저장
-     *   <li>기타 에러: Health Score 감소, SUSPENDED 시 DB 저장
-     * </ul>
-     *
-     * @param command 결과 기록 커맨드
+     * @param userAgentId UserAgent ID
+     * @param success 성공 여부
+     * @param httpStatusCode HTTP 상태 코드 (성공 시 무시)
      */
-    public void recordResult(RecordUserAgentResultCommand command) {
-        UserAgentId userAgentId = UserAgentId.of(command.userAgentId());
+    public void recordResult(long userAgentId, boolean success, int httpStatusCode) {
+        UserAgentId id = UserAgentId.of(userAgentId);
 
-        if (command.success()) {
-            cacheManager.recordSuccess(userAgentId);
-            log.debug("UserAgent {} 성공 기록 완료", command.userAgentId());
-        } else if (command.isRateLimited()) {
-            handleRateLimited(userAgentId);
+        if (success) {
+            cacheStateManager.applyHealthDelta(id, HealthScore.successIncrement());
+            log.debug("UserAgent {} 성공 기록 완료", userAgentId);
+        } else if (httpStatusCode == HealthScore.RATE_LIMIT_STATUS_CODE) {
+            handleRateLimited(id);
         } else {
-            handleFailure(userAgentId, command.httpStatusCode());
+            handleFailure(id, httpStatusCode);
         }
     }
 
-    /**
-     * 일반 실패 처리 (5xx, 기타 에러)
-     *
-     * <p>Redis에서 Health Score 감소 후, SUSPENDED 되었으면 DB에도 저장
-     */
     private void handleFailure(UserAgentId userAgentId, int httpStatusCode) {
-        boolean suspended = cacheManager.recordFailure(userAgentId, httpStatusCode);
+        int penalty = HealthScore.penaltyFor(httpStatusCode);
+        boolean suspended = cacheStateManager.applyHealthDelta(userAgentId, -penalty);
 
         if (suspended) {
             readManager
                     .findById(userAgentId)
                     .ifPresent(
                             userAgent -> {
-                                userAgent.recordFailure(httpStatusCode, timeProvider.now());
+                                userAgent.recordFailure(httpStatusCode, Instant.now());
                                 transactionManager.persist(userAgent);
                             });
             log.warn("UserAgent {} Health Score 부족으로 SUSPENDED 처리", userAgentId.value());
@@ -120,67 +175,28 @@ public class UserAgentPoolManager {
         }
     }
 
-    /**
-     * 429 Rate Limited 처리
-     *
-     * <ol>
-     *   <li>세션 토큰 만료 처리 (SESSION_REQUIRED 상태로 전환)
-     *   <li>Pool에서 제거
-     *   <li>Domain 조회 → 비즈니스 로직(suspend) → DB 저장
-     * </ol>
-     *
-     * <p>429 응답은 세션 토큰이 무효화되었음을 의미하므로 세션 재발급이 필요합니다.
-     */
     private void handleRateLimited(UserAgentId userAgentId) {
-        cacheManager.expireSession(userAgentId);
-        cacheManager.removeFromPool(userAgentId);
+        cacheCommandManager.suspendForRateLimit(userAgentId);
 
         readManager
                 .findById(userAgentId)
                 .ifPresent(
                         userAgent -> {
-                            userAgent.recordFailure(429, timeProvider.now());
+                            userAgent.recordFailure(
+                                    HealthScore.RATE_LIMIT_STATUS_CODE, Instant.now());
                             transactionManager.persist(userAgent);
                         });
 
-        log.warn("UserAgent {} Rate Limited (429) - SUSPENDED 처리, 세션 만료", userAgentId.value());
-    }
-
-    /**
-     * Circuit Breaker 체크
-     *
-     * @throws CircuitBreakerOpenException 가용률 < 20%일 때
-     */
-    private void checkCircuitBreaker() {
-        PoolStats stats = cacheManager.getPoolStats();
-
-        if (stats.total() == 0) {
-            log.error("UserAgent Pool이 비어있습니다.");
-            throw new CircuitBreakerOpenException(0);
-        }
-
-        double availableRate = stats.availableRate();
-        if (availableRate < CIRCUIT_BREAKER_THRESHOLD) {
-            log.warn("Circuit Breaker OPEN - 가용률: {}%", String.format("%.2f", availableRate));
-            throw new CircuitBreakerOpenException(availableRate);
-        }
+        log.warn("UserAgent {} Rate Limited - SUSPENDED 처리, 세션 만료", userAgentId.value());
     }
 
     /**
      * SUSPENDED UserAgent 복구
      *
-     * <p><strong>복구 조건</strong>:
-     *
-     * <ul>
-     *   <li>SUSPENDED 상태
-     *   <li>1시간 경과
-     *   <li>Health Score ≥ 30
-     * </ul>
-     *
      * @return 복구된 UserAgent 수
      */
     public int recoverSuspendedUserAgents() {
-        List<UserAgentId> recoverableIds = cacheManager.getRecoverableUserAgents();
+        List<UserAgentId> recoverableIds = cacheQueryManager.getRecoverableUserAgents();
 
         if (recoverableIds.isEmpty()) {
             log.debug("복구 대상 UserAgent 없음");
@@ -198,13 +214,6 @@ public class UserAgentPoolManager {
         return recoveredCount;
     }
 
-    /**
-     * 단일 UserAgent 복구
-     *
-     * <p>Domain 조회 → 비즈니스 로직(recover) → DB 저장
-     *
-     * <p>복구 후 SESSION_REQUIRED 상태로 Pool에 추가 (세션 발급 스케줄러에서 세션 발급)
-     */
     private boolean recoverSingleUserAgent(UserAgentId userAgentId) {
         Optional<UserAgent> userAgentOptional = readManager.findById(userAgentId);
 
@@ -214,10 +223,10 @@ public class UserAgentPoolManager {
         }
 
         UserAgent userAgent = userAgentOptional.get();
-        userAgent.recover(timeProvider.now());
+        userAgent.recover(Instant.now());
 
-        String userAgentValue = userAgent.getUserAgentString().value();
-        cacheManager.restoreToPool(userAgentId, userAgentValue);
+        String userAgentValue = userAgent.getUserAgentStringValue();
+        cacheCommandManager.restoreToPool(userAgentId, userAgentValue);
         transactionManager.persist(userAgent);
 
         log.debug("UserAgent {} 복구 완료 (SESSION_REQUIRED 상태)", userAgentId.value());
@@ -230,6 +239,33 @@ public class UserAgentPoolManager {
      * @return Pool 통계
      */
     public PoolStats getPoolStats() {
-        return cacheManager.getPoolStats();
+        return cacheQueryManager.getPoolStats();
+    }
+
+    private void syncSuspendedToDb(long userAgentId, int httpStatusCode) {
+        UserAgentId id = UserAgentId.of(userAgentId);
+        readManager
+                .findById(id)
+                .ifPresent(
+                        userAgent -> {
+                            userAgent.recordFailure(httpStatusCode, Instant.now());
+                            transactionManager.persist(userAgent);
+                        });
+        log.warn("UserAgent {} SUSPENDED -> DB 동기화", userAgentId);
+    }
+
+    private void syncResultToDb(long userAgentId, boolean success, int httpStatusCode) {
+        UserAgentId id = UserAgentId.of(userAgentId);
+        readManager
+                .findById(id)
+                .ifPresent(
+                        userAgent -> {
+                            if (success) {
+                                userAgent.recordSuccess(Instant.now());
+                            } else {
+                                userAgent.recordFailure(httpStatusCode, Instant.now());
+                            }
+                            transactionManager.persist(userAgent);
+                        });
     }
 }

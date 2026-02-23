@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.CrawledRawJp
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.CrawledRawJpaRepository;
 import com.ryuqq.crawlinghub.application.product.port.out.command.CrawledRawPersistencePort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import java.util.List;
 import org.springframework.stereotype.Component;
 

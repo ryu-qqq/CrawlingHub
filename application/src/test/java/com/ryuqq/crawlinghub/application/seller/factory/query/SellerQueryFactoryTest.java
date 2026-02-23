@@ -2,8 +2,9 @@ package com.ryuqq.crawlinghub.application.seller.factory.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.crawlinghub.application.seller.dto.query.SearchSellersQuery;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
+import com.ryuqq.crawlinghub.application.common.dto.query.CommonSearchParams;
+import com.ryuqq.crawlinghub.application.seller.dto.query.SellerSearchParams;
+import com.ryuqq.crawlinghub.domain.seller.query.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
 import java.util.List;
@@ -31,23 +32,22 @@ class SellerQueryFactoryTest {
     class CreateCriteriaMethod {
 
         @Test
-        @DisplayName("모든 필드가 있는 Query를 Criteria로 변환한다")
-        void shouldConvertQueryWithAllFields() {
+        @DisplayName("모든 필드가 있는 SearchParams를 Criteria로 변환한다")
+        void shouldConvertParamsWithAllFields() {
             // Given
             Instant createdFrom = Instant.parse("2024-01-01T00:00:00Z");
             Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
-            SearchSellersQuery query =
-                    new SearchSellersQuery(
+            SellerSearchParams params =
+                    SellerSearchParams.of(
                             "mustit-seller",
                             "seller-name",
-                            List.of(SellerStatus.ACTIVE),
+                            List.of("ACTIVE"),
                             createdFrom,
                             createdTo,
-                            1,
-                            20);
+                            CommonSearchParams.of(null, null, null, null, null, 1, 20));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.mustItSellerName().value()).isEqualTo("mustit-seller");
@@ -61,13 +61,19 @@ class SellerQueryFactoryTest {
 
         @Test
         @DisplayName("mustItSellerName이 null이면 Criteria에도 null로 설정한다")
-        void shouldSetNullMustItSellerNameWhenQueryHasNull() {
+        void shouldSetNullMustItSellerNameWhenParamsHasNull() {
             // Given
-            SearchSellersQuery query =
-                    new SearchSellersQuery(null, "seller-name", null, null, null, 1, 10);
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            "seller-name",
+                            null,
+                            null,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 1, 10));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.mustItSellerName()).isNull();
@@ -76,13 +82,19 @@ class SellerQueryFactoryTest {
 
         @Test
         @DisplayName("sellerName이 null이면 Criteria에도 null로 설정한다")
-        void shouldSetNullSellerNameWhenQueryHasNull() {
+        void shouldSetNullSellerNameWhenParamsHasNull() {
             // Given
-            SearchSellersQuery query =
-                    new SearchSellersQuery("mustit-seller", null, null, null, null, 1, 10);
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            "mustit-seller",
+                            null,
+                            null,
+                            null,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 1, 10));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.mustItSellerName().value()).isEqualTo("mustit-seller");
@@ -93,10 +105,17 @@ class SellerQueryFactoryTest {
         @DisplayName("모든 검색 조건이 null이어도 페이지네이션은 유지한다")
         void shouldKeepPaginationWhenAllSearchConditionsAreNull() {
             // Given
-            SearchSellersQuery query = new SearchSellersQuery(null, null, null, null, null, 5, 50);
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 5, 50));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.mustItSellerName()).isNull();
@@ -110,14 +129,20 @@ class SellerQueryFactoryTest {
 
         @Test
         @DisplayName("createdFrom만 있는 경우 Criteria에 반영한다")
-        void shouldConvertQueryWithOnlyCreatedFrom() {
+        void shouldConvertParamsWithOnlyCreatedFrom() {
             // Given
             Instant createdFrom = Instant.parse("2024-06-01T00:00:00Z");
-            SearchSellersQuery query =
-                    new SearchSellersQuery(null, null, null, createdFrom, null, 0, 10);
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            null,
+                            null,
+                            createdFrom,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 0, 10));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.createdFrom()).isEqualTo(createdFrom);
@@ -126,18 +151,65 @@ class SellerQueryFactoryTest {
 
         @Test
         @DisplayName("createdTo만 있는 경우 Criteria에 반영한다")
-        void shouldConvertQueryWithOnlyCreatedTo() {
+        void shouldConvertParamsWithOnlyCreatedTo() {
             // Given
             Instant createdTo = Instant.parse("2024-12-31T23:59:59Z");
-            SearchSellersQuery query =
-                    new SearchSellersQuery(null, null, null, null, createdTo, 0, 10);
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            null,
+                            null,
+                            null,
+                            createdTo,
+                            CommonSearchParams.of(null, null, null, null, null, 0, 10));
 
             // When
-            SellerQueryCriteria criteria = factory.createCriteria(query);
+            SellerQueryCriteria criteria = factory.createCriteria(params);
 
             // Then
             assertThat(criteria.createdFrom()).isNull();
             assertThat(criteria.createdTo()).isEqualTo(createdTo);
+        }
+
+        @Test
+        @DisplayName("statuses 문자열 목록을 SellerStatus Enum으로 변환한다")
+        void shouldParseStatusStringsToEnums() {
+            // Given
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            null,
+                            List.of("ACTIVE", "INACTIVE"),
+                            null,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 0, 10));
+
+            // When
+            SellerQueryCriteria criteria = factory.createCriteria(params);
+
+            // Then
+            assertThat(criteria.statuses())
+                    .containsExactly(SellerStatus.ACTIVE, SellerStatus.INACTIVE);
+        }
+
+        @Test
+        @DisplayName("빈 statuses 목록은 null로 변환한다")
+        void shouldReturnNullForEmptyStatuses() {
+            // Given
+            SellerSearchParams params =
+                    SellerSearchParams.of(
+                            null,
+                            null,
+                            List.of(),
+                            null,
+                            null,
+                            CommonSearchParams.of(null, null, null, null, null, 0, 10));
+
+            // When
+            SellerQueryCriteria criteria = factory.createCriteria(params);
+
+            // Then
+            assertThat(criteria.statuses()).isNull();
         }
     }
 }

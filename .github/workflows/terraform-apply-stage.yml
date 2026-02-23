@@ -1,0 +1,157 @@
+# ============================================================================
+# CrawlingHub - Terraform Apply (Stage)
+# ============================================================================
+# Stage 환경 Terraform Apply
+# Outputs JSON Artifacts 30일 보관
+# deploy-stage.yml에서 호출 또는 수동 실행
+# ============================================================================
+
+name: Terraform Apply (Stage)
+
+on:
+  push:
+    branches:
+      - stage
+    paths:
+      - 'terraform/environments/stage/**'
+      - '.github/workflows/terraform-apply-stage.yml'
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Terraform module to apply (leave empty for all)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - ecr
+          - ecs-cluster
+          - sqs
+          - ecs-web-api
+          - ecs-scheduler
+          - ecs-crawl-worker
+  workflow_call:
+    inputs:
+      web-api-image-tag:
+        description: 'Web API Docker image tag'
+        required: false
+        type: string
+      scheduler-image-tag:
+        description: 'Scheduler Docker image tag'
+        required: false
+        type: string
+      crawl-worker-image-tag:
+        description: 'Crawl Worker Docker image tag'
+        required: false
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply (stage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      max-parallel: 1
+      matrix:
+        module:
+          - name: ecr
+            dir: terraform/environments/stage/ecr
+            order: 1
+          - name: ecs-cluster
+            dir: terraform/environments/stage/ecs-cluster
+            order: 2
+          - name: sqs
+            dir: terraform/environments/stage/sqs
+            order: 3
+          - name: ecs-web-api
+            dir: terraform/environments/stage/ecs-web-api
+            order: 4
+          - name: ecs-scheduler
+            dir: terraform/environments/stage/ecs-scheduler
+            order: 5
+          - name: ecs-crawl-worker
+            dir: terraform/environments/stage/ecs-crawl-worker
+            order: 6
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions-CrawlingHub-TerraformApply-Stage
+
+      - name: Terraform Init - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: terraform init -reconfigure
+
+      - name: Terraform Plan & Apply - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "Applying Terraform for ${{ matrix.module.name }} (stage)..."
+
+          # Image Tag 변수 설정
+          EXTRA_VARS=""
+
+          if [ "${{ matrix.module.name }}" == "ecs-web-api" ] && [ -n "${{ inputs.web-api-image-tag }}" ]; then
+            echo "Using Web API image tag: ${{ inputs.web-api-image-tag }}"
+            EXTRA_VARS="-var=image_tag=${{ inputs.web-api-image-tag }}"
+          elif [ "${{ matrix.module.name }}" == "ecs-scheduler" ] && [ -n "${{ inputs.scheduler-image-tag }}" ]; then
+            echo "Using Scheduler image tag: ${{ inputs.scheduler-image-tag }}"
+            EXTRA_VARS="-var=image_tag=${{ inputs.scheduler-image-tag }}"
+          elif [ "${{ matrix.module.name }}" == "ecs-crawl-worker" ] && [ -n "${{ inputs.crawl-worker-image-tag }}" ]; then
+            echo "Using Crawl Worker image tag: ${{ inputs.crawl-worker-image-tag }}"
+            EXTRA_VARS="-var=image_tag=${{ inputs.crawl-worker-image-tag }}"
+          fi
+
+          # Terraform Plan & Apply
+          terraform plan $EXTRA_VARS -out=tfplan
+          terraform apply -auto-approve -no-color tfplan
+          echo "Apply completed for ${{ matrix.module.name }} (stage)"
+
+      - name: Save Terraform Outputs - ${{ matrix.module.name }}
+        working-directory: ${{ matrix.module.dir }}
+        run: |
+          echo "Outputs for ${{ matrix.module.name }} (stage):"
+          terraform output -json > outputs-${{ matrix.module.name }}.json
+          terraform output
+
+      - name: Upload Outputs Artifact - ${{ matrix.module.name }}
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terraform-outputs-stage-${{ matrix.module.name }}
+          path: ${{ matrix.module.dir }}/outputs-${{ matrix.module.name }}.json
+          retention-days: 30
+
+  notify-completion:
+    name: Notify Completion
+    needs: terraform-apply
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Create Summary
+        run: |
+          echo "## CrawlingHub Terraform Apply (Stage)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ needs.terraform-apply.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Stage" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

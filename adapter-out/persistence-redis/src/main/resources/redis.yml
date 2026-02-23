@@ -1,48 +1,26 @@
-# ========================================
-# Redis Configuration (Default/Production)
-# ========================================
-# Redisson client configuration for distributed lock
-# Environment variables are injected via ECS Task Definition
-# ========================================
+# ============================================================
+# Redis Layer 공통 설정
+# ============================================================
+# 환경별 설정은 redis-{profile}.yml 참조
+# - redis-local.yml: 로컬 개발 환경
+# - redis-stage.yml: 스테이징 환경
+# - redis-prod.yml: 운영 환경
+# ============================================================
 
 spring:
   data:
     redis:
-      # Redis Server
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      # password는 REDIS_PASSWORD 환경변수가 설정된 경우에만 사용
-      # ElastiCache는 기본적으로 AUTH 없이 동작
-      database: ${REDIS_DATABASE:0}
-
-      # Connection timeout
       timeout: 3000ms
       connect-timeout: 3000ms
 
-# ========================================
-# Redisson Configuration (via spring.redis.redisson)
-# ========================================
-# Note: Redisson Spring Boot Starter uses spring.data.redis properties
-# for auto-configuration. The RedissonClient bean is automatically created.
-#
-# For custom configuration, use:
-# spring.redis.redisson.config: |
-#   singleServerConfig:
-#     address: "redis://localhost:6379"
-# ========================================
-
-# ========================================
+# ============================================================
 # Distributed Lock Configuration
-# ========================================
+# ============================================================
 distributed-lock:
-  # Default lock settings
   default-wait-time-ms: 5000
   default-lease-time-ms: 30000
-
-  # Lock key prefixes
   key-prefix: "crawlinghub:lock:"
 
-  # Specific lock configurations
   crawl-trigger:
     wait-time-ms: 3000
     lease-time-ms: 60000
@@ -51,31 +29,18 @@ distributed-lock:
     wait-time-ms: 5000
     lease-time-ms: 300000
 
-# ========================================
+# ============================================================
 # UserAgent Pool Configuration
-# ========================================
+# ============================================================
 useragent-pool:
-  # Rate Limiting (Sliding Window)
   rate-limit:
-    # 시간당 최대 요청 수
     max-tokens: 80
-    # 윈도우 지속 시간 (ISO-8601 Duration: PT1H = 1시간)
     window-duration: PT1H
 
-  # Session Management
   session:
-    # 선제적 세션 갱신 버퍼 (분)
-    # 세션 만료 N분 전에 갱신 시작
     renewal-buffer-minutes: 5
 
-  # Health Score
   health:
-    # SUSPENDED로 전환되는 최소 점수
     suspension-threshold: 30
 
-  # Key Prefixes
   key-prefix: "useragent:"
-
-logging:
-  level:
-    org.redisson: INFO

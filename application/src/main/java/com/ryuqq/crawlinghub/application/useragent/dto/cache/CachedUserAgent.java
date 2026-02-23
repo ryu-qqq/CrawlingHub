@@ -17,7 +17,10 @@ import java.time.Instant;
  *   <li>sessionExpiresAt: 세션 만료 시간
  *   <li>remainingTokens: 남은 요청 토큰 수 (초기 80)
  *   <li>healthScore: 건강 점수 (0-100)
- *   <li>status: READY, SESSION_REQUIRED, SUSPENDED
+ *   <li>status: IDLE, BORROWED, COOLDOWN, SESSION_REQUIRED, SUSPENDED
+ *   <li>borrowedAt: BORROWED 시작 시각 (Leak Detection용)
+ *   <li>cooldownUntil: COOLDOWN 만료 시각
+ *   <li>consecutiveRateLimits: 연속 429 횟수
  * </ul>
  *
  * <p><strong>세션 흐름</strong>:
@@ -25,9 +28,12 @@ import java.time.Instant;
  * <pre>
  * Pool 추가 (SESSION_REQUIRED)
  *     ↓ 세션 발급
- * READY (사용 가능)
- *     ↓ 429 또는 세션 만료
- * SUSPENDED 또는 SESSION_REQUIRED
+ * IDLE (사용 가능)
+ *     ↓ borrow()
+ * BORROWED (사용 중)
+ *     ↓ return(success) → IDLE
+ *     ↓ return(429) → COOLDOWN → IDLE
+ *     ↓ return(429 연속) → SUSPENDED
  * </pre>
  *
  * @author development-team
@@ -46,7 +52,10 @@ public record CachedUserAgent(
         Instant windowEnd,
         int healthScore,
         UserAgentStatus status,
-        Instant suspendedAt) {
+        Instant suspendedAt,
+        Instant borrowedAt,
+        Instant cooldownUntil,
+        int consecutiveRateLimits) {
     private static final int DEFAULT_MAX_TOKENS = 80;
 
     /**
@@ -59,8 +68,8 @@ public record CachedUserAgent(
      */
     public static CachedUserAgent forNew(UserAgent userAgent) {
         return new CachedUserAgent(
-                userAgent.getId().value(),
-                userAgent.getUserAgentString().value(),
+                userAgent.getIdValue(),
+                userAgent.getUserAgentStringValue(),
                 null,
                 null,
                 null,
@@ -71,7 +80,38 @@ public record CachedUserAgent(
                 null,
                 userAgent.getHealthScoreValue(),
                 UserAgentStatus.SESSION_REQUIRED,
-                null);
+                null,
+                null,
+                null,
+                0);
+    }
+
+    /**
+     * DB 폴백용 CachedUserAgent 생성
+     *
+     * <p>Redis 장애 시 DB UserAgent로부터 생성합니다. 세션 정보가 없으므로 degraded mode로 동작합니다.
+     *
+     * @param userAgent Domain UserAgent (available 상태)
+     * @return CachedUserAgent (IDLE, 세션 없음, degraded mode)
+     */
+    public static CachedUserAgent forDbFallback(UserAgent userAgent) {
+        return new CachedUserAgent(
+                userAgent.getIdValue(),
+                userAgent.getUserAgentStringValue(),
+                null,
+                null,
+                null,
+                null,
+                DEFAULT_MAX_TOKENS,
+                DEFAULT_MAX_TOKENS,
+                null,
+                null,
+                userAgent.getHealthScoreValue(),
+                UserAgentStatus.IDLE,
+                null,
+                null,
+                null,
+                0);
     }
 
     /**
@@ -97,15 +137,18 @@ public record CachedUserAgent(
                 null,
                 70,
                 UserAgentStatus.SESSION_REQUIRED,
-                null);
+                null,
+                null,
+                null,
+                0);
     }
 
     /**
-     * 세션 발급 후 READY 상태로 전환
+     * 세션 발급 후 IDLE 상태로 전환
      *
      * @param sessionToken 발급받은 세션 토큰
      * @param sessionExpiresAt 세션 만료 시간
-     * @return 새로운 CachedUserAgent (READY 상태)
+     * @return 새로운 CachedUserAgent (IDLE 상태)
      */
     public CachedUserAgent withSession(String sessionToken, Instant sessionExpiresAt) {
         return new CachedUserAgent(
@@ -120,18 +163,21 @@ public record CachedUserAgent(
                 this.windowStart,
                 this.windowEnd,
                 this.healthScore,
-                UserAgentStatus.READY,
-                null);
+                UserAgentStatus.IDLE,
+                null,
+                null,
+                null,
+                0);
     }
 
     /**
-     * 세션 및 쿠키 발급 후 READY 상태로 전환
+     * 세션 및 쿠키 발급 후 IDLE 상태로 전환
      *
      * @param sessionToken 발급받은 세션 토큰
      * @param nid nid 쿠키 값
      * @param mustitUid mustit_uid 쿠키 값
      * @param sessionExpiresAt 세션 만료 시간
-     * @return 새로운 CachedUserAgent (READY 상태)
+     * @return 새로운 CachedUserAgent (IDLE 상태)
      */
     public CachedUserAgent withSession(
             String sessionToken, String nid, String mustitUid, Instant sessionExpiresAt) {
@@ -147,8 +193,11 @@ public record CachedUserAgent(
                 this.windowStart,
                 this.windowEnd,
                 this.healthScore,
-                UserAgentStatus.READY,
-                null);
+                UserAgentStatus.IDLE,
+                null,
+                null,
+                null,
+                0);
     }
 
     /**
@@ -191,12 +240,39 @@ public record CachedUserAgent(
     }
 
     /**
-     * 즉시 사용 가능한 상태인지 확인
+     * 즉시 사용 가능한 상태인지 확인 (IDLE 상태)
      *
-     * @return READY이면 true
+     * @return IDLE이면 true
      */
     public boolean isReady() {
-        return status.isReady();
+        return status.isIdle();
+    }
+
+    /**
+     * 풀에서 대기 중인지 확인
+     *
+     * @return IDLE이면 true
+     */
+    public boolean isIdle() {
+        return status.isIdle();
+    }
+
+    /**
+     * 사용 중인지 확인
+     *
+     * @return BORROWED이면 true
+     */
+    public boolean isBorrowed() {
+        return status.isBorrowed();
+    }
+
+    /**
+     * 쿨다운 대기 중인지 확인
+     *
+     * @return COOLDOWN이면 true
+     */
+    public boolean isCooldown() {
+        return status.isCooldown();
     }
 
     /**
@@ -209,7 +285,7 @@ public record CachedUserAgent(
     }
 
     /**
-     * 복구 가능한 상태인지 확인 (SUSPENDED + 지정 시간 경과 + Health ≥ 30)
+     * 복구 가능한 상태인지 확인 (SUSPENDED + 지정 시간 경과 + Health >= 30)
      *
      * @param threshold 복구 기준 시점 (이 시간 이전에 suspended되었어야 함)
      * @return 복구 가능하면 true

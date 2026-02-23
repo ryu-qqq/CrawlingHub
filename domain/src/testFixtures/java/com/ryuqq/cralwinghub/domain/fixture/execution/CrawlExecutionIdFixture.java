@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.execution;
 
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 
 /**
  * CrawlExecutionId Test Fixture
@@ -39,7 +39,7 @@ public final class CrawlExecutionIdFixture {
      * @return CrawlExecutionId (value = null)
      */
     public static CrawlExecutionId anUnassignedId() {
-        return CrawlExecutionId.unassigned();
+        return CrawlExecutionId.forNew();
     }
 
     private CrawlExecutionIdFixture() {

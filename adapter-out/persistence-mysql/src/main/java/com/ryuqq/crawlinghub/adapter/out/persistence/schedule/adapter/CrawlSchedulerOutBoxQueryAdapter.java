@@ -14,10 +14,6 @@ import org.springframework.stereotype.Component;
 /**
  * CrawlSchedulerOutBoxQueryAdapter - CrawlSchedulerOutBox Query Adapter
  *
- * <p>CQRS의 Query(읽기) 담당 Adapter입니다.
- *
- * <p>QueryDSL Repository를 사용하여 조회 쿼리를 처리합니다.
- *
  * @author development-team
  * @since 1.0.0
  */
@@ -34,46 +30,29 @@ public class CrawlSchedulerOutBoxQueryAdapter implements CrawlSchedulerOutBoxQue
         this.mapper = mapper;
     }
 
-    /**
-     * 히스토리 ID로 아웃박스 조회
-     *
-     * @param historyId 히스토리 ID
-     * @return 아웃박스 (Optional)
-     */
     @Override
     public Optional<CrawlSchedulerOutBox> findByHistoryId(CrawlSchedulerHistoryId historyId) {
         return queryDslRepository.findByHistoryId(historyId.value()).map(mapper::toDomain);
     }
 
-    /**
-     * 상태별 아웃박스 목록 조회
-     *
-     * @param status 아웃박스 상태
-     * @param limit 조회 개수 제한
-     * @return 아웃박스 목록
-     */
     @Override
     public List<CrawlSchedulerOutBox> findByStatus(CrawlSchedulerOubBoxStatus status, int limit) {
         List<CrawlSchedulerOutBoxJpaEntity> entities =
                 queryDslRepository.findByStatus(status, limit);
-
         return entities.stream().map(mapper::toDomain).toList();
     }
 
-    /**
-     * PENDING 또는 FAILED 상태의 아웃박스 목록 조회
-     *
-     * @param limit 조회 개수 제한
-     * @return 재처리 대상 아웃박스 목록
-     */
     @Override
-    public List<CrawlSchedulerOutBox> findPendingOrFailed(int limit) {
-        List<CrawlSchedulerOubBoxStatus> statuses =
-                List.of(CrawlSchedulerOubBoxStatus.PENDING, CrawlSchedulerOubBoxStatus.FAILED);
-
+    public List<CrawlSchedulerOutBox> findPendingOlderThan(int limit, int delaySeconds) {
         List<CrawlSchedulerOutBoxJpaEntity> entities =
-                queryDslRepository.findByStatusIn(statuses, limit);
+                queryDslRepository.findPendingOlderThan(limit, delaySeconds);
+        return entities.stream().map(mapper::toDomain).toList();
+    }
 
+    @Override
+    public List<CrawlSchedulerOutBox> findStaleProcessing(int limit, long timeoutSeconds) {
+        List<CrawlSchedulerOutBoxJpaEntity> entities =
+                queryDslRepository.findStaleProcessing(limit, timeoutSeconds);
         return entities.stream().map(mapper::toDomain).toList();
     }
 }

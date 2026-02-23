@@ -4,7 +4,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskOutboxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.QCrawlTaskOutboxJpaEntity;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -97,6 +98,68 @@ public class CrawlTaskOutboxQueryDslRepository {
                         .fetchOne();
 
         return count != null ? count : 0L;
+    }
+
+    /**
+     * delaySeconds 이상 경과한 PENDING 상태 Outbox 조회
+     *
+     * <p>스케줄러에서 배치 처리할 Outbox를 조회합니다. 오래된 것부터 처리하기 위해 createdAt 오름차순으로 정렬합니다.
+     *
+     * @param limit 최대 조회 건수
+     * @param delaySeconds 생성 후 경과해야 할 최소 시간 (초)
+     * @return PENDING 상태의 CrawlTaskOutboxJpaEntity 목록
+     */
+    public List<CrawlTaskOutboxJpaEntity> findPendingOlderThan(int limit, int delaySeconds) {
+        LocalDateTime threshold = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(delaySeconds);
+        return queryFactory
+                .selectFrom(qOutbox)
+                .where(qOutbox.status.eq(OutboxStatus.PENDING).and(qOutbox.createdAt.lt(threshold)))
+                .orderBy(qOutbox.createdAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * timeoutSeconds 이상 PROCESSING 상태인 좀비 Outbox 조회
+     *
+     * <p>좀비 복구 스케줄러에서 타임아웃된 PROCESSING Outbox를 조회합니다. processedAt 오름차순으로 정렬합니다.
+     *
+     * @param limit 최대 조회 건수
+     * @param timeoutSeconds PROCESSING 상태 타임아웃 기준 (초)
+     * @return PROCESSING 좀비 CrawlTaskOutboxJpaEntity 목록
+     */
+    public List<CrawlTaskOutboxJpaEntity> findStaleProcessing(int limit, long timeoutSeconds) {
+        LocalDateTime threshold = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(timeoutSeconds);
+        return queryFactory
+                .selectFrom(qOutbox)
+                .where(
+                        qOutbox.status.eq(OutboxStatus.PROCESSING),
+                        qOutbox.processedAt.loe(threshold))
+                .orderBy(qOutbox.processedAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * FAILED 상태에서 delaySeconds 이상 경과한 재시도 가능 Outbox 조회
+     *
+     * <p>retryCount가 최대 재시도 횟수(3) 미만인 것만 조회합니다.
+     *
+     * @param limit 최대 조회 건수
+     * @param delaySeconds FAILED 후 경과해야 할 최소 시간 (초)
+     * @return FAILED 상태의 CrawlTaskOutboxJpaEntity 목록
+     */
+    public List<CrawlTaskOutboxJpaEntity> findFailedOlderThan(int limit, int delaySeconds) {
+        LocalDateTime threshold = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(delaySeconds);
+        return queryFactory
+                .selectFrom(qOutbox)
+                .where(
+                        qOutbox.status.eq(OutboxStatus.FAILED),
+                        qOutbox.processedAt.loe(threshold),
+                        qOutbox.retryCount.lt(3))
+                .orderBy(qOutbox.processedAt.asc())
+                .limit(limit)
+                .fetch();
     }
 
     /**

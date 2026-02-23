@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.schedule.controller;
 
-import com.ryuqq.authhub.sdk.annotation.RequirePermission;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.CrawlSchedulerEndpoints;
@@ -8,12 +7,11 @@ import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.query.SearchCrawlSched
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper.CrawlSchedulerQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerDetailResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import com.ryuqq.crawlinghub.application.schedule.dto.composite.CrawlSchedulerDetailResult;
+import com.ryuqq.crawlinghub.application.schedule.dto.query.CrawlSchedulerSearchParams;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerPageResult;
 import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlScheduleUseCase;
-import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulesUseCase;
+import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulerByOffsetUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +21,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -45,22 +42,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Scheduler", description = "크롤 스케줄러 관리 API")
 public class CrawlSchedulerQueryController {
 
-    private final SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase;
+    private final SearchCrawlSchedulerByOffsetUseCase searchCrawlSchedulerByOffsetUseCase;
     private final SearchCrawlScheduleUseCase searchCrawlScheduleUseCase;
     private final CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper;
 
     public CrawlSchedulerQueryController(
-            SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase,
+            SearchCrawlSchedulerByOffsetUseCase searchCrawlSchedulerByOffsetUseCase,
             SearchCrawlScheduleUseCase searchCrawlScheduleUseCase,
             CrawlSchedulerQueryApiMapper crawlSchedulerQueryApiMapper) {
-        this.searchCrawlSchedulesUseCase = searchCrawlSchedulesUseCase;
+        this.searchCrawlSchedulerByOffsetUseCase = searchCrawlSchedulerByOffsetUseCase;
         this.searchCrawlScheduleUseCase = searchCrawlScheduleUseCase;
         this.crawlSchedulerQueryApiMapper = crawlSchedulerQueryApiMapper;
     }
 
     @GetMapping
-    @PreAuthorize("@access.hasPermission('scheduler:read')")
-    @RequirePermission(value = "scheduler:read", description = "크롤 스케줄러 목록 조회")
     @Operation(
             summary = "크롤 스케줄러 목록 조회",
             description = "크롤 스케줄러 목록을 페이징하여 조회합니다. scheduler:read 권한이 필요합니다.",
@@ -88,17 +83,13 @@ public class CrawlSchedulerQueryController {
     })
     public ResponseEntity<ApiResponse<PageApiResponse<CrawlSchedulerSummaryApiResponse>>>
             listCrawlSchedulers(@ModelAttribute @Valid SearchCrawlSchedulersApiRequest request) {
-        SearchCrawlSchedulersQuery query = crawlSchedulerQueryApiMapper.toQuery(request);
-        PageResponse<CrawlSchedulerResponse> useCasePageResponse =
-                searchCrawlSchedulesUseCase.execute(query);
-        PageApiResponse<CrawlSchedulerSummaryApiResponse> apiPageResponse =
-                crawlSchedulerQueryApiMapper.toPageApiResponse(useCasePageResponse);
-        return ResponseEntity.ok(ApiResponse.of(apiPageResponse));
+        CrawlSchedulerSearchParams params = crawlSchedulerQueryApiMapper.toSearchParams(request);
+        CrawlSchedulerPageResult pageResult = searchCrawlSchedulerByOffsetUseCase.execute(params);
+        return ResponseEntity.ok(
+                ApiResponse.of(crawlSchedulerQueryApiMapper.toPageResponse(pageResult)));
     }
 
     @GetMapping(CrawlSchedulerEndpoints.BY_ID)
-    @PreAuthorize("@access.hasPermission('scheduler:read')")
-    @RequirePermission(value = "scheduler:read", description = "크롤 스케줄러 상세 조회")
     @Operation(
             summary = "크롤 스케줄러 상세 조회",
             description =
@@ -129,11 +120,10 @@ public class CrawlSchedulerQueryController {
     })
     public ResponseEntity<ApiResponse<CrawlSchedulerDetailApiResponse>> getCrawlScheduler(
             @Parameter(description = "크롤 스케줄러 ID", required = true, example = "1") @PathVariable
-                    Long crawlSchedulerId) {
-        CrawlSchedulerDetailResponse detailResponse =
-                searchCrawlScheduleUseCase.execute(crawlSchedulerId);
+                    Long id) {
+        CrawlSchedulerDetailResult detailResult = searchCrawlScheduleUseCase.execute(id);
         CrawlSchedulerDetailApiResponse apiResponse =
-                crawlSchedulerQueryApiMapper.toDetailApiResponse(detailResponse);
+                crawlSchedulerQueryApiMapper.toDetailApiResponse(detailResult);
         return ResponseEntity.ok(ApiResponse.of(apiResponse));
     }
 }

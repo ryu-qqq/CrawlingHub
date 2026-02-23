@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.query.SearchCrawlSchedulersQuery;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerPageResult;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResult;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 /**
  * CrawlSchedulerAssembler 단위 테스트
  *
- * <p>Domain → Response 변환 책임만 담당
+ * <p>Domain → Response/Result 변환 책임만 담당
  *
  * @author development-team
  * @since 1.0.0
@@ -65,41 +65,64 @@ class CrawlSchedulerAssemblerTest {
     }
 
     @Nested
-    @DisplayName("toCriteria() 테스트")
-    class ToCriteria {
+    @DisplayName("toResult() 테스트")
+    class ToResult {
 
         @Test
-        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerPageCriteria 변환 (전체 필드)")
-        void shouldConvertQueryToCriteria() {
+        @DisplayName("[성공] CrawlScheduler → CrawlSchedulerResult 변환")
+        void shouldConvertCrawlSchedulerToResult() {
             // Given
-            SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(
-                            1L, List.of(SchedulerStatus.ACTIVE), null, null, 0, 20);
+            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
 
             // When
-            CrawlSchedulerPageCriteria result = assembler.toCriteria(query);
+            CrawlSchedulerResult result = assembler.toResult(scheduler);
 
             // Then
-            assertThat(result.sellerId()).isNotNull();
-            assertThat(result.sellerId().value()).isEqualTo(1L);
-            assertThat(result.status()).isEqualTo(SchedulerStatus.ACTIVE);
-            assertThat(result.pageRequest().page()).isZero();
-            assertThat(result.size()).isEqualTo(20);
+            assertThat(result.id()).isEqualTo(scheduler.getCrawlSchedulerIdValue());
+            assertThat(result.sellerId()).isEqualTo(scheduler.getSellerIdValue());
+            assertThat(result.schedulerName()).isEqualTo(scheduler.getSchedulerNameValue());
+            assertThat(result.cronExpression()).isEqualTo(scheduler.getCronExpressionValue());
+            assertThat(result.status()).isEqualTo("ACTIVE");
+            assertThat(result.createdAt()).isEqualTo(scheduler.getCreatedAt());
+            assertThat(result.updatedAt()).isEqualTo(scheduler.getUpdatedAt());
+        }
+    }
+
+    @Nested
+    @DisplayName("toResults() 테스트")
+    class ToResults {
+
+        @Test
+        @DisplayName("[성공] CrawlScheduler 목록 → CrawlSchedulerResult 목록 변환")
+        void shouldConvertSchedulerListToResults() {
+            // Given
+            List<CrawlScheduler> schedulers =
+                    List.of(
+                            CrawlSchedulerFixture.anActiveScheduler(1L),
+                            CrawlSchedulerFixture.anActiveScheduler(2L),
+                            CrawlSchedulerFixture.anActiveScheduler(3L));
+
+            // When
+            List<CrawlSchedulerResult> result = assembler.toResults(schedulers);
+
+            // Then
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).id()).isEqualTo(1L);
+            assertThat(result.get(1).id()).isEqualTo(2L);
+            assertThat(result.get(2).id()).isEqualTo(3L);
         }
 
         @Test
-        @DisplayName("[성공] SearchCrawlSchedulersQuery → CrawlSchedulerPageCriteria 변환 (null 필드)")
-        void shouldConvertQueryToCriteriaWithNullFields() {
+        @DisplayName("[성공] 빈 목록 → 빈 목록 반환")
+        void shouldReturnEmptyListForEmptySchedulers() {
             // Given
-            SearchCrawlSchedulersQuery query =
-                    new SearchCrawlSchedulersQuery(null, null, null, null, 0, 10);
+            List<CrawlScheduler> schedulers = List.of();
 
             // When
-            CrawlSchedulerPageCriteria result = assembler.toCriteria(query);
+            List<CrawlSchedulerResult> result = assembler.toResults(schedulers);
 
             // Then
-            assertThat(result.sellerId()).isNull();
-            assertThat(result.status()).isNull();
+            assertThat(result).isEmpty();
         }
     }
 
@@ -138,6 +161,53 @@ class CrawlSchedulerAssemblerTest {
 
             // Then
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("toPageResult() 테스트")
+    class ToPageResult {
+
+        @Test
+        @DisplayName("[성공] CrawlScheduler 목록 → CrawlSchedulerPageResult 변환")
+        void shouldConvertSchedulersToPageResult() {
+            // Given
+            List<CrawlScheduler> schedulers =
+                    List.of(
+                            CrawlSchedulerFixture.anActiveScheduler(1L),
+                            CrawlSchedulerFixture.anActiveScheduler(2L));
+            int page = 0;
+            int size = 10;
+            long totalElements = 25L;
+
+            // When
+            CrawlSchedulerPageResult result =
+                    assembler.toPageResult(schedulers, page, size, totalElements);
+
+            // Then
+            assertThat(result.results()).hasSize(2);
+            assertThat(result.pageMeta().page()).isZero();
+            assertThat(result.pageMeta().size()).isEqualTo(10);
+            assertThat(result.pageMeta().totalElements()).isEqualTo(25L);
+            assertThat(result.pageMeta().totalPages()).isEqualTo(3);
+        }
+
+        @Test
+        @DisplayName("[성공] 빈 목록 → 빈 결과")
+        void shouldReturnEmptyPageResult() {
+            // Given
+            List<CrawlScheduler> schedulers = List.of();
+            int page = 0;
+            int size = 10;
+            long totalElements = 0L;
+
+            // When
+            CrawlSchedulerPageResult result =
+                    assembler.toPageResult(schedulers, page, size, totalElements);
+
+            // Then
+            assertThat(result.results()).isEmpty();
+            assertThat(result.pageMeta().totalElements()).isZero();
         }
     }
 

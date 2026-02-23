@@ -14,14 +14,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.UpdateSellerApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerCommandApiMapper;
 import com.ryuqq.crawlinghub.application.seller.dto.command.RegisterSellerCommand;
 import com.ryuqq.crawlinghub.application.seller.dto.command.UpdateSellerCommand;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerUseCase;
-import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -88,7 +85,7 @@ class SellerCommandControllerTest {
     class RegisterSellerTests {
 
         @Test
-        @DisplayName("성공: 201 Created, Location Header, Response 구조 검증")
+        @DisplayName("성공: 201 Created, sellerId 반환")
         void registerSeller_Success() throws Exception {
             // Given
             RegisterSellerApiRequest request =
@@ -96,19 +93,9 @@ class SellerCommandControllerTest {
 
             RegisterSellerCommand command = new RegisterSellerCommand("머스트잇 테스트 셀러", "테스트 셀러");
 
-            SellerResponse useCaseResponse =
-                    new SellerResponse(1L, "머스트잇 테스트 셀러", "테스트 셀러", true, Instant.now(), null);
-
-            SellerApiResponse apiResponse =
-                    new SellerApiResponse(
-                            1L, "머스트잇 테스트 셀러", "테스트 셀러", "ACTIVE", Instant.now().toString(), null);
-
             given(sellerCommandApiMapper.toCommand(any(RegisterSellerApiRequest.class)))
                     .willReturn(command);
-            given(registerSellerUseCase.execute(any(RegisterSellerCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(sellerCommandApiMapper.toApiResponse(any(SellerResponse.class)))
-                    .willReturn(apiResponse);
+            given(registerSellerUseCase.execute(any(RegisterSellerCommand.class))).willReturn(1L);
 
             // When & Then
             mockMvc.perform(
@@ -116,16 +103,11 @@ class SellerCommandControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.sellerId").value(1))
-                    .andExpect(jsonPath("$.data.mustItSellerName").value("머스트잇 테스트 셀러"))
-                    .andExpect(jsonPath("$.data.sellerName").value("테스트 셀러"))
-                    .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.data.createdAt").exists());
+                    .andExpect(jsonPath("$.data").value(1));
 
             // UseCase 호출 검증
             verify(sellerCommandApiMapper).toCommand(any(RegisterSellerApiRequest.class));
             verify(registerSellerUseCase).execute(any(RegisterSellerCommand.class));
-            verify(sellerCommandApiMapper).toApiResponse(any(SellerResponse.class));
         }
 
         @Test
@@ -215,7 +197,7 @@ class SellerCommandControllerTest {
     class UpdateSellerTests {
 
         @Test
-        @DisplayName("성공: 200 OK, Request Body 변환 검증")
+        @DisplayName("성공: 200 OK, Void 응답")
         void updateSeller_Success() throws Exception {
             // Given
             Long sellerId = 1L;
@@ -225,166 +207,34 @@ class SellerCommandControllerTest {
             UpdateSellerCommand command =
                     new UpdateSellerCommand(sellerId, "수정된 머스트잇 셀러명", "수정된 셀러명", false);
 
-            SellerResponse useCaseResponse =
-                    new SellerResponse(
-                            sellerId,
-                            "수정된 머스트잇 셀러명",
-                            "수정된 셀러명",
-                            false,
-                            Instant.now().minus(java.time.Duration.ofDays(1)),
-                            Instant.now());
-
-            SellerApiResponse apiResponse =
-                    new SellerApiResponse(
-                            sellerId,
-                            "수정된 머스트잇 셀러명",
-                            "수정된 셀러명",
-                            "INACTIVE",
-                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
-                            Instant.now().toString());
-
             given(
                             sellerCommandApiMapper.toCommand(
                                     any(Long.class), any(UpdateSellerApiRequest.class)))
                     .willReturn(command);
-            given(updateSellerUseCase.execute(any(UpdateSellerCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(sellerCommandApiMapper.toApiResponse(any(SellerResponse.class)))
-                    .willReturn(apiResponse);
 
             // When & Then
             mockMvc.perform(
                             patch("/api/v1/crawling/sellers/{id}", sellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.sellerId").value(sellerId))
-                    .andExpect(jsonPath("$.data.mustItSellerName").value("수정된 머스트잇 셀러명"))
-                    .andExpect(jsonPath("$.data.sellerName").value("수정된 셀러명"))
-                    .andExpect(jsonPath("$.data.status").value("INACTIVE"))
-                    .andExpect(jsonPath("$.data.updatedAt").exists());
+                    .andExpect(status().isOk());
 
             // UseCase 호출 검증
             verify(sellerCommandApiMapper)
                     .toCommand(any(Long.class), any(UpdateSellerApiRequest.class));
             verify(updateSellerUseCase).execute(any(UpdateSellerCommand.class));
-            verify(sellerCommandApiMapper).toApiResponse(any(SellerResponse.class));
         }
 
         @Test
-        @DisplayName("성공: 부분 업데이트 (mustItSellerName만 수정)")
-        void updateSeller_PartialUpdate_MustItSellerNameOnly() throws Exception {
+        @DisplayName("실패: mustItSellerName이 빈 문자열인 경우 400 Bad Request")
+        void updateSeller_MustItSellerNameBlank_BadRequest() throws Exception {
             // Given
             Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest("새로운 머스트잇 셀러명", null, null);
-
-            UpdateSellerCommand command =
-                    new UpdateSellerCommand(sellerId, "새로운 머스트잇 셀러명", null, null);
-
-            SellerResponse useCaseResponse =
-                    new SellerResponse(
-                            sellerId,
-                            "새로운 머스트잇 셀러명",
-                            "기존 셀러명",
-                            true,
-                            Instant.now().minus(java.time.Duration.ofDays(1)),
-                            Instant.now());
-
-            SellerApiResponse apiResponse =
-                    new SellerApiResponse(
-                            sellerId,
-                            "새로운 머스트잇 셀러명",
-                            "기존 셀러명",
-                            "ACTIVE",
-                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
-                            Instant.now().toString());
-
-            given(
-                            sellerCommandApiMapper.toCommand(
-                                    any(Long.class), any(UpdateSellerApiRequest.class)))
-                    .willReturn(command);
-            given(updateSellerUseCase.execute(any(UpdateSellerCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(sellerCommandApiMapper.toApiResponse(any(SellerResponse.class)))
-                    .willReturn(apiResponse);
+            UpdateSellerApiRequest request = new UpdateSellerApiRequest("", "수정된 셀러명", true);
 
             // When & Then
             mockMvc.perform(
                             patch("/api/v1/crawling/sellers/{id}", sellerId)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.sellerId").value(sellerId))
-                    .andExpect(jsonPath("$.data.mustItSellerName").value("새로운 머스트잇 셀러명"));
-
-            // UseCase 호출 검증
-            verify(updateSellerUseCase).execute(any(UpdateSellerCommand.class));
-        }
-
-        @Test
-        @DisplayName("성공: 상태만 변경 (active=false)")
-        void updateSeller_StatusChangeOnly() throws Exception {
-            // Given
-            Long sellerId = 1L;
-            UpdateSellerApiRequest request = new UpdateSellerApiRequest(null, null, false);
-
-            UpdateSellerCommand command = new UpdateSellerCommand(sellerId, null, null, false);
-
-            SellerResponse useCaseResponse =
-                    new SellerResponse(
-                            sellerId,
-                            "기존 머스트잇 셀러명",
-                            "기존 셀러명",
-                            false,
-                            Instant.now().minus(java.time.Duration.ofDays(1)),
-                            Instant.now());
-
-            SellerApiResponse apiResponse =
-                    new SellerApiResponse(
-                            sellerId,
-                            "기존 머스트잇 셀러명",
-                            "기존 셀러명",
-                            "INACTIVE",
-                            Instant.now().minus(java.time.Duration.ofDays(1)).toString(),
-                            Instant.now().toString());
-
-            given(
-                            sellerCommandApiMapper.toCommand(
-                                    any(Long.class), any(UpdateSellerApiRequest.class)))
-                    .willReturn(command);
-            given(updateSellerUseCase.execute(any(UpdateSellerCommand.class)))
-                    .willReturn(useCaseResponse);
-            given(sellerCommandApiMapper.toApiResponse(any(SellerResponse.class)))
-                    .willReturn(apiResponse);
-
-            // When & Then
-            mockMvc.perform(
-                            patch("/api/v1/crawling/sellers/{id}", sellerId)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.status").value("INACTIVE"));
-
-            // UseCase 호출 검증
-            verify(updateSellerUseCase).execute(any(UpdateSellerCommand.class));
-        }
-
-        /**
-         * PathVariable @Positive validation은 AOP 기반 MethodValidationInterceptor가 필요합니다.
-         * standaloneSetup에서는 지원되지 않으므로 통합 테스트에서 검증합니다.
-         */
-        @Test
-        @DisplayName("실패: sellerId가 0 이하인 경우 400 Bad Request")
-        @org.junit.jupiter.api.Disabled("PathVariable validation은 통합 테스트에서 검증")
-        void updateSeller_InvalidSellerId_BadRequest() throws Exception {
-            // Given
-            Long invalidSellerId = 0L;
-            UpdateSellerApiRequest request =
-                    new UpdateSellerApiRequest("수정된 머스트잇 셀러명", "수정된 셀러명", true);
-
-            // When & Then
-            mockMvc.perform(
-                            patch("/api/v1/crawling/sellers/{id}", invalidSellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -404,6 +254,30 @@ class SellerCommandControllerTest {
             // When & Then
             mockMvc.perform(
                             patch("/api/v1/crawling/sellers/{id}", sellerId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+
+            // UseCase 호출되지 않아야 함
+            verify(updateSellerUseCase, never()).execute(any());
+        }
+
+        /**
+         * PathVariable @Positive validation은 AOP 기반 MethodValidationInterceptor가 필요합니다.
+         * standaloneSetup에서는 지원되지 않으므로 통합 테스트에서 검증합니다.
+         */
+        @Test
+        @DisplayName("실패: sellerId가 0 이하인 경우 400 Bad Request")
+        @org.junit.jupiter.api.Disabled("PathVariable validation은 통합 테스트에서 검증")
+        void updateSeller_InvalidSellerId_BadRequest() throws Exception {
+            // Given
+            Long invalidSellerId = 0L;
+            UpdateSellerApiRequest request =
+                    new UpdateSellerApiRequest("수정된 머스트잇 셀러명", "수정된 셀러명", true);
+
+            // When & Then
+            mockMvc.perform(
+                            patch("/api/v1/crawling/sellers/{id}", invalidSellerId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());

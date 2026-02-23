@@ -6,7 +6,6 @@ package com.ryuqq.crawlinghub.domain.task.vo;
  * <p><strong>크롤링 유형</strong>:
  *
  * <ul>
- *   <li>{@code META} - 미니샵 메타 정보 크롤링
  *   <li>{@code MINI_SHOP} - 미니샵 상품 목록 크롤링
  *   <li>{@code DETAIL} - 상품 상세 정보 크롤링
  *   <li>{@code OPTION} - 상품 옵션 정보 크롤링
@@ -17,9 +16,6 @@ package com.ryuqq.crawlinghub.domain.task.vo;
  * @since 1.0.0
  */
 public enum CrawlTaskType {
-
-    /** 미니샵 메타 정보 크롤링 */
-    META("미니샵 메타 정보"),
 
     /** 미니샵 상품 목록 크롤링 */
     MINI_SHOP("미니샵 상품 목록"),

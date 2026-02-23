@@ -4,10 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskApiResponse;
 import com.ryuqq.crawlinghub.application.task.dto.command.RetryCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResult;
 import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -71,30 +70,35 @@ class CrawlTaskCommandApiMapperTest {
     class ToApiResponseTests {
 
         @Test
-        @DisplayName("Application 응답을 API 응답으로 변환한다")
+        @DisplayName("CrawlTaskResult를 API 응답으로 변환한다")
         void toApiResponse_ShouldConvertCorrectly() {
             // given
             Instant now = Instant.now();
-            CrawlTaskResponse appResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult appResult =
+                    new CrawlTaskResult(
                             1L,
                             10L,
                             100L,
+                            "https://example.com/products",
                             "https://example.com",
-                            CrawlTaskStatus.RETRY,
-                            CrawlTaskType.MINI_SHOP,
+                            "/products",
+                            Map.of(),
+                            "RETRY",
+                            "MINI_SHOP",
                             2,
                             now,
                             now);
 
             // when
-            CrawlTaskApiResponse result = mapper.toApiResponse(appResponse);
+            CrawlTaskApiResponse result = mapper.toApiResponse(appResult);
 
             // then
             assertThat(result.crawlTaskId()).isEqualTo(1L);
             assertThat(result.crawlSchedulerId()).isEqualTo(10L);
             assertThat(result.sellerId()).isEqualTo(100L);
-            assertThat(result.requestUrl()).isEqualTo("https://example.com");
+            assertThat(result.requestUrl()).isEqualTo("https://example.com/products");
+            assertThat(result.baseUrl()).isEqualTo("https://example.com");
+            assertThat(result.path()).isEqualTo("/products");
             assertThat(result.status()).isEqualTo("RETRY");
             assertThat(result.taskType()).isEqualTo("MINI_SHOP");
             assertThat(result.retryCount()).isEqualTo(2);
@@ -106,20 +110,23 @@ class CrawlTaskCommandApiMapperTest {
         void toApiResponse_WithVariousStatuses_ShouldConvertCorrectly() {
             // given
             Instant now = Instant.now();
-            CrawlTaskResponse appResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult appResult =
+                    new CrawlTaskResult(
                             2L,
                             20L,
                             200L,
                             "https://example.com/products",
-                            CrawlTaskStatus.TIMEOUT,
-                            CrawlTaskType.DETAIL,
+                            "https://example.com",
+                            "/products",
+                            Map.of(),
+                            "TIMEOUT",
+                            "DETAIL",
                             3,
                             now,
                             now);
 
             // when
-            CrawlTaskApiResponse result = mapper.toApiResponse(appResponse);
+            CrawlTaskApiResponse result = mapper.toApiResponse(appResult);
 
             // then
             assertThat(result.status()).isEqualTo("TIMEOUT");
@@ -131,20 +138,23 @@ class CrawlTaskCommandApiMapperTest {
         @DisplayName("null createdAt을 처리한다")
         void toApiResponse_WithNullCreatedAt_ShouldHandleNullValue() {
             // given
-            CrawlTaskResponse appResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult appResult =
+                    new CrawlTaskResult(
                             1L,
                             10L,
                             100L,
                             "https://example.com",
-                            CrawlTaskStatus.FAILED,
-                            CrawlTaskType.OPTION,
+                            "https://example.com",
+                            "",
+                            Map.of(),
+                            "FAILED",
+                            "OPTION",
                             1,
                             null,
                             null);
 
             // when
-            CrawlTaskApiResponse result = mapper.toApiResponse(appResponse);
+            CrawlTaskApiResponse result = mapper.toApiResponse(appResult);
 
             // then
             assertThat(result.createdAt()).isNull();
@@ -157,32 +167,38 @@ class CrawlTaskCommandApiMapperTest {
             Instant now = Instant.now();
 
             // when & then - META
-            CrawlTaskResponse metaResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult metaResult =
+                    new CrawlTaskResult(
                             1L,
                             10L,
                             100L,
                             "https://example.com",
-                            CrawlTaskStatus.SUCCESS,
-                            CrawlTaskType.META,
+                            "https://example.com",
+                            "",
+                            Map.of(),
+                            "SUCCESS",
+                            "META",
                             0,
                             now,
                             now);
-            assertThat(mapper.toApiResponse(metaResponse).taskType()).isEqualTo("META");
+            assertThat(mapper.toApiResponse(metaResult).taskType()).isEqualTo("META");
 
             // when & then - OPTION
-            CrawlTaskResponse optionResponse =
-                    new CrawlTaskResponse(
+            CrawlTaskResult optionResult =
+                    new CrawlTaskResult(
                             2L,
                             10L,
                             100L,
                             "https://example.com",
-                            CrawlTaskStatus.SUCCESS,
-                            CrawlTaskType.OPTION,
+                            "https://example.com",
+                            "",
+                            Map.of(),
+                            "SUCCESS",
+                            "OPTION",
                             0,
                             now,
                             now);
-            assertThat(mapper.toApiResponse(optionResponse).taskType()).isEqualTo("OPTION");
+            assertThat(mapper.toApiResponse(optionResult).taskType()).isEqualTo("OPTION");
         }
     }
 }

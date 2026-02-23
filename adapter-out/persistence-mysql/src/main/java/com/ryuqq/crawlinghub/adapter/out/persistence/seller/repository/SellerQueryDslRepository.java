@@ -4,7 +4,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.QSellerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
+import com.ryuqq.crawlinghub.domain.seller.query.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
 import java.time.LocalDateTime;

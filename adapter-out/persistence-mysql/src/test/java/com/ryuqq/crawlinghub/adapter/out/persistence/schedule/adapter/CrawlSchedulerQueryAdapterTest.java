@@ -8,11 +8,14 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.mapper.CrawlSchedulerJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.repository.CrawlSchedulerQueryDslRepository;
+import com.ryuqq.crawlinghub.domain.common.vo.PageRequest;
+import com.ryuqq.crawlinghub.domain.common.vo.QueryContext;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerSearchCriteria;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerSortKey;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -126,12 +129,14 @@ class CrawlSchedulerQueryAdapterTest {
         @DisplayName("성공 - 조건으로 CrawlScheduler 목록 조회")
         void shouldFindByCriteria() {
             // Given
-            CrawlSchedulerPageCriteria criteria =
-                    CrawlSchedulerPageCriteria.of(
+            CrawlSchedulerSearchCriteria criteria =
+                    CrawlSchedulerSearchCriteria.of(
                             null,
                             List.of(SchedulerStatus.ACTIVE),
                             null,
-                            com.ryuqq.crawlinghub.domain.common.vo.PageRequest.of(0, 10));
+                            null,
+                            QueryContext.of(
+                                    CrawlSchedulerSortKey.CREATED_AT, null, PageRequest.of(0, 10)));
             LocalDateTime now = LocalDateTime.now();
             CrawlSchedulerJpaEntity entity =
                     CrawlSchedulerJpaEntity.of(
@@ -156,23 +161,25 @@ class CrawlSchedulerQueryAdapterTest {
     }
 
     @Nested
-    @DisplayName("count 테스트")
-    class CountTests {
+    @DisplayName("countByCriteria 테스트")
+    class CountByCriteriaTests {
 
         @Test
         @DisplayName("성공 - 조건으로 개수 조회")
-        void shouldCount() {
+        void shouldCountByCriteria() {
             // Given
-            CrawlSchedulerPageCriteria criteria =
-                    CrawlSchedulerPageCriteria.of(
+            CrawlSchedulerSearchCriteria criteria =
+                    CrawlSchedulerSearchCriteria.of(
                             null,
                             List.of(SchedulerStatus.ACTIVE),
                             null,
-                            com.ryuqq.crawlinghub.domain.common.vo.PageRequest.of(0, 20));
+                            null,
+                            QueryContext.of(
+                                    CrawlSchedulerSortKey.CREATED_AT, null, PageRequest.of(0, 20)));
             given(queryDslRepository.countByCriteria(criteria)).willReturn(5L);
 
             // When
-            long result = queryAdapter.count(criteria);
+            long result = queryAdapter.countByCriteria(criteria);
 
             // Then
             assertThat(result).isEqualTo(5L);

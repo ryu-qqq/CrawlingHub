@@ -37,11 +37,11 @@ class CrawlSchedulerOutBoxCommandAdapterTest {
 
     @Mock private CrawlSchedulerOutBoxJpaEntityMapper mapper;
 
-    private CrawlSchedulerOutBoxCommandAdapter commandAdapter;
+    private CrawlSchedulerOutBoxCommandCommandAdapter commandAdapter;
 
     @BeforeEach
     void setUp() {
-        commandAdapter = new CrawlSchedulerOutBoxCommandAdapter(jpaRepository, mapper);
+        commandAdapter = new CrawlSchedulerOutBoxCommandCommandAdapter(jpaRepository, mapper);
     }
 
     @Test
@@ -52,10 +52,32 @@ class CrawlSchedulerOutBoxCommandAdapterTest {
         LocalDateTime now = LocalDateTime.now();
         CrawlSchedulerOutBoxJpaEntity entity =
                 CrawlSchedulerOutBoxJpaEntity.of(
-                        null, 1L, CrawlSchedulerOubBoxStatus.PENDING, "{}", null, 0L, now, null);
+                        null,
+                        1L,
+                        CrawlSchedulerOubBoxStatus.PENDING,
+                        1L,
+                        1L,
+                        "test-scheduler",
+                        "cron(0 0 * * ? *)",
+                        "ACTIVE",
+                        null,
+                        0L,
+                        now,
+                        null);
         CrawlSchedulerOutBoxJpaEntity savedEntity =
                 CrawlSchedulerOutBoxJpaEntity.of(
-                        1L, 1L, CrawlSchedulerOubBoxStatus.PENDING, "{}", null, 0L, now, null);
+                        1L,
+                        1L,
+                        CrawlSchedulerOubBoxStatus.PENDING,
+                        1L,
+                        1L,
+                        "test-scheduler",
+                        "cron(0 0 * * ? *)",
+                        "ACTIVE",
+                        null,
+                        0L,
+                        now,
+                        null);
 
         given(mapper.toEntity(outBox)).willReturn(entity);
         given(jpaRepository.save(entity)).willReturn(savedEntity);
@@ -78,7 +100,18 @@ class CrawlSchedulerOutBoxCommandAdapterTest {
         LocalDateTime now = LocalDateTime.now();
         CrawlSchedulerOutBoxJpaEntity entity =
                 CrawlSchedulerOutBoxJpaEntity.of(
-                        100L, 1L, CrawlSchedulerOubBoxStatus.COMPLETED, "{}", null, 1L, now, now);
+                        100L,
+                        1L,
+                        CrawlSchedulerOubBoxStatus.COMPLETED,
+                        1L,
+                        1L,
+                        "test-scheduler",
+                        "cron(0 0 * * ? *)",
+                        "ACTIVE",
+                        null,
+                        1L,
+                        now,
+                        now);
 
         given(mapper.toEntity(outBox)).willReturn(entity);
         given(jpaRepository.save(entity)).willReturn(entity);

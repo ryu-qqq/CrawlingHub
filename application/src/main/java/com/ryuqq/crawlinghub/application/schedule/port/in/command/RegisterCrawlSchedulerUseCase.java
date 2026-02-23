@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.application.schedule.port.in.command;
 
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RegisterCrawlSchedulerCommand;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 
 /**
  * 크롤 스케줄러 등록 Use Case (Port In).
@@ -17,7 +16,7 @@ public interface RegisterCrawlSchedulerUseCase {
      * 크롤 스케줄러 등록 실행.
      *
      * @param command 등록 명령 (sellerId, schedulerName, cronExpression)
-     * @return 등록된 스케줄러 정보
+     * @return 등록된 스케줄러 ID
      */
-    CrawlSchedulerResponse register(RegisterCrawlSchedulerCommand command);
+    long register(RegisterCrawlSchedulerCommand command);
 }

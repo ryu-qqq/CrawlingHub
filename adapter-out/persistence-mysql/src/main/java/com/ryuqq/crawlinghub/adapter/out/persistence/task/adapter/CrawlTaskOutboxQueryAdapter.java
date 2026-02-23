@@ -5,8 +5,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskOutbox
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskOutboxQueryDslRepository;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskOutboxQueryPort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskOutboxCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -85,5 +85,47 @@ public class CrawlTaskOutboxQueryAdapter implements CrawlTaskOutboxQueryPort {
     @Override
     public long countByCriteria(CrawlTaskOutboxCriteria criteria) {
         return queryDslRepository.countByCriteria(criteria);
+    }
+
+    /**
+     * delaySeconds 이상 경과한 PENDING 상태 Outbox 조회
+     *
+     * @param limit 최대 조회 건수
+     * @param delaySeconds 생성 후 경과해야 할 최소 시간 (초)
+     * @return PENDING 상태의 Outbox Domain 목록
+     */
+    @Override
+    public List<CrawlTaskOutbox> findPendingOlderThan(int limit, int delaySeconds) {
+        return queryDslRepository.findPendingOlderThan(limit, delaySeconds).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    /**
+     * timeoutSeconds 이상 PROCESSING 상태인 좀비 Outbox 조회
+     *
+     * @param limit 최대 조회 건수
+     * @param timeoutSeconds PROCESSING 상태 타임아웃 기준 (초)
+     * @return PROCESSING 좀비 Outbox Domain 목록
+     */
+    @Override
+    public List<CrawlTaskOutbox> findStaleProcessing(int limit, long timeoutSeconds) {
+        return queryDslRepository.findStaleProcessing(limit, timeoutSeconds).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    /**
+     * FAILED 상태에서 delaySeconds 이상 경과한 재시도 가능 Outbox 조회
+     *
+     * @param limit 최대 조회 건수
+     * @param delaySeconds FAILED 후 경과해야 할 최소 시간 (초)
+     * @return FAILED 상태의 재시도 가능 Outbox Domain 목록
+     */
+    @Override
+    public List<CrawlTaskOutbox> findFailedOlderThan(int limit, int delaySeconds) {
+        return queryDslRepository.findFailedOlderThan(limit, delaySeconds).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

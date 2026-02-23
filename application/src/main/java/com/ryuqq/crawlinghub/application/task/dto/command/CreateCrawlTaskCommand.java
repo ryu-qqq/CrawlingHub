@@ -10,7 +10,6 @@ import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
  * <p><strong>사용 시나리오</strong>:
  *
  * <ul>
- *   <li>MetaCrawler → MiniShop 태스크 생성
  *   <li>MiniShopCrawler → Detail, Option 태스크 생성
  *   <li>SearchCrawler → 다음 SEARCH 페이지, Detail, Option 태스크 생성
  * </ul>
@@ -51,20 +50,6 @@ public record CreateCrawlTaskCommand(
     public static CreateCrawlTaskCommand of(
             Long crawlSchedulerId, Long sellerId, CrawlTaskType taskType, Long targetId) {
         return new CreateCrawlTaskCommand(crawlSchedulerId, sellerId, "", taskType, targetId, null);
-    }
-
-    /**
-     * META 태스크 생성용 팩토리 메서드
-     *
-     * @param crawlSchedulerId 스케줄러 ID
-     * @param sellerId 셀러 ID
-     * @param mustItSellerName 머스트잇 셀러명
-     * @return CreateCrawlTaskCommand
-     */
-    public static CreateCrawlTaskCommand forMeta(
-            Long crawlSchedulerId, Long sellerId, String mustItSellerName) {
-        return new CreateCrawlTaskCommand(
-                crawlSchedulerId, sellerId, mustItSellerName, CrawlTaskType.META, null, null);
     }
 
     /**

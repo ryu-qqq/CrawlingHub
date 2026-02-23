@@ -25,17 +25,18 @@ dependencies {
     // ========================================
     // Adapters
     // ========================================
-    // Inbound (SQS Listener)
-    implementation project(':adapter-in:sqs-listener')
+    // Inbound (SQS Consumer)
+    implementation project(':adapter-in:sqs-consumer')
 
-    // Outbound
+    // Outbound - Persistence
     implementation project(':adapter-out:persistence-mysql')
     implementation project(':adapter-out:persistence-redis')  // For distributed lock
-    implementation project(':adapter-out:aws-sqs')            // For SQS message publishing
-    implementation project(':adapter-out:http-client')        // For HTTP crawling
-    implementation project(':adapter-out:aws-eventbridge')    // For EventBridge scheduler
-    implementation project(':adapter-out:fileflow-client')    // For Fileflow image upload
-    implementation project(':adapter-out:marketplace-client')  // For External product sync
+
+    // Outbound - Client
+    implementation project(':adapter-out:client:sqs-client')            // For SQS message publishing
+    implementation project(':adapter-out:client:http-client')           // For HTTP crawling
+    implementation project(':adapter-out:client:eventbridge-client')    // For EventBridge scheduler
+    implementation project(':adapter-out:client:marketplace-client')    // For External product sync
 
     // ========================================
     // Spring Boot Starters

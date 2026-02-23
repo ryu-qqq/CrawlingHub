@@ -4,10 +4,10 @@ import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetOutboxListQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.OutboxResponse;
 import com.ryuqq.crawlinghub.application.task.factory.query.CrawlTaskOutboxCriteriaFactory;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskOutboxReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.query.GetOutboxListUseCase;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTaskOutbox;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskOutboxCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskOutboxCriteria;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +71,7 @@ public class GetOutboxListService implements GetOutboxListUseCase {
 
     private OutboxResponse toResponse(CrawlTaskOutbox outbox) {
         return new OutboxResponse(
-                outbox.getCrawlTaskId().value(),
+                outbox.getCrawlTaskIdValue(),
                 outbox.getIdempotencyKey(),
                 outbox.getStatus(),
                 outbox.getRetryCount(),

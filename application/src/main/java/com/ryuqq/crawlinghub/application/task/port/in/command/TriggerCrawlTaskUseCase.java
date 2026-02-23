@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.port.in.command;
 
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.dto.response.CrawlTaskResponse;
 
 /**
  * CrawlTask 트리거 UseCase (Port In - Command)
@@ -17,7 +16,6 @@ public interface TriggerCrawlTaskUseCase {
      * CrawlTask 트리거 실행
      *
      * @param command 트리거 커맨드 (crawlSchedulerId)
-     * @return 생성된 CrawlTask 응답
      */
-    CrawlTaskResponse execute(TriggerCrawlTaskCommand command);
+    void execute(TriggerCrawlTaskCommand command);
 }

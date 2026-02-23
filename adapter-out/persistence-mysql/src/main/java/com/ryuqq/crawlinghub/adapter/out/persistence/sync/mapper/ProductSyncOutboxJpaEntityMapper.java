@@ -2,8 +2,9 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductSyncOutboxId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -50,7 +51,7 @@ public class ProductSyncOutboxJpaEntityMapper {
      */
     public ProductSyncOutboxJpaEntity toEntity(CrawledProductSyncOutbox domain) {
         return ProductSyncOutboxJpaEntity.of(
-                domain.getId(),
+                domain.getIdValue(),
                 domain.getCrawledProductIdValue(),
                 domain.getSellerIdValue(),
                 domain.getItemNo(),
@@ -79,7 +80,7 @@ public class ProductSyncOutboxJpaEntityMapper {
      */
     public CrawledProductSyncOutbox toDomain(ProductSyncOutboxJpaEntity entity) {
         return CrawledProductSyncOutbox.reconstitute(
-                entity.getId(),
+                CrawledProductSyncOutboxId.of(entity.getId()),
                 CrawledProductId.of(entity.getCrawledProductId()),
                 SellerId.of(entity.getSellerId()),
                 entity.getItemNo(),

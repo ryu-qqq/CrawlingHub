@@ -59,7 +59,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 스케줄러 목록을 조회할 수 있다")
         void shouldReturnSchedulerListWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -86,7 +86,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("셀러 ID 필터로 해당 셀러의 스케줄러만 조회된다")
         void shouldFilterBySellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -115,7 +115,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("상태 필터로 해당 상태의 스케줄러만 조회된다")
         void shouldFilterByStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -140,7 +140,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션이 정상 동작한다")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -168,7 +168,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 권한 없이도 조회할 수 있다")
         void superAdminShouldAccessWithoutPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -191,7 +191,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 스케줄러를 등록할 수 있다")
         void shouldRegisterSchedulerWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -222,7 +222,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("scheduler:read 권한만 있으면 등록할 수 없다 (403)")
         void shouldNotRegisterWithReadOnlyPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -246,7 +246,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("필수 필드 누락 시 400을 반환한다 - sellerId")
         void shouldReturn400WhenSellerIdMissing() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -270,7 +270,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("필수 필드 누락 시 400을 반환한다 - schedulerName")
         void shouldReturn400WhenSchedulerNameMissing() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -294,7 +294,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 셀러 ID로 등록 시 404를 반환한다")
         void shouldReturn404ForNonExistentSeller() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -318,7 +318,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 권한 없이도 등록할 수 있다")
         void superAdminShouldRegisterWithoutPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -347,7 +347,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 스케줄러를 수정할 수 있다")
         void shouldUpdateSchedulerWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
@@ -377,7 +377,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("스케줄러 이름만 수정할 수 있다")
         void shouldUpdateOnlySchedulerName() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
@@ -404,7 +404,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 스케줄러 수정 시 404를 반환한다")
         void shouldReturn404ForNonExistentScheduler() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long nonExistentSchedulerId = 99999L;
 
@@ -427,7 +427,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("scheduler:read 권한만 있으면 수정할 수 없다 (403)")
         void shouldNotUpdateWithReadOnlyPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
@@ -455,7 +455,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 스케줄러 상태를 변경할 수 있다 (활성화 → 비활성화)")
         void shouldUpdateStatusToInactive() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L; // ACTIVE 상태인 스케줄러
 
@@ -483,7 +483,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 스케줄러 상태를 변경할 수 있다 (비활성화 → 활성화)")
         void shouldUpdateStatusToActive() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 3L; // INACTIVE 상태인 스케줄러
 
@@ -510,7 +510,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("active 필드 누락 시 400을 반환한다")
         void shouldReturn400WhenActiveFieldMissing() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
@@ -533,7 +533,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 스케줄러 상태 변경 시 404를 반환한다")
         void shouldReturn404ForNonExistentScheduler() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long nonExistentSchedulerId = 99999L;
 
@@ -566,7 +566,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 있는 사용자는 ACTIVE 상태의 스케줄러를 트리거할 수 있다")
         void shouldTriggerActiveSchedulerWithPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long schedulerId = 1L; // ACTIVE 상태인 스케줄러
 
             // when
@@ -591,7 +591,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("INACTIVE 상태의 스케줄러는 트리거할 수 없다 (400)")
         void shouldNotTriggerInactiveScheduler() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long inactiveSchedulerId = 3L; // INACTIVE 상태인 스케줄러
 
             // when
@@ -610,7 +610,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("scheduler:read 권한만 있으면 트리거할 수 없다 (403)")
         void shouldNotTriggerWithReadOnlyPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long schedulerId = 1L;
 
             // when
@@ -629,7 +629,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 스케줄러 트리거 시 404를 반환한다")
         void shouldReturn404ForNonExistentScheduler() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long nonExistentSchedulerId = 99999L;
 
             // when
@@ -648,7 +648,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN은 권한 없이도 트리거할 수 있다")
         void superAdminShouldTriggerWithoutPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long schedulerId = 2L; // ACTIVE 상태인 스케줄러
 
             // when
@@ -690,7 +690,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("권한이 없으면 403을 반환한다")
         void shouldReturn403WithoutPermission() {
             // given - 인증은 되어 있지만 scheduler:read 권한이 없음
-            HttpHeaders headers = AuthTestHelper.authenticated();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -708,7 +708,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 권한으로는 접근할 수 없다")
         void shouldReturn403WithWrongPermission() {
             // given - task:read 권한만 있고 scheduler:read는 없음
-            HttpHeaders headers = AuthTestHelper.withPermissions("task:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -726,7 +726,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("SUPER_ADMIN 역할은 모든 권한을 우회한다")
         void superAdminShouldBypassAllPermissions() {
             // given
-            HttpHeaders headers = AuthTestHelper.superAdmin();
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // when - 읽기
@@ -776,7 +776,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("잘못된 상태값으로 조회 시 400을 반환한다")
         void shouldReturn400ForInvalidStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -794,7 +794,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 페이지 번호로 조회 시 400을 반환한다")
         void shouldReturn400ForNegativePage() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -812,7 +812,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지 크기 초과 시 400을 반환한다")
         void shouldReturn400ForExcessivePageSize() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -830,7 +830,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 스케줄러 ID로 수정 시 400을 반환한다")
         void shouldReturn400ForNegativeSchedulerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();
@@ -852,7 +852,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("스케줄러 이름이 100자를 초과하면 400을 반환한다")
         void shouldReturn400ForTooLongSchedulerName() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             String tooLongName = "a".repeat(101);
@@ -877,7 +877,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("음수 셀러 ID로 등록 시 400을 반환한다")
         void shouldReturn400ForNegativeSellerId() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = new HashMap<>();

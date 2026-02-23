@@ -1,3 +1,11 @@
+# ============================================================================
+# CrawlingHub - Terraform Apply (Production)
+# ============================================================================
+# Production 환경 Terraform Apply
+# 기존 리소스 자동 Import + Outputs JSON Artifacts 30일 보관
+# build-and-deploy.yml에서 호출 또는 수동 실행
+# ============================================================================
+
 name: Terraform Apply
 
 on:
@@ -5,8 +13,8 @@ on:
     branches:
       - main
     paths:
-      - 'terraform/**'
-      - '.github/workflows/terraform-*.yml'
+      - 'terraform/environments/prod/**'
+      - '.github/workflows/terraform-apply.yml'
   workflow_dispatch:
     inputs:
       module:
@@ -19,10 +27,11 @@ on:
           - ecr
           - ecs-cluster
           - elasticache
+          - sqs
           - ecs-web-api
           - ecs-scheduler
           - ecs-crawl-worker
-  workflow_call:      # 다른 워크플로우에서 호출 가능
+  workflow_call:
     inputs:
       web-api-image-tag:
         description: 'Web API Docker image tag'
@@ -46,7 +55,7 @@ permissions:
 
 jobs:
   terraform-apply:
-    name: Terraform Apply
+    name: Terraform Apply (prod)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -54,23 +63,26 @@ jobs:
       matrix:
         module:
           - name: ecr
-            dir: terraform/ecr
+            dir: terraform/environments/prod/ecr
             order: 1
           - name: ecs-cluster
-            dir: terraform/ecs-cluster
+            dir: terraform/environments/prod/ecs-cluster
             order: 2
           - name: elasticache
-            dir: terraform/elasticache
+            dir: terraform/environments/prod/elasticache
             order: 3
-          - name: ecs-web-api
-            dir: terraform/ecs-web-api
+          - name: sqs
+            dir: terraform/environments/prod/sqs
             order: 4
-          - name: ecs-scheduler
-            dir: terraform/ecs-scheduler
+          - name: ecs-web-api
+            dir: terraform/environments/prod/ecs-web-api
             order: 5
-          - name: ecs-crawl-worker
-            dir: terraform/ecs-crawl-worker
+          - name: ecs-scheduler
+            dir: terraform/environments/prod/ecs-scheduler
             order: 6
+          - name: ecs-crawl-worker
+            dir: terraform/environments/prod/ecs-crawl-worker
+            order: 7
 
     steps:
       - name: Checkout code
@@ -91,138 +103,100 @@ jobs:
 
       - name: Terraform Init - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
-        run: terraform init
+        run: terraform init -reconfigure
 
       - name: Check and Import Existing Resources - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
         run: |
-          echo "🔍 기존 리소스 확인 및 Import 중..."
+          echo "Checking existing resources for ${{ matrix.module.name }}..."
+
+          # Image Tag 변수 설정
+          EXTRA_VARS=""
+          if [ "${{ matrix.module.name }}" == "ecs-web-api" ] && [ -n "${{ inputs.web-api-image-tag }}" ]; then
+            EXTRA_VARS="-var=image_tag=${{ inputs.web-api-image-tag }}"
+          elif [ "${{ matrix.module.name }}" == "ecs-scheduler" ] && [ -n "${{ inputs.scheduler-image-tag }}" ]; then
+            EXTRA_VARS="-var=image_tag=${{ inputs.scheduler-image-tag }}"
+          elif [ "${{ matrix.module.name }}" == "ecs-crawl-worker" ] && [ -n "${{ inputs.crawl-worker-image-tag }}" ]; then
+            EXTRA_VARS="-var=image_tag=${{ inputs.crawl-worker-image-tag }}"
+          fi
 
           # Plan 실행하여 충돌 확인
           set +e
-          terraform plan -out=tfplan 2>&1 | tee plan_output.txt
+          terraform plan $EXTRA_VARS -out=tfplan 2>&1 | tee plan_output.txt
           PLAN_EXIT_CODE=$?
           set -e
 
-          # 삭제 시도 감지 (Destroying 패턴) - State 꼬임 복구
-          if grep -q "will be destroyed\|Destroying" plan_output.txt; then
-            echo "🚨 리소스 삭제 시도 감지! State 복구 시작..."
+          # "already exists" 패턴 확인
+          if grep -q "EntityAlreadyExists\|already exists\|AlreadyExists" plan_output.txt; then
+            echo "Existing resources found! Starting import..."
 
-            # ECR 모듈 - State 복구
+            # ECR 모듈
             if [ "${{ matrix.module.name }}" == "ecr" ]; then
-              echo "📦 ECR State 복구 중..."
-
-              # crawl-worker 복구
-              if grep -q "ecr_crawl_worker" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → State에서 crawl-worker 제거 후 재import..."
-                terraform state rm 'module.ecr_crawl_worker.aws_ecr_repository.this' 2>/dev/null || true
-                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed"
-              fi
-
-              # web-api 복구
-              if grep -q "ecr_web_api" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → State에서 web-api 제거 후 재import..."
-                terraform state rm 'module.ecr_web_api.aws_ecr_repository.this' 2>/dev/null || true
-                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed"
-              fi
-
-              # scheduler 복구
-              if grep -q "ecr_scheduler" plan_output.txt && aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → State에서 scheduler 제거 후 재import..."
-                terraform state rm 'module.ecr_scheduler.aws_ecr_repository.this' 2>/dev/null || true
-                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed"
-              fi
-            fi
-
-            echo "✅ State 복구 완료! Plan 재실행..."
-            terraform plan -out=tfplan
-          fi
-
-          # 409 에러 또는 "already exists" 패턴 확인
-          if grep -q "EntityAlreadyExists\|already exists" plan_output.txt; then
-            echo "⚠️  기존 리소스 발견! Import 작업 시작..."
-
-            # ECR 모듈 (인덱스 없이 import)
-            if [ "${{ matrix.module.name }}" == "ecr" ]; then
-              echo "📦 ECR Repository 리소스 Import 중..."
-              if aws ecr describe-repositories --repository-names crawlinghub-web-api-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-web-api-prod ECR repository..."
-                terraform import -input=false 'module.ecr_web_api.aws_ecr_repository.this' crawlinghub-web-api-prod || echo "  ⚠️  Import failed or already in state"
-              fi
-              if aws ecr describe-repositories --repository-names crawlinghub-scheduler-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-scheduler-prod ECR repository..."
-                terraform import -input=false 'module.ecr_scheduler.aws_ecr_repository.this' crawlinghub-scheduler-prod || echo "  ⚠️  Import failed or already in state"
-              fi
-              if aws ecr describe-repositories --repository-names crawlinghub-crawl-worker-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-crawl-worker-prod ECR repository..."
-                terraform import -input=false 'module.ecr_crawl_worker.aws_ecr_repository.this' crawlinghub-crawl-worker-prod || echo "  ⚠️  Import failed or already in state"
-              fi
-            fi
-
-            # ECS Cluster 모듈
-            if [ "${{ matrix.module.name }}" == "ecs-cluster" ]; then
-              echo "📦 ECS Cluster 리소스 Import 중..."
-              CLUSTER_ARN=$(aws ecs describe-clusters --clusters crawlinghub-cluster-prod --region ap-northeast-2 --query 'clusters[0].clusterArn' --output text 2>/dev/null || echo "")
-              if [ -n "$CLUSTER_ARN" ] && [ "$CLUSTER_ARN" != "None" ]; then
-                echo "  → Importing ECS Cluster: $CLUSTER_ARN"
-                terraform import -input=false aws_ecs_cluster.main "$CLUSTER_ARN" || echo "  ⚠️  Import failed or already in state"
-              fi
+              echo "Importing ECR repositories..."
+              for repo_pair in "ecr_web_api:crawlinghub-web-api-prod" "ecr_scheduler:crawlinghub-scheduler-prod" "ecr_crawl_worker:crawlinghub-crawl-worker-prod"; do
+                MODULE_NAME="${repo_pair%%:*}"
+                REPO_NAME="${repo_pair##*:}"
+                if aws ecr describe-repositories --repository-names "$REPO_NAME" --region ap-northeast-2 >/dev/null 2>&1; then
+                  echo "  Importing $REPO_NAME..."
+                  terraform import -input=false "module.${MODULE_NAME}.aws_ecr_repository.this[0]" "$REPO_NAME" || echo "  Import failed or already in state"
+                fi
+              done
             fi
 
             # ElastiCache 모듈
             if [ "${{ matrix.module.name }}" == "elasticache" ]; then
-              echo "📦 ElastiCache Redis 리소스 Import 중..."
+              echo "Importing ElastiCache resources..."
               if aws elasticache describe-cache-clusters --cache-cluster-id crawlinghub-redis-prod --region ap-northeast-2 >/dev/null 2>&1; then
-                echo "  → Importing crawlinghub-redis-prod..."
-                terraform import -input=false 'module.redis.aws_elasticache_cluster.this' crawlinghub-redis-prod || echo "  ⚠️  Import failed or already in state"
+                echo "  Importing crawlinghub-redis-prod..."
+                terraform import -input=false aws_elasticache_cluster.redis crawlinghub-redis-prod || echo "  Import failed or already in state"
               fi
             fi
 
-            # ECS Web API 모듈
+            # ECS Service 모듈 (web-api)
             if [ "${{ matrix.module.name }}" == "ecs-web-api" ]; then
-              echo "📦 ECS Web API 리소스 Import 중..."
-
-              # ALB
-              ALB_ARN=$(aws elbv2 describe-load-balancers --names crawlinghub-alb-prod --region ap-northeast-2 --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "")
-              if [ -n "$ALB_ARN" ] && [ "$ALB_ARN" != "None" ]; then
-                echo "  → Importing ALB: $ALB_ARN"
-                terraform import -input=false aws_lb.web_api "$ALB_ARN" || echo "  ⚠️  Import failed or already in state"
+              echo "Importing ECS web-api resources..."
+              # IAM Execution Role
+              if aws iam get-role --role-name crawlinghub-web-api-execution-role-prod >/dev/null 2>&1; then
+                echo "  Importing execution role..."
+                terraform import -input=false "module.ecs_task_execution_role.aws_iam_role.this[0]" crawlinghub-web-api-execution-role-prod || echo "  Import failed or already in state"
               fi
-
-              # Target Group
-              TG_ARN=$(aws elbv2 describe-target-groups --names crawlinghub-web-api-tg-prod --region ap-northeast-2 --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || echo "")
-              if [ -n "$TG_ARN" ] && [ "$TG_ARN" != "None" ]; then
-                echo "  → Importing Target Group: $TG_ARN"
-                terraform import -input=false aws_lb_target_group.web_api "$TG_ARN" || echo "  ⚠️  Import failed or already in state"
+              # IAM Task Role
+              if aws iam get-role --role-name crawlinghub-web-api-task-role-prod >/dev/null 2>&1; then
+                echo "  Importing task role..."
+                terraform import -input=false "module.ecs_task_role.aws_iam_role.this[0]" crawlinghub-web-api-task-role-prod || echo "  Import failed or already in state"
               fi
             fi
 
-            # ECS Scheduler 모듈
+            # ECS Service 모듈 (scheduler)
             if [ "${{ matrix.module.name }}" == "ecs-scheduler" ]; then
-              echo "📦 ECS Scheduler 리소스 Import 중..."
-              # ECS Service
-              SERVICE_ARN=$(aws ecs describe-services --cluster crawlinghub-cluster-prod --services crawlinghub-scheduler-prod --region ap-northeast-2 --query 'services[0].serviceArn' --output text 2>/dev/null || echo "")
-              if [ -n "$SERVICE_ARN" ] && [ "$SERVICE_ARN" != "None" ]; then
-                echo "  → Importing ECS Scheduler Service: $SERVICE_ARN"
-                terraform import -input=false aws_ecs_service.scheduler "$SERVICE_ARN" || echo "  ⚠️  Import failed or already in state"
+              echo "Importing ECS scheduler resources..."
+              if aws iam get-role --role-name crawlinghub-scheduler-execution-role-prod >/dev/null 2>&1; then
+                echo "  Importing execution role..."
+                terraform import -input=false "module.ecs_task_execution_role.aws_iam_role.this[0]" crawlinghub-scheduler-execution-role-prod || echo "  Import failed or already in state"
+              fi
+              if aws iam get-role --role-name crawlinghub-scheduler-task-role-prod >/dev/null 2>&1; then
+                echo "  Importing task role..."
+                terraform import -input=false "module.ecs_task_role.aws_iam_role.this[0]" crawlinghub-scheduler-task-role-prod || echo "  Import failed or already in state"
               fi
             fi
 
-            # ECS Crawl Worker 모듈
+            # ECS Service 모듈 (crawl-worker)
             if [ "${{ matrix.module.name }}" == "ecs-crawl-worker" ]; then
-              echo "📦 ECS Crawl Worker 리소스 Import 중..."
-              # ECS Service
-              SERVICE_ARN=$(aws ecs describe-services --cluster crawlinghub-cluster-prod --services crawlinghub-crawl-worker-prod --region ap-northeast-2 --query 'services[0].serviceArn' --output text 2>/dev/null || echo "")
-              if [ -n "$SERVICE_ARN" ] && [ "$SERVICE_ARN" != "None" ]; then
-                echo "  → Importing ECS Crawl Worker Service: $SERVICE_ARN"
-                terraform import -input=false aws_ecs_service.crawl_worker "$SERVICE_ARN" || echo "  ⚠️  Import failed or already in state"
+              echo "Importing ECS crawl-worker resources..."
+              if aws iam get-role --role-name crawlinghub-crawl-worker-execution-role-prod >/dev/null 2>&1; then
+                echo "  Importing execution role..."
+                terraform import -input=false "module.ecs_task_execution_role.aws_iam_role.this[0]" crawlinghub-crawl-worker-execution-role-prod || echo "  Import failed or already in state"
+              fi
+              if aws iam get-role --role-name crawlinghub-crawl-worker-task-role-prod >/dev/null 2>&1; then
+                echo "  Importing task role..."
+                terraform import -input=false "module.ecs_task_role.aws_iam_role.this[0]" crawlinghub-crawl-worker-task-role-prod || echo "  Import failed or already in state"
               fi
             fi
 
-            echo "✅ Import 완료! Plan 재실행..."
-            terraform plan -out=tfplan
+            echo "Import complete! Re-running plan..."
+            terraform plan $EXTRA_VARS -out=tfplan
           else
-            echo "✅ 기존 리소스 없음 또는 State와 일치. 정상 진행."
+            echo "No existing resource conflicts. Proceeding normally."
           fi
 
           rm -f plan_output.txt
@@ -230,73 +204,36 @@ jobs:
       - name: Terraform Apply - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
         run: |
-          echo "🚀 Applying Terraform for ${{ matrix.module.name }}..."
-
-          # Image Tag 변수 설정 (Build & Deploy 워크플로우에서 전달됨)
-          EXTRA_VARS=""
-
-          if [ "${{ matrix.module.name }}" == "ecs-web-api" ] && [ -n "${{ inputs.web-api-image-tag }}" ]; then
-            echo "📦 Using Web API image tag: ${{ inputs.web-api-image-tag }}"
-            EXTRA_VARS="-var=image_tag=${{ inputs.web-api-image-tag }}"
-          elif [ "${{ matrix.module.name }}" == "ecs-scheduler" ] && [ -n "${{ inputs.scheduler-image-tag }}" ]; then
-            echo "📦 Using Scheduler image tag: ${{ inputs.scheduler-image-tag }}"
-            EXTRA_VARS="-var=image_tag=${{ inputs.scheduler-image-tag }}"
-          elif [ "${{ matrix.module.name }}" == "ecs-crawl-worker" ] && [ -n "${{ inputs.crawl-worker-image-tag }}" ]; then
-            echo "📦 Using Crawl Worker image tag: ${{ inputs.crawl-worker-image-tag }}"
-            EXTRA_VARS="-var=image_tag=${{ inputs.crawl-worker-image-tag }}"
-          else
-            echo "ℹ️  No image tag provided for ${{ matrix.module.name }}, using default from provider.tf"
-          fi
-
-          # Terraform Plan with optional image_tag variable
-          if [ -n "$EXTRA_VARS" ]; then
-            echo "📋 Generating fresh terraform plan with image tag..."
-            terraform plan $EXTRA_VARS -out=tfplan
-          fi
-
           terraform apply -auto-approve -no-color tfplan
-          echo "✅ Apply completed for ${{ matrix.module.name }}"
+          echo "Apply completed for ${{ matrix.module.name }}"
 
-      - name: Terraform Output - ${{ matrix.module.name }}
+      - name: Save Terraform Outputs - ${{ matrix.module.name }}
         working-directory: ${{ matrix.module.dir }}
         run: |
-          echo "📋 Outputs for ${{ matrix.module.name }}:"
+          echo "Outputs for ${{ matrix.module.name }}:"
           terraform output -json > outputs-${{ matrix.module.name }}.json
           terraform output
 
-      - name: Upload Apply Results - ${{ matrix.module.name }}
+      - name: Upload Outputs Artifact - ${{ matrix.module.name }}
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: apply-results-${{ matrix.module.name }}
+          name: terraform-outputs-prod-${{ matrix.module.name }}
           path: ${{ matrix.module.dir }}/outputs-${{ matrix.module.name }}.json
           retention-days: 30
 
   notify-completion:
-    name: Notify Deployment Completion
+    name: Notify Completion
     needs: terraform-apply
     runs-on: ubuntu-latest
     if: always()
 
     steps:
-      - name: Create Deployment Summary
+      - name: Create Summary
         run: |
-          echo "## 🎉 CrawlingHub Infrastructure Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "## CrawlingHub Terraform Apply (Production)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Status**: ${{ needs.terraform-apply.result }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Modules Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECR Repositories (web-api, scheduler, crawl-worker)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS Cluster" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ElastiCache Redis" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS Service: web-api" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS Service: scheduler" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ECS Service: crawl-worker" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next Steps**:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Verify infrastructure in AWS Console" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check CloudWatch logs" >> $GITHUB_STEP_SUMMARY
-          echo "3. Test application endpoints" >> $GITHUB_STEP_SUMMARY

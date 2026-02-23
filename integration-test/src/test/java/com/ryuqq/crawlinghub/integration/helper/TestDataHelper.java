@@ -1,9 +1,9 @@
 package com.ryuqq.crawlinghub.integration.helper;
 
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
-import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheManager;
-import com.ryuqq.crawlinghub.application.useragent.port.out.cache.UserAgentPoolCachePort;
-import com.ryuqq.crawlinghub.domain.useragent.identifier.UserAgentId;
+import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheCommandManager;
+import com.ryuqq.crawlinghub.application.useragent.port.out.command.UserAgentPoolCacheCommandPort;
+import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -17,7 +17,8 @@ import org.springframework.stereotype.Component;
  *
  * <p>JdbcTemplate을 사용하여 테스트 데이터를 삽입합니다. @BeforeEach 이후에 호출되므로 DatabaseCleaner와 충돌하지 않습니다.
  *
- * <p>Redis Pool 초기화도 지원합니다. UserAgentPoolCacheManager를 통해 테스트용 UserAgent를 READY 상태로 추가할 수 있습니다.
+ * <p>Redis Pool 초기화도 지원합니다. UserAgentPoolCacheCommandManager를 통해 테스트용 UserAgent를 READY 상태로 추가할 수
+ * 있습니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -26,17 +27,19 @@ import org.springframework.stereotype.Component;
 public class TestDataHelper {
 
     private final JdbcTemplate jdbcTemplate;
-    private final UserAgentPoolCacheManager userAgentPoolCacheManager;
-    private final UserAgentPoolCachePort userAgentPoolCachePort;
+    private final UserAgentPoolCacheCommandManager userAgentPoolCacheCommandManager;
+    private final UserAgentPoolCacheCommandPort userAgentPoolCacheCommandPort;
 
     @Autowired
     public TestDataHelper(
             JdbcTemplate jdbcTemplate,
-            @Autowired(required = false) UserAgentPoolCacheManager userAgentPoolCacheManager,
-            @Autowired(required = false) UserAgentPoolCachePort userAgentPoolCachePort) {
+            @Autowired(required = false)
+                    UserAgentPoolCacheCommandManager userAgentPoolCacheCommandManager,
+            @Autowired(required = false)
+                    UserAgentPoolCacheCommandPort userAgentPoolCacheCommandPort) {
         this.jdbcTemplate = jdbcTemplate;
-        this.userAgentPoolCacheManager = userAgentPoolCacheManager;
-        this.userAgentPoolCachePort = userAgentPoolCachePort;
+        this.userAgentPoolCacheCommandManager = userAgentPoolCacheCommandManager;
+        this.userAgentPoolCacheCommandPort = userAgentPoolCacheCommandPort;
     }
 
     /** Seller 테스트 데이터 삽입 */
@@ -261,7 +264,7 @@ VALUES
     /**
      * ProductSyncOutbox 테스트 데이터 삽입 (Seller, CrawledProduct 데이터 필요)
      *
-     * <p>다양한 상태의 SyncOutbox를 생성합니다:
+     * <p>다양한 상태의 CrawledProductSyncOutbox를 생성합니다:
      *
      * <ul>
      *   <li>id=1: PENDING 상태, 재시도 0회
@@ -294,80 +297,10 @@ VALUES
 """);
     }
 
-    /**
-     * CrawledProductImage 테스트 데이터 삽입 (CrawledProduct 데이터 필요)
-     *
-     * <p>V9에서 분리된 crawled_product_image 테이블에 이미지 데이터를 삽입합니다.
-     *
-     * <ul>
-     *   <li>id=1: product 1, THUMBNAIL
-     *   <li>id=2: product 1, DESCRIPTION
-     *   <li>id=3: product 2, THUMBNAIL (S3 업로드 완료)
-     *   <li>id=4: product 1, THUMBNAIL (두 번째)
-     *   <li>id=5: product 4, DESCRIPTION
-     * </ul>
-     */
-    public void insertCrawledProductImages() {
-        jdbcTemplate.execute(
-                """
-INSERT INTO crawled_product_image (
-    id, crawled_product_id, original_url, s3_url, file_asset_id,
-    image_type, display_order, created_at, updated_at
-)
-VALUES
-    (1, 1, 'https://example.com/img1.jpg', NULL, NULL,
-        'THUMBNAIL', 0, NOW(), NOW()),
-    (2, 1, 'https://example.com/desc1.jpg', NULL, NULL,
-        'DESCRIPTION', 0, NOW(), NOW()),
-    (3, 2, 'https://example.com/img2.jpg', 'https://s3.example.com/img2.jpg', 'asset-001',
-        'THUMBNAIL', 0, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 1, 'https://example.com/img3.jpg', NULL, NULL,
-        'THUMBNAIL', 1, NOW(), NOW()),
-    (5, 4, 'https://example.com/desc4.jpg', NULL, NULL,
-        'DESCRIPTION', 0, NOW(), NOW())
-""");
-    }
-
-    /**
-     * ProductImageOutbox 테스트 데이터 삽입 (CrawledProductImage 데이터 필요)
-     *
-     * <p>다양한 상태의 ImageOutbox를 생성합니다. V11에서 컬럼이 변경되어 crawled_product_image_id를 참조합니다.
-     *
-     * <ul>
-     *   <li>id=1: PENDING 상태, image 1 참조
-     *   <li>id=2: PROCESSING 상태, image 2 참조
-     *   <li>id=3: COMPLETED 상태, image 3 참조
-     *   <li>id=4: FAILED 상태, 재시도 1회 (재시도 가능), image 4 참조
-     *   <li>id=5: FAILED 상태, 재시도 3회 (재시도 불가), image 5 참조
-     * </ul>
-     */
-    public void insertProductImageOutbox() {
-        jdbcTemplate.execute(
-                """
-INSERT INTO product_image_outbox (
-    id, crawled_product_image_id, idempotency_key, status,
-    retry_count, error_message, created_at, processed_at
-)
-VALUES
-    (1, 1, 'img-1-thumb-1000', 'PENDING', 0, NULL, NOW(), NULL),
-    (2, 2, 'img-1-desc-1001', 'PROCESSING', 0, NULL, NOW(), NULL),
-    (3, 3, 'img-2-thumb-1002', 'COMPLETED',
-        0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 4, 'img-1-thumb-1003', 'FAILED',
-        1, 'Upload failed',
-        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
-    (5, 5, 'img-4-desc-1004', 'FAILED',
-        3, 'Max retry exceeded',
-        DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
-""");
-    }
-
     /** ProductOutbox 관련 테스트에 필요한 모든 데이터 삽입 */
     public void insertProductOutboxTestData() {
         insertCrawledProductTestData();
-        insertCrawledProductImages();
         insertProductSyncOutbox();
-        insertProductImageOutbox();
     }
 
     /**
@@ -375,7 +308,7 @@ VALUES
      *
      * <p>테스트용 UserAgent를 READY 상태로 Redis Pool에 추가합니다. MySQL에 UserAgent 데이터를 먼저 삽입한 후 호출해야 합니다.
      *
-     * <p>UserAgentPoolCacheManager가 주입되지 않은 경우 (Web API 테스트 등) 무시됩니다.
+     * <p>UserAgentPoolCacheCommandManager가 주입되지 않은 경우 (Web API 테스트 등) 무시됩니다.
      *
      * <p><strong>중요</strong>: addToPool()은 항상 SESSION_REQUIRED 상태로 추가합니다. 따라서 warmUp() 후
      * updateSession()을 호출하여 READY 상태로 변경해야 합니다.
@@ -383,7 +316,7 @@ VALUES
      * @param count 추가할 UserAgent 수 (기본 2개 사용 권장)
      */
     public void warmUpUserAgentPool(int count) {
-        if (userAgentPoolCacheManager == null || userAgentPoolCachePort == null) {
+        if (userAgentPoolCacheCommandManager == null || userAgentPoolCacheCommandPort == null) {
             return;
         }
 
@@ -408,18 +341,21 @@ VALUES
                             now, // windowStart
                             windowEnd, // windowEnd
                             100, // healthScore (최대값)
-                            UserAgentStatus.READY, // READY 상태 (즉시 사용 가능)
-                            null // suspendedAt (서스펜드되지 않음)
+                            UserAgentStatus.IDLE, // IDLE 상태 (즉시 사용 가능)
+                            null, // suspendedAt (서스펜드되지 않음)
+                            null, // borrowedAt
+                            null, // cooldownUntil
+                            0 // consecutiveRateLimits
                             );
             cachedUserAgents.add(cachedUserAgent);
         }
 
         // warmUp()은 addToPool()을 호출하며, addToPool()은 항상 SESSION_REQUIRED 상태로 추가
-        userAgentPoolCacheManager.warmUp(cachedUserAgents);
+        userAgentPoolCacheCommandManager.warmUp(cachedUserAgents);
 
         // updateSession()을 호출하여 READY 상태로 변경 (세션 토큰 설정)
         for (int i = 1; i <= count; i++) {
-            userAgentPoolCachePort.updateSession(
+            userAgentPoolCacheCommandPort.updateSession(
                     UserAgentId.of((long) i),
                     "test-session-token-" + i,
                     "test-nid-" + i,

@@ -3,15 +3,15 @@ package com.ryuqq.crawlinghub.application.task.service.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskStatisticsQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskStatisticsResponse;
 import com.ryuqq.crawlinghub.application.task.factory.query.CrawlTaskQueryFactory;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.LocalDateTime;
@@ -67,7 +67,7 @@ class GetTaskStatisticsServiceTest {
 
             Map<CrawlTaskType, CrawlTaskQueryPort.TaskTypeCount> taskTypeCounts = new HashMap<>();
             taskTypeCounts.put(
-                    CrawlTaskType.META, new CrawlTaskQueryPort.TaskTypeCount(50L, 45L, 5L));
+                    CrawlTaskType.SEARCH, new CrawlTaskQueryPort.TaskTypeCount(50L, 45L, 5L));
             taskTypeCounts.put(
                     CrawlTaskType.DETAIL, new CrawlTaskQueryPort.TaskTypeCount(50L, 35L, 15L));
 
@@ -134,7 +134,7 @@ class GetTaskStatisticsServiceTest {
 
             Map<CrawlTaskType, CrawlTaskQueryPort.TaskTypeCount> taskTypeCounts = new HashMap<>();
             taskTypeCounts.put(
-                    CrawlTaskType.META, new CrawlTaskQueryPort.TaskTypeCount(50L, 48L, 2L));
+                    CrawlTaskType.SEARCH, new CrawlTaskQueryPort.TaskTypeCount(50L, 48L, 2L));
             taskTypeCounts.put(
                     CrawlTaskType.DETAIL, new CrawlTaskQueryPort.TaskTypeCount(30L, 28L, 2L));
             taskTypeCounts.put(
@@ -152,10 +152,10 @@ class GetTaskStatisticsServiceTest {
 
             // Then
             assertThat(result.byTaskType()).hasSize(3);
-            assertThat(result.byTaskType()).containsKey("META");
-            assertThat(result.byTaskType().get("META").total()).isEqualTo(50L);
-            assertThat(result.byTaskType().get("META").success()).isEqualTo(48L);
-            assertThat(result.byTaskType().get("META").failed()).isEqualTo(2L);
+            assertThat(result.byTaskType()).containsKey("SEARCH");
+            assertThat(result.byTaskType().get("SEARCH").total()).isEqualTo(50L);
+            assertThat(result.byTaskType().get("SEARCH").success()).isEqualTo(48L);
+            assertThat(result.byTaskType().get("SEARCH").failed()).isEqualTo(2L);
         }
 
         @Test

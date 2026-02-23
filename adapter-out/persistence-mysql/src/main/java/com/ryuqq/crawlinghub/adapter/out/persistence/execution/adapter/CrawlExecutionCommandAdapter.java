@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.execution.mapper.CrawlExecu
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.repository.CrawlExecutionJpaRepository;
 import com.ryuqq.crawlinghub.application.execution.port.out.command.CrawlExecutionPersistencePort;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,7 +1,5 @@
 package com.ryuqq.crawlinghub.domain.useragent.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
-
 /**
  * 세션 토큰 발급 실패 시 발생하는 예외
  *
@@ -10,7 +8,7 @@ import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
  * @author development-team
  * @since 1.0.0
  */
-public class SessionIssuanceFailedException extends DomainException {
+public class SessionIssuanceFailedException extends UserAgentException {
 
     private static final UserAgentErrorCode ERROR_CODE = UserAgentErrorCode.SESSION_ISSUANCE_FAILED;
 

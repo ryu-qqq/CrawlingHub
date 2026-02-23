@@ -8,81 +8,113 @@ parallel_apply: false
 
 projects:
   # ============================================================================
-  # Container Registry
+  # Production Environment
   # ============================================================================
 
-  # ECR repositories for web-api and scheduler
+  # ECR repositories for web-api, scheduler, crawl-worker
   - name: crawlinghub-ecr-prod
-    dir: terraform/ecr
+    dir: terraform/environments/prod/ecr
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
-
-  # ============================================================================
-  # Core Infrastructure
-  # ============================================================================
 
   # ECS Cluster (dedicated for crawlinghub)
   - name: crawlinghub-ecs-cluster-prod
-    dir: terraform/ecs-cluster
+    dir: terraform/environments/prod/ecs-cluster
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
   # ElastiCache (Redis)
   - name: crawlinghub-elasticache-prod
-    dir: terraform/elasticache
+    dir: terraform/environments/prod/elasticache
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
-  # ============================================================================
-  # Application Infrastructure
-  # ============================================================================
+  # SQS queues for async messaging
+  - name: crawlinghub-sqs-prod
+    dir: terraform/environments/prod/sqs
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
+      enabled: true
 
   # ECS Service for web-api (ALB + Auto Scaling)
   - name: crawlinghub-ecs-web-api-prod
-    dir: terraform/ecs-web-api
+    dir: terraform/environments/prod/ecs-web-api
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
   # ECS Service for scheduler (No ALB, desired=1)
   - name: crawlinghub-ecs-scheduler-prod
-    dir: terraform/ecs-scheduler
+    dir: terraform/environments/prod/ecs-scheduler
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
   # ECS Service for crawl-worker (SQS consumer, no ALB)
   - name: crawlinghub-ecs-crawl-worker-prod
-    dir: terraform/ecs-crawl-worker
+    dir: terraform/environments/prod/ecs-crawl-worker
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
   # ============================================================================
-  # Event-Driven Infrastructure
+  # Stage Environment
   # ============================================================================
 
-  #EventBridge for scheduled crawling tasks
-  - name: crawlinghub-eventbridge-prod
-    dir: terraform/eventbridge
+  # ECR repositories (stage)
+  - name: crawlinghub-ecr-stage
+    dir: terraform/environments/stage/ecr
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true
 
-  # SQS queues for async messaging (CrawlTask, ProductImage, ProductSync)
-  - name: crawlinghub-sqs-prod
-    dir: terraform/sqs
+  # ECS Cluster (stage)
+  - name: crawlinghub-ecs-cluster-stage
+    dir: terraform/environments/stage/ecs-cluster
     workspace: default
     autoplan:
-      when_modified: ["*.tf", "*.tfvars", "../*.tf"]
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
+      enabled: true
+
+  # SQS queues (stage)
+  - name: crawlinghub-sqs-stage
+    dir: terraform/environments/stage/sqs
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
+      enabled: true
+
+  # ECS Service for web-api (stage)
+  - name: crawlinghub-ecs-web-api-stage
+    dir: terraform/environments/stage/ecs-web-api
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
+      enabled: true
+
+  # ECS Service for scheduler (stage)
+  - name: crawlinghub-ecs-scheduler-stage
+    dir: terraform/environments/stage/ecs-scheduler
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
+      enabled: true
+
+  # ECS Service for crawl-worker (stage)
+  - name: crawlinghub-ecs-crawl-worker-stage
+    dir: terraform/environments/stage/ecs-crawl-worker
+    workspace: default
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars", "../../*.tf"]
       enabled: true

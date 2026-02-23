@@ -25,14 +25,18 @@ dependencies {
     // ========================================
     // Adapters
     // ========================================
-    // Outbound only (no REST API)
+    // Inbound (Scheduler)
+    implementation project(':adapter-in:scheduler')
+
+    // Outbound - Persistence
     implementation project(':adapter-out:persistence-mysql')
     implementation project(':adapter-out:persistence-redis')
-    implementation project(':adapter-out:aws-eventbridge')
-    implementation project(':adapter-out:aws-sqs')
-    implementation project(':adapter-out:http-client')
-    implementation project(':adapter-out:fileflow-client')
-    implementation project(':adapter-out:marketplace-client')
+
+    // Outbound - Client
+    implementation project(':adapter-out:client:eventbridge-client')
+    implementation project(':adapter-out:client:sqs-client')
+    implementation project(':adapter-out:client:http-client')
+    implementation project(':adapter-out:client:marketplace-client')
 
     // ========================================
     // Spring Boot Starters

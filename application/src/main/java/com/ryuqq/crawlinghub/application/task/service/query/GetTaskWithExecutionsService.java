@@ -1,16 +1,16 @@
 package com.ryuqq.crawlinghub.application.task.service.query;
 
-import com.ryuqq.crawlinghub.application.execution.manager.query.CrawlExecutionReadManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskWithExecutionsQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskWithExecutionsResponse;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskWithExecutionsResponse.ExecutionHistoryItem;
 import com.ryuqq.crawlinghub.application.task.dto.response.TaskWithExecutionsResponse.TaskInfo;
-import com.ryuqq.crawlinghub.application.task.manager.query.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.query.GetTaskWithExecutionsUseCase;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -73,7 +73,7 @@ public class GetTaskWithExecutionsService implements GetTaskWithExecutionsUseCas
                 task.getSellerIdValue(),
                 task.getStatus().name(),
                 task.getTaskType().name(),
-                task.getRetryCount().value(),
+                task.getRetryCountValue(),
                 task.getEndpoint().baseUrl(),
                 task.getEndpoint().path(),
                 task.getEndpoint().toFullUrl(),
@@ -83,7 +83,7 @@ public class GetTaskWithExecutionsService implements GetTaskWithExecutionsUseCas
 
     private ExecutionHistoryItem toExecutionHistoryItem(CrawlExecution execution) {
         return new ExecutionHistoryItem(
-                execution.getId().value(),
+                execution.getIdValue(),
                 execution.getStatus(),
                 execution.getResult() != null ? execution.getResult().httpStatusCode() : null,
                 execution.getResult() != null ? execution.getResult().errorMessage() : null,

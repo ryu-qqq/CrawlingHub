@@ -21,6 +21,8 @@ package com.ryuqq.crawlinghub.domain.useragent.vo;
  */
 public record HealthScore(int value) {
 
+    public static final int RATE_LIMIT_STATUS_CODE = 429;
+
     private static final int MIN_SCORE = 0;
     private static final int MAX_SCORE = 100;
     private static final int INITIAL_SCORE = 100;
@@ -124,5 +126,42 @@ public record HealthScore(int value) {
      */
     public static int getSuspensionThreshold() {
         return SUSPENSION_THRESHOLD;
+    }
+
+    /**
+     * 성공 시 증가량 반환
+     *
+     * @return 5
+     */
+    public static int successIncrement() {
+        return SUCCESS_INCREMENT;
+    }
+
+    /**
+     * HTTP 상태 코드 기반 페널티 반환
+     *
+     * @param httpStatusCode HTTP 응답 상태 코드
+     * @return 페널티 값 (429: 20, 5xx: 10, 기타: 5)
+     */
+    public static int penaltyFor(int httpStatusCode) {
+        if (httpStatusCode == RATE_LIMIT_STATUS_CODE) {
+            return RATE_LIMIT_DECREMENT;
+        }
+        if (httpStatusCode >= 500) {
+            return SERVER_ERROR_DECREMENT;
+        }
+        return OTHER_ERROR_DECREMENT;
+    }
+
+    /**
+     * HTTP 상태 코드 기반 페널티 적용
+     *
+     * @param httpStatusCode HTTP 응답 상태 코드
+     * @return 페널티가 적용된 HealthScore
+     */
+    public HealthScore applyPenalty(int httpStatusCode) {
+        int penalty = penaltyFor(httpStatusCode);
+        int newValue = Math.max(MIN_SCORE, this.value - penalty);
+        return new HealthScore(newValue);
     }
 }

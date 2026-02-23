@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.product.entity;
 
-import com.ryuqq.crawlinghub.adapter.out.persistence.entity.BaseAuditEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.entity.SoftDeletableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,7 +42,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "crawled_product")
-public class CrawledProductJpaEntity extends BaseAuditEntity {
+public class CrawledProductJpaEntity extends SoftDeletableEntity {
 
     /** 기본 키 - AUTO_INCREMENT */
     @Id
@@ -156,6 +156,10 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
     @Column(name = "needs_sync", nullable = false)
     private boolean needsSync;
 
+    /** 보류 중인 변경 유형 (쉼표 구분) */
+    @Column(name = "pending_changes", length = 200)
+    private String pendingChanges;
+
     /** JPA 기본 생성자 (protected) */
     protected CrawledProductJpaEntity() {}
 
@@ -185,9 +189,11 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
             Long externalProductId,
             LocalDateTime lastSyncedAt,
             boolean needsSync,
+            String pendingChanges,
+            LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        super(createdAt, updatedAt);
+        super(createdAt, updatedAt, deletedAt);
         this.id = id;
         this.sellerId = sellerId;
         this.itemNo = itemNo;
@@ -212,6 +218,7 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
         this.externalProductId = externalProductId;
         this.lastSyncedAt = lastSyncedAt;
         this.needsSync = needsSync;
+        this.pendingChanges = pendingChanges;
     }
 
     /** of() 스태틱 팩토리 메서드 (Mapper 전용) */
@@ -240,6 +247,8 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
             Long externalProductId,
             LocalDateTime lastSyncedAt,
             boolean needsSync,
+            String pendingChanges,
+            LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new CrawledProductJpaEntity(
@@ -267,6 +276,8 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
                 externalProductId,
                 lastSyncedAt,
                 needsSync,
+                pendingChanges,
+                deletedAt,
                 createdAt,
                 updatedAt);
     }
@@ -367,5 +378,9 @@ public class CrawledProductJpaEntity extends BaseAuditEntity {
 
     public boolean isNeedsSync() {
         return needsSync;
+    }
+
+    public String getPendingChanges() {
+        return pendingChanges;
     }
 }

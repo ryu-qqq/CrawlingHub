@@ -9,7 +9,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecu
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.mapper.CrawlExecutionJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.repository.CrawlExecutionJpaRepository;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;

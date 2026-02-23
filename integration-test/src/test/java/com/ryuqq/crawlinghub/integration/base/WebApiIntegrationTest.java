@@ -72,8 +72,6 @@ public abstract class WebApiIntegrationTest {
 
     @Autowired protected DatabaseCleaner databaseCleaner;
 
-    @Autowired protected WireMockServer fileflowWireMock;
-
     @Autowired protected WireMockServer marketplaceWireMock;
 
     /** EventBridge Scheduler는 LocalStack에서 지원되지 않아 Mock 처리 */
@@ -114,9 +112,6 @@ public abstract class WebApiIntegrationTest {
     }
 
     private void resetWireMockServers() {
-        if (fileflowWireMock != null) {
-            fileflowWireMock.resetAll();
-        }
         if (marketplaceWireMock != null) {
             marketplaceWireMock.resetAll();
         }

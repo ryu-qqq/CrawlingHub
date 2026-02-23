@@ -5,10 +5,10 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.seller.mapper.SellerJpaEnti
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.repository.SellerQueryDslRepository;
 import com.ryuqq.crawlinghub.application.seller.port.out.query.SellerQueryPort;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.query.SellerQueryCriteria;
 import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
-import com.ryuqq.crawlinghub.domain.seller.vo.SellerQueryCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;

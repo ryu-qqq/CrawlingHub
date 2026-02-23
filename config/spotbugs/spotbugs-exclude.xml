@@ -342,6 +342,26 @@
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
 
+    <Match>
+        <Class name="~.*Result"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Coordinator"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Housekeeper"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Mapper"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
     <!-- ========================================
          Parser Exception Handling
          Catching broad exceptions is acceptable for parsing

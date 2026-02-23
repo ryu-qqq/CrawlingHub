@@ -1,104 +1,64 @@
 package com.ryuqq.crawlinghub.application.schedule.service.command;
 
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
 import com.ryuqq.crawlinghub.application.schedule.assembler.CrawlSchedulerAssembler;
+import com.ryuqq.crawlinghub.application.schedule.component.CrawlSchedulerPersistenceValidator;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.UpdateCrawlSchedulerCommand;
 import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
 import com.ryuqq.crawlinghub.application.schedule.facade.CrawlerSchedulerFacade;
-import com.ryuqq.crawlinghub.application.schedule.manager.query.CrawlSchedulerReadManager;
+import com.ryuqq.crawlinghub.application.schedule.factory.command.CrawlSchedulerCommandFactory;
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.schedule.port.in.command.UpdateCrawlSchedulerUseCase;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
-import com.ryuqq.crawlinghub.domain.schedule.exception.CrawlSchedulerNotFoundException;
-import com.ryuqq.crawlinghub.domain.schedule.exception.DuplicateSchedulerNameException;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
-import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
-import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import org.springframework.stereotype.Service;
 
 /**
  * 크롤 스케줄러 수정 UseCase 구현체.
  *
- * <p><strong>TimeProvider</strong>: Facade가 관리 (Service는 시간 의존성 없음)
+ * <p><strong>트랜잭션</strong>: CommandService는 @Transactional 금지 (Facade 책임)
  */
 @Service
 public class UpdateCrawlSchedulerService implements UpdateCrawlSchedulerUseCase {
 
+    private final CrawlSchedulerPersistenceValidator validator;
     private final CrawlSchedulerReadManager readManager;
-    private final CrawlerSchedulerFacade crawlerSchedulerFacade;
-    private final CrawlSchedulerAssembler crawlSchedulerAssembler;
+    private final CrawlSchedulerCommandFactory commandFactory;
+    private final CrawlerSchedulerFacade facade;
+    private final CrawlSchedulerAssembler assembler;
 
     public UpdateCrawlSchedulerService(
+            CrawlSchedulerPersistenceValidator validator,
             CrawlSchedulerReadManager readManager,
-            CrawlerSchedulerFacade crawlerSchedulerFacade,
-            CrawlSchedulerAssembler crawlSchedulerAssembler) {
+            CrawlSchedulerCommandFactory commandFactory,
+            CrawlerSchedulerFacade facade,
+            CrawlSchedulerAssembler assembler) {
+        this.validator = validator;
         this.readManager = readManager;
-        this.crawlerSchedulerFacade = crawlerSchedulerFacade;
-        this.crawlSchedulerAssembler = crawlSchedulerAssembler;
+        this.commandFactory = commandFactory;
+        this.facade = facade;
+        this.assembler = assembler;
     }
 
-    /**
-     * 크롤 스케줄러 수정.
-     *
-     * <p><strong>처리 흐름</strong>:
-     *
-     * <ol>
-     *   <li>스케줄러 조회
-     *   <li>중복 검증 (이름 변경 시)
-     *   <li>부분 업데이트 지원: null 필드는 현재 값 유지
-     *   <li>Facade를 통해 저장 + 이벤트 발행
-     * </ol>
-     *
-     * @param command 수정 명령 (crawlSchedulerId, schedulerName, cronExpression, active)
-     * @return 수정된 스케줄러 정보
-     */
     @Override
     public CrawlSchedulerResponse update(UpdateCrawlSchedulerCommand command) {
-        // 1. 스케줄러 조회
-        CrawlScheduler crawlScheduler =
-                readManager
-                        .findById(CrawlSchedulerId.of(command.crawlSchedulerId()))
-                        .orElseThrow(
-                                () ->
-                                        new CrawlSchedulerNotFoundException(
-                                                command.crawlSchedulerId()));
+        // 1. Factory → UpdateContext 생성 (데이터 변환 + 시간 주입)
+        UpdateContext<CrawlSchedulerId, CrawlSchedulerUpdateData> context =
+                commandFactory.createUpdateContext(command);
 
-        // 2. 부분 업데이트 지원: null 필드는 현재 값 유지
-        SchedulerName newName =
-                command.schedulerName() != null
-                        ? SchedulerName.of(command.schedulerName())
-                        : crawlScheduler.getSchedulerName();
-
-        CronExpression newCronExpression =
-                command.cronExpression() != null
-                        ? CronExpression.of(command.cronExpression())
-                        : crawlScheduler.getCronExpression();
-
-        SchedulerStatus newStatus =
-                command.active() != null
-                        ? (command.active() ? SchedulerStatus.ACTIVE : SchedulerStatus.INACTIVE)
-                        : crawlScheduler.getStatus();
+        // 2. 스케줄러 조회
+        CrawlScheduler crawlScheduler = readManager.getById(context.id());
 
         // 3. 중복 검증 (이름 변경 시)
-        validateDuplicateSchedulerName(crawlScheduler, newName.value());
+        validator.validateDuplicateSchedulerNameForUpdate(
+                crawlScheduler, context.updateData().schedulerName().value());
 
-        // 4. Facade에서 상태 변경 + 저장 + 이벤트 발행 (TimeProvider 캡슐화)
-        crawlerSchedulerFacade.updateScheduler(
-                crawlScheduler, newName, newCronExpression, newStatus);
+        // 4. 도메인 수정 + Facade를 통해 저장
+        crawlScheduler.update(context.updateData(), context.changedAt());
+        facade.update(crawlScheduler);
 
         // 5. Response 변환
-        return crawlSchedulerAssembler.toResponse(crawlScheduler);
-    }
-
-    private void validateDuplicateSchedulerName(
-            CrawlScheduler currentScheduler, String newSchedulerName) {
-        if (currentScheduler.hasSameSchedulerName(newSchedulerName)) {
-            return;
-        }
-        SellerId sellerId = currentScheduler.getSellerId();
-        boolean exists = readManager.existsBySellerIdAndSchedulerName(sellerId, newSchedulerName);
-        if (exists) {
-            throw new DuplicateSchedulerNameException(sellerId.value(), newSchedulerName);
-        }
+        return assembler.toResponse(crawlScheduler);
     }
 }

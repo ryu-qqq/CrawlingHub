@@ -6,16 +6,16 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
-import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
-import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
-import com.ryuqq.crawlinghub.application.seller.manager.SellerTransactionManager;
-import com.ryuqq.crawlinghub.application.seller.manager.query.SellerReadManager;
+import com.ryuqq.crawlinghub.application.common.dto.command.UpdateContext;
+import com.ryuqq.crawlinghub.application.seller.factory.command.SellerCommandFactory;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerCommandManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.exception.SellerNotFoundException;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import java.time.Instant;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * UpdateSellerProductCountService 단위 테스트
  *
- * <p>Mockist 스타일 테스트: Port 의존성 Mocking
+ * <p>Mockist 스타일 테스트: ReadManager/Factory/CommandManager 의존성 Mocking
  *
  * @author development-team
  * @since 1.0.0
@@ -36,19 +36,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("UpdateSellerProductCountService 테스트")
 class UpdateSellerProductCountServiceTest {
 
-    @Mock private SellerTransactionManager sellerTransactionManager;
+    @Mock private SellerReadManager readManager;
 
-    @Mock private SellerReadManager sellerReadManager;
+    @Mock private SellerCommandFactory commandFactory;
 
-    @Mock private TimeProvider timeProvider;
+    @Mock private SellerCommandManager commandManager;
 
     @InjectMocks private UpdateSellerProductCountService service;
-
-    @BeforeEach
-    void setUp() {
-        java.time.Instant fixedInstant = FixedClock.aDefaultClock().instant();
-        org.mockito.Mockito.lenient().when(timeProvider.now()).thenReturn(fixedInstant);
-    }
 
     @Nested
     @DisplayName("execute() 상품 수 업데이트 테스트")
@@ -60,17 +54,23 @@ class UpdateSellerProductCountServiceTest {
             // Given
             Long sellerId = 1L;
             int productCount = 100;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            SellerId id = SellerId.of(sellerId);
+            UpdateContext<SellerId, Integer> context =
+                    new UpdateContext<>(id, productCount, fixedInstant);
             Seller seller = SellerFixture.anActiveSeller();
 
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
-            given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
+            given(commandFactory.createProductCountUpdateContext(sellerId, productCount))
+                    .willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(seller));
 
             // When
             service.execute(sellerId, productCount);
 
             // Then
-            then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(sellerTransactionManager).should().persist(seller);
+            then(commandFactory).should().createProductCountUpdateContext(sellerId, productCount);
+            then(readManager).should().findById(id);
+            then(commandManager).should().persist(seller);
         }
 
         @Test
@@ -79,17 +79,22 @@ class UpdateSellerProductCountServiceTest {
             // Given
             Long sellerId = 1L;
             int productCount = 0;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            SellerId id = SellerId.of(sellerId);
+            UpdateContext<SellerId, Integer> context =
+                    new UpdateContext<>(id, productCount, fixedInstant);
             Seller seller = SellerFixture.anActiveSellerWithProducts(50);
 
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.of(seller));
-            given(sellerTransactionManager.persist(seller)).willReturn(SellerId.of(sellerId));
+            given(commandFactory.createProductCountUpdateContext(sellerId, productCount))
+                    .willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.of(seller));
 
             // When
             service.execute(sellerId, productCount);
 
             // Then
-            then(sellerReadManager).should().findById(SellerId.of(sellerId));
-            then(sellerTransactionManager).should().persist(seller);
+            then(readManager).should().findById(id);
+            then(commandManager).should().persist(seller);
         }
 
         @Test
@@ -98,14 +103,20 @@ class UpdateSellerProductCountServiceTest {
             // Given
             Long sellerId = 999L;
             int productCount = 100;
+            Instant fixedInstant = Instant.parse("2024-01-15T10:00:00Z");
+            SellerId id = SellerId.of(sellerId);
+            UpdateContext<SellerId, Integer> context =
+                    new UpdateContext<>(id, productCount, fixedInstant);
 
-            given(sellerReadManager.findById(any(SellerId.class))).willReturn(Optional.empty());
+            given(commandFactory.createProductCountUpdateContext(sellerId, productCount))
+                    .willReturn(context);
+            given(readManager.findById(id)).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> service.execute(sellerId, productCount))
                     .isInstanceOf(SellerNotFoundException.class);
 
-            then(sellerTransactionManager).should(never()).persist(any());
+            then(commandManager).should(never()).persist(any());
         }
     }
 }

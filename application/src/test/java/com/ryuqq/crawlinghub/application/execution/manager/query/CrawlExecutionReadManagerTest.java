@@ -4,11 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionCriteria;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionStatisticsCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product.vo;
 
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.util.Objects;
 

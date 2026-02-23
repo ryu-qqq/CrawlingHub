@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 
 /**
  * CrawlTask 저장 Port (Port Out - Command)

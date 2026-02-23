@@ -18,14 +18,12 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.RestDocsTestSupport;
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.RegisterSellerApiRequest;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.command.UpdateSellerApiRequest;
-import com.ryuqq.crawlinghub.adapter.in.rest.seller.dto.response.SellerApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.seller.mapper.SellerCommandApiMapper;
-import com.ryuqq.crawlinghub.application.seller.dto.response.SellerResponse;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.RegisterSellerUseCase;
 import com.ryuqq.crawlinghub.application.seller.port.in.command.UpdateSellerUseCase;
-import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -39,6 +37,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @since 1.0.0
  */
 @WebMvcTest(SellerCommandController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("SellerCommandController REST Docs")
 class SellerCommandControllerDocsTest extends RestDocsTestSupport {
@@ -55,22 +54,8 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
         // given
         RegisterSellerApiRequest request = new RegisterSellerApiRequest("머스트잇 셀러명", "커머스 셀러명");
 
-        SellerResponse useCaseResponse =
-                new SellerResponse(
-                        1L,
-                        "머스트잇 셀러명",
-                        "커머스 셀러명",
-                        true,
-                        Instant.parse("2025-11-19T10:30:00Z"),
-                        null);
-
-        SellerApiResponse apiResponse =
-                new SellerApiResponse(
-                        1L, "머스트잇 셀러명", "커머스 셀러명", "ACTIVE", "2025-11-19T10:30:00Z", null);
-
         given(sellerCommandApiMapper.toCommand(any())).willReturn(null);
-        given(registerSellerUseCase.execute(any())).willReturn(useCaseResponse);
-        given(sellerCommandApiMapper.toApiResponse(any())).willReturn(apiResponse);
+        given(registerSellerUseCase.execute(any())).willReturn(1L);
 
         // when & then
         mockMvc.perform(
@@ -78,7 +63,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.sellerId").value(1))
+                .andExpect(jsonPath("$.data").value(1))
                 .andDo(
                         document(
                                 "seller-command/register",
@@ -92,27 +77,8 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                                 .description("커머스 셀러 이름 (1-100자, 필수)")),
                                 responseFields(
                                         fieldWithPath("data")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("응답 데이터"),
-                                        fieldWithPath("data.sellerId")
                                                 .type(JsonFieldType.NUMBER)
-                                                .description("셀러 ID"),
-                                        fieldWithPath("data.mustItSellerName")
-                                                .type(JsonFieldType.STRING)
-                                                .description("머스트잇 셀러명"),
-                                        fieldWithPath("data.sellerName")
-                                                .type(JsonFieldType.STRING)
-                                                .description("커머스 셀러명"),
-                                        fieldWithPath("data.status")
-                                                .type(JsonFieldType.STRING)
-                                                .description("상태 (ACTIVE/INACTIVE)"),
-                                        fieldWithPath("data.createdAt")
-                                                .type(JsonFieldType.STRING)
-                                                .description("생성 일시"),
-                                        fieldWithPath("data.updatedAt")
-                                                .type(JsonFieldType.NULL)
-                                                .description("수정 일시")
-                                                .optional(),
+                                                .description("생성된 셀러 ID"),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),
@@ -129,27 +95,7 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
         UpdateSellerApiRequest request =
                 new UpdateSellerApiRequest("새 머스트잇 셀러명", "새 커머스 셀러명", false);
 
-        SellerResponse useCaseResponse =
-                new SellerResponse(
-                        1L,
-                        "새 머스트잇 셀러명",
-                        "새 커머스 셀러명",
-                        false,
-                        Instant.parse("2025-11-19T10:30:00Z"),
-                        Instant.parse("2025-11-19T11:00:00Z"));
-
-        SellerApiResponse apiResponse =
-                new SellerApiResponse(
-                        1L,
-                        "새 머스트잇 셀러명",
-                        "새 커머스 셀러명",
-                        "INACTIVE",
-                        "2025-11-19T10:30:00Z",
-                        "2025-11-19T11:00:00Z");
-
         given(sellerCommandApiMapper.toCommand(any(), any())).willReturn(null);
-        given(updateSellerUseCase.execute(any())).willReturn(useCaseResponse);
-        given(sellerCommandApiMapper.toApiResponse(any())).willReturn(apiResponse);
 
         // when & then
         mockMvc.perform(
@@ -157,7 +103,6 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("INACTIVE"))
                 .andDo(
                         document(
                                 "seller-command/update",
@@ -166,39 +111,20 @@ class SellerCommandControllerDocsTest extends RestDocsTestSupport {
                                 requestFields(
                                         fieldWithPath("mustItSellerName")
                                                 .type(JsonFieldType.STRING)
-                                                .description("머스트잇 셀러명 (100자 이하, 선택)")
-                                                .optional(),
+                                                .description("머스트잇 셀러명 (1-100자, 필수)"),
                                         fieldWithPath("sellerName")
                                                 .type(JsonFieldType.STRING)
-                                                .description("커머스 셀러명 (100자 이하, 선택)")
-                                                .optional(),
+                                                .description("커머스 셀러명 (1-100자, 필수)"),
                                         fieldWithPath("active")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description(
-                                                        "활성화 여부 (true=ACTIVE, false=INACTIVE, 선택)")
-                                                .optional()),
+                                                        "활성화 여부 (true=ACTIVE, false=INACTIVE,"
+                                                                + " 필수)")),
                                 responseFields(
                                         fieldWithPath("data")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("응답 데이터"),
-                                        fieldWithPath("data.sellerId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("셀러 ID"),
-                                        fieldWithPath("data.mustItSellerName")
-                                                .type(JsonFieldType.STRING)
-                                                .description("머스트잇 셀러명"),
-                                        fieldWithPath("data.sellerName")
-                                                .type(JsonFieldType.STRING)
-                                                .description("커머스 셀러명"),
-                                        fieldWithPath("data.status")
-                                                .type(JsonFieldType.STRING)
-                                                .description("상태 (ACTIVE/INACTIVE)"),
-                                        fieldWithPath("data.createdAt")
-                                                .type(JsonFieldType.STRING)
-                                                .description("생성 일시"),
-                                        fieldWithPath("data.updatedAt")
-                                                .type(JsonFieldType.STRING)
-                                                .description("수정 일시"),
+                                                .type(JsonFieldType.NULL)
+                                                .description("응답 데이터 (없음)")
+                                                .optional(),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

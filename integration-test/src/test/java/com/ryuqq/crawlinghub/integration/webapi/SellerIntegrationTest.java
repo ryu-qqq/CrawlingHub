@@ -52,7 +52,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("유효한 요청으로 셀러 등록 성공")
         void shouldRegisterSellerSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request =
@@ -87,7 +87,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // given - 기존 셀러 존재
             testDataHelper.insertSellers();
 
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // 이미 존재하는 mustItSellerName 사용
@@ -114,7 +114,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // given - 기존 셀러 존재
             testDataHelper.insertSellers();
 
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // 이미 존재하는 sellerName 사용
@@ -139,7 +139,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("필수 필드 누락 시 400 반환")
         void shouldReturn400WhenMissingRequiredFields() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // mustItSellerName 누락
@@ -161,7 +161,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:create 권한 없으면 403 반환")
         void shouldReturn403WithoutCreatePermission() {
             // given - seller:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request =
@@ -195,7 +195,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("셀러명 수정 성공")
         void shouldUpdateSellerNameSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = Map.of("sellerName", "수정된 셀러명");
@@ -221,7 +221,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("셀러 비활성화 성공")
         void shouldDeactivateSellerSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = Map.of("active", false);
@@ -246,7 +246,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 셀러 수정 시 404 반환")
         void shouldReturn404WhenSellerNotFound() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = Map.of("sellerName", "수정된 이름");
@@ -267,7 +267,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:update 권한 없으면 403 반환")
         void shouldReturn403WithoutUpdatePermission() {
             // given - seller:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = Map.of("sellerName", "수정된 이름");
@@ -288,7 +288,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("100자 초과 셀러명 수정 시 400 반환")
         void shouldReturn400WhenSellerNameTooLong() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             String longName = "a".repeat(101);
@@ -320,7 +320,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("셀러 상세 조회 성공")
         void shouldGetSellerSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -347,7 +347,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("존재하지 않는 셀러 조회 시 404 반환")
         void shouldReturn404WhenSellerNotFound() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -365,7 +365,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:read 권한 없으면 403 반환")
         void shouldReturn403WithoutReadPermission() {
             // given - scheduler:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -408,7 +408,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("전체 셀러 목록 조회 성공")
         void shouldListAllSellersSuccessfully() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -436,7 +436,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("ACTIVE 상태 필터링 조회")
         void shouldFilterByActiveStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -462,7 +462,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("INACTIVE 상태 필터링 조회")
         void shouldFilterByInactiveStatus() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -488,7 +488,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("페이지네이션 정상 동작")
         void shouldPaginateCorrectly() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when - 페이지 크기 1로 첫 페이지 조회
             ResponseEntity<Map<String, Object>> response =
@@ -517,7 +517,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:read 권한 없으면 403 반환")
         void shouldReturn403WithoutReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("scheduler:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -540,7 +540,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("빈 문자열 mustItSellerName 등록 시 400 반환")
         void shouldReturn400WhenEmptyMustItSellerName() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request =
@@ -564,7 +564,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("빈 문자열 sellerName 등록 시 400 반환")
         void shouldReturn400WhenEmptySellerName() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request =
@@ -588,7 +588,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("100자 초과 mustItSellerName 등록 시 400 반환")
         void shouldReturn400WhenMustItSellerNameTooLong() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             String longName = "a".repeat(101);
@@ -612,7 +612,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         void shouldReturn400WhenInvalidStatus() {
             // given
             testDataHelper.insertSellers();
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -631,7 +631,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         void shouldReturn400WhenNegativePage() {
             // given
             testDataHelper.insertSellers();
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -650,7 +650,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         void shouldReturn400WhenSizeExceeds100() {
             // given
             testDataHelper.insertSellers();
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -738,7 +738,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:read 권한이 있으면 목록 조회 가능")
         void shouldAllowListWithReadPermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:read");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -756,7 +756,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:create 권한이 있으면 등록 가능")
         void shouldAllowCreateWithCreatePermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:create");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request =
@@ -780,7 +780,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         @DisplayName("seller:update 권한이 있으면 수정 가능")
         void shouldAllowUpdateWithUpdatePermission() {
             // given
-            HttpHeaders headers = AuthTestHelper.withPermissions("seller:update");
+            HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> request = Map.of("sellerName", "권한 테스트 수정");

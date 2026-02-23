@@ -1,9 +1,8 @@
 package com.ryuqq.crawlinghub.application.product.port.out.query;
 
-import com.ryuqq.crawlinghub.application.product.dto.query.SearchCrawledProductsQuery;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,22 +61,6 @@ public interface CrawledProductQueryPort {
      * @return 존재하면 true
      */
     boolean existsBySellerIdAndItemNo(SellerId sellerId, long itemNo);
-
-    /**
-     * 검색 조건에 따른 CrawledProduct 목록 조회 (페이징)
-     *
-     * @param query 검색 조건
-     * @return CrawledProduct 목록
-     */
-    List<CrawledProduct> search(SearchCrawledProductsQuery query);
-
-    /**
-     * 검색 조건에 따른 CrawledProduct 개수 조회
-     *
-     * @param query 검색 조건
-     * @return 총 개수
-     */
-    long count(SearchCrawledProductsQuery query);
 
     /**
      * 셀러별 CrawledProduct 개수 조회

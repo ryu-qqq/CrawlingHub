@@ -1,13 +1,13 @@
 package com.ryuqq.crawlinghub.domain.execution.aggregate;
 
 import com.ryuqq.crawlinghub.domain.execution.exception.InvalidCrawlExecutionStateException;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import java.time.Instant;
 
 /**
@@ -26,7 +26,7 @@ import java.time.Instant;
  * <p><strong>생명주기</strong>:
  *
  * <pre>
- * 1. CrawlExecution.start() - RUNNING 상태로 생성
+ * 1. CrawlExecution.forNew() - RUNNING 상태로 생성
  * 2-a. completeWithSuccess() - SUCCESS 상태로 전환
  * 2-b. completeWithFailure() - FAILED 상태로 전환
  * 2-c. completeWithTimeout() - TIMEOUT 상태로 전환
@@ -73,9 +73,7 @@ public class CrawlExecution {
     }
 
     /**
-     * 새로운 CrawlExecution 시작
-     *
-     * <p>RUNNING 상태로 생성됩니다.
+     * 신규 CrawlExecution 생성 (RUNNING 상태)
      *
      * @param crawlTaskId CrawlTask ID
      * @param crawlSchedulerId CrawlScheduler ID
@@ -83,13 +81,13 @@ public class CrawlExecution {
      * @param now 현재 시각
      * @return 새로운 CrawlExecution (RUNNING 상태)
      */
-    public static CrawlExecution start(
+    public static CrawlExecution forNew(
             CrawlTaskId crawlTaskId,
             CrawlSchedulerId crawlSchedulerId,
             SellerId sellerId,
             Instant now) {
         return new CrawlExecution(
-                CrawlExecutionId.unassigned(),
+                CrawlExecutionId.forNew(),
                 crawlTaskId,
                 crawlSchedulerId,
                 sellerId,
@@ -251,16 +249,32 @@ public class CrawlExecution {
         return id;
     }
 
+    public Long getIdValue() {
+        return id.value();
+    }
+
     public CrawlTaskId getCrawlTaskId() {
         return crawlTaskId;
+    }
+
+    public Long getCrawlTaskIdValue() {
+        return crawlTaskId.value();
     }
 
     public CrawlSchedulerId getCrawlSchedulerId() {
         return crawlSchedulerId;
     }
 
+    public Long getCrawlSchedulerIdValue() {
+        return crawlSchedulerId.value();
+    }
+
     public SellerId getSellerId() {
         return sellerId;
+    }
+
+    public Long getSellerIdValue() {
+        return sellerId.value();
     }
 
     public CrawlExecutionStatus getStatus() {

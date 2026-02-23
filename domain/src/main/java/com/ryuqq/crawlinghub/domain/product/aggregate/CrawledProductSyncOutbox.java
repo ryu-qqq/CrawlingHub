@@ -1,10 +1,13 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
 import com.ryuqq.crawlinghub.domain.product.event.ExternalSyncRequestedEvent;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductSyncOutboxId;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * 외부 상품 서버 동기화 Outbox
@@ -14,7 +17,7 @@ import java.time.Instant;
  * <p><strong>Outbox 패턴 흐름</strong>:
  *
  * <pre>
- * 1. CrawledProduct 저장 시 SyncOutbox 함께 저장 (같은 트랜잭션)
+ * 1. CrawledProduct 저장 시 CrawledProductSyncOutbox 함께 저장 (같은 트랜잭션)
  * 2. 이벤트 리스너 또는 스케줄러가 PENDING 상태 조회
  * 3. External Product API 호출 시작 시 PROCESSING으로 변경
  * 4. API 호출 성공 시 COMPLETED로 변경
@@ -28,7 +31,7 @@ public class CrawledProductSyncOutbox {
 
     private static final int MAX_RETRY_COUNT = 3;
 
-    private final Long id;
+    private final CrawledProductSyncOutboxId id;
     private final CrawledProductId crawledProductId;
     private final SellerId sellerId;
     private final long itemNo;
@@ -42,7 +45,7 @@ public class CrawledProductSyncOutbox {
     private Instant processedAt;
 
     private CrawledProductSyncOutbox(
-            Long id,
+            CrawledProductSyncOutboxId id,
             CrawledProductId crawledProductId,
             SellerId sellerId,
             long itemNo,
@@ -68,42 +71,34 @@ public class CrawledProductSyncOutbox {
         this.processedAt = processedAt;
     }
 
-    /** 신규 등록용 Outbox 생성 */
-    public static CrawledProductSyncOutbox forCreate(
-            CrawledProductId crawledProductId, SellerId sellerId, long itemNo, Instant now) {
-        String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.CREATE);
-        return new CrawledProductSyncOutbox(
-                null,
-                crawledProductId,
-                sellerId,
-                itemNo,
-                SyncType.CREATE,
-                idempotencyKey,
-                null,
-                ProductOutboxStatus.PENDING,
-                0,
-                null,
-                now,
-                null);
-    }
-
-    /** 갱신용 Outbox 생성 */
-    public static CrawledProductSyncOutbox forUpdate(
+    /**
+     * 신규 CrawledProductSyncOutbox 생성
+     *
+     * @param crawledProductId 크롤링 상품 ID
+     * @param sellerId 셀러 ID
+     * @param itemNo 상품 번호
+     * @param syncType 동기화 타입 (CREATE/UPDATE)
+     * @param externalProductId 외부 상품 ID (UPDATE 시 필수, CREATE 시 null)
+     * @param now 현재 시각
+     * @return 새로운 CrawledProductSyncOutbox
+     */
+    public static CrawledProductSyncOutbox forNew(
             CrawledProductId crawledProductId,
             SellerId sellerId,
             long itemNo,
+            SyncType syncType,
             Long externalProductId,
             Instant now) {
-        if (externalProductId == null) {
+        if (syncType.isUpdate() && externalProductId == null) {
             throw new IllegalArgumentException("갱신 시 externalProductId는 필수입니다.");
         }
-        String idempotencyKey = generateIdempotencyKey(crawledProductId, SyncType.UPDATE);
+        String idempotencyKey = UUID.randomUUID().toString();
         return new CrawledProductSyncOutbox(
-                null,
+                CrawledProductSyncOutboxId.forNew(),
                 crawledProductId,
                 sellerId,
                 itemNo,
-                SyncType.UPDATE,
+                syncType,
                 idempotencyKey,
                 externalProductId,
                 ProductOutboxStatus.PENDING,
@@ -115,7 +110,7 @@ public class CrawledProductSyncOutbox {
 
     /** 기존 데이터로 복원 (영속성 계층 전용) */
     public static CrawledProductSyncOutbox reconstitute(
-            Long id,
+            CrawledProductSyncOutboxId id,
             CrawledProductId crawledProductId,
             SellerId sellerId,
             long itemNo,
@@ -153,7 +148,7 @@ public class CrawledProductSyncOutbox {
      */
     public static String generateIdempotencyKey(
             CrawledProductId crawledProductId, SyncType syncType) {
-        return String.format("sync-%s-%s", crawledProductId.value(), syncType.name().toLowerCase());
+        return UUID.randomUUID().toString();
     }
 
     /**
@@ -195,10 +190,10 @@ public class CrawledProductSyncOutbox {
      * @param now 현재 시각
      */
     public void markAsCompleted(Long externalProductId, Instant now) {
-        if (this.syncType == SyncType.CREATE && externalProductId == null) {
+        if (this.syncType.isCreate() && externalProductId == null) {
             throw new IllegalArgumentException("신규 등록 완료 시 externalProductId는 필수입니다.");
         }
-        if (this.syncType == SyncType.CREATE) {
+        if (this.syncType.isCreate()) {
             this.externalProductId = externalProductId;
         }
         this.status = ProductOutboxStatus.COMPLETED;
@@ -243,12 +238,12 @@ public class CrawledProductSyncOutbox {
 
     /** 신규 등록 요청인지 확인 */
     public boolean isCreateRequest() {
-        return this.syncType == SyncType.CREATE;
+        return this.syncType.isCreate();
     }
 
     /** 갱신 요청인지 확인 */
     public boolean isUpdateRequest() {
-        return this.syncType == SyncType.UPDATE;
+        return this.syncType.isUpdate();
     }
 
     // === Event 생성 ===
@@ -276,14 +271,23 @@ public class CrawledProductSyncOutbox {
     private ExternalSyncRequestedEvent.SyncType mapToEventSyncType() {
         return switch (this.syncType) {
             case CREATE -> ExternalSyncRequestedEvent.SyncType.CREATE;
-            case UPDATE -> ExternalSyncRequestedEvent.SyncType.UPDATE;
+            case UPDATE_PRICE,
+                            UPDATE_IMAGE,
+                            UPDATE_DESCRIPTION,
+                            UPDATE_OPTION_STOCK,
+                            UPDATE_PRODUCT_INFO ->
+                    ExternalSyncRequestedEvent.SyncType.UPDATE;
         };
     }
 
     // Getters
 
-    public Long getId() {
+    public CrawledProductSyncOutboxId getId() {
         return id;
+    }
+
+    public Long getIdValue() {
+        return id.value();
     }
 
     public CrawledProductId getCrawledProductId() {
@@ -342,7 +346,40 @@ public class CrawledProductSyncOutbox {
     public enum SyncType {
         /** 신규 상품 등록 */
         CREATE,
-        /** 기존 상품 갱신 */
-        UPDATE
+        /** 가격 갱신 */
+        UPDATE_PRICE,
+        /** 이미지 갱신 */
+        UPDATE_IMAGE,
+        /** 상세설명 갱신 */
+        UPDATE_DESCRIPTION,
+        /** 옵션/재고 갱신 */
+        UPDATE_OPTION_STOCK,
+        /** 상품 기본정보 갱신 */
+        UPDATE_PRODUCT_INFO;
+
+        public boolean isCreate() {
+            return this == CREATE;
+        }
+
+        public boolean isUpdate() {
+            return this != CREATE;
+        }
+
+        /**
+         * SyncType → ProductChangeType 변환
+         *
+         * @return 대응하는 ProductChangeType
+         * @throws IllegalStateException CREATE 타입은 개별 ChangeType이 없음
+         */
+        public ProductChangeType toChangeType() {
+            return switch (this) {
+                case UPDATE_PRICE -> ProductChangeType.PRICE;
+                case UPDATE_IMAGE -> ProductChangeType.IMAGE;
+                case UPDATE_DESCRIPTION -> ProductChangeType.DESCRIPTION;
+                case UPDATE_OPTION_STOCK -> ProductChangeType.OPTION_STOCK;
+                case UPDATE_PRODUCT_INFO -> ProductChangeType.PRODUCT_INFO;
+                case CREATE -> throw new IllegalStateException("CREATE는 개별 ChangeType이 없습니다");
+            };
+        }
     }
 }

@@ -4,12 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
@@ -178,7 +179,7 @@ class CrawlTaskReadManagerTest {
             // Given
             Map<CrawlTaskType, CrawlTaskQueryPort.TaskTypeCount> typeCounts =
                     Map.of(
-                            CrawlTaskType.META,
+                            CrawlTaskType.SEARCH,
                             taskTypeCount,
                             CrawlTaskType.MINI_SHOP,
                             taskTypeCount);
@@ -190,7 +191,7 @@ class CrawlTaskReadManagerTest {
 
             // Then
             assertThat(result).hasSize(2);
-            assertThat(result).containsKeys(CrawlTaskType.META, CrawlTaskType.MINI_SHOP);
+            assertThat(result).containsKeys(CrawlTaskType.SEARCH, CrawlTaskType.MINI_SHOP);
             verify(crawlTaskQueryPort).countByTaskType(statisticsCriteria);
         }
     }

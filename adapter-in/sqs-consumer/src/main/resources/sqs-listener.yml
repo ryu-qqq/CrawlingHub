@@ -1,0 +1,63 @@
+# ========================================
+# SQS Listener Configuration (Default/Production)
+# ========================================
+# Spring Cloud AWS SQS configuration
+# Environment variables are injected via ECS Task Definition
+# ========================================
+
+spring:
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      sqs:
+        # SQS 리스너 기본 설정
+        listener:
+          max-concurrent-messages: 10
+          max-messages-per-poll: 10
+
+aws:
+  sqs:
+    listener:
+      # ========================================
+      # Queue URLs (from Terraform SSM Parameters)
+      # ========================================
+      # CrawlTask Queue: receives tasks from aws-sqs module
+      crawl-task-queue-url: ${SQS_CRAWL_TASK_QUEUE_URL:}
+
+      # EventBridge Trigger Queue: receives scheduler triggers
+      event-bridge-trigger-queue-url: ${SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL:}
+
+      # ProductSync Queue: receives external product sync tasks
+      product-sync-queue-url: ${SQS_PRODUCT_SYNC_QUEUE_URL:}
+
+      # ========================================
+      # DLQ URLs (Dead Letter Queues)
+      # ========================================
+      # CrawlTask DLQ: receives failed tasks for error handling
+      crawl-task-dlq-url: ${SQS_CRAWL_TASK_DLQ_URL:}
+
+      # ========================================
+      # Feature Toggles
+      # ========================================
+      # Enable/Disable individual listeners
+      crawl-task-listener-enabled: true
+      event-bridge-trigger-listener-enabled: true
+      product-sync-listener-enabled: true
+
+      # Enable/Disable DLQ listeners
+      crawl-task-dlq-listener-enabled: true
+
+# ========================================
+# Scheduler Configuration (Backup for EventListener failures)
+# ========================================
+scheduler:
+  # EventListener 발행 실패 시 백업 재처리용 (기본값: true)
+  sync-outbox-sqs:
+    enabled: ${SCHEDULER_SYNC_OUTBOX_SQS_ENABLED:true}
+    fixed-delay: 30000
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.in.sqs: INFO
+    io.awspring.cloud.sqs: INFO

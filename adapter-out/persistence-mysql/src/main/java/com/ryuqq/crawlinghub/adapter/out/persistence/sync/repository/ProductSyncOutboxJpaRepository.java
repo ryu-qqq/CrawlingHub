@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * ProductSyncOutboxJpaRepository - SyncOutbox JPA Repository
+ * ProductSyncOutboxJpaRepository - CrawledProductSyncOutbox JPA Repository
  *
  * <p>Spring Data JPA의 기본 CRUD 기능을 제공합니다.
  *

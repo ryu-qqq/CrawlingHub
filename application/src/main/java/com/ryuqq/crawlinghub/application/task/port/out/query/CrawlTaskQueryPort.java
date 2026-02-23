@@ -1,11 +1,11 @@
 package com.ryuqq.crawlinghub.application.task.port.out.query;
 
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.List;
@@ -123,4 +123,15 @@ public interface CrawlTaskQueryPort {
      * @return 최근 태스크 리스트 (생성일시 내림차순)
      */
     List<CrawlTask> findRecentBySellerId(SellerId sellerId, int limit);
+
+    /**
+     * RUNNING 상태에서 일정 시간 이상 머물러 있는 CrawlTask 조회
+     *
+     * <p>프로세스 크래시 등으로 RUNNING 상태에서 멈춰있는 고아 태스크를 찾기 위해 사용
+     *
+     * @param limit 조회할 최대 개수
+     * @param timeoutSeconds RUNNING 상태 유지 시간 기준 (초)
+     * @return 고아 CrawlTask 목록
+     */
+    List<CrawlTask> findRunningOlderThan(int limit, long timeoutSeconds);
 }

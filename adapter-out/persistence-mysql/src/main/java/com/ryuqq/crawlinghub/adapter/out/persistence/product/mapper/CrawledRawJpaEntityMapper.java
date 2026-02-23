@@ -2,7 +2,7 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledRawJpaEntity;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import org.springframework.stereotype.Component;
 
 /**

@@ -3,11 +3,10 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.product.adapter;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.CrawledProductJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.CrawledProductJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.CrawledProductQueryDslRepository;
-import com.ryuqq.crawlinghub.application.product.dto.query.SearchCrawledProductsQuery;
 import com.ryuqq.crawlinghub.application.product.port.out.query.CrawledProductQueryPort;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -77,17 +76,6 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     @Override
     public boolean existsBySellerIdAndItemNo(SellerId sellerId, long itemNo) {
         return queryDslRepository.existsBySellerIdAndItemNo(sellerId.value(), itemNo);
-    }
-
-    @Override
-    public List<CrawledProduct> search(SearchCrawledProductsQuery query) {
-        List<CrawledProductJpaEntity> entities = queryDslRepository.search(query);
-        return entities.stream().map(mapper::toDomain).toList();
-    }
-
-    @Override
-    public long count(SearchCrawledProductsQuery query) {
-        return queryDslRepository.count(query);
     }
 
     /**

@@ -1,20 +1,30 @@
 # ============================================================================
-# Spring Hexagonal Template - CI Pipeline
+# CrawlingHub - CI Pipeline
 # ============================================================================
-# Phase 1: 기본 CI (테스트 + 품질 검증)
-#
-# 이 워크플로우는 템플릿 프로젝트의 기본 CI 파이프라인입니다.
-# 프로젝트 확장 시 github-workflows-guide.md를 참조하여
-# Phase 2-4로 점진적으로 확장하세요.
+# 테스트 + 품질 검증 + 모든 Bootstrap 모듈 빌드 검증
 # ============================================================================
 
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, stage]
+    paths-ignore:
+      - 'terraform/**'
+      - '.github/workflows/terraform-*.yml'
+      - '.github/workflows/build-and-deploy.yml'
+      - '.github/workflows/deploy-stage.yml'
+      - '**.md'
+      - 'docs/**'
+      - 'atlantis.yaml'
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, stage]
+    paths-ignore:
+      - 'terraform/**'
+      - '.github/workflows/terraform-*.yml'
+      - '**.md'
+      - 'docs/**'
+      - 'atlantis.yaml'
 
 permissions:
   contents: read
@@ -69,10 +79,6 @@ jobs:
       - name: Verify No Lombok
         run: ./gradlew checkNoLombok --no-daemon -x asciidoctor
 
-      # TODO: verifyVersionCatalog 태스크 구현 후 활성화
-      # - name: Verify Version Catalog Consistency
-      #   run: ./gradlew verifyVersionCatalog --no-daemon
-
       # ----------------------------------------------------------------------
       # 테스트 실행 (단위 + ArchUnit)
       # ----------------------------------------------------------------------
@@ -113,16 +119,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 70
           min-coverage-changed-files: 80
-          title: "📊 Code Coverage Report"
+          title: "Code Coverage Report"
 
   # ==========================================================================
-  # 빌드 검증 (JAR 생성 가능 여부)
+  # 빌드 검증 (모든 Bootstrap 모듈 - Matrix)
   # ==========================================================================
   build:
-    name: Build Verification
+    name: Build ${{ matrix.module.name }}
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - name: bootstrap-web-api
+            task: ":bootstrap:bootstrap-web-api:bootJar"
+            jar-path: bootstrap/bootstrap-web-api/build/libs/*.jar
+          - name: bootstrap-scheduler
+            task: ":bootstrap:bootstrap-scheduler:bootJar"
+            jar-path: bootstrap/bootstrap-scheduler/build/libs/*.jar
+          - name: bootstrap-crawl-worker
+            task: ":bootstrap:bootstrap-crawl-worker:bootJar"
+            jar-path: bootstrap/bootstrap-crawl-worker/build/libs/*.jar
 
     steps:
       - name: Checkout code
@@ -135,16 +154,16 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build JAR
+      - name: Build ${{ matrix.module.name }}
         run: |
           chmod +x gradlew
-          ./gradlew :bootstrap:bootstrap-web-api:bootJar --no-daemon -x test
+          ./gradlew ${{ matrix.module.task }} --no-daemon -x test
 
-      - name: Upload JAR Artifact
+      - name: Upload JAR Artifact - ${{ matrix.module.name }}
         uses: actions/upload-artifact@v4
         with:
-          name: application-jar
-          path: bootstrap/bootstrap-web-api/build/libs/*.jar
+          name: ${{ matrix.module.name }}-jar
+          path: ${{ matrix.module.jar-path }}
           retention-days: 1
 
   # ==========================================================================
@@ -159,22 +178,17 @@ jobs:
     steps:
       - name: Create Summary
         run: |
-          echo "## 🏗️ CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Test & Quality | ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test & Quality | ${{ needs.test.result == 'success' && 'Passed' || 'Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build (all modules) | ${{ needs.build.result == 'success' && 'Passed' || 'Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 검증 항목" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Checkstyle (코드 스타일)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SpotBugs (버그 패턴)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ PMD (Law of Demeter)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Spotless (코드 포맷)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Lombok 금지 검증" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Version Catalog 일관성" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 단위 테스트 + ArchUnit" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ JaCoCo 커버리지" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Modules" >> $GITHUB_STEP_SUMMARY
+          echo "- bootstrap-web-api" >> $GITHUB_STEP_SUMMARY
+          echo "- bootstrap-scheduler" >> $GITHUB_STEP_SUMMARY
+          echo "- bootstrap-crawl-worker" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Actor**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

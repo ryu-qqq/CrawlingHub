@@ -14,11 +14,6 @@ import org.springframework.context.annotation.Bean;
 public class WireMockConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public WireMockServer fileflowWireMock() {
-        return new WireMockServer(wireMockConfig().dynamicPort());
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
     public WireMockServer marketplaceWireMock() {
         return new WireMockServer(wireMockConfig().dynamicPort());
     }

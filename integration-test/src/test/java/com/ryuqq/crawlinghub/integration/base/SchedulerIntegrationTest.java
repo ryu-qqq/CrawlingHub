@@ -72,13 +72,19 @@ public abstract class SchedulerIntegrationTest {
         registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
         registry.add("spring.data.redis.port", REDIS_CONTAINER::getFirstMappedPort);
 
-        // LocalStack SQS
+        // LocalStack SQS (Spring Cloud AWS for listeners)
         registry.add(
                 "spring.cloud.aws.sqs.endpoint",
                 () -> LOCALSTACK_CONTAINER.getEndpoint().toString());
         registry.add("spring.cloud.aws.region.static", () -> "us-east-1");
         registry.add("spring.cloud.aws.credentials.access-key", () -> "test");
         registry.add("spring.cloud.aws.credentials.secret-key", () -> "test");
+
+        // SQS Publisher Queue URLs (sqs-client module)
+        registry.add("sqs.endpoint", () -> LOCALSTACK_CONTAINER.getEndpoint().toString());
+        registry.add("sqs.region", () -> "us-east-1");
+        registry.add("sqs.queues.crawl-task", () -> "http://test-queue/crawl-task");
+        registry.add("sqs.queues.product-sync", () -> "http://test-queue/product-sync");
 
         // Flyway
         registry.add("spring.flyway.enabled", () -> "true");

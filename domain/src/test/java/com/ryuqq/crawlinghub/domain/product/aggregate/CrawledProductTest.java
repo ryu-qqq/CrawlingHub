@@ -2,15 +2,19 @@ package com.ryuqq.crawlinghub.domain.product.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.MiniShopCrawlData;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImage;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -162,6 +166,8 @@ class CrawledProductTest {
                             100L, // externalProductId
                             FIXED_INSTANT, // lastSyncedAt
                             false, // needsSync
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -176,8 +182,8 @@ class CrawledProductTest {
     }
 
     @Nested
-    @DisplayName("updateFromMiniShop() 테스트")
-    class UpdateFromMiniShopTests {
+    @DisplayName("updateFromMiniShopCrawlData() 테스트")
+    class UpdateFromMiniShopCrawlDataTests {
 
         @Test
         @DisplayName("성공 - 가격 변경 시 needsSync 설정")
@@ -186,10 +192,19 @@ class CrawledProductTest {
             CrawledProduct product = createProductWithAllCrawled();
             ProductPrice newPrice = ProductPrice.of(15000, 18000, 18000, 14000, 15, 20);
             Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
+            MiniShopCrawlData crawlData =
+                    MiniShopCrawlData.of(
+                            SELLER_ID,
+                            ITEM_NO,
+                            ITEM_NAME,
+                            BRAND_NAME,
+                            newPrice,
+                            createDefaultImages(),
+                            true,
+                            laterInstant);
 
             // When
-            product.updateFromMiniShop(
-                    ITEM_NAME, BRAND_NAME, newPrice, createDefaultImages(), true, laterInstant);
+            product.updateFromMiniShopCrawlData(crawlData);
 
             // Then
             assertThat(product.getPrice()).isEqualTo(newPrice);
@@ -203,15 +218,19 @@ class CrawledProductTest {
             // Given
             CrawledProduct product = createProductWithAllCrawled();
             Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
+            MiniShopCrawlData crawlData =
+                    MiniShopCrawlData.of(
+                            SELLER_ID,
+                            ITEM_NO,
+                            "새로운 상품명",
+                            BRAND_NAME,
+                            createDefaultPrice(),
+                            createDefaultImages(),
+                            true,
+                            laterInstant);
 
             // When
-            product.updateFromMiniShop(
-                    "새로운 상품명",
-                    BRAND_NAME,
-                    createDefaultPrice(),
-                    createDefaultImages(),
-                    true,
-                    laterInstant);
+            product.updateFromMiniShopCrawlData(crawlData);
 
             // Then
             assertThat(product.getItemName()).isEqualTo("새로운 상품명");
@@ -224,15 +243,19 @@ class CrawledProductTest {
             // Given
             CrawledProduct product = createProductWithAllCrawledNoSync();
             Instant laterInstant = Instant.parse("2025-01-01T01:00:00Z");
+            MiniShopCrawlData crawlData =
+                    MiniShopCrawlData.of(
+                            SELLER_ID,
+                            ITEM_NO,
+                            ITEM_NAME,
+                            BRAND_NAME,
+                            createDefaultPrice(),
+                            createDefaultImages(),
+                            true,
+                            laterInstant);
 
             // When
-            product.updateFromMiniShop(
-                    ITEM_NAME,
-                    BRAND_NAME,
-                    createDefaultPrice(),
-                    createDefaultImages(),
-                    true,
-                    laterInstant);
+            product.updateFromMiniShopCrawlData(crawlData);
 
             // Then
             assertThat(product.isNeedsSync()).isFalse();
@@ -296,6 +319,8 @@ class CrawledProductTest {
                             null,
                             null,
                             false,
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -343,6 +368,8 @@ class CrawledProductTest {
                             null,
                             null,
                             false,
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -546,6 +573,8 @@ class CrawledProductTest {
                             null,
                             null,
                             false,
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -580,6 +609,8 @@ class CrawledProductTest {
                             null,
                             null,
                             false,
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -691,6 +722,8 @@ class CrawledProductTest {
                             null,
                             null,
                             false,
+                            EnumSet.noneOf(ProductChangeType.class),
+                            DeletionStatus.active(),
                             FIXED_INSTANT,
                             FIXED_INSTANT);
 
@@ -726,6 +759,8 @@ class CrawledProductTest {
                 null,
                 null,
                 true, // needsSync = true
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 FIXED_INSTANT,
                 FIXED_INSTANT);
     }
@@ -752,6 +787,8 @@ class CrawledProductTest {
                 null,
                 null,
                 false, // needsSync = false
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
                 FIXED_INSTANT,
                 FIXED_INSTANT);
     }

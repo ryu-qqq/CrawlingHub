@@ -2,12 +2,12 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.execution.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
-import com.ryuqq.crawlinghub.domain.execution.identifier.CrawlExecutionId;
+import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionResult;
 import com.ryuqq.crawlinghub.domain.execution.vo.ExecutionDuration;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -66,10 +66,10 @@ public class CrawlExecutionJpaEntityMapper {
         ExecutionDuration duration = domain.getDuration();
 
         return CrawlExecutionJpaEntity.of(
-                domain.getId().value(),
-                domain.getCrawlTaskId().value(),
-                domain.getCrawlSchedulerId().value(),
-                domain.getSellerId().value(),
+                domain.getIdValue(),
+                domain.getCrawlTaskIdValue(),
+                domain.getCrawlSchedulerIdValue(),
+                domain.getSellerIdValue(),
                 domain.getStatus(),
                 result != null ? result.responseBody() : null,
                 result != null ? result.httpStatusCode() : null,

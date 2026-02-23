@@ -57,11 +57,10 @@ class CrawlExecutionJpaEntityMapperTest {
 
             // Then
             assertThat(entity).isNotNull();
-            assertThat(entity.getId()).isEqualTo(domain.getId().value());
-            assertThat(entity.getCrawlTaskId()).isEqualTo(domain.getCrawlTaskId().value());
-            assertThat(entity.getCrawlSchedulerId())
-                    .isEqualTo(domain.getCrawlSchedulerId().value());
-            assertThat(entity.getSellerId()).isEqualTo(domain.getSellerId().value());
+            assertThat(entity.getId()).isEqualTo(domain.getIdValue());
+            assertThat(entity.getCrawlTaskId()).isEqualTo(domain.getCrawlTaskIdValue());
+            assertThat(entity.getCrawlSchedulerId()).isEqualTo(domain.getCrawlSchedulerIdValue());
+            assertThat(entity.getSellerId()).isEqualTo(domain.getSellerIdValue());
             assertThat(entity.getStatus()).isEqualTo(CrawlExecutionStatus.RUNNING);
             assertThat(entity.getStartedAt()).isNotNull();
             assertThat(entity.getCompletedAt()).isNull();
@@ -160,10 +159,10 @@ class CrawlExecutionJpaEntityMapperTest {
 
             // Then
             assertThat(domain).isNotNull();
-            assertThat(domain.getId().value()).isEqualTo(1L);
-            assertThat(domain.getCrawlTaskId().value()).isEqualTo(100L);
-            assertThat(domain.getCrawlSchedulerId().value()).isEqualTo(200L);
-            assertThat(domain.getSellerId().value()).isEqualTo(300L);
+            assertThat(domain.getIdValue()).isEqualTo(1L);
+            assertThat(domain.getCrawlTaskIdValue()).isEqualTo(100L);
+            assertThat(domain.getCrawlSchedulerIdValue()).isEqualTo(200L);
+            assertThat(domain.getSellerIdValue()).isEqualTo(300L);
             assertThat(domain.getStatus()).isEqualTo(CrawlExecutionStatus.RUNNING);
             assertThat(domain.getDuration().isRunning()).isTrue();
         }
@@ -244,12 +243,11 @@ class CrawlExecutionJpaEntityMapperTest {
             CrawlExecution restored = mapper.toDomain(entity);
 
             // Then
-            assertThat(restored.getId().value()).isEqualTo(original.getId().value());
-            assertThat(restored.getCrawlTaskId().value())
-                    .isEqualTo(original.getCrawlTaskId().value());
-            assertThat(restored.getCrawlSchedulerId().value())
-                    .isEqualTo(original.getCrawlSchedulerId().value());
-            assertThat(restored.getSellerId().value()).isEqualTo(original.getSellerId().value());
+            assertThat(restored.getIdValue()).isEqualTo(original.getIdValue());
+            assertThat(restored.getCrawlTaskIdValue()).isEqualTo(original.getCrawlTaskIdValue());
+            assertThat(restored.getCrawlSchedulerIdValue())
+                    .isEqualTo(original.getCrawlSchedulerIdValue());
+            assertThat(restored.getSellerIdValue()).isEqualTo(original.getSellerIdValue());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());
             assertThat(restored.getResult().responseBody())
                     .isEqualTo(original.getResult().responseBody());

@@ -1,18 +1,13 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
-import com.ryuqq.crawlinghub.domain.common.event.DomainEvent;
-import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerRegisteredEvent;
-import com.ryuqq.crawlinghub.domain.schedule.event.SchedulerUpdatedEvent;
-import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
+import com.ryuqq.crawlinghub.domain.schedule.exception.InvalidSchedulerStateException;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -22,8 +17,7 @@ import java.util.Objects;
  *
  * <ul>
  *   <li>셀러별 스케줄러 이름 중복 불가 (외부 검증 필요)
- *   <li>등록/수정 시 SchedulerRegisteredEvent/SchedulerUpdatedEvent 발행
- *   <li>AWS EventBridge와 동기화
+ *   <li>등록/수정 시 아웃박스를 통해 AWS EventBridge와 동기화
  * </ul>
  *
  * @author development-team
@@ -39,8 +33,6 @@ public class CrawlScheduler {
 
     private final Instant createdAt;
     private Instant updatedAt;
-
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     /**
      * 신규 생성 (Auto Increment ID)
@@ -110,88 +102,24 @@ public class CrawlScheduler {
     // ==================== 비즈니스 메서드 ====================
 
     /**
-     * 등록 이벤트 발행 (영속화 후 호출)
-     *
-     * <p>ID 할당 후 호출해야 합니다.
-     *
-     * @param historyId 히스토리 ID (Outbox 조회용)
-     * @param now 현재 시각
-     */
-    public void addRegisteredEvent(CrawlSchedulerHistoryId historyId, Instant now) {
-        if (this.crawlSchedulerId == null || this.crawlSchedulerId.isNew()) {
-            throw new IllegalStateException("등록 이벤트는 ID 할당 후 발행해야 합니다.");
-        }
-        registerEvent(
-                SchedulerRegisteredEvent.of(
-                        this.crawlSchedulerId,
-                        historyId,
-                        this.sellerId,
-                        this.schedulerName,
-                        this.cronExpression,
-                        now));
-    }
-
-    /**
      * 스케줄러 정보 통합 수정
      *
      * <p><strong>비즈니스 룰</strong>:
      *
      * <ul>
-     *   <li>이름 변경: 상태 무관하게 허용 (AWS 동기화 불필요)
+     *   <li>이름 변경: 상태 무관하게 허용
      *   <li>cron 변경: 상태 무관하게 저장
      *   <li>상태 변경: ACTIVE/INACTIVE 전환
-     *   <li>이벤트 발행: 최종 상태가 ACTIVE이거나, ACTIVE→INACTIVE 전환 시에만 발행
      * </ul>
      *
-     * @param newSchedulerName 새로운 스케줄러 이름
-     * @param newCronExpression 새로운 크론 표현식
-     * @param newStatus 새로운 상태
+     * @param updateData 수정 데이터 (schedulerName, cronExpression, status)
      * @param now 현재 시각
      */
-    public void update(
-            SchedulerName newSchedulerName,
-            CronExpression newCronExpression,
-            SchedulerStatus newStatus,
-            Instant now) {
-        SchedulerStatus oldStatus = this.status;
-
-        this.schedulerName = newSchedulerName;
-        this.cronExpression = newCronExpression;
-        this.status = newStatus;
+    public void update(CrawlSchedulerUpdateData updateData, Instant now) {
+        this.schedulerName = updateData.schedulerName();
+        this.cronExpression = updateData.cronExpression();
+        this.status = updateData.status();
         this.updatedAt = now;
-
-        boolean shouldPublishEvent =
-                (newStatus == SchedulerStatus.ACTIVE)
-                        || (oldStatus == SchedulerStatus.ACTIVE
-                                && newStatus == SchedulerStatus.INACTIVE);
-
-        if (shouldPublishEvent) {
-            registerEvent(
-                    SchedulerUpdatedEvent.of(
-                            this.crawlSchedulerId,
-                            this.sellerId,
-                            this.schedulerName,
-                            this.cronExpression,
-                            this.status,
-                            now));
-        }
-    }
-
-    // ==================== 이벤트 관리 ====================
-
-    protected void registerEvent(DomainEvent event) {
-        this.domainEvents.add(event);
-    }
-
-    /**
-     * 도메인 이벤트 수확 (호출 후 내부 목록 비움)
-     *
-     * @return 등록된 도메인 이벤트 목록
-     */
-    public List<DomainEvent> pollEvents() {
-        List<DomainEvent> events = Collections.unmodifiableList(new ArrayList<>(domainEvents));
-        domainEvents.clear();
-        return events;
     }
 
     // ==================== Getter ====================
@@ -252,12 +180,27 @@ public class CrawlScheduler {
         return this.status == SchedulerStatus.INACTIVE;
     }
 
+    /**
+     * ACTIVE 상태 검증
+     *
+     * @throws InvalidSchedulerStateException ACTIVE 상태가 아닌 경우
+     */
+    public void validateActive() {
+        if (!isActive()) {
+            throw new InvalidSchedulerStateException(this.status, SchedulerStatus.ACTIVE);
+        }
+    }
+
     // ==================== equals/hashCode (ID 기반) ====================
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         CrawlScheduler that = (CrawlScheduler) o;
         return Objects.equals(crawlSchedulerId, that.crawlSchedulerId);
     }

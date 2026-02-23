@@ -1,14 +1,17 @@
 package com.ryuqq.crawlinghub.application.task.factory.query;
 
+import com.ryuqq.crawlinghub.application.task.dto.query.CrawlTaskSearchParams;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetTaskStatisticsQuery;
-import com.ryuqq.crawlinghub.application.task.dto.query.ListCrawlTasksQuery;
-import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +20,7 @@ import org.springframework.stereotype.Component;
  * <p><strong>책임</strong>:
  *
  * <ul>
- *   <li>Query → Criteria 변환
+ *   <li>SearchParams → Criteria 변환
  * </ul>
  *
  * <p><strong>금지</strong>:
@@ -34,27 +37,26 @@ import org.springframework.stereotype.Component;
 public class CrawlTaskQueryFactory {
 
     /**
-     * ListCrawlTasksQuery → CrawlTaskCriteria 변환
+     * CrawlTaskSearchParams → CrawlTaskCriteria 변환
      *
-     * @param query 목록 조회 쿼리
+     * @param params 검색 파라미터
      * @return Domain 조회 조건 객체
      */
-    public CrawlTaskCriteria createCriteria(ListCrawlTasksQuery query) {
-        CrawlSchedulerId schedulerId =
-                query.crawlSchedulerId() != null
-                        ? CrawlSchedulerId.of(query.crawlSchedulerId())
-                        : null;
-        SellerId sellerId = query.sellerId() != null ? SellerId.of(query.sellerId()) : null;
+    public CrawlTaskCriteria createCriteria(CrawlTaskSearchParams params) {
+        List<CrawlSchedulerId> schedulerIds = toSchedulerIds(params.crawlSchedulerIds());
+        List<SellerId> sellerIds = toSellerIds(params.sellerIds());
+        List<CrawlTaskStatus> statuses = parseStatuses(params.statuses());
+        List<CrawlTaskType> taskTypes = parseTaskTypes(params.taskTypes());
 
         return new CrawlTaskCriteria(
-                schedulerId,
-                sellerId,
-                query.statuses(),
-                query.taskTypes(),
-                query.createdFrom(),
-                query.createdTo(),
-                query.page(),
-                query.size());
+                schedulerIds,
+                sellerIds,
+                statuses,
+                taskTypes,
+                params.createdFrom(),
+                params.createdTo(),
+                params.page(),
+                params.size());
     }
 
     /**
@@ -86,6 +88,40 @@ public class CrawlTaskQueryFactory {
         Instant from = toInstant(query.from());
         Instant to = toInstant(query.to());
         return new CrawlExecutionStatisticsCriteria(schedulerId, sellerId, from, to);
+    }
+
+    private List<CrawlSchedulerId> toSchedulerIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return null;
+        }
+        return ids.stream().map(CrawlSchedulerId::of).toList();
+    }
+
+    private List<SellerId> toSellerIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return null;
+        }
+        return ids.stream().map(SellerId::of).toList();
+    }
+
+    private List<CrawlTaskStatus> parseStatuses(List<String> statusStrings) {
+        if (statusStrings == null || statusStrings.isEmpty()) {
+            return null;
+        }
+        return statusStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(CrawlTaskStatus::valueOf)
+                .toList();
+    }
+
+    private List<CrawlTaskType> parseTaskTypes(List<String> taskTypeStrings) {
+        if (taskTypeStrings == null || taskTypeStrings.isEmpty()) {
+            return null;
+        }
+        return taskTypeStrings.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(CrawlTaskType::valueOf)
+                .toList();
     }
 
     private Instant toInstant(java.time.LocalDateTime localDateTime) {

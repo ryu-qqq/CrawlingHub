@@ -1,7 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.port.out.command;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 
 /**
  * CrawledProduct 저장 Port (Port Out - Command)
@@ -22,11 +22,4 @@ public interface CrawledProductPersistencePort {
      * @return 저장된 CrawledProduct의 ID
      */
     CrawledProductId persist(CrawledProduct crawledProduct);
-
-    /**
-     * CrawledProduct 삭제
-     *
-     * @param crawledProductId 삭제할 CrawledProduct ID
-     */
-    void delete(CrawledProductId crawledProductId);
 }

@@ -1,15 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.in.rest.outbox.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,19 +17,17 @@ import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.PageApiResponse
 import com.ryuqq.crawlinghub.adapter.in.rest.config.TestConfiguration;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.controller.CrawlTaskOutboxController;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.CrawlTaskOutboxApiResponse;
-import com.ryuqq.crawlinghub.adapter.in.rest.task.dto.response.RepublishResultApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.task.mapper.CrawlTaskOutboxApiMapper;
 import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
 import com.ryuqq.crawlinghub.application.task.dto.query.GetOutboxListQuery;
 import com.ryuqq.crawlinghub.application.task.dto.response.OutboxResponse;
-import com.ryuqq.crawlinghub.application.task.dto.response.RepublishResultResponse;
-import com.ryuqq.crawlinghub.application.task.port.in.command.RepublishOutboxUseCase;
 import com.ryuqq.crawlinghub.application.task.port.in.query.GetOutboxListUseCase;
 import com.ryuqq.crawlinghub.domain.task.vo.OutboxStatus;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,21 +41,19 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  *
  * <ul>
  *   <li>Outbox 목록 조회 API 문서화 (페이징)
- *   <li>Outbox 재발행 API 문서화
  * </ul>
  *
  * @author development-team
  * @since 1.0.0
  */
 @WebMvcTest(CrawlTaskOutboxController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @TestPropertySource(properties = "app.messaging.sqs.enabled=true")
 @DisplayName("OutboxController REST Docs")
 class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
 
     @MockitoBean private GetOutboxListUseCase getOutboxListUseCase;
-
-    @MockitoBean private RepublishOutboxUseCase republishOutboxUseCase;
 
     @MockitoBean private CrawlTaskOutboxApiMapper crawlTaskOutboxApiMapper;
 
@@ -193,105 +186,6 @@ class CrawlTaskOutboxControllerDocsTest extends RestDocsTestSupport {
                                         fieldWithPath("data.last")
                                                 .type(JsonFieldType.BOOLEAN)
                                                 .description("마지막 페이지 여부"),
-                                        fieldWithPath("timestamp")
-                                                .type(JsonFieldType.STRING)
-                                                .description("응답 시각"),
-                                        fieldWithPath("requestId")
-                                                .type(JsonFieldType.STRING)
-                                                .description("요청 ID"))));
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/crawling/outbox/{crawlTaskId}/republish - Outbox 재발행 API 문서")
-    void republishOutbox() throws Exception {
-        // given
-        Long crawlTaskId = 1L;
-
-        RepublishResultResponse useCaseResponse =
-                new RepublishResultResponse(crawlTaskId, true, "SQS 재발행이 완료되었습니다.");
-
-        RepublishResultApiResponse apiResponse =
-                new RepublishResultApiResponse(crawlTaskId, true, "SQS 재발행이 완료되었습니다.");
-
-        given(republishOutboxUseCase.republish(anyLong())).willReturn(useCaseResponse);
-        given(crawlTaskOutboxApiMapper.toRepublishApiResponse(any())).willReturn(apiResponse);
-
-        // when & then
-        mockMvc.perform(post("/api/v1/crawling/outbox/{crawlTaskId}/republish", crawlTaskId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.crawlTaskId").value(crawlTaskId))
-                .andExpect(jsonPath("$.data.success").value(true))
-                .andExpect(jsonPath("$.data.message").value("SQS 재발행이 완료되었습니다."))
-                .andDo(
-                        document(
-                                "outbox/republish",
-                                RestDocsSecuritySnippets.authorization("outbox:update"),
-                                pathParameters(
-                                        parameterWithName("crawlTaskId")
-                                                .description("재발행할 Task ID (양수, 필수)")),
-                                responseFields(
-                                        fieldWithPath("data")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("재발행 결과 데이터"),
-                                        fieldWithPath("data.crawlTaskId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("Task ID"),
-                                        fieldWithPath("data.success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("재발행 성공 여부"),
-                                        fieldWithPath("data.message")
-                                                .type(JsonFieldType.STRING)
-                                                .description("결과 메시지"),
-                                        fieldWithPath("timestamp")
-                                                .type(JsonFieldType.STRING)
-                                                .description("응답 시각"),
-                                        fieldWithPath("requestId")
-                                                .type(JsonFieldType.STRING)
-                                                .description("요청 ID"))));
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/crawling/outbox/{crawlTaskId}/republish - 재발행 실패 케이스")
-    void republishOutbox_Failure() throws Exception {
-        // given
-        Long crawlTaskId = 999L;
-
-        RepublishResultResponse useCaseResponse =
-                new RepublishResultResponse(
-                        crawlTaskId, false, "해당 Task ID에 대한 Outbox를 찾을 수 없습니다.");
-
-        RepublishResultApiResponse apiResponse =
-                new RepublishResultApiResponse(
-                        crawlTaskId, false, "해당 Task ID에 대한 Outbox를 찾을 수 없습니다.");
-
-        given(republishOutboxUseCase.republish(anyLong())).willReturn(useCaseResponse);
-        given(crawlTaskOutboxApiMapper.toRepublishApiResponse(any())).willReturn(apiResponse);
-
-        // when & then
-        mockMvc.perform(post("/api/v1/crawling/outbox/{crawlTaskId}/republish", crawlTaskId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.crawlTaskId").value(crawlTaskId))
-                .andExpect(jsonPath("$.data.success").value(false))
-                .andExpect(jsonPath("$.data.message").value("해당 Task ID에 대한 Outbox를 찾을 수 없습니다."))
-                .andDo(
-                        document(
-                                "outbox/republish-failure",
-                                pathParameters(
-                                        parameterWithName("crawlTaskId")
-                                                .description("재발행할 Task ID (양수, 필수)")),
-                                responseFields(
-                                        fieldWithPath("data")
-                                                .type(JsonFieldType.OBJECT)
-                                                .description("재발행 결과 데이터"),
-                                        fieldWithPath("data.crawlTaskId")
-                                                .type(JsonFieldType.NUMBER)
-                                                .description("Task ID"),
-                                        fieldWithPath("data.success")
-                                                .type(JsonFieldType.BOOLEAN)
-                                                .description("재발행 성공 여부 (false)"),
-                                        fieldWithPath("data.message")
-                                                .type(JsonFieldType.STRING)
-                                                .description("실패 사유"),
                                         fieldWithPath("timestamp")
                                                 .type(JsonFieldType.STRING)
                                                 .description("응답 시각"),

@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QCrawlSchedulerOutBoxJpaEntity;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -12,23 +13,6 @@ import org.springframework.stereotype.Repository;
  * CrawlSchedulerOutBoxQueryDslRepository - CrawlSchedulerOutBox QueryDSL Repository
  *
  * <p>QueryDSL 기반 조회 쿼리를 처리하는 전용 Repository입니다.
- *
- * <p><strong>표준 메서드:</strong>
- *
- * <ul>
- *   <li>findById(Long id): 단건 조회
- *   <li>findByHistoryId(Long historyId): 히스토리 ID로 단건 조회
- *   <li>findByStatus(status, limit): 상태별 목록 조회
- *   <li>findByStatusIn(statuses, limit): 여러 상태로 목록 조회
- * </ul>
- *
- * <p><strong>금지 사항:</strong>
- *
- * <ul>
- *   <li>❌ Join 절대 금지 (fetch join, left join, inner join)
- *   <li>❌ 비즈니스 로직 금지
- *   <li>❌ Mapper 호출 금지
- * </ul>
  *
  * @author development-team
  * @since 1.0.0
@@ -84,18 +68,41 @@ public class CrawlSchedulerOutBoxQueryDslRepository {
     }
 
     /**
-     * 여러 상태로 아웃박스 목록 조회 (PENDING 또는 FAILED)
+     * 지정 시간(초) 이상 경과한 PENDING 상태의 아웃박스 조회.
      *
-     * @param statuses 조회할 상태 목록
      * @param limit 조회 개수 제한
-     * @return 아웃박스 엔티티 목록
+     * @param delaySeconds 최소 경과 시간 (초)
+     * @return PENDING 아웃박스 엔티티 목록
      */
-    public List<CrawlSchedulerOutBoxJpaEntity> findByStatusIn(
-            List<CrawlSchedulerOubBoxStatus> statuses, int limit) {
+    public List<CrawlSchedulerOutBoxJpaEntity> findPendingOlderThan(int limit, int delaySeconds) {
+        LocalDateTime threshold = LocalDateTime.now().minusSeconds(delaySeconds);
+
         return queryFactory
                 .selectFrom(qOutBox)
-                .where(qOutBox.status.in(statuses))
+                .where(
+                        qOutBox.status.eq(CrawlSchedulerOubBoxStatus.PENDING),
+                        qOutBox.createdAt.loe(threshold))
                 .orderBy(qOutBox.createdAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * 지정 시간(초) 이상 PROCESSING 상태인 좀비 아웃박스 조회.
+     *
+     * @param limit 조회 개수 제한
+     * @param timeoutSeconds 타임아웃 기준 (초)
+     * @return PROCESSING 좀비 아웃박스 엔티티 목록
+     */
+    public List<CrawlSchedulerOutBoxJpaEntity> findStaleProcessing(int limit, long timeoutSeconds) {
+        LocalDateTime threshold = LocalDateTime.now().minusSeconds(timeoutSeconds);
+
+        return queryFactory
+                .selectFrom(qOutBox)
+                .where(
+                        qOutBox.status.eq(CrawlSchedulerOubBoxStatus.PROCESSING),
+                        qOutBox.processedAt.loe(threshold))
+                .orderBy(qOutBox.processedAt.asc())
                 .limit(limit)
                 .fetch();
     }

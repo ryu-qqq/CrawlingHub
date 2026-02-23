@@ -8,11 +8,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
-import com.ryuqq.crawlinghub.application.crawl.dto.CrawlResult;
-import com.ryuqq.crawlinghub.application.crawl.parser.OptionResponseParser;
-import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawAssembler;
-import com.ryuqq.crawlinghub.application.product.manager.command.CrawledRawTransactionManager;
-import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessOptionsUseCase;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.OptionResponseParser;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.OptionCrawlResultProcessor;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
+import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
+import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.Collections;
@@ -38,9 +39,8 @@ import org.mockito.quality.Strictness;
 class OptionCrawlResultProcessorTest {
 
     @Mock private OptionResponseParser optionResponseParser;
-    @Mock private CrawledRawAssembler crawledRawAssembler;
+    @Mock private CrawledRawMapper crawledRawMapper;
     @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
-    @Mock private ProcessOptionsUseCase processOptionsUseCase;
 
     private OptionCrawlResultProcessor processor;
 
@@ -48,10 +48,7 @@ class OptionCrawlResultProcessorTest {
     void setUp() {
         processor =
                 new OptionCrawlResultProcessor(
-                        optionResponseParser,
-                        crawledRawAssembler,
-                        crawledRawTransactionManager,
-                        processOptionsUseCase);
+                        optionResponseParser, crawledRawMapper, crawledRawTransactionManager);
     }
 
     @Nested

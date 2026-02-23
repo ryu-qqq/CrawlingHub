@@ -6,6 +6,7 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerOutBoxFixture
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerOutBoxJpaEntity;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +24,7 @@ import org.junit.jupiter.api.Test;
  *
  * <ul>
  *   <li>Optimistic Locking (@Version)
- *   <li>eventPayload는 JSON 형식
+ *   <li>개별 필드: schedulerId, sellerId, schedulerName, cronExpression, schedulerStatus
  *   <li>errorMessage는 FAILED 상태에서만 값이 있음
  *   <li>processedAt은 null 가능 (아직 처리 전)
  * </ul>
@@ -62,7 +63,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
             assertThat(entity.getId()).isEqualTo(domain.getOutBoxIdValue());
             assertThat(entity.getHistoryId()).isEqualTo(domain.getHistoryIdValue());
             assertThat(entity.getStatus()).isEqualTo(CrawlSchedulerOubBoxStatus.PENDING);
-            assertThat(entity.getEventPayload()).isEqualTo(domain.getEventPayload());
+            assertThat(entity.getSchedulerId()).isEqualTo(domain.getSchedulerId());
+            assertThat(entity.getSellerId()).isEqualTo(domain.getSellerId());
+            assertThat(entity.getSchedulerName()).isEqualTo(domain.getSchedulerName());
+            assertThat(entity.getCronExpression()).isEqualTo(domain.getCronExpression());
+            assertThat(entity.getSchedulerStatus()).isEqualTo(domain.getSchedulerStatus().name());
             assertThat(entity.getErrorMessage()).isNull();
             assertThat(entity.getVersion()).isEqualTo(0L);
             assertThat(entity.getCreatedAt()).isNotNull();
@@ -114,7 +119,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
                             1L,
                             100L,
                             CrawlSchedulerOubBoxStatus.PENDING,
-                            "{\"schedulerId\": 1, \"action\": \"CREATE\"}",
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
                             null,
                             0L,
                             now,
@@ -128,8 +137,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
             assertThat(domain.getOutBoxIdValue()).isEqualTo(1L);
             assertThat(domain.getHistoryIdValue()).isEqualTo(100L);
             assertThat(domain.getStatus()).isEqualTo(CrawlSchedulerOubBoxStatus.PENDING);
-            assertThat(domain.getEventPayload())
-                    .isEqualTo("{\"schedulerId\": 1, \"action\": \"CREATE\"}");
+            assertThat(domain.getSchedulerId()).isEqualTo(1L);
+            assertThat(domain.getSellerId()).isEqualTo(1L);
+            assertThat(domain.getSchedulerName()).isEqualTo("test-scheduler");
+            assertThat(domain.getCronExpression()).isEqualTo("cron(0 0 * * ? *)");
+            assertThat(domain.getSchedulerStatus()).isEqualTo(SchedulerStatus.ACTIVE);
             assertThat(domain.getErrorMessage()).isNull();
             assertThat(domain.getVersion()).isEqualTo(0L);
             assertThat(domain.getProcessedAt()).isNull();
@@ -146,7 +158,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
                             2L,
                             200L,
                             CrawlSchedulerOubBoxStatus.COMPLETED,
-                            "{\"schedulerId\": 2}",
+                            2L,
+                            2L,
+                            "test-scheduler-2",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
                             null,
                             1L,
                             createdAt,
@@ -172,7 +188,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
                             3L,
                             300L,
                             CrawlSchedulerOubBoxStatus.FAILED,
-                            "{\"schedulerId\": 3}",
+                            3L,
+                            3L,
+                            "test-scheduler-3",
+                            "cron(0 0 * * ? *)",
+                            "ACTIVE",
                             "EventBridge connection failed",
                             1L,
                             createdAt,
@@ -205,7 +225,11 @@ class CrawlSchedulerOutBoxJpaEntityMapperTest {
             assertThat(restored.getOutBoxIdValue()).isEqualTo(original.getOutBoxIdValue());
             assertThat(restored.getHistoryIdValue()).isEqualTo(original.getHistoryIdValue());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());
-            assertThat(restored.getEventPayload()).isEqualTo(original.getEventPayload());
+            assertThat(restored.getSchedulerId()).isEqualTo(original.getSchedulerId());
+            assertThat(restored.getSellerId()).isEqualTo(original.getSellerId());
+            assertThat(restored.getSchedulerName()).isEqualTo(original.getSchedulerName());
+            assertThat(restored.getCronExpression()).isEqualTo(original.getCronExpression());
+            assertThat(restored.getSchedulerStatus()).isEqualTo(original.getSchedulerStatus());
             assertThat(restored.getVersion()).isEqualTo(original.getVersion());
         }
 

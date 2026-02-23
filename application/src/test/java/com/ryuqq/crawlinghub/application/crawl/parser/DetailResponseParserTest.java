@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.crawl.parser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

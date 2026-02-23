@@ -2,9 +2,10 @@ package com.ryuqq.cralwinghub.domain.fixture.product;
 
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledProductSyncOutboxId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 
 /**
@@ -23,8 +24,13 @@ public final class CrawledProductSyncOutboxFixture {
      * @return CrawledProductSyncOutbox
      */
     public static CrawledProductSyncOutbox aPendingForCreate() {
-        return CrawledProductSyncOutbox.forCreate(
-                CrawledProductId.of(1L), SellerId.of(100L), 12345L, Instant.now());
+        return CrawledProductSyncOutbox.forNew(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                SyncType.CREATE,
+                null,
+                Instant.now());
     }
 
     /**
@@ -33,8 +39,13 @@ public final class CrawledProductSyncOutboxFixture {
      * @return CrawledProductSyncOutbox
      */
     public static CrawledProductSyncOutbox aPendingForUpdate() {
-        return CrawledProductSyncOutbox.forUpdate(
-                CrawledProductId.of(1L), SellerId.of(100L), 12345L, 99999L, Instant.now());
+        return CrawledProductSyncOutbox.forNew(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                SyncType.UPDATE_PRICE,
+                99999L,
+                Instant.now());
     }
 
     /**
@@ -44,7 +55,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aReconstitutedPending() {
         return CrawledProductSyncOutbox.reconstitute(
-                1L,
+                CrawledProductSyncOutboxId.of(1L),
                 CrawledProductId.of(1L),
                 SellerId.of(100L),
                 12345L,
@@ -65,7 +76,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aReconstitutedProcessing() {
         return CrawledProductSyncOutbox.reconstitute(
-                1L,
+                CrawledProductSyncOutboxId.of(1L),
                 CrawledProductId.of(1L),
                 SellerId.of(100L),
                 12345L,
@@ -86,7 +97,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aReconstitutedCompleted() {
         return CrawledProductSyncOutbox.reconstitute(
-                1L,
+                CrawledProductSyncOutboxId.of(1L),
                 CrawledProductId.of(1L),
                 SellerId.of(100L),
                 12345L,
@@ -107,7 +118,7 @@ public final class CrawledProductSyncOutboxFixture {
      */
     public static CrawledProductSyncOutbox aReconstitutedFailed() {
         return CrawledProductSyncOutbox.reconstitute(
-                1L,
+                CrawledProductSyncOutboxId.of(1L),
                 CrawledProductId.of(1L),
                 SellerId.of(100L),
                 12345L,

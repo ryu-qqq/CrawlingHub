@@ -23,20 +23,17 @@ import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedule
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerDetailApiResponse.TaskSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.dto.response.CrawlSchedulerSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.schedule.mapper.CrawlSchedulerQueryApiMapper;
-import com.ryuqq.crawlinghub.application.common.dto.response.PageResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerDetailResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerResponse;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.ExecutionInfo;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.SchedulerStatistics;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.SellerSummaryForScheduler;
-import com.ryuqq.crawlinghub.application.schedule.dto.response.TaskSummaryForScheduler;
+import com.ryuqq.crawlinghub.application.schedule.dto.composite.CrawlSchedulerDetailResult;
+import com.ryuqq.crawlinghub.application.schedule.dto.composite.CrawlSchedulerDetailResult.SchedulerInfo;
+import com.ryuqq.crawlinghub.application.schedule.dto.composite.CrawlSchedulerDetailResult.SellerSummary;
+import com.ryuqq.crawlinghub.application.schedule.dto.response.CrawlSchedulerPageResult;
 import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlScheduleUseCase;
-import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulesUseCase;
-import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
+import com.ryuqq.crawlinghub.application.schedule.port.in.query.SearchCrawlSchedulerByOffsetUseCase;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,11 +46,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @since 1.0.0
  */
 @WebMvcTest(CrawlSchedulerQueryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = TestConfiguration.class)
 @DisplayName("CrawlSchedulerQueryController REST Docs")
 class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
 
-    @MockitoBean private SearchCrawlSchedulesUseCase searchCrawlSchedulesUseCase;
+    @MockitoBean private SearchCrawlSchedulerByOffsetUseCase searchCrawlSchedulerByOffsetUseCase;
 
     @MockitoBean private SearchCrawlScheduleUseCase searchCrawlScheduleUseCase;
 
@@ -63,28 +61,6 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
     @DisplayName("GET /api/v1/crawling/schedules - 크롤 스케줄러 목록 조회 API 문서")
     void listCrawlSchedulers() throws Exception {
         // given
-        List<CrawlSchedulerResponse> content =
-                List.of(
-                        new CrawlSchedulerResponse(
-                                1L,
-                                1L,
-                                "daily-crawl",
-                                "0 0 9 * * ?",
-                                SchedulerStatus.ACTIVE,
-                                Instant.parse("2025-11-20T10:30:00Z"),
-                                null),
-                        new CrawlSchedulerResponse(
-                                2L,
-                                1L,
-                                "hourly-crawl",
-                                "0 0 * * * ?",
-                                SchedulerStatus.INACTIVE,
-                                Instant.parse("2025-11-19T15:00:00Z"),
-                                Instant.parse("2025-11-20T09:00:00Z")));
-
-        PageResponse<CrawlSchedulerResponse> pageResponse =
-                new PageResponse<>(content, 0, 20, 2, 1, true, true);
-
         List<CrawlSchedulerSummaryApiResponse> apiContent =
                 List.of(
                         new CrawlSchedulerSummaryApiResponse(
@@ -107,15 +83,22 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
         PageApiResponse<CrawlSchedulerSummaryApiResponse> apiPageResponse =
                 new PageApiResponse<>(apiContent, 0, 20, 2, 1, true, true);
 
-        given(crawlSchedulerQueryApiMapper.toQuery(any())).willReturn(null);
-        given(searchCrawlSchedulesUseCase.execute(any())).willReturn(pageResponse);
-        given(crawlSchedulerQueryApiMapper.toPageApiResponse(any())).willReturn(apiPageResponse);
+        CrawlSchedulerPageResult pageResult =
+                CrawlSchedulerPageResult.empty(); // will be mocked away
+
+        given(crawlSchedulerQueryApiMapper.toSearchParams(any())).willReturn(null);
+        given(searchCrawlSchedulerByOffsetUseCase.execute(any())).willReturn(pageResult);
+        given(crawlSchedulerQueryApiMapper.toPageResponse(any())).willReturn(apiPageResponse);
 
         // when & then
         mockMvc.perform(
                         get("/api/v1/crawling/schedules")
                                 .param("sellerId", "1")
-                                .param("status", "ACTIVE")
+                                .param("statuses", "ACTIVE")
+                                .param("searchField", "schedulerName")
+                                .param("searchWord", "daily")
+                                .param("sortKey", "createdAt")
+                                .param("sortDirection", "DESC")
                                 .param("page", "0")
                                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -129,8 +112,22 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                         parameterWithName("sellerId")
                                                 .description("셀러 ID 필터 (양수, 선택)")
                                                 .optional(),
-                                        parameterWithName("status")
-                                                .description("상태 필터 (ACTIVE/INACTIVE, 선택)")
+                                        parameterWithName("statuses")
+                                                .description("상태 필터 (ACTIVE/INACTIVE, 다중 선택 가능)")
+                                                .optional(),
+                                        parameterWithName("searchField")
+                                                .description("검색 필드 (schedulerName)")
+                                                .optional(),
+                                        parameterWithName("searchWord")
+                                                .description("검색어")
+                                                .optional(),
+                                        parameterWithName("sortKey")
+                                                .description(
+                                                        "정렬 키 (createdAt, updatedAt,"
+                                                                + " schedulerName)")
+                                                .optional(),
+                                        parameterWithName("sortDirection")
+                                                .description("정렬 방향 (ASC, DESC)")
                                                 .optional(),
                                         parameterWithName("page")
                                                 .description("페이지 번호 (0부터 시작, 기본값: 0)")
@@ -200,30 +197,28 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
         Long crawlSchedulerId = 1L;
         Instant now = Instant.parse("2025-11-20T10:30:00Z");
         Instant lastExecution = Instant.parse("2025-11-20T09:00:00Z");
-        Instant nextExecution = Instant.parse("2025-11-21T09:00:00Z");
 
-        SellerSummaryForScheduler sellerSummary =
-                new SellerSummaryForScheduler(100L, "TestSeller", "머스트잇셀러");
-        ExecutionInfo executionInfo = new ExecutionInfo(nextExecution, lastExecution, "SUCCESS");
-        SchedulerStatistics statistics = new SchedulerStatistics(150, 145, 5, 0.9667, 12500);
-        List<TaskSummaryForScheduler> recentTasks =
-                List.of(
-                        new TaskSummaryForScheduler(
-                                1001L, "COMPLETED", "PRODUCT_CRAWL", now.minusSeconds(3600), now),
-                        new TaskSummaryForScheduler(1002L, "RUNNING", "PRODUCT_CRAWL", now, null));
-
-        CrawlSchedulerDetailResponse detailResponse =
-                new CrawlSchedulerDetailResponse(
-                        crawlSchedulerId,
-                        "daily-crawl",
-                        "0 0 9 * * ?",
-                        SchedulerStatus.ACTIVE,
-                        now.minusSeconds(86400 * 30),
-                        now,
-                        sellerSummary,
-                        executionInfo,
-                        statistics,
-                        recentTasks);
+        CrawlSchedulerDetailResult detailResult =
+                new CrawlSchedulerDetailResult(
+                        new SchedulerInfo(
+                                crawlSchedulerId,
+                                "daily-crawl",
+                                "0 0 9 * * ?",
+                                "ACTIVE",
+                                now.minusSeconds(86400 * 30),
+                                now),
+                        new SellerSummary(100L, "TestSeller", "머스트잇셀러"),
+                        new CrawlSchedulerDetailResult.ExecutionInfo(lastExecution, "SUCCESS"),
+                        new CrawlSchedulerDetailResult.SchedulerStatistics(150, 145, 5, 0.9667),
+                        List.of(
+                                new CrawlSchedulerDetailResult.TaskSummary(
+                                        1001L,
+                                        "COMPLETED",
+                                        "PRODUCT_CRAWL",
+                                        now.minusSeconds(3600),
+                                        now),
+                                new CrawlSchedulerDetailResult.TaskSummary(
+                                        1002L, "RUNNING", "PRODUCT_CRAWL", now, null)));
 
         SellerSummaryApiResponse sellerApiResponse =
                 new SellerSummaryApiResponse(100L, "TestSeller", "머스트잇셀러");
@@ -256,8 +251,8 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                         statisticsApiResponse,
                         taskApiResponses);
 
-        given(searchCrawlScheduleUseCase.execute(crawlSchedulerId)).willReturn(detailResponse);
-        given(crawlSchedulerQueryApiMapper.toDetailApiResponse(detailResponse))
+        given(searchCrawlScheduleUseCase.execute(crawlSchedulerId)).willReturn(detailResult);
+        given(crawlSchedulerQueryApiMapper.toDetailApiResponse(detailResult))
                 .willReturn(apiResponse);
 
         // when & then
@@ -315,7 +310,8 @@ class CrawlSchedulerQueryControllerDocsTest extends RestDocsTestSupport {
                                                 .description("실행 정보"),
                                         fieldWithPath("data.execution.nextExecutionTime")
                                                 .type(JsonFieldType.STRING)
-                                                .description("다음 실행 예정 시각 (ISO-8601)"),
+                                                .description("다음 실행 예정 시각 (ISO-8601)")
+                                                .optional(),
                                         fieldWithPath("data.execution.lastExecutionTime")
                                                 .type(JsonFieldType.STRING)
                                                 .description("마지막 실행 시각 (ISO-8601)"),

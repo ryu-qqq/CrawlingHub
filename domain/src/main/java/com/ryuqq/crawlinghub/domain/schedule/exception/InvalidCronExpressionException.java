@@ -1,6 +1,5 @@
 package com.ryuqq.crawlinghub.domain.schedule.exception;
 
-import com.ryuqq.crawlinghub.domain.common.exception.DomainException;
 import java.util.Map;
 
 /**
@@ -8,7 +7,7 @@ import java.util.Map;
  *
  * <p>AWS EventBridge 형식 위반 또는 최소 실행 간격 위반 시 발생합니다.
  */
-public final class InvalidCronExpressionException extends DomainException {
+public final class InvalidCronExpressionException extends CrawlSchedulerException {
 
     private static final ScheduleErrorCode ERROR_CODE = ScheduleErrorCode.INVALID_CRON_EXPRESSION;
 

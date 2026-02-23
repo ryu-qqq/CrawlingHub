@@ -4,11 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerReadManager;
 import com.ryuqq.crawlinghub.application.schedule.port.out.query.CrawlScheduleQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
-import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerPageCriteria;
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.schedule.query.CrawlSchedulerSearchCriteria;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ class CrawlSchedulerReadManagerTest {
 
     @Mock private CrawlScheduleQueryPort crawlScheduleQueryPort;
     @Mock private CrawlScheduler crawlScheduler;
-    @Mock private CrawlSchedulerPageCriteria criteria;
+    @Mock private CrawlSchedulerSearchCriteria criteria;
 
     private CrawlSchedulerReadManager manager;
 
@@ -119,21 +120,21 @@ class CrawlSchedulerReadManagerTest {
     }
 
     @Nested
-    @DisplayName("count() 테스트")
-    class Count {
+    @DisplayName("countByCriteria() 테스트")
+    class CountByCriteria {
 
         @Test
         @DisplayName("[성공] 조건으로 CrawlScheduler 개수 조회")
         void shouldDelegateToQueryPort() {
             // Given
-            given(crawlScheduleQueryPort.count(criteria)).willReturn(15L);
+            given(crawlScheduleQueryPort.countByCriteria(criteria)).willReturn(15L);
 
             // When
-            long result = manager.count(criteria);
+            long result = manager.countByCriteria(criteria);
 
             // Then
             assertThat(result).isEqualTo(15L);
-            verify(crawlScheduleQueryPort).count(criteria);
+            verify(crawlScheduleQueryPort).countByCriteria(criteria);
         }
     }
 

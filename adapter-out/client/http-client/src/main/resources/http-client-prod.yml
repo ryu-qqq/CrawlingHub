@@ -1,0 +1,7 @@
+# ========================================
+# HTTP Client - Production Profile
+# ========================================
+
+http-client:
+  connect-timeout: 5
+  request-timeout: 15

@@ -16,45 +16,6 @@ import org.junit.jupiter.api.Test;
 class LockTypeTest {
 
     @Nested
-    @DisplayName("CRAWL_TRIGGER 테스트")
-    class CrawlTrigger {
-
-        @Test
-        @DisplayName("[성공] 키 프리픽스 확인")
-        void shouldReturnCorrectKeyPrefix() {
-            // Then
-            assertThat(LockType.CRAWL_TRIGGER.getKeyPrefix()).isEqualTo("trigger:");
-        }
-
-        @Test
-        @DisplayName("[성공] 기본 대기 시간 0ms")
-        void shouldReturnZeroWaitTime() {
-            // Then
-            assertThat(LockType.CRAWL_TRIGGER.getDefaultWaitTimeMs()).isZero();
-        }
-
-        @Test
-        @DisplayName("[성공] 기본 유지 시간 60초")
-        void shouldReturnDefaultLeaseTime() {
-            // Then
-            assertThat(LockType.CRAWL_TRIGGER.getDefaultLeaseTimeMs()).isEqualTo(60000L);
-        }
-
-        @Test
-        @DisplayName("[성공] 락 키 생성")
-        void shouldBuildKeyWithIdentifier() {
-            // Given
-            Long schedulerId = 123L;
-
-            // When
-            String lockKey = LockType.CRAWL_TRIGGER.buildKey(schedulerId);
-
-            // Then
-            assertThat(lockKey).isEqualTo("trigger:123");
-        }
-    }
-
-    @Nested
     @DisplayName("CRAWL_TASK 테스트")
     class CrawlTask {
 

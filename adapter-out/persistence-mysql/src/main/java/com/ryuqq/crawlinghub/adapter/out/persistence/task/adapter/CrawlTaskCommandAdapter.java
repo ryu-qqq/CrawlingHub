@@ -5,7 +5,7 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskJpaRepository;
 import com.ryuqq.crawlinghub.application.task.port.out.command.CrawlTaskPersistencePort;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
-import com.ryuqq.crawlinghub.domain.task.identifier.CrawlTaskId;
+import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import org.springframework.stereotype.Component;
 
 /**

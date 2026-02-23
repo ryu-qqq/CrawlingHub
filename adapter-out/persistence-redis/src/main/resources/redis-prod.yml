@@ -1,0 +1,20 @@
+# ============================================================
+# Redis Layer 운영 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=prod
+# ============================================================
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+
+logging:
+  level:
+    org.redisson: INFO

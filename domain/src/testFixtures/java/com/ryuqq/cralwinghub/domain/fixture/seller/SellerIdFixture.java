@@ -1,6 +1,6 @@
 package com.ryuqq.cralwinghub.domain.fixture.seller;
 
-import com.ryuqq.crawlinghub.domain.seller.identifier.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 
 /**
  * SellerId Test Fixture

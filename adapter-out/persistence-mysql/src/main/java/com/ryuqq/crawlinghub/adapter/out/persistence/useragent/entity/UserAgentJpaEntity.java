@@ -90,7 +90,7 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     @Column(name = "browser_version", length = 50)
     private String browserVersion;
 
-    /** UserAgent 상태 (AVAILABLE/SUSPENDED/BLOCKED) */
+    /** UserAgent 상태 (IDLE/BORROWED/COOLDOWN/SESSION_REQUIRED/SUSPENDED/BLOCKED) */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private UserAgentStatus status;
@@ -106,6 +106,14 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     /** 일일 요청 수 */
     @Column(name = "requests_per_day", nullable = false)
     private int requestsPerDay;
+
+    /** 쿨다운 만료 시각 (COOLDOWN 상태에서 사용, nullable) */
+    @Column(name = "cooldown_until")
+    private LocalDateTime cooldownUntil;
+
+    /** 연속 429 횟수 (Graduated Backoff용, default 0) */
+    @Column(name = "consecutive_rate_limits", nullable = false)
+    private int consecutiveRateLimits;
 
     /**
      * JPA 기본 생성자 (protected)
@@ -132,6 +140,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
      * @param requestsPerDay 일일 요청 수
+     * @param cooldownUntil 쿨다운 만료 시각 (nullable)
+     * @param consecutiveRateLimits 연속 429 횟수
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      */
@@ -149,6 +159,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             int healthScore,
             LocalDateTime lastUsedAt,
             int requestsPerDay,
+            LocalDateTime cooldownUntil,
+            int consecutiveRateLimits,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
@@ -165,6 +177,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
         this.healthScore = healthScore;
         this.lastUsedAt = lastUsedAt;
         this.requestsPerDay = requestsPerDay;
+        this.cooldownUntil = cooldownUntil;
+        this.consecutiveRateLimits = consecutiveRateLimits;
     }
 
     /**
@@ -187,6 +201,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param healthScore Health Score
      * @param lastUsedAt 마지막 사용 시각
      * @param requestsPerDay 일일 요청 수
+     * @param cooldownUntil 쿨다운 만료 시각 (nullable)
+     * @param consecutiveRateLimits 연속 429 횟수
      * @param createdAt 생성 일시
      * @param updatedAt 수정 일시
      * @return UserAgentJpaEntity 인스턴스
@@ -205,6 +221,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             int healthScore,
             LocalDateTime lastUsedAt,
             int requestsPerDay,
+            LocalDateTime cooldownUntil,
+            int consecutiveRateLimits,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new UserAgentJpaEntity(
@@ -221,6 +239,8 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
                 healthScore,
                 lastUsedAt,
                 requestsPerDay,
+                cooldownUntil,
+                consecutiveRateLimits,
                 createdAt,
                 updatedAt);
     }
@@ -277,5 +297,13 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
 
     public int getRequestsPerDay() {
         return requestsPerDay;
+    }
+
+    public LocalDateTime getCooldownUntil() {
+        return cooldownUntil;
+    }
+
+    public int getConsecutiveRateLimits() {
+        return consecutiveRateLimits;
     }
 }

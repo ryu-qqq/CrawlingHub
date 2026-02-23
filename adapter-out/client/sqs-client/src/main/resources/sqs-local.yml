@@ -1,0 +1,19 @@
+# ============================================================
+# AWS SQS Client 로컬 개발 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=local
+# LocalStack: docker run -d --name localstack -p 4566:4566 localstack/localstack
+# 큐 생성: awslocal sqs create-queue --queue-name crawl-task-queue
+# ============================================================
+
+sqs:
+  region: ap-northeast-2
+  endpoint: http://localhost:4566
+  queues:
+    crawl-task: http://localhost:4566/000000000000/crawl-task-queue
+    product-sync: http://localhost:4566/000000000000/product-sync-queue
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.sqs: DEBUG
+    software.amazon.awssdk: DEBUG

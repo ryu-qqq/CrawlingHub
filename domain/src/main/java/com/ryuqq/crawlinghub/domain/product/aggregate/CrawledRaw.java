@@ -1,6 +1,6 @@
 package com.ryuqq.crawlinghub.domain.product.aggregate;
 
-import com.ryuqq.crawlinghub.domain.product.identifier.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
 import com.ryuqq.crawlinghub.domain.product.vo.RawDataStatus;
 import java.time.Instant;
@@ -60,21 +60,23 @@ public class CrawledRaw {
     }
 
     /**
-     * 새 CrawledRaw 생성 (PENDING 상태)
+     * 신규 CrawledRaw 생성 (PENDING 상태)
      *
      * @param crawlSchedulerId 스케줄러 ID
      * @param sellerId 판매자 ID
      * @param itemNo 상품 번호
      * @param crawlType 크롤링 타입
      * @param rawData JSON 형태의 파싱 결과
+     * @param now 현재 시각
      * @return 새 CrawledRaw
      */
-    public static CrawledRaw create(
+    public static CrawledRaw forNew(
             long crawlSchedulerId,
             long sellerId,
             long itemNo,
             CrawlType crawlType,
-            String rawData) {
+            String rawData,
+            Instant now) {
         if (crawlType == null) {
             throw new IllegalArgumentException("crawlType은 필수입니다.");
         }
@@ -82,7 +84,7 @@ public class CrawledRaw {
             throw new IllegalArgumentException("rawData는 필수입니다.");
         }
         return new CrawledRaw(
-                CrawledRawId.unassigned(),
+                CrawledRawId.forNew(),
                 crawlSchedulerId,
                 sellerId,
                 itemNo,
@@ -90,7 +92,7 @@ public class CrawledRaw {
                 rawData,
                 RawDataStatus.PENDING,
                 null,
-                Instant.now(),
+                now,
                 null);
     }
 
@@ -119,8 +121,13 @@ public class CrawledRaw {
                 processedAt);
     }
 
-    /** 처리 완료 상태로 변경 */
-    public CrawledRaw markAsProcessed() {
+    /**
+     * 처리 완료 상태로 변경
+     *
+     * @param now 현재 시각
+     * @return 처리 완료된 CrawledRaw
+     */
+    public CrawledRaw markAsProcessed(Instant now) {
         return new CrawledRaw(
                 this.id,
                 this.crawlSchedulerId,
@@ -131,11 +138,17 @@ public class CrawledRaw {
                 RawDataStatus.PROCESSED,
                 null,
                 this.createdAt,
-                Instant.now());
+                now);
     }
 
-    /** 처리 실패 상태로 변경 */
-    public CrawledRaw markAsFailed(String errorMessage) {
+    /**
+     * 처리 실패 상태로 변경
+     *
+     * @param errorMessage 에러 메시지
+     * @param now 현재 시각
+     * @return 처리 실패한 CrawledRaw
+     */
+    public CrawledRaw markAsFailed(String errorMessage, Instant now) {
         return new CrawledRaw(
                 this.id,
                 this.crawlSchedulerId,
@@ -146,7 +159,7 @@ public class CrawledRaw {
                 RawDataStatus.FAILED,
                 errorMessage,
                 this.createdAt,
-                Instant.now());
+                now);
     }
 
     // === Getters ===

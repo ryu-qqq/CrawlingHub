@@ -8,8 +8,8 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QCrawlSched
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.QCrawlTaskJpaEntity;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskCriteria;
-import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatisticsCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
@@ -177,19 +177,27 @@ public class CrawlTaskQueryDslRepository {
     private BooleanExpression buildSearchConditions(CrawlTaskCriteria criteria) {
         BooleanExpression expression = null;
 
-        // 조건: 스케줄러 ID 필터 (선택)
+        // 조건: 스케줄러 ID 필터 (선택, 다중 IN 절)
         if (criteria.hasSchedulerIdFilter()) {
-            expression = qTask.crawlSchedulerId.eq(criteria.crawlSchedulerId().value());
+            List<Long> schedulerIdValues =
+                    criteria.crawlSchedulerIds().stream()
+                            .map(com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId::value)
+                            .toList();
+            expression = qTask.crawlSchedulerId.in(schedulerIdValues);
         }
 
-        // 조건: 셀러 ID 필터 (선택) - 서브쿼리 사용
+        // 조건: 셀러 ID 필터 (선택, 다중 IN 절) - 서브쿼리 사용
         if (criteria.hasSellerIdFilter()) {
             QCrawlSchedulerJpaEntity qScheduler = QCrawlSchedulerJpaEntity.crawlSchedulerJpaEntity;
+            List<Long> sellerIdValues =
+                    criteria.sellerIds().stream()
+                            .map(com.ryuqq.crawlinghub.domain.seller.id.SellerId::value)
+                            .toList();
             BooleanExpression sellerCondition =
                     qTask.crawlSchedulerId.in(
                             JPAExpressions.select(qScheduler.id)
                                     .from(qScheduler)
-                                    .where(qScheduler.sellerId.eq(criteria.sellerId().value())));
+                                    .where(qScheduler.sellerId.in(sellerIdValues)));
             expression = expression != null ? expression.and(sellerCondition) : sellerCondition;
         }
 
@@ -394,6 +402,26 @@ public class CrawlTaskQueryDslRepository {
                                         .from(qScheduler)
                                         .where(qScheduler.sellerId.eq(sellerId))))
                 .orderBy(qTask.createdAt.desc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * RUNNING 상태에서 일정 시간 이상 머물러 있는 CrawlTask 조회
+     *
+     * <p>프로세스 크래시 등으로 RUNNING 상태에서 멈춰있는 고아 태스크를 찾기 위해 사용
+     *
+     * @param limit 조회할 최대 개수
+     * @param timeoutSeconds RUNNING 상태 유지 시간 기준 (초)
+     * @return 고아 CrawlTaskJpaEntity 목록 (updatedAt 오름차순)
+     */
+    public List<CrawlTaskJpaEntity> findRunningOlderThan(int limit, long timeoutSeconds) {
+        LocalDateTime threshold = toLocalDateTime(Instant.now().minusSeconds(timeoutSeconds));
+
+        return queryFactory
+                .selectFrom(qTask)
+                .where(qTask.status.eq(CrawlTaskStatus.RUNNING), qTask.updatedAt.loe(threshold))
+                .orderBy(qTask.updatedAt.asc())
                 .limit(limit)
                 .fetch();
     }

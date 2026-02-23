@@ -27,7 +27,7 @@ public final class CrawlExecutionFixture {
      * @return CrawlExecution (ID = null, RUNNING)
      */
     public static CrawlExecution forNew() {
-        return CrawlExecution.start(
+        return CrawlExecution.forNew(
                 CrawlTaskIdFixture.anAssignedId(),
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
@@ -41,7 +41,7 @@ public final class CrawlExecutionFixture {
      * @return CrawlExecution (ID = null, RUNNING)
      */
     public static CrawlExecution forNew(Instant now) {
-        return CrawlExecution.start(
+        return CrawlExecution.forNew(
                 CrawlTaskIdFixture.anAssignedId(),
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),

@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerHistoryId;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerOutBoxId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerOubBoxStatus;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -25,7 +26,11 @@ public class CrawlSchedulerOutBox {
     private final CrawlSchedulerOutBoxId outBoxId;
     private final CrawlSchedulerHistoryId historyId;
     private CrawlSchedulerOubBoxStatus status;
-    private String eventPayload;
+    private final Long schedulerId;
+    private final Long sellerId;
+    private final String schedulerName;
+    private final String cronExpression;
+    private final SchedulerStatus schedulerStatus;
     private String errorMessage;
     private Long version;
 
@@ -36,17 +41,31 @@ public class CrawlSchedulerOutBox {
      * 신규 생성 (Auto Increment ID)
      *
      * @param historyId 스케줄러 히스토리 ID
-     * @param eventPayload 이벤트 페이로드 (JSON)
+     * @param schedulerId 스케줄러 ID
+     * @param sellerId 셀러 ID
+     * @param schedulerName 스케줄러 이름
+     * @param cronExpression 크론 표현식
+     * @param schedulerStatus 스케줄러 상태
      * @param now 현재 시각
      * @return 신규 CrawlSchedulerOutBox
      */
     public static CrawlSchedulerOutBox forNew(
-            CrawlSchedulerHistoryId historyId, String eventPayload, Instant now) {
+            CrawlSchedulerHistoryId historyId,
+            Long schedulerId,
+            Long sellerId,
+            String schedulerName,
+            String cronExpression,
+            SchedulerStatus schedulerStatus,
+            Instant now) {
         return new CrawlSchedulerOutBox(
                 null,
                 historyId,
                 CrawlSchedulerOubBoxStatus.PENDING,
-                eventPayload,
+                schedulerId,
+                sellerId,
+                schedulerName,
+                cronExpression,
+                schedulerStatus,
                 null,
                 0L,
                 now,
@@ -59,7 +78,11 @@ public class CrawlSchedulerOutBox {
      * @param outBoxId 아웃박스 ID
      * @param historyId 스케줄러 히스토리 ID
      * @param status 아웃박스 상태
-     * @param eventPayload 이벤트 페이로드 (JSON)
+     * @param schedulerId 스케줄러 ID
+     * @param sellerId 셀러 ID
+     * @param schedulerName 스케줄러 이름
+     * @param cronExpression 크론 표현식
+     * @param schedulerStatus 스케줄러 상태
      * @param errorMessage 에러 메시지
      * @param version 버전 (Optimistic Locking)
      * @param createdAt 생성 시각
@@ -70,7 +93,11 @@ public class CrawlSchedulerOutBox {
             CrawlSchedulerOutBoxId outBoxId,
             CrawlSchedulerHistoryId historyId,
             CrawlSchedulerOubBoxStatus status,
-            String eventPayload,
+            Long schedulerId,
+            Long sellerId,
+            String schedulerName,
+            String cronExpression,
+            SchedulerStatus schedulerStatus,
             String errorMessage,
             Long version,
             Instant createdAt,
@@ -79,7 +106,11 @@ public class CrawlSchedulerOutBox {
                 outBoxId,
                 historyId,
                 status,
-                eventPayload,
+                schedulerId,
+                sellerId,
+                schedulerName,
+                cronExpression,
+                schedulerStatus,
                 errorMessage,
                 version,
                 createdAt,
@@ -90,7 +121,11 @@ public class CrawlSchedulerOutBox {
             CrawlSchedulerOutBoxId outBoxId,
             CrawlSchedulerHistoryId historyId,
             CrawlSchedulerOubBoxStatus status,
-            String eventPayload,
+            Long schedulerId,
+            Long sellerId,
+            String schedulerName,
+            String cronExpression,
+            SchedulerStatus schedulerStatus,
             String errorMessage,
             Long version,
             Instant createdAt,
@@ -98,7 +133,11 @@ public class CrawlSchedulerOutBox {
         this.outBoxId = outBoxId;
         this.historyId = historyId;
         this.status = status;
-        this.eventPayload = eventPayload;
+        this.schedulerId = schedulerId;
+        this.sellerId = sellerId;
+        this.schedulerName = schedulerName;
+        this.cronExpression = cronExpression;
+        this.schedulerStatus = schedulerStatus;
         this.errorMessage = errorMessage;
         this.version = version;
         this.createdAt = createdAt;
@@ -106,6 +145,20 @@ public class CrawlSchedulerOutBox {
     }
 
     // ==================== 비즈니스 메서드 ====================
+
+    /**
+     * 처리 시작 (PENDING → PROCESSING)
+     *
+     * @param now 현재 시각
+     */
+    public void markAsProcessing(Instant now) {
+        if (this.status != CrawlSchedulerOubBoxStatus.PENDING) {
+            throw new IllegalStateException(
+                    "PENDING 상태에서만 PROCESSING으로 전환할 수 있습니다. 현재: " + this.status);
+        }
+        this.status = CrawlSchedulerOubBoxStatus.PROCESSING;
+        this.processedAt = now;
+    }
 
     /**
      * AWS EventBridge 동기화 완료
@@ -136,10 +189,21 @@ public class CrawlSchedulerOutBox {
         this.errorMessage = errorMessage;
     }
 
-    /** 재시도를 위해 PENDING 상태로 복원 */
+    /** 재시도를 위해 PENDING 상태로 복원 (FAILED → PENDING) */
     public void retry() {
         if (this.status != CrawlSchedulerOubBoxStatus.FAILED) {
             throw new IllegalStateException("FAILED 상태에서만 재시도할 수 있습니다.");
+        }
+        this.status = CrawlSchedulerOubBoxStatus.PENDING;
+        this.processedAt = null;
+        this.errorMessage = null;
+    }
+
+    /** 좀비 복구를 위해 PENDING 상태로 복원 (PROCESSING → PENDING) */
+    public void resetToPending() {
+        if (this.status != CrawlSchedulerOubBoxStatus.PROCESSING) {
+            throw new IllegalStateException(
+                    "PROCESSING 상태에서만 PENDING으로 복원할 수 있습니다. 현재: " + this.status);
         }
         this.status = CrawlSchedulerOubBoxStatus.PENDING;
         this.processedAt = null;
@@ -168,8 +232,24 @@ public class CrawlSchedulerOutBox {
         return status;
     }
 
-    public String getEventPayload() {
-        return eventPayload;
+    public Long getSchedulerId() {
+        return schedulerId;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
+    }
+
+    public String getSchedulerName() {
+        return schedulerName;
+    }
+
+    public String getCronExpression() {
+        return cronExpression;
+    }
+
+    public SchedulerStatus getSchedulerStatus() {
+        return schedulerStatus;
     }
 
     public String getErrorMessage() {
@@ -200,12 +280,20 @@ public class CrawlSchedulerOutBox {
         return this.status == CrawlSchedulerOubBoxStatus.PENDING;
     }
 
+    public boolean isProcessing() {
+        return this.status == CrawlSchedulerOubBoxStatus.PROCESSING;
+    }
+
     // ==================== equals/hashCode (ID 기반) ====================
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         CrawlSchedulerOutBox that = (CrawlSchedulerOutBox) o;
         return Objects.equals(outBoxId, that.outBoxId);
     }
