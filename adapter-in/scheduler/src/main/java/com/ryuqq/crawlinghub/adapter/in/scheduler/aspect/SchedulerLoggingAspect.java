@@ -2,7 +2,11 @@ package com.ryuqq.crawlinghub.adapter.in.scheduler.aspect;
 
 import com.ryuqq.crawlinghub.adapter.in.scheduler.annotation.SchedulerJob;
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -31,6 +35,13 @@ public class SchedulerLoggingAspect {
 
     private static final Logger log = LoggerFactory.getLogger(SchedulerLoggingAspect.class);
     private static final String TRACE_ID_KEY = "traceId";
+    private static final String METRIC_PREFIX = "crawlinghub.";
+
+    private final MeterRegistry meterRegistry;
+
+    public SchedulerLoggingAspect(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
 
     @Around("@annotation(schedulerJob)")
     public Object around(ProceedingJoinPoint joinPoint, SchedulerJob schedulerJob)
@@ -66,18 +77,53 @@ public class SchedulerLoggingAspect {
                             batchResult.success(),
                             elapsed);
                 }
+                recordBatchItemsMetric(jobName, batchResult);
             } else {
                 log.info("[{}] 스케줄러 작업 완료: elapsed={}ms", jobName, elapsed);
             }
+
+            recordTimerMetric(jobName, elapsed, "success");
+            recordCounterMetric(jobName, "success");
 
             return result;
         } catch (Exception e) {
             long elapsed = System.currentTimeMillis() - startTime;
             log.error(
                     "[{}] 스케줄러 작업 실패: error={}, elapsed={}ms", jobName, e.getMessage(), elapsed, e);
+            recordTimerMetric(jobName, elapsed, "error");
+            recordCounterMetric(jobName, "error");
             throw e;
         } finally {
             MDC.remove(TRACE_ID_KEY);
         }
+    }
+
+    private void recordTimerMetric(String jobName, long elapsedMs, String outcome) {
+        Timer.builder(METRIC_PREFIX + "scheduler_job_duration_seconds")
+                .tags("job", jobName, "outcome", outcome)
+                .register(meterRegistry)
+                .record(elapsedMs, TimeUnit.MILLISECONDS);
+    }
+
+    private void recordCounterMetric(String jobName, String outcome) {
+        Counter.builder(METRIC_PREFIX + "scheduler_job_total")
+                .tags("job", jobName, "outcome", outcome)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    private void recordBatchItemsMetric(String jobName, SchedulerBatchProcessingResult result) {
+        Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
+                .tags("job", jobName, "status", "total")
+                .register(meterRegistry)
+                .increment(result.total());
+        Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
+                .tags("job", jobName, "status", "success")
+                .register(meterRegistry)
+                .increment(result.success());
+        Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
+                .tags("job", jobName, "status", "failed")
+                .register(meterRegistry)
+                .increment(result.failed());
     }
 }

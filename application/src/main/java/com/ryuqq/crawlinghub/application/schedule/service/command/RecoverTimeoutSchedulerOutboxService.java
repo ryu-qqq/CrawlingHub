@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.RecoverTimeoutSchedulerOutboxCommand;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxCommandManager;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxReadManager;
@@ -35,6 +36,7 @@ public class RecoverTimeoutSchedulerOutboxService implements RecoverTimeoutSched
         this.outBoxCommandManager = outBoxCommandManager;
     }
 
+    @BatchMetric(value = "scheduler_outbox", category = "recover_timeout")
     @Override
     public SchedulerBatchProcessingResult execute(RecoverTimeoutSchedulerOutboxCommand command) {
         List<CrawlSchedulerOutBox> staleOutBoxes =

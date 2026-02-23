@@ -3,7 +3,11 @@ package com.ryuqq.crawlinghub.application.useragent.manager;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
@@ -11,6 +15,7 @@ import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.PoolStats;
 import com.ryuqq.crawlinghub.application.useragent.validator.UserAgentPoolValidator;
@@ -255,6 +260,206 @@ class UserAgentPoolManagerTest {
             assertThat(result).isEqualTo(expectedStats);
             assertThat(result.total()).isEqualTo(100);
             assertThat(result.available()).isEqualTo(80);
+        }
+    }
+
+    @Nested
+    @DisplayName("borrow() 테스트")
+    class Borrow {
+
+        @Test
+        @DisplayName("[성공] borrow -> BorrowedUserAgent 반환")
+        void shouldBorrowSuccessfully() {
+            // Given
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            CachedUserAgent cached = CachedUserAgent.forNew(userAgent);
+            given(cacheCommandManager.borrow()).willReturn(Optional.of(cached));
+
+            // When
+            BorrowedUserAgent result = manager.borrow();
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.userAgentId()).isEqualTo(cached.userAgentId());
+            verify(poolValidator).validateAvailability();
+            verify(cacheCommandManager).borrow();
+        }
+
+        @Test
+        @DisplayName("[실패] Pool에 IDLE UserAgent 없음 -> NoAvailableUserAgentException")
+        void shouldThrowWhenNoIdleAgent() {
+            // Given
+            given(cacheCommandManager.borrow()).willReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> manager.borrow())
+                    .isInstanceOf(NoAvailableUserAgentException.class);
+        }
+
+        @Test
+        @DisplayName("[실패] CircuitBreaker Open -> CircuitBreakerOpenException 전파")
+        void shouldThrowCircuitBreakerOpenException() {
+            // Given
+            willThrow(new CircuitBreakerOpenException(10.0))
+                    .given(poolValidator)
+                    .validateAvailability();
+
+            // When & Then
+            assertThatThrownBy(() -> manager.borrow())
+                    .isInstanceOf(CircuitBreakerOpenException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("returnAgent() 테스트")
+    class ReturnAgent {
+
+        @Test
+        @DisplayName("[성공] 성공 케이스 -> IDLE 전환, result=0 (SUSPENDED 아님)")
+        void shouldReturnAgentSuccessfully() {
+            // Given
+            given(
+                            cacheCommandManager.returnAgent(
+                                    anyLong(),
+                                    anyBoolean(),
+                                    anyInt(),
+                                    anyInt(),
+                                    isNull(),
+                                    anyInt()))
+                    .willReturn(0);
+
+            // When
+            manager.returnAgent(1L, true, 200, 0);
+
+            // Then
+            verify(cacheCommandManager)
+                    .returnAgent(eq(1L), eq(true), eq(200), anyInt(), isNull(), eq(0));
+            // result=0이므로 syncSuspendedToDb 호출 없음
+            verify(readManager, never()).findById(any(UserAgentId.class));
+        }
+
+        @Test
+        @DisplayName("[성공] result=2 (SUSPENDED) -> syncSuspendedToDb 호출")
+        void shouldSyncToDbWhenSuspended() {
+            // Given
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            given(
+                            cacheCommandManager.returnAgent(
+                                    anyLong(),
+                                    anyBoolean(),
+                                    anyInt(),
+                                    anyInt(),
+                                    isNull(),
+                                    anyInt()))
+                    .willReturn(2);
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
+
+            // When
+            manager.returnAgent(1L, false, 500, 0);
+
+            // Then
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager).persist(userAgent);
+        }
+
+        @Test
+        @DisplayName("[성공] Rate Limit (429) -> cooldownUntil 설정하여 returnAgent 호출")
+        void shouldSetCooldownWhenRateLimited() {
+            // Given
+            given(
+                            cacheCommandManager.returnAgent(
+                                    anyLong(), anyBoolean(), anyInt(), anyInt(), any(), anyInt()))
+                    .willReturn(0);
+
+            // When
+            manager.returnAgent(1L, false, HealthScore.RATE_LIMIT_STATUS_CODE, 0);
+
+            // Then
+            // cooldownUntil이 non-null로 전달되어야 함
+            verify(cacheCommandManager)
+                    .returnAgent(
+                            eq(1L),
+                            eq(false),
+                            eq(HealthScore.RATE_LIMIT_STATUS_CODE),
+                            anyInt(),
+                            any(Long.class),
+                            anyInt());
+        }
+
+        @Test
+        @DisplayName("[폴백] Redis returnAgent 실패 -> syncResultToDb로 DB 직접 기록 (성공 케이스)")
+        void shouldSyncToDbWhenRedisFails_Success() {
+            // Given
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            willThrow(new RuntimeException("Redis down"))
+                    .given(cacheCommandManager)
+                    .returnAgent(anyLong(), anyBoolean(), anyInt(), anyInt(), any(), anyInt());
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
+
+            // When
+            manager.returnAgent(1L, true, 200, 0);
+
+            // Then
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager).persist(userAgent);
+        }
+
+        @Test
+        @DisplayName("[폴백] Redis returnAgent 실패 -> syncResultToDb로 DB 직접 기록 (실패 케이스)")
+        void shouldSyncToDbWhenRedisFails_Failure() {
+            // Given
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            willThrow(new RuntimeException("Redis down"))
+                    .given(cacheCommandManager)
+                    .returnAgent(anyLong(), anyBoolean(), anyInt(), anyInt(), any(), anyInt());
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.of(userAgent));
+
+            // When
+            manager.returnAgent(1L, false, 500, 0);
+
+            // Then
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager).persist(userAgent);
+        }
+
+        @Test
+        @DisplayName("[폴백] Redis returnAgent 실패 + DB에 없음 -> 조용히 처리")
+        void shouldHandleMissingAgentWhenRedisFails() {
+            // Given
+            willThrow(new RuntimeException("Redis down"))
+                    .given(cacheCommandManager)
+                    .returnAgent(anyLong(), anyBoolean(), anyInt(), anyInt(), any(), anyInt());
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.empty());
+
+            // When
+            manager.returnAgent(1L, true, 200, 0);
+
+            // Then
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager, never()).persist(any());
+        }
+
+        @Test
+        @DisplayName("[성공] result=2 + DB에 없음 -> syncSuspendedToDb 처리하지만 persist 안함")
+        void shouldHandleMissingAgentWhenSuspended() {
+            // Given
+            given(
+                            cacheCommandManager.returnAgent(
+                                    anyLong(),
+                                    anyBoolean(),
+                                    anyInt(),
+                                    anyInt(),
+                                    isNull(),
+                                    anyInt()))
+                    .willReturn(2);
+            given(readManager.findById(any(UserAgentId.class))).willReturn(Optional.empty());
+
+            // When
+            manager.returnAgent(1L, false, 500, 0);
+
+            // Then
+            verify(readManager).findById(any(UserAgentId.class));
+            verify(transactionManager, never()).persist(any());
         }
     }
 }

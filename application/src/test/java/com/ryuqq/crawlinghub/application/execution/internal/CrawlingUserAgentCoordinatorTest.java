@@ -1,18 +1,24 @@
 package com.ryuqq.crawlinghub.application.execution.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentCommandManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheCommandManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolCacheStateManager;
+import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentPoolManager;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentReadManager;
 import com.ryuqq.crawlinghub.application.useragent.validator.UserAgentPoolValidator;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
@@ -34,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("CrawlingUserAgentCoordinator 테스트")
 class CrawlingUserAgentCoordinatorTest {
 
+    @Mock private UserAgentPoolManager poolManager;
     @Mock private UserAgentPoolValidator poolValidator;
     @Mock private UserAgentPoolCacheCommandManager cacheCommandManager;
     @Mock private UserAgentPoolCacheStateManager cacheStateManager;
@@ -216,6 +223,105 @@ class CrawlingUserAgentCoordinatorTest {
             coordinator.recordResult(1L, false, HealthScore.RATE_LIMIT_STATUS_CODE);
 
             verify(commandManager).persist(userAgent);
+        }
+    }
+
+    @Nested
+    @DisplayName("borrow() 테스트 (HikariCP getConnection 패턴)")
+    class BorrowTest {
+
+        @Test
+        @DisplayName("[성공] poolManager.borrow() 성공 -> BorrowedUserAgent 반환")
+        void shouldBorrowFromPoolManager() {
+            // Given
+            BorrowedUserAgent expected =
+                    new BorrowedUserAgent(1L, "Mozilla/5.0", null, null, null, 0);
+            given(poolManager.borrow()).willReturn(expected);
+
+            // When
+            BorrowedUserAgent result = coordinator.borrow();
+
+            // Then
+            assertThat(result).isEqualTo(expected);
+            verify(poolManager).borrow();
+        }
+
+        @Test
+        @DisplayName("[실패] CircuitBreakerOpenException -> 그대로 전파 (SQS 재시도 대상)")
+        void shouldPropagateCircuitBreakerOpenException() {
+            // Given
+            given(poolManager.borrow()).willThrow(new CircuitBreakerOpenException(15.0));
+
+            // When & Then
+            assertThatThrownBy(() -> coordinator.borrow())
+                    .isInstanceOf(CircuitBreakerOpenException.class);
+        }
+
+        @Test
+        @DisplayName("[실패] NoAvailableUserAgentException -> 그대로 전파")
+        void shouldPropagateNoAvailableUserAgentException() {
+            // Given
+            given(poolManager.borrow()).willThrow(new NoAvailableUserAgentException());
+
+            // When & Then
+            assertThatThrownBy(() -> coordinator.borrow())
+                    .isInstanceOf(NoAvailableUserAgentException.class);
+        }
+
+        @Test
+        @DisplayName("[폴백] Redis 장애 (일반 Exception) -> DB 폴백으로 UserAgent 선택")
+        void shouldFallbackToDbWhenRedisDown() {
+            // Given
+            UserAgent low = UserAgentFixture.anAvailableUserAgent(1L, 50);
+            UserAgent high = UserAgentFixture.anAvailableUserAgent(2L, 90);
+            given(poolManager.borrow()).willThrow(new RuntimeException("Redis connection failed"));
+            given(readManager.findAllAvailable()).willReturn(List.of(low, high));
+
+            // When
+            BorrowedUserAgent result = coordinator.borrow();
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.userAgentId()).isEqualTo(2L);
+            verify(readManager).findAllAvailable();
+        }
+    }
+
+    @Nested
+    @DisplayName("returnAgent() 테스트 (HikariCP close 패턴)")
+    class ReturnAgentTest {
+
+        @Test
+        @DisplayName("[성공] poolManager.returnAgent() 위임 호출")
+        void shouldDelegateToPoolManager() {
+            // When
+            coordinator.returnAgent(1L, true, 200, 0);
+
+            // Then
+            verify(poolManager).returnAgent(1L, true, 200, 0);
+        }
+
+        @Test
+        @DisplayName("[성공] 실패 케이스도 poolManager에 위임")
+        void shouldDelegateFailureCaseToPoolManager() {
+            // When
+            coordinator.returnAgent(1L, false, 500, 2);
+
+            // Then
+            verify(poolManager).returnAgent(1L, false, 500, 2);
+        }
+
+        @Test
+        @DisplayName("[안전 처리] returnAgent 중 예외 발생 -> 예외 전파하지 않음 (finally 보장)")
+        void shouldNotPropagateExceptionOnReturnFailure() {
+            // Given
+            willThrow(new RuntimeException("Unexpected error"))
+                    .given(poolManager)
+                    .returnAgent(anyLong(), anyBoolean(), anyInt(), anyInt());
+
+            // When & Then
+            assertThatCode(() -> coordinator.returnAgent(1L, true, 200, 0))
+                    .doesNotThrowAnyException();
         }
     }
 }

@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.crawl.processor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -14,6 +15,9 @@ import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.Pr
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
+import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
+import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.Optional;
@@ -103,6 +107,115 @@ class DetailCrawlResultProcessorTest {
             // Then
             assertThat(result.hasFollowUpTasks()).isFalse();
             assertThat(result.getFollowUpCommands()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("[성공] 파싱 성공 + CrawledRaw 저장 성공 -> completed(1, 1) 반환")
+        void shouldSaveAndReturnCompletedWhenParsingSucceeds() {
+            // Given
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            CrawlResult crawlResult = CrawlResult.success("{\"detail\": {}}", 200);
+
+            ProductDetailInfo detailInfo =
+                    ProductDetailInfo.builder()
+                            .sellerNo(1001L)
+                            .sellerId("seller-id-001")
+                            .itemNo(9999L)
+                            .itemName("테스트 상품명")
+                            .normalPrice(100000)
+                            .sellingPrice(90000)
+                            .discountPrice(10000)
+                            .discountRate(10)
+                            .stock(5)
+                            .build();
+
+            CrawledRaw crawledRaw = org.mockito.Mockito.mock(CrawledRaw.class);
+            CrawledRawId savedId = CrawledRawId.of(200L);
+
+            given(detailResponseParser.parse(anyString(), any()))
+                    .willReturn(Optional.of(detailInfo));
+            given(crawledRawMapper.toDetailRaw(anyLong(), anyLong(), any(), any()))
+                    .willReturn(crawledRaw);
+            given(crawledRawTransactionManager.save(crawledRaw)).willReturn(savedId);
+
+            // When
+            ProcessingResult result = processor.process(crawlResult, task);
+
+            // Then
+            assertThat(result.getParsedItemCount()).isEqualTo(1);
+            assertThat(result.getSavedItemCount()).isEqualTo(1);
+            assertThat(result.hasFollowUpTasks()).isFalse();
+            verify(crawledRawTransactionManager).save(crawledRaw);
+        }
+
+        @Test
+        @DisplayName("[성공] 파싱 성공 + crawledRawMapper가 null 반환 -> savedCount=0")
+        void shouldReturnZeroSavedWhenMapperReturnsNull() {
+            // Given
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            CrawlResult crawlResult = CrawlResult.success("{}", 200);
+
+            ProductDetailInfo detailInfo =
+                    ProductDetailInfo.builder()
+                            .sellerNo(1001L)
+                            .sellerId("seller-id-001")
+                            .itemNo(9999L)
+                            .itemName("테스트 상품명")
+                            .normalPrice(100000)
+                            .sellingPrice(90000)
+                            .discountPrice(10000)
+                            .discountRate(10)
+                            .stock(5)
+                            .build();
+
+            given(detailResponseParser.parse(anyString(), any()))
+                    .willReturn(Optional.of(detailInfo));
+            given(crawledRawMapper.toDetailRaw(anyLong(), anyLong(), any(), any()))
+                    .willReturn(null);
+
+            // When
+            ProcessingResult result = processor.process(crawlResult, task);
+
+            // Then
+            assertThat(result.getParsedItemCount()).isEqualTo(1);
+            assertThat(result.getSavedItemCount()).isEqualTo(0);
+            verify(crawledRawTransactionManager, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("[성공] 파싱 성공 + 저장 후 savedId가 null -> savedCount=0")
+        void shouldReturnZeroSavedWhenSavedIdIsNull() {
+            // Given
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            CrawlResult crawlResult = CrawlResult.success("{}", 200);
+
+            ProductDetailInfo detailInfo =
+                    ProductDetailInfo.builder()
+                            .sellerNo(1001L)
+                            .sellerId("seller-id-001")
+                            .itemNo(9999L)
+                            .itemName("테스트 상품명")
+                            .normalPrice(50000)
+                            .sellingPrice(50000)
+                            .discountPrice(0)
+                            .discountRate(0)
+                            .stock(10)
+                            .build();
+
+            CrawledRaw crawledRaw = org.mockito.Mockito.mock(CrawledRaw.class);
+
+            given(detailResponseParser.parse(anyString(), any()))
+                    .willReturn(Optional.of(detailInfo));
+            given(crawledRawMapper.toDetailRaw(anyLong(), anyLong(), any(), any()))
+                    .willReturn(crawledRaw);
+            given(crawledRawTransactionManager.save(crawledRaw)).willReturn(null);
+
+            // When
+            ProcessingResult result = processor.process(crawlResult, task);
+
+            // Then
+            assertThat(result.getParsedItemCount()).isEqualTo(1);
+            assertThat(result.getSavedItemCount()).isEqualTo(0);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.schedule.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
@@ -8,6 +9,7 @@ import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerIdFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CronExpressionFixture;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.SchedulerNameFixture;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerIdFixture;
+import com.ryuqq.crawlinghub.domain.schedule.exception.InvalidSchedulerStateException;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CrawlSchedulerUpdateData;
 import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
@@ -211,6 +213,63 @@ class CrawlSchedulerTest {
 
             // when & then
             assertThat(scheduler.hasSameSchedulerName("other-scheduler")).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("validateActive() 테스트")
+    class ValidateActive {
+
+        @Test
+        @DisplayName("ACTIVE 상태이면 예외가 발생하지 않는다")
+        void shouldNotThrowWhenActive() {
+            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
+            org.assertj.core.api.Assertions.assertThatCode(() -> scheduler.validateActive())
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("INACTIVE 상태이면 InvalidSchedulerStateException이 발생한다")
+        void shouldThrowWhenInactive() {
+            CrawlScheduler scheduler = CrawlSchedulerFixture.anInactiveScheduler();
+            assertThatThrownBy(() -> scheduler.validateActive())
+                    .isInstanceOf(InvalidSchedulerStateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("equals/hashCode 테스트")
+    class EqualsHashCode {
+
+        @Test
+        @DisplayName("같은 ID이면 동일하다")
+        void shouldBeEqualWhenSameId() {
+            CrawlScheduler scheduler1 = CrawlSchedulerFixture.anActiveScheduler(1L);
+            CrawlScheduler scheduler2 = CrawlSchedulerFixture.anActiveScheduler(1L);
+            assertThat(scheduler1).isEqualTo(scheduler2);
+            assertThat(scheduler1.hashCode()).isEqualTo(scheduler2.hashCode());
+        }
+
+        @Test
+        @DisplayName("다른 ID이면 다르다")
+        void shouldNotBeEqualWhenDifferentId() {
+            CrawlScheduler scheduler1 = CrawlSchedulerFixture.anActiveScheduler(1L);
+            CrawlScheduler scheduler2 = CrawlSchedulerFixture.anActiveScheduler(2L);
+            assertThat(scheduler1).isNotEqualTo(scheduler2);
+        }
+
+        @Test
+        @DisplayName("null과는 같지 않다")
+        void shouldNotBeEqualToNull() {
+            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
+            assertThat(scheduler).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("자기 자신과는 같다")
+        void shouldBeEqualToItself() {
+            CrawlScheduler scheduler = CrawlSchedulerFixture.anActiveScheduler();
+            assertThat(scheduler).isEqualTo(scheduler);
         }
     }
 

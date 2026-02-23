@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.execution.service.command;
 
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.execution.dto.bundle.CrawlTaskExecutionBundle;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.execution.factory.command.CrawlExecutionCommandFactory;
@@ -49,6 +50,7 @@ public class CrawlTaskExecutionService implements CrawlTaskExecutionUseCase {
         this.coordinator = coordinator;
     }
 
+    @CrawlMetric(value = "crawl_task", operation = "execute")
     @Override
     public void execute(ExecuteCrawlTaskCommand command) {
         Long taskId = command.taskId();

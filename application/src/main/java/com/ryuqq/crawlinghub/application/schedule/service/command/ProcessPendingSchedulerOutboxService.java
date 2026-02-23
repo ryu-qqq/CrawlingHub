@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.schedule.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.schedule.dto.command.ProcessPendingSchedulerOutboxCommand;
 import com.ryuqq.crawlinghub.application.schedule.internal.CrawlSchedulerOutBoxProcessor;
 import com.ryuqq.crawlinghub.application.schedule.manager.CrawlSchedulerOutBoxReadManager;
@@ -33,6 +34,7 @@ public class ProcessPendingSchedulerOutboxService implements ProcessPendingSched
         this.processor = processor;
     }
 
+    @BatchMetric(value = "scheduler_outbox", category = "process_pending")
     @Override
     public SchedulerBatchProcessingResult execute(ProcessPendingSchedulerOutboxCommand command) {
         List<CrawlSchedulerOutBox> outBoxes =

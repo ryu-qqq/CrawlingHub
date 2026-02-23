@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.task.dto.command.RecoverFailedCrawlTaskOutboxCommand;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxReadManager;
@@ -37,6 +38,7 @@ public class RecoverFailedCrawlTaskOutboxService implements RecoverFailedCrawlTa
         this.outboxCommandManager = outboxCommandManager;
     }
 
+    @BatchMetric(value = "crawl_task_outbox", category = "recover_failed")
     @Override
     public SchedulerBatchProcessingResult execute(RecoverFailedCrawlTaskOutboxCommand command) {
         List<CrawlTaskOutbox> failedOutboxes =
