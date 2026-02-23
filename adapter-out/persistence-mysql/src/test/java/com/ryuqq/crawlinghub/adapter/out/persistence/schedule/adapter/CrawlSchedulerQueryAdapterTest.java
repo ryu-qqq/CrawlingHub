@@ -217,4 +217,105 @@ class CrawlSchedulerQueryAdapterTest {
             assertThat(result).hasSize(1);
         }
     }
+
+    @Nested
+    @DisplayName("countBySellerId 테스트")
+    class CountBySellerIdTests {
+
+        @Test
+        @DisplayName("성공 - 셀러별 전체 스케줄러 개수 조회")
+        void shouldCountBySellerId() {
+            // Given - 셀러의 전체 스케줄러 개수
+            SellerId sellerId = SellerId.of(1L);
+            given(queryDslRepository.countBySellerId(1L)).willReturn(5L);
+
+            // When
+            long result = queryAdapter.countBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isEqualTo(5L);
+            verify(queryDslRepository).countBySellerId(1L);
+        }
+
+        @Test
+        @DisplayName("성공 - 스케줄러 없는 셀러는 0 반환")
+        void shouldReturnZeroWhenNoSchedulers() {
+            // Given
+            SellerId sellerId = SellerId.of(999L);
+            given(queryDslRepository.countBySellerId(999L)).willReturn(0L);
+
+            // When
+            long result = queryAdapter.countBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isZero();
+        }
+    }
+
+    @Nested
+    @DisplayName("countActiveSchedulersBySellerId 테스트")
+    class CountActiveSchedulersBySellerIdTests {
+
+        @Test
+        @DisplayName("성공 - 셀러별 활성 스케줄러 개수 조회")
+        void shouldCountActiveSchedulersBySellerId() {
+            // Given - 셀러의 활성 스케줄러 개수
+            SellerId sellerId = SellerId.of(1L);
+            given(queryDslRepository.countActiveSchedulersBySellerId(1L)).willReturn(3L);
+
+            // When
+            long result = queryAdapter.countActiveSchedulersBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isEqualTo(3L);
+            verify(queryDslRepository).countActiveSchedulersBySellerId(1L);
+        }
+    }
+
+    @Nested
+    @DisplayName("findBySellerId 테스트")
+    class FindBySellerIdTests {
+
+        @Test
+        @DisplayName("성공 - 셀러별 전체 스케줄러 목록 조회")
+        void shouldFindBySellerId() {
+            // Given - 셀러의 전체 스케줄러 목록
+            SellerId sellerId = SellerId.of(1L);
+            LocalDateTime now = LocalDateTime.now();
+            CrawlSchedulerJpaEntity entity =
+                    CrawlSchedulerJpaEntity.of(
+                            1L,
+                            1L,
+                            "test-scheduler",
+                            "0 0 * * *",
+                            SchedulerStatus.ACTIVE,
+                            now,
+                            now);
+            CrawlScheduler domain = CrawlSchedulerFixture.anActiveScheduler();
+
+            given(queryDslRepository.findBySellerId(1L)).willReturn(List.of(entity));
+            given(mapper.toDomain(entity)).willReturn(domain);
+
+            // When
+            List<CrawlScheduler> result = queryAdapter.findBySellerId(sellerId);
+
+            // Then
+            assertThat(result).hasSize(1);
+            verify(queryDslRepository).findBySellerId(1L);
+        }
+
+        @Test
+        @DisplayName("성공 - 스케줄러 없는 셀러는 빈 리스트 반환")
+        void shouldReturnEmptyListWhenNoSchedulers() {
+            // Given
+            SellerId sellerId = SellerId.of(999L);
+            given(queryDslRepository.findBySellerId(999L)).willReturn(List.of());
+
+            // When
+            List<CrawlScheduler> result = queryAdapter.findBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
 }

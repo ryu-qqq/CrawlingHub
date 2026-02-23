@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.out.query.CrawlTaskQueryPort;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
@@ -193,6 +194,175 @@ class CrawlTaskReadManagerTest {
             assertThat(result).hasSize(2);
             assertThat(result).containsKeys(CrawlTaskType.SEARCH, CrawlTaskType.MINI_SHOP);
             verify(crawlTaskQueryPort).countByTaskType(statisticsCriteria);
+        }
+    }
+
+    @Nested
+    @DisplayName("findLatestBySellerId() 테스트")
+    class FindLatestBySellerId {
+
+        @Test
+        @DisplayName("[성공] 셀러별 최근 태스크 조회")
+        void shouldDelegateToQueryPort() {
+            // Given
+            SellerId sellerId = SellerId.of(1L);
+            given(crawlTaskQueryPort.findLatestBySellerId(sellerId))
+                    .willReturn(Optional.of(crawlTask));
+
+            // When
+            Optional<CrawlTask> result = manager.findLatestBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isPresent().contains(crawlTask);
+            verify(crawlTaskQueryPort).findLatestBySellerId(sellerId);
+        }
+
+        @Test
+        @DisplayName("[성공] 셀러별 최근 태스크 없을 때 empty 반환")
+        void shouldReturnEmptyWhenNoTask() {
+            // Given
+            SellerId sellerId = SellerId.of(999L);
+            given(crawlTaskQueryPort.findLatestBySellerId(sellerId)).willReturn(Optional.empty());
+
+            // When
+            Optional<CrawlTask> result = manager.findLatestBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findRecentBySellerId() 테스트")
+    class FindRecentBySellerId {
+
+        @Test
+        @DisplayName("[성공] 셀러별 최근 N개 태스크 조회")
+        void shouldDelegateToQueryPort() {
+            // Given
+            SellerId sellerId = SellerId.of(1L);
+            int limit = 5;
+            given(crawlTaskQueryPort.findRecentBySellerId(sellerId, limit))
+                    .willReturn(List.of(crawlTask));
+
+            // When
+            List<CrawlTask> result = manager.findRecentBySellerId(sellerId, limit);
+
+            // Then
+            assertThat(result).hasSize(1).contains(crawlTask);
+            verify(crawlTaskQueryPort).findRecentBySellerId(sellerId, limit);
+        }
+    }
+
+    @Nested
+    @DisplayName("findRunningOlderThan() 테스트")
+    class FindRunningOlderThan {
+
+        @Test
+        @DisplayName("[성공] RUNNING 상태 고아 태스크 조회")
+        void shouldDelegateToQueryPort() {
+            // Given
+            int limit = 10;
+            long timeoutSeconds = 300L;
+            given(crawlTaskQueryPort.findRunningOlderThan(limit, timeoutSeconds))
+                    .willReturn(List.of(crawlTask));
+
+            // When
+            List<CrawlTask> result = manager.findRunningOlderThan(limit, timeoutSeconds);
+
+            // Then
+            assertThat(result).hasSize(1).contains(crawlTask);
+            verify(crawlTaskQueryPort).findRunningOlderThan(limit, timeoutSeconds);
+        }
+
+        @Test
+        @DisplayName("[성공] 고아 태스크 없을 때 빈 목록 반환")
+        void shouldReturnEmptyWhenNoOrphanTasks() {
+            // Given
+            given(crawlTaskQueryPort.findRunningOlderThan(10, 300L)).willReturn(List.of());
+
+            // When
+            List<CrawlTask> result = manager.findRunningOlderThan(10, 300L);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn() 테스트")
+    class ExistsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn {
+
+        @Test
+        @DisplayName("[성공] 스케줄러 ID, 태스크 유형, 엔드포인트, 상태로 존재 확인")
+        void shouldDelegateToQueryPort() {
+            // Given
+            CrawlSchedulerId crawlSchedulerId = CrawlSchedulerId.of(1L);
+            CrawlTaskType taskType = CrawlTaskType.SEARCH;
+            String endpointPath = "/api/search";
+            String endpointQueryParams = "{\"keyword\":\"test\"}";
+            List<CrawlTaskStatus> statuses =
+                    List.of(CrawlTaskStatus.WAITING, CrawlTaskStatus.PUBLISHED);
+
+            given(
+                            crawlTaskQueryPort.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                                    crawlSchedulerId,
+                                    taskType,
+                                    endpointPath,
+                                    endpointQueryParams,
+                                    statuses))
+                    .willReturn(true);
+
+            // When
+            boolean result =
+                    manager.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            crawlSchedulerId,
+                            taskType,
+                            endpointPath,
+                            endpointQueryParams,
+                            statuses);
+
+            // Then
+            assertThat(result).isTrue();
+            verify(crawlTaskQueryPort)
+                    .existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            crawlSchedulerId,
+                            taskType,
+                            endpointPath,
+                            endpointQueryParams,
+                            statuses);
+        }
+
+        @Test
+        @DisplayName("[성공] 존재하지 않는 경우 false 반환")
+        void shouldReturnFalseWhenNotExists() {
+            // Given
+            CrawlSchedulerId crawlSchedulerId = CrawlSchedulerId.of(2L);
+            CrawlTaskType taskType = CrawlTaskType.DETAIL;
+            String endpointPath = "/api/detail/12345";
+            String endpointQueryParams = "{}";
+            List<CrawlTaskStatus> statuses = List.of(CrawlTaskStatus.RUNNING);
+
+            given(
+                            crawlTaskQueryPort.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                                    crawlSchedulerId,
+                                    taskType,
+                                    endpointPath,
+                                    endpointQueryParams,
+                                    statuses))
+                    .willReturn(false);
+
+            // When
+            boolean result =
+                    manager.existsBySchedulerIdAndTaskTypeAndEndpointAndStatusIn(
+                            crawlSchedulerId,
+                            taskType,
+                            endpointPath,
+                            endpointQueryParams,
+                            statuses);
+
+            // Then
+            assertThat(result).isFalse();
         }
     }
 }

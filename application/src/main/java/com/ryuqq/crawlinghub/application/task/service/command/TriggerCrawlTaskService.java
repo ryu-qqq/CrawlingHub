@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
 import com.ryuqq.crawlinghub.application.task.dto.command.TriggerCrawlTaskCommand;
@@ -38,6 +39,7 @@ public class TriggerCrawlTaskService implements TriggerCrawlTaskUseCase {
         this.sellerReadManager = sellerReadManager;
     }
 
+    @CrawlMetric(value = "crawl_task", operation = "trigger")
     @Override
     public void execute(TriggerCrawlTaskCommand command) {
         CrawlSchedulerId crawlSchedulerId = CrawlSchedulerId.of(command.crawlSchedulerId());

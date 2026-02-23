@@ -5,7 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.cralwinghub.domain.fixture.schedule.CrawlSchedulerFixture;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.CrawlSchedulerJpaEntity;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlScheduler;
+import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.schedule.vo.CronExpression;
+import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerName;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -195,6 +199,52 @@ class CrawlSchedulerJpaEntityMapperTest {
                     .isCloseTo(
                             domain.getUpdatedAt(),
                             org.assertj.core.api.Assertions.within(1, ChronoUnit.SECONDS));
+        }
+
+        @Test
+        @DisplayName("성공 - null createdAt/updatedAt Entity 변환 시 null Instant 반환")
+        void shouldHandleNullTimesInEntity() {
+            // Given - createdAt, updatedAt이 null인 Entity (toInstant null 분기 커버)
+            CrawlSchedulerJpaEntity entity =
+                    CrawlSchedulerJpaEntity.of(
+                            1L,
+                            100L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            SchedulerStatus.ACTIVE,
+                            null, // createdAt null
+                            null); // updatedAt null
+
+            // When
+            CrawlScheduler domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain).isNotNull();
+            assertThat(domain.getCreatedAt()).isNull();
+            assertThat(domain.getUpdatedAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - null createdAt/updatedAt Domain 변환 시 null LocalDateTime 반환")
+        void shouldHandleNullTimesInDomain() {
+            // Given - createdAt, updatedAt이 null인 Domain (toLocalDateTime null 분기 커버)
+            CrawlScheduler domain =
+                    CrawlScheduler.reconstitute(
+                            CrawlSchedulerId.of(1L),
+                            SellerId.of(100L),
+                            SchedulerName.of("test-scheduler"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
+                            SchedulerStatus.ACTIVE,
+                            null, // createdAt null
+                            null); // updatedAt null
+
+            // When
+            CrawlSchedulerJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity).isNotNull();
+            assertThat(entity.getCreatedAt()).isNull();
+            assertThat(entity.getUpdatedAt()).isNull();
         }
     }
 }

@@ -21,6 +21,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 
 /**
  * Base class for Web API integration tests.
@@ -46,6 +51,10 @@ public abstract class WebApiIntegrationTest {
     protected static final RedisContainer REDIS_CONTAINER;
     protected static final LocalStackContainer LOCALSTACK_CONTAINER;
 
+    // SQS Queue URLs (required for outbox-based flows like retry)
+    private static String crawlTaskQueueUrl;
+    private static String productSyncQueueUrl;
+
     static {
         MYSQL_CONTAINER =
                 new MySQLContainer(DockerImageName.parse("mysql:8.0"))
@@ -64,6 +73,29 @@ public abstract class WebApiIntegrationTest {
         MYSQL_CONTAINER.start();
         REDIS_CONTAINER.start();
         LOCALSTACK_CONTAINER.start();
+
+        // Create SQS queues for publisher configuration
+        SqsClient sqsClient =
+                SqsClient.builder()
+                        .endpointOverride(LOCALSTACK_CONTAINER.getEndpoint())
+                        .region(Region.US_EAST_1)
+                        .credentialsProvider(
+                                StaticCredentialsProvider.create(
+                                        AwsBasicCredentials.create("test", "test")))
+                        .build();
+
+        crawlTaskQueueUrl = createQueue(sqsClient, "crawl-task-queue-webapi-test");
+        productSyncQueueUrl = createQueue(sqsClient, "product-sync-queue-webapi-test");
+    }
+
+    private static String createQueue(SqsClient sqsClient, String queueName) {
+        try {
+            return sqsClient
+                    .createQueue(CreateQueueRequest.builder().queueName(queueName).build())
+                    .queueUrl();
+        } catch (Exception e) {
+            return sqsClient.getQueueUrl(r -> r.queueName(queueName)).queueUrl();
+        }
     }
 
     @LocalServerPort protected int port;
@@ -96,6 +128,12 @@ public abstract class WebApiIntegrationTest {
         registry.add("spring.cloud.aws.region.static", () -> "us-east-1");
         registry.add("spring.cloud.aws.credentials.access-key", () -> "test");
         registry.add("spring.cloud.aws.credentials.secret-key", () -> "test");
+
+        // SQS Publisher Queue URLs (sqs-client module)
+        registry.add("sqs.endpoint", () -> LOCALSTACK_CONTAINER.getEndpoint().toString());
+        registry.add("sqs.region", () -> "us-east-1");
+        registry.add("sqs.queues.crawl-task", () -> crawlTaskQueueUrl);
+        registry.add("sqs.queues.product-sync", () -> productSyncQueueUrl);
 
         // Flyway
         registry.add("spring.flyway.enabled", () -> "true");

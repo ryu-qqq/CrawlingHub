@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.task.dto.command.ProcessPendingCrawlTaskOutboxCommand;
 import com.ryuqq.crawlinghub.application.task.internal.CrawlTaskOutboxProcessor;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskOutboxReadManager;
@@ -32,6 +33,7 @@ public class ProcessPendingCrawlTaskOutboxService implements ProcessPendingCrawl
         this.processor = processor;
     }
 
+    @BatchMetric(value = "crawl_task_outbox", category = "process_pending")
     @Override
     public SchedulerBatchProcessingResult execute(ProcessPendingCrawlTaskOutboxCommand command) {
         List<CrawlTaskOutbox> outboxes =

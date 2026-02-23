@@ -208,6 +208,34 @@ class CrawledProductQueryAdapterTest {
         assertThat(result).isFalse();
     }
 
+    @Test
+    @DisplayName("성공 - SellerId로 CrawledProduct 개수 조회")
+    void shouldCountBySellerId() {
+        // Given - 셀러별 상품 개수 조회
+        SellerId sellerId = SellerId.of(100L);
+        given(queryDslRepository.countBySellerId(100L)).willReturn(25L);
+
+        // When
+        long result = queryAdapter.countBySellerId(sellerId);
+
+        // Then - 상품 개수가 반환되어야 함
+        assertThat(result).isEqualTo(25L);
+    }
+
+    @Test
+    @DisplayName("성공 - 상품 없는 셀러는 0 반환")
+    void shouldReturnZeroWhenNoProducts() {
+        // Given
+        SellerId sellerId = SellerId.of(999L);
+        given(queryDslRepository.countBySellerId(999L)).willReturn(0L);
+
+        // When
+        long result = queryAdapter.countBySellerId(sellerId);
+
+        // Then
+        assertThat(result).isZero();
+    }
+
     private CrawledProductJpaEntity createTestEntity(long id, long sellerId, long itemNo) {
         LocalDateTime now = LocalDateTime.now();
         return CrawledProductJpaEntity.of(

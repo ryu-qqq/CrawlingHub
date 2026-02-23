@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.product.dto.command.RecoverFailedProductSyncOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxReadManager;
@@ -38,6 +39,7 @@ public class RecoverFailedProductSyncOutboxService
         this.outboxCommandManager = outboxCommandManager;
     }
 
+    @BatchMetric(value = "product_sync_outbox", category = "recover_failed")
     @Override
     public SchedulerBatchProcessingResult execute(RecoverFailedProductSyncOutboxCommand command) {
         List<CrawledProductSyncOutbox> failedOutboxes =

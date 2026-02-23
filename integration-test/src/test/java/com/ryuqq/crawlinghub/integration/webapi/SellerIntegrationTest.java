@@ -28,10 +28,10 @@ import org.springframework.http.ResponseEntity;
  * <p><strong>테스트 대상 엔드포인트:</strong>
  *
  * <ul>
- *   <li>POST /api/v1/crawling/sellers - 셀러 등록 (seller:create)
- *   <li>PATCH /api/v1/crawling/sellers/{id} - 셀러 수정 (seller:update)
- *   <li>GET /api/v1/crawling/sellers/{id} - 셀러 단건 조회 (seller:read)
- *   <li>GET /api/v1/crawling/sellers - 셀러 목록 조회 (seller:read)
+ *   <li>POST /api/v1/crawling/sellers - 셀러 등록
+ *   <li>PATCH /api/v1/crawling/sellers/{id} - 셀러 수정
+ *   <li>GET /api/v1/crawling/sellers/{id} - 셀러 단건 조회
+ *   <li>GET /api/v1/crawling/sellers - 셀러 목록 조회
  * </ul>
  *
  * @author development-team
@@ -72,13 +72,10 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+            // registerSeller returns ApiResponse<Long> - data is the generated seller ID
+            Object data = response.getBody().get("data");
             assertThat(data).isNotNull();
-            // sellerId는 persist 후 도메인 객체에 반영되지 않아 null 반환 (알려진 제약사항)
-            assertThat(data.get("mustItSellerName")).isEqualTo("new-must-it-seller");
-            assertThat(data.get("sellerName")).isEqualTo("신규 셀러");
-            assertThat(data.get("status")).isEqualTo("ACTIVE");
+            assertThat(((Number) data).longValue()).isPositive();
         }
 
         @Test
@@ -156,30 +153,6 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
-
-        @Test
-        @DisplayName("seller:create 권한 없으면 403 반환")
-        void shouldReturn403WithoutCreatePermission() {
-            // given - seller:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> request =
-                    Map.of(
-                            "mustItSellerName", "new-seller",
-                            "sellerName", "신규 셀러");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SELLERS_BASE_URL),
-                            HttpMethod.POST,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
     }
 
     @Nested
@@ -192,13 +165,18 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("셀러명 수정 성공")
-        void shouldUpdateSellerNameSuccessfully() {
+        @DisplayName("셀러 수정 성공 - 전체 필드")
+        void shouldUpdateSellerSuccessfully() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> request = Map.of("sellerName", "수정된 셀러명");
+            // UpdateSellerApiRequest requires ALL fields: mustItSellerName, sellerName, active
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName", "updated-must-it-seller",
+                            "sellerName", "수정된 셀러명",
+                            "active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -208,13 +186,8 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
                             new HttpEntity<>(request, headers),
                             new ParameterizedTypeReference<>() {});
 
-            // then
+            // then - updateSeller returns ApiResponse<Void>
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("sellerName")).isEqualTo("수정된 셀러명");
         }
 
         @Test
@@ -224,7 +197,12 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> request = Map.of("active", false);
+            // All fields required
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName", "test-must-it-seller-1",
+                            "sellerName", "test-seller-1",
+                            "active", false);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -236,10 +214,6 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
 
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("status")).isEqualTo("INACTIVE");
         }
 
         @Test
@@ -249,7 +223,11 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> request = Map.of("sellerName", "수정된 이름");
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName", "any-name",
+                            "sellerName", "수정된 이름",
+                            "active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -264,12 +242,13 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("seller:update 권한 없으면 403 반환")
-        void shouldReturn403WithoutUpdatePermission() {
-            // given - seller:read 권한만 있음
+        @DisplayName("필수 필드 누락 시 400 반환")
+        void shouldReturn400WhenMissingRequiredFields() {
+            // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
+            // sellerName만 보내고 나머지 필수 필드 누락
             Map<String, Object> request = Map.of("sellerName", "수정된 이름");
 
             // when
@@ -281,7 +260,7 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
                             new ParameterizedTypeReference<>() {});
 
             // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
 
         @Test
@@ -292,7 +271,14 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             String longName = "a".repeat(101);
-            Map<String, Object> request = Map.of("sellerName", longName);
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName",
+                            "test-must-it-seller-1",
+                            "sellerName",
+                            longName,
+                            "active",
+                            true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -359,24 +345,6 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
 
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("seller:read 권한 없으면 403 반환")
-        void shouldReturn403WithoutReadPermission() {
-            // given - scheduler:read 권한만 있음
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SELLERS_BASE_URL + "/1"),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
 
         @Test
@@ -511,24 +479,6 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> content = (List<Map<String, Object>>) data.get("content");
             assertThat(content).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("seller:read 권한 없으면 403 반환")
-        void shouldReturn403WithoutReadPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SELLERS_BASE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -666,8 +616,8 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
     }
 
     @Nested
-    @DisplayName("인증 및 권한 검증")
-    class AuthenticationAndAuthorization {
+    @DisplayName("인증 검증")
+    class Authentication {
 
         @BeforeEach
         void setUp() {
@@ -705,7 +655,11 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> request = Map.of("sellerName", "수정");
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName", "test-must-it-seller-1",
+                            "sellerName", "수정",
+                            "active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -735,8 +689,8 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("seller:read 권한이 있으면 목록 조회 가능")
-        void shouldAllowListWithReadPermission() {
+        @DisplayName("인증된 사용자는 목록 조회 가능")
+        void shouldAllowListWithAuthentication() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
 
@@ -753,8 +707,8 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("seller:create 권한이 있으면 등록 가능")
-        void shouldAllowCreateWithCreatePermission() {
+        @DisplayName("인증된 사용자는 등록 가능")
+        void shouldAllowCreateWithAuthentication() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -777,13 +731,17 @@ class SellerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("seller:update 권한이 있으면 수정 가능")
-        void shouldAllowUpdateWithUpdatePermission() {
+        @DisplayName("인증된 사용자는 수정 가능")
+        void shouldAllowUpdateWithAuthentication() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> request = Map.of("sellerName", "권한 테스트 수정");
+            Map<String, Object> request =
+                    Map.of(
+                            "mustItSellerName", "test-must-it-seller-1",
+                            "sellerName", "권한 테스트 수정",
+                            "active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =

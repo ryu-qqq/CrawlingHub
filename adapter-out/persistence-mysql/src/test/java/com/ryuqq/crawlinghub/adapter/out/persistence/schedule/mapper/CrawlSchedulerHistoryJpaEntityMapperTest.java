@@ -248,5 +248,49 @@ class CrawlSchedulerHistoryJpaEntityMapperTest {
                             domain.getCreatedAt(),
                             org.assertj.core.api.Assertions.within(1, ChronoUnit.SECONDS));
         }
+
+        @Test
+        @DisplayName("성공 - null createdAt Entity 변환 시 null Instant 반환")
+        void shouldHandleNullCreatedAtInEntity() {
+            // Given - createdAt이 null인 Entity (toInstant null 분기 커버)
+            CrawlSchedulerHistoryJpaEntity entity =
+                    CrawlSchedulerHistoryJpaEntity.of(
+                            1L,
+                            100L,
+                            200L,
+                            "test-scheduler",
+                            "cron(0 0 * * ? *)",
+                            SchedulerStatus.ACTIVE,
+                            null); // createdAt null
+
+            // When
+            CrawlSchedulerHistory domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain).isNotNull();
+            assertThat(domain.getCreatedAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - null createdAt Domain 변환 시 null LocalDateTime 반환")
+        void shouldHandleNullCreatedAtInDomain() {
+            // Given - createdAt이 null인 Domain (toLocalDateTime null 분기 커버)
+            CrawlSchedulerHistory domain =
+                    CrawlSchedulerHistory.reconstitute(
+                            CrawlSchedulerHistoryId.of(1L),
+                            CrawlSchedulerId.of(100L),
+                            SellerId.of(200L),
+                            SchedulerName.of("test-scheduler"),
+                            CronExpression.of("cron(0 0 * * ? *)"),
+                            SchedulerStatus.ACTIVE,
+                            null); // createdAt null
+
+            // When
+            CrawlSchedulerHistoryJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity).isNotNull();
+            assertThat(entity.getCreatedAt()).isNull();
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.http.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.http.mapper.HttpResponseMapper;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClientMetric;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpRequest;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpResponse;
 import com.ryuqq.crawlinghub.application.execution.port.out.client.HttpClient;
@@ -40,6 +41,7 @@ public class WebClientHttpAdapter implements HttpClient {
         this.mapper = mapper;
     }
 
+    @OutboundClientMetric(system = "http_crawl", operation = "get")
     @Override
     public HttpResponse get(HttpRequest request) {
         log.debug("HTTP GET 요청: url={}", request.url());
@@ -60,6 +62,7 @@ public class WebClientHttpAdapter implements HttpClient {
         }
     }
 
+    @OutboundClientMetric(system = "http_crawl", operation = "post")
     @Override
     public HttpResponse post(HttpRequest request) {
         log.debug("HTTP POST 요청: url={}", request.url());

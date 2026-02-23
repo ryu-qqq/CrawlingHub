@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.dto.command.RecoverStuckCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskCommandManager;
@@ -52,6 +53,7 @@ public class RecoverStuckCrawlTaskService implements RecoverStuckCrawlTaskUseCas
         this.timeProvider = timeProvider;
     }
 
+    @CrawlMetric(value = "crawl_task", operation = "recover_stuck")
     @Override
     public SchedulerBatchProcessingResult execute(RecoverStuckCrawlTaskCommand command) {
         List<CrawlTask> stuckTasks =

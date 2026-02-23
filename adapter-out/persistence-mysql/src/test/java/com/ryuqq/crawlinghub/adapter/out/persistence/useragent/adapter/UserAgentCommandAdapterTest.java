@@ -12,8 +12,10 @@ import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +40,29 @@ class UserAgentCommandAdapterTest {
     @Mock private UserAgentJpaEntityMapper mapper;
 
     private UserAgentCommandAdapter commandAdapter;
+
+    // UserAgentJpaEntity 생성 헬퍼
+    private UserAgentJpaEntity buildUserAgentEntity(Long id) {
+        LocalDateTime now = LocalDateTime.now();
+        return UserAgentJpaEntity.of(
+                id,
+                "encrypted-token",
+                "Mozilla/5.0",
+                "DESKTOP",
+                "GENERIC",
+                "LINUX",
+                "5.10",
+                "CHROME",
+                "120.0.0.0",
+                UserAgentStatus.IDLE,
+                100,
+                null,
+                0,
+                null,
+                0,
+                now,
+                now);
+    }
 
     @BeforeEach
     void setUp() {
@@ -136,5 +161,44 @@ class UserAgentCommandAdapterTest {
 
         // Then
         assertThat(result.value()).isEqualTo(100L);
+    }
+
+    @Nested
+    @DisplayName("persistAll 메서드 테스트")
+    class PersistAllTests {
+
+        @Test
+        @DisplayName("성공 - 여러 UserAgent 배치 저장")
+        void shouldPersistAllUserAgents() {
+            // Given - 여러 UserAgent 배치 저장
+            UserAgent userAgent1 = UserAgentFixture.anAvailableUserAgent();
+            UserAgent userAgent2 = UserAgentFixture.anAvailableUserAgent();
+            List<UserAgent> userAgents = List.of(userAgent1, userAgent2);
+
+            UserAgentJpaEntity entity1 = buildUserAgentEntity(null);
+            UserAgentJpaEntity entity2 = buildUserAgentEntity(null);
+
+            given(mapper.toEntity(userAgent1)).willReturn(entity1);
+            given(mapper.toEntity(userAgent2)).willReturn(entity2);
+
+            // When - 예외 없이 실행되어야 함
+            commandAdapter.persistAll(userAgents);
+
+            // Then - saveAll이 호출되어야 함 (반환값 없음)
+            org.mockito.BDDMockito.then(jpaRepository).should().saveAll(List.of(entity1, entity2));
+        }
+
+        @Test
+        @DisplayName("성공 - 빈 리스트로 배치 저장 호출")
+        void shouldHandleEmptyList() {
+            // Given - 빈 리스트
+            List<UserAgent> emptyList = List.of();
+
+            // When - 예외 없이 실행되어야 함
+            commandAdapter.persistAll(emptyList);
+
+            // Then - saveAll이 빈 리스트로 호출되어야 함
+            org.mockito.BDDMockito.then(jpaRepository).should().saveAll(List.of());
+        }
     }
 }
