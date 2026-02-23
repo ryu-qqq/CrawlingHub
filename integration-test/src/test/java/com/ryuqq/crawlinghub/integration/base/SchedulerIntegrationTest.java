@@ -4,6 +4,7 @@ import com.redis.testcontainers.RedisContainer;
 import com.ryuqq.crawlinghub.SchedulerApplication;
 import com.ryuqq.crawlinghub.integration.config.DatabaseCleaner;
 import com.ryuqq.crawlinghub.integration.config.TestContainersConfig;
+import java.util.TimeZone;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,6 +51,9 @@ public abstract class SchedulerIntegrationTest {
     private static String productSyncQueueUrl;
 
     static {
+        // CI 환경(JVM=UTC)에서도 MySQL(Asia/Seoul)과 일치하도록 JVM 타임존 설정
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+
         MYSQL_CONTAINER =
                 new MySQLContainer(DockerImageName.parse("mysql:8.0"))
                         .withDatabaseName("crawlinghub_test")
