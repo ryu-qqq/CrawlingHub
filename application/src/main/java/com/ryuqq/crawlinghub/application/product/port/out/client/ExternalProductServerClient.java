@@ -22,5 +22,4 @@ public interface ExternalProductServerClient {
      * @return 동기화 결과
      */
     ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product);
-
 }

@@ -30,8 +30,6 @@ public class MarketplaceClientAdapter implements ExternalProductServerClient {
 
     @Override
     public ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product) {
-        return strategyProvider.getStrategy(outbox.getSyncType())
-            .execute(outbox, product);
+        return strategyProvider.getStrategy(outbox.getSyncType()).execute(outbox, product);
     }
-
 }

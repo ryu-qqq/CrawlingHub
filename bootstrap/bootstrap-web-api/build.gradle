@@ -54,11 +54,8 @@ dependencies {
     annotationProcessor libs.spring.boot.configuration.processor
 
     // ========================================
-    // Observability
+    // Logging & Monitoring
     // ========================================
-    // Observability Starter (TraceId + MDC Context propagation)
-    implementation libs.observability.starter
-
     // JSON Logging (for prod/staging)
     implementation libs.logstash.logback.encoder
 
