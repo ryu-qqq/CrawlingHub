@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.adapter.in.scheduler.aspect;
 
 import com.ryuqq.crawlinghub.adapter.in.scheduler.annotation.SchedulerJob;
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -39,6 +40,9 @@ public class SchedulerLoggingAspect {
 
     private final MeterRegistry meterRegistry;
 
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "MeterRegistry는 Spring IoC 컨테이너가 관리하는 싱글톤이며, 외부 변경 위험 없음")
     public SchedulerLoggingAspect(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }

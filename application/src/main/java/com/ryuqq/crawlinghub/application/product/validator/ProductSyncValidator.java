@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutbo
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,5 +85,8 @@ public class ProductSyncValidator {
         return Optional.of(new SyncTarget(outbox, productOpt.get()));
     }
 
+    @SuppressFBWarnings(
+            value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+            justification = "Record는 불변 DTO로 사용되며, 내부 객체 변경 위험 없음")
     public record SyncTarget(CrawledProductSyncOutbox outbox, CrawledProduct product) {}
 }
