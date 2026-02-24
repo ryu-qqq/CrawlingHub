@@ -10,6 +10,7 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
  * @since 1.0.0
  */
 @Service
+@ConditionalOnProperty(prefix = "eventbridge", name = "target-arn")
 public class ProcessPendingSchedulerOutboxService implements ProcessPendingSchedulerOutboxUseCase {
 
     private static final Logger log =
