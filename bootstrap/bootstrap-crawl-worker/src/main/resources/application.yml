@@ -17,6 +17,8 @@ spring:
       - optional:classpath:sqs-${spring.profiles.active:local}.yml
       - classpath:sqs-listener.yml
       - classpath:http-client.yml
+      - classpath:eventbridge.yml
+      - optional:classpath:eventbridge-${spring.profiles.active:local}.yml
 
   # ========================================
   # Flyway Configuration
