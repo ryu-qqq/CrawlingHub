@@ -41,6 +41,7 @@ spring:
 
   flyway:
     clean-disabled: true
+    validate-on-migrate: false
 
 logging:
   level:
