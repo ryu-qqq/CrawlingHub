@@ -496,10 +496,15 @@ VALUES
         '{"itemNo":10001,"itemName":"테스트 상품 1","brandName":"테스트 브랜드","originalPrice":100000,"discountPrice":80000,"discountRate":20,"images":{"thumbnails":["https://img.example.com/1.jpg"],"descriptions":[]},"freeShipping":true}',
         'PENDING', NULL, NOW(), NULL),
     (2, 1, 1, 10001, 'DETAIL',
-        '{"itemNo":10001,"description":"<p>상품 상세 설명</p>","category":{"categoryId":100,"categoryName":"의류"},"shippingInfo":{"deliveryFee":3000,"freeShippingThreshold":50000},"itemStatus":"ACTIVE","originCountry":"대한민국","shippingLocation":"서울"}',
+        '{"itemNo":10001,"description":"<p>설명</p>",'
+        || '"category":{"categoryId":100,"categoryName":"의류"},'
+        || '"shippingInfo":{"deliveryFee":3000},'
+        || '"itemStatus":"ACTIVE"}',
         'PENDING', NULL, NOW(), NULL),
     (3, 1, 1, 10001, 'OPTION',
-        '{"itemNo":10001,"options":[{"optionName":"사이즈","optionValue":"M","stock":10,"price":0},{"optionName":"사이즈","optionValue":"L","stock":5,"price":0}]}',
+        '{"itemNo":10001,"options":['
+        || '{"optionName":"사이즈","optionValue":"M","stock":10,"price":0},'
+        || '{"optionName":"사이즈","optionValue":"L","stock":5,"price":0}]}',
         'PENDING', NULL, NOW(), NULL)
 """);
     }
