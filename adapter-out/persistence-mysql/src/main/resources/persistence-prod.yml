@@ -41,9 +41,6 @@ spring:
         format_sql: false
         use_sql_comments: false
 
-  flyway:
-    clean-disabled: true
-
 logging:
   level:
     com.ryuqq.crawlinghub: INFO
