@@ -8,9 +8,11 @@ import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.CrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.mapper.CrawlExecutionJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.execution.repository.CrawlExecutionQueryDslRepository;
+import com.ryuqq.crawlinghub.application.execution.port.out.query.CrawlExecutionQueryPort;
 import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
 import com.ryuqq.crawlinghub.domain.execution.id.CrawlExecutionId;
 import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -171,6 +173,52 @@ class CrawlExecutionQueryAdapterTest {
 
             // Then
             assertThat(result).isEqualTo(10L);
+        }
+    }
+
+    @Nested
+    @DisplayName("getTopErrors 테스트")
+    class GetTopErrorsTests {
+
+        @Test
+        @DisplayName("성공 - 상위 에러 메시지 조회")
+        void shouldGetTopErrors() {
+            // Given - 에러 통계 조회 조건
+            CrawlExecutionStatisticsCriteria criteria =
+                    new CrawlExecutionStatisticsCriteria(null, null, null, null);
+            int limit = 5;
+
+            List<CrawlExecutionQueryPort.ErrorCount> errorCounts =
+                    List.of(
+                            new CrawlExecutionQueryPort.ErrorCount("Connection timeout", 10L),
+                            new CrawlExecutionQueryPort.ErrorCount("404 Not Found", 5L));
+
+            given(queryDslRepository.getTopErrors(criteria, limit)).willReturn(errorCounts);
+
+            // When
+            List<CrawlExecutionQueryPort.ErrorCount> result =
+                    queryAdapter.getTopErrors(criteria, limit);
+
+            // Then - 에러 통계 목록이 반환되어야 함
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).errorMessage()).isEqualTo("Connection timeout");
+            assertThat(result.get(0).count()).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("성공 - 에러 없을 때 빈 리스트 반환")
+        void shouldReturnEmptyListWhenNoErrors() {
+            // Given
+            CrawlExecutionStatisticsCriteria criteria =
+                    new CrawlExecutionStatisticsCriteria(null, null, null, null);
+            given(queryDslRepository.getTopErrors(criteria, 5)).willReturn(List.of());
+
+            // When
+            List<CrawlExecutionQueryPort.ErrorCount> result =
+                    queryAdapter.getTopErrors(criteria, 5);
+
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 }

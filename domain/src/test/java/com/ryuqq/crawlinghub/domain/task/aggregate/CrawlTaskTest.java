@@ -598,5 +598,86 @@ class CrawlTaskTest {
             // then
             assertThat(task.getEndpoint()).isNotNull();
         }
+
+        @Test
+        @DisplayName("getCrawlSchedulerId()는 스케줄러 ID를 반환한다")
+        void shouldReturnCrawlSchedulerId() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            assertThat(task.getCrawlSchedulerId()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getSellerId()는 셀러 ID를 반환한다")
+        void shouldReturnSellerId() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            assertThat(task.getSellerId()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getMustItSellerName()은 머스잇 셀러명을 반환한다")
+        void shouldReturnMustItSellerName() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            assertThat(task.getMustItSellerName()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getRetryCountValue()는 재시도 횟수를 반환한다")
+        void shouldReturnRetryCountValue() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            assertThat(task.getRetryCountValue()).isGreaterThanOrEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("failDirectly() 직접 실패 처리 테스트")
+    class FailDirectly {
+
+        @Test
+        @DisplayName("비종료 상태에서 FAILED로 직접 전환한다")
+        void shouldFailDirectlyFromNonTerminalState() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+
+            task.failDirectly(FIXED_INSTANT);
+
+            assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.FAILED);
+        }
+
+        @Test
+        @DisplayName("PUBLISHED 상태에서 FAILED로 직접 전환한다")
+        void shouldFailDirectlyFromPublishedState() {
+            CrawlTask task = CrawlTaskFixture.aPublishedTask();
+
+            task.failDirectly(FIXED_INSTANT);
+
+            assertThat(task.getStatus()).isEqualTo(CrawlTaskStatus.FAILED);
+        }
+
+        @Test
+        @DisplayName("이미 종료 상태이면 예외가 발생한다")
+        void shouldThrowWhenAlreadyTerminal() {
+            CrawlTask task = CrawlTaskFixture.aSuccessTask();
+
+            assertThatThrownBy(() -> task.failDirectly(FIXED_INSTANT))
+                    .isInstanceOf(InvalidCrawlTaskStateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("isTerminal() 테스트")
+    class IsTerminal {
+
+        @Test
+        @DisplayName("WAITING 상태는 종료 상태가 아니다")
+        void waitingIsNotTerminal() {
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            assertThat(task.isTerminal()).isFalse();
+        }
+
+        @Test
+        @DisplayName("SUCCESS 상태는 종료 상태이다")
+        void successIsTerminal() {
+            CrawlTask task = CrawlTaskFixture.aSuccessTask();
+            assertThat(task.isTerminal()).isTrue();
+        }
     }
 }

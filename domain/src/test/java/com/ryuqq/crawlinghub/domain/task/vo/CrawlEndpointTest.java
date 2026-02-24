@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,6 +17,9 @@ import org.junit.jupiter.api.Test;
  * @author development-team
  * @since 1.0.0
  */
+@Tag("unit")
+@Tag("domain")
+@Tag("vo")
 @DisplayName("CrawlEndpoint VO 테스트")
 class CrawlEndpointTest {
 
@@ -142,6 +146,63 @@ class CrawlEndpointTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("keyword");
         }
+
+        @Test
+        @DisplayName("forMiniShopList에 null sellerName 전달 시 예외 발생")
+        void shouldThrowExceptionWhenMiniShopSellerNameIsNull() {
+            assertThatThrownBy(() -> CrawlEndpoint.forMiniShopList(null, 1, 20))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("mustItSellerName");
+        }
+
+        @Test
+        @DisplayName("forMiniShopList에 빈 sellerName 전달 시 예외 발생")
+        void shouldThrowExceptionWhenMiniShopSellerNameIsBlank() {
+            assertThatThrownBy(() -> CrawlEndpoint.forMiniShopList("  ", 1, 20))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("mustItSellerName");
+        }
+
+        @Test
+        @DisplayName("forSearchApi에 null URL 전달 시 예외 발생")
+        void shouldThrowExceptionWhenSearchApiUrlIsNull() {
+            assertThatThrownBy(() -> CrawlEndpoint.forSearchApi(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("URL");
+        }
+
+        @Test
+        @DisplayName("forSearchApi에 빈 URL 전달 시 예외 발생")
+        void shouldThrowExceptionWhenSearchApiUrlIsBlank() {
+            assertThatThrownBy(() -> CrawlEndpoint.forSearchApi("  "))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("URL");
+        }
+
+        @Test
+        @DisplayName("forSearchApi로 쿼리파라미터가 있는 URL 파싱")
+        void shouldParseSearchApiUrlWithQueryParams() {
+            String fullUrl =
+                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=seller&sort=POPULAR2&pageNo=2";
+            CrawlEndpoint endpoint = CrawlEndpoint.forSearchApi(fullUrl);
+
+            assertThat(endpoint.baseUrl()).isEqualTo("https://m.web.mustit.co.kr");
+            assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
+            assertThat(endpoint.queryParams()).containsEntry("keyword", "seller");
+            assertThat(endpoint.queryParams()).containsEntry("sort", "POPULAR2");
+            assertThat(endpoint.queryParams()).containsEntry("pageNo", "2");
+        }
+
+        @Test
+        @DisplayName("forSearchApi로 쿼리파라미터가 없는 URL 파싱")
+        void shouldParseSearchApiUrlWithoutQueryParams() {
+            String fullUrl = "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items";
+            CrawlEndpoint endpoint = CrawlEndpoint.forSearchApi(fullUrl);
+
+            assertThat(endpoint.baseUrl()).isEqualTo("https://m.web.mustit.co.kr");
+            assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
+            assertThat(endpoint.queryParams()).isEmpty();
+        }
     }
 
     @Nested
@@ -171,6 +232,57 @@ class CrawlEndpointTest {
 
             assertThat(fullUrl)
                     .isEqualTo(MUSTIT_BASE_URL + "/mustit-api/facade-api/v1/item/99999/detail/top");
+        }
+    }
+
+    @Nested
+    @DisplayName("toQueryParamsJson() 테스트")
+    class ToQueryParamsJsonTest {
+
+        @Test
+        @DisplayName("queryParams가 있으면 JSON 문자열을 반환한다")
+        void returnsJsonStringWhenQueryParamsExist() {
+            CrawlEndpoint endpoint = CrawlEndpoint.forProductDetail(99999L);
+            // 빈 queryParams인 경우 null 반환
+            assertThat(endpoint.toQueryParamsJson()).isNull();
+        }
+
+        @Test
+        @DisplayName("queryParams가 있으면 JSON 형식 문자열을 반환한다")
+        void returnsJsonFormattedString() {
+            CrawlEndpoint endpoint =
+                    new CrawlEndpoint(MUSTIT_BASE_URL, "/path", Map.of("key", "value"));
+            String json = endpoint.toQueryParamsJson();
+            assertThat(json).isNotNull();
+            assertThat(json).startsWith("{");
+            assertThat(json).endsWith("}");
+            assertThat(json).contains("\"key\":\"value\"");
+        }
+    }
+
+    @Nested
+    @DisplayName("getMustItSellerName() 테스트")
+    class GetMustItSellerNameTest {
+
+        @Test
+        @DisplayName("MINI_SHOP 타입에서 sellerId를 셀러명으로 반환한다")
+        void returnsSellerId() {
+            CrawlEndpoint endpoint = CrawlEndpoint.forMiniShopList("my-seller", 1, 20);
+            assertThat(endpoint.getMustItSellerName()).isEqualTo("my-seller");
+        }
+
+        @Test
+        @DisplayName("SEARCH 타입에서 keyword를 셀러명으로 반환한다")
+        void returnsKeyword() {
+            CrawlEndpoint endpoint = CrawlEndpoint.forSearchItems("search-seller", 1);
+            assertThat(endpoint.getMustItSellerName()).isEqualTo("search-seller");
+        }
+
+        @Test
+        @DisplayName("sellerId도 keyword도 없으면 null을 반환한다")
+        void returnsNullWhenNoSellerParams() {
+            CrawlEndpoint endpoint = CrawlEndpoint.forProductDetail(99999L);
+            assertThat(endpoint.getMustItSellerName()).isNull();
         }
     }
 

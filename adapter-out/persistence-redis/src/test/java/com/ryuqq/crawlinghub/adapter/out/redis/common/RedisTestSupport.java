@@ -56,8 +56,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  *
  * @author Development Team
  * @since 1.0.0
- * @see CacheTestSupport Cache 전용 테스트 지원
- * @see LockTestSupport Lock 전용 테스트 지원
  */
 @SpringBootTest
 @ActiveProfiles("test")

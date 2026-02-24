@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.product.dto.command.PublishPendingSyncOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.internal.CrawledProductSyncOutboxProcessor;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxReadManager;
@@ -35,6 +36,7 @@ public class PublishPendingSyncOutboxService implements PublishPendingSyncOutbox
         this.processor = processor;
     }
 
+    @BatchMetric(value = "product_sync_outbox", category = "publish_pending")
     @Override
     public SchedulerBatchProcessingResult execute(PublishPendingSyncOutboxCommand command) {
         List<CrawledProductSyncOutbox> outboxes =

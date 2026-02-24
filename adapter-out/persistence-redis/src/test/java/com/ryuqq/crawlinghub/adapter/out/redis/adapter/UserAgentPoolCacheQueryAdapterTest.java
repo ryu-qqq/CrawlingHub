@@ -220,6 +220,81 @@ class UserAgentPoolCacheQueryAdapterTest {
     }
 
     @Nested
+    @DisplayName("getPoolStats - Pool 통계 조회 (추가 시나리오)")
+    class GetPoolStatsEdgeCaseTests {
+
+        @Test
+        @DisplayName("성공 - idle Set이 비어있으면 Health 통계가 0으로 초기화")
+        void shouldReturnZeroHealthWhenIdleSetIsEmpty() {
+            // Given
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class))).willReturn(rSet);
+            given(redissonClient.getSet(eq(BORROWED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(rSet);
+            given(redissonClient.getSet(eq(COOLDOWN_SET_KEY), any(StringCodec.class)))
+                    .willReturn(rSet);
+            given(redissonClient.getSet(eq(SESSION_REQUIRED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(rSet);
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(rSet);
+
+            // 모든 Set이 비어있음
+            given(rSet.size()).willReturn(0, 0, 0, 0, 0);
+            given(rSet.readAll()).willReturn(Set.of());
+
+            // When
+            var stats = adapter.getPoolStats();
+
+            // Then
+            assertThat(stats.total()).isEqualTo(0);
+            assertThat(stats.available()).isEqualTo(0);
+            assertThat(stats.avgHealthScore()).isEqualTo(0.0);
+            assertThat(stats.minHealthScore()).isEqualTo(0);
+            assertThat(stats.maxHealthScore()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("성공 - idle Set에 여러 에이전트 있을 때 health 평균 계산")
+        void shouldCalculateAverageHealth() {
+            // Given
+            RSet idleSetMock = org.mockito.Mockito.mock(RSet.class);
+            RSet emptySet = org.mockito.Mockito.mock(RSet.class);
+
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSetMock);
+            given(redissonClient.getSet(eq(BORROWED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(emptySet);
+            given(redissonClient.getSet(eq(COOLDOWN_SET_KEY), any(StringCodec.class)))
+                    .willReturn(emptySet);
+            given(redissonClient.getSet(eq(SESSION_REQUIRED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(emptySet);
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(emptySet);
+
+            given(idleSetMock.size()).willReturn(2);
+            given(emptySet.size()).willReturn(0);
+            given(idleSetMock.readAll()).willReturn(Set.of("1", "2"));
+
+            RMap healthMap80 = org.mockito.Mockito.mock(RMap.class);
+            RMap healthMap100 = org.mockito.Mockito.mock(RMap.class);
+            given(healthMap80.get("healthScore")).willReturn("80");
+            given(healthMap100.get("healthScore")).willReturn("100");
+
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "1"), any(StringCodec.class)))
+                    .willReturn(healthMap80);
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "2"), any(StringCodec.class)))
+                    .willReturn(healthMap100);
+
+            // When
+            var stats = adapter.getPoolStats();
+
+            // Then
+            assertThat(stats.avgHealthScore()).isEqualTo(90.0);
+            assertThat(stats.minHealthScore()).isEqualTo(80);
+            assertThat(stats.maxHealthScore()).isEqualTo(100);
+        }
+    }
+
+    @Nested
     @DisplayName("getSessionRequiredUserAgents - 세션 필요 목록 조회")
     class GetSessionRequiredUserAgentsTests {
 
@@ -315,6 +390,252 @@ class UserAgentPoolCacheQueryAdapterTest {
             // Then
             assertThat(result).hasSize(2);
             assertThat(result).extracting(UserAgentId::value).containsExactlyInAnyOrder(3L, 7L);
+        }
+    }
+
+    @Nested
+    @DisplayName("getRecoverableUserAgents - 복구 가능한 UserAgent 조회")
+    class GetRecoverableUserAgentsTests {
+
+        @Test
+        @DisplayName("성공 - suspendedAt이 1시간 이전이고 healthScore가 임계값 이상이면 복구 가능")
+        void shouldReturnRecoverableUserAgents() {
+            // Given
+            // FIXED_NOW = 2024-01-15T10:00:00Z, threshold = 1시간 전 = 09:00:00Z
+            // suspendedAt이 08:00:00Z (2시간 전) -> 복구 가능
+            long suspendedAtMillis = FIXED_NOW.toEpochMilli() - (2 * 3600 * 1000L);
+
+            RSet<Object> suspendedSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(suspendedSet);
+            given(suspendedSet.readAll()).willReturn(Set.of("1"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "1"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("suspendedAt")).willReturn(String.valueOf(suspendedAtMillis));
+            given(agentMap.get("healthScore")).willReturn("50"); // 임계값(30) 이상
+
+            // When
+            List<UserAgentId> result = adapter.getRecoverableUserAgents();
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).value()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("성공 - suspendedAt이 1시간 이내이면 복구 대상 아님")
+        void shouldNotReturnRecentlySuspendedAgents() {
+            // Given
+            // suspendedAt이 30분 전 (임계값 이내) -> 복구 불가
+            long recentSuspendedAt = FIXED_NOW.toEpochMilli() - (30 * 60 * 1000L);
+
+            RSet<Object> suspendedSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(suspendedSet);
+            given(suspendedSet.readAll()).willReturn(Set.of("2"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "2"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("suspendedAt")).willReturn(String.valueOf(recentSuspendedAt));
+            given(agentMap.get("healthScore")).willReturn("50");
+
+            // When
+            List<UserAgentId> result = adapter.getRecoverableUserAgents();
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - healthScore가 임계값 미만이면 복구 대상 아님")
+        void shouldNotReturnLowHealthAgents() {
+            // Given
+            long oldSuspendedAt = FIXED_NOW.toEpochMilli() - (2 * 3600 * 1000L);
+
+            RSet<Object> suspendedSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(suspendedSet);
+            given(suspendedSet.readAll()).willReturn(Set.of("3"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "3"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("suspendedAt")).willReturn(String.valueOf(oldSuspendedAt));
+            given(agentMap.get("healthScore")).willReturn("10"); // 임계값(30) 미만
+
+            // When
+            List<UserAgentId> result = adapter.getRecoverableUserAgents();
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - suspendedAt이 null 또는 '0'이면 건너뜀")
+        void shouldSkipNullOrZeroSuspendedAt() {
+            // Given
+            RSet<Object> suspendedSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMapNull = org.mockito.Mockito.mock(RMap.class);
+            RMap agentMapZero = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(suspendedSet);
+            given(suspendedSet.readAll()).willReturn(Set.of("4", "5"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "4"), any(StringCodec.class)))
+                    .willReturn(agentMapNull);
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "5"), any(StringCodec.class)))
+                    .willReturn(agentMapZero);
+            given(agentMapNull.get("suspendedAt")).willReturn(null);
+            given(agentMapZero.get("suspendedAt")).willReturn("0");
+
+            // When
+            List<UserAgentId> result = adapter.getRecoverableUserAgents();
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - healthScore 누락 시 0으로 처리하여 복구 대상 제외")
+        void shouldUseZeroHealthScoreWhenMissing() {
+            // Given
+            long oldSuspendedAt = FIXED_NOW.toEpochMilli() - (2 * 3600 * 1000L);
+
+            RSet<Object> suspendedSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(SUSPENDED_SET_KEY), any(StringCodec.class)))
+                    .willReturn(suspendedSet);
+            given(suspendedSet.readAll()).willReturn(Set.of("6"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "6"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("suspendedAt")).willReturn(String.valueOf(oldSuspendedAt));
+            given(agentMap.get("healthScore")).willReturn(null); // null -> 0으로 처리
+
+            // When
+            List<UserAgentId> result = adapter.getRecoverableUserAgents();
+
+            // Then
+            assertThat(result).isEmpty(); // healthScore=0 < suspensionThreshold=30
+        }
+    }
+
+    @Nested
+    @DisplayName("getSessionExpiringUserAgents - 세션 만료 임박 UserAgent 조회")
+    class GetSessionExpiringUserAgentsTests {
+
+        @Test
+        @DisplayName("성공 - 세션 만료 임박 UserAgent 반환")
+        void shouldReturnSessionExpiringUserAgents() {
+            // Given
+            int bufferMinutes = 10;
+            // threshold = FIXED_NOW + 10분 = 10:10:00Z
+            // sessionExpiresAt = 10:05:00Z (threshold 이내이므로 만료 임박)
+            long expiringSessionAt = FIXED_NOW.toEpochMilli() + (5 * 60 * 1000L);
+
+            RSet<Object> idleSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSet);
+            given(idleSet.readAll()).willReturn(Set.of("1"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "1"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("sessionExpiresAt")).willReturn(String.valueOf(expiringSessionAt));
+
+            // When
+            List<UserAgentId> result = adapter.getSessionExpiringUserAgents(bufferMinutes);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).value()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("성공 - 세션이 충분히 남아있는 UserAgent는 제외")
+        void shouldExcludeNonExpiringUserAgents() {
+            // Given
+            int bufferMinutes = 10;
+            // threshold = FIXED_NOW + 10분
+            // sessionExpiresAt = FIXED_NOW + 30분 (threshold 이후이므로 여유 있음)
+            long futureSessionAt = FIXED_NOW.toEpochMilli() + (30 * 60 * 1000L);
+
+            RSet<Object> idleSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSet);
+            given(idleSet.readAll()).willReturn(Set.of("2"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "2"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("sessionExpiresAt")).willReturn(String.valueOf(futureSessionAt));
+
+            // When
+            List<UserAgentId> result = adapter.getSessionExpiringUserAgents(bufferMinutes);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - sessionExpiresAt이 '0'이면 건너뜀")
+        void shouldSkipZeroSessionExpiresAt() {
+            // Given
+            RSet<Object> idleSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSet);
+            given(idleSet.readAll()).willReturn(Set.of("3"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "3"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("sessionExpiresAt")).willReturn("0");
+
+            // When
+            List<UserAgentId> result = adapter.getSessionExpiringUserAgents(5);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - sessionExpiresAt이 null이면 건너뜀")
+        void shouldSkipNullSessionExpiresAt() {
+            // Given
+            RSet<Object> idleSet = org.mockito.Mockito.mock(RSet.class);
+            RMap agentMap = org.mockito.Mockito.mock(RMap.class);
+
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSet);
+            given(idleSet.readAll()).willReturn(Set.of("4"));
+            given(redissonClient.getMap(eq(POOL_KEY_PREFIX + "4"), any(StringCodec.class)))
+                    .willReturn(agentMap);
+            given(agentMap.get("sessionExpiresAt")).willReturn(null);
+
+            // When
+            List<UserAgentId> result = adapter.getSessionExpiringUserAgents(5);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - Idle Set이 비어있으면 빈 목록 반환")
+        void shouldReturnEmptyListWhenIdleSetIsEmpty() {
+            // Given
+            RSet<Object> idleSet = org.mockito.Mockito.mock(RSet.class);
+            given(redissonClient.getSet(eq(IDLE_SET_KEY), any(StringCodec.class)))
+                    .willReturn(idleSet);
+            given(idleSet.readAll()).willReturn(Set.of());
+
+            // When
+            List<UserAgentId> result = adapter.getSessionExpiringUserAgents(5);
+
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 

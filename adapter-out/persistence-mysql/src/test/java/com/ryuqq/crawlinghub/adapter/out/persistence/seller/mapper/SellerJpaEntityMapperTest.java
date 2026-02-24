@@ -5,8 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.adapter.out.persistence.seller.entity.SellerJpaEntity;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -201,13 +205,57 @@ class SellerJpaEntityMapperTest {
             assertThat(restored.getCreatedAt())
                     .isCloseTo(
                             domain.getCreatedAt(),
-                            org.assertj.core.api.Assertions.within(
-                                    1, java.time.temporal.ChronoUnit.SECONDS));
+                            org.assertj.core.api.Assertions.within(1, ChronoUnit.SECONDS));
             assertThat(restored.getUpdatedAt())
                     .isCloseTo(
                             domain.getUpdatedAt(),
-                            org.assertj.core.api.Assertions.within(
-                                    1, java.time.temporal.ChronoUnit.SECONDS));
+                            org.assertj.core.api.Assertions.within(1, ChronoUnit.SECONDS));
+        }
+
+        @Test
+        @DisplayName("성공 - null createdAt/updatedAt Entity 변환 시 null Instant 반환")
+        void shouldHandleNullTimesInEntity() {
+            // Given - createdAt, updatedAt이 null인 Entity (toInstant null 분기 커버)
+            SellerJpaEntity entity =
+                    SellerJpaEntity.of(
+                            1L,
+                            "mustit-seller",
+                            "commerce-seller",
+                            SellerStatus.ACTIVE,
+                            0,
+                            null, // createdAt null
+                            null); // updatedAt null
+
+            // When
+            Seller domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain).isNotNull();
+            assertThat(domain.getCreatedAt()).isNull();
+            assertThat(domain.getUpdatedAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - null createdAt/updatedAt Domain 변환 시 null LocalDateTime 반환")
+        void shouldHandleNullTimesInDomain() {
+            // Given - createdAt, updatedAt이 null인 Domain (toLocalDateTime null 분기 커버)
+            Seller domain =
+                    Seller.reconstitute(
+                            SellerId.of(1L),
+                            MustItSellerName.of("mustit-seller"),
+                            SellerName.of("commerce-seller"),
+                            SellerStatus.ACTIVE,
+                            0,
+                            null, // createdAt null
+                            null); // updatedAt null
+
+            // When
+            SellerJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity).isNotNull();
+            assertThat(entity.getCreatedAt()).isNull();
+            assertThat(entity.getUpdatedAt()).isNull();
         }
     }
 }

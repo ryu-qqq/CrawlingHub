@@ -224,4 +224,86 @@ class UserAgentQueryAdapterTest {
             assertThat(result).hasSize(1);
         }
     }
+
+    @Nested
+    @DisplayName("findByIds 테스트")
+    class FindByIdsTests {
+
+        @Test
+        @DisplayName("성공 - 여러 ID로 UserAgent 조회")
+        void shouldFindByIds() {
+            // Given - 여러 ID로 UserAgent 배치 조회
+            UserAgentId id1 = UserAgentId.of(1L);
+            UserAgentId id2 = UserAgentId.of(2L);
+            List<UserAgentId> userAgentIds = List.of(id1, id2);
+            LocalDateTime now = LocalDateTime.now();
+
+            UserAgentJpaEntity entity1 =
+                    UserAgentJpaEntity.of(
+                            1L,
+                            "encrypted-token-1",
+                            "Mozilla/5.0",
+                            "DESKTOP",
+                            "GENERIC",
+                            "LINUX",
+                            "5.10",
+                            "CHROME",
+                            "120.0.0.0",
+                            UserAgentStatus.IDLE,
+                            100,
+                            null,
+                            0,
+                            null,
+                            0,
+                            now,
+                            now);
+            UserAgentJpaEntity entity2 =
+                    UserAgentJpaEntity.of(
+                            2L,
+                            "encrypted-token-2",
+                            "Mozilla/5.0",
+                            "MOBILE",
+                            "APPLE",
+                            "IOS",
+                            "17.0",
+                            "SAFARI",
+                            "17.0",
+                            UserAgentStatus.IDLE,
+                            80,
+                            null,
+                            0,
+                            null,
+                            0,
+                            now,
+                            now);
+
+            UserAgent domain1 = UserAgentFixture.anAvailableUserAgent();
+            UserAgent domain2 = UserAgentFixture.anAvailableUserAgent();
+
+            given(queryDslRepository.findByIds(List.of(1L, 2L)))
+                    .willReturn(List.of(entity1, entity2));
+            given(mapper.toDomain(entity1)).willReturn(domain1);
+            given(mapper.toDomain(entity2)).willReturn(domain2);
+
+            // When
+            List<UserAgent> result = queryAdapter.findByIds(userAgentIds);
+
+            // Then - 2개의 UserAgent가 반환되어야 함
+            assertThat(result).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("성공 - 빈 ID 목록으로 조회 시 빈 리스트 반환")
+        void shouldReturnEmptyListWhenEmptyIds() {
+            // Given
+            List<UserAgentId> emptyIds = List.of();
+            given(queryDslRepository.findByIds(List.of())).willReturn(List.of());
+
+            // When
+            List<UserAgent> result = queryAdapter.findByIds(emptyIds);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
 }

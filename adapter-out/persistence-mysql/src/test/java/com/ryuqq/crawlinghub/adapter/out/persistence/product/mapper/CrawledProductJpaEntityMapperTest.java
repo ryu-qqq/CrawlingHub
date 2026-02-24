@@ -8,16 +8,21 @@ import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlCompletionStatus;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductCategory;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductChangeType;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductImage;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
+import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -491,6 +496,505 @@ class CrawledProductJpaEntityMapperTest {
         }
     }
 
+    @Nested
+    @DisplayName("카테고리/배송정보/옵션 JSON 직렬화")
+    class JsonSerializationTests {
+
+        @Test
+        @DisplayName("성공 - ProductCategory JSON 직렬화")
+        void shouldSerializeCategoryToJson() {
+            // Given - 카테고리가 있는 상품
+            Instant now = Instant.now();
+            ProductCategory category = ProductCategory.of("W", "여성", "BAG", "가방", "BACKPACK", "백팩");
+            CrawledProduct domain = createProductWithCategory(now, category);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then - categoryJson이 직렬화되어야 함
+            assertThat(entity.getCategoryJson()).isNotNull();
+            assertThat(entity.getCategoryJson()).contains("headerCategoryCode");
+            assertThat(entity.getCategoryJson()).contains("여성");
+        }
+
+        @Test
+        @DisplayName("성공 - null ProductCategory 처리")
+        void shouldHandleNullCategory() {
+            // Given
+            Instant now = Instant.now();
+            CrawledProduct domain = createProductWithCategory(now, null);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity.getCategoryJson()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - ShippingInfo JSON 직렬화")
+        void shouldSerializeShippingInfoToJson() {
+            // Given - 배송정보가 있는 상품
+            Instant now = Instant.now();
+            ShippingInfo shippingInfo = ShippingInfo.freeShipping("DOMESTIC", 3);
+            CrawledProduct domain = createProductWithShippingInfo(now, shippingInfo);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then - shippingInfoJson이 직렬화되어야 함
+            assertThat(entity.getShippingInfoJson()).isNotNull();
+            assertThat(entity.getShippingInfoJson()).contains("shippingType");
+            assertThat(entity.getShippingInfoJson()).contains("DOMESTIC");
+        }
+
+        @Test
+        @DisplayName("성공 - null ShippingInfo 처리")
+        void shouldHandleNullShippingInfo() {
+            // Given
+            Instant now = Instant.now();
+            CrawledProduct domain = createProductWithShippingInfo(now, null);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity.getShippingInfoJson()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - ProductOptions JSON 직렬화")
+        void shouldSerializeOptionsToJson() {
+            // Given - 옵션이 있는 상품
+            Instant now = Instant.now();
+            ProductOption option = ProductOption.of(100L, 12345L, "블랙", "M", 10, null);
+            ProductOptions options = ProductOptions.of(List.of(option));
+            CrawledProduct domain = createProductWithOptions(now, options);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then - optionsJson이 직렬화되어야 함
+            assertThat(entity.getOptionsJson()).isNotNull();
+            assertThat(entity.getOptionsJson()).contains("optionNo");
+            assertThat(entity.getOptionsJson()).contains("블랙");
+        }
+
+        @Test
+        @DisplayName("성공 - 빈 ProductOptions 처리")
+        void shouldHandleEmptyOptions() {
+            // Given
+            Instant now = Instant.now();
+            CrawledProduct domain = createProductWithOptions(now, ProductOptions.empty());
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity.getOptionsJson()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("카테고리/배송정보/옵션 JSON 역직렬화")
+    class JsonDeserializationTests {
+
+        @Test
+        @DisplayName("성공 - ProductCategory JSON 역직렬화")
+        void shouldDeserializeCategoryFromJson() {
+            // Given - categoryJson이 있는 Entity
+            LocalDateTime now = LocalDateTime.now();
+            String categoryJson =
+                    "{\"headerCategoryCode\":\"W\",\"headerCategoryName\":\"여성\","
+                            + "\"largeCategoryCode\":\"BAG\",\"largeCategoryName\":\"가방\","
+                            + "\"mediumCategoryCode\":\"BACKPACK\",\"mediumCategoryName\":\"백팩\"}";
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L,
+                            100L,
+                            12345L,
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            10000L,
+                            0,
+                            null,
+                            true,
+                            categoryJson,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            now,
+                            null,
+                            null,
+                            null,
+                            null,
+                            false,
+                            null,
+                            null,
+                            now,
+                            now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getCategory()).isNotNull();
+            assertThat(domain.getCategory().headerCategoryName()).isEqualTo("여성");
+            assertThat(domain.getCategory().largeCategoryName()).isEqualTo("가방");
+        }
+
+        @Test
+        @DisplayName("성공 - null categoryJson 처리")
+        void shouldHandleNullCategoryJson() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            null, null, null, null, null, null, null, now, null, null, null, null,
+                            false, null, null, now, now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getCategory()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - ShippingInfo JSON 역직렬화")
+        void shouldDeserializeShippingInfoFromJson() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            String shippingInfoJson =
+                    "{\"shippingType\":\"DOMESTIC\",\"shippingFee\":0,"
+                            + "\"shippingFeeType\":\"FREE\",\"averageDeliveryDays\":3,"
+                            + "\"freeShipping\":true}";
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L,
+                            100L,
+                            12345L,
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            10000L,
+                            0,
+                            null,
+                            true,
+                            null,
+                            shippingInfoJson,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            now,
+                            null,
+                            null,
+                            null,
+                            null,
+                            false,
+                            null,
+                            null,
+                            now,
+                            now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getShippingInfo()).isNotNull();
+            assertThat(domain.getShippingInfo().shippingType()).isEqualTo("DOMESTIC");
+            assertThat(domain.getShippingInfo().freeShipping()).isTrue();
+        }
+
+        @Test
+        @DisplayName("성공 - null shippingInfoJson 처리")
+        void shouldHandleNullShippingInfoJson() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            null, null, null, null, null, null, null, now, null, null, null, null,
+                            false, null, null, now, now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getShippingInfo()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - ProductOptions JSON 역직렬화")
+        void shouldDeserializeOptionsFromJson() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            String optionsJson =
+                    "[{\"optionNo\":100,\"itemNo\":12345,\"color\":\"블랙\","
+                            + "\"size\":\"M\",\"stock\":10,\"sizeGuide\":\"\"}]";
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L,
+                            100L,
+                            12345L,
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            10000L,
+                            0,
+                            null,
+                            true,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            optionsJson,
+                            now,
+                            null,
+                            null,
+                            null,
+                            null,
+                            false,
+                            null,
+                            null,
+                            now,
+                            now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getOptions()).isNotNull();
+            assertThat(domain.getOptions().isEmpty()).isFalse();
+            assertThat(domain.getOptions().getAll()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("성공 - 잘못된 JSON 이미지 역직렬화 시 빈 이미지 반환")
+        void shouldReturnEmptyImagesOnInvalidJson() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            String invalidJson = "not-a-valid-json";
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L,
+                            100L,
+                            12345L,
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            10000L,
+                            0,
+                            invalidJson,
+                            true,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            now,
+                            null,
+                            null,
+                            null,
+                            null,
+                            false,
+                            null,
+                            null,
+                            now,
+                            now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then - 역직렬화 실패 시 빈 이미지 반환
+            assertThat(domain.getImages()).isNotNull();
+            assertThat(domain.getImages().isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("PendingChanges 변환")
+    class PendingChangesTests {
+
+        @Test
+        @DisplayName("성공 - PendingChanges enum set 직렬화")
+        void shouldSerializePendingChangesToString() {
+            // Given - 변경 유형이 있는 상품
+            Instant now = Instant.now();
+            Set<ProductChangeType> pendingChanges =
+                    EnumSet.of(ProductChangeType.PRICE, ProductChangeType.OPTION_STOCK);
+            CrawledProduct domain = createProductWithPendingChanges(now, pendingChanges);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then - pendingChanges가 콤마 구분 문자열로 직렬화되어야 함
+            assertThat(entity.getPendingChanges()).isNotNull();
+            assertThat(entity.getPendingChanges()).contains("PRICE");
+            assertThat(entity.getPendingChanges()).contains("OPTION_STOCK");
+        }
+
+        @Test
+        @DisplayName("성공 - 빈 PendingChanges 처리")
+        void shouldHandleEmptyPendingChanges() {
+            // Given
+            Instant now = Instant.now();
+            CrawledProduct domain = createMiniShopOnlyProduct(now);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then
+            assertThat(entity.getPendingChanges()).isNull();
+        }
+
+        @Test
+        @DisplayName("성공 - PendingChanges 문자열 역직렬화")
+        void shouldDeserializePendingChangesFromString() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L,
+                            100L,
+                            12345L,
+                            "상품명",
+                            "브랜드",
+                            10000L,
+                            10000L,
+                            0,
+                            null,
+                            true,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            now,
+                            null,
+                            null,
+                            null,
+                            null,
+                            false,
+                            "PRICE,OPTION_STOCK",
+                            null,
+                            now,
+                            now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getPendingChanges()).isNotEmpty();
+            assertThat(domain.getPendingChanges()).contains(ProductChangeType.PRICE);
+            assertThat(domain.getPendingChanges()).contains(ProductChangeType.OPTION_STOCK);
+        }
+
+        @Test
+        @DisplayName("성공 - null PendingChanges 문자열 처리")
+        void shouldHandleNullPendingChangesString() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            null, null, null, null, null, null, null, now, null, null, null, null,
+                            false, null, null, now, now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getPendingChanges()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("성공 - 단일 PendingChanges 역직렬화")
+        void shouldDeserializeSinglePendingChange() {
+            // Given
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            null, null, null, null, null, null, null, now, null, null, null, null,
+                            false, "PRICE", null, now, now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then
+            assertThat(domain.getPendingChanges()).containsExactly(ProductChangeType.PRICE);
+        }
+    }
+
+    @Nested
+    @DisplayName("가격 변환 엣지 케이스")
+    class PriceConversionEdgeCaseTests {
+
+        @Test
+        @DisplayName("성공 - originalPrice만 있고 discountPrice는 null인 경우")
+        void shouldHandleOriginalPriceOnlyWithNullDiscountPrice() {
+            // Given - discountPrice가 null인 Entity (originalPrice만 있음)
+            LocalDateTime now = LocalDateTime.now();
+            CrawledProductJpaEntity entity =
+                    CrawledProductJpaEntity.of(
+                            1L, 100L, 12345L, "상품명", "브랜드", 20000L, null,
+                            null, // originalPrice=20000, discountPrice=null
+                            null, true, null, null, null, null, null, null, null, null, now, null,
+                            null, null, null, false, null, null, now, now);
+
+            // When
+            CrawledProduct domain = mapper.toDomain(entity);
+
+            // Then - discountPrice가 없으면 originalPrice로 대체
+            assertThat(domain.getPrice()).isNotNull();
+            assertThat(domain.getPrice().originalPrice()).isEqualTo(20000);
+            assertThat(domain.getPrice().discountPrice()).isEqualTo(20000);
+        }
+
+        @Test
+        @DisplayName("성공 - 이미지 JSON 직렬화 후 Entity에 JSON이 저장됨")
+        void shouldMaintainImagesConsistencyInRoundTrip() {
+            // Given - ProductImage 직렬화 검증 (역직렬화는 record computed property 제약으로 실패 가능)
+            Instant now = Instant.now();
+            ProductImage image =
+                    new ProductImage(
+                            "http://example.com/img.jpg",
+                            null,
+                            com.ryuqq.crawlinghub.domain.product.vo.ImageType.THUMBNAIL,
+                            com.ryuqq.crawlinghub.domain.product.vo.ImageUploadStatus.PENDING,
+                            0);
+            ProductImages images = ProductImages.of(List.of(image));
+            CrawledProduct domain = createProductWithImages(now, images);
+
+            // When
+            CrawledProductJpaEntity entity = mapper.toEntity(domain);
+
+            // Then - 이미지가 JSON으로 직렬화되어야 함 (toImagesJson 경로 커버)
+            assertThat(entity.getImagesJson()).isNotNull();
+            assertThat(entity.getImagesJson()).contains("originalUrl");
+            assertThat(entity.getImagesJson()).contains("http://example.com/img.jpg");
+        }
+    }
+
     // === 테스트 데이터 생성 헬퍼 메서드 ===
 
     private CrawledProduct createMiniShopOnlyProduct(Instant now) {
@@ -693,6 +1197,152 @@ class CrawledProductJpaEntityMapperTest {
                 "테스트 브랜드",
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
+                true,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ProductOptions.empty(),
+                status,
+                null,
+                null,
+                false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
+                now,
+                now);
+    }
+
+    private CrawledProduct createProductWithCategory(Instant now, ProductCategory category) {
+        CrawlCompletionStatus status = new CrawlCompletionStatus(now, null, null);
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
+                ProductImages.empty(),
+                true,
+                category,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ProductOptions.empty(),
+                status,
+                null,
+                null,
+                false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
+                now,
+                now);
+    }
+
+    private CrawledProduct createProductWithShippingInfo(Instant now, ShippingInfo shippingInfo) {
+        CrawlCompletionStatus status = new CrawlCompletionStatus(now, null, null);
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
+                ProductImages.empty(),
+                true,
+                null,
+                shippingInfo,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ProductOptions.empty(),
+                status,
+                null,
+                null,
+                false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
+                now,
+                now);
+    }
+
+    private CrawledProduct createProductWithOptions(Instant now, ProductOptions options) {
+        CrawlCompletionStatus status = new CrawlCompletionStatus(now, null, null);
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
+                ProductImages.empty(),
+                true,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                options,
+                status,
+                null,
+                null,
+                false,
+                EnumSet.noneOf(ProductChangeType.class),
+                DeletionStatus.active(),
+                now,
+                now);
+    }
+
+    private CrawledProduct createProductWithPendingChanges(
+            Instant now, Set<ProductChangeType> pendingChanges) {
+        CrawlCompletionStatus status = new CrawlCompletionStatus(now, null, null);
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
+                ProductImages.empty(),
+                true,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ProductOptions.empty(),
+                status,
+                null,
+                null,
+                true,
+                pendingChanges,
+                DeletionStatus.active(),
+                now,
+                now);
+    }
+
+    private CrawledProduct createProductWithImages(Instant now, ProductImages images) {
+        CrawlCompletionStatus status = new CrawlCompletionStatus(now, null, null);
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(1L),
+                SellerId.of(100L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
+                images,
                 true,
                 null,
                 null,

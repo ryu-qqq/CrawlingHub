@@ -404,5 +404,52 @@ class CrawlTaskJpaEntityMapperTest {
                             domain.getUpdatedAt(),
                             org.assertj.core.api.Assertions.within(1, ChronoUnit.SECONDS));
         }
+
+        @Test
+        @DisplayName("성공 - null 시간 필드 처리 (createdAt/updatedAt null)")
+        void shouldHandleNullTimeFields() {
+            // Given - createdAt/updatedAt이 null인 Entity
+            CrawlTaskJpaEntity entity =
+                    CrawlTaskJpaEntity.of(
+                            1L,
+                            100L,
+                            200L,
+                            CrawlTaskType.MINI_SHOP,
+                            "https://api.example.com",
+                            "/v1/products",
+                            null,
+                            CrawlTaskStatus.WAITING,
+                            0,
+                            null, // createdAt null
+                            null); // updatedAt null
+
+            // When
+            CrawlTask domain = mapper.toDomain(entity);
+
+            // Then - null 시간 필드가 허용되어야 함
+            assertThat(domain).isNotNull();
+            assertThat(domain.getCreatedAt()).isNull();
+            assertThat(domain.getUpdatedAt()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Query Params 직렬화/역직렬화")
+    class QueryParamsSerializationTests {
+
+        @Test
+        @DisplayName("성공 - Query Params가 있는 경우 JSON으로 직렬화")
+        void shouldSerializeQueryParamsToJson() {
+            // Given - query params가 있는 Domain
+            CrawlTask domain = CrawlTaskFixture.aWaitingTask();
+
+            // When
+            CrawlTaskJpaEntity entity = mapper.toEntity(domain);
+            CrawlTask restored = mapper.toDomain(entity);
+
+            // Then - query params가 동일하게 유지되어야 함
+            assertThat(restored.getEndpoint().queryParams())
+                    .isEqualTo(domain.getEndpoint().queryParams());
+        }
     }
 }

@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.adapter.CrawledProductSyncOutboxQueryAdapter;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper.ProductSyncOutboxJpaEntityMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.repository.ProductSyncOutboxQueryDslRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.adapter.CrawledProductSyncOutboxQueryAdapter;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.ProductSyncOutboxJpaEntityMapper;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.ProductSyncOutboxQueryDslRepository;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;
@@ -414,5 +414,97 @@ class CrawledProductSyncOutboxQueryAdapterTest {
 
         // Then
         assertThat(result).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("성공 - findFailedOlderThan 호출")
+    void shouldFindFailedOlderThan() {
+        // Given - 일정 시간 이상 경과한 FAILED 상태 Outbox 조회
+        int limit = 10;
+        int delaySeconds = 30;
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        100L,
+                        12345L,
+                        SyncType.CREATE,
+                        "sync-key-123",
+                        null,
+                        ProductOutboxStatus.FAILED,
+                        2,
+                        "Timeout",
+                        now,
+                        now);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedFailed();
+
+        given(queryDslRepository.findFailedOlderThan(limit, delaySeconds))
+                .willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<CrawledProductSyncOutbox> result =
+                queryAdapter.findFailedOlderThan(limit, delaySeconds);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - findStaleProcessing 호출")
+    void shouldFindStaleProcessing() {
+        // Given - 타임아웃된 PROCESSING 상태 Outbox 조회
+        int limit = 5;
+        long timeoutSeconds = 300L;
+        LocalDateTime now = LocalDateTime.now();
+        ProductSyncOutboxJpaEntity entity =
+                ProductSyncOutboxJpaEntity.of(
+                        1L,
+                        1L,
+                        100L,
+                        12345L,
+                        SyncType.UPDATE_PRICE,
+                        "sync-key-456",
+                        null,
+                        ProductOutboxStatus.PROCESSING,
+                        0,
+                        null,
+                        now,
+                        null);
+        CrawledProductSyncOutbox domain = CrawledProductSyncOutboxFixture.aReconstitutedPending();
+
+        given(queryDslRepository.findStaleProcessing(limit, timeoutSeconds))
+                .willReturn(List.of(entity));
+        given(mapper.toDomain(entity)).willReturn(domain);
+
+        // When
+        List<CrawledProductSyncOutbox> result =
+                queryAdapter.findStaleProcessing(limit, timeoutSeconds);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("성공 - existsByProductIdAndSyncTypeAndStatuses 호출")
+    void shouldCheckExistsByProductIdAndSyncTypeAndStatuses() {
+        // Given - 특정 상품의 SyncType과 상태로 존재 여부 확인
+        Long productId = 1L;
+        SyncType syncType = SyncType.CREATE;
+        List<ProductOutboxStatus> statuses =
+                List.of(ProductOutboxStatus.PENDING, ProductOutboxStatus.PROCESSING);
+
+        given(
+                        queryDslRepository.existsByProductIdAndSyncTypeAndStatuses(
+                                productId, syncType, statuses))
+                .willReturn(true);
+
+        // When
+        boolean result =
+                queryAdapter.existsByProductIdAndSyncTypeAndStatuses(productId, syncType, statuses);
+
+        // Then - 존재 여부가 true여야 함
+        assertThat(result).isTrue();
     }
 }

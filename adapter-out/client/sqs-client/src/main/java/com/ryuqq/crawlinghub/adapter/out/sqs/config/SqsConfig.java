@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
@@ -25,7 +27,10 @@ public class SqsConfig {
         var builder = SqsClient.builder().region(Region.of(properties.getRegion()));
 
         if (properties.getEndpoint() != null && !properties.getEndpoint().isBlank()) {
-            builder.endpointOverride(URI.create(properties.getEndpoint()));
+            builder.endpointOverride(URI.create(properties.getEndpoint()))
+                    .credentialsProvider(
+                            StaticCredentialsProvider.create(
+                                    AwsBasicCredentials.create("test", "test")));
         }
 
         return builder.build();

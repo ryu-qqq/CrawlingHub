@@ -120,4 +120,40 @@ class DomainExceptionTest {
         // Then
         assertThat(exception.args()).isUnmodifiable();
     }
+
+    @Test
+    @DisplayName("ErrorCode + cause로 DomainException 생성 성공")
+    void shouldCreateDomainExceptionWithCause() {
+        // Given
+        ErrorCode errorCode = TestErrorCode.TEST_ERROR;
+        RuntimeException cause = new RuntimeException("원인 예외");
+
+        // When
+        DomainException exception = new TestCauseDomainException(errorCode, cause);
+
+        // Then
+        assertThat(exception.getCause()).isEqualTo(cause);
+        assertThat(exception.code()).isEqualTo(errorCode.getCode());
+        assertThat(exception.getMessage()).isEqualTo(errorCode.getMessage());
+    }
+
+    @Test
+    @DisplayName("ErrorCode만으로 DomainException 생성 시 httpStatus 반환")
+    void shouldReturnHttpStatusFromErrorCode() {
+        // Given
+        ErrorCode errorCode = TestErrorCode.USER_NOT_FOUND;
+
+        // When
+        DomainException exception = DomainExceptionFixture.aDomainException(errorCode);
+
+        // Then
+        assertThat(exception.httpStatus()).isEqualTo(404);
+    }
+
+    /** cause를 포함하는 테스트용 DomainException */
+    static final class TestCauseDomainException extends DomainException {
+        TestCauseDomainException(ErrorCode errorCode, Throwable cause) {
+            super(errorCode, cause);
+        }
+    }
 }

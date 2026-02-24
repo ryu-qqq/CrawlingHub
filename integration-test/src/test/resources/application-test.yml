@@ -98,6 +98,14 @@ aws:
 # ===============================================
 # Management (Disable for tests)
 # ===============================================
+# ===============================================
+# Security Configuration
+# ===============================================
+security:
+  service-token:
+    enabled: true
+    secret: test-service-token
+
 management:
   endpoints:
     web:

@@ -9,13 +9,17 @@ import com.ryuqq.crawlinghub.adapter.out.persistence.task.entity.CrawlTaskJpaEnt
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.mapper.CrawlTaskJpaEntityMapper;
 import com.ryuqq.crawlinghub.adapter.out.persistence.task.repository.CrawlTaskQueryDslRepository;
 import com.ryuqq.crawlinghub.domain.schedule.id.CrawlSchedulerId;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.id.CrawlTaskId;
 import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskCriteria;
+import com.ryuqq.crawlinghub.domain.task.query.CrawlTaskStatisticsCriteria;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskStatus;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -249,6 +253,185 @@ class CrawlTaskQueryAdapterTest {
 
             // Then
             assertThat(result).isEqualTo(15L);
+        }
+    }
+
+    @Nested
+    @DisplayName("countByStatus 테스트")
+    class CountByStatusTests {
+
+        @Test
+        @DisplayName("성공 - 상태별 CrawlTask 개수 조회")
+        void shouldCountByStatus() {
+            // Given - 통계 조회 조건
+            CrawlTaskStatisticsCriteria criteria =
+                    new CrawlTaskStatisticsCriteria(null, null, null, null);
+            Map<CrawlTaskStatus, Long> statusCounts = new EnumMap<>(CrawlTaskStatus.class);
+            statusCounts.put(CrawlTaskStatus.WAITING, 3L);
+            statusCounts.put(CrawlTaskStatus.RUNNING, 2L);
+            statusCounts.put(CrawlTaskStatus.SUCCESS, 10L);
+
+            given(queryDslRepository.countByStatus(criteria)).willReturn(statusCounts);
+
+            // When
+            Map<CrawlTaskStatus, Long> result = queryAdapter.countByStatus(criteria);
+
+            // Then - 상태별 개수가 반환되어야 함
+            assertThat(result).containsEntry(CrawlTaskStatus.WAITING, 3L);
+            assertThat(result).containsEntry(CrawlTaskStatus.RUNNING, 2L);
+            assertThat(result).containsEntry(CrawlTaskStatus.SUCCESS, 10L);
+        }
+    }
+
+    @Nested
+    @DisplayName("findLatestBySellerId 테스트")
+    class FindLatestBySellerIdTests {
+
+        @Test
+        @DisplayName("성공 - 셀러별 최근 태스크 조회")
+        void shouldFindLatestBySellerId() {
+            // Given - 셀러의 최근 태스크 조회
+            SellerId sellerId = SellerId.of(1L);
+            LocalDateTime now = LocalDateTime.now();
+            CrawlTaskJpaEntity entity =
+                    CrawlTaskJpaEntity.of(
+                            1L,
+                            1L,
+                            1L,
+                            CrawlTaskType.MINI_SHOP,
+                            "https://example.com",
+                            "/api",
+                            "{}",
+                            CrawlTaskStatus.SUCCESS,
+                            0,
+                            now,
+                            now);
+            CrawlTask domain = CrawlTaskFixture.aSuccessTask();
+
+            given(queryDslRepository.findLatestBySellerId(1L)).willReturn(Optional.of(entity));
+            given(mapper.toDomain(entity)).willReturn(domain);
+
+            // When
+            Optional<CrawlTask> result = queryAdapter.findLatestBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isPresent();
+        }
+
+        @Test
+        @DisplayName("성공 - 최근 태스크 없을 때 빈 Optional 반환")
+        void shouldReturnEmptyWhenNoLatestTask() {
+            // Given
+            SellerId sellerId = SellerId.of(999L);
+            given(queryDslRepository.findLatestBySellerId(999L)).willReturn(Optional.empty());
+
+            // When
+            Optional<CrawlTask> result = queryAdapter.findLatestBySellerId(sellerId);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findRecentBySellerId 테스트")
+    class FindRecentBySellerIdTests {
+
+        @Test
+        @DisplayName("성공 - 셀러별 최근 N개 태스크 조회")
+        void shouldFindRecentBySellerId() {
+            // Given - 셀러의 최근 5개 태스크 조회
+            SellerId sellerId = SellerId.of(1L);
+            int limit = 5;
+            LocalDateTime now = LocalDateTime.now();
+            CrawlTaskJpaEntity entity =
+                    CrawlTaskJpaEntity.of(
+                            1L,
+                            1L,
+                            1L,
+                            CrawlTaskType.MINI_SHOP,
+                            "https://example.com",
+                            "/api",
+                            "{}",
+                            CrawlTaskStatus.SUCCESS,
+                            0,
+                            now,
+                            now);
+            CrawlTask domain = CrawlTaskFixture.aSuccessTask();
+
+            given(queryDslRepository.findRecentBySellerId(1L, limit)).willReturn(List.of(entity));
+            given(mapper.toDomain(entity)).willReturn(domain);
+
+            // When
+            List<CrawlTask> result = queryAdapter.findRecentBySellerId(sellerId, limit);
+
+            // Then
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("성공 - 최근 태스크 없을 때 빈 리스트 반환")
+        void shouldReturnEmptyListWhenNoRecentTasks() {
+            // Given
+            SellerId sellerId = SellerId.of(999L);
+            given(queryDslRepository.findRecentBySellerId(999L, 5)).willReturn(List.of());
+
+            // When
+            List<CrawlTask> result = queryAdapter.findRecentBySellerId(sellerId, 5);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("findRunningOlderThan 테스트")
+    class FindRunningOlderThanTests {
+
+        @Test
+        @DisplayName("성공 - RUNNING 상태에서 timeoutSeconds 이상 머물러 있는 태스크 조회")
+        void shouldFindRunningOlderThan() {
+            // Given - 타임아웃된 RUNNING 태스크
+            int limit = 10;
+            long timeoutSeconds = 600L;
+            LocalDateTime now = LocalDateTime.now();
+            CrawlTaskJpaEntity entity =
+                    CrawlTaskJpaEntity.of(
+                            1L,
+                            1L,
+                            1L,
+                            CrawlTaskType.MINI_SHOP,
+                            "https://example.com",
+                            "/api",
+                            "{}",
+                            CrawlTaskStatus.RUNNING,
+                            0,
+                            now,
+                            now);
+            CrawlTask domain = CrawlTaskFixture.aRunningTask();
+
+            given(queryDslRepository.findRunningOlderThan(limit, timeoutSeconds))
+                    .willReturn(List.of(entity));
+            given(mapper.toDomain(entity)).willReturn(domain);
+
+            // When
+            List<CrawlTask> result = queryAdapter.findRunningOlderThan(limit, timeoutSeconds);
+
+            // Then
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("성공 - 타임아웃된 태스크 없을 때 빈 리스트 반환")
+        void shouldReturnEmptyListWhenNoRunningOlderThan() {
+            // Given
+            given(queryDslRepository.findRunningOlderThan(10, 600L)).willReturn(List.of());
+
+            // When
+            List<CrawlTask> result = queryAdapter.findRunningOlderThan(10, 600L);
+
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 }

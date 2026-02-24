@@ -4,11 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ryuqq.cralwinghub.domain.fixture.common.FixedClock;
+import com.ryuqq.cralwinghub.domain.fixture.useragent.DeviceTypeFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.HealthScoreFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.TokenFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
+import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
+import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentMetadataFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentStringFixture;
 import com.ryuqq.crawlinghub.domain.useragent.exception.InvalidUserAgentStateException;
+import com.ryuqq.crawlinghub.domain.useragent.vo.CooldownPolicy;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -683,6 +687,99 @@ class UserAgentTest {
 
             // then
             assertThat(userAgent.getHealthScoreValue()).isEqualTo(100);
+        }
+    }
+
+    @Nested
+    @DisplayName("reconstitute() with cooldown policy 테스트")
+    class ReconstituteWithCooldownPolicy {
+
+        @Test
+        @DisplayName("모든 필드가 복원된다")
+        void shouldReconstituteWithAllFields() {
+            // given
+            var id = UserAgentIdFixture.anAssignedId();
+            var token = TokenFixture.aDefaultToken();
+            var userAgentString = UserAgentStringFixture.aDefaultUserAgentString();
+            var deviceType = DeviceTypeFixture.aDefaultDeviceType();
+            var metadata = UserAgentMetadataFixture.aDefaultMetadata();
+            var cooldownPolicy = CooldownPolicy.none();
+
+            // when
+            UserAgent userAgent =
+                    UserAgent.reconstitute(
+                            id,
+                            token,
+                            userAgentString,
+                            deviceType,
+                            metadata,
+                            UserAgentStatus.IDLE,
+                            HealthScoreFixture.initial(),
+                            cooldownPolicy,
+                            FIXED_INSTANT,
+                            0,
+                            FIXED_INSTANT,
+                            FIXED_INSTANT);
+
+            // then
+            assertThat(userAgent.getId()).isEqualTo(id);
+            assertThat(userAgent.getToken()).isEqualTo(token);
+            assertThat(userAgent.getStatus()).isEqualTo(UserAgentStatus.IDLE);
+            assertThat(userAgent.isAvailable()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("getter 메서드 추가 테스트")
+    class AdditionalGetters {
+
+        @Test
+        @DisplayName("getIdValue()는 ID의 원시값을 반환한다")
+        void shouldReturnIdValue() {
+            UserAgent userAgent = UserAgentFixture.anUserAgentWithId(5L);
+            assertThat(userAgent.getIdValue()).isEqualTo(5L);
+        }
+
+        @Test
+        @DisplayName("getTokenValue()는 토큰 문자열 값을 반환한다")
+        void shouldReturnTokenValue() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getTokenValue()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getUserAgentString()은 UserAgentString VO를 반환한다")
+        void shouldReturnUserAgentString() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getUserAgentString()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getUserAgentStringValue()는 UA 문자열 값을 반환한다")
+        void shouldReturnUserAgentStringValue() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getUserAgentStringValue()).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("getDeviceType()은 DeviceType VO를 반환한다")
+        void shouldReturnDeviceType() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getDeviceType()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getMetadata()는 UserAgentMetadata VO를 반환한다")
+        void shouldReturnMetadata() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getMetadata()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getCooldownPolicy()는 CooldownPolicy VO를 반환한다")
+        void shouldReturnCooldownPolicy() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent();
+            assertThat(userAgent.getCooldownPolicy()).isNotNull();
         }
     }
 }

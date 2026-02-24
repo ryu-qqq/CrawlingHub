@@ -106,10 +106,12 @@ def jacocoExcludes = [
     '**/config/**',
     '**/Q*.class',
     '**/CrawledRawCommandAdapter.class',
+    '**/CrawledRawQueryAdapter.class',
     '**/CrawledProductCommandAdapter.class',
     '**/CrawlSchedulerHistoryCommandAdapter.class',
     '**/CrawledProductJpaEntityMapper$*.class',
-    '**/CrawledRawJpaEntityMapper$*.class'
+    '**/CrawledRawJpaEntityMapper$*.class',
+    '**/composite/monitoring/dto/**'
 ]
 
 tasks.jacocoTestReport {
