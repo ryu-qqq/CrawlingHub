@@ -32,7 +32,7 @@ services:
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
-      DB_USERNAME: ${DB_USERNAME:-crawler_user}
+      DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
@@ -65,7 +65,7 @@ services:
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
-      DB_USERNAME: ${DB_USERNAME:-crawler_user}
+      DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
@@ -105,7 +105,7 @@ services:
       DB_HOST: host.docker.internal
       DB_PORT: 13307
       DB_NAME: ${DB_NAME:-crawler}
-      DB_USERNAME: ${DB_USERNAME:-crawler_user}
+      DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 16379
