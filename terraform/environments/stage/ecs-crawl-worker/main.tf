@@ -361,6 +361,8 @@ module "ecs_service" {
     { name = "REDIS_PORT", value = tostring(local.redis_port) },
     # SQS Main Queues (from SSM parameters)
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
+    { name = "SQS_CRAWL_TASK_DLQ_URL", value = local.sqs_crawl_task_dlq_url },
+    { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = local.sqs_eventbridge_trigger_queue_url },
     { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
     { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
     # Fileflow Client 설정 (Stage 내부 VPC Service Discovery 통신)
