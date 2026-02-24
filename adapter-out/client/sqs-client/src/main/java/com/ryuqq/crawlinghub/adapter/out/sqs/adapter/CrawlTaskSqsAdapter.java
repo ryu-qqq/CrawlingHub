@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.sqs.config.SqsClientProperties;
 import com.ryuqq.crawlinghub.adapter.out.sqs.exception.SqsPublishException;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClientMetric;
 import com.ryuqq.crawlinghub.application.task.dto.messaging.CrawlTaskPayload;
 import com.ryuqq.crawlinghub.application.task.port.out.client.CrawlTaskMessageClient;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
@@ -36,6 +37,7 @@ public class CrawlTaskSqsAdapter implements CrawlTaskMessageClient {
         this.objectMapper = objectMapper;
     }
 
+    @OutboundClientMetric(system = "sqs", operation = "publish_crawl_task")
     @Override
     public void publish(CrawlTask crawlTask, String idempotencyKey) {
         String payload = buildPayloadFromCrawlTask(crawlTask);
@@ -49,6 +51,7 @@ public class CrawlTaskSqsAdapter implements CrawlTaskMessageClient {
                 crawlTask.getCrawlSchedulerIdValue());
     }
 
+    @OutboundClientMetric(system = "sqs", operation = "publish_crawl_task_outbox")
     @Override
     public void publishFromOutbox(CrawlTaskOutbox outbox) {
         String payload = outbox.getPayload();

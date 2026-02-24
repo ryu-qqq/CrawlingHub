@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessPendingCrawledRawCommand;
 import com.ryuqq.crawlinghub.application.product.internal.processor.CrawledRawProcessor;
 import com.ryuqq.crawlinghub.application.product.internal.processor.CrawledRawProcessorProvider;
@@ -51,6 +52,7 @@ public class ProcessPendingCrawledRawService implements ProcessPendingCrawledRaw
         this.crawledRawProcessorProvider = crawledRawProcessorProvider;
     }
 
+    @CrawlMetric(value = "crawled_raw", operation = "process")
     @Override
     public SchedulerBatchProcessingResult execute(ProcessPendingCrawledRawCommand command) {
         CrawlType crawlType = command.crawlType();

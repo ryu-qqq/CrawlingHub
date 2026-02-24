@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.BatchMetric;
 import com.ryuqq.crawlinghub.application.product.dto.command.RecoverTimeoutProductSyncOutboxCommand;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxReadManager;
@@ -36,6 +37,7 @@ public class RecoverTimeoutProductSyncOutboxService
         this.outboxCommandManager = outboxCommandManager;
     }
 
+    @BatchMetric(value = "product_sync_outbox", category = "recover_timeout")
     @Override
     public SchedulerBatchProcessingResult execute(RecoverTimeoutProductSyncOutboxCommand command) {
         List<CrawledProductSyncOutbox> staleOutboxes =

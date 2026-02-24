@@ -72,7 +72,7 @@ VALUES
      * <p>Web API 테스트와 Worker 테스트를 모두 지원하는 테스트 데이터:
      *
      * <ul>
-     *   <li>taskId 1,2: PUBLISHED - Worker 테스트용 (META, DETAIL)
+     *   <li>taskId 1,2: PUBLISHED - Worker 테스트용 (MINI_SHOP, DETAIL)
      *   <li>taskId 3: SUCCESS - 완료된 태스크
      *   <li>taskId 4: FAILED - Web API 재시도 테스트용
      *   <li>taskId 5: TIMEOUT - Web API 재시도 테스트용
@@ -90,14 +90,14 @@ INSERT INTO crawl_task (
     endpoint_path, endpoint_query_params, status, retry_count, created_at, updated_at
 )
 VALUES
-    (1, 1, 1, 'META', 'https://api.example.com', '/products', '{"page": "1", "size": "100"}', 'PUBLISHED', 0, NOW(), NOW()),
+    (1, 1, 1, 'MINI_SHOP', 'https://api.example.com', '/products', '{"page": "1", "size": "100"}', 'PUBLISHED', 0, NOW(), NOW()),
     (2, 1, 1, 'DETAIL', 'https://api.example.com', '/products/123', '{}', 'PUBLISHED', 0, NOW(), NOW()),
     (3, 1, 1, 'OPTION', 'https://api.example.com', '/products/123/options', '{}', 'SUCCESS', 0, NOW(), NOW()),
-    (4, 2, 1, 'META', 'https://api.example.com', '/prices', '{}', 'FAILED', 1, NOW(), NOW()),
-    (5, 2, 1, 'META', 'https://api.example.com', '/prices', '{}', 'TIMEOUT', 0, NOW(), NOW()),
-    (6, 3, 2, 'META', 'https://api.seller2.com', '/inventory', '{}', 'WAITING', 0, NOW(), NOW()),
-    (7, 1, 1, 'META', 'https://api.example.com', '/slow', '{}', 'PUBLISHED', 0, NOW(), NOW()),
-    (8, 1, 1, 'META', 'https://api.example.com', '/error', '{}', 'PUBLISHED', 0, NOW(), NOW())
+    (4, 2, 1, 'MINI_SHOP', 'https://api.example.com', '/prices', '{}', 'FAILED', 1, NOW(), NOW()),
+    (5, 2, 1, 'MINI_SHOP', 'https://api.example.com', '/prices', '{}', 'TIMEOUT', 0, NOW(), NOW()),
+    (6, 3, 2, 'MINI_SHOP', 'https://api.seller2.com', '/inventory', '{}', 'WAITING', 0, NOW(), NOW()),
+    (7, 1, 1, 'MINI_SHOP', 'https://api.example.com', '/slow', '{}', 'PUBLISHED', 0, NOW(), NOW()),
+    (8, 1, 1, 'MINI_SHOP', 'https://api.example.com', '/error', '{}', 'PUBLISHED', 0, NOW(), NOW())
 """);
     }
 
@@ -288,10 +288,10 @@ VALUES
         NULL, 'PROCESSING', 0, NULL, NOW(), NULL),
     (3, 4, 2, 20001, 'CREATE', 'sync-2-20001-1002',
         99001, 'COMPLETED', 0, NULL, DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW()),
-    (4, 1, 1, 10001, 'UPDATE', 'sync-1-10001-1003',
+    (4, 1, 1, 10001, 'UPDATE_PRICE', 'sync-1-10001-1003',
         NULL, 'FAILED', 1, 'Connection timeout',
         DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)),
-    (5, 4, 2, 20001, 'UPDATE', 'sync-2-20001-1004',
+    (5, 4, 2, 20001, 'UPDATE_PRICE', 'sync-2-20001-1004',
         NULL, 'FAILED', 3, 'Max retry exceeded',
         DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))
 """);
@@ -387,5 +387,132 @@ VALUES
         insertTaskTestData();
         insertUserAgents();
         warmUpUserAgentPool();
+    }
+
+    // ===== Scheduler Integration Test 데이터 =====
+
+    /**
+     * CrawlTaskOutbox 테스트 데이터 삽입 (Task 데이터 필요)
+     *
+     * <ul>
+     *   <li>taskId 1: PENDING 상태 (발행 대기, 5분 전 생성)
+     *   <li>taskId 2: PROCESSING 상태 (발행 중, 30분 전 처리 시작 → 타임아웃 복구 대상)
+     *   <li>taskId 4: FAILED 상태 (발행 실패, 30분 전 → 실패 복구 대상)
+     * </ul>
+     */
+    public void insertCrawlTaskOutbox() {
+        jdbcTemplate.execute(
+                """
+INSERT INTO crawl_task_outbox (
+    crawl_task_id, idempotency_key, payload, status, retry_count, created_at, processed_at
+)
+VALUES
+    (1, 'outbox-task-1-uuid', '{"taskId":1,"schedulerId":1,"sellerId":1,"taskType":"MINI_SHOP","endpoint":"https://api.example.com/products?page=1&size=100"}',
+        'PENDING', 0, DATE_SUB(UTC_TIMESTAMP(), INTERVAL 5 MINUTE), NULL),
+    (2, 'outbox-task-2-uuid', '{"taskId":2,"schedulerId":1,"sellerId":1,"taskType":"DETAIL","endpoint":"https://api.example.com/products/123"}',
+        'PROCESSING', 0, DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 MINUTE), DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 MINUTE)),
+    (4, 'outbox-task-4-uuid', '{"taskId":4,"schedulerId":2,"sellerId":1,"taskType":"MINI_SHOP","endpoint":"https://api.example.com/prices"}',
+        'FAILED', 1, DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 MINUTE), DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 MINUTE))
+""");
+    }
+
+    /** CrawlTaskOutbox 관련 테스트에 필요한 모든 데이터 삽입 */
+    public void insertCrawlTaskOutboxTestData() {
+        insertTaskTestData();
+        insertCrawlTaskOutbox();
+    }
+
+    /**
+     * CrawlSchedulerHistory 테스트 데이터 삽입 (Scheduler 데이터 필요)
+     *
+     * <ul>
+     *   <li>id=1: scheduler 1의 ACTIVE 히스토리
+     *   <li>id=2: scheduler 2의 ACTIVE 히스토리
+     * </ul>
+     */
+    public void insertSchedulerHistory() {
+        jdbcTemplate.execute(
+                """
+INSERT INTO crawl_scheduler_history (
+    id, crawl_scheduler_id, seller_id, scheduler_name, cron_expression, status, created_at
+)
+VALUES
+    (1, 1, 1, 'daily-product-sync', 'cron(0 2 * * ? *)', 'ACTIVE', NOW()),
+    (2, 2, 1, 'hourly-price-check', 'cron(0 * * * ? *)', 'ACTIVE', NOW())
+""");
+    }
+
+    /**
+     * CrawlSchedulerOutbox 테스트 데이터 삽입 (SchedulerHistory 데이터 필요)
+     *
+     * <ul>
+     *   <li>id=1: PENDING 상태 (5분 전 생성, 발행 대기)
+     *   <li>id=2: PROCESSING 상태 (30분 전 처리 시작, 타임아웃 복구 대상)
+     * </ul>
+     */
+    public void insertCrawlSchedulerOutbox() {
+        jdbcTemplate.execute(
+                """
+INSERT INTO crawl_scheduler_outbox (
+    id, history_id, status, scheduler_id, seller_id, scheduler_name,
+    cron_expression, scheduler_status, error_message, version, created_at, processed_at
+)
+VALUES
+    (1, 1, 'PENDING', 1, 1, 'daily-product-sync',
+        'cron(0 2 * * ? *)', 'ACTIVE', NULL, 0,
+        DATE_SUB(NOW(), INTERVAL 5 MINUTE), NULL),
+    (2, 2, 'PROCESSING', 2, 1, 'hourly-price-check',
+        'cron(0 * * * ? *)', 'ACTIVE', NULL, 0,
+        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE))
+""");
+    }
+
+    /** CrawlSchedulerOutbox 관련 테스트에 필요한 모든 데이터 삽입 */
+    public void insertSchedulerOutboxTestData() {
+        insertSellers();
+        insertSchedulers();
+        insertSchedulerHistory();
+        insertCrawlSchedulerOutbox();
+    }
+
+    /**
+     * CrawledRaw 테스트 데이터 삽입 (Seller, Scheduler 데이터 필요)
+     *
+     * <ul>
+     *   <li>id=1: MINI_SHOP 타입, PENDING 상태
+     *   <li>id=2: DETAIL 타입, PENDING 상태
+     *   <li>id=3: OPTION 타입, PENDING 상태
+     * </ul>
+     */
+    public void insertCrawledRaw() {
+        jdbcTemplate.execute(
+                """
+INSERT INTO crawled_raw (
+    id, crawl_scheduler_id, seller_id, item_no, crawl_type, raw_data,
+    status, error_message, created_at, processed_at
+)
+VALUES
+    (1, 1, 1, 10001, 'MINI_SHOP',
+        '{"itemNo":10001,"itemName":"테스트 상품 1","brandName":"테스트 브랜드","originalPrice":100000,"discountPrice":80000,"discountRate":20,"images":{"thumbnails":["https://img.example.com/1.jpg"],"descriptions":[]},"freeShipping":true}',
+        'PENDING', NULL, NOW(), NULL),
+    (2, 1, 1, 10001, 'DETAIL',
+        '{"itemNo":10001,"description":"<p>설명</p>",'
+        || '"category":{"categoryId":100,"categoryName":"의류"},'
+        || '"shippingInfo":{"deliveryFee":3000},'
+        || '"itemStatus":"ACTIVE"}',
+        'PENDING', NULL, NOW(), NULL),
+    (3, 1, 1, 10001, 'OPTION',
+        '{"itemNo":10001,"options":['
+        || '{"optionName":"사이즈","optionValue":"M","stock":10,"price":0},'
+        || '{"optionName":"사이즈","optionValue":"L","stock":5,"price":0}]}',
+        'PENDING', NULL, NOW(), NULL)
+""");
+    }
+
+    /** CrawledRaw 관련 테스트에 필요한 모든 데이터 삽입 */
+    public void insertCrawledRawTestData() {
+        insertSellers();
+        insertSchedulers();
+        insertCrawledRaw();
     }
 }

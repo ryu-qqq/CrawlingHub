@@ -55,7 +55,7 @@ class CrawlTaskWorkerIntegrationTest extends WorkerIntegrationTest {
             Long taskId = 1L;
             Long schedulerId = 1L;
             Long sellerId = 1L;
-            String taskType = "META";
+            String taskType = "MINI_SHOP";
             String endpoint = crawlTargetWireMock.baseUrl() + "/products?page=1&size=100";
 
             // when
@@ -88,7 +88,7 @@ class CrawlTaskWorkerIntegrationTest extends WorkerIntegrationTest {
             Long taskId = 1L;
             Long schedulerId = 1L;
             Long sellerId = 1L;
-            String taskType = "META";
+            String taskType = "MINI_SHOP";
             String endpoint = crawlTargetWireMock.baseUrl() + "/products?page=1&size=100";
 
             // when
@@ -162,7 +162,7 @@ class CrawlTaskWorkerIntegrationTest extends WorkerIntegrationTest {
             Long taskId = 1L;
             Long schedulerId = 1L;
             Long sellerId = 1L;
-            String taskType = "META";
+            String taskType = "MINI_SHOP";
             String endpoint = crawlTargetWireMock.baseUrl() + "/meta/products";
 
             // when
@@ -223,7 +223,7 @@ class CrawlTaskWorkerIntegrationTest extends WorkerIntegrationTest {
             Long taskId = 7L;
             Long schedulerId = 1L;
             Long sellerId = 1L;
-            String taskType = "META";
+            String taskType = "MINI_SHOP";
             String endpoint = crawlTargetWireMock.baseUrl() + "/slow-endpoint";
 
             // when
@@ -258,7 +258,7 @@ class CrawlTaskWorkerIntegrationTest extends WorkerIntegrationTest {
             Long taskId = 8L;
             Long schedulerId = 1L;
             Long sellerId = 1L;
-            String taskType = "META";
+            String taskType = "MINI_SHOP";
             // 연결 불가능한 엔드포인트
             String endpoint = "http://localhost:19999/non-existent";
 

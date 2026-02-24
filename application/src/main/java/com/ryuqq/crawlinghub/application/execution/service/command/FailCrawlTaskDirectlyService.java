@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.execution.service.command;
 
 import com.ryuqq.crawlinghub.application.common.dto.command.StatusChangeContext;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.execution.port.in.command.FailCrawlTaskDirectlyUseCase;
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskCommandManager;
@@ -39,6 +40,7 @@ public class FailCrawlTaskDirectlyService implements FailCrawlTaskDirectlyUseCas
         this.crawlTaskCommandManager = crawlTaskCommandManager;
     }
 
+    @CrawlMetric(value = "crawl_task", operation = "fail_directly")
     @Override
     public void execute(Long taskId, String reason) {
         // 1. Factory → StatusChangeContext 생성 (ID 변환 + 시간 주입)

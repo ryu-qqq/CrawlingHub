@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryuqq.crawlinghub.adapter.out.sqs.config.SqsClientProperties;
 import com.ryuqq.crawlinghub.adapter.out.sqs.exception.SqsPublishException;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClientMetric;
 import com.ryuqq.crawlinghub.application.product.dto.messaging.ProductSyncPayload;
 import com.ryuqq.crawlinghub.application.product.port.out.client.CrawledProductSyncMessageClient;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
@@ -34,6 +35,7 @@ public class CrawledProductSyncSqsAdapter implements CrawledProductSyncMessageCl
         this.objectMapper = objectMapper;
     }
 
+    @OutboundClientMetric(system = "sqs", operation = "publish_product_sync")
     @Override
     public void publish(CrawledProductSyncOutbox outbox) {
         String payload = buildPayload(outbox);

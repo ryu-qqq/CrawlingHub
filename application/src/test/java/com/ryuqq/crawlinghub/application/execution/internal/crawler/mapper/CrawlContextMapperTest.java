@@ -2,20 +2,114 @@ package com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
+import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
+import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @Tag("application")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("CrawlContextMapper 단위 테스트")
 class CrawlContextMapperTest {
 
     private final CrawlContextMapper mapper = new CrawlContextMapper();
+
+    @Nested
+    @DisplayName("toCrawlContext(CrawlTask, BorrowedUserAgent) 메서드는")
+    class ToCrawlContextWithBorrowedAgent {
+
+        @Test
+        @DisplayName("BorrowedUserAgent와 CrawlTask로 CrawlContext 생성")
+        void shouldCreateCrawlContextFromBorrowedAgent() {
+            // Given
+            CrawlTask crawlTask = CrawlTaskFixture.aPublishedTask();
+            BorrowedUserAgent agent =
+                    new BorrowedUserAgent(
+                            1L, "Mozilla/5.0", "session-token", "nid-value", "mustit-uid", 0);
+
+            // When
+            CrawlContext result = mapper.toCrawlContext(crawlTask, agent);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.userAgentId()).isEqualTo(1L);
+            assertThat(result.userAgentValue()).isEqualTo("Mozilla/5.0");
+            assertThat(result.sessionToken()).isEqualTo("session-token");
+            assertThat(result.nid()).isEqualTo("nid-value");
+            assertThat(result.mustitUid()).isEqualTo("mustit-uid");
+            assertThat(result.crawlTaskId()).isEqualTo(crawlTask.getIdValue());
+        }
+
+        @Test
+        @DisplayName("sessionToken이 null인 BorrowedUserAgent로 CrawlContext 생성")
+        void shouldCreateCrawlContextWithNullSessionToken() {
+            // Given
+            CrawlTask crawlTask = CrawlTaskFixture.aPublishedTask();
+            BorrowedUserAgent agent = new BorrowedUserAgent(2L, "Mozilla/5.0", null, null, null, 0);
+
+            // When
+            CrawlContext result = mapper.toCrawlContext(crawlTask, agent);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.sessionToken()).isNull();
+            assertThat(result.nid()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("toCrawlContext(CrawlTask, CachedUserAgent) 메서드는 (deprecated)")
+    class ToCrawlContextWithCachedAgent {
+
+        @Test
+        @DisplayName("CachedUserAgent와 CrawlTask로 CrawlContext 생성")
+        void shouldCreateCrawlContextFromCachedAgent() {
+            // Given
+            CrawlTask crawlTask = CrawlTaskFixture.aPublishedTask();
+            // CachedUserAgent 파라미터 순서: id, value, sessionToken, nid, mustitUid, sessionExpiresAt,
+            // remainingTokens, maxTokens, windowStart, windowEnd, healthScore, status,
+            // suspendedAt, borrowedAt, cooldownUntil, consecutiveRateLimits
+            CachedUserAgent cachedAgent =
+                    new CachedUserAgent(
+                            1L,
+                            "Mozilla/5.0",
+                            "cached-session-token",
+                            null,
+                            "cached-mustit-uid",
+                            null,
+                            80,
+                            80,
+                            null,
+                            null,
+                            90,
+                            UserAgentStatus.IDLE,
+                            null,
+                            null,
+                            null,
+                            0);
+
+            // When
+            CrawlContext result = mapper.toCrawlContext(crawlTask, cachedAgent);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.userAgentId()).isEqualTo(1L);
+            assertThat(result.userAgentValue()).isEqualTo("Mozilla/5.0");
+            assertThat(result.sessionToken()).isEqualTo("cached-session-token");
+            assertThat(result.crawlTaskId()).isEqualTo(crawlTask.getIdValue());
+        }
+    }
 
     @Nested
     @DisplayName("buildHeaders() 메서드는")

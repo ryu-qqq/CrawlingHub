@@ -4,10 +4,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.adapter.CrawledProductSyncOutboxCommandAdapter;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper.ProductSyncOutboxJpaEntityMapper;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.repository.ProductSyncOutboxJpaRepository;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.adapter.CrawledProductSyncOutboxCommandAdapter;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.ProductSyncOutboxJpaEntityMapper;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.repository.ProductSyncOutboxJpaRepository;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;

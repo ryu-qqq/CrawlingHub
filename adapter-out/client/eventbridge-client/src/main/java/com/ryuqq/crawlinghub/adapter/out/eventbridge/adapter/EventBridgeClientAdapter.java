@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.adapter.out.eventbridge.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.exception.EventBridgePublishException;
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.mapper.EventBridgeScheduleMapper;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClientMetric;
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import com.ryuqq.crawlinghub.domain.schedule.vo.SchedulerStatus;
@@ -28,6 +29,7 @@ public class EventBridgeClientAdapter implements EventBridgeClientPort {
         this.mapper = mapper;
     }
 
+    @OutboundClientMetric(system = "eventbridge", operation = "sync_schedule")
     @Override
     public void syncFromOutBox(CrawlSchedulerOutBox outBox) {
         Long schedulerId = outBox.getSchedulerId();

@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.service.command;
 
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessProductSyncCommand;
 import com.ryuqq.crawlinghub.application.product.internal.ProductSyncCoordinator;
 import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessProductSyncFromSqsUseCase;
@@ -22,6 +23,7 @@ public class ProcessProductSyncFromSqsService implements ProcessProductSyncFromS
         this.productSyncCoordinator = productSyncCoordinator;
     }
 
+    @CrawlMetric(value = "product_sync", operation = "process_from_sqs")
     @Override
     public boolean execute(ProcessProductSyncCommand command) {
         return productSyncCoordinator.processSyncRequest(command);

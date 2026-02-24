@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.task.service.command;
 
+import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.application.task.assembler.CrawlTaskAssembler;
 import com.ryuqq.crawlinghub.application.task.dto.bundle.CrawlTaskBundle;
@@ -43,6 +44,7 @@ public class RetryCrawlTaskService implements RetryCrawlTaskUseCase {
         this.timeProvider = timeProvider;
     }
 
+    @CrawlMetric(value = "crawl_task", operation = "retry")
     @Override
     public CrawlTaskResult retry(RetryCrawlTaskCommand command) {
         CrawlTaskId crawlTaskId = CrawlTaskId.of(command.crawlTaskId());

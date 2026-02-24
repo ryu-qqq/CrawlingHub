@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.adapter;
 
 import com.ryuqq.crawlinghub.adapter.out.marketplace.strategy.ProductSyncStrategyProvider;
+import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClientMetric;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
@@ -28,6 +29,7 @@ public class MarketplaceClientAdapter implements ExternalProductServerClient {
         this.strategyProvider = strategyProvider;
     }
 
+    @OutboundClientMetric(system = "marketplace", operation = "sync_product")
     @Override
     public ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product) {
         return strategyProvider.getStrategy(outbox.getSyncType()).execute(outbox, product);

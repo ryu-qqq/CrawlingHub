@@ -3,8 +3,8 @@ package com.ryuqq.crawlinghub.adapter.out.persistence.product.sync.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ryuqq.cralwinghub.domain.fixture.product.CrawledProductSyncOutboxFixture;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.entity.ProductSyncOutboxJpaEntity;
-import com.ryuqq.crawlinghub.adapter.out.persistence.sync.mapper.ProductSyncOutboxJpaEntityMapper;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.ProductSyncOutboxJpaEntity;
+import com.ryuqq.crawlinghub.adapter.out.persistence.product.mapper.ProductSyncOutboxJpaEntityMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.id.CrawledProductId;

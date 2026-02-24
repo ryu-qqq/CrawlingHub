@@ -30,9 +30,8 @@ import org.springframework.http.ResponseEntity;
  *   <li>GET /api/v1/crawling/schedules - 스케줄러 목록 조회 (페이징, 필터링)
  *   <li>POST /api/v1/crawling/schedules - 스케줄러 등록
  *   <li>PATCH /api/v1/crawling/schedules/{id} - 스케줄러 수정
- *   <li>PATCH /api/v1/crawling/schedules/{id}/status - 상태 변경
  *   <li>POST /api/v1/crawling/schedules/{id}/trigger - 수동 트리거
- *   <li>인증/권한 검증 (401, 403)
+ *   <li>인증 검증 (401)
  * </ul>
  *
  * @author development-team
@@ -56,8 +55,8 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
     class ListCrawlSchedulers {
 
         @Test
-        @DisplayName("권한이 있는 사용자는 스케줄러 목록을 조회할 수 있다")
-        void shouldReturnSchedulerListWithPermission() {
+        @DisplayName("인증된 사용자는 스케줄러 목록을 조회할 수 있다")
+        void shouldReturnSchedulerList() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
 
@@ -163,24 +162,6 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             List<Map<String, Object>> content = (List<Map<String, Object>>) data.get("content");
             assertThat(content.size()).isLessThanOrEqualTo(2);
         }
-
-        @Test
-        @DisplayName("SUPER_ADMIN은 권한 없이도 조회할 수 있다")
-        void superAdminShouldAccessWithoutPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        }
     }
 
     @Nested
@@ -188,8 +169,8 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
     class RegisterCrawlScheduler {
 
         @Test
-        @DisplayName("권한이 있는 사용자는 스케줄러를 등록할 수 있다")
-        void shouldRegisterSchedulerWithPermission() {
+        @DisplayName("인증된 사용자는 스케줄러를 등록할 수 있다")
+        void shouldRegisterScheduler() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -207,39 +188,13 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
                             new HttpEntity<>(request, headers),
                             new ParameterizedTypeReference<>() {});
 
-            // then
+            // then - registerCrawlScheduler returns ApiResponse<Long>
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(response.getBody()).isNotNull();
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("schedulerName")).isEqualTo("new-test-scheduler");
-            assertThat(data.get("cronExpression")).isEqualTo("cron(0 3 * * ? *)");
-            assertThat(data.get("status")).isEqualTo("ACTIVE");
-        }
-
-        @Test
-        @DisplayName("scheduler:read 권한만 있으면 등록할 수 없다 (403)")
-        void shouldNotRegisterWithReadOnlyPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> request = new HashMap<>();
-            request.put("sellerId", 1L);
-            request.put("schedulerName", "test-scheduler");
-            request.put("cronExpression", "cron(0 3 * * ? *)");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL),
-                            HttpMethod.POST,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            Object data = response.getBody().get("data");
+            assertThat(data).isNotNull();
+            assertThat(((Number) data).longValue()).isPositive();
         }
 
         @Test
@@ -313,30 +268,6 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
-
-        @Test
-        @DisplayName("SUPER_ADMIN은 권한 없이도 등록할 수 있다")
-        void superAdminShouldRegisterWithoutPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> request = new HashMap<>();
-            request.put("sellerId", 1L);
-            request.put("schedulerName", "super-admin-scheduler");
-            request.put("cronExpression", "cron(0 4 * * ? *)");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL),
-                            HttpMethod.POST,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        }
     }
 
     @Nested
@@ -344,16 +275,19 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
     class UpdateCrawlScheduler {
 
         @Test
-        @DisplayName("권한이 있는 사용자는 스케줄러를 수정할 수 있다")
-        void shouldUpdateSchedulerWithPermission() {
+        @DisplayName("인증된 사용자는 스케줄러를 수정할 수 있다")
+        void shouldUpdateScheduler() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
+            // UpdateCrawlSchedulerApiRequest requires ALL fields: schedulerName, cronExpression,
+            // active
             Map<String, Object> request = new HashMap<>();
             request.put("schedulerName", "updated-scheduler-name");
             request.put("cronExpression", "cron(30 2 * * ? *)");
+            request.put("active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
@@ -374,13 +308,14 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("스케줄러 이름만 수정할 수 있다")
-        void shouldUpdateOnlySchedulerName() {
+        @DisplayName("필수 필드 누락 시 400을 반환한다")
+        void shouldReturn400WhenMissingRequiredFields() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Long schedulerId = 1L;
 
+            // schedulerName만 보내고 다른 필수 필드 누락
             Map<String, Object> request = new HashMap<>();
             request.put("schedulerName", "only-name-updated");
 
@@ -393,11 +328,7 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
                             new ParameterizedTypeReference<>() {});
 
             // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("schedulerName")).isEqualTo("only-name-updated");
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
 
         @Test
@@ -410,140 +341,13 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
 
             Map<String, Object> request = new HashMap<>();
             request.put("schedulerName", "updated-name");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + nonExistentSchedulerId),
-                            HttpMethod.PATCH,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("scheduler:read 권한만 있으면 수정할 수 없다 (403)")
-        void shouldNotUpdateWithReadOnlyPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            Long schedulerId = 1L;
-
-            Map<String, Object> request = new HashMap<>();
-            request.put("schedulerName", "updated-name");
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId),
-                            HttpMethod.PATCH,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-    }
-
-    @Nested
-    @DisplayName("PATCH /api/v1/crawling/schedules/{id}/status - 상태 변경")
-    class UpdateSchedulerStatus {
-
-        @Test
-        @DisplayName("권한이 있는 사용자는 스케줄러 상태를 변경할 수 있다 (활성화 → 비활성화)")
-        void shouldUpdateStatusToInactive() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            Long schedulerId = 1L; // ACTIVE 상태인 스케줄러
-
-            Map<String, Object> request = new HashMap<>();
-            request.put("active", false);
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId + "/status"),
-                            HttpMethod.PATCH,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("status")).isEqualTo("INACTIVE");
-        }
-
-        @Test
-        @DisplayName("권한이 있는 사용자는 스케줄러 상태를 변경할 수 있다 (비활성화 → 활성화)")
-        void shouldUpdateStatusToActive() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            Long schedulerId = 3L; // INACTIVE 상태인 스케줄러
-
-            Map<String, Object> request = new HashMap<>();
+            request.put("cronExpression", "cron(0 3 * * ? *)");
             request.put("active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =
                     restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId + "/status"),
-                            HttpMethod.PATCH,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("status")).isEqualTo("ACTIVE");
-        }
-
-        @Test
-        @DisplayName("active 필드 누락 시 400을 반환한다")
-        void shouldReturn400WhenActiveFieldMissing() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            Long schedulerId = 1L;
-
-            Map<String, Object> request = new HashMap<>();
-            // active 필드 누락
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId + "/status"),
-                            HttpMethod.PATCH,
-                            new HttpEntity<>(request, headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 스케줄러 상태 변경 시 404를 반환한다")
-        void shouldReturn404ForNonExistentScheduler() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            Long nonExistentSchedulerId = 99999L;
-
-            Map<String, Object> request = new HashMap<>();
-            request.put("active", false);
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + nonExistentSchedulerId + "/status"),
+                            url(SCHEDULES_BASE_URL + "/" + nonExistentSchedulerId),
                             HttpMethod.PATCH,
                             new HttpEntity<>(request, headers),
                             new ParameterizedTypeReference<>() {});
@@ -557,34 +361,23 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
     @DisplayName("POST /api/v1/crawling/schedules/{id}/trigger - 수동 트리거")
     class TriggerScheduler {
 
-        @BeforeEach
-        void setUpTriggerTestData() {
-            // 트리거 테스트를 위해 Task 데이터도 필요할 수 있음
-        }
-
         @Test
-        @DisplayName("권한이 있는 사용자는 ACTIVE 상태의 스케줄러를 트리거할 수 있다")
-        void shouldTriggerActiveSchedulerWithPermission() {
+        @DisplayName("인증된 사용자는 ACTIVE 상태의 스케줄러를 트리거할 수 있다")
+        void shouldTriggerActiveScheduler() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             Long schedulerId = 1L; // ACTIVE 상태인 스케줄러
 
             // when
-            ResponseEntity<Map<String, Object>> response =
+            ResponseEntity<Void> response =
                     restTemplate.exchange(
                             url(SCHEDULES_BASE_URL + "/" + schedulerId + "/trigger"),
                             HttpMethod.POST,
                             new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
+                            Void.class);
 
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(response.getBody()).isNotNull();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-            assertThat(data.get("crawlTaskId")).isNotNull();
-            assertThat(((Number) data.get("crawlSchedulerId")).longValue()).isEqualTo(schedulerId);
+            // then - triggerScheduler returns 204 NO_CONTENT
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         }
 
         @Test
@@ -607,25 +400,6 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("scheduler:read 권한만 있으면 트리거할 수 없다 (403)")
-        void shouldNotTriggerWithReadOnlyPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            Long schedulerId = 1L;
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId + "/trigger"),
-                            HttpMethod.POST,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-
-        @Test
         @DisplayName("존재하지 않는 스케줄러 트리거 시 404를 반환한다")
         void shouldReturn404ForNonExistentScheduler() {
             // given
@@ -643,30 +417,11 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
-
-        @Test
-        @DisplayName("SUPER_ADMIN은 권한 없이도 트리거할 수 있다")
-        void superAdminShouldTriggerWithoutPermission() {
-            // given
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-            Long schedulerId = 2L; // ACTIVE 상태인 스케줄러
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL + "/" + schedulerId + "/trigger"),
-                            HttpMethod.POST,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        }
     }
 
     @Nested
-    @DisplayName("인증/권한 검증")
-    class AuthenticationAndAuthorization {
+    @DisplayName("인증 검증")
+    class Authentication {
 
         @Test
         @DisplayName("인증 헤더가 없으면 401을 반환한다")
@@ -687,44 +442,8 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
         }
 
         @Test
-        @DisplayName("권한이 없으면 403을 반환한다")
-        void shouldReturn403WithoutPermission() {
-            // given - 인증은 되어 있지만 scheduler:read 권한이 없음
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-
-        @Test
-        @DisplayName("잘못된 권한으로는 접근할 수 없다")
-        void shouldReturn403WithWrongPermission() {
-            // given - task:read 권한만 있고 scheduler:read는 없음
-            HttpHeaders headers = AuthTestHelper.serviceAuth();
-
-            // when
-            ResponseEntity<Map<String, Object>> response =
-                    restTemplate.exchange(
-                            url(SCHEDULES_BASE_URL),
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            new ParameterizedTypeReference<>() {});
-
-            // then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        }
-
-        @Test
-        @DisplayName("SUPER_ADMIN 역할은 모든 권한을 우회한다")
-        void superAdminShouldBypassAllPermissions() {
+        @DisplayName("인증된 사용자는 전체 기능에 접근할 수 있다")
+        void shouldAllowFullAccessWithAuthentication() {
             // given
             HttpHeaders headers = AuthTestHelper.serviceAuth();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -753,6 +472,8 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
             // when - 수정
             Map<String, Object> updateRequest = new HashMap<>();
             updateRequest.put("schedulerName", "admin-updated-scheduler");
+            updateRequest.put("cronExpression", "cron(0 3 * * ? *)");
+            updateRequest.put("active", true);
 
             ResponseEntity<Map<String, Object>> updateResponse =
                     restTemplate.exchange(
@@ -835,6 +556,8 @@ class CrawlSchedulerIntegrationTest extends WebApiIntegrationTest {
 
             Map<String, Object> request = new HashMap<>();
             request.put("schedulerName", "test");
+            request.put("cronExpression", "cron(0 3 * * ? *)");
+            request.put("active", true);
 
             // when
             ResponseEntity<Map<String, Object>> response =

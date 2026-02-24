@@ -25,6 +25,9 @@ dependencies {
     // JSON Processing
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+    // Metrics
+    implementation libs.micrometer.core
+
     // ========================================
     // Test Dependencies
     // ========================================

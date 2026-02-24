@@ -209,8 +209,15 @@ public class CrawledProductSyncOutbox {
     public void markAsFailed(String errorMessage, Instant now) {
         this.status = ProductOutboxStatus.FAILED;
         this.retryCount++;
-        this.errorMessage = errorMessage;
+        this.errorMessage = truncate(errorMessage, 1000);
         this.processedAt = now;
+    }
+
+    private static String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     /** 재시도를 위해 PENDING으로 복귀 */

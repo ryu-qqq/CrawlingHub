@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.adapter.out.redis.support;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,9 @@ public class UserAgentPoolLuaScriptHolder {
     private final String recordFailureScript;
     private final String rateLimitSuspendScript;
 
+    @SuppressFBWarnings(
+            value = "CT_CONSTRUCTOR_THROW",
+            justification = "Spring @Component: IoC 컨테이너가 생성을 관리하므로 Finalizer 공격 위험 없음")
     public UserAgentPoolLuaScriptHolder() {
         // Phase 2: 신규 스크립트 로드
         this.borrowScript = loadLuaScript("lua/useragent_borrow.lua");
