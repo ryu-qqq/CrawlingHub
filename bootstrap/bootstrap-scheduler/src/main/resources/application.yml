@@ -186,6 +186,12 @@ scheduler:
         timezone: "Asia/Seoul"
         batch-size: 50
         timeout-seconds: 300              # 5분
+      recover-failed:
+        enabled: true
+        cron: "0 */10 * * * *"           # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60                # 1분 후 복구
 
 ---
 # ========================================
@@ -285,6 +291,12 @@ scheduler:
         timezone: "Asia/Seoul"
         batch-size: 50
         timeout-seconds: 300
+      recover-failed:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60
   session-issuance:
     enabled: false
 

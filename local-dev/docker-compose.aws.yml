@@ -1,50 +1,80 @@
 version: '3.8'
-name: crawlinghub-aws
+name: crawlinghub-stage
 
 # ===============================================
-# CrawlingHub - AWS 리소스 연결용 로컬 개발 환경
+# CrawlingHub - Stage 리소스 연결용 로컬 개발 환경
 # ===============================================
 # 사용법:
-# 1. AWS SSM Session Manager로 RDS/Redis 포트 포워딩 설정
-#    ./scripts/aws-port-forward.sh
+# 1. AWS SSM Session Manager로 Stage RDS 포트 포워딩
+#    ./scripts/aws-port-forward-stage.sh
 # 2. docker-compose -f docker-compose.aws.yml up -d
 #
 # 포트 포워딩:
-#   - localhost:13307 -> RDS (prod-shared-mysql)
-#   - localhost:16379 -> ElastiCache (crawlinghub-redis-prod)
+#   - localhost:13308 -> Stage RDS (staging-shared-mysql)
+#
+# Redis:
+#   - 로컬 Redis 컨테이너 사용 (Stage ElastiCache 접근 불필요)
+#
+# SQS:
+#   - Stage SQS Queue 직접 연결 (AWS 자격증명 필요)
 # ===============================================
 
 services:
   # ===============================================
-  # Application Services (AWS 리소스 연결)
+  # Redis (로컬 컨테이너)
   # ===============================================
+  redis:
+    image: redis:7-alpine
+    container_name: crawlinghub-redis-stage
+    ports:
+      - "6379:6379"
+    networks:
+      - crawlinghub-network
+    restart: unless-stopped
 
+  # ===============================================
+  # Web API Service
+  # ===============================================
   web-api:
     build:
       context: ..
       dockerfile: bootstrap/bootstrap-web-api/Dockerfile
-    container_name: crawlinghub-web-api-aws
+    container_name: crawlinghub-web-api-stage
     env_file:
       - .env.aws
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 8083
+      SPRING_PROFILES_ACTIVE: stage
+      SERVER_PORT: 8080
+      # Database (Stage RDS via Port Forward)
       DB_HOST: host.docker.internal
-      DB_PORT: 13307
+      DB_PORT: 13308
       DB_NAME: ${DB_NAME:-crawler}
       DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: host.docker.internal
-      REDIS_PORT: 16379
-      # NOTE: web-api에서는 SQS 직접 발행 비활성화
-      # aws-sqs 모듈이 bootstrap-web-api에 포함되어 있지 않음
-      # OutboxRetryScheduler(scheduler)가 PENDING 상태 Outbox를 처리함
-      APP_MESSAGING_SQS_ENABLED: false
+      # Redis (로컬 컨테이너)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # EventBridge (web-api에만 설정)
+      # EVENTBRIDGE_TARGET_ARN: <필요시 Stage ARN 설정>
+      # EVENTBRIDGE_ROLE_ARN: <필요시 Stage ARN 설정>
+      # SQS 비활성화 (web-api는 SQS 직접 발행하지 않음)
+      APP_MESSAGING_SQS_ENABLED: "false"
+      # Security
+      SECURITY_SERVICE_TOKEN_ENABLED: "false"
+      # Sentry 비활성화 (로컬)
+      SENTRY_DSN: ""
+      # OTEL 비활성화 (로컬)
+      OTEL_AGENT_OPTS: ""
+      OTEL_TRACES_EXPORTER: "none"
+      OTEL_METRICS_EXPORTER: "none"
+      # Logging
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "8083:8083"
+      - "8080:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
     networks:
       - crawlinghub-network
     restart: unless-stopped
@@ -56,35 +86,45 @@ services:
     build:
       context: ..
       dockerfile: bootstrap/bootstrap-scheduler/Dockerfile
-    container_name: crawlinghub-scheduler-aws
+    container_name: crawlinghub-scheduler-stage
     env_file:
       - .env.aws
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 30081
+      SPRING_PROFILES_ACTIVE: stage
+      # Database (Stage RDS via Port Forward)
       DB_HOST: host.docker.internal
-      DB_PORT: 13307
+      DB_PORT: 13308
       DB_NAME: ${DB_NAME:-crawler}
       DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: host.docker.internal
-      REDIS_PORT: 16379
-      # SQS Queue URLs (Listener)
-      AWS_SQS_LISTENER_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
-      AWS_SQS_LISTENER_EVENT_BRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
-      # SQS Queue URLs (Publisher)
-      SQS_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
-      # Enable SQS messaging for CrawlTaskRegisteredEventListener
-      APP_MESSAGING_SQS_ENABLED: true
-      # Enable CrawlTask Outbox Retry Scheduler
-      SCHEDULER_CRAWL_TASK_OUTBOX_ENABLED: true
-      # Enable Session Issuance Scheduler (실제 세션 토큰 발급)
-      SCHEDULER_SESSION_ISSUANCE_ENABLED: true
+      # Redis (로컬 컨테이너)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # SQS Queue URLs (Stage)
+      SQS_CRAWL_TASK_QUEUE_URL: ${SQS_CRAWL_TASK_QUEUE_URL}
+      SQS_PRODUCT_SYNC_QUEUE_URL: ${SQS_PRODUCT_SYNC_QUEUE_URL}
+      SQS_PRODUCT_IMAGE_QUEUE_URL: ${SQS_PRODUCT_IMAGE_QUEUE_URL}
+      # SQS 메시징 활성화
+      APP_MESSAGING_SQS_ENABLED: "true"
+      # EventBridge (scheduler에 필요)
+      # EVENTBRIDGE_TARGET_ARN: <필요시 Stage ARN 설정>
+      # EVENTBRIDGE_ROLE_ARN: <필요시 Stage ARN 설정>
+      # Security
+      SECURITY_SERVICE_TOKEN_ENABLED: "false"
+      # Sentry 비활성화 (로컬)
+      SENTRY_DSN: ""
+      # OTEL 비활성화 (로컬)
+      OTEL_AGENT_OPTS: ""
+      OTEL_TRACES_EXPORTER: "none"
+      OTEL_METRICS_EXPORTER: "none"
+      # Logging
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "30081:30081"
+      - "8081:8081"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
     networks:
       - crawlinghub-network
     restart: unless-stopped
@@ -96,28 +136,43 @@ services:
     build:
       context: ..
       dockerfile: bootstrap/bootstrap-crawl-worker/Dockerfile
-    container_name: crawlinghub-worker-aws
+    container_name: crawlinghub-worker-stage
     env_file:
       - .env.aws
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 30082
+      SPRING_PROFILES_ACTIVE: stage
+      # Database (Stage RDS via Port Forward)
       DB_HOST: host.docker.internal
-      DB_PORT: 13307
+      DB_PORT: 13308
       DB_NAME: ${DB_NAME:-crawler}
       DB_USER: ${DB_USER:-crawler_user}
       DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: host.docker.internal
-      REDIS_PORT: 16379
-      # SQS Queue URLs (sqs-listener.yml property naming convention)
-      SQS_CRAWL_TASK_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task
-      SQS_CRAWL_TASK_DLQ_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-crawling-task-dlq
-      SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL: https://sqs.ap-northeast-2.amazonaws.com/646886795421/prod-monitoring-sqs-crawlinghub-eventbridge-trigger
+      # Redis (로컬 컨테이너)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # SQS Queue URLs (Stage)
+      SQS_CRAWL_TASK_QUEUE_URL: ${SQS_CRAWL_TASK_QUEUE_URL}
+      SQS_CRAWL_TASK_DLQ_URL: ${SQS_CRAWL_TASK_DLQ_URL}
+      SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL: ${SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL}
+      SQS_PRODUCT_SYNC_QUEUE_URL: ${SQS_PRODUCT_SYNC_QUEUE_URL}
+      SQS_PRODUCT_IMAGE_QUEUE_URL: ${SQS_PRODUCT_IMAGE_QUEUE_URL}
+      # EventBridge 미설정 (crawl-worker는 EventBridge 불필요)
+      # Security
+      SECURITY_SERVICE_TOKEN_ENABLED: "false"
+      # Sentry 비활성화 (로컬)
+      SENTRY_DSN: ""
+      # OTEL 비활성화 (로컬)
+      OTEL_AGENT_OPTS: ""
+      OTEL_TRACES_EXPORTER: "none"
+      OTEL_METRICS_EXPORTER: "none"
+      # Logging
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "30082:30082"
+      - "8082:8082"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
     networks:
       - crawlinghub-network
     restart: unless-stopped

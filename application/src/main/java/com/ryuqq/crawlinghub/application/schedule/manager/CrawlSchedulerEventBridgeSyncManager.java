@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.schedule.manager;
 
 import com.ryuqq.crawlinghub.application.schedule.port.out.client.EventBridgeClientPort;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Component
+@ConditionalOnProperty(prefix = "eventbridge", name = "target-arn")
 public class CrawlSchedulerEventBridgeSyncManager {
 
     private final EventBridgeClientPort eventBridgeClientPort;
