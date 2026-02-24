@@ -127,11 +127,7 @@ public class FlywayConfig {
     @Profile({"dev", "stage", "prod"})
     public FlywayMigrationStrategy validateMigrateStrategy() {
         return flyway -> {
-            // 1. 마이그레이션 실행 (baseline-on-migrate=true로 새 DB도 처리)
             flyway.migrate();
-
-            // 2. 마이그레이션 검증 (migrate 후 검증)
-            flyway.validate();
         };
     }
 
