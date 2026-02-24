@@ -51,6 +51,17 @@ data "aws_ssm_parameter" "sentry_dsn" {
 }
 
 # ========================================
+# EventBridge Configuration (from SSM)
+# ========================================
+data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
+  name = "/${var.project_name}/sqs-stage/eventbridge-trigger-queue-arn"
+}
+
+data "aws_ssm_parameter" "eventbridge_role_arn" {
+  name = "/${var.project_name}/eventbridge/role-arn"
+}
+
+# ========================================
 # KMS Key for CloudWatch Logs Encryption
 # ========================================
 resource "aws_kms_key" "logs" {
@@ -233,6 +244,24 @@ module "scheduler_task_role" {
               "events:RemoveTargets"
             ]
             Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "scheduler:CreateSchedule",
+              "scheduler:UpdateSchedule",
+              "scheduler:DeleteSchedule",
+              "scheduler:GetSchedule",
+              "scheduler:ListSchedules"
+            ]
+            Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "iam:PassRole"
+            ]
+            Resource = data.aws_ssm_parameter.eventbridge_role_arn.value
           }
         ]
       })
@@ -375,6 +404,9 @@ module "ecs_service" {
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
     { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
     { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
+    # EventBridge Configuration (from SSM)
+    { name = "EVENTBRIDGE_TARGET_ARN", value = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value },
+    { name = "EVENTBRIDGE_ROLE_ARN", value = data.aws_ssm_parameter.eventbridge_role_arn.value },
     # Fileflow Client 설정 (Stage 내부 VPC Service Discovery 통신)
     { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-stage.connectly.local:8080" },
     { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/webhook/image-upload" },
