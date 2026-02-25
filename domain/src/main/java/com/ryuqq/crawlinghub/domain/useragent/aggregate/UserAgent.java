@@ -488,6 +488,16 @@ public class UserAgent {
 
     // === 상태 확인 메서드 ===
 
+    /**
+     * 대상 상태와 현재 상태가 다른지 확인
+     *
+     * @param targetStatus 비교할 대상 상태
+     * @return 현재 상태가 대상과 다르면 true
+     */
+    public boolean isStatusDifferentFrom(UserAgentStatus targetStatus) {
+        return this.status != targetStatus;
+    }
+
     public boolean isAvailable() {
         return this.status.isAvailable();
     }

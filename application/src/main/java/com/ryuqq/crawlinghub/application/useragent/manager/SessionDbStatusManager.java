@@ -1,10 +1,10 @@
 package com.ryuqq.crawlinghub.application.useragent.manager;
 
-import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,15 +36,11 @@ public class SessionDbStatusManager {
 
     private final UserAgentReadManager readManager;
     private final UserAgentCommandManager transactionManager;
-    private final TimeProvider timeProvider;
 
     public SessionDbStatusManager(
-            UserAgentReadManager readManager,
-            UserAgentCommandManager transactionManager,
-            TimeProvider timeProvider) {
+            UserAgentReadManager readManager, UserAgentCommandManager transactionManager) {
         this.readManager = readManager;
         this.transactionManager = transactionManager;
-        this.timeProvider = timeProvider;
     }
 
     /**
@@ -77,15 +73,20 @@ public class SessionDbStatusManager {
             log.warn("DB에서 일부 UserAgent를 찾을 수 없음. 누락된 ID: {}", notFoundIds);
         }
 
-        Instant now = timeProvider.now();
+        Instant now = Instant.now();
+        List<UserAgent> toPersist = new ArrayList<>();
 
         for (UserAgent userAgent : userAgents) {
-            userAgent.changeStatus(UserAgentStatus.IDLE, now);
+            if (userAgent.isStatusDifferentFrom(UserAgentStatus.IDLE)) {
+                userAgent.changeStatus(UserAgentStatus.IDLE, now);
+                toPersist.add(userAgent);
+            }
         }
 
-        transactionManager.persistAll(userAgents);
-
-        log.info("DB 상태 업데이트 완료: {}건 → IDLE", userAgents.size());
+        if (!toPersist.isEmpty()) {
+            transactionManager.persistAll(toPersist);
+            log.info("DB 상태 업데이트 완료: {}건 → IDLE", toPersist.size());
+        }
         return userAgents.size();
     }
 }
