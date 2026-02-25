@@ -9,11 +9,9 @@ import static org.mockito.Mockito.never;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.HealthScoreFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentIdFixture;
-import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
 import com.ryuqq.crawlinghub.domain.useragent.aggregate.UserAgent;
 import com.ryuqq.crawlinghub.domain.useragent.id.UserAgentId;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
-import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,11 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("SessionDbStatusManager 테스트")
 class SessionDbStatusManagerTest {
 
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
-
     @Mock private UserAgentReadManager readManager;
     @Mock private UserAgentCommandManager transactionManager;
-    @Mock private TimeProvider timeProvider;
 
     @InjectMocks private SessionDbStatusManager sut;
 
@@ -73,7 +68,6 @@ class SessionDbStatusManagerTest {
             List<UserAgentId> ids = List.of(id);
 
             given(readManager.findByIds(ids)).willReturn(List.of(userAgent));
-            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When
             int result = sut.updateStatusToIdle(ids);
@@ -138,7 +132,6 @@ class SessionDbStatusManagerTest {
             List<UserAgentId> ids = List.of(id1, id2);
 
             given(readManager.findByIds(ids)).willReturn(List.of(ua1, ua2));
-            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When
             int result = sut.updateStatusToIdle(ids);
@@ -160,7 +153,6 @@ class SessionDbStatusManagerTest {
             List<UserAgentId> ids = List.of(id1, id2);
 
             given(readManager.findByIds(ids)).willReturn(List.of(ua1)); // ua2만 못 찾음
-            given(timeProvider.now()).willReturn(FIXED_INSTANT);
 
             // When
             int result = sut.updateStatusToIdle(ids);
@@ -168,6 +160,26 @@ class SessionDbStatusManagerTest {
             // Then
             assertThat(result).isEqualTo(1); // ua1만 업데이트됨
             then(transactionManager).should().persistAll(List.of(ua1));
+        }
+
+        @Test
+        @DisplayName("[성공] 이미 IDLE인 UserAgent는 건너뛰고 persist 안 함 (선제적 갱신 시나리오)")
+        void shouldSkipWhenAlreadyIdle() {
+            // Given: 이미 IDLE인 UserAgent (선제적 갱신 시 세션만 갱신, DB 상태는 이미 IDLE)
+            UserAgentId id = UserAgentIdFixture.anAssignedId();
+            UserAgent idleUserAgent =
+                    UserAgentFixture.reconstitute(
+                            UserAgentStatus.IDLE, HealthScoreFixture.initial());
+            List<UserAgentId> ids = List.of(id);
+
+            given(readManager.findByIds(ids)).willReturn(List.of(idleUserAgent));
+
+            // When
+            int result = sut.updateStatusToIdle(ids);
+
+            // Then: 반환값은 1이지만 persist는 호출되지 않음 (IDLE→IDLE 전환 시도 안 함)
+            assertThat(result).isEqualTo(1);
+            then(transactionManager).should(never()).persistAll(any());
         }
     }
 }

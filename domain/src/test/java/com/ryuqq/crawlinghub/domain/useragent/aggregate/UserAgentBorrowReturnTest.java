@@ -224,6 +224,28 @@ class UserAgentBorrowReturnTest {
     }
 
     @Nested
+    @DisplayName("isStatusDifferentFrom() 테스트")
+    class IsStatusDifferentFromTest {
+
+        @Test
+        @DisplayName("현재 상태와 대상 상태가 다르면 true")
+        void returnsTrueWhenDifferent() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent(); // IDLE
+
+            assertThat(userAgent.isStatusDifferentFrom(UserAgentStatus.SESSION_REQUIRED)).isTrue();
+            assertThat(userAgent.isStatusDifferentFrom(UserAgentStatus.SUSPENDED)).isTrue();
+        }
+
+        @Test
+        @DisplayName("현재 상태와 대상 상태가 같으면 false")
+        void returnsFalseWhenSame() {
+            UserAgent userAgent = UserAgentFixture.anAvailableUserAgent(); // IDLE
+
+            assertThat(userAgent.isStatusDifferentFrom(UserAgentStatus.IDLE)).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("resetHealth() 테스트")
     class ResetHealthTest {
 
