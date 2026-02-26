@@ -2317,26 +2317,39 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "crawlinghub-worker-metrics",
-          "value": "crawlinghub-worker-metrics"
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "ef4r3izgbak8wb"
-        },
-        "definition": "",
         "hide": 0,
-        "includeAll": false,
-        "multi": false,
+        "includeAll": true,
+        "multi": true,
         "name": "job",
-        "options": [],
-        "query": "label_values(up, job)",
-        "refresh": 1,
-        "regex": "/crawlinghub-(worker|resizing-worker)-metrics/",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "crawlinghub-worker-metrics",
+            "value": "crawlinghub-worker-metrics"
+          },
+          {
+            "selected": false,
+            "text": "crawlinghub-resizing-worker-metrics",
+            "value": "crawlinghub-resizing-worker-metrics"
+          }
+        ],
+        "query": "crawlinghub-worker-metrics,crawlinghub-resizing-worker-metrics",
+        "queryValue": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
+        "type": "custom"
       },
       {
         "current": {
