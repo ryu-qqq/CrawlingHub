@@ -3,6 +3,7 @@ package com.ryuqq.crawlinghub.application.product.port.out.client;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 
 /**
  * 외부 상품 서버 연동 Port (Port Out - External)
@@ -19,7 +20,8 @@ public interface ExternalProductServerClient {
      *
      * @param outbox 동기화 Outbox (syncType, idempotencyKey 포함)
      * @param product 크롤링된 상품 정보
+     * @param seller 셀러 정보 (omsSellerId 등 외부몰 연동에 필요)
      * @return 동기화 결과
      */
-    ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product);
+    ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller);
 }

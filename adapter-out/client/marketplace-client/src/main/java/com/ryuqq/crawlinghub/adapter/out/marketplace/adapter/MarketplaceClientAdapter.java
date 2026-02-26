@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProduct
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,8 @@ public class MarketplaceClientAdapter implements ExternalProductServerClient {
 
     @OutboundClientMetric(system = "marketplace", operation = "sync_product")
     @Override
-    public ProductSyncResult sync(CrawledProductSyncOutbox outbox, CrawledProduct product) {
-        return strategyProvider.getStrategy(outbox.getSyncType()).execute(outbox, product);
+    public ProductSyncResult sync(
+            CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller) {
+        return strategyProvider.getStrategy(outbox.getSyncType()).execute(outbox, product, seller);
     }
 }

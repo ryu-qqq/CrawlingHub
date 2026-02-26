@@ -159,7 +159,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(scheduler_job_duration_seconds_count{job=\"$job\"}[1m])) * 60",
+          "expr": "sum(rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\"}[1m])) * 60",
           "legendFormat": "Exec/min",
           "refId": "A"
         }
@@ -229,7 +229,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(scheduler_job_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
           "legendFormat": "Success %",
           "refId": "A"
         }
@@ -349,7 +349,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (job_name) (rate(scheduler_job_duration_seconds_count{job=\"$job\"}[5m]))",
+          "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\"}[5m]))",
           "legendFormat": "{{job_name}}",
           "refId": "A"
         }
@@ -387,7 +387,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(scheduler_job_duration_seconds_bucket{job=\"$job\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "{{job_name}} P95",
           "refId": "A"
         }
@@ -444,7 +444,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(scheduler_job_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
           "legendFormat": "Success %",
           "refId": "A"
         }
@@ -476,7 +476,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (job_name, result) (rate(scheduler_job_items_total{job=\"$job\"}[5m]))",
+          "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\"}[5m]))",
           "legendFormat": "{{job_name}} {{result}}",
           "refId": "A"
         }
@@ -874,7 +874,7 @@
   "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
-    "fileflow",
+    "crawlinghub",
     "prod",
     "scheduler"
   ],
@@ -883,19 +883,19 @@
       {
         "current": {
           "selected": false,
-          "text": "fileflow-scheduler-metrics",
-          "value": "fileflow-scheduler-metrics"
+          "text": "crawlinghub-scheduler-metrics",
+          "value": "crawlinghub-scheduler-metrics"
         },
         "hide": 2,
         "name": "job",
         "options": [
           {
             "selected": true,
-            "text": "fileflow-scheduler-metrics",
-            "value": "fileflow-scheduler-metrics"
+            "text": "crawlinghub-scheduler-metrics",
+            "value": "crawlinghub-scheduler-metrics"
           }
         ],
-        "query": "fileflow-scheduler-metrics",
+        "query": "crawlinghub-scheduler-metrics",
         "skipUrlSync": false,
         "type": "constant"
       },
@@ -931,8 +931,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "FileFlow - Scheduler Metrics",
-  "uid": "fileflow-scheduler-metrics",
+  "title": "CrawlingHub - Scheduler Metrics",
+  "uid": "crawlinghub-scheduler-metrics",
   "version": 1,
   "weekStart": ""
 }

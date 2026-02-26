@@ -33,6 +33,7 @@ public class Seller {
     private final SellerId sellerId;
     private MustItSellerName mustItSellerName;
     private SellerName sellerName;
+    private Long omsSellerId;
     private SellerStatus status;
     private int productCount;
 
@@ -57,6 +58,7 @@ public class Seller {
                 null, // Auto Increment: ID null
                 mustItSellerName,
                 sellerName,
+                null, // omsSellerId: 신규 생성 시 null
                 SellerStatus.ACTIVE,
                 0, // 신규 셀러는 상품 수 0
                 now,
@@ -69,6 +71,7 @@ public class Seller {
      * @param sellerId 셀러 ID (null 불가)
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
+     * @param omsSellerId OMS 셀러 ID (nullable)
      * @param status 셀러 상태
      * @param productCount 상품 수
      * @param createdAt 생성 시각
@@ -79,6 +82,7 @@ public class Seller {
             SellerId sellerId,
             MustItSellerName mustItSellerName,
             SellerName sellerName,
+            Long omsSellerId,
             SellerStatus status,
             int productCount,
             Instant createdAt,
@@ -87,7 +91,14 @@ public class Seller {
             throw new IllegalArgumentException("sellerId는 null일 수 없습니다.");
         }
         return new Seller(
-                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
+                sellerId,
+                mustItSellerName,
+                sellerName,
+                omsSellerId,
+                status,
+                productCount,
+                createdAt,
+                updatedAt);
     }
 
     /**
@@ -96,6 +107,7 @@ public class Seller {
      * @param sellerId 셀러 ID (null 불가)
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
+     * @param omsSellerId OMS 셀러 ID (nullable)
      * @param status 셀러 상태
      * @param productCount 상품 수
      * @param createdAt 생성 시각
@@ -106,12 +118,20 @@ public class Seller {
             SellerId sellerId,
             MustItSellerName mustItSellerName,
             SellerName sellerName,
+            Long omsSellerId,
             SellerStatus status,
             int productCount,
             Instant createdAt,
             Instant updatedAt) {
         return of(
-                sellerId, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
+                sellerId,
+                mustItSellerName,
+                sellerName,
+                omsSellerId,
+                status,
+                productCount,
+                createdAt,
+                updatedAt);
     }
 
     /** 생성자 (private) */
@@ -119,6 +139,7 @@ public class Seller {
             SellerId sellerId,
             MustItSellerName mustItSellerName,
             SellerName sellerName,
+            Long omsSellerId,
             SellerStatus status,
             int productCount,
             Instant createdAt,
@@ -126,6 +147,7 @@ public class Seller {
         this.sellerId = sellerId;
         this.mustItSellerName = mustItSellerName;
         this.sellerName = sellerName;
+        this.omsSellerId = omsSellerId;
         this.status = status;
         this.productCount = productCount;
         this.createdAt = createdAt;
@@ -231,6 +253,11 @@ public class Seller {
     /** Law of Demeter: 셀러명의 원시값 */
     public String getSellerNameValue() {
         return sellerName.value();
+    }
+
+    /** OMS 셀러 ID (nullable) */
+    public Long getOmsSellerId() {
+        return omsSellerId;
     }
 
     public SellerStatus getStatus() {

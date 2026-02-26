@@ -474,4 +474,72 @@
         <Class name="~.*Scanner"/>
         <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
     </Match>
+
+    <!-- ========================================
+         Client Classes
+         HTTP/API clients store injected Spring beans
+         ======================================== -->
+    <Match>
+        <Class name="~.*Client"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Payload Classes
+         Request payload DTOs may expose collections
+         ======================================== -->
+    <Match>
+        <Class name="~.*Payload"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <Match>
+        <Class name="~.*Payload"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ========================================
+         Test Code - Additional Exclusions
+         ======================================== -->
+    <!-- Test code: Unchecked casts acceptable in tests (e.g. SqsException.builder()) -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Test code: Default encoding acceptable in tests -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
+    <!-- Test code: Return value ignored for constructor-only validation tests -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
+
+    <!-- Test code: Useless objects acceptable in tests verifying construction -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="UC_USELESS_OBJECT"/>
+    </Match>
+
+    <!-- Test code: setAccessible() in tests for private method testing -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED"/>
+    </Match>
+
+    <!-- Test code: Confusing method names across different test classes -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+
+    <!-- Test code: Unused private methods may be test helpers -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
 </FindBugsFilter>

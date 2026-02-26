@@ -54,10 +54,24 @@ class SellerCommandAdapterTest {
         LocalDateTime now = LocalDateTime.now();
         SellerJpaEntity entity =
                 SellerJpaEntity.of(
-                        null, "mustit-seller", "commerce-seller", SellerStatus.ACTIVE, 0, now, now);
+                        null,
+                        "mustit-seller",
+                        "commerce-seller",
+                        null,
+                        SellerStatus.ACTIVE,
+                        0,
+                        now,
+                        now);
         SellerJpaEntity savedEntity =
                 SellerJpaEntity.of(
-                        1L, "mustit-seller", "commerce-seller", SellerStatus.ACTIVE, 0, now, now);
+                        1L,
+                        "mustit-seller",
+                        "commerce-seller",
+                        null,
+                        SellerStatus.ACTIVE,
+                        0,
+                        now,
+                        now);
 
         given(sellerJpaEntityMapper.toEntity(seller)).willReturn(entity);
         given(sellerJpaRepository.save(entity)).willReturn(savedEntity);
@@ -83,6 +97,7 @@ class SellerCommandAdapterTest {
                         100L,
                         "mustit-seller",
                         "commerce-seller",
+                        null,
                         SellerStatus.ACTIVE,
                         50,
                         now,

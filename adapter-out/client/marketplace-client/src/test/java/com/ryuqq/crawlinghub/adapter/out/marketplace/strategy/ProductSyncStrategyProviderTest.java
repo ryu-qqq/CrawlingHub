@@ -2,7 +2,10 @@ package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.CreateProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +31,9 @@ class ProductSyncStrategyProviderTest {
             // given
             List<ProductSyncStrategy> strategies =
                     List.of(
-                            new CreateProductSyncStrategy(),
+                            new CreateProductSyncStrategy(
+                                    mock(MarketPlaceClient.class),
+                                    mock(CreateProductRequestMapper.class)),
                             new UpdatePriceSyncStrategy(),
                             new UpdateImageSyncStrategy(),
                             new UpdateDescriptionSyncStrategy(),
@@ -48,7 +53,11 @@ class ProductSyncStrategyProviderTest {
         void getStrategy_withUpdatePriceType_returnsUpdatePriceStrategy() {
             // given
             List<ProductSyncStrategy> strategies =
-                    List.of(new CreateProductSyncStrategy(), new UpdatePriceSyncStrategy());
+                    List.of(
+                            new CreateProductSyncStrategy(
+                                    mock(MarketPlaceClient.class),
+                                    mock(CreateProductRequestMapper.class)),
+                            new UpdatePriceSyncStrategy());
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
