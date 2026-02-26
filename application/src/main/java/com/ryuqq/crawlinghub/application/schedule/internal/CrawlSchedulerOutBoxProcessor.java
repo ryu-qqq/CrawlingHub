@@ -49,11 +49,13 @@ public class CrawlSchedulerOutBoxProcessor {
         try {
             outBox.markAsProcessing(Instant.now());
             outBoxCommandManager.persist(outBox);
+            outBox.syncVersion();
 
             eventBridgeSyncManager.syncFromOutBox(outBox);
 
             outBox.markAsCompleted(Instant.now());
             outBoxCommandManager.persist(outBox);
+            outBox.syncVersion();
 
             log.debug("아웃박스 처리 성공: outBoxId={}", outBox.getOutBoxIdValue());
             return true;
