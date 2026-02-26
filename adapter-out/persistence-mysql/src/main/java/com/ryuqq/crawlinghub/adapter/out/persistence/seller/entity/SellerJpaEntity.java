@@ -73,6 +73,10 @@ public class SellerJpaEntity extends BaseAuditEntity {
     @Column(name = "status", nullable = false, length = 20)
     private SellerStatus status;
 
+    /** OMS 셀러 ID (nullable) */
+    @Column(name = "oms_seller_id")
+    private Long omsSellerId;
+
     /** 셀러 상품 수 (META 크롤링 결과) */
     @Column(name = "product_count", nullable = false)
     private int productCount;
@@ -92,6 +96,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
      * @param id 기본 키
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
+     * @param omsSellerId OMS 셀러 ID (nullable)
      * @param status 셀러 상태
      * @param productCount 상품 수
      * @param createdAt 생성 일시
@@ -101,6 +106,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
             Long id,
             String mustItSellerName,
             String sellerName,
+            Long omsSellerId,
             SellerStatus status,
             int productCount,
             LocalDateTime createdAt,
@@ -109,6 +115,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
         this.id = id;
         this.mustItSellerName = mustItSellerName;
         this.sellerName = sellerName;
+        this.omsSellerId = omsSellerId;
         this.status = status;
         this.productCount = productCount;
     }
@@ -123,6 +130,7 @@ public class SellerJpaEntity extends BaseAuditEntity {
      * @param id 기본 키
      * @param mustItSellerName 머스트잇 셀러명
      * @param sellerName 커머스 셀러명
+     * @param omsSellerId OMS 셀러 ID (nullable)
      * @param status 셀러 상태
      * @param productCount 상품 수
      * @param createdAt 생성 일시
@@ -133,12 +141,20 @@ public class SellerJpaEntity extends BaseAuditEntity {
             Long id,
             String mustItSellerName,
             String sellerName,
+            Long omsSellerId,
             SellerStatus status,
             int productCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new SellerJpaEntity(
-                id, mustItSellerName, sellerName, status, productCount, createdAt, updatedAt);
+                id,
+                mustItSellerName,
+                sellerName,
+                omsSellerId,
+                status,
+                productCount,
+                createdAt,
+                updatedAt);
     }
 
     // ===== Getters (Setter 제공 금지) =====
@@ -157,6 +173,10 @@ public class SellerJpaEntity extends BaseAuditEntity {
 
     public SellerStatus getStatus() {
         return status;
+    }
+
+    public Long getOmsSellerId() {
+        return omsSellerId;
     }
 
     public int getProductCount() {

@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,8 @@ public class UpdateOptionStockSyncStrategy implements ProductSyncStrategy {
     }
 
     @Override
-    public ProductSyncResult execute(CrawledProductSyncOutbox outbox, CrawledProduct product) {
+    public ProductSyncResult execute(
+            CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller) {
         log.info(
                 "[STUB] 옵션/재고 갱신 요청 - outboxId={}, crawledProductId={}, externalProductId={}, "
                         + "optionCount={}",

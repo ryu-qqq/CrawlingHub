@@ -49,10 +49,6 @@ class SessionDbStatusManagerTest {
                 UserAgentStatus.SESSION_REQUIRED, HealthScoreFixture.initial());
     }
 
-    private static UserAgent aSessionRequiredUserAgentWithId(Long id) {
-        return UserAgentFixture.anUserAgentWithId(id);
-    }
-
     @Nested
     @DisplayName("updateStatusToIdle() 테스트")
     class UpdateStatusToIdle {

@@ -112,12 +112,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "green",
+                "value": 1
               }
             ]
           },
@@ -155,12 +159,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\"}[1m]))",
-          "legendFormat": "msg/s",
+          "editorMode": "code",
+          "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\"}[1m])) * 60",
+          "legendFormat": "tasks/min",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "SQS Messages/sec",
+      "title": "Crawl Tasks/min",
       "type": "stat"
     },
     {
@@ -225,12 +231,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m])) / sum(rate(sqs_consumer_messages_total{job=\"$job\"}[1m])) * 100 or vector(0)",
-          "legendFormat": "Nack %",
+          "editorMode": "code",
+          "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[5m])) / sum(rate(crawlinghub_crawl_task_total{job=\"$job\"}[5m])) * 100 or vector(0)",
+          "legendFormat": "error %",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Nack Rate %",
+      "title": "Task Error Rate %",
       "type": "stat"
     },
     {
@@ -312,7 +320,7 @@
         "y": 5
       },
       "id": 300,
-      "title": "\ud83d\udcc1 SQS Consumer Processing",
+      "title": "Crawl Task Processing",
       "type": "row"
     },
     {
@@ -335,7 +343,7 @@
               },
               {
                 "color": "yellow",
-                "value": 95
+                "value": 90
               },
               {
                 "color": "green",
@@ -377,12 +385,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"download\",result=\"success\"}[5m])) / sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"download\"}[5m])) * 100 or vector(100)",
-          "legendFormat": "Success %",
+          "editorMode": "code",
+          "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_crawl_task_total{job=\"$job\"}[5m])) * 100 or vector(100)",
+          "legendFormat": "success %",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "SQS Download - Success Rate",
+      "title": "Crawl Task - Success Rate",
       "type": "stat"
     },
     {
@@ -405,7 +415,7 @@
               },
               {
                 "color": "yellow",
-                "value": 95
+                "value": 90
               },
               {
                 "color": "green",
@@ -447,12 +457,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"transform\",result=\"success\"}[5m])) / sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"transform\"}[5m])) * 100 or vector(100)",
-          "legendFormat": "Success %",
+          "editorMode": "code",
+          "expr": "sum(rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_outbound_client_total{job=\"$job\"}[5m])) * 100 or vector(100)",
+          "legendFormat": "success %",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "SQS Transform - Success Rate",
+      "title": "Outbound Client - Success Rate",
       "type": "stat"
     },
     {
@@ -515,12 +527,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(increase(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[5m])) or vector(0)",
-          "legendFormat": "Nack",
+          "editorMode": "code",
+          "expr": "sum(increase(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[5m])) or vector(0)",
+          "legendFormat": "errors",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Nack Messages (5m)",
+      "title": "Crawl Task Errors (5m)",
       "type": "stat"
     },
     {
@@ -541,11 +555,11 @@
               },
               {
                 "color": "yellow",
-                "value": 10
+                "value": 1
               },
               {
-                "color": "orange",
-                "value": 50
+                "color": "red",
+                "value": 10
               }
             ]
           },
@@ -583,12 +597,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(increase(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[5m])) or vector(0)",
-          "legendFormat": "Ack",
+          "editorMode": "code",
+          "expr": "sum(increase(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[5m])) or vector(0)",
+          "legendFormat": "errors",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Ack (Non-Retryable) (5m)",
+      "title": "Outbound Client Errors (5m)",
       "type": "stat"
     },
     {
@@ -707,8 +723,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\"}[1m]))",
-          "legendFormat": "{{queue}} Total",
+          "editorMode": "code",
+          "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\"}[1m]))",
+          "legendFormat": "{{operation}} - total",
+          "range": true,
           "refId": "A"
         },
         {
@@ -716,8 +734,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"success\"}[1m]))",
-          "legendFormat": "{{queue}} Success",
+          "editorMode": "code",
+          "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"success\"}[1m]))",
+          "legendFormat": "{{operation}} - success",
+          "range": true,
           "refId": "B"
         },
         {
@@ -725,12 +745,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-          "legendFormat": "{{queue}} Nack",
+          "editorMode": "code",
+          "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[1m]))",
+          "legendFormat": "{{operation}} - error",
+          "range": true,
           "refId": "C"
         }
       ],
-      "title": "SQS Processing Rate (by Queue)",
+      "title": "Crawl Task Rate (by Operation)",
       "type": "timeseries"
     },
     {
@@ -849,8 +871,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"success\"}[1m]))",
-          "legendFormat": "Success",
+          "editorMode": "code",
+          "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"success\"}[1m]))",
+          "legendFormat": "{{system}} - success",
+          "range": true,
           "refId": "A"
         },
         {
@@ -858,21 +882,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[1m]))",
-          "legendFormat": "Ack (Non-Retryable)",
+          "editorMode": "code",
+          "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[1m]))",
+          "legendFormat": "{{system}} - error",
+          "range": true,
           "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "ef4r3izgbak8wb"
-          },
-          "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-          "legendFormat": "Nack (Retry)",
-          "refId": "C"
         }
       ],
-      "title": "SQS Message Result Breakdown",
+      "title": "Outbound Client Rate (by System)",
       "type": "timeseries"
     },
     {
@@ -899,8 +916,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P50",
+          "range": true,
           "refId": "A"
         },
         {
@@ -908,8 +927,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P95",
+          "range": true,
           "refId": "B"
         },
         {
@@ -917,12 +938,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P99",
+          "range": true,
           "refId": "C"
         }
       ],
-      "title": "SQS Download Duration (P50/P95/P99)",
+      "title": "Crawl Task Duration (P50/P95/P99)",
       "type": "timeseries"
     },
     {
@@ -949,8 +972,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P50",
+          "range": true,
           "refId": "A"
         },
         {
@@ -958,8 +983,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P95",
+          "range": true,
           "refId": "B"
         },
         {
@@ -967,12 +994,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
           "legendFormat": "P99",
+          "range": true,
           "refId": "C"
         }
       ],
-      "title": "SQS Transform Duration (P50/P95/P99)",
+      "title": "Outbound Client Duration (P50/P95/P99)",
       "type": "timeseries"
     },
     {
@@ -984,7 +1013,7 @@
         "y": 26
       },
       "id": 400,
-      "title": "\u26a0\ufe0f SQS Errors",
+      "title": "Errors",
       "type": "row"
     },
     {
@@ -1017,8 +1046,10 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-          "legendFormat": "{{queue}} Nack",
+          "editorMode": "code",
+          "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[1m]))",
+          "legendFormat": "crawl_task - {{operation}}",
+          "range": true,
           "refId": "A"
         },
         {
@@ -1026,12 +1057,14 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[1m]))",
-          "legendFormat": "{{queue}} Ack",
+          "editorMode": "code",
+          "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[1m]))",
+          "legendFormat": "outbound - {{system}}",
+          "range": true,
           "refId": "B"
         }
       ],
-      "title": "SQS Error Rate (Nack / Ack)",
+      "title": "Error Rate (Crawl Task / Outbound Client)",
       "type": "timeseries"
     },
     {
@@ -1535,7 +1568,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-monitoring-sqs-fileflow-external-download"
+              "prod-monitoring-sqs-crawlinghub-external-download"
             ]
           },
           "expression": "",
@@ -1559,7 +1592,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-monitoring-sqs-fileflow-external-download-dlq"
+              "prod-monitoring-sqs-crawlinghub-external-download-dlq"
             ]
           },
           "expression": "",
@@ -1577,7 +1610,7 @@
           "legendFormat": "Visible (DLQ)"
         }
       ],
-      "title": "Download Queue - Messages Visible",
+      "title": "Crawl Task Queue - Messages Visible",
       "type": "timeseries"
     },
     {
@@ -1683,7 +1716,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-fileflow-file-processing"
+              "prod-crawlinghub-file-processing"
             ]
           },
           "expression": "",
@@ -1707,7 +1740,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-fileflow-file-processing-dlq"
+              "prod-crawlinghub-file-processing-dlq"
             ]
           },
           "expression": "",
@@ -1725,7 +1758,7 @@
           "legendFormat": "Visible (DLQ)"
         }
       ],
-      "title": "File Processing Queue - Messages Visible",
+      "title": "Product Sync Queue - Messages Visible",
       "type": "timeseries"
     },
     {
@@ -1819,7 +1852,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-monitoring-sqs-fileflow-external-download"
+              "prod-monitoring-sqs-crawlinghub-external-download"
             ]
           },
           "expression": "",
@@ -1836,7 +1869,7 @@
           "statistic": "Maximum"
         }
       ],
-      "title": "Download Queue - Message Age",
+      "title": "Crawl Task Queue - Message Age",
       "type": "timeseries"
     },
     {
@@ -1930,7 +1963,7 @@
           },
           "dimensions": {
             "QueueName": [
-              "prod-fileflow-file-processing"
+              "prod-crawlinghub-file-processing"
             ]
           },
           "expression": "",
@@ -1947,7 +1980,7 @@
           "statistic": "Maximum"
         }
       ],
-      "title": "File Processing Queue - Message Age",
+      "title": "Product Sync Queue - Message Age",
       "type": "timeseries"
     },
     {
@@ -2053,10 +2086,10 @@
           },
           "dimensions": {
             "ClusterName": [
-              "fileflow-cluster-prod"
+              "crawlinghub-cluster-prod"
             ],
             "ServiceName": [
-              "fileflow-download-worker"
+              "crawlinghub-download-worker"
             ]
           },
           "expression": "",
@@ -2080,10 +2113,10 @@
           },
           "dimensions": {
             "ClusterName": [
-              "fileflow-cluster-prod"
+              "crawlinghub-cluster-prod"
             ],
             "ServiceName": [
-              "fileflow-resizing-worker"
+              "crawlinghub-resizing-worker"
             ]
           },
           "expression": "",
@@ -2195,10 +2228,10 @@
           },
           "dimensions": {
             "ClusterName": [
-              "fileflow-cluster-prod"
+              "crawlinghub-cluster-prod"
             ],
             "ServiceName": [
-              "fileflow-download-worker"
+              "crawlinghub-download-worker"
             ]
           },
           "expression": "",
@@ -2222,10 +2255,10 @@
           },
           "dimensions": {
             "ClusterName": [
-              "fileflow-cluster-prod"
+              "crawlinghub-cluster-prod"
             ],
             "ServiceName": [
-              "fileflow-resizing-worker"
+              "crawlinghub-resizing-worker"
             ]
           },
           "expression": "",
@@ -2250,17 +2283,17 @@
   "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
-    "fileflow",
-    "prod",
-    "worker"
+    "crawlinghub",
+    "worker",
+    "prod"
   ],
   "templating": {
     "list": [
       {
         "current": {
           "selected": false,
-          "text": "fileflow-worker-metrics",
-          "value": "fileflow-worker-metrics"
+          "text": "crawlinghub-worker-metrics",
+          "value": "crawlinghub-worker-metrics"
         },
         "datasource": {
           "type": "prometheus",
@@ -2274,7 +2307,7 @@
         "options": [],
         "query": "label_values(up, job)",
         "refresh": 1,
-        "regex": "/fileflow-(worker|resizing-worker)-metrics/",
+        "regex": "/crawlinghub-(worker|resizing-worker)-metrics/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -2325,8 +2358,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "FileFlow - Worker Metrics",
-  "uid": "fileflow-worker-metrics",
+  "title": "CrawlingHub Worker Metrics",
+  "uid": "crawlinghub-worker-metrics",
   "version": 1,
   "weekStart": ""
 }

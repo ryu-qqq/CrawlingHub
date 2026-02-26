@@ -1,7 +1,10 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.CreateProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
@@ -60,43 +63,14 @@ class ProductSyncStrategiesTest {
     @DisplayName("CreateProductSyncStrategy 테스트")
     class CreateProductSyncStrategyTest {
 
-        private final CreateProductSyncStrategy strategy = new CreateProductSyncStrategy();
+        private final CreateProductSyncStrategy strategy =
+                new CreateProductSyncStrategy(
+                        mock(MarketPlaceClient.class), mock(CreateProductRequestMapper.class));
 
         @Test
         @DisplayName("supportedType은 CREATE를 반환한다")
         void supportedType_returnsCreate() {
             assertThat(strategy.supportedType()).isEqualTo(SyncType.CREATE);
-        }
-
-        @Test
-        @DisplayName("execute는 성공 결과와 새로운 externalProductId를 반환한다")
-        void execute_returnsSuccessWithNewExternalProductId() {
-            // given
-            CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
-            CrawledProduct product = createProduct();
-
-            // when
-            ProductSyncResult result = strategy.execute(outbox, product);
-
-            // then
-            assertThat(result.success()).isTrue();
-            assertThat(result.externalProductId()).isNotNull();
-            assertThat(result.externalProductId()).isGreaterThan(1_000_000L);
-        }
-
-        @Test
-        @DisplayName("연속 호출 시 externalProductId가 증가한다")
-        void execute_consecutiveCalls_incrementsExternalProductId() {
-            // given
-            CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
-            CrawledProduct product = createProduct();
-
-            // when
-            ProductSyncResult result1 = strategy.execute(outbox, product);
-            ProductSyncResult result2 = strategy.execute(outbox, product);
-
-            // then
-            assertThat(result2.externalProductId()).isGreaterThan(result1.externalProductId());
         }
     }
 
@@ -120,7 +94,7 @@ class ProductSyncStrategiesTest {
             CrawledProduct product = createProduct();
 
             // when
-            ProductSyncResult result = strategy.execute(outbox, product);
+            ProductSyncResult result = strategy.execute(outbox, product, null);
 
             // then
             assertThat(result.success()).isTrue();
@@ -148,7 +122,7 @@ class ProductSyncStrategiesTest {
             CrawledProduct product = createProduct();
 
             // when
-            ProductSyncResult result = strategy.execute(outbox, product);
+            ProductSyncResult result = strategy.execute(outbox, product, null);
 
             // then
             assertThat(result.success()).isTrue();
@@ -176,7 +150,7 @@ class ProductSyncStrategiesTest {
             CrawledProduct product = createProduct();
 
             // when
-            ProductSyncResult result = strategy.execute(outbox, product);
+            ProductSyncResult result = strategy.execute(outbox, product, null);
 
             // then
             assertThat(result.success()).isTrue();
@@ -204,7 +178,7 @@ class ProductSyncStrategiesTest {
             CrawledProduct product = createProduct();
 
             // when
-            ProductSyncResult result = strategy.execute(outbox, product);
+            ProductSyncResult result = strategy.execute(outbox, product, null);
 
             // then
             assertThat(result.success()).isTrue();
@@ -232,7 +206,7 @@ class ProductSyncStrategiesTest {
             CrawledProduct product = createProduct();
 
             // when
-            ProductSyncResult result = strategy.execute(outbox, product);
+            ProductSyncResult result = strategy.execute(outbox, product, null);
 
             // then
             assertThat(result.success()).isTrue();

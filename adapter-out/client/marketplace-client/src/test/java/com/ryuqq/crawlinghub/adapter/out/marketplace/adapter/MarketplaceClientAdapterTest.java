@@ -15,7 +15,10 @@ import com.ryuqq.crawlinghub.domain.product.id.CrawledProductSyncOutboxId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,6 +78,18 @@ class MarketplaceClientAdapterTest {
                 Instant.now());
     }
 
+    private Seller createSeller() {
+        return Seller.reconstitute(
+                SellerId.of(200L),
+                MustItSellerName.of("mustit-seller"),
+                SellerName.of("test-seller"),
+                999L,
+                com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus.ACTIVE,
+                0,
+                Instant.now(),
+                Instant.now());
+    }
+
     @Nested
     @DisplayName("sync 메서드 테스트")
     class SyncTest {
@@ -85,20 +100,21 @@ class MarketplaceClientAdapterTest {
             // given
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
             CrawledProduct product = createCrawledProduct();
+            Seller seller = createSeller();
             ProductSyncResult expectedResult = ProductSyncResult.success(1000001L);
 
             when(strategyProvider.getStrategy(SyncType.CREATE)).thenReturn(productSyncStrategy);
-            when(productSyncStrategy.execute(any(), any())).thenReturn(expectedResult);
+            when(productSyncStrategy.execute(any(), any(), any())).thenReturn(expectedResult);
 
             // when
-            ProductSyncResult result = adapter.sync(outbox, product);
+            ProductSyncResult result = adapter.sync(outbox, product, seller);
 
             // then
             assertThat(result).isNotNull();
             assertThat(result.success()).isTrue();
             assertThat(result.externalProductId()).isEqualTo(1000001L);
             verify(strategyProvider).getStrategy(SyncType.CREATE);
-            verify(productSyncStrategy).execute(outbox, product);
+            verify(productSyncStrategy).execute(outbox, product, seller);
         }
 
         @Test
@@ -107,14 +123,15 @@ class MarketplaceClientAdapterTest {
             // given
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.UPDATE_PRICE);
             CrawledProduct product = createCrawledProduct();
+            Seller seller = createSeller();
             ProductSyncResult expectedResult = ProductSyncResult.success(99999L);
 
             when(strategyProvider.getStrategy(SyncType.UPDATE_PRICE))
                     .thenReturn(productSyncStrategy);
-            when(productSyncStrategy.execute(any(), any())).thenReturn(expectedResult);
+            when(productSyncStrategy.execute(any(), any(), any())).thenReturn(expectedResult);
 
             // when
-            ProductSyncResult result = adapter.sync(outbox, product);
+            ProductSyncResult result = adapter.sync(outbox, product, seller);
 
             // then
             assertThat(result.success()).isTrue();
@@ -127,12 +144,14 @@ class MarketplaceClientAdapterTest {
             // given
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
             CrawledProduct product = createCrawledProduct();
+            Seller seller = createSeller();
 
             when(strategyProvider.getStrategy(any()))
                     .thenThrow(new IllegalArgumentException("지원하지 않는 SyncType"));
 
             // when & then
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> adapter.sync(outbox, product))
+            org.assertj.core.api.Assertions.assertThatThrownBy(
+                            () -> adapter.sync(outbox, product, seller))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("지원하지 않는 SyncType");
         }

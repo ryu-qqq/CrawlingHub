@@ -6,9 +6,11 @@ import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutbo
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator.SyncTarget;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
@@ -40,16 +42,19 @@ public class ProductSyncCoordinator {
     private final CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
     private final CrawledProductCommandManager crawledProductCommandManager;
     private final ExternalProductServerClient externalProductServerClient;
+    private final SellerReadManager sellerReadManager;
 
     public ProductSyncCoordinator(
             ProductSyncValidator validator,
             CrawledProductSyncOutboxCommandManager syncOutboxCommandManager,
             CrawledProductCommandManager crawledProductCommandManager,
-            ExternalProductServerClient externalProductServerClient) {
+            ExternalProductServerClient externalProductServerClient,
+            SellerReadManager sellerReadManager) {
         this.validator = validator;
         this.syncOutboxCommandManager = syncOutboxCommandManager;
         this.crawledProductCommandManager = crawledProductCommandManager;
         this.externalProductServerClient = externalProductServerClient;
+        this.sellerReadManager = sellerReadManager;
     }
 
     /**
@@ -73,13 +78,23 @@ public class ProductSyncCoordinator {
 
         SyncTarget target = targetOpt.get();
 
-        // 2. PROCESSING 상태 전환
+        // 2. Seller 조회
+        Seller seller =
+                sellerReadManager
+                        .findById(target.outbox().getSellerId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "Seller not found: sellerId="
+                                                        + target.outbox().getSellerIdValue()));
+
+        // 3. PROCESSING 상태 전환
         syncOutboxCommandManager.markAsProcessing(target.outbox());
 
-        // 3. 외부 API 호출 + 결과 처리
+        // 4. 외부 API 호출 + 결과 처리
         try {
             ProductSyncResult result =
-                    externalProductServerClient.sync(target.outbox(), target.product());
+                    externalProductServerClient.sync(target.outbox(), target.product(), seller);
 
             if (result.success()) {
                 completeSync(target.outbox(), target.product(), result.externalProductId());

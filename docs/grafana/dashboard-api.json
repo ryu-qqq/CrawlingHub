@@ -1235,7 +1235,7 @@
   "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
-    "fileflow",
+    "crawlinghub",
     "prod",
     "api"
   ],
@@ -1244,19 +1244,19 @@
       {
         "current": {
           "selected": false,
-          "text": "fileflow-web-api-metrics",
-          "value": "fileflow-web-api-metrics"
+          "text": "crawlinghub-web-api-metrics",
+          "value": "crawlinghub-web-api-metrics"
         },
         "hide": 2,
         "name": "job",
         "options": [
           {
             "selected": true,
-            "text": "fileflow-web-api-metrics",
-            "value": "fileflow-web-api-metrics"
+            "text": "crawlinghub-web-api-metrics",
+            "value": "crawlinghub-web-api-metrics"
           }
         ],
-        "query": "fileflow-web-api-metrics",
+        "query": "crawlinghub-web-api-metrics",
         "skipUrlSync": false,
         "type": "constant"
       },
@@ -1292,8 +1292,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "FileFlow - API Metrics",
-  "uid": "fileflow-api-metrics",
+  "title": "CrawlingHub - API Metrics",
+  "uid": "crawlinghub-api-metrics",
   "version": 1,
   "weekStart": ""
 }
