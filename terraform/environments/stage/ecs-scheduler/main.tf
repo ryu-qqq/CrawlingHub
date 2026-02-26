@@ -58,7 +58,7 @@ data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
 }
 
 data "aws_ssm_parameter" "eventbridge_role_arn" {
-  name = "/${var.project_name}/eventbridge/role-arn"
+  name = "/${var.project_name}/eventbridge-stage/role-arn"
 }
 
 # ========================================

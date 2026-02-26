@@ -435,3 +435,88 @@ resource "aws_ssm_parameter" "product_sync_dlq_url" {
     Environment = var.environment
   }
 }
+
+# ========================================
+# EventBridge Scheduler → SQS Integration
+# ========================================
+# IAM Role for EventBridge Scheduler to send messages to SQS
+# Trust policy: scheduler.amazonaws.com (NOT events.amazonaws.com)
+# ========================================
+
+resource "aws_scheduler_schedule_group" "crawlinghub" {
+  name = "${var.project_name}-schedules"
+
+  tags = {
+    Name        = "${var.project_name}-schedules"
+    Environment = var.environment
+    Service     = "${var.project_name}-eventbridge"
+  }
+}
+
+resource "aws_iam_role" "eventbridge_scheduler" {
+  name = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+    Environment = var.environment
+    Service     = "${var.project_name}-eventbridge"
+  }
+}
+
+resource "aws_iam_role_policy" "eventbridge_scheduler_sqs" {
+  name = "${var.project_name}-eventbridge-sqs-policy-${var.environment}"
+  role = aws_iam_role.eventbridge_scheduler.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSQSSendMessage"
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = [
+          module.eventbridge_trigger_queue.queue_arn
+        ]
+      },
+      {
+        Sid    = "AllowKMSForSQS"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = [aws_kms_key.sqs.arn]
+      }
+    ]
+  })
+}
+
+# ========================================
+# SSM Parameters for EventBridge Scheduler
+# ========================================
+resource "aws_ssm_parameter" "eventbridge_role_arn" {
+  name        = "/${var.project_name}/eventbridge/role-arn"
+  description = "CrawlingHub EventBridge Scheduler IAM role ARN"
+  type        = "String"
+  value       = aws_iam_role.eventbridge_scheduler.arn
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-role-arn"
+    Environment = var.environment
+  }
+}

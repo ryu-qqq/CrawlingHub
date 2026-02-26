@@ -126,3 +126,16 @@ output "product_sync_dlq_arn" {
   description = "ARN of the product sync dead letter queue"
   value       = module.product_sync_queue.dlq_arn
 }
+
+# ========================================
+# EventBridge Scheduler Outputs
+# ========================================
+output "eventbridge_scheduler_role_arn" {
+  description = "ARN of the EventBridge Scheduler IAM role"
+  value       = aws_iam_role.eventbridge_scheduler.arn
+}
+
+output "eventbridge_schedule_group_name" {
+  description = "Name of the EventBridge Schedule Group"
+  value       = aws_scheduler_schedule_group.crawlinghub.name
+}

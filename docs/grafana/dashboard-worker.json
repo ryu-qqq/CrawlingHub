@@ -2369,7 +2369,7 @@
         "multi": true,
         "name": "task_id",
         "options": [],
-        "query": "label_values(up{job=~\"$job\"}, aws_ecs_task_id)",
+        "query": "label_values(up{job=~\"$job\", environment=\"$environment\"}, aws_ecs_task_id)",
         "refresh": 2,
         "regex": "/.+/",
         "skipUrlSync": false,
