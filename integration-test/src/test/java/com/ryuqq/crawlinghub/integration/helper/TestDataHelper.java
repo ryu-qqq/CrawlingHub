@@ -147,24 +147,23 @@ VALUES
         jdbcTemplate.execute(
                 """
 INSERT INTO user_agent (
-    id, token, user_agent_string, device_type, device_brand, os_type, os_version,
-    browser_type, browser_version, status, health_score, last_used_at, requests_per_day,
+    id, user_agent_string, device_type, device_brand, os_type, os_version,
+    browser_type, browser_version, status, health_score,
     created_at, updated_at
 )
 VALUES
-    (1, 'test-token-001', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    (1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'DESKTOP', 'GENERIC', 'WINDOWS', '10.0', 'CHROME', '120.0.0.0',
-        'READY', 100, NULL, 0, NOW(), NOW()),
-    (2, 'test-token-002', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'IDLE', 100, NOW(), NOW()),
+    (2, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         'DESKTOP', 'GENERIC', 'MACOS', '10.15.7', 'CHROME', '120.0.0.0',
-        'READY', 95, NULL, 0, NOW(), NOW()),
-    (3, 'test-token-003',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
+        'IDLE', 95, NOW(), NOW()),
+    (3, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
         'DESKTOP', 'GENERIC', 'WINDOWS', '10.0', 'FIREFOX', '119.0',
-        'SUSPENDED', 50, NOW(), 100, NOW(), NOW()),
-    (4, 'test-token-004', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
+        'SUSPENDED', 50, NOW(), NOW()),
+    (4, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
         'DESKTOP', 'GENERIC', 'MACOS', '10.15.7', 'SAFARI', '17.0',
-        'BLOCKED', 0, NOW(), 500, NOW(), NOW())
+        'BLOCKED', 0, NOW(), NOW())
 """);
     }
 
