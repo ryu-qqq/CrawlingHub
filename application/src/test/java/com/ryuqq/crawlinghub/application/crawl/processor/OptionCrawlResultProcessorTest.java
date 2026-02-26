@@ -63,10 +63,7 @@ class OptionCrawlResultProcessorTest {
                         optionResponseParser, crawledRawMapper, crawledRawTransactionManager);
     }
 
-    /**
-     * OPTION 타입 CrawlTask 생성. EndpointItemNoResolver가 itemNo를 정상 추출할 수 있도록 /item/{itemNo} 패턴이 포함된
-     * detail endpoint를 활용한다. (aProductOptionEndpoint URL은 /auction_products/ 패턴으로 resolver가 인식 불가)
-     */
+    /** OPTION 타입 CrawlTask 생성. /auction_products/{itemNo}/options 패턴 엔드포인트 사용. */
     private CrawlTask anOptionTask() {
         Instant now = FixedClock.aDefaultClock().instant();
         return CrawlTask.reconstitute(
@@ -74,7 +71,7 @@ class OptionCrawlResultProcessorTest {
                 CrawlSchedulerIdFixture.anAssignedId(),
                 SellerIdFixture.anAssignedId(),
                 CrawlTaskType.OPTION,
-                CrawlEndpointFixture.aProductDetailEndpoint(),
+                CrawlEndpointFixture.aProductOptionEndpoint(),
                 CrawlTaskStatus.WAITING,
                 RetryCountFixture.zero(),
                 null,

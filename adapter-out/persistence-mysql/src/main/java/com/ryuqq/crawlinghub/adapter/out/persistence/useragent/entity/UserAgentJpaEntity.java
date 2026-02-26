@@ -39,6 +39,9 @@ import java.time.LocalDateTime;
  *   <li>명시적 생성자 제공
  * </ul>
  *
+ * <p><strong>참고:</strong> token, last_used_at, requests_per_day 필드는 Redis에서만 관리하므로 DB에 저장하지 않습니다.
+ * (V23 마이그레이션에서 제거)
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -51,16 +54,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-
-    /**
-     * 암호화된 토큰 (AES-256 Base64)
-     *
-     * <p>복호화 불가, 암호화 상태로만 저장/비교
-     *
-     * <p><strong>Lazy Token Issuance:</strong> nullable 허용 (토큰 미발급 상태 지원)
-     */
-    @Column(name = "token", nullable = true, length = 500)
-    private String token;
 
     /** User-Agent 헤더 문자열 (실제 User-Agent 값) */
     @Column(name = "user_agent_string", nullable = false, length = 500)
@@ -99,14 +92,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
     @Column(name = "health_score", nullable = false)
     private int healthScore;
 
-    /** 마지막 사용 시각 (nullable) */
-    @Column(name = "last_used_at")
-    private LocalDateTime lastUsedAt;
-
-    /** 일일 요청 수 */
-    @Column(name = "requests_per_day", nullable = false)
-    private int requestsPerDay;
-
     /** 쿨다운 만료 시각 (COOLDOWN 상태에서 사용, nullable) */
     @Column(name = "cooldown_until")
     private LocalDateTime cooldownUntil;
@@ -128,7 +113,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * <p>직접 호출 금지, of() 스태틱 메서드로만 생성하세요.
      *
      * @param id 기본 키
-     * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
      * @param deviceBrand 디바이스 브랜드
@@ -138,8 +122,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param browserVersion 브라우저 버전 (nullable)
      * @param status UserAgent 상태
      * @param healthScore Health Score
-     * @param lastUsedAt 마지막 사용 시각
-     * @param requestsPerDay 일일 요청 수
      * @param cooldownUntil 쿨다운 만료 시각 (nullable)
      * @param consecutiveRateLimits 연속 429 횟수
      * @param createdAt 생성 일시
@@ -147,7 +129,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      */
     private UserAgentJpaEntity(
             Long id,
-            String token,
             String userAgentString,
             String deviceType,
             String deviceBrand,
@@ -157,15 +138,12 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             String browserVersion,
             UserAgentStatus status,
             int healthScore,
-            LocalDateTime lastUsedAt,
-            int requestsPerDay,
             LocalDateTime cooldownUntil,
             int consecutiveRateLimits,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         super(createdAt, updatedAt);
         this.id = id;
-        this.token = token;
         this.userAgentString = userAgentString;
         this.deviceType = deviceType;
         this.deviceBrand = deviceBrand;
@@ -175,8 +153,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
         this.browserVersion = browserVersion;
         this.status = status;
         this.healthScore = healthScore;
-        this.lastUsedAt = lastUsedAt;
-        this.requestsPerDay = requestsPerDay;
         this.cooldownUntil = cooldownUntil;
         this.consecutiveRateLimits = consecutiveRateLimits;
     }
@@ -189,7 +165,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * <p>Mapper에서 Domain → Entity 변환 시 사용합니다.
      *
      * @param id 기본 키
-     * @param token 암호화된 토큰
      * @param userAgentString User-Agent 헤더 문자열
      * @param deviceType 디바이스 타입
      * @param deviceBrand 디바이스 브랜드
@@ -199,8 +174,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      * @param browserVersion 브라우저 버전 (nullable)
      * @param status UserAgent 상태
      * @param healthScore Health Score
-     * @param lastUsedAt 마지막 사용 시각
-     * @param requestsPerDay 일일 요청 수
      * @param cooldownUntil 쿨다운 만료 시각 (nullable)
      * @param consecutiveRateLimits 연속 429 횟수
      * @param createdAt 생성 일시
@@ -209,7 +182,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
      */
     public static UserAgentJpaEntity of(
             Long id,
-            String token,
             String userAgentString,
             String deviceType,
             String deviceBrand,
@@ -219,15 +191,12 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
             String browserVersion,
             UserAgentStatus status,
             int healthScore,
-            LocalDateTime lastUsedAt,
-            int requestsPerDay,
             LocalDateTime cooldownUntil,
             int consecutiveRateLimits,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         return new UserAgentJpaEntity(
                 id,
-                token,
                 userAgentString,
                 deviceType,
                 deviceBrand,
@@ -237,8 +206,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
                 browserVersion,
                 status,
                 healthScore,
-                lastUsedAt,
-                requestsPerDay,
                 cooldownUntil,
                 consecutiveRateLimits,
                 createdAt,
@@ -249,10 +216,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
 
     public Long getId() {
         return id;
-    }
-
-    public String getToken() {
-        return token;
     }
 
     public String getUserAgentString() {
@@ -289,14 +252,6 @@ public class UserAgentJpaEntity extends BaseAuditEntity {
 
     public int getHealthScore() {
         return healthScore;
-    }
-
-    public LocalDateTime getLastUsedAt() {
-        return lastUsedAt;
-    }
-
-    public int getRequestsPerDay() {
-        return requestsPerDay;
     }
 
     public LocalDateTime getCooldownUntil() {

@@ -51,12 +51,10 @@ class UserAgentJpaEntityMapperTest {
             // Then
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isEqualTo(domain.getIdValue());
-            assertThat(entity.getToken()).isEqualTo(domain.getToken().encryptedValue());
             assertThat(entity.getUserAgentString()).isEqualTo(domain.getUserAgentStringValue());
             assertThat(entity.getDeviceType()).isEqualTo(domain.getDeviceType().getTypeName());
             assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(entity.getHealthScore()).isEqualTo(domain.getHealthScoreValue());
-            assertThat(entity.getRequestsPerDay()).isEqualTo(domain.getRequestsPerDay());
         }
 
         @Test
@@ -84,19 +82,6 @@ class UserAgentJpaEntityMapperTest {
             // Then
             assertThat(entity.getStatus()).isEqualTo(UserAgentStatus.BLOCKED);
         }
-
-        @Test
-        @DisplayName("성공 - 높은 사용량 UserAgent 변환")
-        void shouldConvertHighUsageUserAgentToEntity() {
-            // Given
-            UserAgent domain = UserAgentFixture.aHighUsageUserAgent();
-
-            // When
-            UserAgentJpaEntity entity = mapper.toEntity(domain);
-
-            // Then
-            assertThat(entity.getRequestsPerDay()).isEqualTo(100);
-        }
     }
 
     @Nested
@@ -108,11 +93,9 @@ class UserAgentJpaEntityMapperTest {
         void shouldConvertEntityToAvailableDomain() {
             // Given
             LocalDateTime now = LocalDateTime.now();
-            String validToken = "dGhpc0lzQVZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nUHVycG9zZXM=";
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             1L,
-                            validToken,
                             "Mozilla/5.0 Test Browser",
                             "DESKTOP",
                             "GENERIC",
@@ -122,8 +105,6 @@ class UserAgentJpaEntityMapperTest {
                             "120.0.0.0",
                             UserAgentStatus.IDLE,
                             100,
-                            now,
-                            0,
                             null,
                             0,
                             now,
@@ -135,11 +116,13 @@ class UserAgentJpaEntityMapperTest {
             // Then
             assertThat(domain).isNotNull();
             assertThat(domain.getIdValue()).isEqualTo(1L);
-            assertThat(domain.getToken().encryptedValue()).isEqualTo(validToken);
+            assertThat(domain.getToken().isEmpty()).isTrue();
             assertThat(domain.getUserAgentStringValue()).isEqualTo("Mozilla/5.0 Test Browser");
             assertThat(domain.getDeviceType().getTypeName()).isEqualTo("DESKTOP");
             assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.IDLE);
             assertThat(domain.getHealthScoreValue()).isEqualTo(100);
+            assertThat(domain.getLastUsedAt()).isNull();
+            assertThat(domain.getRequestsPerDay()).isEqualTo(0);
         }
 
         @Test
@@ -147,11 +130,9 @@ class UserAgentJpaEntityMapperTest {
         void shouldConvertEntityToSuspendedDomain() {
             // Given
             LocalDateTime now = LocalDateTime.now();
-            String validToken = "YW5vdGhlclZhbGlkQmFzZTY0VG9rZW5Gb3JUZXN0aW5nT25seQ==";
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             2L,
-                            validToken,
                             "Mozilla/5.0 Test",
                             "MOBILE",
                             "GENERIC",
@@ -161,8 +142,6 @@ class UserAgentJpaEntityMapperTest {
                             "120.0.0.0",
                             UserAgentStatus.SUSPENDED,
                             25,
-                            now,
-                            50,
                             null,
                             0,
                             now,
@@ -175,39 +154,6 @@ class UserAgentJpaEntityMapperTest {
             assertThat(domain.getStatus()).isEqualTo(UserAgentStatus.SUSPENDED);
             assertThat(domain.getHealthScoreValue()).isEqualTo(25);
         }
-
-        @Test
-        @DisplayName("성공 - lastUsedAt이 null인 Entity 변환")
-        void shouldConvertEntityWithNullLastUsedAt() {
-            // Given
-            LocalDateTime now = LocalDateTime.now();
-            String validToken = "dGhpcmRWYWxpZEJhc2U2NFRva2VuRm9yVGVzdGluZ1B1cnBvc2VzPQ==";
-            UserAgentJpaEntity entity =
-                    UserAgentJpaEntity.of(
-                            3L,
-                            validToken,
-                            "Mozilla/5.0",
-                            "DESKTOP",
-                            "GENERIC",
-                            "LINUX",
-                            "5.10",
-                            "CHROME",
-                            "120.0.0.0",
-                            UserAgentStatus.IDLE,
-                            100,
-                            null, // lastUsedAt is null
-                            0,
-                            null,
-                            0,
-                            now,
-                            now);
-
-            // When
-            UserAgent domain = mapper.toDomain(entity);
-
-            // Then
-            assertThat(domain.getLastUsedAt()).isNull();
-        }
     }
 
     @Nested
@@ -215,7 +161,7 @@ class UserAgentJpaEntityMapperTest {
     class RoundTripTests {
 
         @Test
-        @DisplayName("성공 - Domain → Entity → Domain 변환 일관성")
+        @DisplayName("성공 - Domain → Entity → Domain 변환 일관성 (DB 저장 필드만)")
         void shouldMaintainConsistencyInRoundTrip() {
             // Given
             UserAgent original = UserAgentFixture.anAvailableUserAgent();
@@ -224,17 +170,19 @@ class UserAgentJpaEntityMapperTest {
             UserAgentJpaEntity entity = mapper.toEntity(original);
             UserAgent restored = mapper.toDomain(entity);
 
-            // Then
+            // Then - DB에 저장되는 필드만 일관성 검증
             assertThat(restored.getIdValue()).isEqualTo(original.getIdValue());
-            assertThat(restored.getToken().encryptedValue())
-                    .isEqualTo(original.getToken().encryptedValue());
             assertThat(restored.getUserAgentStringValue())
                     .isEqualTo(original.getUserAgentStringValue());
             assertThat(restored.getDeviceType().getTypeName())
                     .isEqualTo(original.getDeviceType().getTypeName());
             assertThat(restored.getStatus()).isEqualTo(original.getStatus());
             assertThat(restored.getHealthScoreValue()).isEqualTo(original.getHealthScoreValue());
-            assertThat(restored.getRequestsPerDay()).isEqualTo(original.getRequestsPerDay());
+
+            // token, lastUsedAt, requestsPerDay는 DB에 저장하지 않으므로 기본값
+            assertThat(restored.getToken().isEmpty()).isTrue();
+            assertThat(restored.getLastUsedAt()).isNull();
+            assertThat(restored.getRequestsPerDay()).isEqualTo(0);
         }
 
         @Test
