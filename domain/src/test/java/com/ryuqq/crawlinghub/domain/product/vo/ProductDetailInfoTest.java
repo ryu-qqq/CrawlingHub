@@ -255,7 +255,7 @@ class ProductDetailInfoTest {
         void returnsCombinedImageUrls() {
             ProductDetailInfo info = defaultInfo();
 
-            List<String> allUrls = info.getAllImageUrls();
+            List<String> allUrls = info.allImageUrls();
 
             assertThat(allUrls).hasSize(2);
             assertThat(allUrls)
@@ -275,7 +275,7 @@ class ProductDetailInfoTest {
                             .sellingPrice(100)
                             .build();
 
-            assertThat(info.getAllImageUrls()).isEmpty();
+            assertThat(info.allImageUrls()).isEmpty();
         }
     }
 
@@ -288,7 +288,7 @@ class ProductDetailInfoTest {
         void returnFirstBannerImage() {
             ProductDetailInfo info = defaultInfo();
 
-            assertThat(info.getMainImageUrl()).isEqualTo("https://img.com/banner.jpg");
+            assertThat(info.mainImageUrl()).isEqualTo("https://img.com/banner.jpg");
         }
 
         @Test
@@ -305,7 +305,7 @@ class ProductDetailInfoTest {
                             .detailImages(List.of("https://img.com/detail.jpg"))
                             .build();
 
-            assertThat(info.getMainImageUrl()).isEqualTo("https://img.com/detail.jpg");
+            assertThat(info.mainImageUrl()).isEqualTo("https://img.com/detail.jpg");
         }
 
         @Test
@@ -321,7 +321,7 @@ class ProductDetailInfoTest {
                             .sellingPrice(100)
                             .build();
 
-            assertThat(info.getMainImageUrl()).isNull();
+            assertThat(info.mainImageUrl()).isNull();
         }
     }
 
