@@ -556,3 +556,225 @@ Grafana 대시보드에서 `$environment` 드롭다운으로 환경 전환 가�
 └── terraform/
     └── modules/adot-sidecar/       # ADOT 사이드카 terraform 모듈
 ```
+
+---
+
+## 10. 프로젝트별 수정 사항
+
+### 10.1 FileFlow
+
+FileFlow는 `observability-spring-boot-starter`를 사용하여 `sqs_consumer_*`, `scheduler_job_*` 메트릭을 자동 생성합니다. `micrometer-registry-prometheus` 의존성은 이미 포함되어 있음.
+
+#### OTEL Config 수정 필요 사항
+
+**[필수] 환경변수로 전환** — 4개 파일 모두
+
+현재 `environment: prod`, `cluster_name: fileflow-cluster-prod`가 하드코딩되어 있어서 stage 환경에서 메트릭 라벨이 잘못 찍힘.
+
+```yaml
+# Before (현재 상태 - 4개 파일 모두)
+resource:
+  attributes:
+    - key: environment
+      value: prod                          # ← 하드코딩
+      action: upsert
+    - key: cluster_name
+      value: fileflow-cluster-prod         # ← 하드코딩
+      action: upsert
+
+# After (수정 후)
+resource:
+  attributes:
+    - key: environment
+      value: ${ENVIRONMENT}
+      action: upsert
+    - key: cluster_name
+      value: ${CLUSTER_NAME}
+      action: upsert
+```
+
+**[필수] keep regex 보완** — 파일별 누락 메트릭
+
+| 파일 | 현재 regex | 누락 메트릭 | 수정 후 추가 |
+|------|-----------|------------|-------------|
+| `otel-config-api.yaml` | `hikaricp_.*` 까지 있음 | 없음 | ✅ 수정 완료 |
+| `otel-config-scheduler.yaml` | `scheduler_job_.*` 까지 있음 | 없음 | ✅ 수정 완료 |
+| `otel-config-worker.yaml` | `sqs_consumer_.*` 까지 있음 | `hikaricp_.*` | `\|hikaricp_.*` 추가 필요 |
+| `otel-config-resizing-worker.yaml` | `image_.*\|resizing_.*` 까지 있음 | `hikaricp_.*`, `sqs_consumer_.*` | `\|hikaricp_.*\|sqs_consumer_.*` 추가 필요 |
+
+수정 예시 (`otel-config-worker.yaml`):
+```yaml
+# Before
+regex: '(http_.*|jvm_.*|process_.*|system_.*|application_.*|business_.*|spring_.*|hikaricp_.*|sqs_consumer_.*)'
+#                                                                                              ✅ 있음
+
+# After (hikaricp 누락 없는지 확인 → 이미 있음, OK)
+# worker는 이미 수정 완료
+
+# otel-config-resizing-worker.yaml - 수정 필요:
+# Before
+regex: '(http_.*|jvm_.*|process_.*|system_.*|application_.*|business_.*|spring_.*|image_.*|resizing_.*)'
+
+# After
+regex: '(http_.*|jvm_.*|process_.*|system_.*|application_.*|business_.*|spring_.*|hikaricp_.*|sqs_consumer_.*|image_.*|resizing_.*)'
+```
+
+#### 대시보드 수정 필요 사항
+
+**[필수] `$environment` 템플릿 변수 추가** — 4개 대시보드 모두
+
+현재 상태: `$environment` 변수 없음, 환경 필터 없음, `prod` 태그 하드코딩.
+
+수정 방법:
+1. 모든 대시보드 JSON의 `templating.list`에 환경 변수 추가
+2. 모든 PromQL 쿼리의 `job="$job"` 뒤에 `,environment=~"$environment"` 추가
+3. tags에서 `"prod"` 제거
+
+아래 Python 스크립트로 일괄 처리 가능:
+```bash
+cd /path/to/fileflow
+python3 add_env_to_dashboards.py
+```
+
+#### FileFlow 수정 체크리스트
+
+```
+OTEL Config:
+- [ ] otel-config-api.yaml         — environment/cluster_name 환경변수로 전환
+- [ ] otel-config-scheduler.yaml   — environment/cluster_name 환경변수로 전환
+- [ ] otel-config-worker.yaml      — environment/cluster_name 환경변수로 전환
+- [ ] otel-config-resizing-worker.yaml — environment/cluster_name 환경변수로 전환
+                                       + keep regex에 hikaricp_.*|sqs_consumer_.* 추가
+
+S3 업로드 (KMS 필요):
+- [ ] s3://prod-connectly/otel-config/fileflow-web-api/otel-config.yaml
+- [ ] s3://prod-connectly/otel-config/fileflow-scheduler/otel-config.yaml
+- [ ] s3://prod-connectly/otel-config/fileflow-download-worker/otel-config.yaml
+- [ ] s3://prod-connectly/otel-config/fileflow-resizing-worker/otel-config.yaml
+
+대시보드:
+- [ ] dashboard.json              — $environment 변수 + 환경 필터 추가
+- [ ] dashboard-api.json          — $environment 변수 + 환경 필터 추가
+- [ ] dashboard-scheduler.json    — $environment 변수 + 환경 필터 추가
+- [ ] dashboard-worker.json       — $environment 변수 + 환경 필터 추가
+
+적용:
+- [ ] S3 업로드 후 ECS 4개 서비스 재배포
+- [ ] Grafana 대시보드 re-import
+```
+
+#### FileFlow S3 업로드 명령어
+
+```bash
+KMS_KEY="arn:aws:kms:ap-northeast-2:646886795421:key/086b1677-614f-46ba-863e-23c215fb5010"
+
+aws s3 cp otel-config-api.yaml \
+  s3://prod-connectly/otel-config/fileflow-web-api/otel-config.yaml \
+  --sse aws:kms --sse-kms-key-id "$KMS_KEY"
+
+aws s3 cp otel-config-scheduler.yaml \
+  s3://prod-connectly/otel-config/fileflow-scheduler/otel-config.yaml \
+  --sse aws:kms --sse-kms-key-id "$KMS_KEY"
+
+aws s3 cp otel-config-worker.yaml \
+  s3://prod-connectly/otel-config/fileflow-download-worker/otel-config.yaml \
+  --sse aws:kms --sse-kms-key-id "$KMS_KEY"
+
+aws s3 cp otel-config-resizing-worker.yaml \
+  s3://prod-connectly/otel-config/fileflow-resizing-worker/otel-config.yaml \
+  --sse aws:kms --sse-kms-key-id "$KMS_KEY"
+```
+
+---
+
+## Appendix A: 대시보드 환경 필터 일괄 적용 스크립트
+
+아래 스크립트를 `add_env_to_dashboards.py`로 저장하고 `docs/grafana/` 디렉토리가 있는 프로젝트 루트에서 실행하세요.
+
+```python
+#!/usr/bin/env python3
+"""
+Grafana 대시보드에 $environment 템플릿 변수를 추가하고
+모든 PromQL 쿼리에 environment=~"$environment" 필터를 적용하는 스크립트.
+
+사용법:
+  cd /path/to/project
+  python3 add_env_to_dashboards.py
+"""
+import json
+import re
+import os
+import glob
+
+ENV_TEMPLATE_VAR = {
+    "current": {"selected": True, "text": "All", "value": "$__all"},
+    "datasource": {"type": "prometheus", "uid": "ef4r3izgbak8wb"},
+    "definition": "label_values(up, environment)",
+    "hide": 0,
+    "includeAll": True,
+    "multi": False,
+    "name": "environment",
+    "options": [],
+    "query": {
+        "qryType": 1,
+        "query": "label_values(up, environment)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+    },
+    "refresh": 1,
+    "regex": "",
+    "skipUrlSync": False,
+    "sort": 1,
+    "type": "query"
+}
+
+def add_env_filter(expr):
+    if 'environment' in expr:
+        return expr
+    return re.sub(r'job="\$job"', 'job="$job",environment=~"$environment"', expr)
+
+def process_panels(panels):
+    for panel in panels:
+        for target in panel.get('targets', []):
+            if 'expr' in target:
+                target['expr'] = add_env_filter(target['expr'])
+        if 'panels' in panel:
+            process_panels(panel['panels'])
+
+def process_dashboard(filepath):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        dashboard = json.load(f)
+
+    # Add $environment template variable
+    tpl_list = dashboard.setdefault('templating', {}).setdefault('list', [])
+    if not any(t.get('name') == 'environment' for t in tpl_list):
+        tpl_list.insert(0, ENV_TEMPLATE_VAR)
+
+    # Add environment filter to all PromQL
+    process_panels(dashboard.get('panels', []))
+
+    # Remove "prod" from tags
+    tags = dashboard.get('tags', [])
+    if 'prod' in tags:
+        tags.remove('prod')
+
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(dashboard, f, indent=2, ensure_ascii=True)
+
+    print(f"Updated: {filepath}")
+
+if __name__ == '__main__':
+    files = glob.glob('docs/grafana/dashboard*.json')
+    if not files:
+        print("Error: docs/grafana/dashboard*.json 파일을 찾을 수 없습니다.")
+        print("프로젝트 루트 디렉토리에서 실행하세요.")
+        exit(1)
+
+    for f in sorted(files):
+        process_dashboard(f)
+
+    print(f"\n완료: {len(files)}개 대시보드 업데이트")
+    print("Prometheus 데이터소스 UID를 본인 환경에 맞게 확인하세요.")
+    print("  현재 설정: ef4r3izgbak8wb")
+```
+
+> **주의**: `ENV_TEMPLATE_VAR` 내 `"uid": "ef4r3izgbak8wb"`는 Prometheus 데이터소스 UID입니다. 다른 Grafana 환경에서는 이 값을 변경해야 합니다.
