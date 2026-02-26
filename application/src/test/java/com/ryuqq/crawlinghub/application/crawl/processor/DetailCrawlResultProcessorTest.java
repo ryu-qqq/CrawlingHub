@@ -9,15 +9,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.seller.SellerFixture;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.DetailCrawlResultProcessor;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.util.Optional;
@@ -45,14 +49,25 @@ class DetailCrawlResultProcessorTest {
     @Mock private DetailResponseParser detailResponseParser;
     @Mock private CrawledRawMapper crawledRawMapper;
     @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
+    @Mock private SellerReadManager sellerReadManager;
 
     private DetailCrawlResultProcessor processor;
+
+    /** fixture 기본 셀러: SellerId=1L, mustItSellerName="mustit-test-seller" */
+    private static final String MATCHING_SELLER_ID = "mustit-test-seller";
 
     @BeforeEach
     void setUp() {
         processor =
                 new DetailCrawlResultProcessor(
-                        detailResponseParser, crawledRawMapper, crawledRawTransactionManager);
+                        detailResponseParser,
+                        crawledRawMapper,
+                        crawledRawTransactionManager,
+                        sellerReadManager);
+
+        // 기본 셀러 조회 stub - fixture의 SellerId(1L)에 대해 mustit-test-seller 반환
+        Seller seller = SellerFixture.anActiveSeller();
+        given(sellerReadManager.findById(SellerId.of(1L))).willReturn(Optional.of(seller));
     }
 
     @Nested
@@ -119,7 +134,7 @@ class DetailCrawlResultProcessorTest {
             ProductDetailInfo detailInfo =
                     ProductDetailInfo.builder()
                             .sellerNo(1001L)
-                            .sellerId("seller-id-001")
+                            .sellerId(MATCHING_SELLER_ID)
                             .itemNo(9999L)
                             .itemName("테스트 상품명")
                             .normalPrice(100000)
@@ -158,7 +173,7 @@ class DetailCrawlResultProcessorTest {
             ProductDetailInfo detailInfo =
                     ProductDetailInfo.builder()
                             .sellerNo(1001L)
-                            .sellerId("seller-id-001")
+                            .sellerId(MATCHING_SELLER_ID)
                             .itemNo(9999L)
                             .itemName("테스트 상품명")
                             .normalPrice(100000)
@@ -192,7 +207,7 @@ class DetailCrawlResultProcessorTest {
             ProductDetailInfo detailInfo =
                     ProductDetailInfo.builder()
                             .sellerNo(1001L)
-                            .sellerId("seller-id-001")
+                            .sellerId(MATCHING_SELLER_ID)
                             .itemNo(9999L)
                             .itemName("테스트 상품명")
                             .normalPrice(50000)
@@ -216,6 +231,72 @@ class DetailCrawlResultProcessorTest {
             // Then
             assertThat(result.getParsedItemCount()).isEqualTo(1);
             assertThat(result.getSavedItemCount()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("[실패] 셀러 불일치 시 저장하지 않고 빈 결과 반환")
+        void shouldReturnEmptyWhenSellerMismatch() {
+            // Given
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            CrawlResult crawlResult = CrawlResult.success("{\"detail\": {}}", 200);
+
+            ProductDetailInfo detailInfo =
+                    ProductDetailInfo.builder()
+                            .sellerNo(9999L)
+                            .sellerId("carte123") // 우리 셀러(mustit-test-seller)와 불일치
+                            .itemNo(107155434L)
+                            .itemName("다른 셀러 상품")
+                            .normalPrice(100000)
+                            .sellingPrice(90000)
+                            .discountPrice(10000)
+                            .discountRate(10)
+                            .stock(5)
+                            .build();
+
+            given(detailResponseParser.parse(anyString(), any()))
+                    .willReturn(Optional.of(detailInfo));
+
+            // When
+            ProcessingResult result = processor.process(crawlResult, task);
+
+            // Then
+            assertThat(result.getParsedItemCount()).isEqualTo(0);
+            assertThat(result.getSavedItemCount()).isEqualTo(0);
+            verify(crawledRawTransactionManager, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("[실패] 셀러 조회 실패 시 저장하지 않고 빈 결과 반환")
+        void shouldReturnEmptyWhenSellerNotFound() {
+            // Given
+            CrawlTask task = CrawlTaskFixture.aWaitingTask();
+            CrawlResult crawlResult = CrawlResult.success("{\"detail\": {}}", 200);
+
+            ProductDetailInfo detailInfo =
+                    ProductDetailInfo.builder()
+                            .sellerNo(1001L)
+                            .sellerId(MATCHING_SELLER_ID)
+                            .itemNo(9999L)
+                            .itemName("테스트 상품명")
+                            .normalPrice(100000)
+                            .sellingPrice(90000)
+                            .discountPrice(10000)
+                            .discountRate(10)
+                            .stock(5)
+                            .build();
+
+            given(detailResponseParser.parse(anyString(), any()))
+                    .willReturn(Optional.of(detailInfo));
+            // 셀러 조회 실패
+            given(sellerReadManager.findById(SellerId.of(1L))).willReturn(Optional.empty());
+
+            // When
+            ProcessingResult result = processor.process(crawlResult, task);
+
+            // Then
+            assertThat(result.getParsedItemCount()).isEqualTo(0);
+            assertThat(result.getSavedItemCount()).isEqualTo(0);
+            verify(crawledRawTransactionManager, never()).save(any());
         }
     }
 }
