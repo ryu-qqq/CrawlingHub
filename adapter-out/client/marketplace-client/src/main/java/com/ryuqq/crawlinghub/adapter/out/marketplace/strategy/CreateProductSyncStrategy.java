@@ -1,10 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
-import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.CreateProductRequest;
-import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.response.CreateProductResponse;
-import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.CreateProductRequestMapper;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.response.InboundProductConversionResponse;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.InboundProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
@@ -17,10 +16,7 @@ import org.springframework.stereotype.Component;
 /**
  * 상품 신규 등록 전략
  *
- * <p>CreateProductRequestMapper로 요청을 조립하고, MarketPlaceClient로 외부몰 API를 호출합니다.
- *
- * @author development-team
- * @since 1.0.0
+ * <p>MarketPlace POST /api/v1/market/inbound/products 호출
  */
 @Component
 public class CreateProductSyncStrategy implements ProductSyncStrategy {
@@ -28,10 +24,10 @@ public class CreateProductSyncStrategy implements ProductSyncStrategy {
     private static final Logger log = LoggerFactory.getLogger(CreateProductSyncStrategy.class);
 
     private final MarketPlaceClient marketPlaceClient;
-    private final CreateProductRequestMapper requestMapper;
+    private final InboundProductRequestMapper requestMapper;
 
     public CreateProductSyncStrategy(
-            MarketPlaceClient marketPlaceClient, CreateProductRequestMapper requestMapper) {
+            MarketPlaceClient marketPlaceClient, InboundProductRequestMapper requestMapper) {
         this.marketPlaceClient = marketPlaceClient;
         this.requestMapper = requestMapper;
     }
@@ -45,27 +41,27 @@ public class CreateProductSyncStrategy implements ProductSyncStrategy {
     public ProductSyncResult execute(
             CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller) {
         try {
-            CreateProductRequest request = requestMapper.toRequest(outbox, product, seller);
+            ReceiveInboundProductRequest request =
+                    requestMapper.toReceiveRequest(outbox, product, seller);
 
             log.info(
-                    "[CREATE] 상품 등록 요청 - outboxId={}, itemNo={}, omsSellerId={}",
+                    "[CREATE] 인바운드 상품 수신 요청 - outboxId={}, externalProductCode={}, sellerId={}",
                     outbox.getId(),
-                    outbox.getItemNo(),
+                    request.externalProductCode(),
                     request.sellerId());
 
-            CreateProductResponse response = marketPlaceClient.createProduct(request);
+            InboundProductConversionResponse response =
+                    marketPlaceClient.receiveInboundProduct(request);
 
             log.info(
-                    "[CREATE] 상품 등록 성공 - inboundProductId={}, status={}",
+                    "[CREATE] 인바운드 상품 수신 성공 - inboundProductId={}, status={}, action={}",
                     response.inboundProductId(),
-                    response.status());
+                    response.status(),
+                    response.action());
 
             return ProductSyncResult.success(response.inboundProductId());
-        } catch (JsonProcessingException e) {
-            log.error("[CREATE] 페이로드 직렬화 실패 - outboxId={}", outbox.getId(), e);
-            return ProductSyncResult.failure("SERIALIZATION_ERROR", e.getMessage());
         } catch (Exception e) {
-            log.error("[CREATE] 상품 등록 실패 - outboxId={}", outbox.getId(), e);
+            log.error("[CREATE] 인바운드 상품 수신 실패 - outboxId={}", outbox.getId(), e);
             return ProductSyncResult.failure("CREATE_FAILED", e.getMessage());
         }
     }

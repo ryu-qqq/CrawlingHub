@@ -1,0 +1,15 @@
+# ============================================================
+# MarketPlace Client 운영 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=prod
+# ============================================================
+
+marketplace:
+  client:
+    base-url: http://marketplace-api-prod.connectly.local
+    connect-timeout: 5
+    request-timeout: 15
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.marketplace: INFO

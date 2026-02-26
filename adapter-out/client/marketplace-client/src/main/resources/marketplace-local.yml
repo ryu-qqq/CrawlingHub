@@ -1,0 +1,15 @@
+# ============================================================
+# MarketPlace Client 로컬 개발 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=local
+# ============================================================
+
+marketplace:
+  client:
+    base-url: http://localhost:8090
+    connect-timeout: 10
+    request-timeout: 30
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.marketplace: DEBUG

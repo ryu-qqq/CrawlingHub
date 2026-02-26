@@ -1,0 +1,14 @@
+# ============================================================
+# MarketPlace Client 공통 설정
+# ============================================================
+# 환경별 설정은 marketplace-{profile}.yml 참조
+# - marketplace-local.yml: 로컬 개발 환경
+# - marketplace-stage.yml: 스테이징 환경
+# - marketplace-prod.yml: 운영 환경
+# ============================================================
+
+marketplace:
+  client:
+    base-url: http://localhost:8090
+    connect-timeout: 10
+    request-timeout: 30
