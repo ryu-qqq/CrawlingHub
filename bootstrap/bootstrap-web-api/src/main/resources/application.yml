@@ -135,6 +135,8 @@ spring:
       - optional:classpath:redis-${spring.profiles.active:local}.yml
       - classpath:sqs.yml
       - optional:classpath:sqs-${spring.profiles.active:local}.yml
+      - classpath:marketplace.yml
+      - optional:classpath:marketplace-${spring.profiles.active:local}.yml
 
   # ===============================================
   # Flyway Migration

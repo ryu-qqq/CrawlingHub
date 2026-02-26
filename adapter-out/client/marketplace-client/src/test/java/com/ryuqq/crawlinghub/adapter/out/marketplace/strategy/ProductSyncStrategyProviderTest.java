@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
-import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.CreateProductRequestMapper;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.InboundProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 @DisplayName("ProductSyncStrategyProvider 테스트")
 class ProductSyncStrategyProviderTest {
 
+    private final MarketPlaceClient mockClient = mock(MarketPlaceClient.class);
+    private final InboundProductRequestMapper mockMapper = mock(InboundProductRequestMapper.class);
+
     @Nested
     @DisplayName("getStrategy 메서드 테스트")
     class GetStrategyTest {
@@ -31,14 +34,12 @@ class ProductSyncStrategyProviderTest {
             // given
             List<ProductSyncStrategy> strategies =
                     List.of(
-                            new CreateProductSyncStrategy(
-                                    mock(MarketPlaceClient.class),
-                                    mock(CreateProductRequestMapper.class)),
-                            new UpdatePriceSyncStrategy(),
-                            new UpdateImageSyncStrategy(),
-                            new UpdateDescriptionSyncStrategy(),
-                            new UpdateOptionStockSyncStrategy(),
-                            new UpdateProductInfoSyncStrategy());
+                            new CreateProductSyncStrategy(mockClient, mockMapper),
+                            new UpdatePriceSyncStrategy(mockClient, mockMapper),
+                            new UpdateImageSyncStrategy(mockClient, mockMapper),
+                            new UpdateDescriptionSyncStrategy(mockClient, mockMapper),
+                            new UpdateOptionStockSyncStrategy(mockClient, mockMapper),
+                            new UpdateProductInfoSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
@@ -54,10 +55,8 @@ class ProductSyncStrategyProviderTest {
             // given
             List<ProductSyncStrategy> strategies =
                     List.of(
-                            new CreateProductSyncStrategy(
-                                    mock(MarketPlaceClient.class),
-                                    mock(CreateProductRequestMapper.class)),
-                            new UpdatePriceSyncStrategy());
+                            new CreateProductSyncStrategy(mockClient, mockMapper),
+                            new UpdatePriceSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
@@ -71,7 +70,8 @@ class ProductSyncStrategyProviderTest {
         @DisplayName("UPDATE_IMAGE SyncType에 대한 전략을 반환한다")
         void getStrategy_withUpdateImageType_returnsUpdateImageStrategy() {
             // given
-            List<ProductSyncStrategy> strategies = List.of(new UpdateImageSyncStrategy());
+            List<ProductSyncStrategy> strategies =
+                    List.of(new UpdateImageSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
@@ -85,7 +85,8 @@ class ProductSyncStrategyProviderTest {
         @DisplayName("UPDATE_DESCRIPTION SyncType에 대한 전략을 반환한다")
         void getStrategy_withUpdateDescriptionType_returnsUpdateDescriptionStrategy() {
             // given
-            List<ProductSyncStrategy> strategies = List.of(new UpdateDescriptionSyncStrategy());
+            List<ProductSyncStrategy> strategies =
+                    List.of(new UpdateDescriptionSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
@@ -99,7 +100,8 @@ class ProductSyncStrategyProviderTest {
         @DisplayName("UPDATE_OPTION_STOCK SyncType에 대한 전략을 반환한다")
         void getStrategy_withUpdateOptionStockType_returnsUpdateOptionStockStrategy() {
             // given
-            List<ProductSyncStrategy> strategies = List.of(new UpdateOptionStockSyncStrategy());
+            List<ProductSyncStrategy> strategies =
+                    List.of(new UpdateOptionStockSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when
@@ -113,7 +115,8 @@ class ProductSyncStrategyProviderTest {
         @DisplayName("UPDATE_PRODUCT_INFO SyncType에 대한 전략을 반환한다")
         void getStrategy_withUpdateProductInfoType_returnsUpdateProductInfoStrategy() {
             // given
-            List<ProductSyncStrategy> strategies = List.of(new UpdateProductInfoSyncStrategy());
+            List<ProductSyncStrategy> strategies =
+                    List.of(new UpdateProductInfoSyncStrategy(mockClient, mockMapper));
             ProductSyncStrategyProvider provider = new ProductSyncStrategyProvider(strategies);
 
             // when

@@ -18,6 +18,8 @@ spring:
       - classpath:sqs.yml
       - optional:classpath:sqs-${spring.profiles.active:local}.yml
       - classpath:http-client.yml
+      - classpath:marketplace.yml
+      - optional:classpath:marketplace-${spring.profiles.active:local}.yml
 
   # ========================================
   # Flyway Configuration
