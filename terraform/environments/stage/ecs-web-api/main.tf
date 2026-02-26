@@ -41,11 +41,11 @@ data "aws_caller_identity" "current" {}
 # EventBridge Configuration (from SSM)
 # ========================================
 data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
-  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-arn"
+  name = "/${var.project_name}/sqs-${var.environment}/eventbridge-trigger-queue-arn"
 }
 
 data "aws_ssm_parameter" "eventbridge_role_arn" {
-  name = "/${var.project_name}/eventbridge/role-arn"
+  name = "/${var.project_name}/eventbridge-${var.environment}/role-arn"
 }
 
 # ========================================
