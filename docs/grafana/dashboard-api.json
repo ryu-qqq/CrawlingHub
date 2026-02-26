@@ -29,7 +29,7 @@
         "y": 0
       },
       "id": 100,
-      "title": "📊 Overview",
+      "title": "\ud83d\udcca Overview",
       "type": "row"
     },
     {
@@ -86,7 +86,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "sum(up{job=\"$job\"})",
+          "expr": "sum(up{job=\"$job\",environment=~\"$environment\"})",
           "legendFormat": "UP",
           "refId": "A"
         }
@@ -146,7 +146,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -210,7 +210,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "Avg",
           "refId": "A"
         }
@@ -274,7 +274,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -340,7 +340,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m])) * 100 or vector(0)",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])) * 100 or vector(0)",
           "legendFormat": "Error %",
           "refId": "A"
         }
@@ -406,7 +406,7 @@
       "pluginVersion": "10.4.1",
       "targets": [
         {
-          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",area=\"heap\"}) * 100",
+          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) * 100",
           "legendFormat": "Heap %",
           "refId": "A"
         }
@@ -423,7 +423,7 @@
         "y": 5
       },
       "id": 200,
-      "title": "🚀 Traffic & Latency",
+      "title": "\ud83d\ude80 Traffic & Latency",
       "type": "row"
     },
     {
@@ -507,12 +507,12 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "Total RPS",
           "refId": "A"
         },
         {
-          "expr": "sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "B"
         }
@@ -601,17 +601,17 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -628,7 +628,7 @@
         "y": 14
       },
       "id": 400,
-      "title": "⚠️ Errors & Status Codes",
+      "title": "\u26a0\ufe0f Errors & Status Codes",
       "type": "row"
     },
     {
@@ -697,17 +697,17 @@
       "id": 30,
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"2..\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"2..\"}[1m]))",
           "legendFormat": "2xx Success",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"4..\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"4..\"}[1m]))",
           "legendFormat": "4xx Client Error",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m]))",
           "legendFormat": "5xx Server Error",
           "refId": "C"
         }
@@ -724,7 +724,7 @@
         "y": 23
       },
       "id": 500,
-      "title": "🗄️ Database (HikariCP)",
+      "title": "\ud83d\uddc4\ufe0f Database (HikariCP)",
       "type": "row"
     },
     {
@@ -747,17 +747,17 @@
       "id": 40,
       "targets": [
         {
-          "expr": "hikaricp_connections_active{job=\"$job\"}",
+          "expr": "hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Active",
           "refId": "A"
         },
         {
-          "expr": "hikaricp_connections_idle{job=\"$job\"}",
+          "expr": "hikaricp_connections_idle{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Idle",
           "refId": "B"
         },
         {
-          "expr": "hikaricp_connections_pending{job=\"$job\"}",
+          "expr": "hikaricp_connections_pending{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Pending",
           "refId": "C"
         }
@@ -810,7 +810,7 @@
       },
       "targets": [
         {
-          "expr": "avg(hikaricp_connections_active{job=\"$job\"} / hikaricp_connections_max{job=\"$job\"}) * 100",
+          "expr": "avg(hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"} / hikaricp_connections_max{job=\"$job\",environment=~\"$environment\"}) * 100",
           "legendFormat": "Usage %",
           "refId": "A"
         }
@@ -838,7 +838,7 @@
       "id": 42,
       "targets": [
         {
-          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\"}[1m])",
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])",
           "legendFormat": "Avg Acquire Time",
           "refId": "A"
         }
@@ -855,7 +855,7 @@
         "y": 30
       },
       "id": 700,
-      "title": "☕ JVM Metrics",
+      "title": "\u2615 JVM Metrics",
       "type": "row"
     },
     {
@@ -881,7 +881,7 @@
       "id": 60,
       "targets": [
         {
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"})",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"})",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -925,7 +925,7 @@
       "id": 61,
       "targets": [
         {
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -956,7 +956,7 @@
       "id": 62,
       "targets": [
         {
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"})",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"})",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -987,7 +987,7 @@
       "id": 63,
       "targets": [
         {
-          "expr": "jvm_threads_live_threads{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "jvm_threads_live_threads{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -1018,7 +1018,7 @@
       "id": 64,
       "targets": [
         {
-          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[5m]))",
+          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[5m]))",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -1049,7 +1049,7 @@
       "id": 65,
       "targets": [
         {
-          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60",
+          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -1066,7 +1066,7 @@
         "y": 43
       },
       "id": 800,
-      "title": "🔗 API Endpoints (by URI)",
+      "title": "\ud83d\udd17 API Endpoints (by URI)",
       "type": "row"
     },
     {
@@ -1074,7 +1074,7 @@
         "type": "prometheus",
         "uid": "ef4r3izgbak8wb"
       },
-      "description": "API 엔드포인트별 요청 처리량",
+      "description": "API \uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 \uc694\uccad \ucc98\ub9ac\ub7c9",
       "fieldConfig": {
         "defaults": {
           "unit": "reqps"
@@ -1096,7 +1096,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[1m])))",
+          "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m])))",
           "legendFormat": "{{uri}}",
           "refId": "A"
         }
@@ -1109,7 +1109,7 @@
         "type": "prometheus",
         "uid": "ef4r3izgbak8wb"
       },
-      "description": "API 엔드포인트별 P95 응답시간",
+      "description": "API \uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 P95 \uc751\ub2f5\uc2dc\uac04",
       "fieldConfig": {
         "defaults": {
           "unit": "s"
@@ -1131,7 +1131,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",uri!~\"/actuator.*\"}[1m]))))",
+          "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m]))))",
           "legendFormat": "{{uri}}",
           "refId": "A"
         }
@@ -1144,7 +1144,7 @@
         "type": "prometheus",
         "uid": "ef4r3izgbak8wb"
       },
-      "description": "엔드포인트별 현재 상태 요약",
+      "description": "\uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 \ud604\uc7ac \uc0c1\ud0dc \uc694\uc57d",
       "fieldConfig": {
         "defaults": {
           "decimals": 0,
@@ -1205,7 +1205,7 @@
       "id": 72,
       "targets": [
         {
-          "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[5m])))",
+          "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[5m])))",
           "format": "table",
           "instant": true,
           "legendFormat": "{{method}} {{uri}} - {{status}}",
@@ -1236,11 +1236,37 @@
   "schemaVersion": 39,
   "tags": [
     "crawlinghub",
-    "prod",
     "api"
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ef4r3izgbak8wb"
+        },
+        "definition": "label_values(up, environment)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(up, environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {
           "selected": false,
