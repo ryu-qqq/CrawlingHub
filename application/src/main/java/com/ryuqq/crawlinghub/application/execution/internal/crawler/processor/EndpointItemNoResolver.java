@@ -31,6 +31,14 @@ final class EndpointItemNoResolver {
 
     private static Long parseItemNoFromEndpoint(String endpoint) {
         try {
+            if (endpoint.contains("/auction_products/")) {
+                String[] parts = endpoint.split("/auction_products/");
+                if (parts.length > 1) {
+                    String afterAuctionProducts = parts[1];
+                    String itemNoStr = afterAuctionProducts.split("/")[0].split("\\?")[0];
+                    return Long.parseLong(itemNoStr);
+                }
+            }
             if (endpoint.contains("/products/")) {
                 String[] parts = endpoint.split("/products/");
                 if (parts.length > 1) {

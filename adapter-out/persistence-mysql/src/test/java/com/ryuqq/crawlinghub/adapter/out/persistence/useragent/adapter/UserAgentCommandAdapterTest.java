@@ -41,12 +41,10 @@ class UserAgentCommandAdapterTest {
 
     private UserAgentCommandAdapter commandAdapter;
 
-    // UserAgentJpaEntity 생성 헬퍼
     private UserAgentJpaEntity buildUserAgentEntity(Long id) {
         LocalDateTime now = LocalDateTime.now();
         return UserAgentJpaEntity.of(
                 id,
-                "encrypted-token",
                 "Mozilla/5.0",
                 "DESKTOP",
                 "GENERIC",
@@ -56,8 +54,6 @@ class UserAgentCommandAdapterTest {
                 "120.0.0.0",
                 UserAgentStatus.IDLE,
                 100,
-                null,
-                0,
                 null,
                 0,
                 now,
@@ -78,7 +74,6 @@ class UserAgentCommandAdapterTest {
         UserAgentJpaEntity entity =
                 UserAgentJpaEntity.of(
                         null,
-                        "encrypted-token",
                         "Mozilla/5.0",
                         "DESKTOP",
                         "GENERIC",
@@ -88,8 +83,6 @@ class UserAgentCommandAdapterTest {
                         "120.0.0.0",
                         UserAgentStatus.IDLE,
                         100,
-                        null,
-                        0,
                         null,
                         0,
                         now,
@@ -97,7 +90,6 @@ class UserAgentCommandAdapterTest {
         UserAgentJpaEntity savedEntity =
                 UserAgentJpaEntity.of(
                         1L,
-                        "encrypted-token",
                         "Mozilla/5.0",
                         "DESKTOP",
                         "GENERIC",
@@ -107,8 +99,6 @@ class UserAgentCommandAdapterTest {
                         "120.0.0.0",
                         UserAgentStatus.IDLE,
                         100,
-                        null,
-                        0,
                         null,
                         0,
                         now,
@@ -136,7 +126,6 @@ class UserAgentCommandAdapterTest {
         UserAgentJpaEntity entity =
                 UserAgentJpaEntity.of(
                         100L,
-                        "encrypted-token",
                         "Mozilla/5.0",
                         "DESKTOP",
                         "GENERIC",
@@ -146,8 +135,6 @@ class UserAgentCommandAdapterTest {
                         "120.0.0.0",
                         UserAgentStatus.BLOCKED,
                         50,
-                        now,
-                        5,
                         null,
                         0,
                         now,
@@ -170,7 +157,7 @@ class UserAgentCommandAdapterTest {
         @Test
         @DisplayName("성공 - 여러 UserAgent 배치 저장")
         void shouldPersistAllUserAgents() {
-            // Given - 여러 UserAgent 배치 저장
+            // Given
             UserAgent userAgent1 = UserAgentFixture.anAvailableUserAgent();
             UserAgent userAgent2 = UserAgentFixture.anAvailableUserAgent();
             List<UserAgent> userAgents = List.of(userAgent1, userAgent2);
@@ -181,23 +168,23 @@ class UserAgentCommandAdapterTest {
             given(mapper.toEntity(userAgent1)).willReturn(entity1);
             given(mapper.toEntity(userAgent2)).willReturn(entity2);
 
-            // When - 예외 없이 실행되어야 함
+            // When
             commandAdapter.persistAll(userAgents);
 
-            // Then - saveAll이 호출되어야 함 (반환값 없음)
+            // Then
             org.mockito.BDDMockito.then(jpaRepository).should().saveAll(List.of(entity1, entity2));
         }
 
         @Test
         @DisplayName("성공 - 빈 리스트로 배치 저장 호출")
         void shouldHandleEmptyList() {
-            // Given - 빈 리스트
+            // Given
             List<UserAgent> emptyList = List.of();
 
-            // When - 예외 없이 실행되어야 함
+            // When
             commandAdapter.persistAll(emptyList);
 
-            // Then - saveAll이 빈 리스트로 호출되어야 함
+            // Then
             org.mockito.BDDMockito.then(jpaRepository).should().saveAll(List.of());
         }
     }

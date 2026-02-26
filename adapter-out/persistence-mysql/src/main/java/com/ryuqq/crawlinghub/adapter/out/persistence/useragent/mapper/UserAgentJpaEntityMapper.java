@@ -30,13 +30,8 @@ import org.springframework.stereotype.Component;
  *   <li>Value Object 추출 및 재구성
  * </ul>
  *
- * <p><strong>Hexagonal Architecture 관점:</strong>
- *
- * <ul>
- *   <li>Adapter Layer의 책임
- *   <li>Domain과 Infrastructure 기술 분리
- *   <li>Domain은 JPA 의존성 없음
- * </ul>
+ * <p><strong>참고:</strong> token, lastUsedAt, requestsPerDay는 Redis에서만 관리하므로 DB Entity에 포함하지 않습니다.
+ * Domain 복원 시 기본값(Token.empty(), null, 0)을 사용합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -47,42 +42,14 @@ public class UserAgentJpaEntityMapper {
     /**
      * Domain → Entity 변환
      *
-     * <p><strong>사용 시나리오:</strong>
-     *
-     * <ul>
-     *   <li>신규 UserAgent 저장 (ID가 null)
-     *   <li>기존 UserAgent 수정 (ID가 있음)
-     * </ul>
-     *
-     * <p><strong>변환 규칙:</strong>
-     *
-     * <ul>
-     *   <li>ID: Domain.getId().value() → Entity.id (null 가능)
-     *   <li>Token: Domain.getToken().encryptedValue() → Entity.token
-     *   <li>DeviceType: Domain.getDeviceType().getTypeName() → Entity.deviceType
-     *   <li>Metadata: Domain.getMetadata() → Entity.deviceBrand, osType, osVersion, browserType,
-     *       browserVersion
-     *   <li>Status: Domain.getStatus() → Entity.status
-     *   <li>HealthScore: Domain.getHealthScoreValue() → Entity.healthScore
-     *   <li>LastUsedAt: Domain.getLastUsedAt() → Entity.lastUsedAt (null 가능)
-     *   <li>RequestsPerDay: Domain.getRequestsPerDay() → Entity.requestsPerDay
-     *   <li>CooldownUntil: Domain.getCooldownPolicy().cooldownUntil() → Entity.cooldownUntil
-     *   <li>ConsecutiveRateLimits: Domain.getCooldownPolicy().consecutiveRateLimits() →
-     *       Entity.consecutiveRateLimits
-     *   <li>CreatedAt: Domain.getCreatedAt() → Entity.createdAt
-     *   <li>UpdatedAt: Domain.getUpdatedAt() → Entity.updatedAt
-     * </ul>
-     *
      * @param domain UserAgent 도메인
      * @return UserAgentJpaEntity
      */
     public UserAgentJpaEntity toEntity(UserAgent domain) {
         UserAgentMetadata metadata = domain.getMetadata();
-        Token token = domain.getToken();
         CooldownPolicy cooldownPolicy = domain.getCooldownPolicy();
         return UserAgentJpaEntity.of(
                 domain.getIdValue(),
-                token != null ? token.encryptedValue() : null,
                 domain.getUserAgentStringValue(),
                 domain.getDeviceType().getTypeName(),
                 metadata.getDeviceBrand().name(),
@@ -92,8 +59,6 @@ public class UserAgentJpaEntityMapper {
                 metadata.getBrowserVersion(),
                 domain.getStatus(),
                 domain.getHealthScoreValue(),
-                toLocalDateTime(domain.getLastUsedAt()),
-                domain.getRequestsPerDay(),
                 toLocalDateTime(cooldownPolicy.cooldownUntil()),
                 cooldownPolicy.consecutiveRateLimits(),
                 toLocalDateTime(domain.getCreatedAt()),
@@ -103,29 +68,8 @@ public class UserAgentJpaEntityMapper {
     /**
      * Entity → Domain 변환
      *
-     * <p><strong>사용 시나리오:</strong>
-     *
-     * <ul>
-     *   <li>데이터베이스에서 조회한 Entity를 Domain으로 변환
-     *   <li>Application Layer로 전달
-     * </ul>
-     *
-     * <p><strong>변환 규칙:</strong>
-     *
-     * <ul>
-     *   <li>ID: Entity.id → Domain.UserAgentId
-     *   <li>Token: Entity.token → Domain.Token
-     *   <li>DeviceType: Entity.deviceType → Domain.DeviceType
-     *   <li>Metadata: Entity.deviceBrand, osType, osVersion, browserType, browserVersion →
-     *       Domain.UserAgentMetadata
-     *   <li>Status: Entity.status → Domain.UserAgentStatus
-     *   <li>HealthScore: Entity.healthScore → Domain.HealthScore
-     *   <li>LastUsedAt: Entity.lastUsedAt → Domain.lastUsedAt
-     *   <li>RequestsPerDay: Entity.requestsPerDay → Domain.requestsPerDay
-     *   <li>CooldownPolicy: Entity.consecutiveRateLimits, Entity.cooldownUntil →
-     *       Domain.CooldownPolicy.reconstitute()
-     *   <li>CreatedAt/UpdatedAt: Entity → Domain
-     * </ul>
+     * <p>token, lastUsedAt, requestsPerDay는 DB에 저장하지 않으므로 기본값으로 복원합니다. 이 필드들은 Redis에서 관리되며, Redis
+     * 어댑터를 통해 별도로 로드됩니다.
      *
      * @param entity UserAgentJpaEntity
      * @return UserAgent 도메인
@@ -145,15 +89,15 @@ public class UserAgentJpaEntityMapper {
 
         return UserAgent.reconstitute(
                 UserAgentId.of(entity.getId()),
-                Token.ofNullable(entity.getToken()),
+                Token.empty(),
                 UserAgentString.of(entity.getUserAgentString()),
                 DeviceType.of(entity.getDeviceType()),
                 metadata,
                 entity.getStatus(),
                 HealthScore.of(entity.getHealthScore()),
                 cooldownPolicy,
-                toInstant(entity.getLastUsedAt()),
-                entity.getRequestsPerDay(),
+                null,
+                0,
                 toInstant(entity.getCreatedAt()),
                 toInstant(entity.getUpdatedAt()));
     }

@@ -1,7 +1,9 @@
 package com.ryuqq.crawlinghub.adapter.out.redis.config;
 
-import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -17,6 +19,15 @@ import org.springframework.context.annotation.Configuration;
  *   <li>Watchdog 기능으로 락 자동 갱신
  * </ul>
  *
+ * <p><strong>RejectedExecutionException 방지</strong>:
+ *
+ * <ul>
+ *   <li>keepAlive: TCP keepAlive로 연결 유지
+ *   <li>pingConnectionInterval: 주기적 ping으로 유휴 연결 감지
+ *   <li>retryAttempts/retryInterval: 일시적 연결 실패 시 재시도
+ *   <li>connectionMinimumIdleSize: 최소 유휴 연결 유지
+ * </ul>
+ *
  * @author development-team
  * @since 1.0.0
  */
@@ -24,14 +35,23 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(RedisProperties.class)
 public class RedisConfig {
 
-    private final RedissonClient redissonClient;
-    private final RedisProperties redisProperties;
-
-    public RedisConfig(RedissonClient redissonClient, RedisProperties redisProperties) {
-        this.redissonClient = redissonClient;
-        this.redisProperties = redisProperties;
+    /**
+     * Redisson 자동 설정 커스터마이저
+     *
+     * <p>Spring Boot Starter의 자동 설정(host, port 등)을 유지하면서 추가 설정을 적용합니다.
+     *
+     * @return RedissonAutoConfigurationCustomizer
+     */
+    @Bean
+    RedissonAutoConfigurationCustomizer redissonCustomizer() {
+        return (Config config) -> {
+            config.useSingleServer()
+                    .setKeepAlive(true)
+                    .setPingConnectionInterval(30_000)
+                    .setConnectionMinimumIdleSize(4)
+                    .setConnectionPoolSize(16)
+                    .setRetryAttempts(3)
+                    .setRetryInterval(1500);
+        };
     }
-
-    // Redisson Spring Boot Starter가 RedissonClient Bean을 자동으로 생성
-    // 추가 설정이 필요한 경우 여기에 Bean 정의
 }

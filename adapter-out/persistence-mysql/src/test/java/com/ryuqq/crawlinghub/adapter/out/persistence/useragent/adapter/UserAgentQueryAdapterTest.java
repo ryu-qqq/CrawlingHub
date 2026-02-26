@@ -47,6 +47,24 @@ class UserAgentQueryAdapterTest {
         queryAdapter = new UserAgentQueryAdapter(queryDslRepository, mapper);
     }
 
+    private static UserAgentJpaEntity anIdleEntity(Long id, LocalDateTime now) {
+        return UserAgentJpaEntity.of(
+                id,
+                "Mozilla/5.0",
+                "DESKTOP",
+                "GENERIC",
+                "LINUX",
+                "5.10",
+                "CHROME",
+                "120.0.0.0",
+                UserAgentStatus.IDLE,
+                100,
+                null,
+                0,
+                now,
+                now);
+    }
+
     @Nested
     @DisplayName("findById 테스트")
     class FindByIdTests {
@@ -57,25 +75,7 @@ class UserAgentQueryAdapterTest {
             // Given
             UserAgentId userAgentId = UserAgentId.of(1L);
             LocalDateTime now = LocalDateTime.now();
-            UserAgentJpaEntity entity =
-                    UserAgentJpaEntity.of(
-                            1L,
-                            "encrypted-token",
-                            "Mozilla/5.0",
-                            "DESKTOP",
-                            "GENERIC",
-                            "LINUX",
-                            "5.10",
-                            "CHROME",
-                            "120.0.0.0",
-                            UserAgentStatus.IDLE,
-                            100,
-                            null,
-                            0,
-                            null,
-                            0,
-                            now,
-                            now);
+            UserAgentJpaEntity entity = anIdleEntity(1L, now);
             UserAgent domain = UserAgentFixture.anAvailableUserAgent();
 
             given(queryDslRepository.findById(1L)).willReturn(Optional.of(entity));
@@ -113,25 +113,7 @@ class UserAgentQueryAdapterTest {
         void shouldFindAllAvailable() {
             // Given
             LocalDateTime now = LocalDateTime.now();
-            UserAgentJpaEntity entity =
-                    UserAgentJpaEntity.of(
-                            1L,
-                            "encrypted-token",
-                            "Mozilla/5.0",
-                            "DESKTOP",
-                            "GENERIC",
-                            "LINUX",
-                            "5.10",
-                            "CHROME",
-                            "120.0.0.0",
-                            UserAgentStatus.IDLE,
-                            100,
-                            null,
-                            0,
-                            null,
-                            0,
-                            now,
-                            now);
+            UserAgentJpaEntity entity = anIdleEntity(1L, now);
             UserAgent domain = UserAgentFixture.anAvailableUserAgent();
 
             given(queryDslRepository.findByStatus(UserAgentStatus.IDLE))
@@ -195,7 +177,6 @@ class UserAgentQueryAdapterTest {
             UserAgentJpaEntity entity =
                     UserAgentJpaEntity.of(
                             1L,
-                            "encrypted-token",
                             "Mozilla/5.0",
                             "DESKTOP",
                             "GENERIC",
@@ -205,8 +186,6 @@ class UserAgentQueryAdapterTest {
                             "120.0.0.0",
                             UserAgentStatus.BLOCKED,
                             50,
-                            now,
-                            3,
                             null,
                             0,
                             now,
@@ -232,35 +211,16 @@ class UserAgentQueryAdapterTest {
         @Test
         @DisplayName("성공 - 여러 ID로 UserAgent 조회")
         void shouldFindByIds() {
-            // Given - 여러 ID로 UserAgent 배치 조회
+            // Given
             UserAgentId id1 = UserAgentId.of(1L);
             UserAgentId id2 = UserAgentId.of(2L);
             List<UserAgentId> userAgentIds = List.of(id1, id2);
             LocalDateTime now = LocalDateTime.now();
 
-            UserAgentJpaEntity entity1 =
-                    UserAgentJpaEntity.of(
-                            1L,
-                            "encrypted-token-1",
-                            "Mozilla/5.0",
-                            "DESKTOP",
-                            "GENERIC",
-                            "LINUX",
-                            "5.10",
-                            "CHROME",
-                            "120.0.0.0",
-                            UserAgentStatus.IDLE,
-                            100,
-                            null,
-                            0,
-                            null,
-                            0,
-                            now,
-                            now);
+            UserAgentJpaEntity entity1 = anIdleEntity(1L, now);
             UserAgentJpaEntity entity2 =
                     UserAgentJpaEntity.of(
                             2L,
-                            "encrypted-token-2",
                             "Mozilla/5.0",
                             "MOBILE",
                             "APPLE",
@@ -270,8 +230,6 @@ class UserAgentQueryAdapterTest {
                             "17.0",
                             UserAgentStatus.IDLE,
                             80,
-                            null,
-                            0,
                             null,
                             0,
                             now,
@@ -288,7 +246,7 @@ class UserAgentQueryAdapterTest {
             // When
             List<UserAgent> result = queryAdapter.findByIds(userAgentIds);
 
-            // Then - 2개의 UserAgent가 반환되어야 함
+            // Then
             assertThat(result).hasSize(2);
         }
 
