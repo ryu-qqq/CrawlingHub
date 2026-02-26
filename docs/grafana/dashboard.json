@@ -91,7 +91,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(up{job=\"$job\"})",
+          "expr": "sum(up{job=\"$job\",environment=~\"$environment\"})",
           "legendFormat": "UP",
           "refId": "A"
         }
@@ -155,7 +155,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -223,7 +223,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "Avg",
           "refId": "A"
         }
@@ -291,7 +291,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -361,7 +361,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m])) * 100 or vector(0)",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])) * 100 or vector(0)",
           "legendFormat": "Error %",
           "refId": "A"
         }
@@ -431,7 +431,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",area=\"heap\"}) * 100",
+          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) * 100",
           "legendFormat": "Heap %",
           "refId": "A"
         }
@@ -475,7 +475,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_active{job=\"$job\"}",
+          "expr": "hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Active",
           "refId": "A"
         },
@@ -484,7 +484,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_idle{job=\"$job\"}",
+          "expr": "hikaricp_connections_idle{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Idle",
           "refId": "B"
         },
@@ -493,7 +493,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_pending{job=\"$job\"}",
+          "expr": "hikaricp_connections_pending{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Pending",
           "refId": "C"
         }
@@ -550,7 +550,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(hikaricp_connections_active{job=\"$job\"} / hikaricp_connections_max{job=\"$job\"}) * 100",
+          "expr": "avg(hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"} / hikaricp_connections_max{job=\"$job\",environment=~\"$environment\"}) * 100",
           "legendFormat": "Usage %",
           "refId": "A"
         }
@@ -582,7 +582,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\"}[1m])",
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])",
           "legendFormat": "Avg Acquire Time",
           "refId": "A"
         }
@@ -629,7 +629,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -677,7 +677,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -712,7 +712,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -747,7 +747,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(jvm_threads_live_threads{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(jvm_threads_live_threads{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -782,7 +782,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[5m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[5m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -817,7 +817,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -922,7 +922,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
               "legendFormat": "Total RPS",
               "refId": "A"
             },
@@ -931,7 +931,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "label_replace(sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\"}[1m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+              "expr": "label_replace(sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
               "legendFormat": "{{short_id}}",
               "refId": "B"
             }
@@ -1024,7 +1024,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P50",
               "refId": "A"
             },
@@ -1033,7 +1033,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P95",
               "refId": "B"
             },
@@ -1042,7 +1042,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P99",
               "refId": "C"
             }
@@ -1134,7 +1134,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"2..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"2..\"}[1m]))",
               "legendFormat": "2xx Success",
               "refId": "A"
             },
@@ -1143,7 +1143,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"4..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"4..\"}[1m]))",
               "legendFormat": "4xx Client Error",
               "refId": "B"
             },
@@ -1152,7 +1152,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m]))",
               "legendFormat": "5xx Server Error",
               "refId": "C"
             }
@@ -1205,7 +1205,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[1m])))",
+              "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m])))",
               "legendFormat": "{{uri}}",
               "refId": "A"
             }
@@ -1244,7 +1244,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",uri!~\"/actuator.*\"}[1m]))))",
+              "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m]))))",
               "legendFormat": "{{uri}}",
               "refId": "A"
             }
@@ -1322,7 +1322,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[5m])))",
+              "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[5m])))",
               "format": "table",
               "instant": true,
               "legendFormat": "{{method}} {{uri}} - {{status}}",
@@ -1425,7 +1425,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_crawl_task_total{job=\"$job\"}[5m])) * 100 or vector(100)",
+              "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\"}[5m])) * 100 or vector(100)",
               "legendFormat": "success %",
               "range": true,
               "refId": "A"
@@ -1497,7 +1497,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum(rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_outbound_client_total{job=\"$job\"}[5m])) * 100 or vector(100)",
+              "expr": "sum(rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\"}[5m])) * 100 or vector(100)",
               "legendFormat": "success %",
               "range": true,
               "refId": "A"
@@ -1567,7 +1567,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum(increase(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[5m])) or vector(0)",
+              "expr": "sum(increase(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[5m])) or vector(0)",
               "legendFormat": "errors",
               "range": true,
               "refId": "A"
@@ -1637,7 +1637,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum(increase(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[5m])) or vector(0)",
+              "expr": "sum(increase(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[5m])) or vector(0)",
               "legendFormat": "errors",
               "range": true,
               "refId": "A"
@@ -1763,7 +1763,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\"}[1m]))",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\"}[1m]))",
               "legendFormat": "{{operation}} - total",
               "range": true,
               "refId": "A"
@@ -1774,7 +1774,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"success\"}[1m]))",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[1m]))",
               "legendFormat": "{{operation}} - success",
               "range": true,
               "refId": "B"
@@ -1785,7 +1785,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[1m]))",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
               "legendFormat": "{{operation}} - error",
               "range": true,
               "refId": "C"
@@ -1911,7 +1911,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"success\"}[1m]))",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[1m]))",
               "legendFormat": "{{system}} - success",
               "range": true,
               "refId": "A"
@@ -1922,7 +1922,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[1m]))",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
               "legendFormat": "{{system}} - error",
               "range": true,
               "refId": "B"
@@ -1956,7 +1956,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P50",
               "range": true,
               "refId": "A"
@@ -1967,7 +1967,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P95",
               "range": true,
               "refId": "B"
@@ -1978,7 +1978,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P99",
               "range": true,
               "refId": "C"
@@ -2012,7 +2012,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P50",
               "range": true,
               "refId": "A"
@@ -2023,7 +2023,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P95",
               "range": true,
               "refId": "B"
@@ -2034,7 +2034,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P99",
               "range": true,
               "refId": "C"
@@ -2074,7 +2074,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",outcome=\"error\"}[1m]))",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
               "legendFormat": "crawl_task - {{operation}}",
               "range": true,
               "refId": "A"
@@ -2085,7 +2085,7 @@
                 "uid": "ef4r3izgbak8wb"
               },
               "editorMode": "code",
-              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",outcome=\"error\"}[1m]))",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
               "legendFormat": "outbound - {{system}}",
               "range": true,
               "refId": "B"
@@ -2968,7 +2968,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\"}[5m]))",
+              "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\",environment=~\"$environment\"}[5m]))",
               "legendFormat": "{{job_name}}",
               "refId": "A"
             }
@@ -3006,7 +3006,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "{{job_name}} P95",
               "refId": "A"
             }
@@ -3063,7 +3063,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+              "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"failed\"}[5m]))) * 100 or vector(100)",
               "legendFormat": "Success %",
               "refId": "A"
             }
@@ -3095,7 +3095,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\"}[5m]))",
+              "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\"}[5m]))",
               "legendFormat": "{{job_name}} {{result}}",
               "refId": "A"
             }
@@ -3109,11 +3109,37 @@
   "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
-    "crawlinghub",
-    "prod"
+    "crawlinghub"
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ef4r3izgbak8wb"
+        },
+        "definition": "label_values(up, environment)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(up, environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {},
         "datasource": {

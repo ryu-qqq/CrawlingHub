@@ -30,7 +30,7 @@
         "y": 0
       },
       "id": 100,
-      "title": "📊 Overview",
+      "title": "\ud83d\udcca Overview",
       "type": "row"
     },
     {
@@ -91,7 +91,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(up{job=\"$job\"})",
+          "expr": "sum(up{job=\"$job\",environment=~\"$environment\"})",
           "legendFormat": "UP",
           "refId": "A"
         }
@@ -159,7 +159,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\"}[1m])) * 60",
+          "expr": "sum(rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])) * 60",
           "legendFormat": "Exec/min",
           "refId": "A"
         }
@@ -229,7 +229,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"failed\"}[5m]))) * 100 or vector(100)",
           "legendFormat": "Success %",
           "refId": "A"
         }
@@ -299,7 +299,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",area=\"heap\"}) * 100",
+          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) * 100",
           "legendFormat": "Heap %",
           "refId": "A"
         }
@@ -316,7 +316,7 @@
         "y": 5
       },
       "id": 600,
-      "title": "📅 Scheduler Jobs",
+      "title": "\ud83d\udcc5 Scheduler Jobs",
       "type": "row"
     },
     {
@@ -349,7 +349,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\"}[5m]))",
+          "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\",environment=~\"$environment\"}[5m]))",
           "legendFormat": "{{job_name}}",
           "refId": "A"
         }
@@ -387,7 +387,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
           "legendFormat": "{{job_name}} P95",
           "refId": "A"
         }
@@ -444,7 +444,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+          "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"failed\"}[5m]))) * 100 or vector(100)",
           "legendFormat": "Success %",
           "refId": "A"
         }
@@ -476,7 +476,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\"}[5m]))",
+          "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\"}[5m]))",
           "legendFormat": "{{job_name}} {{result}}",
           "refId": "A"
         }
@@ -493,7 +493,7 @@
         "y": 18
       },
       "id": 500,
-      "title": "🗄️ Database (HikariCP)",
+      "title": "\ud83d\uddc4\ufe0f Database (HikariCP)",
       "type": "row"
     },
     {
@@ -520,7 +520,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_active{job=\"$job\"}",
+          "expr": "hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Active",
           "refId": "A"
         },
@@ -529,7 +529,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_idle{job=\"$job\"}",
+          "expr": "hikaricp_connections_idle{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Idle",
           "refId": "B"
         },
@@ -538,7 +538,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_pending{job=\"$job\"}",
+          "expr": "hikaricp_connections_pending{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Pending",
           "refId": "C"
         }
@@ -595,7 +595,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(hikaricp_connections_active{job=\"$job\"} / hikaricp_connections_max{job=\"$job\"}) * 100",
+          "expr": "avg(hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"} / hikaricp_connections_max{job=\"$job\",environment=~\"$environment\"}) * 100",
           "legendFormat": "Usage %",
           "refId": "A"
         }
@@ -627,7 +627,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\"}[1m])",
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])",
           "legendFormat": "Avg Acquire Time",
           "refId": "A"
         }
@@ -644,7 +644,7 @@
         "y": 25
       },
       "id": 700,
-      "title": "☕ JVM Metrics",
+      "title": "\u2615 JVM Metrics",
       "type": "row"
     },
     {
@@ -674,7 +674,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"})",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"})",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -722,7 +722,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -757,7 +757,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"})",
+          "expr": "sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"})",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -792,7 +792,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "jvm_threads_live_threads{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "jvm_threads_live_threads{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -827,7 +827,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[5m]))",
+          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[5m]))",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -862,7 +862,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60",
+          "expr": "sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A"
         }
@@ -875,11 +875,37 @@
   "schemaVersion": 39,
   "tags": [
     "crawlinghub",
-    "prod",
     "scheduler"
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ef4r3izgbak8wb"
+        },
+        "definition": "label_values(up, environment)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(up, environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {
           "selected": false,
