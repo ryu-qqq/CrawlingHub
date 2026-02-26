@@ -5,10 +5,13 @@ import static com.ryuqq.crawlinghub.application.common.utils.StringTruncator.tru
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.id.CrawledRawId;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductDetailInfo;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
+import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import java.time.Instant;
@@ -41,14 +44,17 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
     private final DetailResponseParser detailResponseParser;
     private final CrawledRawMapper crawledRawMapper;
     private final CrawledRawTransactionManager crawledRawTransactionManager;
+    private final SellerReadManager sellerReadManager;
 
     public DetailCrawlResultProcessor(
             DetailResponseParser detailResponseParser,
             CrawledRawMapper crawledRawMapper,
-            CrawledRawTransactionManager crawledRawTransactionManager) {
+            CrawledRawTransactionManager crawledRawTransactionManager,
+            SellerReadManager sellerReadManager) {
         this.detailResponseParser = detailResponseParser;
         this.crawledRawMapper = crawledRawMapper;
         this.crawledRawTransactionManager = crawledRawTransactionManager;
+        this.sellerReadManager = sellerReadManager;
     }
 
     @Override
@@ -82,12 +88,17 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
         long schedulerId = crawlTask.getCrawlSchedulerIdValue();
         long sellerId = crawlTask.getSellerIdValue();
 
-        // 2. Assembler로 ProductDetailInfo → CrawledRaw 변환
+        // 2. 셀러 검증 - 크롤링된 상품의 sellerId가 우리 셀러인지 확인
+        if (!isMatchingSeller(sellerId, detailInfo.sellerId(), crawlTask.getIdValue(), itemNo)) {
+            return ProcessingResult.empty();
+        }
+
+        // 3. Assembler로 ProductDetailInfo → CrawledRaw 변환
         Instant now = Instant.now();
         CrawledRaw crawledRaw =
                 crawledRawMapper.toDetailRaw(schedulerId, sellerId, detailInfo, now);
 
-        // 3. Manager로 저장
+        // 4. Manager로 저장
         int savedCount = 0;
         if (crawledRaw != null) {
             CrawledRawId savedId = crawledRawTransactionManager.save(crawledRaw);
@@ -101,7 +112,43 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
                 detailInfo.itemNo(),
                 detailInfo.itemName());
 
-        // 4. 후속 Task 없음 (PENDING 상태, 별도 스케줄러에서 가공)
+        // 5. 후속 Task 없음 (PENDING 상태, 별도 스케줄러에서 가공)
         return ProcessingResult.completed(1, savedCount);
+    }
+
+    /**
+     * 크롤링된 상품의 sellerId가 우리 셀러의 mustItSellerName과 일치하는지 검증
+     *
+     * @param sellerId DB 셀러 ID
+     * @param crawledSellerId 크롤링 응답에서 파싱된 sellerId (예: "carte123")
+     * @param taskId 로깅용 태스크 ID
+     * @param itemNo 로깅용 상품 번호
+     * @return 일치하면 true, 불일치 또는 셀러 조회 실패 시 false
+     */
+    private boolean isMatchingSeller(
+            long sellerId, String crawledSellerId, Long taskId, Long itemNo) {
+        Optional<Seller> sellerOpt = sellerReadManager.findById(SellerId.of(sellerId));
+
+        if (sellerOpt.isEmpty()) {
+            log.warn(
+                    "셀러 조회 실패, DETAIL 저장 건너뜀: taskId={}, sellerId={}, itemNo={}",
+                    taskId,
+                    sellerId,
+                    itemNo);
+            return false;
+        }
+
+        String expectedSellerName = sellerOpt.get().getMustItSellerNameValue();
+        if (!expectedSellerName.equals(crawledSellerId)) {
+            log.warn(
+                    "셀러 불일치 감지, DETAIL 저장 건너뜀: taskId={}, itemNo={}, " + "expected={}, actual={}",
+                    taskId,
+                    itemNo,
+                    expectedSellerName,
+                    crawledSellerId);
+            return false;
+        }
+
+        return true;
     }
 }
