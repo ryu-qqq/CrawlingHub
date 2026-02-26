@@ -147,7 +147,8 @@ public class CrawlTaskExecutionCoordinator {
         CrawlTask task = bundle.crawlTask();
 
         if (result.isSuccess()) {
-            execution.completeWithSuccess(result.responseBody(), result.httpStatusCode(), now);
+            String responseSummary = buildResponseSummary(result.responseBody());
+            execution.completeWithSuccess(responseSummary, result.httpStatusCode(), now);
             task.markAsSuccess(now);
             log.info(
                     "CrawlTask 실행 완료: taskId={}, durationMs={}",
@@ -192,6 +193,18 @@ public class CrawlTaskExecutionCoordinator {
                     failureException.getMessage(),
                     failureException);
         }
+    }
+
+    /**
+     * 응답 본문 요약 생성
+     *
+     * <p>전체 raw 응답(수백KB) 대신 크기 정보만 저장하여 DB 부하를 줄입니다. 파싱된 상품 데이터는 crawled_raw 테이블에 별도 저장됩니다.
+     */
+    private String buildResponseSummary(String responseBody) {
+        if (responseBody == null) {
+            return null;
+        }
+        return "{\"responseLengthChars\":" + responseBody.length() + "}";
     }
 
     private void processResult(CrawlResult crawlResult, CrawlTask crawlTask) {
