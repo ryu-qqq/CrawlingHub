@@ -268,6 +268,16 @@ public class CrawlSchedulerOutBox {
         return version;
     }
 
+    /**
+     * 영속화 후 버전 동기화
+     *
+     * <p>Optimistic Locking(@Version)으로 인해 persist 후 DB 버전이 증가하므로, 동일 도메인 객체로 후속 persist를 수행하기 전에
+     * 호출하여 버전을 동기화합니다.
+     */
+    public void syncVersion() {
+        this.version++;
+    }
+
     public boolean isCompleted() {
         return this.status == CrawlSchedulerOubBoxStatus.COMPLETED;
     }

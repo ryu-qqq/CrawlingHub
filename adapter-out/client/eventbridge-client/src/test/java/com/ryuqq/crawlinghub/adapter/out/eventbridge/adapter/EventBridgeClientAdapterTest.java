@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.scheduler.SchedulerClient;
+import software.amazon.awssdk.services.scheduler.model.ConflictException;
 import software.amazon.awssdk.services.scheduler.model.CreateScheduleRequest;
 import software.amazon.awssdk.services.scheduler.model.CreateScheduleResponse;
 import software.amazon.awssdk.services.scheduler.model.ScheduleState;
@@ -112,8 +113,8 @@ class EventBridgeClientAdapterTest {
         }
 
         @Test
-        @DisplayName("createSchedule 실패 시 updateSchedule을 호출한다")
-        void syncFromOutBox_whenCreateFails_fallsBackToUpdate() {
+        @DisplayName("createSchedule에서 ConflictException 발생 시 updateSchedule을 호출한다")
+        void syncFromOutBox_whenCreateConflicts_fallsBackToUpdate() {
             // given
             CrawlSchedulerOutBox outBox = createActiveOutBox();
             Target mockTarget = mock(Target.class);
@@ -126,9 +127,10 @@ class EventBridgeClientAdapterTest {
             when(mapper.toUpdateRequest(any(), any(), any(), any(), any()))
                     .thenReturn(UpdateScheduleRequest.builder().build());
 
-            // createSchedule 실패 → updateSchedule fallback
+            // createSchedule ConflictException → updateSchedule fallback
             when(schedulerClient.createSchedule(any(CreateScheduleRequest.class)))
-                    .thenThrow(new RuntimeException("스케줄이 이미 존재합니다"));
+                    .thenThrow(
+                            ConflictException.builder().message("Schedule already exists").build());
             when(schedulerClient.updateSchedule(any(UpdateScheduleRequest.class)))
                     .thenReturn(UpdateScheduleResponse.builder().build());
 
@@ -138,6 +140,30 @@ class EventBridgeClientAdapterTest {
             // then
             verify(schedulerClient, times(1)).createSchedule(any(CreateScheduleRequest.class));
             verify(schedulerClient, times(1)).updateSchedule(any(UpdateScheduleRequest.class));
+        }
+
+        @Test
+        @DisplayName(
+                "createSchedule에서 ConflictException 이외 예외 시 EventBridgePublishException으로 전파된다")
+        void syncFromOutBox_whenCreateFailsWithNonConflict_throwsException() {
+            // given
+            CrawlSchedulerOutBox outBox = createActiveOutBox();
+            Target mockTarget = mock(Target.class);
+
+            when(mapper.toScheduleName(any())).thenReturn("crawler-100");
+            when(mapper.toCronExpression(any())).thenReturn("cron(0 9 * * ? *)");
+            when(mapper.toTarget(any(), any(), any())).thenReturn(mockTarget);
+            when(mapper.toCreateRequest(any(), any(), any(), any()))
+                    .thenReturn(CreateScheduleRequest.builder().build());
+
+            // createSchedule 일반 예외 → fallback 없이 상위로 전파
+            when(schedulerClient.createSchedule(any(CreateScheduleRequest.class)))
+                    .thenThrow(new RuntimeException("권한 없음"));
+
+            // when & then
+            assertThatThrownBy(() -> adapter.syncFromOutBox(outBox))
+                    .isInstanceOf(EventBridgePublishException.class)
+                    .hasMessageContaining("OutBox 동기화 실패");
         }
     }
 
@@ -177,8 +203,8 @@ class EventBridgeClientAdapterTest {
     class SyncFromOutBoxExceptionTest {
 
         @Test
-        @DisplayName("EventBridgePublishException은 그대로 재전파된다")
-        void syncFromOutBox_whenEventBridgePublishException_rethrowsAsIs() {
+        @DisplayName("ConflictException fallback 중 EventBridgePublishException은 그대로 재전파된다")
+        void syncFromOutBox_whenConflictFallbackThrowsEventBridgeException_rethrowsAsIs() {
             // given
             CrawlSchedulerOutBox outBox = createActiveOutBox();
             Target mockTarget = mock(Target.class);
@@ -191,9 +217,11 @@ class EventBridgeClientAdapterTest {
             when(mapper.toUpdateRequest(any(), any(), any(), any(), any()))
                     .thenReturn(UpdateScheduleRequest.builder().build());
 
-            // createSchedule 실패 → fallback updateSchedule도 EventBridgePublishException
+            // createSchedule ConflictException → fallback updateSchedule에서
+            // EventBridgePublishException
             when(schedulerClient.createSchedule(any(CreateScheduleRequest.class)))
-                    .thenThrow(new RuntimeException("스케줄이 이미 존재합니다"));
+                    .thenThrow(
+                            ConflictException.builder().message("Schedule already exists").build());
             when(schedulerClient.updateSchedule(any(UpdateScheduleRequest.class)))
                     .thenThrow(new EventBridgePublishException("EventBridge 오류"));
 
@@ -204,8 +232,9 @@ class EventBridgeClientAdapterTest {
         }
 
         @Test
-        @DisplayName("try 블록 내에서 일반 예외 발생 시 EventBridgePublishException으로 래핑된다")
-        void syncFromOutBox_whenGenericExceptionInsideTry_wrapsInEventBridgePublishException() {
+        @DisplayName("ConflictException fallback 중 일반 예외 시 EventBridgePublishException으로 래핑된다")
+        void
+                syncFromOutBox_whenConflictFallbackThrowsGenericException_wrapsInEventBridgePublishException() {
             // given
             CrawlSchedulerOutBox outBox = createActiveOutBox();
             Target mockTarget = mock(Target.class);
@@ -218,9 +247,10 @@ class EventBridgeClientAdapterTest {
             when(mapper.toUpdateRequest(any(), any(), any(), any(), any()))
                     .thenReturn(UpdateScheduleRequest.builder().build());
 
-            // createSchedule 예외 → fallback updateSchedule도 일반 예외
+            // createSchedule ConflictException → fallback updateSchedule도 일반 예외
             when(schedulerClient.createSchedule(any(CreateScheduleRequest.class)))
-                    .thenThrow(new RuntimeException("createSchedule 실패"));
+                    .thenThrow(
+                            ConflictException.builder().message("Schedule already exists").build());
             when(schedulerClient.updateSchedule(any(UpdateScheduleRequest.class)))
                     .thenThrow(new RuntimeException("updateSchedule도 실패"));
 

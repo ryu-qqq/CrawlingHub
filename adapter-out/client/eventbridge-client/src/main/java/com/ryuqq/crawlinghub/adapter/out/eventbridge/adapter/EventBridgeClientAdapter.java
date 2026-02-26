@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.scheduler.SchedulerClient;
+import software.amazon.awssdk.services.scheduler.model.ConflictException;
 import software.amazon.awssdk.services.scheduler.model.ScheduleState;
 import software.amazon.awssdk.services.scheduler.model.Target;
 
@@ -69,7 +70,8 @@ public class EventBridgeClientAdapter implements EventBridgeClientPort {
         try {
             schedulerClient.createSchedule(
                     mapper.toCreateRequest(scheduleName, cronExpression, target, outBox));
-        } catch (Exception e) {
+        } catch (ConflictException e) {
+            log.debug("스케줄 이미 존재하여 업데이트 수행: scheduleName={}", scheduleName);
             updateSchedule(scheduleName, cronExpression, target, ScheduleState.ENABLED, outBox);
         }
     }
