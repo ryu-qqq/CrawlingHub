@@ -63,9 +63,17 @@ class CrawledRawProcessingSchedulerTest {
                         buildCrawlTask(),
                         crawledRawProcessing,
                         buildUserAgentHousekeeper(),
-                        buildSyncOutbox());
+                        buildSyncOutbox(),
+                        buildProductRefresh());
 
         return new SchedulerProperties(jobs);
+    }
+
+    private SchedulerProperties.ProductRefresh buildProductRefresh() {
+        SchedulerProperties.RefreshStale refreshStale =
+                new SchedulerProperties.RefreshStale(
+                        true, "0 0 10,14,18 * * *", "Asia/Seoul", 3000);
+        return new SchedulerProperties.ProductRefresh(refreshStale);
     }
 
     private SchedulerProperties.CrawlSchedulerOutbox buildCrawlSchedulerOutbox() {

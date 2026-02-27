@@ -152,6 +152,25 @@ public class CrawledProductQueryDslRepository {
     }
 
     /**
+     * 갱신이 오래된 상품 조회 (updatedAt ASC)
+     *
+     * <p>externalProductId가 존재하고 soft-delete되지 않은 상품 중 updatedAt이 가장 오래된 순으로 조회
+     *
+     * @param limit 조회 개수 제한
+     * @return Entity 목록
+     */
+    public List<CrawledProductJpaEntity> findStaleProducts(int limit) {
+        return queryFactory
+                .selectFrom(crawledProductJpaEntity)
+                .where(
+                        crawledProductJpaEntity.deletedAt.isNull(),
+                        crawledProductJpaEntity.externalProductId.isNotNull())
+                .orderBy(crawledProductJpaEntity.updatedAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
      * 셀러별 CrawledProduct 개수 조회
      *
      * @param sellerId 셀러 ID

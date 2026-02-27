@@ -205,7 +205,7 @@ class CrawlContextMapperTest {
         void shouldAppendQueryParamsWhenHasSearchCookies() {
             // Given
             String baseEndpoint =
-                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=LIKEASTAR&sort=POPULAR2&f=us:NEW,lwp:Y&pageNo=1";
+                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=LIKEASTAR&sort=LATEST&f=us:NEW,lwp:Y&pageNo=1";
             String nid = "3cb41b66-b356-4094-9df3-adf8deab19f1";
             String mustitUid = "1764141487281.758544";
 
