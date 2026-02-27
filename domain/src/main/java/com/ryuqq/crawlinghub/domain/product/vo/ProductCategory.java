@@ -11,6 +11,8 @@ package com.ryuqq.crawlinghub.domain.product.vo;
  * @param largeCategoryName 중분류명
  * @param mediumCategoryCode 소분류 코드
  * @param mediumCategoryName 소분류명
+ * @param smallCategoryCode 세분류 코드 (없을 수 있음)
+ * @param smallCategoryName 세분류명 (없을 수 있음)
  * @author development-team
  * @since 1.0.0
  */
@@ -20,9 +22,11 @@ public record ProductCategory(
         String largeCategoryCode,
         String largeCategoryName,
         String mediumCategoryCode,
-        String mediumCategoryName) {
+        String mediumCategoryName,
+        String smallCategoryCode,
+        String smallCategoryName) {
 
-    /** 팩토리 메서드 */
+    /** 팩토리 메서드 (하위 호환) */
     public static ProductCategory of(
             String headerCategoryCode,
             String headerCategoryName,
@@ -36,7 +40,46 @@ public record ProductCategory(
                 largeCategoryCode,
                 largeCategoryName,
                 mediumCategoryCode,
-                mediumCategoryName);
+                mediumCategoryName,
+                null,
+                null);
+    }
+
+    /** 팩토리 메서드 (smallCategory 포함) */
+    public static ProductCategory of(
+            String headerCategoryCode,
+            String headerCategoryName,
+            String largeCategoryCode,
+            String largeCategoryName,
+            String mediumCategoryCode,
+            String mediumCategoryName,
+            String smallCategoryCode,
+            String smallCategoryName) {
+        return new ProductCategory(
+                headerCategoryCode,
+                headerCategoryName,
+                largeCategoryCode,
+                largeCategoryName,
+                mediumCategoryCode,
+                mediumCategoryName,
+                smallCategoryCode,
+                smallCategoryName);
+    }
+
+    /**
+     * 외부 전송용 전체 카테고리 코드
+     *
+     * <p>headerCategoryCode + (smallCategoryCode || mediumCategoryCode) 조합
+     *
+     * @return "W15r02" 또는 "W15r01r02" 형식
+     */
+    public String toExternalCategoryCode() {
+        String header = headerCategoryCode != null ? headerCategoryCode : "";
+        String leafCode = hasSmallCategory() ? smallCategoryCode : mediumCategoryCode;
+        if (leafCode == null || leafCode.isEmpty()) {
+            return header;
+        }
+        return header + leafCode;
     }
 
     /**
@@ -50,16 +93,22 @@ public record ProductCategory(
             sb.append(headerCategoryName);
         }
         if (largeCategoryName != null) {
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 sb.append(" > ");
             }
             sb.append(largeCategoryName);
         }
         if (mediumCategoryName != null) {
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 sb.append(" > ");
             }
             sb.append(mediumCategoryName);
+        }
+        if (smallCategoryName != null) {
+            if (!sb.isEmpty()) {
+                sb.append(" > ");
+            }
+            sb.append(smallCategoryName);
         }
         return sb.toString();
     }
@@ -82,5 +131,10 @@ public record ProductCategory(
     /** 중분류명 반환 (mediumCategoryName 별칭) */
     public String mediumCategory() {
         return mediumCategoryName;
+    }
+
+    /** 세분류 코드 존재 여부 확인 */
+    public boolean hasSmallCategory() {
+        return smallCategoryCode != null && !smallCategoryCode.isEmpty();
     }
 }

@@ -312,7 +312,10 @@ public class InboundProductRequestMapper {
     // --- 공통 유틸 ---
 
     private String extractCategoryCode(CrawledProduct product) {
-        return product.getCategory() != null ? product.getCategory().mediumCategoryCode() : "";
+        if (product.getCategory() == null) {
+            return "";
+        }
+        return product.getCategory().toExternalCategoryCode();
     }
 
     private OptionType resolveOptionType(CrawledProduct product) {
