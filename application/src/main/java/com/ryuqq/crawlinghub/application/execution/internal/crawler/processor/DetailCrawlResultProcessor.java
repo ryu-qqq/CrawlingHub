@@ -4,6 +4,7 @@ import static com.ryuqq.crawlinghub.application.common.utils.StringTruncator.tru
 
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.DetailResponseParser;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
+import com.ryuqq.crawlinghub.application.product.internal.CrawledProductCoordinator;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
@@ -45,16 +46,19 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
     private final CrawledRawMapper crawledRawMapper;
     private final CrawledRawTransactionManager crawledRawTransactionManager;
     private final SellerReadManager sellerReadManager;
+    private final CrawledProductCoordinator crawledProductCoordinator;
 
     public DetailCrawlResultProcessor(
             DetailResponseParser detailResponseParser,
             CrawledRawMapper crawledRawMapper,
             CrawledRawTransactionManager crawledRawTransactionManager,
-            SellerReadManager sellerReadManager) {
+            SellerReadManager sellerReadManager,
+            CrawledProductCoordinator crawledProductCoordinator) {
         this.detailResponseParser = detailResponseParser;
         this.crawledRawMapper = crawledRawMapper;
         this.crawledRawTransactionManager = crawledRawTransactionManager;
         this.sellerReadManager = sellerReadManager;
+        this.crawledProductCoordinator = crawledProductCoordinator;
     }
 
     @Override
@@ -90,6 +94,9 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
 
         // 2. 셀러 검증 - 크롤링된 상품의 sellerId가 우리 셀러인지 확인
         if (!isMatchingSeller(sellerId, detailInfo.sellerId(), crawlTask.getIdValue(), itemNo)) {
+            // 이미 MINI_SHOP에서 생성된 CrawledProduct가 있으면 soft-delete
+            crawledProductCoordinator.softDeleteIfExists(
+                    SellerId.of(sellerId), detailInfo.itemNo());
             return ProcessingResult.empty();
         }
 

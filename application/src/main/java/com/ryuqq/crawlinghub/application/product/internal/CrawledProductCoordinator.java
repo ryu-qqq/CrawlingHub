@@ -4,6 +4,7 @@ import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandMa
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -75,6 +76,24 @@ public class CrawledProductCoordinator {
         } else {
             commandManager.persist(creator.get());
         }
+    }
+
+    /**
+     * 기존 상품이 있으면 soft-delete 처리 (셀러 불일치 등으로 인한 정리)
+     *
+     * <p>상품이 존재하지 않으면 아무 동작도 하지 않습니다.
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     */
+    public void softDeleteIfExists(SellerId sellerId, long itemNo) {
+        readManager
+                .findBySellerIdAndItemNo(sellerId, itemNo)
+                .ifPresent(
+                        product -> {
+                            product.delete(Instant.now());
+                            commandManager.persist(product);
+                        });
     }
 
     private void persistAndSync(CrawledProduct product) {

@@ -70,7 +70,8 @@ public class CrawledProductQueryDslRepository {
                         .selectFrom(crawledProductJpaEntity)
                         .where(
                                 crawledProductJpaEntity.sellerId.eq(sellerId),
-                                crawledProductJpaEntity.itemNo.eq(itemNo))
+                                crawledProductJpaEntity.itemNo.eq(itemNo),
+                                crawledProductJpaEntity.deletedAt.isNull())
                         .fetchOne();
         return Optional.ofNullable(entity);
     }
@@ -84,7 +85,9 @@ public class CrawledProductQueryDslRepository {
     public List<CrawledProductJpaEntity> findBySellerId(long sellerId) {
         return queryFactory
                 .selectFrom(crawledProductJpaEntity)
-                .where(crawledProductJpaEntity.sellerId.eq(sellerId))
+                .where(
+                        crawledProductJpaEntity.sellerId.eq(sellerId),
+                        crawledProductJpaEntity.deletedAt.isNull())
                 .orderBy(crawledProductJpaEntity.createdAt.desc())
                 .fetch();
     }
@@ -102,7 +105,8 @@ public class CrawledProductQueryDslRepository {
                         crawledProductJpaEntity.needsSync.isTrue(),
                         crawledProductJpaEntity.miniShopCrawledAt.isNotNull(),
                         crawledProductJpaEntity.detailCrawledAt.isNotNull(),
-                        crawledProductJpaEntity.optionCrawledAt.isNotNull())
+                        crawledProductJpaEntity.optionCrawledAt.isNotNull(),
+                        crawledProductJpaEntity.deletedAt.isNull())
                 .orderBy(crawledProductJpaEntity.createdAt.asc())
                 .limit(limit)
                 .fetch();
@@ -122,7 +126,8 @@ public class CrawledProductQueryDslRepository {
                         .from(crawledProductJpaEntity)
                         .where(
                                 crawledProductJpaEntity.sellerId.eq(sellerId),
-                                crawledProductJpaEntity.itemNo.eq(itemNo))
+                                crawledProductJpaEntity.itemNo.eq(itemNo),
+                                crawledProductJpaEntity.deletedAt.isNull())
                         .fetchFirst();
         return result != null;
     }
@@ -138,7 +143,9 @@ public class CrawledProductQueryDslRepository {
                 queryFactory
                         .select(crawledProductJpaEntity.count())
                         .from(crawledProductJpaEntity)
-                        .where(crawledProductJpaEntity.sellerId.eq(sellerId))
+                        .where(
+                                crawledProductJpaEntity.sellerId.eq(sellerId),
+                                crawledProductJpaEntity.deletedAt.isNull())
                         .fetchOne();
 
         return count != null ? count : 0L;
