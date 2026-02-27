@@ -30,6 +30,19 @@ package com.ryuqq.crawlinghub.domain.execution.vo;
 public record CrawlExecutionResult(
         String responseBody, Integer httpStatusCode, String errorMessage) {
 
+    private static final int ERROR_MESSAGE_MAX_LENGTH = 1000;
+
+    public CrawlExecutionResult {
+        errorMessage = truncate(errorMessage, ERROR_MESSAGE_MAX_LENGTH);
+    }
+
+    private static String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
+    }
+
     /**
      * 성공 결과 생성
      *

@@ -157,9 +157,16 @@ public class CrawledRaw {
                 this.crawlType,
                 this.rawData,
                 RawDataStatus.FAILED,
-                errorMessage,
+                truncate(errorMessage, 1000),
                 this.createdAt,
                 now);
+    }
+
+    private static String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     // === Getters ===
