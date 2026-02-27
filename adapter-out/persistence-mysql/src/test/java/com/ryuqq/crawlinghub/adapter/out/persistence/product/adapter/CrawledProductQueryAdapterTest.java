@@ -177,6 +177,40 @@ class CrawledProductQueryAdapterTest {
     }
 
     @Test
+    @DisplayName("성공 - 갱신이 오래된 상품 조회")
+    void shouldFindStaleProducts() {
+        // Given
+        int limit = 10;
+        CrawledProductJpaEntity entity1 = createTestEntity(1L, 100L, 12345L);
+        CrawledProductJpaEntity entity2 = createTestEntity(2L, 200L, 12346L);
+        CrawledProduct domain1 = createTestDomain(1L, 100L, 12345L);
+        CrawledProduct domain2 = createTestDomain(2L, 200L, 12346L);
+
+        given(queryDslRepository.findStaleProducts(limit)).willReturn(List.of(entity1, entity2));
+        given(mapper.toDomain(entity1)).willReturn(domain1);
+        given(mapper.toDomain(entity2)).willReturn(domain2);
+
+        // When
+        List<CrawledProduct> result = queryAdapter.findStaleProducts(limit);
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("성공 - 갱신이 오래된 상품 조회 (빈 목록)")
+    void shouldReturnEmptyListWhenNoStaleProducts() {
+        // Given
+        given(queryDslRepository.findStaleProducts(10)).willReturn(List.of());
+
+        // When
+        List<CrawledProduct> result = queryAdapter.findStaleProducts(10);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     @DisplayName("성공 - SellerId와 ItemNo로 존재 여부 확인 (존재함)")
     void shouldReturnTrueWhenExists() {
         // Given

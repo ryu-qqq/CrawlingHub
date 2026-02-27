@@ -83,7 +83,7 @@ class InboundProductRequestMapperTest {
                                 new ProductOption(1001L, 12345L, "블랙", "M", 10, ""),
                                 new ProductOption(1002L, 12345L, "블랙", "L", 5, ""),
                                 new ProductOption(1003L, 12345L, "화이트", "M", 3, "")));
-        ProductCategory category = new ProductCategory("H001", "헤더", "L001", "대분류", "M001", "중분류");
+        ProductCategory category = ProductCategory.of("H001", "헤더", "L001", "대분류", "M001", "중분류");
 
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(100L),
@@ -148,7 +148,7 @@ class InboundProductRequestMapperTest {
             assertThat(request.externalProductCode()).isEqualTo("12345");
             assertThat(request.productName()).isEqualTo("테스트 상품");
             assertThat(request.externalBrandCode()).isEqualTo("테스트 브랜드");
-            assertThat(request.externalCategoryCode()).isEqualTo("M001");
+            assertThat(request.externalCategoryCode()).isEqualTo("H001M001");
             assertThat(request.sellerId()).isEqualTo(999L);
             assertThat(request.optionType()).isEqualTo("COMBINATION");
         }

@@ -64,6 +64,16 @@ public interface CrawledProductQueryPort {
     List<CrawledProduct> findNeedsSyncProducts(int limit);
 
     /**
+     * 갱신이 오래된 상품 조회 (updatedAt ASC)
+     *
+     * <p>externalProductId가 존재하고 soft-delete되지 않은 상품 중 updatedAt이 가장 오래된 순으로 조회
+     *
+     * @param limit 조회 개수 제한
+     * @return 갱신이 필요한 CrawledProduct 목록
+     */
+    List<CrawledProduct> findStaleProducts(int limit);
+
+    /**
      * Seller ID와 Item No로 존재 여부 확인
      *
      * @param sellerId 판매자 ID

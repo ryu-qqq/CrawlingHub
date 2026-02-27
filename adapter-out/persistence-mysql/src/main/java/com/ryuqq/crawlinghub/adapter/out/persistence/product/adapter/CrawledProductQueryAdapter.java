@@ -82,6 +82,11 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     }
 
     @Override
+    public List<CrawledProduct> findStaleProducts(int limit) {
+        return queryDslRepository.findStaleProducts(limit).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean existsBySellerIdAndItemNo(SellerId sellerId, long itemNo) {
         return queryDslRepository.existsBySellerIdAndItemNo(sellerId.value(), itemNo);
     }
