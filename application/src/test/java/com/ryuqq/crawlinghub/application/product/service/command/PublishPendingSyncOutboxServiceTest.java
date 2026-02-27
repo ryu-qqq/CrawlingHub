@@ -44,11 +44,11 @@ class PublishPendingSyncOutboxServiceTest {
     class ExecuteTest {
 
         @Test
-        @DisplayName("[성공] 재시도 가능한 Outbox가 없으면 empty 결과 반환")
-        void shouldReturnEmptyResultWhenNoRetryableOutboxes() {
+        @DisplayName("[성공] PENDING Outbox가 없으면 empty 결과 반환")
+        void shouldReturnEmptyResultWhenNoPendingOutboxes() {
             // Given
             PublishPendingSyncOutboxCommand command = PublishPendingSyncOutboxCommand.of(100, 3);
-            given(readManager.findRetryableOutboxes(3, 100)).willReturn(List.of());
+            given(readManager.findPendingOutboxes(100)).willReturn(List.of());
 
             // When
             SchedulerBatchProcessingResult result = sut.execute(command);
@@ -61,13 +61,13 @@ class PublishPendingSyncOutboxServiceTest {
         }
 
         @Test
-        @DisplayName("[성공] 모든 Outbox 처리 성공 시 success 카운트 반환")
+        @DisplayName("[성공] PENDING Outbox 처리 성공 시 success 카운트 반환")
         void shouldReturnSuccessCountWhenAllProcessed() {
             // Given
             PublishPendingSyncOutboxCommand command = PublishPendingSyncOutboxCommand.of(100, 3);
             CrawledProductSyncOutbox outbox =
                     CrawledProductSyncOutboxFixture.aReconstitutedPending();
-            given(readManager.findRetryableOutboxes(3, 100)).willReturn(List.of(outbox));
+            given(readManager.findPendingOutboxes(100)).willReturn(List.of(outbox));
             given(processor.processOutbox(outbox)).willReturn(true);
 
             // When
@@ -86,8 +86,8 @@ class PublishPendingSyncOutboxServiceTest {
             // Given
             PublishPendingSyncOutboxCommand command = PublishPendingSyncOutboxCommand.of(50, 5);
             CrawledProductSyncOutbox outbox =
-                    CrawledProductSyncOutboxFixture.aReconstitutedFailed();
-            given(readManager.findRetryableOutboxes(5, 50)).willReturn(List.of(outbox));
+                    CrawledProductSyncOutboxFixture.aReconstitutedPending();
+            given(readManager.findPendingOutboxes(50)).willReturn(List.of(outbox));
             given(processor.processOutbox(outbox)).willReturn(false);
 
             // When
@@ -104,14 +104,13 @@ class PublishPendingSyncOutboxServiceTest {
         void shouldReturnPartialResultWhenMixedOutcomes() {
             // Given
             PublishPendingSyncOutboxCommand command = PublishPendingSyncOutboxCommand.of(100, 3);
-            CrawledProductSyncOutbox successOutbox =
+            CrawledProductSyncOutbox outbox1 =
                     CrawledProductSyncOutboxFixture.aReconstitutedPending();
-            CrawledProductSyncOutbox failOutbox =
-                    CrawledProductSyncOutboxFixture.aReconstitutedFailed();
-            given(readManager.findRetryableOutboxes(3, 100))
-                    .willReturn(List.of(successOutbox, failOutbox));
-            given(processor.processOutbox(successOutbox)).willReturn(true);
-            given(processor.processOutbox(failOutbox)).willReturn(false);
+            CrawledProductSyncOutbox outbox2 =
+                    CrawledProductSyncOutboxFixture.aReconstitutedPending();
+            given(readManager.findPendingOutboxes(100)).willReturn(List.of(outbox1, outbox2));
+            given(processor.processOutbox(outbox1)).willReturn(true);
+            given(processor.processOutbox(outbox2)).willReturn(false);
 
             // When
             SchedulerBatchProcessingResult result = sut.execute(command);

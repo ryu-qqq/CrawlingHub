@@ -13,9 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * PENDING/FAILED CrawledProductSyncOutbox SQS 발행 Service
+ * PENDING CrawledProductSyncOutbox SQS 발행 Service
  *
- * <p>재시도 가능한 CrawledProductSyncOutbox를 조회하여 Processor에 위임합니다.
+ * <p>PENDING 상태의 CrawledProductSyncOutbox를 조회하여 Processor에 위임합니다. FAILED 복구는
+ * RecoverFailedProductSyncOutboxService가 PENDING으로 복원한 뒤 이 스케줄러가 재처리합니다.
  *
  * @author development-team
  * @since 1.0.0
@@ -40,7 +41,7 @@ public class PublishPendingSyncOutboxService implements PublishPendingSyncOutbox
     @Override
     public SchedulerBatchProcessingResult execute(PublishPendingSyncOutboxCommand command) {
         List<CrawledProductSyncOutbox> outboxes =
-                readManager.findRetryableOutboxes(command.maxRetryCount(), command.batchSize());
+                readManager.findPendingOutboxes(command.batchSize());
 
         if (outboxes.isEmpty()) {
             return SchedulerBatchProcessingResult.empty();
