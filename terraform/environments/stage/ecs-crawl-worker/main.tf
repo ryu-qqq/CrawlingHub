@@ -174,7 +174,8 @@ module "crawl_worker_task_execution_role" {
             ]
             Resource = [
               "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*",
-              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*"
+              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*",
+              "arn:aws:ssm:${var.aws_region}:*:parameter/authhub/*"
             ]
           },
           {
