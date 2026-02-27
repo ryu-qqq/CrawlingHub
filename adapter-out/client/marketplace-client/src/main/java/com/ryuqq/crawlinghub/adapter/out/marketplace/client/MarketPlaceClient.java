@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Component
 public class MarketPlaceClient {
 
-    private static final String INBOUND_PRODUCTS_PATH = "/api/v1/market/inbound/products";
+    private static final String INBOUND_PRODUCTS_PATH = "/api/v1/market/internal/inbound/products";
 
     private final WebClient webClient;
 

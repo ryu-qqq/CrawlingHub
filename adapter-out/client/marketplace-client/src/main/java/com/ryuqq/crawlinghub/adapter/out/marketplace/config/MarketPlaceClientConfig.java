@@ -31,6 +31,7 @@ public class MarketPlaceClientConfig {
                         .responseTimeout(Duration.ofSeconds(properties.requestTimeout()));
 
         return builder.baseUrl(properties.baseUrl())
+                .defaultHeader("X-Service-Token", properties.serviceToken())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
