@@ -126,7 +126,7 @@ class CrawlEndpointTest {
             assertThat(endpoint.baseUrl()).isEqualTo(MUSTIT_BASE_URL);
             assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
             assertThat(endpoint.queryParams()).containsEntry("keyword", "test-seller");
-            assertThat(endpoint.queryParams()).containsEntry("sort", "POPULAR2");
+            assertThat(endpoint.queryParams()).containsEntry("sort", "LATEST");
             assertThat(endpoint.queryParams()).containsEntry("f", "us:NEW,lwp:Y");
             assertThat(endpoint.queryParams()).containsEntry("pageNo", "1");
         }
@@ -183,13 +183,13 @@ class CrawlEndpointTest {
         @DisplayName("forSearchApi로 쿼리파라미터가 있는 URL 파싱")
         void shouldParseSearchApiUrlWithQueryParams() {
             String fullUrl =
-                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=seller&sort=POPULAR2&pageNo=2";
+                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=seller&sort=LATEST&pageNo=2";
             CrawlEndpoint endpoint = CrawlEndpoint.forSearchApi(fullUrl);
 
             assertThat(endpoint.baseUrl()).isEqualTo("https://m.web.mustit.co.kr");
             assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
             assertThat(endpoint.queryParams()).containsEntry("keyword", "seller");
-            assertThat(endpoint.queryParams()).containsEntry("sort", "POPULAR2");
+            assertThat(endpoint.queryParams()).containsEntry("sort", "LATEST");
             assertThat(endpoint.queryParams()).containsEntry("pageNo", "2");
         }
 

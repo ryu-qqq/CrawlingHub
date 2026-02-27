@@ -195,6 +195,13 @@ scheduler:
         batch-size: 50
         delay-seconds: 60                # 1분 후 복구
 
+    product-refresh:
+      refresh-stale:
+        enabled: true
+        cron: "0 0 10,14,18 * * *"       # 10시, 14시, 18시
+        timezone: "Asia/Seoul"
+        batch-size: 3000
+
 ---
 # ========================================
 # Local Profile
@@ -299,6 +306,12 @@ scheduler:
         timezone: "Asia/Seoul"
         batch-size: 50
         delay-seconds: 60
+    product-refresh:
+      refresh-stale:
+        enabled: false
+        cron: "0 0 10,14,18 * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 3000
   session-issuance:
     enabled: false
 

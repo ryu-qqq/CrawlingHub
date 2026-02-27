@@ -81,7 +81,8 @@ class CrawledProductSyncOutboxSchedulerTest {
                         buildCrawlTask(),
                         buildCrawledRawProcessing(),
                         buildUserAgentHousekeeper(),
-                        syncOutbox);
+                        syncOutbox,
+                        buildProductRefresh());
 
         return new SchedulerProperties(jobs);
     }
@@ -123,6 +124,13 @@ class CrawledProductSyncOutboxSchedulerTest {
 
     private SchedulerProperties.UserAgentHousekeeper buildUserAgentHousekeeper() {
         return new SchedulerProperties.UserAgentHousekeeper(true, 5000, 10, 20, 500L, 60000L, 10);
+    }
+
+    private SchedulerProperties.ProductRefresh buildProductRefresh() {
+        SchedulerProperties.RefreshStale refreshStale =
+                new SchedulerProperties.RefreshStale(
+                        true, "0 0 10,14,18 * * *", "Asia/Seoul", 3000);
+        return new SchedulerProperties.ProductRefresh(refreshStale);
     }
 
     @Nested
