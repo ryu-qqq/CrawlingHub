@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CrawledProductCoordinator {
+
+    private static final Logger log = LoggerFactory.getLogger(CrawledProductCoordinator.class);
 
     private final CrawledProductReadManager readManager;
     private final CrawledProductCommandManager commandManager;
@@ -73,6 +77,18 @@ public class CrawledProductCoordinator {
             CrawledProduct product = existing.get();
             updater.accept(product);
             persistAndSync(product);
+            return;
+        }
+
+        Optional<CrawledProduct> deleted =
+                readManager.findBySellerIdAndItemNoIncludingDeleted(sellerId, itemNo);
+
+        if (deleted.isPresent()) {
+            CrawledProduct product = deleted.get();
+            product.restore(Instant.now());
+            updater.accept(product);
+            persistAndSync(product);
+            log.info("soft-deleted 상품 복원: sellerId={}, itemNo={}", sellerId.value(), itemNo);
         } else {
             commandManager.persist(creator.get());
         }
