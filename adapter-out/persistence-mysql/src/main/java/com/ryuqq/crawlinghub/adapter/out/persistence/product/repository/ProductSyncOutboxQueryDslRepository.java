@@ -162,10 +162,14 @@ public class ProductSyncOutboxQueryDslRepository {
     }
 
     /**
-     * PROCESSING 상태에서 타임아웃된 좀비 Outbox 조회
+     * SENT/PROCESSING 상태에서 타임아웃된 좀비 Outbox 조회
+     *
+     * <p>SENT: SQS 발행 후 crawl-worker가 수신하지 못한 경우 (DLQ 이동 등)
+     *
+     * <p>PROCESSING: 처리 중 비정상 종료된 경우
      *
      * @param limit 조회 개수 제한
-     * @param timeoutSeconds PROCESSING 상태 타임아웃 기준 (초)
+     * @param timeoutSeconds 타임아웃 기준 (초)
      * @return Entity 목록
      */
     public List<ProductSyncOutboxJpaEntity> findStaleProcessing(int limit, long timeoutSeconds) {
@@ -174,7 +178,8 @@ public class ProductSyncOutboxQueryDslRepository {
         return queryFactory
                 .selectFrom(productSyncOutboxJpaEntity)
                 .where(
-                        productSyncOutboxJpaEntity.status.eq(ProductOutboxStatus.PROCESSING),
+                        productSyncOutboxJpaEntity.status.in(
+                                ProductOutboxStatus.SENT, ProductOutboxStatus.PROCESSING),
                         productSyncOutboxJpaEntity.processedAt.loe(threshold))
                 .orderBy(productSyncOutboxJpaEntity.processedAt.asc())
                 .limit(limit)
