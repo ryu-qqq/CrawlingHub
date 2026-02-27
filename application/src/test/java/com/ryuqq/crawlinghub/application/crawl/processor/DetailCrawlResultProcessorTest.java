@@ -14,6 +14,7 @@ import com.ryuqq.crawlinghub.application.execution.internal.crawler.parser.Detai
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.DetailCrawlResultProcessor;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.ProcessingResult;
 import com.ryuqq.crawlinghub.application.product.assembler.CrawledRawMapper;
+import com.ryuqq.crawlinghub.application.product.internal.CrawledProductCoordinator;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledRawTransactionManager;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlResult;
@@ -50,6 +51,7 @@ class DetailCrawlResultProcessorTest {
     @Mock private CrawledRawMapper crawledRawMapper;
     @Mock private CrawledRawTransactionManager crawledRawTransactionManager;
     @Mock private SellerReadManager sellerReadManager;
+    @Mock private CrawledProductCoordinator crawledProductCoordinator;
 
     private DetailCrawlResultProcessor processor;
 
@@ -63,7 +65,8 @@ class DetailCrawlResultProcessorTest {
                         detailResponseParser,
                         crawledRawMapper,
                         crawledRawTransactionManager,
-                        sellerReadManager);
+                        sellerReadManager,
+                        crawledProductCoordinator);
 
         // 기본 셀러 조회 stub - fixture의 SellerId(1L)에 대해 mustit-test-seller 반환
         Seller seller = SellerFixture.anActiveSeller();
@@ -234,7 +237,7 @@ class DetailCrawlResultProcessorTest {
         }
 
         @Test
-        @DisplayName("[실패] 셀러 불일치 시 저장하지 않고 빈 결과 반환")
+        @DisplayName("[실패] 셀러 불일치 시 저장하지 않고 빈 결과 반환 + 기존 CrawledProduct soft-delete")
         void shouldReturnEmptyWhenSellerMismatch() {
             // Given
             CrawlTask task = CrawlTaskFixture.aWaitingTask();
@@ -263,10 +266,11 @@ class DetailCrawlResultProcessorTest {
             assertThat(result.getParsedItemCount()).isEqualTo(0);
             assertThat(result.getSavedItemCount()).isEqualTo(0);
             verify(crawledRawTransactionManager, never()).save(any());
+            verify(crawledProductCoordinator).softDeleteIfExists(SellerId.of(1L), 107155434L);
         }
 
         @Test
-        @DisplayName("[실패] 셀러 조회 실패 시 저장하지 않고 빈 결과 반환")
+        @DisplayName("[실패] 셀러 조회 실패 시 저장하지 않고 빈 결과 반환 + 기존 CrawledProduct soft-delete")
         void shouldReturnEmptyWhenSellerNotFound() {
             // Given
             CrawlTask task = CrawlTaskFixture.aWaitingTask();
@@ -297,6 +301,7 @@ class DetailCrawlResultProcessorTest {
             assertThat(result.getParsedItemCount()).isEqualTo(0);
             assertThat(result.getSavedItemCount()).isEqualTo(0);
             verify(crawledRawTransactionManager, never()).save(any());
+            verify(crawledProductCoordinator).softDeleteIfExists(SellerId.of(1L), 9999L);
         }
     }
 }
