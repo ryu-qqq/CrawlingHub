@@ -6,7 +6,7 @@
 
 marketplace:
   client:
-    base-url: http://marketplace-api-stage.connectly.local
+    base-url: http://marketplace-api-stage.connectly.local:8080
     connect-timeout: 5
     request-timeout: 15
     service-token: ${MARKETPLACE_SERVICE_TOKEN:stage-default-token}
