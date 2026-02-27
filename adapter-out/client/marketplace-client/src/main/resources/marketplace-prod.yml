@@ -9,6 +9,7 @@ marketplace:
     base-url: http://marketplace-api-prod.connectly.local
     connect-timeout: 5
     request-timeout: 15
+    service-token: ${MARKETPLACE_SERVICE_TOKEN}
 
 logging:
   level:

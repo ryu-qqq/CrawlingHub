@@ -9,6 +9,7 @@ marketplace:
     base-url: http://localhost:8090
     connect-timeout: 10
     request-timeout: 30
+    service-token: local-dev-token
 
 logging:
   level:

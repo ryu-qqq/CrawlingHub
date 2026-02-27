@@ -94,7 +94,7 @@ public class DetailCrawlResultProcessor implements CrawlResultProcessor {
 
         // 2. 셀러 검증 - 크롤링된 상품의 sellerId가 우리 셀러인지 확인
         if (!isMatchingSeller(sellerId, detailInfo.sellerId(), crawlTask.getIdValue(), itemNo)) {
-            // 이미 MINI_SHOP에서 생성된 CrawledProduct가 있으면 soft-delete
+            // 셀러 불일치 → soft-delete + skip
             crawledProductCoordinator.softDeleteIfExists(
                     SellerId.of(sellerId), detailInfo.itemNo());
             return ProcessingResult.empty();
