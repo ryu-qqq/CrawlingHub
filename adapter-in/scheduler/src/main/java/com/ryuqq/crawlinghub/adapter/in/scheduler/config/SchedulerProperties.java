@@ -18,7 +18,12 @@ public record SchedulerProperties(Jobs jobs) {
             CrawlTask crawlTask,
             CrawledRawProcessing crawledRawProcessing,
             UserAgentHousekeeper userAgentHousekeeper,
-            CrawledProductSyncOutbox syncOutbox) {}
+            CrawledProductSyncOutbox syncOutbox,
+            ProductRefresh productRefresh) {}
+
+    public record ProductRefresh(RefreshStale refreshStale) {}
+
+    public record RefreshStale(boolean enabled, String cron, String timezone, int batchSize) {}
 
     public record UserAgentHousekeeper(
             boolean enabled,

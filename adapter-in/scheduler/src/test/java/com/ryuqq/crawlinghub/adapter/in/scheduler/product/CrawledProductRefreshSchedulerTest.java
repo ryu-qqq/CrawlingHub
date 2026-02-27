@@ -1,72 +1,59 @@
-package com.ryuqq.crawlinghub.adapter.in.scheduler.task;
+package com.ryuqq.crawlinghub.adapter.in.scheduler.product;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.adapter.in.scheduler.config.SchedulerProperties;
-import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
-import com.ryuqq.crawlinghub.application.task.dto.command.RecoverStuckCrawlTaskCommand;
-import com.ryuqq.crawlinghub.application.task.port.in.command.RecoverStuckCrawlTaskUseCase;
+import com.ryuqq.crawlinghub.application.product.port.in.command.RefreshStaleCrawledProductsUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * CrawlTaskScheduler 단위 테스트
+ * CrawledProductRefreshScheduler 단위 테스트
  *
- * <p>스케줄러가 설정값을 올바르게 읽어 RecoverStuckCrawlTaskCommand를 생성하는지 검증합니다.
+ * <p>스케줄러가 설정된 batchSize로 UseCase를 호출하는지 검증합니다.
  *
  * @author development-team
  * @since 1.0.0
  */
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("CrawlTaskScheduler 단위 테스트")
-class CrawlTaskSchedulerTest {
+@DisplayName("CrawledProductRefreshScheduler 단위 테스트")
+class CrawledProductRefreshSchedulerTest {
 
-    @Mock private RecoverStuckCrawlTaskUseCase recoverStuckUseCase;
+    @Mock private RefreshStaleCrawledProductsUseCase useCase;
 
-    private CrawlTaskScheduler sut;
+    private CrawledProductRefreshScheduler sut;
 
     @BeforeEach
     void setUp() {
         SchedulerProperties properties = buildSchedulerProperties();
-        sut = new CrawlTaskScheduler(recoverStuckUseCase, properties);
+        sut = new CrawledProductRefreshScheduler(useCase, properties);
     }
 
     private SchedulerProperties buildSchedulerProperties() {
-        // CrawlTask.recoverStuck 설정값: batchSize=30, timeoutSeconds=600
-        SchedulerProperties.RecoverStuck recoverStuck =
-                new SchedulerProperties.RecoverStuck(true, "0 * * * * *", "Asia/Seoul", 30, 600L);
-        SchedulerProperties.CrawlTask crawlTask = new SchedulerProperties.CrawlTask(recoverStuck);
+        SchedulerProperties.RefreshStale refreshStale =
+                new SchedulerProperties.RefreshStale(
+                        true, "0 0 10,14,18 * * *", "Asia/Seoul", 3000);
+        SchedulerProperties.ProductRefresh productRefresh =
+                new SchedulerProperties.ProductRefresh(refreshStale);
 
         SchedulerProperties.Jobs jobs =
                 new SchedulerProperties.Jobs(
                         buildCrawlSchedulerOutbox(),
                         buildCrawlTaskOutbox(),
-                        crawlTask,
+                        buildCrawlTask(),
                         buildCrawledRawProcessing(),
                         buildUserAgentHousekeeper(),
                         buildSyncOutbox(),
-                        buildProductRefresh());
+                        productRefresh);
 
         return new SchedulerProperties(jobs);
-    }
-
-    private SchedulerProperties.ProductRefresh buildProductRefresh() {
-        SchedulerProperties.RefreshStale refreshStale =
-                new SchedulerProperties.RefreshStale(
-                        true, "0 0 10,14,18 * * *", "Asia/Seoul", 3000);
-        return new SchedulerProperties.ProductRefresh(refreshStale);
     }
 
     private SchedulerProperties.CrawlSchedulerOutbox buildCrawlSchedulerOutbox() {
@@ -86,6 +73,12 @@ class CrawlTaskSchedulerTest {
                 new SchedulerProperties.RecoverFailed(true, "0 * * * * *", "Asia/Seoul", 10, 30);
         return new SchedulerProperties.CrawlTaskOutbox(
                 processPending, recoverTimeout, recoverFailed);
+    }
+
+    private SchedulerProperties.CrawlTask buildCrawlTask() {
+        SchedulerProperties.RecoverStuck recoverStuck =
+                new SchedulerProperties.RecoverStuck(true, "0 * * * * *", "Asia/Seoul", 10, 120L);
+        return new SchedulerProperties.CrawlTask(recoverStuck);
     }
 
     private SchedulerProperties.CrawledRawProcessing buildCrawledRawProcessing() {
@@ -115,46 +108,17 @@ class CrawlTaskSchedulerTest {
     }
 
     @Nested
-    @DisplayName("recoverStuckTasks 메서드 테스트")
-    class RecoverStuckTasksTest {
+    @DisplayName("refreshStale 메서드 테스트")
+    class RefreshStaleTest {
 
         @Test
-        @DisplayName("[성공] 설정값을 읽어 RecoverStuckCrawlTaskCommand를 생성하고 UseCase를 호출한다")
-        void shouldCallRecoverStuckUseCaseWithCorrectCommand() {
-            // Given
-            SchedulerBatchProcessingResult expected = SchedulerBatchProcessingResult.of(5, 5, 0);
-            given(recoverStuckUseCase.execute(any())).willReturn(expected);
-
+        @DisplayName("[성공] 설정된 batchSize(3000)로 UseCase를 호출한다")
+        void shouldCallUseCaseWithConfiguredBatchSize() {
             // When
-            SchedulerBatchProcessingResult result = sut.recoverStuckTasks();
+            sut.refreshStale();
 
             // Then
-            assertThat(result).isEqualTo(expected);
-
-            ArgumentCaptor<RecoverStuckCrawlTaskCommand> captor =
-                    forClass(RecoverStuckCrawlTaskCommand.class);
-            verify(recoverStuckUseCase).execute(captor.capture());
-
-            RecoverStuckCrawlTaskCommand captured = captor.getValue();
-            // 설정값: batchSize=30, timeoutSeconds=600
-            assertThat(captured.batchSize()).isEqualTo(30);
-            assertThat(captured.timeoutSeconds()).isEqualTo(600L);
-        }
-
-        @Test
-        @DisplayName("[성공] UseCase가 빈 결과를 반환해도 정상 처리한다")
-        void shouldHandleEmptyResult() {
-            // Given
-            SchedulerBatchProcessingResult expected = SchedulerBatchProcessingResult.empty();
-            given(recoverStuckUseCase.execute(any())).willReturn(expected);
-
-            // When
-            SchedulerBatchProcessingResult result = sut.recoverStuckTasks();
-
-            // Then
-            assertThat(result.total()).isEqualTo(0);
-            assertThat(result.success()).isEqualTo(0);
-            assertThat(result.failed()).isEqualTo(0);
+            verify(useCase).execute(3000);
         }
     }
 }

@@ -98,7 +98,7 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
      *
      * <ul>
      *   <li>keyword: 셀러명 (검색어)
-     *   <li>sort: POPULAR2 (인기순)
+     *   <li>sort: LATEST (최신순)
      *   <li>f: us:NEW,lwp:Y (필터 조건)
      *   <li>pageNo: 페이지 번호
      * </ul>
@@ -122,7 +122,7 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
                         "keyword",
                         keyword,
                         "sort",
-                        "POPULAR2",
+                        "LATEST",
                         "f",
                         "us:NEW,lwp:Y",
                         "pageNo",
