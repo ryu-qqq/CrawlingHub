@@ -186,7 +186,14 @@ public class CrawlSchedulerOutBox {
         }
         this.status = CrawlSchedulerOubBoxStatus.FAILED;
         this.processedAt = now;
-        this.errorMessage = errorMessage;
+        this.errorMessage = truncateErrorMessage(errorMessage, 500);
+    }
+
+    private static String truncateErrorMessage(String value, int maxLength) {
+        if (value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     /** 재시도를 위해 PENDING 상태로 복원 (FAILED → PENDING) */
