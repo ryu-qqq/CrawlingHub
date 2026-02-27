@@ -53,6 +53,17 @@ public class CreateProductSyncStrategy implements ProductSyncStrategy {
             InboundProductConversionResponse response =
                     marketPlaceClient.receiveInboundProduct(request);
 
+            if (response.inboundProductId() == null) {
+                log.warn(
+                        "[CREATE] 인바운드 상품 수신 응답에 inboundProductId 누락 - outboxId={}, status={},"
+                                + " action={}",
+                        outbox.getId(),
+                        response.status(),
+                        response.action());
+                return ProductSyncResult.failure(
+                        "CREATE_NO_ID", "MarketPlace 응답에 inboundProductId가 누락되었습니다 (매핑 실패 가능성)");
+            }
+
             log.info(
                     "[CREATE] 인바운드 상품 수신 성공 - inboundProductId={}, status={}, action={}",
                     response.inboundProductId(),

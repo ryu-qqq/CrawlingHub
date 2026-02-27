@@ -197,6 +197,7 @@ public class CrawledProductSyncOutbox {
             this.externalProductId = externalProductId;
         }
         this.status = ProductOutboxStatus.COMPLETED;
+        this.errorMessage = null;
         this.processedAt = now;
     }
 
