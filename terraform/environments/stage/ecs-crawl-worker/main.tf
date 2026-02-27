@@ -41,7 +41,7 @@ data "aws_caller_identity" "current" {}
 # Service Token Secret (for internal service communication)
 # ========================================
 data "aws_ssm_parameter" "service_token_secret" {
-  name = "/shared/security/service-token-secret"
+  name = "/authhub/stage/security/service-token-secret"
 }
 
 # ========================================
