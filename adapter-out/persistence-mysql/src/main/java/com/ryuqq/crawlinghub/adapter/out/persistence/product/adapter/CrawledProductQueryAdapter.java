@@ -61,6 +61,14 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     }
 
     @Override
+    public Optional<CrawledProduct> findBySellerIdAndItemNoIncludingDeleted(
+            SellerId sellerId, long itemNo) {
+        return queryDslRepository
+                .findBySellerIdAndItemNoIncludingDeleted(sellerId.value(), itemNo)
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public List<CrawledProduct> findBySellerId(SellerId sellerId) {
         List<CrawledProductJpaEntity> entities =
                 queryDslRepository.findBySellerId(sellerId.value());

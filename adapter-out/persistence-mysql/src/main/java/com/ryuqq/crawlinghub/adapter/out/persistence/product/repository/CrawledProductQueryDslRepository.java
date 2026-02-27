@@ -77,6 +77,25 @@ public class CrawledProductQueryDslRepository {
     }
 
     /**
+     * SellerId와 ItemNo로 단건 조회 (soft-delete 포함)
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     * @return Entity (Optional, soft-deleted 포함)
+     */
+    public Optional<CrawledProductJpaEntity> findBySellerIdAndItemNoIncludingDeleted(
+            long sellerId, long itemNo) {
+        CrawledProductJpaEntity entity =
+                queryFactory
+                        .selectFrom(crawledProductJpaEntity)
+                        .where(
+                                crawledProductJpaEntity.sellerId.eq(sellerId),
+                                crawledProductJpaEntity.itemNo.eq(itemNo))
+                        .fetchOne();
+        return Optional.ofNullable(entity);
+    }
+
+    /**
      * SellerId로 목록 조회
      *
      * @param sellerId 판매자 ID

@@ -36,6 +36,16 @@ public interface CrawledProductQueryPort {
     Optional<CrawledProduct> findBySellerIdAndItemNo(SellerId sellerId, long itemNo);
 
     /**
+     * Seller ID와 Item No로 CrawledProduct 조회 (soft-delete 포함)
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     * @return CrawledProduct (Optional, soft-deleted 포함)
+     */
+    Optional<CrawledProduct> findBySellerIdAndItemNoIncludingDeleted(
+            SellerId sellerId, long itemNo);
+
+    /**
      * Seller ID로 CrawledProduct 목록 조회
      *
      * @param sellerId 판매자 ID

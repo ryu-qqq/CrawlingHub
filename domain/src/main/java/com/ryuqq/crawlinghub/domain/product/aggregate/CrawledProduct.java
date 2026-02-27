@@ -607,6 +607,16 @@ public class CrawledProduct {
         this.updatedAt = occurredAt;
     }
 
+    /**
+     * 소프트 삭제된 상품 복원
+     *
+     * @param occurredAt 복원 발생 시각
+     */
+    public void restore(Instant occurredAt) {
+        this.deletionStatus = DeletionStatus.active();
+        this.updatedAt = occurredAt;
+    }
+
     /** 삭제 여부 확인 */
     public boolean isDeleted() {
         return this.deletionStatus != null && this.deletionStatus.isDeleted();
