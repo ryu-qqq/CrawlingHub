@@ -94,12 +94,15 @@ public class InboundProductRequestMapper {
         AtomicInteger order = new AtomicInteger(0);
 
         List<ProductImage> thumbnails = filterNonDuplicateThumbnails(images, descriptionBaseUrls);
+        boolean thumbnailAssigned = false;
+
         if (!thumbnails.isEmpty()) {
             entries.add(
                     new UpdateImagesRequest.ImageEntry(
                             "THUMBNAIL",
                             thumbnails.get(0).getEffectiveUrl(),
                             order.getAndIncrement()));
+            thumbnailAssigned = true;
             for (int i = 1; i < thumbnails.size(); i++) {
                 entries.add(
                         new UpdateImagesRequest.ImageEntry(
@@ -109,11 +112,16 @@ public class InboundProductRequestMapper {
             }
         }
 
-        descriptionImages.forEach(
-                img ->
-                        entries.add(
-                                new UpdateImagesRequest.ImageEntry(
-                                        "DETAIL", img.getEffectiveUrl(), order.getAndIncrement())));
+        for (ProductImage img : descriptionImages) {
+            String type = "DETAIL";
+            if (!thumbnailAssigned) {
+                type = "THUMBNAIL";
+                thumbnailAssigned = true;
+            }
+            entries.add(
+                    new UpdateImagesRequest.ImageEntry(
+                            type, img.getEffectiveUrl(), order.getAndIncrement()));
+        }
 
         return new UpdateImagesRequest(entries);
     }
@@ -159,12 +167,15 @@ public class InboundProductRequestMapper {
         AtomicInteger order = new AtomicInteger(0);
 
         List<ProductImage> thumbnails = filterNonDuplicateThumbnails(images, descriptionBaseUrls);
+        boolean thumbnailAssigned = false;
+
         if (!thumbnails.isEmpty()) {
             requests.add(
                     new ImageRequest(
                             "THUMBNAIL",
                             thumbnails.get(0).getEffectiveUrl(),
                             order.getAndIncrement()));
+            thumbnailAssigned = true;
             for (int i = 1; i < thumbnails.size(); i++) {
                 requests.add(
                         new ImageRequest(
@@ -174,11 +185,14 @@ public class InboundProductRequestMapper {
             }
         }
 
-        descriptionImages.forEach(
-                img ->
-                        requests.add(
-                                new ImageRequest(
-                                        "DETAIL", img.getEffectiveUrl(), order.getAndIncrement())));
+        for (ProductImage img : descriptionImages) {
+            String type = "DETAIL";
+            if (!thumbnailAssigned) {
+                type = "THUMBNAIL";
+                thumbnailAssigned = true;
+            }
+            requests.add(new ImageRequest(type, img.getEffectiveUrl(), order.getAndIncrement()));
+        }
 
         return requests;
     }
