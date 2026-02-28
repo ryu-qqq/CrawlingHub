@@ -27,15 +27,15 @@ public class CrawledProductCoordinator {
 
     private final CrawledProductReadManager readManager;
     private final CrawledProductCommandManager commandManager;
-    private final CrawledProductSyncOutboxCoordinator syncOutboxCoordinator;
+    private final CrawledProductCommandFacade commandFacade;
 
     public CrawledProductCoordinator(
             CrawledProductReadManager readManager,
             CrawledProductCommandManager commandManager,
-            CrawledProductSyncOutboxCoordinator syncOutboxCoordinator) {
+            CrawledProductCommandFacade commandFacade) {
         this.readManager = readManager;
         this.commandManager = commandManager;
-        this.syncOutboxCoordinator = syncOutboxCoordinator;
+        this.commandFacade = commandFacade;
     }
 
     /**
@@ -54,7 +54,7 @@ public class CrawledProductCoordinator {
                 .ifPresent(
                         product -> {
                             updater.accept(product);
-                            persistAndSync(product);
+                            commandFacade.persistAndSync(product);
                         });
     }
 
@@ -76,7 +76,7 @@ public class CrawledProductCoordinator {
         if (existing.isPresent()) {
             CrawledProduct product = existing.get();
             updater.accept(product);
-            persistAndSync(product);
+            commandFacade.persistAndSync(product);
             return;
         }
 
@@ -87,7 +87,7 @@ public class CrawledProductCoordinator {
             CrawledProduct product = deleted.get();
             product.restore(Instant.now());
             updater.accept(product);
-            persistAndSync(product);
+            commandFacade.persistAndSync(product);
             log.info("soft-deleted 상품 복원: sellerId={}, itemNo={}", sellerId.value(), itemNo);
         } else {
             commandManager.persist(creator.get());
@@ -110,15 +110,5 @@ public class CrawledProductCoordinator {
                             product.delete(Instant.now());
                             commandManager.persist(product);
                         });
-    }
-
-    private void persistAndSync(CrawledProduct product) {
-        commandManager.persist(product);
-
-        if (!product.needsExternalSync()) {
-            return;
-        }
-
-        syncOutboxCoordinator.createAllIfAbsent(product);
     }
 }

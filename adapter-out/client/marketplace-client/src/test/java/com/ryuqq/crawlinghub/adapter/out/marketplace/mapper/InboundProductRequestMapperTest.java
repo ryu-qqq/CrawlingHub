@@ -109,7 +109,8 @@ class InboundProductRequestMapperTest {
                 null,
                 DeletionStatus.active(),
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     private CrawledProduct createProductMinimal() {

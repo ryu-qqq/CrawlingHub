@@ -4,8 +4,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
+import com.ryuqq.crawlinghub.application.product.internal.CrawledProductCommandFacade;
 import com.ryuqq.crawlinghub.application.product.internal.CrawledProductCoordinator;
-import com.ryuqq.crawlinghub.application.product.internal.CrawledProductSyncOutboxCoordinator;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
@@ -44,14 +44,13 @@ class CrawledProductCoordinatorTest {
 
     @Mock private CrawledProductReadManager readManager;
     @Mock private CrawledProductCommandManager commandManager;
-    @Mock private CrawledProductSyncOutboxCoordinator syncOutboxCoordinator;
+    @Mock private CrawledProductCommandFacade commandFacade;
 
     private CrawledProductCoordinator coordinator;
 
     @BeforeEach
     void setUp() {
-        coordinator =
-                new CrawledProductCoordinator(readManager, commandManager, syncOutboxCoordinator);
+        coordinator = new CrawledProductCoordinator(readManager, commandManager, commandFacade);
     }
 
     @Nested
@@ -70,12 +69,11 @@ class CrawledProductCoordinatorTest {
             coordinator.updateExistingAndSync(SELLER_ID, ITEM_NO, p -> {}); // updater는 도메인 테스트에서 검증
 
             // Then
-            then(commandManager).should(times(1)).persist(product);
-            then(syncOutboxCoordinator).should(times(1)).createAllIfAbsent(product);
+            then(commandFacade).should(times(1)).persistAndSync(product);
         }
 
         @Test
-        @DisplayName("[성공] 상품 존재 + needsExternalSync=false → persist만, sync 미호출")
+        @DisplayName("[성공] 상품 존재 + needsExternalSync=false → persistAndSync 호출")
         void shouldPersistWithoutSyncWhenNotReady() {
             // Given
             CrawledProduct product = createMockProduct(false);
@@ -86,8 +84,7 @@ class CrawledProductCoordinatorTest {
             coordinator.updateExistingAndSync(SELLER_ID, ITEM_NO, p -> {});
 
             // Then
-            then(commandManager).should(times(1)).persist(product);
-            then(syncOutboxCoordinator).shouldHaveNoInteractions();
+            then(commandFacade).should(times(1)).persistAndSync(product);
         }
 
         @Test
@@ -101,8 +98,7 @@ class CrawledProductCoordinatorTest {
             coordinator.updateExistingAndSync(SELLER_ID, ITEM_NO, p -> {});
 
             // Then
-            then(commandManager).shouldHaveNoInteractions();
-            then(syncOutboxCoordinator).shouldHaveNoInteractions();
+            then(commandFacade).shouldHaveNoInteractions();
         }
     }
 
@@ -128,8 +124,7 @@ class CrawledProductCoordinatorTest {
                     });
 
             // Then
-            then(commandManager).should(times(1)).persist(product);
-            then(syncOutboxCoordinator).should(times(1)).createAllIfAbsent(product);
+            then(commandFacade).should(times(1)).persistAndSync(product);
         }
 
         @Test
@@ -138,6 +133,8 @@ class CrawledProductCoordinatorTest {
             // Given
             CrawledProduct newProduct = createMockProduct(false);
             given(readManager.findBySellerIdAndItemNo(SELLER_ID, ITEM_NO))
+                    .willReturn(Optional.empty());
+            given(readManager.findBySellerIdAndItemNoIncludingDeleted(SELLER_ID, ITEM_NO))
                     .willReturn(Optional.empty());
 
             // When
@@ -151,11 +148,10 @@ class CrawledProductCoordinatorTest {
 
             // Then
             then(commandManager).should(times(1)).persist(newProduct);
-            then(syncOutboxCoordinator).shouldHaveNoInteractions();
         }
 
         @Test
-        @DisplayName("[성공] 상품 존재 + needsExternalSync=false → persist만, sync 미호출")
+        @DisplayName("[성공] 상품 존재 + needsExternalSync=false → persistAndSync 호출")
         void shouldUpdateWithoutSyncWhenNotReady() {
             // Given
             CrawledProduct product = createMockProduct(false);
@@ -166,8 +162,7 @@ class CrawledProductCoordinatorTest {
             coordinator.createOrUpdate(SELLER_ID, ITEM_NO, p -> {}, () -> null);
 
             // Then
-            then(commandManager).should(times(1)).persist(product);
-            then(syncOutboxCoordinator).shouldHaveNoInteractions();
+            then(commandFacade).should(times(1)).persistAndSync(product);
         }
     }
 
@@ -204,6 +199,7 @@ class CrawledProductCoordinatorTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 }
