@@ -114,6 +114,43 @@ class InboundProductRequestMapperTest {
                 null);
     }
 
+    private CrawledProduct createProductWithUnisexCategory() {
+        ProductPrice price = new ProductPrice(8000, 0, 10000, 8000, 20, 20);
+        ProductImages images =
+                ProductImages.of(List.of(ProductImage.thumbnail("https://img.test/thumb1.jpg", 0)));
+        ProductOptions options =
+                ProductOptions.of(List.of(new ProductOption(1001L, 12345L, "블랙", "M", 10, "")));
+        ProductCategory category = ProductCategory.of("WM", "유니섹스", "18", "대분류", "18r06r01", "중분류");
+
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(100L),
+                SellerId.of(200L),
+                12345L,
+                "유니섹스 상품",
+                "테스트 브랜드",
+                0L,
+                price,
+                images,
+                false,
+                category,
+                new ShippingInfo("EXPRESS", 3000, "PAID", 3, false),
+                "<p>원본 설명</p>",
+                "<p>가공 설명</p>",
+                "SALE",
+                "KR",
+                "SEOUL",
+                options,
+                CrawlCompletionStatus.initial(),
+                null,
+                null,
+                true,
+                null,
+                DeletionStatus.active(),
+                Instant.now(),
+                Instant.now(),
+                null);
+    }
+
     private CrawledProduct createProductMinimal() {
         return CrawledProduct.fromMiniShop(
                 SellerId.of(200L),
@@ -239,6 +276,21 @@ class InboundProductRequestMapperTest {
             // then
             assertThat(request.description()).isNotNull();
             assertThat(request.description().content()).isEqualTo("<p>가공 설명</p>");
+        }
+
+        @Test
+        @DisplayName("유니섹스(WM) 카테고리는 남성(M)으로 치환된다")
+        void toReceiveRequest_withUnisexCategory_convertsToMen() {
+            // given
+            CrawledProductSyncOutbox outbox = createOutbox();
+            CrawledProduct product = createProductWithUnisexCategory();
+            Seller seller = createSellerWithOmsSellerId(999L);
+
+            // when
+            ReceiveInboundProductRequest request = mapper.toReceiveRequest(outbox, product, seller);
+
+            // then
+            assertThat(request.externalCategoryCode()).isEqualTo("M18r06r01");
         }
 
         @Test
