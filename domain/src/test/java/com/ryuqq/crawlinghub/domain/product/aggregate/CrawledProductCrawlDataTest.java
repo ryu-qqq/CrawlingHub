@@ -85,6 +85,7 @@ class CrawledProductCrawlDataTest {
                 ITEM_NO,
                 ITEM_NAME,
                 BRAND_NAME,
+                0L,
                 createDefaultPrice(),
                 createDefaultImages(),
                 true,
@@ -151,6 +152,7 @@ class CrawledProductCrawlDataTest {
                     CrawledProduct.fromMiniShopCrawlData(createDefaultMiniShopCrawlData());
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
+                            0L,
                             null,
                             null,
                             "<h1>상품 설명</h1>",
@@ -177,7 +179,15 @@ class CrawledProductCrawlDataTest {
             String newDescription = "<h1>새로운 설명</h1>";
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
-                            null, null, newDescription, null, null, null, List.of(), LATER_INSTANT);
+                            0L,
+                            null,
+                            null,
+                            newDescription,
+                            null,
+                            null,
+                            null,
+                            List.of(),
+                            LATER_INSTANT);
 
             product.updateFromDetailCrawlData(crawlData);
 
@@ -193,7 +203,15 @@ class CrawledProductCrawlDataTest {
             List<String> descImages = List.of("https://example.com/desc1.jpg");
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
-                            null, null, "<h1>설명</h1>", null, null, null, descImages, LATER_INSTANT);
+                            0L,
+                            null,
+                            null,
+                            "<h1>설명</h1>",
+                            null,
+                            null,
+                            null,
+                            descImages,
+                            LATER_INSTANT);
 
             List<String> newUrls = product.updateFromDetailCrawlData(crawlData);
 
@@ -206,6 +224,7 @@ class CrawledProductCrawlDataTest {
             CrawledProduct product = createFullyReconstituted();
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
+                            0L,
                             null,
                             null,
                             "<h1>새 설명</h1>",
@@ -443,6 +462,7 @@ class CrawledProductCrawlDataTest {
                             ITEM_NO,
                             ITEM_NAME,
                             BRAND_NAME,
+                            0L,
                             createDefaultPrice(),
                             null,
                             true,
@@ -501,6 +521,7 @@ class CrawledProductCrawlDataTest {
                             ITEM_NO,
                             ITEM_NAME,
                             BRAND_NAME,
+                            0L,
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,

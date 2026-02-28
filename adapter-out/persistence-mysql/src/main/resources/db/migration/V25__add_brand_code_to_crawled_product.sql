@@ -1,0 +1,1 @@
+ALTER TABLE crawled_product ADD COLUMN brand_code BIGINT NOT NULL DEFAULT 0;

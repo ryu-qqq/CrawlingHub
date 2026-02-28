@@ -192,6 +192,7 @@ class ProductSyncValidatorTest {
                 ITEM_NO,
                 "Test Product",
                 "Test Brand",
+                0L,
                 ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,

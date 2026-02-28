@@ -69,6 +69,10 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
     @Column(name = "brand_name", length = 200)
     private String brandName;
 
+    /** 브랜드 코드 */
+    @Column(name = "brand_code", nullable = false)
+    private long brandCode;
+
     /** 원가 */
     @Column(name = "original_price")
     private Long originalPrice;
@@ -176,6 +180,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             Long originalPrice,
             Long discountPrice,
             Integer discountRate,
@@ -206,6 +211,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
         this.itemNo = itemNo;
         this.itemName = itemName;
         this.brandName = brandName;
+        this.brandCode = brandCode;
         this.originalPrice = originalPrice;
         this.discountPrice = discountPrice;
         this.discountRate = discountRate;
@@ -236,6 +242,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             Long originalPrice,
             Long discountPrice,
             Integer discountRate,
@@ -266,6 +273,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
                 itemNo,
                 itemName,
                 brandName,
+                brandCode,
                 originalPrice,
                 discountPrice,
                 discountRate,
@@ -312,6 +320,10 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
 
     public String getBrandName() {
         return brandName;
+    }
+
+    public long getBrandCode() {
+        return brandCode;
     }
 
     public Long getOriginalPrice() {
