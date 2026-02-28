@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.mapper;
 
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.NoticeFieldCode;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.OptionType;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.DescriptionRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.ImageRequest;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.NoticeEntryRequest;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.NoticeRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.OptionGroupRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.OptionValueRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest.ProductRequest;
@@ -19,6 +22,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
+import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +66,8 @@ public class InboundProductRequestMapper {
                 toImageRequests(product.getImages()),
                 toOptionGroupRequests(product.getOptions()),
                 toProductRequests(product.getOptions(), resolvedPrice),
-                new DescriptionRequest(product.getDescriptionMarkUp()));
+                new DescriptionRequest(product.getDescriptionMarkUp()),
+                toNoticeRequest(product));
     }
 
     public UpdatePriceRequest toUpdatePriceRequest(CrawledProduct product) {
@@ -322,6 +327,76 @@ public class InboundProductRequestMapper {
                 option.stock(),
                 sortOrder,
                 selectedOptions);
+    }
+
+    // --- Notice(고시정보) 변환 ---
+
+    private static final String NOTICE_DEFAULT = "상품 상세페이지 참조";
+
+    private NoticeRequest toNoticeRequest(CrawledProduct product) {
+        List<NoticeEntryRequest> entries = new ArrayList<>();
+
+        entries.add(entry(NoticeFieldCode.PRODUCT_NAME, valueOrDefault(product.getItemName())));
+        entries.add(entry(NoticeFieldCode.MANUFACTURER, valueOrDefault(product.getBrandName())));
+        entries.add(entry(NoticeFieldCode.MADE_IN, valueOrDefault(product.getOriginCountry())));
+        entries.add(entry(NoticeFieldCode.COLOR, resolveColors(product)));
+        entries.add(entry(NoticeFieldCode.SIZE, resolveSizes(product)));
+        entries.add(entry(NoticeFieldCode.DELIVERY, resolveDelivery(product)));
+        entries.add(entry(NoticeFieldCode.MATERIAL, NOTICE_DEFAULT));
+        entries.add(entry(NoticeFieldCode.WASH_CARE, NOTICE_DEFAULT));
+        entries.add(entry(NoticeFieldCode.RELEASE_DATE, NOTICE_DEFAULT));
+        entries.add(entry(NoticeFieldCode.QUALITY_ASSURANCE, NOTICE_DEFAULT));
+        entries.add(entry(NoticeFieldCode.CS_INFO, NOTICE_DEFAULT));
+
+        return new NoticeRequest(entries);
+    }
+
+    private NoticeEntryRequest entry(NoticeFieldCode code, String value) {
+        return new NoticeEntryRequest(code.code(), value);
+    }
+
+    private String valueOrDefault(String value) {
+        return (value != null && !value.isBlank()) ? value : NOTICE_DEFAULT;
+    }
+
+    private String resolveColors(CrawledProduct product) {
+        if (product.getOptions() == null || product.getOptions().isEmpty()) {
+            return NOTICE_DEFAULT;
+        }
+        List<String> colors =
+                product.getOptions().getDistinctColors().stream()
+                        .filter(c -> c != null && !c.isEmpty())
+                        .collect(Collectors.toList());
+        return colors.isEmpty() ? NOTICE_DEFAULT : String.join(", ", colors);
+    }
+
+    private String resolveSizes(CrawledProduct product) {
+        if (product.getOptions() == null || product.getOptions().isEmpty()) {
+            return NOTICE_DEFAULT;
+        }
+        List<String> sizes =
+                product.getOptions().getDistinctSizes().stream()
+                        .filter(s -> s != null && !s.isEmpty())
+                        .collect(Collectors.toList());
+        return sizes.isEmpty() ? NOTICE_DEFAULT : String.join(", ", sizes);
+    }
+
+    private String resolveDelivery(CrawledProduct product) {
+        ShippingInfo shipping = product.getShippingInfo();
+        if (shipping == null) {
+            return NOTICE_DEFAULT;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(shipping.isDomestic() ? "국내배송" : "해외배송");
+        if (shipping.freeShipping()) {
+            sb.append(", 무료배송");
+        } else if (shipping.shippingFee() > 0) {
+            sb.append(", 배송비 ").append(shipping.shippingFee()).append("원");
+        }
+        if (shipping.averageDeliveryDays() > 0) {
+            sb.append(", 평균 ").append(shipping.averageDeliveryDays()).append("일 소요");
+        }
+        return sb.toString();
     }
 
     // --- 공통 유틸 ---

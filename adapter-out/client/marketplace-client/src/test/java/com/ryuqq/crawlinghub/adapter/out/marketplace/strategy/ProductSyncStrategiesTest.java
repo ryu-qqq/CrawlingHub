@@ -125,7 +125,8 @@ class ProductSyncStrategiesTest {
                             List.of(),
                             List.of(),
                             List.of(),
-                            new ReceiveInboundProductRequest.DescriptionRequest("desc"));
+                            new ReceiveInboundProductRequest.DescriptionRequest("desc"),
+                            null);
             InboundProductConversionResponse mockResponse =
                     new InboundProductConversionResponse(500001L, 1L, "CONVERTED", "CREATE");
 

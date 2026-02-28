@@ -20,7 +20,8 @@ public record ReceiveInboundProductRequest(
         List<ImageRequest> images,
         List<OptionGroupRequest> optionGroups,
         List<ProductRequest> products,
-        DescriptionRequest description) {
+        DescriptionRequest description,
+        NoticeRequest notice) {
 
     public ReceiveInboundProductRequest {
         images = images != null ? List.copyOf(images) : List.of();
@@ -56,4 +57,13 @@ public record ReceiveInboundProductRequest(
     public record SelectedOptionRequest(String optionGroupName, String optionValueName) {}
 
     public record DescriptionRequest(String content) {}
+
+    public record NoticeRequest(List<NoticeEntryRequest> entries) {
+
+        public NoticeRequest {
+            entries = entries != null ? List.copyOf(entries) : List.of();
+        }
+    }
+
+    public record NoticeEntryRequest(String fieldCode, String fieldValue) {}
 }
