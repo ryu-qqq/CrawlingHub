@@ -77,6 +77,9 @@ public class CrawledProduct {
     // Soft Delete 상태
     private DeletionStatus deletionStatus;
 
+    // 낙관적 잠금 버전
+    private Long version;
+
     // 감사 정보
     private final Instant createdAt;
     private Instant updatedAt;
@@ -108,7 +111,8 @@ public class CrawledProduct {
             Set<ProductChangeType> pendingChanges,
             DeletionStatus deletionStatus,
             Instant createdAt,
-            Instant updatedAt) {
+            Instant updatedAt,
+            Long version) {
         this.id = id;
         this.sellerId = sellerId;
         this.itemNo = itemNo;
@@ -136,6 +140,7 @@ public class CrawledProduct {
         this.deletionStatus = deletionStatus;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.version = version;
     }
 
     // === 팩토리 메서드 ===
@@ -186,7 +191,8 @@ public class CrawledProduct {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     /**
@@ -221,7 +227,8 @@ public class CrawledProduct {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     /** 기존 데이터로 CrawledProduct 복원 (영속성 계층 전용) */
@@ -249,7 +256,8 @@ public class CrawledProduct {
             Set<ProductChangeType> pendingChanges,
             DeletionStatus deletionStatus,
             Instant createdAt,
-            Instant updatedAt) {
+            Instant updatedAt,
+            Long version) {
         return new CrawledProduct(
                 id,
                 sellerId,
@@ -274,7 +282,8 @@ public class CrawledProduct {
                 pendingChanges,
                 deletionStatus,
                 createdAt,
-                updatedAt);
+                updatedAt,
+                version);
     }
 
     // === MINI_SHOP 업데이트 ===
@@ -674,13 +683,9 @@ public class CrawledProduct {
     // === 유틸리티 ===
 
     private boolean equalsNullSafe(String a, String b) {
-        if (a == null && b == null) {
-            return true;
-        }
-        if (a == null || b == null) {
-            return false;
-        }
-        return a.equals(b);
+        String normA = (a == null || a.isEmpty()) ? "" : a;
+        String normB = (b == null || b.isEmpty()) ? "" : b;
+        return normA.equals(normB);
     }
 
     // === Getters ===
@@ -783,6 +788,10 @@ public class CrawledProduct {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     // === 도메인 이벤트 ===

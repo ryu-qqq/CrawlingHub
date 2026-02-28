@@ -186,7 +186,8 @@ class CrawledProductRefreshCoordinatorTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 
     private CrawlScheduler createTestScheduler(long schedulerId, SellerId sellerId) {

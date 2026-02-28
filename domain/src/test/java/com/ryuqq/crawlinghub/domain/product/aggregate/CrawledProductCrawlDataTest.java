@@ -103,7 +103,8 @@ class CrawledProductCrawlDataTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 
     @Nested
@@ -460,7 +461,8 @@ class CrawledProductCrawlDataTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
             assertThat(product.getPendingUploadImageUrls()).isEmpty();
         }
     }
@@ -517,7 +519,8 @@ class CrawledProductCrawlDataTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
             assertThat(product.getTotalStock()).isEqualTo(0);
         }
     }

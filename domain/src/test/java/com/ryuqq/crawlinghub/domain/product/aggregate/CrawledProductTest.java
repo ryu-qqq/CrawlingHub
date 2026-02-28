@@ -169,7 +169,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // Then
             assertThat(product.getId()).isEqualTo(id);
@@ -322,7 +323,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // When
             product.markImageAsUploaded(originalUrl, s3Url, FIXED_INSTANT);
@@ -371,7 +373,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // Then
             assertThat(product.allImagesUploaded()).isTrue();
@@ -576,7 +579,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // Then
             assertThat(product.isSoldOut()).isTrue();
@@ -612,7 +616,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // Then
             assertThat(product.isSoldOut()).isFalse();
@@ -725,7 +730,8 @@ class CrawledProductTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
 
             // When
             List<String> pendingUrls = product.getPendingUploadImageUrls();
@@ -762,7 +768,8 @@ class CrawledProductTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 
     private CrawledProduct createProductWithAllCrawledNoSync() {
@@ -790,6 +797,7 @@ class CrawledProductTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 }
