@@ -315,7 +315,20 @@ public class InboundProductRequestMapper {
         if (product.getCategory() == null) {
             return "";
         }
-        return product.getCategory().toExternalCategoryCode();
+        String code = product.getCategory().toExternalCategoryCode();
+        return normalizeUnisexCategory(code);
+    }
+
+    /**
+     * 유니섹스(WM) 카테고리를 남성(M)으로 치환
+     *
+     * <p>마켓플레이스에서 유니섹스 카테고리를 지원하지 않으므로 남성으로 처리합니다.
+     */
+    private String normalizeUnisexCategory(String categoryCode) {
+        if (categoryCode != null && categoryCode.startsWith("WM")) {
+            return "M" + categoryCode.substring(2);
+        }
+        return categoryCode;
     }
 
     private OptionType resolveOptionType(CrawledProduct product) {
