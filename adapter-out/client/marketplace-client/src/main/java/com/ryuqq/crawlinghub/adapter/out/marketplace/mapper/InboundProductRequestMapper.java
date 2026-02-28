@@ -14,6 +14,7 @@ import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.UpdatePriceRequ
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.UpdateProductsRequest;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
+import com.ryuqq.crawlinghub.domain.product.vo.ProductImage;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductImages;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOption;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
@@ -76,16 +77,23 @@ public class InboundProductRequestMapper {
         }
 
         List<UpdateImagesRequest.ImageEntry> entries = new ArrayList<>();
-
         AtomicInteger order = new AtomicInteger(0);
-        images.getThumbnails()
-                .forEach(
-                        img ->
-                                entries.add(
-                                        new UpdateImagesRequest.ImageEntry(
-                                                "THUMBNAIL",
-                                                img.getEffectiveUrl(),
-                                                order.getAndIncrement())));
+
+        List<ProductImage> thumbnails = images.getThumbnails();
+        if (!thumbnails.isEmpty()) {
+            entries.add(
+                    new UpdateImagesRequest.ImageEntry(
+                            "THUMBNAIL",
+                            thumbnails.get(0).getEffectiveUrl(),
+                            order.getAndIncrement()));
+            for (int i = 1; i < thumbnails.size(); i++) {
+                entries.add(
+                        new UpdateImagesRequest.ImageEntry(
+                                "DETAIL",
+                                thumbnails.get(i).getEffectiveUrl(),
+                                order.getAndIncrement()));
+            }
+        }
 
         images.getDescriptionImages()
                 .forEach(
@@ -131,16 +139,23 @@ public class InboundProductRequestMapper {
         }
 
         List<ImageRequest> requests = new ArrayList<>();
-
         AtomicInteger order = new AtomicInteger(0);
-        images.getThumbnails()
-                .forEach(
-                        img ->
-                                requests.add(
-                                        new ImageRequest(
-                                                "THUMBNAIL",
-                                                img.getEffectiveUrl(),
-                                                order.getAndIncrement())));
+
+        List<ProductImage> thumbnails = images.getThumbnails();
+        if (!thumbnails.isEmpty()) {
+            requests.add(
+                    new ImageRequest(
+                            "THUMBNAIL",
+                            thumbnails.get(0).getEffectiveUrl(),
+                            order.getAndIncrement()));
+            for (int i = 1; i < thumbnails.size(); i++) {
+                requests.add(
+                        new ImageRequest(
+                                "DETAIL",
+                                thumbnails.get(i).getEffectiveUrl(),
+                                order.getAndIncrement()));
+            }
+        }
 
         images.getDescriptionImages()
                 .forEach(

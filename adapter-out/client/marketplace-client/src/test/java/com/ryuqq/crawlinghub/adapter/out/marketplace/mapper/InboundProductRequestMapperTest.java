@@ -151,6 +151,41 @@ class InboundProductRequestMapperTest {
                 null);
     }
 
+    private CrawledProduct createProductWithImages(ProductImages images) {
+        ProductPrice price = new ProductPrice(8000, 0, 10000, 8000, 20, 20);
+        ProductOptions options =
+                ProductOptions.of(List.of(new ProductOption(1001L, 12345L, "블랙", "M", 10, "")));
+        ProductCategory category = ProductCategory.of("H001", "헤더", "L001", "대분류", "M001", "중분류");
+
+        return CrawledProduct.reconstitute(
+                CrawledProductId.of(100L),
+                SellerId.of(200L),
+                12345L,
+                "테스트 상품",
+                "테스트 브랜드",
+                0L,
+                price,
+                images,
+                false,
+                category,
+                new ShippingInfo("EXPRESS", 3000, "PAID", 3, false),
+                "<p>원본 설명</p>",
+                "<p>가공 설명</p>",
+                "SALE",
+                "KR",
+                "SEOUL",
+                options,
+                CrawlCompletionStatus.initial(),
+                null,
+                null,
+                true,
+                null,
+                DeletionStatus.active(),
+                Instant.now(),
+                Instant.now(),
+                null);
+    }
+
     private CrawledProduct createProductMinimal() {
         return CrawledProduct.fromMiniShop(
                 SellerId.of(200L),
@@ -193,7 +228,7 @@ class InboundProductRequestMapperTest {
         }
 
         @Test
-        @DisplayName("이미지가 올바르게 변환된다")
+        @DisplayName("첫 번째 썸네일만 THUMBNAIL, 나머지는 모두 DETAIL로 변환된다")
         void toReceiveRequest_convertsImagesCorrectly() {
             // given
             CrawledProductSyncOutbox outbox = createOutbox();
@@ -206,6 +241,7 @@ class InboundProductRequestMapperTest {
             // then
             assertThat(request.images()).hasSize(3);
             assertThat(request.images().get(0).imageType()).isEqualTo("THUMBNAIL");
+            assertThat(request.images().get(1).imageType()).isEqualTo("DETAIL");
             assertThat(request.images().get(2).imageType()).isEqualTo("DETAIL");
         }
 
@@ -341,7 +377,7 @@ class InboundProductRequestMapperTest {
     class ToUpdateImagesRequestTest {
 
         @Test
-        @DisplayName("이미지가 THUMBNAIL/DETAIL 타입으로 변환된다")
+        @DisplayName("첫 번째 썸네일만 THUMBNAIL, 나머지는 모두 DETAIL로 변환된다")
         void toUpdateImagesRequest_convertsImages() {
             // given
             CrawledProduct product = createProductWithAll();
@@ -359,8 +395,8 @@ class InboundProductRequestMapperTest {
                     request.images().stream()
                             .filter(img -> "DETAIL".equals(img.imageType()))
                             .count();
-            assertThat(thumbnailCount).isEqualTo(2);
-            assertThat(detailCount).isEqualTo(1);
+            assertThat(thumbnailCount).isEqualTo(1);
+            assertThat(detailCount).isEqualTo(2);
         }
 
         @Test
@@ -376,6 +412,32 @@ class InboundProductRequestMapperTest {
             for (int i = 0; i < request.images().size(); i++) {
                 assertThat(request.images().get(i).sortOrder()).isEqualTo(i);
             }
+        }
+
+        @Test
+        @DisplayName("썸네일이 4장이어도 THUMBNAIL은 1장, 나머지 3장은 DETAIL로 변환된다")
+        void toUpdateImagesRequest_withMultipleThumbnails_onlyFirstIsThumbnail() {
+            // given
+            ProductImages images =
+                    ProductImages.of(
+                            List.of(
+                                    ProductImage.thumbnail("https://img.test/thumb1.jpg", 0),
+                                    ProductImage.thumbnail("https://img.test/thumb2.jpg", 1),
+                                    ProductImage.thumbnail("https://img.test/thumb3.jpg", 2),
+                                    ProductImage.thumbnail("https://img.test/thumb4.jpg", 3)));
+            CrawledProduct product = createProductWithImages(images);
+
+            // when
+            UpdateImagesRequest request = mapper.toUpdateImagesRequest(product);
+
+            // then
+            assertThat(request.images()).hasSize(4);
+            assertThat(request.images().get(0).imageType()).isEqualTo("THUMBNAIL");
+            assertThat(request.images().get(0).originUrl())
+                    .isEqualTo("https://img.test/thumb1.jpg");
+            assertThat(request.images().get(1).imageType()).isEqualTo("DETAIL");
+            assertThat(request.images().get(2).imageType()).isEqualTo("DETAIL");
+            assertThat(request.images().get(3).imageType()).isEqualTo("DETAIL");
         }
 
         @Test
