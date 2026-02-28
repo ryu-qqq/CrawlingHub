@@ -659,8 +659,10 @@ public class CrawledProduct {
     // === 내부 헬퍼 ===
 
     private void addPendingChange(ProductChangeType changeType) {
-        this.pendingChanges.add(changeType);
         this.needsSync = true;
+        if (isRegisteredToExternalServer()) {
+            this.pendingChanges.add(changeType);
+        }
     }
 
     private boolean detectDetailProductInfoChanges(

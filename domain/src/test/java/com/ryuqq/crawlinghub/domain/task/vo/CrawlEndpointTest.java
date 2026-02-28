@@ -203,6 +203,19 @@ class CrawlEndpointTest {
             assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
             assertThat(endpoint.queryParams()).isEmpty();
         }
+
+        @Test
+        @DisplayName("forSearchApi로 상대 경로 nextApiUrl 파싱 시 baseUrl과 prefix가 붙어야 한다")
+        void shouldNormalizeRelativeNextApiUrl() {
+            String relativeUrl =
+                    "/v1/search/items?previousIdx=0%2C0&sort=LATEST&beforeItemType=Normal&keyword=wdrobe&f=us:NEW,lwp:Y&pageNo=2";
+            CrawlEndpoint endpoint = CrawlEndpoint.forSearchApi(relativeUrl);
+
+            assertThat(endpoint.baseUrl()).isEqualTo("https://m.web.mustit.co.kr");
+            assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
+            assertThat(endpoint.queryParams()).containsEntry("keyword", "wdrobe");
+            assertThat(endpoint.queryParams()).containsEntry("pageNo", "2");
+        }
     }
 
     @Nested

@@ -79,6 +79,10 @@ class CrawledProductCrawlDataTest {
     }
 
     private CrawledProduct createFullyReconstituted() {
+        return createFullyReconstitutedWithExternalId(null);
+    }
+
+    private CrawledProduct createFullyReconstitutedWithExternalId(Long externalProductId) {
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(1L),
                 SELLER_ID,
@@ -98,7 +102,7 @@ class CrawledProductCrawlDataTest {
                 "Seoul",
                 createDefaultOptions(),
                 createAllCrawledStatus(),
-                null,
+                externalProductId,
                 null,
                 false,
                 EnumSet.noneOf(ProductChangeType.class),
@@ -221,7 +225,7 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("모든 크롤링 완료 후 상세 변경 시 pendingChanges에 DESCRIPTION이 추가된다")
         void addsPendingDescriptionChangeWhenFullyCrawled() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
                             0L,
@@ -265,7 +269,7 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("옵션 변경 시 모든 크롤링 완료 상태면 pendingChanges에 OPTION_STOCK이 추가된다")
         void addsPendingOptionStockChangeWhenFullyCrawled() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             ProductOptions changedOptions =
                     ProductOptions.of(
                             List.of(new ProductOption(1L, ITEM_NO, "Red", "M", 99, null)));
@@ -274,6 +278,21 @@ class CrawledProductCrawlDataTest {
             product.updateFromOptionCrawlData(crawlData);
 
             assertThat(product.getPendingChanges()).contains(ProductChangeType.OPTION_STOCK);
+            assertThat(product.isNeedsSync()).isTrue();
+        }
+
+        @Test
+        @DisplayName("외부 서버 미등록 상품은 옵션 변경 시 pendingChanges가 비어있고 needsSync만 true다")
+        void doesNotAddPendingChangeForUnregisteredProduct() {
+            CrawledProduct product = createFullyReconstituted();
+            ProductOptions changedOptions =
+                    ProductOptions.of(
+                            List.of(new ProductOption(1L, ITEM_NO, "Red", "M", 99, null)));
+            OptionCrawlData crawlData = OptionCrawlData.of(changedOptions, LATER_INSTANT);
+
+            product.updateFromOptionCrawlData(crawlData);
+
+            assertThat(product.getPendingChanges()).isEmpty();
             assertThat(product.isNeedsSync()).isTrue();
         }
     }
@@ -349,7 +368,7 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("특정 변경 유형 동기화 완료 처리한다")
         void marksSpecificChangeSynced() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             MiniShopCrawlData crawlData =
                     MiniShopCrawlData.of(
                             SELLER_ID,
