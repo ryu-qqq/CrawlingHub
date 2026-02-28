@@ -111,7 +111,9 @@ public class CrawlContextMapper {
         sb.append("nid=").append(context.nid());
         sb.append("&uid=").append(context.mustitUid());
         sb.append("&adId=").append(context.mustitUid());
-        sb.append("&beforeItemType=Normal");
+        if (!context.endpoint().contains("beforeItemType")) {
+            sb.append("&beforeItemType=Normal");
+        }
 
         return sb.toString();
     }

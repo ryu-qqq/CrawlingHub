@@ -266,6 +266,40 @@ class CrawlContextMapperTest {
         }
 
         @Test
+        @DisplayName("nextApiUrl에 beforeItemType이 이미 포함되면 중복 추가하지 않는다")
+        void shouldNotDuplicateBeforeItemTypeWhenAlreadyPresent() {
+            // Given
+            String nextPageEndpoint =
+                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?f=us:NEW,lwp:Y&sort=LATEST&beforeItemType=Normal&keyword=ccapsule1&previousIdx=0%2C0&pageNo=2";
+            String nid = "3cb41b66-b356-4094-9df3-adf8deab19f1";
+            String mustitUid = "1764141487281.758544";
+
+            CrawlContext context =
+                    new CrawlContext(
+                            1L,
+                            100L,
+                            200L,
+                            CrawlTaskType.SEARCH,
+                            nextPageEndpoint,
+                            1L,
+                            "Mozilla/5.0",
+                            "token-123",
+                            nid,
+                            mustitUid);
+
+            // When
+            String result = mapper.buildSearchEndpoint(context);
+
+            // Then
+            assertThat(result).contains("nid=" + nid);
+            assertThat(result).contains("uid=" + mustitUid);
+            assertThat(result).contains("adId=" + mustitUid);
+            // beforeItemType=Normal이 정확히 1번만 포함
+            int count = result.split("beforeItemType=Normal", -1).length - 1;
+            assertThat(count).isEqualTo(1);
+        }
+
+        @Test
         @DisplayName("nid가 null이면 기본 endpoint를 반환한다")
         void shouldReturnBaseEndpointWhenNidIsNull() {
             // Given
