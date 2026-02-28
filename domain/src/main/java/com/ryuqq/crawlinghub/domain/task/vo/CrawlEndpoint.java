@@ -141,13 +141,16 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         if (fullUrl == null || fullUrl.isBlank()) {
             throw new IllegalArgumentException("Search API URL은 null이거나 빈 값일 수 없습니다.");
         }
+
+        String normalizedUrl = normalizeSearchUrl(fullUrl);
+
         // URL 파싱하여 baseUrl과 path 분리
-        int pathStart = fullUrl.indexOf("/", fullUrl.indexOf("://") + 3);
+        int pathStart = normalizedUrl.indexOf("/", normalizedUrl.indexOf("://") + 3);
         if (pathStart == -1) {
-            return new CrawlEndpoint(fullUrl, "/", Map.of());
+            return new CrawlEndpoint(normalizedUrl, "/", Map.of());
         }
-        String baseUrl = fullUrl.substring(0, pathStart);
-        String pathWithQuery = fullUrl.substring(pathStart);
+        String baseUrl = normalizedUrl.substring(0, pathStart);
+        String pathWithQuery = normalizedUrl.substring(pathStart);
         int queryStart = pathWithQuery.indexOf("?");
         if (queryStart == -1) {
             return new CrawlEndpoint(baseUrl, pathWithQuery, Map.of());
@@ -156,6 +159,22 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         String queryString = pathWithQuery.substring(queryStart + 1);
         Map<String, String> queryParams = parseQueryString(queryString);
         return new CrawlEndpoint(baseUrl, path, queryParams);
+    }
+
+    private static final String MUSTIT_API_PREFIX = "/mustit-api/facade-api";
+
+    /**
+     * Search API nextApiUrl 정규화
+     *
+     * <p>MUSTIT Search API의 nextApiUrl이 상대 경로(예: /v1/search/items?...)로 오는 경우 baseUrl과 API prefix를
+     * 붙여 절대 URL로 변환합니다.
+     */
+    private static String normalizeSearchUrl(String url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
+        }
+        // 상대 경로: /v1/search/items?... → https://m.web.mustit.co.kr/mustit-api/facade-api/v1/...
+        return MUSTIT_BASE_URL + MUSTIT_API_PREFIX + url;
     }
 
     /**
