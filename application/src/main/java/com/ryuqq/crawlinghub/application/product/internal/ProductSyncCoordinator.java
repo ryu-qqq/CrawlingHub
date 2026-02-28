@@ -1,7 +1,6 @@
 package com.ryuqq.crawlinghub.application.product.internal;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessProductSyncCommand;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
@@ -11,9 +10,7 @@ import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
-import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -40,19 +37,19 @@ public class ProductSyncCoordinator {
 
     private final ProductSyncValidator validator;
     private final CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
-    private final CrawledProductCommandManager crawledProductCommandManager;
+    private final CrawledProductCommandFacade commandFacade;
     private final ExternalProductServerClient externalProductServerClient;
     private final SellerReadManager sellerReadManager;
 
     public ProductSyncCoordinator(
             ProductSyncValidator validator,
             CrawledProductSyncOutboxCommandManager syncOutboxCommandManager,
-            CrawledProductCommandManager crawledProductCommandManager,
+            CrawledProductCommandFacade commandFacade,
             ExternalProductServerClient externalProductServerClient,
             SellerReadManager sellerReadManager) {
         this.validator = validator;
         this.syncOutboxCommandManager = syncOutboxCommandManager;
-        this.crawledProductCommandManager = crawledProductCommandManager;
+        this.commandFacade = commandFacade;
         this.externalProductServerClient = externalProductServerClient;
         this.sellerReadManager = sellerReadManager;
     }
@@ -126,15 +123,7 @@ public class ProductSyncCoordinator {
 
     private void completeSync(
             CrawledProductSyncOutbox outbox, CrawledProduct product, Long externalProductId) {
-        syncOutboxCommandManager.markAsCompleted(outbox, externalProductId);
-
-        Instant now = Instant.now();
-        if (outbox.getSyncType().isCreate()) {
-            product.markAsSynced(externalProductId, now);
-        } else {
-            product.markChangesSynced(Set.of(outbox.getSyncType().toChangeType()), now);
-        }
-        crawledProductCommandManager.persist(product);
+        commandFacade.completeSyncAndPersist(outbox, product, externalProductId);
     }
 
     private void failSync(CrawledProductSyncOutbox outbox, String errorMessage) {

@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 
 /**
@@ -160,6 +161,11 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
     @Column(name = "pending_changes", length = 200)
     private String pendingChanges;
 
+    /** 버전 (Optimistic Locking) */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     /** JPA 기본 생성자 (protected) */
     protected CrawledProductJpaEntity() {}
 
@@ -190,6 +196,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             LocalDateTime lastSyncedAt,
             boolean needsSync,
             String pendingChanges,
+            Long version,
             LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
@@ -219,6 +226,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
         this.lastSyncedAt = lastSyncedAt;
         this.needsSync = needsSync;
         this.pendingChanges = pendingChanges;
+        this.version = version;
     }
 
     /** of() 스태틱 팩토리 메서드 (Mapper 전용) */
@@ -248,6 +256,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             LocalDateTime lastSyncedAt,
             boolean needsSync,
             String pendingChanges,
+            Long version,
             LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
@@ -277,6 +286,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
                 lastSyncedAt,
                 needsSync,
                 pendingChanges,
+                version,
                 deletedAt,
                 createdAt,
                 updatedAt);
@@ -382,5 +392,9 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
 
     public String getPendingChanges() {
         return pendingChanges;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 }

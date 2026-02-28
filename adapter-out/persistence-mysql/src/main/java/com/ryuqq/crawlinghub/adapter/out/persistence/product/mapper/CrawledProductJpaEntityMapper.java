@@ -97,6 +97,7 @@ public class CrawledProductJpaEntityMapper {
                 toLocalDateTime(domain.getLastSyncedAt()),
                 domain.isNeedsSync(),
                 toPendingChangesString(domain.getPendingChanges()),
+                domain.getVersion(),
                 domain.getDeletionStatus() != null
                         ? toLocalDateTime(domain.getDeletionStatus().deletedAt())
                         : null,
@@ -149,7 +150,8 @@ public class CrawledProductJpaEntityMapper {
                 fromPendingChangesString(entity.getPendingChanges()),
                 deletionStatus,
                 toInstant(entity.getCreatedAt()),
-                toInstant(entity.getUpdatedAt()));
+                toInstant(entity.getUpdatedAt()),
+                entity.getVersion());
     }
 
     // === JSON 직렬화 ===

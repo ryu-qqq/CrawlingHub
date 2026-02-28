@@ -10,7 +10,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessProductSyncCommand;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
@@ -64,7 +63,7 @@ class ProductSyncCoordinatorTest {
 
     @Mock private ProductSyncValidator validator;
     @Mock private CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
-    @Mock private CrawledProductCommandManager crawledProductCommandManager;
+    @Mock private CrawledProductCommandFacade commandFacade;
     @Mock private ExternalProductServerClient externalProductServerClient;
     @Mock private SellerReadManager sellerReadManager;
 
@@ -76,7 +75,7 @@ class ProductSyncCoordinatorTest {
                 new ProductSyncCoordinator(
                         validator,
                         syncOutboxCommandManager,
-                        crawledProductCommandManager,
+                        commandFacade,
                         externalProductServerClient,
                         sellerReadManager);
     }
@@ -122,9 +121,8 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(syncOutboxCommandManager, times(1))
-                    .markAsCompleted(outbox, newExternalProductId);
-            verify(crawledProductCommandManager, times(1)).persist(product);
+            verify(commandFacade, times(1))
+                    .completeSyncAndPersist(outbox, product, newExternalProductId);
         }
 
         @Test
@@ -148,8 +146,8 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(syncOutboxCommandManager, times(1)).markAsCompleted(outbox, EXTERNAL_PRODUCT_ID);
-            verify(crawledProductCommandManager, times(1)).persist(product);
+            verify(commandFacade, times(1))
+                    .completeSyncAndPersist(outbox, product, EXTERNAL_PRODUCT_ID);
         }
 
         @Test
@@ -174,7 +172,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(crawledProductCommandManager, never()).persist(any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any(), any());
         }
 
         @Test
@@ -199,7 +197,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(crawledProductCommandManager, never()).persist(any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any(), any());
         }
     }
 
@@ -267,6 +265,7 @@ class ProductSyncCoordinatorTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 }
