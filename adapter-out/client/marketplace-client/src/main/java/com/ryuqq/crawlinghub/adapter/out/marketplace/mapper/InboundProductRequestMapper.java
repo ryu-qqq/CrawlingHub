@@ -52,7 +52,7 @@ public class InboundProductRequestMapper {
                 INBOUND_SOURCE_ID,
                 String.valueOf(outbox.getItemNo()),
                 product.getItemName(),
-                product.getBrandName(),
+                String.valueOf(product.getBrandCode()),
                 extractCategoryCode(product),
                 omsSellerId,
                 resolvedPrice.regularPrice(),

@@ -21,6 +21,7 @@ class DetailCrawlDataTest {
 
     private DetailCrawlData defaultData() {
         return DetailCrawlData.of(
+                0L,
                 ProductCategory.of("W", "여성", "001", "가방", "A01", "백팩"),
                 ShippingInfo.freeShipping("DOMESTIC", 3),
                 "<p>상품 설명</p>",
@@ -56,7 +57,7 @@ class DetailCrawlDataTest {
             assertThatThrownBy(
                             () ->
                                     DetailCrawlData.of(
-                                            null, null, null, null, null, null, null, null))
+                                            0L, null, null, null, null, null, null, null, null))
                     .isInstanceOf(NullPointerException.class);
         }
 
@@ -64,7 +65,7 @@ class DetailCrawlDataTest {
         @DisplayName("descriptionImages가 null이면 빈 리스트로 방어적 복사된다")
         void nullDescriptionImagesBecomesEmptyList() {
             DetailCrawlData data =
-                    DetailCrawlData.of(null, null, null, null, null, null, null, NOW);
+                    DetailCrawlData.of(0L, null, null, null, null, null, null, null, NOW);
 
             assertThat(data.descriptionImages()).isEmpty();
         }
@@ -76,7 +77,7 @@ class DetailCrawlDataTest {
             mutableList.add("https://img.com/1.jpg");
 
             DetailCrawlData data =
-                    DetailCrawlData.of(null, null, null, null, null, null, mutableList, NOW);
+                    DetailCrawlData.of(0L, null, null, null, null, null, null, mutableList, NOW);
 
             mutableList.add("https://img.com/2.jpg");
 
@@ -104,7 +105,7 @@ class DetailCrawlDataTest {
             DetailCrawlData data1 = defaultData();
             DetailCrawlData data2 =
                     DetailCrawlData.of(
-                            null, null, null, null, null, null, null, NOW.plusSeconds(3600));
+                            0L, null, null, null, null, null, null, null, NOW.plusSeconds(3600));
 
             assertThat(data1).isNotEqualTo(data2);
         }

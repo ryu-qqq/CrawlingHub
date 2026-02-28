@@ -91,6 +91,7 @@ class InboundProductRequestMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 price,
                 images,
                 false,
@@ -148,7 +149,7 @@ class InboundProductRequestMapperTest {
             assertThat(request.inboundSourceId()).isEqualTo(1L);
             assertThat(request.externalProductCode()).isEqualTo("12345");
             assertThat(request.productName()).isEqualTo("테스트 상품");
-            assertThat(request.externalBrandCode()).isEqualTo("테스트 브랜드");
+            assertThat(request.externalBrandCode()).isEqualTo("0");
             assertThat(request.externalCategoryCode()).isEqualTo("H001M001");
             assertThat(request.sellerId()).isEqualTo(999L);
             assertThat(request.optionType()).isEqualTo("COMBINATION");

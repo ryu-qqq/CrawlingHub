@@ -49,6 +49,7 @@ public class CrawledProduct {
     // MINI_SHOP 데이터
     private String itemName;
     private String brandName;
+    private long brandCode;
     private ProductPrice price;
     private ProductImages images;
     private boolean freeShipping;
@@ -93,6 +94,7 @@ public class CrawledProduct {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
@@ -118,6 +120,7 @@ public class CrawledProduct {
         this.itemNo = itemNo;
         this.itemName = itemName;
         this.brandName = brandName;
+        this.brandCode = brandCode;
         this.price = price;
         this.images = images;
         this.freeShipping = freeShipping;
@@ -173,6 +176,7 @@ public class CrawledProduct {
                 itemNo,
                 itemName,
                 brandName,
+                0L,
                 price,
                 images,
                 freeShipping,
@@ -209,6 +213,7 @@ public class CrawledProduct {
                 crawlData.itemNo(),
                 crawlData.itemName(),
                 crawlData.brandName(),
+                0L,
                 crawlData.price(),
                 crawlData.images(),
                 crawlData.freeShipping(),
@@ -238,6 +243,7 @@ public class CrawledProduct {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
@@ -264,6 +270,7 @@ public class CrawledProduct {
                 itemNo,
                 itemName,
                 brandName,
+                brandCode,
                 price,
                 images,
                 freeShipping,
@@ -403,6 +410,7 @@ public class CrawledProduct {
                         crawlData.originCountry(),
                         crawlData.shippingLocation());
 
+        this.brandCode = crawlData.brandCode();
         this.category = crawlData.category();
         this.shippingInfo = crawlData.shippingInfo();
         this.itemStatus = crawlData.itemStatus();
@@ -716,6 +724,10 @@ public class CrawledProduct {
 
     public String getBrandName() {
         return brandName;
+    }
+
+    public long getBrandCode() {
+        return brandCode;
     }
 
     public ProductPrice getPrice() {

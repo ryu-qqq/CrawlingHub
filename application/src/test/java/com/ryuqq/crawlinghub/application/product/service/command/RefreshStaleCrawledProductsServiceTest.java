@@ -168,6 +168,7 @@ class RefreshStaleCrawledProductsServiceTest {
                 itemNo,
                 "Test Product",
                 "Test Brand",
+                0L,
                 ProductPrice.of(10000, 12000, 12000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,

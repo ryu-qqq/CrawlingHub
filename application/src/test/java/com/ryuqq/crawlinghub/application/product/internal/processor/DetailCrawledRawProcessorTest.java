@@ -93,6 +93,6 @@ class DetailCrawledRawProcessorTest {
     }
 
     private DetailCrawlData createDetailCrawlData() {
-        return DetailCrawlData.of(null, null, null, null, null, null, null, FIXED_INSTANT);
+        return DetailCrawlData.of(0L, null, null, null, null, null, null, null, FIXED_INSTANT);
     }
 }

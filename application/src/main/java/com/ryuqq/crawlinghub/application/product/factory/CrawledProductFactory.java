@@ -56,6 +56,7 @@ public class CrawledProductFactory {
      */
     public DetailCrawlData createDetailCrawlData(ProductDetailInfo detailInfo) {
         return DetailCrawlData.of(
+                detailInfo.brandCode(),
                 detailInfo.category(),
                 detailInfo.shipping(),
                 detailInfo.descriptionMarkUp(),

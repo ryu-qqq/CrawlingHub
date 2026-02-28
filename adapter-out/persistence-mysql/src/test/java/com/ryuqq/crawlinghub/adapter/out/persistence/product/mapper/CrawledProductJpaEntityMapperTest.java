@@ -238,7 +238,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", null, null, null, // 가격 필드 null
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, null, null, null, // 가격 필드 null
                             null, true, null, null, null, null, null, null, null, null, now, null,
                             null, null, null, false, null, null, null, now, now);
 
@@ -266,6 +266,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -306,7 +307,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
                             false, null, null, null, now, now);
 
@@ -616,6 +617,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -657,7 +659,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
                             false, null, null, null, now, now);
 
@@ -684,6 +686,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -725,7 +728,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
                             false, null, null, null, now, now);
 
@@ -751,6 +754,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -798,6 +802,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -880,6 +885,7 @@ class CrawledProductJpaEntityMapperTest {
                             12345L,
                             "상품명",
                             "브랜드",
+                            0L,
                             10000L,
                             10000L,
                             0,
@@ -921,7 +927,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
                             false, null, null, null, now, now);
 
@@ -939,7 +945,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 10000L, 10000L, 0, null, true, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 10000L, 10000L, 0, null, true, null,
                             null, null, null, null, null, null, null, now, null, null, null, null,
                             false, "PRICE", null, null, now, now);
 
@@ -962,7 +968,7 @@ class CrawledProductJpaEntityMapperTest {
             LocalDateTime now = LocalDateTime.now();
             CrawledProductJpaEntity entity =
                     CrawledProductJpaEntity.of(
-                            1L, 100L, 12345L, "상품명", "브랜드", 20000L, null,
+                            1L, 100L, 12345L, "상품명", "브랜드", 0L, 20000L, null,
                             null, // originalPrice=20000, discountPrice=null
                             null, true, null, null, null, null, null, null, null, null, now, null,
                             null, null, null, false, null, null, null, now, now);
@@ -1011,6 +1017,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.fromThumbnailUrls(List.of("http://example.com/img1.jpg")),
                 true,
@@ -1045,6 +1052,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.fromThumbnailUrls(List.of("http://example.com/img1.jpg")),
                 true,
@@ -1080,6 +1088,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.fromThumbnailUrls(List.of("http://example.com/img1.jpg")),
                 true,
@@ -1110,6 +1119,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1140,6 +1150,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 null,
                 ProductImages.empty(),
                 true,
@@ -1174,6 +1185,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1207,6 +1219,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1237,6 +1250,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1267,6 +1281,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1297,6 +1312,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1328,6 +1344,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 ProductImages.empty(),
                 true,
@@ -1358,6 +1375,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 ProductPrice.of(15000, 20000, 20000, 15000, 25, 25),
                 images,
                 true,
@@ -1382,9 +1400,9 @@ class CrawledProductJpaEntityMapperTest {
 
     private CrawledProductJpaEntity createBasicEntity(LocalDateTime now) {
         return CrawledProductJpaEntity.of(
-                1L, 100L, 12345L, "테스트 상품", "테스트 브랜드", 20000L, 15000L, 25, null, true, null, null,
-                null, null, null, null, null, null, now, null, null, null, null, false, null, null,
-                null, now, now);
+                1L, 100L, 12345L, "테스트 상품", "테스트 브랜드", 0L, 20000L, 15000L, 25, null, true, null,
+                null, null, null, null, null, null, null, now, null, null, null, null, false, null,
+                null, null, now, now);
     }
 
     private CrawledProductJpaEntity createEntityWithCompletionStatus(
@@ -1396,6 +1414,7 @@ class CrawledProductJpaEntityMapperTest {
                 12345L,
                 "테스트 상품",
                 "테스트 브랜드",
+                0L,
                 20000L,
                 15000L,
                 25,
