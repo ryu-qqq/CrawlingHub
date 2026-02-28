@@ -111,7 +111,8 @@ class CrawledProductSyncOutboxFactoryTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     private CrawledProduct createExistingProduct(
@@ -141,7 +142,8 @@ class CrawledProductSyncOutboxFactoryTest {
                 pendingChanges,
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     private CrawlCompletionStatus createAllCrawledStatus(Instant now) {
