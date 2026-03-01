@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.cralwinghub.domain.fixture.useragent.UserAgentFixture;
+import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentCommandManager;
@@ -46,6 +47,7 @@ class CrawlingUserAgentCoordinatorTest {
     @Mock private UserAgentPoolCacheStateManager cacheStateManager;
     @Mock private UserAgentReadManager readManager;
     @Mock private UserAgentCommandManager commandManager;
+    @Mock private CrawlHubMetrics metrics;
     @InjectMocks private CrawlingUserAgentCoordinator coordinator;
 
     @Nested
