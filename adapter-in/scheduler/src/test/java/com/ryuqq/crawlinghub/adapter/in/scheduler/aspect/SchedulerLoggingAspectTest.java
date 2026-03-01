@@ -65,12 +65,12 @@ class SchedulerLoggingAspectTest {
             Timer timer =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_duration_seconds")
-                            .tags("job", "test-job", "outcome", "success")
+                            .tags("job_name", "test-job", "outcome", "success")
                             .timer();
             Counter counter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_total")
-                            .tags("job", "test-job", "outcome", "success")
+                            .tags("job_name", "test-job", "outcome", "success")
                             .counter();
 
             assertThat(timer).isNotNull();
@@ -98,17 +98,17 @@ class SchedulerLoggingAspectTest {
             Counter totalCounter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_batch_items_total")
-                            .tags("job", "batch-job", "status", "total")
+                            .tags("job_name", "batch-job", "result", "total")
                             .counter();
             Counter successCounter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_batch_items_total")
-                            .tags("job", "batch-job", "status", "success")
+                            .tags("job_name", "batch-job", "result", "success")
                             .counter();
             Counter failedCounter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_batch_items_total")
-                            .tags("job", "batch-job", "status", "failed")
+                            .tags("job_name", "batch-job", "result", "failed")
                             .counter();
 
             assertThat(totalCounter.count()).isEqualTo(10.0);
@@ -151,12 +151,12 @@ class SchedulerLoggingAspectTest {
             Timer errorTimer =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_duration_seconds")
-                            .tags("job", "failing-job", "outcome", "error")
+                            .tags("job_name", "failing-job", "outcome", "error")
                             .timer();
             Counter errorCounter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_total")
-                            .tags("job", "failing-job", "outcome", "error")
+                            .tags("job_name", "failing-job", "outcome", "error")
                             .counter();
 
             assertThat(errorTimer).isNotNull();
@@ -179,7 +179,7 @@ class SchedulerLoggingAspectTest {
             Counter successCounter =
                     meterRegistry
                             .find("crawlinghub.scheduler_job_total")
-                            .tags("job", "failing-job", "outcome", "success")
+                            .tags("job_name", "failing-job", "outcome", "success")
                             .counter();
             assertThat(successCounter).isNull();
         }

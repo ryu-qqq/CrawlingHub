@@ -4,9 +4,12 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.DashboardCountsDto;
+import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.FailureDetailDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.OutboxStatusCountDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.StatusCountDto;
+import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.SyncTypeFailureCountDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.SystemFailureCountDto;
+import com.ryuqq.crawlinghub.adapter.out.persistence.execution.entity.QCrawlExecutionJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.QCrawledRawJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.product.entity.QProductSyncOutboxJpaEntity;
 import com.ryuqq.crawlinghub.adapter.out.persistence.schedule.entity.QCrawlSchedulerJpaEntity;
@@ -33,6 +36,8 @@ public class MonitoringCompositeQueryDslRepository {
     private static final QCrawledRawJpaEntity crawledRaw = QCrawledRawJpaEntity.crawledRawJpaEntity;
     private static final QCrawlSchedulerJpaEntity crawlScheduler =
             QCrawlSchedulerJpaEntity.crawlSchedulerJpaEntity;
+    private static final QCrawlExecutionJpaEntity crawlExecution =
+            QCrawlExecutionJpaEntity.crawlExecutionJpaEntity;
 
     private final JPAQueryFactory queryFactory;
 
@@ -235,6 +240,76 @@ public class MonitoringCompositeQueryDslRepository {
                 new SystemFailureCountDto("PRODUCT_SYNC_OUTBOX", nullToZero(productSyncFailures)));
 
         return results;
+    }
+
+    public List<SyncTypeFailureCountDto> fetchProductSyncFailureCountsBySyncType(
+            Instant threshold) {
+        LocalDateTime thresholdLdt = LocalDateTime.ofInstant(threshold, ZoneOffset.UTC);
+
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                SyncTypeFailureCountDto.class,
+                                productSyncOutbox.syncType.stringValue(),
+                                productSyncOutbox.count()))
+                .from(productSyncOutbox)
+                .where(
+                        productSyncOutbox
+                                .status
+                                .stringValue()
+                                .eq("FAILED")
+                                .and(productSyncOutbox.createdAt.after(thresholdLdt)))
+                .groupBy(productSyncOutbox.syncType)
+                .fetch();
+    }
+
+    public List<FailureDetailDto> fetchProductSyncRecentFailureDetails(Instant threshold) {
+        LocalDateTime thresholdLdt = LocalDateTime.ofInstant(threshold, ZoneOffset.UTC);
+
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                FailureDetailDto.class,
+                                productSyncOutbox.syncType.stringValue(),
+                                productSyncOutbox.errorMessage,
+                                productSyncOutbox.count()))
+                .from(productSyncOutbox)
+                .where(
+                        productSyncOutbox
+                                .status
+                                .stringValue()
+                                .eq("FAILED")
+                                .and(productSyncOutbox.createdAt.after(thresholdLdt)))
+                .groupBy(productSyncOutbox.syncType, productSyncOutbox.errorMessage)
+                .orderBy(productSyncOutbox.count().desc())
+                .limit(20)
+                .fetch();
+    }
+
+    public long fetchProductSyncPendingCount() {
+        Long count =
+                queryFactory
+                        .select(productSyncOutbox.count())
+                        .from(productSyncOutbox)
+                        .where(productSyncOutbox.status.stringValue().eq("PENDING"))
+                        .fetchOne();
+
+        return nullToZero(count);
+    }
+
+    public List<StatusCountDto> fetchCrawlExecutionCountsByStatus(Instant threshold) {
+        LocalDateTime thresholdLdt = LocalDateTime.ofInstant(threshold, ZoneOffset.UTC);
+
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                StatusCountDto.class,
+                                crawlExecution.status.stringValue(),
+                                crawlExecution.count()))
+                .from(crawlExecution)
+                .where(crawlExecution.createdAt.after(thresholdLdt))
+                .groupBy(crawlExecution.status)
+                .fetch();
     }
 
     private long nullToZero(Long value) {
