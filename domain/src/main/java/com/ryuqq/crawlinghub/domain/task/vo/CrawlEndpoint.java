@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.task.vo;
 
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -193,7 +194,8 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
                         Collectors.toMap(
                                 param -> param.substring(0, param.indexOf("=")),
                                 param -> param.substring(param.indexOf("=") + 1),
-                                (v1, v2) -> v2));
+                                (v1, v2) -> v2,
+                                TreeMap::new));
     }
 
     /**
@@ -223,9 +225,10 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         if (queryParams == null || queryParams.isEmpty()) {
             return null;
         }
-        return queryParams.entrySet().stream()
-                .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
-                .collect(Collectors.joining(",", "{", "}"));
+        return new TreeMap<>(queryParams)
+                .entrySet().stream()
+                        .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
+                        .collect(Collectors.joining(",", "{", "}"));
     }
 
     /**

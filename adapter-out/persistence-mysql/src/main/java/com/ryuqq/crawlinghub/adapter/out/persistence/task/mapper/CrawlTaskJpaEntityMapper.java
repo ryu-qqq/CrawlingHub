@@ -87,7 +87,7 @@ public class CrawlTaskJpaEntityMapper {
                 domain.getTaskType(),
                 endpoint.baseUrl(),
                 endpoint.path(),
-                serializeQueryParams(endpoint.queryParams()),
+                endpoint.toQueryParamsJson(),
                 domain.getStatus(),
                 domain.getRetryCountValue(),
                 toLocalDateTime(domain.getCreatedAt()),
@@ -148,23 +148,6 @@ public class CrawlTaskJpaEntityMapper {
             return null;
         }
         return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-    }
-
-    /**
-     * Query Params Map → JSON 문자열 변환
-     *
-     * @param queryParams Query Params Map
-     * @return JSON 문자열 (빈 Map이면 null)
-     */
-    private String serializeQueryParams(Map<String, String> queryParams) {
-        if (queryParams == null || queryParams.isEmpty()) {
-            return null;
-        }
-        try {
-            return objectMapper.writeValueAsString(queryParams);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Query params 직렬화 실패", e);
-        }
     }
 
     /**
