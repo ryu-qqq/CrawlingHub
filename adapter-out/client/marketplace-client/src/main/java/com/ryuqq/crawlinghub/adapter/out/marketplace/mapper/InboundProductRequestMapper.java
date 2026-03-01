@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 public class InboundProductRequestMapper {
 
     private static final long INBOUND_SOURCE_ID = 1L;
+    private static final int MAX_IMAGE_COUNT = 20;
     private static final String COLOR_GROUP_NAME = "색상";
     private static final String SIZE_GROUP_NAME = "사이즈";
     private static final Pattern DIMS_PATTERN = Pattern.compile("/_dims_/.*$");
@@ -103,7 +104,7 @@ public class InboundProductRequestMapper {
                             thumbnails.get(0).getEffectiveUrl(),
                             order.getAndIncrement()));
             thumbnailAssigned = true;
-            for (int i = 1; i < thumbnails.size(); i++) {
+            for (int i = 1; i < thumbnails.size() && entries.size() < MAX_IMAGE_COUNT; i++) {
                 entries.add(
                         new UpdateImagesRequest.ImageEntry(
                                 "DETAIL",
@@ -113,6 +114,9 @@ public class InboundProductRequestMapper {
         }
 
         for (ProductImage img : descriptionImages) {
+            if (entries.size() >= MAX_IMAGE_COUNT) {
+                break;
+            }
             String type = "DETAIL";
             if (!thumbnailAssigned) {
                 type = "THUMBNAIL";
@@ -176,7 +180,7 @@ public class InboundProductRequestMapper {
                             thumbnails.get(0).getEffectiveUrl(),
                             order.getAndIncrement()));
             thumbnailAssigned = true;
-            for (int i = 1; i < thumbnails.size(); i++) {
+            for (int i = 1; i < thumbnails.size() && requests.size() < MAX_IMAGE_COUNT; i++) {
                 requests.add(
                         new ImageRequest(
                                 "DETAIL",
@@ -186,6 +190,9 @@ public class InboundProductRequestMapper {
         }
 
         for (ProductImage img : descriptionImages) {
+            if (requests.size() >= MAX_IMAGE_COUNT) {
+                break;
+            }
             String type = "DETAIL";
             if (!thumbnailAssigned) {
                 type = "THUMBNAIL";
