@@ -104,29 +104,29 @@ public class SchedulerLoggingAspect {
 
     private void recordTimerMetric(String jobName, long elapsedMs, String outcome) {
         Timer.builder(METRIC_PREFIX + "scheduler_job_duration_seconds")
-                .tags("job", jobName, "outcome", outcome)
+                .tags("job_name", jobName, "outcome", outcome)
                 .register(meterRegistry)
                 .record(elapsedMs, TimeUnit.MILLISECONDS);
     }
 
     private void recordCounterMetric(String jobName, String outcome) {
         Counter.builder(METRIC_PREFIX + "scheduler_job_total")
-                .tags("job", jobName, "outcome", outcome)
+                .tags("job_name", jobName, "outcome", outcome)
                 .register(meterRegistry)
                 .increment();
     }
 
     private void recordBatchItemsMetric(String jobName, SchedulerBatchProcessingResult result) {
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "total")
+                .tags("job_name", jobName, "result", "total")
                 .register(meterRegistry)
                 .increment(result.total());
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "success")
+                .tags("job_name", jobName, "result", "success")
                 .register(meterRegistry)
                 .increment(result.success());
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "failed")
+                .tags("job_name", jobName, "result", "failed")
                 .register(meterRegistry)
                 .increment(result.failed());
     }

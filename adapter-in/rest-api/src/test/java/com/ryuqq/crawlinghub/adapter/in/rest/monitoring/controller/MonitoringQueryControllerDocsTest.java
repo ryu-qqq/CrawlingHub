@@ -25,11 +25,13 @@ import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawledRawSumm
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.DashboardSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ExternalSystemHealthResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.OutboxSummaryResult;
+import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawlExecutionSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawlTaskSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawledRawSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetDashboardSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetExternalSystemHealthUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetOutboxSummaryUseCase;
+import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetProductSyncFailureSummaryUseCase;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,10 @@ class MonitoringQueryControllerDocsTest extends RestDocsTestSupport {
     @MockitoBean private GetCrawledRawSummaryUseCase getCrawledRawSummaryUseCase;
 
     @MockitoBean private GetExternalSystemHealthUseCase getExternalSystemHealthUseCase;
+
+    @MockitoBean private GetProductSyncFailureSummaryUseCase getProductSyncFailureSummaryUseCase;
+
+    @MockitoBean private GetCrawlExecutionSummaryUseCase getCrawlExecutionSummaryUseCase;
 
     @MockitoBean private MonitoringQueryApiMapper monitoringQueryApiMapper;
 

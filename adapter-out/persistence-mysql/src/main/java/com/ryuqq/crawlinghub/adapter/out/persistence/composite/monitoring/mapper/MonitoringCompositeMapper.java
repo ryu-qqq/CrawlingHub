@@ -1,9 +1,12 @@
 package com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.mapper;
 
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.DashboardCountsDto;
+import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.FailureDetailDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.OutboxStatusCountDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.StatusCountDto;
+import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.SyncTypeFailureCountDto;
 import com.ryuqq.crawlinghub.adapter.out.persistence.composite.monitoring.dto.SystemFailureCountDto;
+import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawlExecutionSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawlTaskSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawledRawSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.DashboardSummaryResult;
@@ -12,6 +15,8 @@ import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ExternalSystem
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ExternalSystemHealthResult.SystemHealth;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.OutboxSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.OutboxSummaryResult.OutboxDetail;
+import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ProductSyncFailureSummaryResult;
+import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ProductSyncFailureSummaryResult.FailureDetail;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +108,42 @@ public class MonitoringCompositeMapper {
                                         LinkedHashMap::new));
         long total = countsByStatus.values().stream().mapToLong(Long::longValue).sum();
         return new OutboxDetail(countsByStatus, total);
+    }
+
+    public ProductSyncFailureSummaryResult toProductSyncFailureSummaryResult(
+            List<SyncTypeFailureCountDto> failureCounts,
+            List<FailureDetailDto> failureDetails,
+            long pendingCount) {
+        Map<String, Long> failureCountsBySyncType =
+                failureCounts.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        SyncTypeFailureCountDto::syncType,
+                                        SyncTypeFailureCountDto::count,
+                                        Long::sum,
+                                        LinkedHashMap::new));
+
+        List<FailureDetail> recentFailures =
+                failureDetails.stream()
+                        .map(
+                                dto ->
+                                        new FailureDetail(
+                                                dto.syncType(), dto.errorMessage(), dto.count()))
+                        .toList();
+
+        long totalFailures = failureCounts.stream().mapToLong(SyncTypeFailureCountDto::count).sum();
+
+        return new ProductSyncFailureSummaryResult(
+                failureCountsBySyncType, recentFailures, totalFailures, pendingCount);
+    }
+
+    public CrawlExecutionSummaryResult toCrawlExecutionSummaryResult(
+            List<StatusCountDto> statusCounts) {
+        Map<String, Long> countsByStatus = toStatusMap(statusCounts);
+        long totalExecutions = statusCounts.stream().mapToLong(StatusCountDto::count).sum();
+        long successCount = countsByStatus.getOrDefault("SUCCESS", 0L);
+        double successRate = totalExecutions > 0 ? (successCount * 100.0) / totalExecutions : 0.0;
+        return new CrawlExecutionSummaryResult(countsByStatus, totalExecutions, successRate);
     }
 
     private Map<String, Long> toStatusMap(List<StatusCountDto> statusCounts) {
