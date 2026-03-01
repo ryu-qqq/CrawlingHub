@@ -4,6 +4,9 @@ import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
+import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -23,6 +26,12 @@ public class CrawlContextMapper {
     private static final String COOKIE_HEADER = "Cookie";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String X_ROUTE_TOKEN_HEADER = "X-Route-Token";
+    private static final String X_ROUTE_TOKEN_VALUE = "Next-Route-Token";
+
+    private static final String MUSTIT_BASE_URL = "https://m.web.mustit.co.kr";
+    private static final String BFF_SEARCH_PATH = "/v2/api/facade/searchItems";
+    private static final String V1_API_PREFIX = "/mustit-api/facade-api";
 
     /**
      * CrawlTask와 BorrowedUserAgent로부터 CrawlContext 생성
@@ -90,31 +99,54 @@ public class CrawlContextMapper {
             headers.put(COOKIE_HEADER, cookieValue);
         }
 
+        if (context.taskType() == CrawlTaskType.SEARCH) {
+            headers.put(X_ROUTE_TOKEN_HEADER, X_ROUTE_TOKEN_VALUE);
+        }
+
         return headers;
     }
 
     /**
-     * Search API용 엔드포인트 반환
+     * Search API용 BFF 엔드포인트 생성
+     *
+     * <p>v1 내부 API 경로를 MUSTIT BFF 엔드포인트(/v2/api/facade/searchItems)로 래핑합니다. BFF가 Cookie에서 nid/uid를
+     * 읽어 내부 API에 전달하므로, URL 파라미터로 추가하지 않습니다.
      *
      * @param context 크롤링 컨텍스트
-     * @return Search API 엔드포인트 URL
+     * @return BFF 래핑된 Search API 엔드포인트 URL
      */
     public String buildSearchEndpoint(CrawlContext context) {
-        if (!context.hasSearchCookies()) {
-            return context.endpoint();
+        String v1FullUrl = context.endpoint();
+        String v1RelativePath = extractV1RelativePath(v1FullUrl);
+        String encodedPath = URLEncoder.encode(v1RelativePath, StandardCharsets.UTF_8);
+        return MUSTIT_BASE_URL
+                + BFF_SEARCH_PATH
+                + "?keyword=&sort=POPULAR2&nextApiUrl="
+                + encodedPath;
+    }
+
+    /**
+     * 전체 v1 URL에서 상대 경로 추출
+     *
+     * <p>예: "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=test" →
+     * "/v1/search/items?keyword=test"
+     *
+     * @param fullUrl v1 API 전체 URL
+     * @return v1 API 상대 경로 (/v1/... 부터)
+     */
+    String extractV1RelativePath(String fullUrl) {
+        int prefixIndex = fullUrl.indexOf(V1_API_PREFIX);
+        if (prefixIndex >= 0) {
+            return fullUrl.substring(prefixIndex + V1_API_PREFIX.length());
         }
-
-        StringBuilder sb = new StringBuilder(context.endpoint());
-        String separator = context.endpoint().contains("?") ? "&" : "?";
-
-        sb.append(separator);
-        sb.append("nid=").append(context.nid());
-        sb.append("&uid=").append(context.mustitUid());
-        sb.append("&adId=").append(context.mustitUid());
-        if (!context.endpoint().contains("beforeItemType")) {
-            sb.append("&beforeItemType=Normal");
+        // V1_API_PREFIX가 없는 경우 도메인 이후 전체 경로 반환
+        int schemeEnd = fullUrl.indexOf("://");
+        if (schemeEnd >= 0) {
+            int pathStart = fullUrl.indexOf('/', schemeEnd + 3);
+            if (pathStart >= 0) {
+                return fullUrl.substring(pathStart);
+            }
         }
-
-        return sb.toString();
+        return fullUrl;
     }
 }

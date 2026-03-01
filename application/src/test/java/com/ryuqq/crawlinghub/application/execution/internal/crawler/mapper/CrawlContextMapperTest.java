@@ -9,6 +9,8 @@ import com.ryuqq.crawlinghub.domain.execution.vo.CrawlContext;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import com.ryuqq.crawlinghub.domain.task.vo.CrawlTaskType;
 import com.ryuqq.crawlinghub.domain.useragent.vo.UserAgentStatus;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -145,6 +147,7 @@ class CrawlContextMapperTest {
             assertThat(headers).containsEntry("Authorization", "Bearer " + token);
             assertThat(headers.get("Cookie")).contains("nid=" + nid);
             assertThat(headers.get("Cookie")).contains("mustit_uid=" + mustitUid);
+            assertThat(headers).containsEntry("X-Route-Token", "Next-Route-Token");
         }
 
         @Test
@@ -194,17 +197,44 @@ class CrawlContextMapperTest {
             // Then
             assertThat(headers).doesNotContainKey("Authorization");
         }
+
+        @Test
+        @DisplayName("SEARCH 타입이 아니면 X-Route-Token 헤더를 포함하지 않는다")
+        void shouldNotIncludeRouteTokenWhenNotSearchType() {
+            // Given
+            CrawlContext context =
+                    new CrawlContext(
+                            1L,
+                            100L,
+                            200L,
+                            CrawlTaskType.DETAIL,
+                            "endpoint",
+                            1L,
+                            "Mozilla/5.0",
+                            "token",
+                            null,
+                            null);
+
+            // When
+            Map<String, String> headers = mapper.buildHeaders(context);
+
+            // Then
+            assertThat(headers).doesNotContainKey("X-Route-Token");
+        }
     }
 
     @Nested
     @DisplayName("buildSearchEndpoint() 메서드는")
     class BuildSearchEndpoint {
 
+        private static final String BFF_PREFIX =
+                "https://m.web.mustit.co.kr/v2/api/facade/searchItems?keyword=&sort=POPULAR2&nextApiUrl=";
+
         @Test
-        @DisplayName("nid와 mustitUid가 있으면 쿼리 파라미터를 추가한다")
-        void shouldAppendQueryParamsWhenHasSearchCookies() {
+        @DisplayName("v1 URL을 BFF 포맷으로 래핑한다")
+        void shouldWrapV1UrlIntoBffFormat() {
             // Given
-            String baseEndpoint =
+            String v1Endpoint =
                     "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=LIKEASTAR&sort=LATEST&f=us:NEW,lwp:Y&pageNo=1";
             String nid = "3cb41b66-b356-4094-9df3-adf8deab19f1";
             String mustitUid = "1764141487281.758544";
@@ -215,7 +245,7 @@ class CrawlContextMapperTest {
                             100L,
                             200L,
                             CrawlTaskType.SEARCH,
-                            baseEndpoint,
+                            v1Endpoint,
                             1L,
                             "Mozilla/5.0",
                             "token-123",
@@ -226,19 +256,19 @@ class CrawlContextMapperTest {
             String result = mapper.buildSearchEndpoint(context);
 
             // Then
-            assertThat(result).contains("nid=" + nid);
-            assertThat(result).contains("uid=" + mustitUid);
-            assertThat(result).contains("adId=" + mustitUid);
-            assertThat(result).contains("beforeItemType=Normal");
-            assertThat(result).startsWith(baseEndpoint + "&");
+            assertThat(result).startsWith(BFF_PREFIX);
+            String encodedPath = result.substring(BFF_PREFIX.length());
+            String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+            assertThat(decodedPath)
+                    .isEqualTo(
+                            "/v1/search/items?keyword=LIKEASTAR&sort=LATEST&f=us:NEW,lwp:Y&pageNo=1");
         }
 
         @Test
-        @DisplayName("기존 쿼리 파라미터가 없어도 ?로 시작하여 파라미터를 추가한다")
-        void shouldAppendQueryParamsWithQuestionMarkWhenNoExistingParams() {
+        @DisplayName("쿼리 파라미터 없는 v1 URL도 BFF 포맷으로 래핑한다")
+        void shouldWrapV1UrlWithoutQueryParamsIntoBffFormat() {
             // Given
-            String baseEndpoint =
-                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items";
+            String v1Endpoint = "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items";
             String nid = "test-nid-uuid";
             String mustitUid = "1234567890.12345";
 
@@ -248,7 +278,7 @@ class CrawlContextMapperTest {
                             100L,
                             200L,
                             CrawlTaskType.SEARCH,
-                            baseEndpoint,
+                            v1Endpoint,
                             1L,
                             "Mozilla/5.0",
                             "token-123",
@@ -259,15 +289,15 @@ class CrawlContextMapperTest {
             String result = mapper.buildSearchEndpoint(context);
 
             // Then
-            assertThat(result).startsWith(baseEndpoint + "?");
-            assertThat(result).contains("nid=" + nid);
-            assertThat(result).contains("uid=" + mustitUid);
-            assertThat(result).contains("adId=" + mustitUid);
+            assertThat(result).startsWith(BFF_PREFIX);
+            String encodedPath = result.substring(BFF_PREFIX.length());
+            String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+            assertThat(decodedPath).isEqualTo("/v1/search/items");
         }
 
         @Test
-        @DisplayName("nextApiUrl에 beforeItemType이 이미 포함되면 중복 추가하지 않는다")
-        void shouldNotDuplicateBeforeItemTypeWhenAlreadyPresent() {
+        @DisplayName("nextApiUrl 내 특수문자가 URL 인코딩된다")
+        void shouldUrlEncodeNextApiUrl() {
             // Given
             String nextPageEndpoint =
                     "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?f=us:NEW,lwp:Y&sort=LATEST&beforeItemType=Normal&keyword=ccapsule1&previousIdx=0%2C0&pageNo=2";
@@ -291,19 +321,22 @@ class CrawlContextMapperTest {
             String result = mapper.buildSearchEndpoint(context);
 
             // Then
-            assertThat(result).contains("nid=" + nid);
-            assertThat(result).contains("uid=" + mustitUid);
-            assertThat(result).contains("adId=" + mustitUid);
-            // beforeItemType=Normal이 정확히 1번만 포함
-            int count = result.split("beforeItemType=Normal", -1).length - 1;
-            assertThat(count).isEqualTo(1);
+            assertThat(result).startsWith(BFF_PREFIX);
+            // nextApiUrl 부분이 인코딩되어 있으므로 & 등이 원본 URL에 직접 나오지 않음
+            String encodedPath = result.substring(BFF_PREFIX.length());
+            assertThat(encodedPath).doesNotContain("&sort=LATEST");
+            // 디코딩하면 원래 v1 상대 경로가 복원됨
+            String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+            assertThat(decodedPath).startsWith("/v1/search/items?");
+            assertThat(decodedPath).contains("keyword=ccapsule1");
+            assertThat(decodedPath).contains("pageNo=2");
         }
 
         @Test
-        @DisplayName("nid가 null이면 기본 endpoint를 반환한다")
-        void shouldReturnBaseEndpointWhenNidIsNull() {
+        @DisplayName("쿠키가 없어도 BFF URL을 반환한다 (nid null)")
+        void shouldReturnBffUrlWhenNidIsNull() {
             // Given
-            String baseEndpoint =
+            String v1Endpoint =
                     "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=TEST";
 
             CrawlContext context =
@@ -312,7 +345,7 @@ class CrawlContextMapperTest {
                             100L,
                             200L,
                             CrawlTaskType.SEARCH,
-                            baseEndpoint,
+                            v1Endpoint,
                             1L,
                             "Mozilla/5.0",
                             "token-123",
@@ -323,14 +356,17 @@ class CrawlContextMapperTest {
             String result = mapper.buildSearchEndpoint(context);
 
             // Then
-            assertThat(result).isEqualTo(baseEndpoint);
+            assertThat(result).startsWith(BFF_PREFIX);
+            String encodedPath = result.substring(BFF_PREFIX.length());
+            String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+            assertThat(decodedPath).isEqualTo("/v1/search/items?keyword=TEST");
         }
 
         @Test
-        @DisplayName("mustitUid가 blank이면 기본 endpoint를 반환한다")
-        void shouldReturnBaseEndpointWhenMusitUidIsBlank() {
+        @DisplayName("쿠키가 없어도 BFF URL을 반환한다 (mustitUid blank)")
+        void shouldReturnBffUrlWhenMusitUidIsBlank() {
             // Given
-            String baseEndpoint =
+            String v1Endpoint =
                     "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=TEST";
 
             CrawlContext context =
@@ -339,7 +375,7 @@ class CrawlContextMapperTest {
                             100L,
                             200L,
                             CrawlTaskType.SEARCH,
-                            baseEndpoint,
+                            v1Endpoint,
                             1L,
                             "Mozilla/5.0",
                             "token-123",
@@ -350,7 +386,10 @@ class CrawlContextMapperTest {
             String result = mapper.buildSearchEndpoint(context);
 
             // Then
-            assertThat(result).isEqualTo(baseEndpoint);
+            assertThat(result).startsWith(BFF_PREFIX);
+            String encodedPath = result.substring(BFF_PREFIX.length());
+            String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+            assertThat(decodedPath).isEqualTo("/v1/search/items?keyword=TEST");
         }
     }
 }
