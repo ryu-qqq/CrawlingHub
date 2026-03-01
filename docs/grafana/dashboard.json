@@ -2211,7 +2211,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-crawlinghub-external-download"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task"
                 ]
               },
               "expression": "",
@@ -2226,7 +2226,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (Main)"
+              "legendFormat": "Stage - Visible (Main)"
             },
             {
               "datasource": {
@@ -2235,7 +2235,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-crawlinghub-external-download-dlq"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task-dlq"
                 ]
               },
               "expression": "",
@@ -2250,7 +2250,55 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (DLQ)"
+              "legendFormat": "Stage - Visible (DLQ)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "C",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (Main)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task-dlq"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "D",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (DLQ)"
             }
           ],
           "title": "Crawl Task Queue - Messages Visible",
@@ -2359,7 +2407,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-crawlinghub-file-processing"
+                  "stage-monitoring-sqs-crawlinghub-product-sync"
                 ]
               },
               "expression": "",
@@ -2374,7 +2422,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (Main)"
+              "legendFormat": "Stage - Visible (Main)"
             },
             {
               "datasource": {
@@ -2383,7 +2431,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-crawlinghub-file-processing-dlq"
+                  "stage-monitoring-sqs-crawlinghub-product-sync-dlq"
                 ]
               },
               "expression": "",
@@ -2398,7 +2446,55 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (DLQ)"
+              "legendFormat": "Stage - Visible (DLQ)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "C",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (Main)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync-dlq"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "D",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (DLQ)"
             }
           ],
           "title": "Product Sync Queue - Messages Visible",
@@ -2495,7 +2591,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-crawlinghub-external-download"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task"
                 ]
               },
               "expression": "",
@@ -2509,7 +2605,32 @@
               "queryMode": "Metrics",
               "refId": "A",
               "region": "ap-northeast-2",
-              "statistic": "Maximum"
+              "statistic": "Maximum",
+              "legendFormat": "Stage"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateAgeOfOldestMessage",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "B",
+              "region": "ap-northeast-2",
+              "statistic": "Maximum",
+              "legendFormat": "Prod"
             }
           ],
           "title": "Crawl Task Queue - Message Age",
@@ -2606,7 +2727,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-crawlinghub-file-processing"
+                  "stage-monitoring-sqs-crawlinghub-product-sync"
                 ]
               },
               "expression": "",
@@ -2620,7 +2741,32 @@
               "queryMode": "Metrics",
               "refId": "A",
               "region": "ap-northeast-2",
-              "statistic": "Maximum"
+              "statistic": "Maximum",
+              "legendFormat": "Stage"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateAgeOfOldestMessage",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "B",
+              "region": "ap-northeast-2",
+              "statistic": "Maximum",
+              "legendFormat": "Prod"
             }
           ],
           "title": "Product Sync Queue - Message Age",
@@ -2731,10 +2877,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "crawlinghub-cluster-prod"
+                  "crawlinghub-cluster-stage"
                 ],
                 "ServiceName": [
-                  "crawlinghub-download-worker"
+                  "crawlinghub-crawl-worker-stage"
                 ]
               },
               "expression": "",
@@ -2749,7 +2895,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "download-worker"
+              "legendFormat": "Stage - crawl-worker"
             },
             {
               "datasource": {
@@ -2761,7 +2907,7 @@
                   "crawlinghub-cluster-prod"
                 ],
                 "ServiceName": [
-                  "crawlinghub-resizing-worker"
+                  "crawlinghub-crawl-worker-prod"
                 ]
               },
               "expression": "",
@@ -2776,7 +2922,7 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "resizing-worker"
+              "legendFormat": "Prod - crawl-worker"
             }
           ],
           "title": "CPU Utilization",
@@ -2873,10 +3019,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "crawlinghub-cluster-prod"
+                  "crawlinghub-cluster-stage"
                 ],
                 "ServiceName": [
-                  "crawlinghub-download-worker"
+                  "crawlinghub-crawl-worker-stage"
                 ]
               },
               "expression": "",
@@ -2891,7 +3037,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "download-worker"
+              "legendFormat": "Stage - crawl-worker"
             },
             {
               "datasource": {
@@ -2903,7 +3049,7 @@
                   "crawlinghub-cluster-prod"
                 ],
                 "ServiceName": [
-                  "crawlinghub-resizing-worker"
+                  "crawlinghub-crawl-worker-prod"
                 ]
               },
               "expression": "",
@@ -2918,7 +3064,7 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "resizing-worker"
+              "legendFormat": "Prod - crawl-worker"
             }
           ],
           "title": "Memory Utilization",
@@ -3185,7 +3331,11 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "CloudWatch-prod",
+          "value": "CloudWatch-prod"
+        },
         "hide": 0,
         "includeAll": false,
         "label": "CloudWatch",
