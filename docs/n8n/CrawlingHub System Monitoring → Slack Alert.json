@@ -22,306 +22,16 @@
     },
     {
       "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/dashboard",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "lookbackMinutes",
-              "value": "60"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        688
-      ],
-      "id": "801cb7c2-67ed-4d4e-8a3b-8014264b816f",
-      "name": "Fetch Dashboard",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/crawl-tasks/summary",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "lookbackMinutes",
-              "value": "60"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        848
-      ],
-      "id": "60c9548a-5915-4407-a9d5-5e2bad951c53",
-      "name": "Fetch CrawlTask Summary",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/outbox/summary",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        992
-      ],
-      "id": "607af4df-34a9-4d14-8e1c-0373d45a397e",
-      "name": "Fetch Outbox Summary",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/crawled-raw/summary",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        1152
-      ],
-      "id": "f53cbbde-b325-4a86-95d3-ca214a85be3e",
-      "name": "Fetch CrawledRaw Summary",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/external-systems/health",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "lookbackMinutes",
-              "value": "60"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        1296
-      ],
-      "id": "746ed94f-dfb6-4201-a31e-d07bed6690e9",
-      "name": "Fetch External Health",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/product-sync/failures",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "lookbackMinutes",
-              "value": "60"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        1456
-      ],
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "name": "Fetch ProductSync Failures",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring/crawl-executions/summary",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "lookbackMinutes",
-              "value": "60"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Service-Token",
-              "value": "{{$credentials.httpHeaderAuth.value}}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1536,
-        1616
-      ],
-      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "name": "Fetch CrawlExecution Summary",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "RtPMxDsX1GBCYVwn",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\n\nlet dashboard = {};\nlet crawlTasks = {};\nlet outbox = {};\nlet crawledRaw = {};\nlet externalHealth = {};\nlet productSyncFailures = {};\nlet crawlExecutions = {};\n\nfor (const item of items) {\n  const raw = item.json;\n  const data = raw.data || raw;\n  if (data.activeSchedulers !== undefined) dashboard = data;\n  else if (data.stuckTasks !== undefined) crawlTasks = data;\n  else if (data.crawlTaskOutbox !== undefined) outbox = data;\n  else if (data.totalRaw !== undefined) crawledRaw = data;\n  else if (data.systems !== undefined) externalHealth = data;\n  else if (data.failureCountsBySyncType !== undefined) productSyncFailures = data;\n  else if (data.successRate !== undefined) crawlExecutions = data;\n}\n\n// ─── Thresholds ───\nconst PENDING_TH = 100;\nconst PROCESSING_TH = 50;\nconst FAILED_TH = 0;\nconst STUCK_TH = 5;\nconst EXT_FAIL_TH = 3;\nconst ERROR_TH = 10;\nconst EXEC_SUCCESS_RATE_TH = 90;\n\nconst cnt = (d, s) => (d && d.countsByStatus && d.countsByStatus[s]) || 0;\n\nconst extractOb = (d) => ({\n  pending: cnt(d, 'PENDING'), processing: cnt(d, 'PROCESSING'),\n  completed: cnt(d, 'COMPLETED'), failed: cnt(d, 'FAILED'),\n  total: (d && d.total) || 0\n});\n\n// ─── Detect Alert Reasons ───\nconst reasons = [];\n\nif (dashboard.overallStatus && dashboard.overallStatus !== 'HEALTHY')\n  reasons.push(':warning: 시스템 상태 `' + dashboard.overallStatus + '`');\nif ((dashboard.recentErrors || 0) > ERROR_TH)\n  reasons.push(':x: 최근 에러 `' + dashboard.recentErrors + '`건');\nif ((crawlTasks.stuckTasks || 0) > STUCK_TH)\n  reasons.push(':snail: stuck 태스크 `' + crawlTasks.stuckTasks + '`건');\n\nvar ctF = cnt(crawlTasks, 'FAILED');\nif (ctF > FAILED_TH) reasons.push(':x: CrawlTask FAILED `' + ctF + '`건');\n\nvar obTypes = [\n  { n: 'CrawlTask', d: outbox.crawlTaskOutbox },\n  { n: 'Scheduler', d: outbox.schedulerOutbox },\n  { n: 'ProductSync', d: outbox.productSyncOutbox }\n];\nfor (var i = 0; i < obTypes.length; i++) {\n  var ob = obTypes[i];\n  var p = cnt(ob.d, 'PENDING'), pr = cnt(ob.d, 'PROCESSING'), f = cnt(ob.d, 'FAILED');\n  if (p > PENDING_TH) reasons.push(':hourglass: ' + ob.n + ' Outbox PENDING `' + p + '`건');\n  if (pr > PROCESSING_TH) reasons.push(':warning: ' + ob.n + ' Outbox stuck의심 `' + pr + '`건');\n  if (f > FAILED_TH) reasons.push(':x: ' + ob.n + ' Outbox FAILED `' + f + '`건');\n}\n\nvar rawF = cnt(crawledRaw, 'FAILED');\nif (rawF > FAILED_TH) reasons.push(':x: CrawledRaw FAILED `' + rawF + '`건');\n\nvar systems = externalHealth.systems || [];\nfor (var j = 0; j < systems.length; j++) {\n  var s = systems[j];\n  if (s.status !== 'HEALTHY' || s.recentFailures > EXT_FAIL_TH)\n    reasons.push(':satellite: ' + s.system + ' `' + s.status + '` 실패 ' + s.recentFailures + '건');\n}\n\n// ─── ProductSync Failures ───\nvar psTotal = productSyncFailures.totalFailures || 0;\nif (psTotal > 0) {\n  var syncTypes = productSyncFailures.failureCountsBySyncType || {};\n  var syncDetail = Object.entries(syncTypes).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ');\n  reasons.push(':package: ProductSync 실패 `' + psTotal + '`건 (' + syncDetail + ')');\n}\n\n// ─── CrawlExecution ───\nvar execRate = crawlExecutions.successRate || 0;\nvar execTotal = crawlExecutions.totalExecutions || 0;\nif (execTotal > 0 && execRate < EXEC_SUCCESS_RATE_TH)\n  reasons.push(':runner: CrawlExecution 성공률 `' + execRate.toFixed(1) + '%` (기준: ' + EXEC_SUCCESS_RATE_TH + '%)');\nvar execTimeout = cnt(crawlExecutions, 'TIMEOUT');\nif (execTimeout > 0)\n  reasons.push(':clock3: CrawlExecution TIMEOUT `' + execTimeout + '`건');\n\nvar needsAlert = reasons.length > 0;\n\n// ─── KST Time ───\nvar kst = new Date(Date.now() + 9 * 3600000);\nvar ts = kst.toISOString().replace('T', ' ').slice(0, 19) + ' KST';\n\nvar tOb = extractOb(outbox.crawlTaskOutbox);\nvar sOb = extractOb(outbox.schedulerOutbox);\nvar pOb = extractOb(outbox.productSyncOutbox);\nvar taskTotal = crawlTasks.totalTasks || 0;\nvar taskStuck = crawlTasks.stuckTasks || 0;\nvar rawTotal = crawledRaw.totalRaw || 0;\n\nvar st = dashboard.overallStatus || 'UNKNOWN';\nvar stEmoji = (st === 'HEALTHY') ? ':large_green_circle:' : ':red_circle:';\n\n// ─── Outbox row formatter ───\nvar fmtObRow = function(label, d) {\n  if (d.total === 0) return '';\n  var cols = [];\n  cols.push(d.pending > 0 ? '`' + d.pending + '`' : '`-`');\n  cols.push(d.processing > 0 ? '`' + d.processing + '`' : '`-`');\n  cols.push(d.completed > 0 ? '`' + d.completed + '`' : '`-`');\n  cols.push(d.failed > 0 ? '*`' + d.failed + '`*' : '`-`');\n  return '>  ' + label + '  ' + cols.join('    ');\n};\n\n// ─── Status badge formatter ───\nvar statusBadge = function(status) {\n  if (status === 'HEALTHY') return ':large_green_circle: `HEALTHY`';\n  if (status === 'DEGRADED') return ':large_yellow_circle: `DEGRADED`';\n  return ':red_circle: `' + status + '`';\n};\n\n// ─── Alert Message ───\nvar a = [];\na.push(':rotating_light:  *CrawlingHub 모니터링 알람*');\na.push(':clock1:  ' + ts);\na.push('');\na.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\na.push(':mega:  *알람 사유*');\na.push('');\nfor (var r = 0; r < reasons.length; r++) a.push('    ' + reasons[r]);\na.push('');\na.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\na.push(':bar_chart:  *시스템 현황*');\na.push('');\na.push('>  상태: ' + stEmoji + ' *' + st + '*');\na.push('>  활성 스케줄러: `' + (dashboard.activeSchedulers || 0) + '`개');\na.push('>  실행중 태스크: `' + (dashboard.runningTasks || 0) + '`개');\na.push('>  최근 에러: `' + (dashboard.recentErrors || 0) + '`건');\n\nif (taskTotal > 0 || taskStuck > 0) {\n  a.push('');\n  a.push(':spider_web:  *CrawlTask*  (`' + taskTotal + '`건)');\n  a.push('');\n  var statusEntries = Object.entries(crawlTasks.countsByStatus || {});\n  if (statusEntries.length > 0) {\n    for (var si = 0; si < statusEntries.length; si++) {\n      var prefix = statusEntries[si][0] === 'FAILED' ? ':x: ' : '';\n      a.push('>  ' + prefix + statusEntries[si][0] + ':  `' + statusEntries[si][1] + '`');\n    }\n  }\n  if (taskStuck > 0) a.push('>  :snail: STUCK:  `' + taskStuck + '`');\n}\n\nif (tOb.total > 0 || sOb.total > 0 || pOb.total > 0) {\n  a.push('');\n  a.push(':inbox_tray:  *Outbox 현황*');\n  a.push('>  _유형_          _대기_    _처리중_    _완료_    _실패_');\n  var taskRow = fmtObRow('CrawlTask  ', tOb);\n  var schedRow = fmtObRow('Scheduler    ', sOb);\n  var syncRow = fmtObRow('ProductSync', pOb);\n  if (taskRow) a.push(taskRow);\n  if (schedRow) a.push(schedRow);\n  if (syncRow) a.push(syncRow);\n}\n\nif (rawTotal > 0) {\n  a.push('');\n  a.push(':floppy_disk:  *CrawledRaw*  (`' + rawTotal + '`건)');\n  var rawEntries = Object.entries(crawledRaw.countsByStatus || {});\n  if (rawEntries.length > 0) {\n    a.push('');\n    for (var ri = 0; ri < rawEntries.length; ri++) {\n      var rPrefix = rawEntries[ri][0] === 'FAILED' ? ':x: ' : '';\n      a.push('>  ' + rPrefix + rawEntries[ri][0] + ':  `' + rawEntries[ri][1] + '`');\n    }\n  }\n}\n\nif (systems.length > 0) {\n  a.push('');\n  a.push(':satellite:  *외부 시스템*');\n  a.push('');\n  for (var ei = 0; ei < systems.length; ei++) {\n    var ext = systems[ei];\n    var badge = statusBadge(ext.status);\n    var failInfo = ext.recentFailures > 0 ? '  (실패 ' + ext.recentFailures + '건)' : '';\n    a.push('>  ' + ext.system + ':  ' + badge + failInfo);\n  }\n}\n\n// ─── ProductSync 실패 상세 ───\nif (psTotal > 0) {\n  a.push('');\n  a.push(':package:  *ProductSync 실패 상세*  (`' + psTotal + '`건, 대기: `' + (productSyncFailures.totalPending || 0) + '`건)');\n  a.push('');\n  var psSyncTypes = Object.entries(productSyncFailures.failureCountsBySyncType || {});\n  for (var pi = 0; pi < psSyncTypes.length; pi++) {\n    a.push('>  ' + psSyncTypes[pi][0] + ':  `' + psSyncTypes[pi][1] + '`건');\n  }\n  var psDetails = productSyncFailures.recentFailures || [];\n  if (psDetails.length > 0) {\n    a.push('>  _에러 메시지 Top 3:_');\n    var topN = Math.min(psDetails.length, 3);\n    for (var pd = 0; pd < topN; pd++) {\n      var d = psDetails[pd];\n      var msg = (d.errorMessage || '(없음)').substring(0, 80);\n      a.push('>    ' + d.syncType + ' (`' + d.count + '`건): ' + msg);\n    }\n  }\n}\n\n// ─── CrawlExecution ───\nif (execTotal > 0) {\n  a.push('');\n  a.push(':runner:  *CrawlExecution*  (`' + execTotal + '`건, 성공률: `' + execRate.toFixed(1) + '%`)');\n  a.push('');\n  var execEntries = Object.entries(crawlExecutions.countsByStatus || {});\n  for (var xi = 0; xi < execEntries.length; xi++) {\n    var xPrefix = (execEntries[xi][0] === 'FAILED' || execEntries[xi][0] === 'TIMEOUT') ? ':x: ' : '';\n    a.push('>  ' + xPrefix + execEntries[xi][0] + ':  `' + execEntries[xi][1] + '`');\n  }\n}\n\n// ─── OK Message ───\nvar o = [];\no.push(':large_green_circle:  *CrawlingHub 정상 가동중*');\no.push(':clock1:  ' + ts);\no.push('');\no.push('>  :bar_chart:  스케줄러 `' + (dashboard.activeSchedulers || 0) + '`개  |  태스크 `' + (dashboard.runningTasks || 0) + '`개  |  에러 `' + (dashboard.recentErrors || 0) + '`건');\nif (taskTotal > 0) o.push('>  :spider_web:  CrawlTask `' + taskTotal + '`건  |  stuck `' + taskStuck + '`건');\nif (rawTotal > 0) o.push('>  :floppy_disk:  CrawledRaw `' + rawTotal + '`건');\nif (systems.length > 0) {\n  o.push('>  :satellite:  ' + systems.map(function(s) { return s.system + ' ' + statusBadge(s.status); }).join('  |  '));\n}\nif (execTotal > 0) o.push('>  :runner:  CrawlExecution `' + execTotal + '`건  |  성공률 `' + execRate.toFixed(1) + '%`');\n\nreturn [{\n  json: {\n    needsAlert: needsAlert,\n    alertMessage: a.join('\\n'),\n    okMessage: o.join('\\n')\n  }\n}];"
+        "jsCode": "// ══════════════════════════════════════════════════════\n// CrawlingHub Monitoring - Fetch All & Evaluate\n// ══════════════════════════════════════════════════════\n// 토큰 변경 시 아래 값을 SSM 값과 동일하게 수정하세요\n// SSM: /authhub/stage/security/service-token-secret\nconst SERVICE_TOKEN = 'HMdKhY2lO6GB+dBsRu5U6VhMyZxSQJ50/HGefIyb9SQ=';\nconst BASE = 'http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/monitoring';\nconst HEADERS = { 'X-Service-Token': SERVICE_TOKEN };\n\n// ─── 7개 엔드포인트 병렬 호출 ───\nconst fetchJson = async (path) => {\n  try {\n    const res = await fetch(BASE + path, { headers: HEADERS });\n    if (!res.ok) return {};\n    return await res.json();\n  } catch (e) {\n    return {};\n  }\n};\n\nconst results = await Promise.all([\n  fetchJson('/dashboard?lookbackMinutes=60'),\n  fetchJson('/crawl-tasks/summary?lookbackMinutes=60'),\n  fetchJson('/outbox/summary'),\n  fetchJson('/crawled-raw/summary'),\n  fetchJson('/external-systems/health?lookbackMinutes=60'),\n  fetchJson('/product-sync/failures?lookbackMinutes=60'),\n  fetchJson('/crawl-executions/summary?lookbackMinutes=60'),\n]);\n\n// ─── 응답 분류 ───\nconst extract = (r) => r.data || r;\nconst dashboard = extract(results[0]);\nconst crawlTasks = extract(results[1]);\nconst outbox = extract(results[2]);\nconst crawledRaw = extract(results[3]);\nconst externalHealth = extract(results[4]);\nconst productSyncFailures = extract(results[5]);\nconst crawlExecutions = extract(results[6]);\n\n// ─── Thresholds ───\nconst PENDING_TH = 100;\nconst PROCESSING_TH = 50;\nconst FAILED_TH = 0;\nconst STUCK_TH = 5;\nconst EXT_FAIL_TH = 3;\nconst ERROR_TH = 10;\nconst EXEC_SUCCESS_RATE_TH = 90;\n\nconst cnt = (d, s) => (d && d.countsByStatus && d.countsByStatus[s]) || 0;\n\nconst extractOb = (d) => ({\n  pending: cnt(d, 'PENDING'), processing: cnt(d, 'PROCESSING'),\n  completed: cnt(d, 'COMPLETED'), failed: cnt(d, 'FAILED'),\n  total: (d && d.total) || 0\n});\n\n// ─── Detect Alert Reasons ───\nconst reasons = [];\n\nif (dashboard.overallStatus && dashboard.overallStatus !== 'HEALTHY')\n  reasons.push(':warning: 시스템 상태 `' + dashboard.overallStatus + '`');\nif ((dashboard.recentErrors || 0) > ERROR_TH)\n  reasons.push(':x: 최근 에러 `' + dashboard.recentErrors + '`건');\nif ((crawlTasks.stuckTasks || 0) > STUCK_TH)\n  reasons.push(':snail: stuck 태스크 `' + crawlTasks.stuckTasks + '`건');\n\nvar ctF = cnt(crawlTasks, 'FAILED');\nif (ctF > FAILED_TH) reasons.push(':x: CrawlTask FAILED `' + ctF + '`건');\n\nvar obTypes = [\n  { n: 'CrawlTask', d: outbox.crawlTaskOutbox },\n  { n: 'Scheduler', d: outbox.schedulerOutbox },\n  { n: 'ProductSync', d: outbox.productSyncOutbox }\n];\nfor (var i = 0; i < obTypes.length; i++) {\n  var ob = obTypes[i];\n  var p = cnt(ob.d, 'PENDING'), pr = cnt(ob.d, 'PROCESSING'), f = cnt(ob.d, 'FAILED');\n  if (p > PENDING_TH) reasons.push(':hourglass: ' + ob.n + ' Outbox PENDING `' + p + '`건');\n  if (pr > PROCESSING_TH) reasons.push(':warning: ' + ob.n + ' Outbox stuck의심 `' + pr + '`건');\n  if (f > FAILED_TH) reasons.push(':x: ' + ob.n + ' Outbox FAILED `' + f + '`건');\n}\n\nvar rawF = cnt(crawledRaw, 'FAILED');\nif (rawF > FAILED_TH) reasons.push(':x: CrawledRaw FAILED `' + rawF + '`건');\n\nvar systems = externalHealth.systems || [];\nfor (var j = 0; j < systems.length; j++) {\n  var s = systems[j];\n  if (s.status !== 'HEALTHY' || s.recentFailures > EXT_FAIL_TH)\n    reasons.push(':satellite: ' + s.system + ' `' + s.status + '` 실패 ' + s.recentFailures + '건');\n}\n\n// ─── ProductSync Failures ───\nvar psTotal = productSyncFailures.totalFailures || 0;\nif (psTotal > 0) {\n  var syncTypes = productSyncFailures.failureCountsBySyncType || {};\n  var syncDetail = Object.entries(syncTypes).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ');\n  reasons.push(':package: ProductSync 실패 `' + psTotal + '`건 (' + syncDetail + ')');\n}\n\n// ─── CrawlExecution ───\nvar execRate = crawlExecutions.successRate || 0;\nvar execTotal = crawlExecutions.totalExecutions || 0;\nif (execTotal > 0 && execRate < EXEC_SUCCESS_RATE_TH)\n  reasons.push(':runner: CrawlExecution 성공률 `' + execRate.toFixed(1) + '%` (기준: ' + EXEC_SUCCESS_RATE_TH + '%)');\nvar execTimeout = cnt(crawlExecutions, 'TIMEOUT');\nif (execTimeout > 0)\n  reasons.push(':clock3: CrawlExecution TIMEOUT `' + execTimeout + '`건');\n\nvar needsAlert = reasons.length > 0;\n\n// ─── KST Time ───\nvar kst = new Date(Date.now() + 9 * 3600000);\nvar ts = kst.toISOString().replace('T', ' ').slice(0, 19) + ' KST';\n\nvar tOb = extractOb(outbox.crawlTaskOutbox);\nvar sOb = extractOb(outbox.schedulerOutbox);\nvar pOb = extractOb(outbox.productSyncOutbox);\nvar taskTotal = crawlTasks.totalTasks || 0;\nvar taskStuck = crawlTasks.stuckTasks || 0;\nvar rawTotal = crawledRaw.totalRaw || 0;\n\nvar st = dashboard.overallStatus || 'UNKNOWN';\nvar stEmoji = (st === 'HEALTHY') ? ':large_green_circle:' : ':red_circle:';\n\n// ─── Outbox row formatter ───\nvar fmtObRow = function(label, d) {\n  if (d.total === 0) return '';\n  var cols = [];\n  cols.push(d.pending > 0 ? '`' + d.pending + '`' : '`-`');\n  cols.push(d.processing > 0 ? '`' + d.processing + '`' : '`-`');\n  cols.push(d.completed > 0 ? '`' + d.completed + '`' : '`-`');\n  cols.push(d.failed > 0 ? '*`' + d.failed + '`*' : '`-`');\n  return '>  ' + label + '  ' + cols.join('    ');\n};\n\n// ─── Status badge formatter ───\nvar statusBadge = function(status) {\n  if (status === 'HEALTHY') return ':large_green_circle: `HEALTHY`';\n  if (status === 'DEGRADED') return ':large_yellow_circle: `DEGRADED`';\n  return ':red_circle: `' + status + '`';\n};\n\n// ─── Alert Message ───\nvar a = [];\na.push(':rotating_light:  *CrawlingHub 모니터링 알람*');\na.push(':clock1:  ' + ts);\na.push('');\na.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\na.push(':mega:  *알람 사유*');\na.push('');\nfor (var r = 0; r < reasons.length; r++) a.push('    ' + reasons[r]);\na.push('');\na.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\na.push(':bar_chart:  *시스템 현황*');\na.push('');\na.push('>  상태: ' + stEmoji + ' *' + st + '*');\na.push('>  활성 스케줄러: `' + (dashboard.activeSchedulers || 0) + '`개');\na.push('>  실행중 태스크: `' + (dashboard.runningTasks || 0) + '`개');\na.push('>  최근 에러: `' + (dashboard.recentErrors || 0) + '`건');\n\nif (taskTotal > 0 || taskStuck > 0) {\n  a.push('');\n  a.push(':spider_web:  *CrawlTask*  (`' + taskTotal + '`건)');\n  a.push('');\n  var statusEntries = Object.entries(crawlTasks.countsByStatus || {});\n  if (statusEntries.length > 0) {\n    for (var si = 0; si < statusEntries.length; si++) {\n      var prefix = statusEntries[si][0] === 'FAILED' ? ':x: ' : '';\n      a.push('>  ' + prefix + statusEntries[si][0] + ':  `' + statusEntries[si][1] + '`');\n    }\n  }\n  if (taskStuck > 0) a.push('>  :snail: STUCK:  `' + taskStuck + '`');\n}\n\nif (tOb.total > 0 || sOb.total > 0 || pOb.total > 0) {\n  a.push('');\n  a.push(':inbox_tray:  *Outbox 현황*');\n  a.push('>  _유형_          _대기_    _처리중_    _완료_    _실패_');\n  var taskRow = fmtObRow('CrawlTask  ', tOb);\n  var schedRow = fmtObRow('Scheduler    ', sOb);\n  var syncRow = fmtObRow('ProductSync', pOb);\n  if (taskRow) a.push(taskRow);\n  if (schedRow) a.push(schedRow);\n  if (syncRow) a.push(syncRow);\n}\n\nif (rawTotal > 0) {\n  a.push('');\n  a.push(':floppy_disk:  *CrawledRaw*  (`' + rawTotal + '`건)');\n  var rawEntries = Object.entries(crawledRaw.countsByStatus || {});\n  if (rawEntries.length > 0) {\n    a.push('');\n    for (var ri = 0; ri < rawEntries.length; ri++) {\n      var rPrefix = rawEntries[ri][0] === 'FAILED' ? ':x: ' : '';\n      a.push('>  ' + rPrefix + rawEntries[ri][0] + ':  `' + rawEntries[ri][1] + '`');\n    }\n  }\n}\n\nif (systems.length > 0) {\n  a.push('');\n  a.push(':satellite:  *외부 시스템*');\n  a.push('');\n  for (var ei = 0; ei < systems.length; ei++) {\n    var ext = systems[ei];\n    var badge = statusBadge(ext.status);\n    var failInfo = ext.recentFailures > 0 ? '  (실패 ' + ext.recentFailures + '건)' : '';\n    a.push('>  ' + ext.system + ':  ' + badge + failInfo);\n  }\n}\n\n// ─── ProductSync 실패 상세 ───\nif (psTotal > 0) {\n  a.push('');\n  a.push(':package:  *ProductSync 실패 상세*  (`' + psTotal + '`건, 대기: `' + (productSyncFailures.totalPending || 0) + '`건)');\n  a.push('');\n  var psSyncTypes = Object.entries(productSyncFailures.failureCountsBySyncType || {});\n  for (var pi = 0; pi < psSyncTypes.length; pi++) {\n    a.push('>  ' + psSyncTypes[pi][0] + ':  `' + psSyncTypes[pi][1] + '`건');\n  }\n  var psDetails = productSyncFailures.recentFailures || [];\n  if (psDetails.length > 0) {\n    a.push('>  _에러 메시지 Top 3:_');\n    var topN = Math.min(psDetails.length, 3);\n    for (var pd = 0; pd < topN; pd++) {\n      var d = psDetails[pd];\n      var msg = (d.errorMessage || '(없음)').substring(0, 80);\n      a.push('>    ' + d.syncType + ' (`' + d.count + '`건): ' + msg);\n    }\n  }\n}\n\n// ─── CrawlExecution ───\nif (execTotal > 0) {\n  a.push('');\n  a.push(':runner:  *CrawlExecution*  (`' + execTotal + '`건, 성공률: `' + execRate.toFixed(1) + '%`)');\n  a.push('');\n  var execEntries = Object.entries(crawlExecutions.countsByStatus || {});\n  for (var xi = 0; xi < execEntries.length; xi++) {\n    var xPrefix = (execEntries[xi][0] === 'FAILED' || execEntries[xi][0] === 'TIMEOUT') ? ':x: ' : '';\n    a.push('>  ' + xPrefix + execEntries[xi][0] + ':  `' + execEntries[xi][1] + '`');\n  }\n}\n\n// ─── OK Message ───\nvar o = [];\no.push(':large_green_circle:  *CrawlingHub 정상 가동중*');\no.push(':clock1:  ' + ts);\no.push('');\no.push('>  :bar_chart:  스케줄러 `' + (dashboard.activeSchedulers || 0) + '`개  |  태스크 `' + (dashboard.runningTasks || 0) + '`개  |  에러 `' + (dashboard.recentErrors || 0) + '`건');\nif (taskTotal > 0) o.push('>  :spider_web:  CrawlTask `' + taskTotal + '`건  |  stuck `' + taskStuck + '`건');\nif (rawTotal > 0) o.push('>  :floppy_disk:  CrawledRaw `' + rawTotal + '`건');\nif (systems.length > 0) {\n  o.push('>  :satellite:  ' + systems.map(function(s) { return s.system + ' ' + statusBadge(s.status); }).join('  |  '));\n}\nif (execTotal > 0) o.push('>  :runner:  CrawlExecution `' + execTotal + '`건  |  성공률 `' + execRate.toFixed(1) + '%`');\n\nreturn [{\n  json: {\n    needsAlert: needsAlert,\n    alertMessage: a.join('\\n'),\n    okMessage: o.join('\\n')\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1824,
-        992
+        1536,
+        896
       ],
       "id": "42cf58dd-e8dc-41ca-a02e-0427aa7182ff",
-      "name": "Evaluate Alert Conditions"
+      "name": "Fetch & Evaluate"
     },
     {
       "parameters": {
@@ -350,8 +60,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2064,
-        992
+        1776,
+        896
       ],
       "id": "335ecb5b-f8e0-4b7e-aee9-a7fb692254b5",
       "name": "Needs Alert?"
@@ -372,8 +82,8 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.2,
       "position": [
-        2304,
-        912
+        2016,
+        816
       ],
       "id": "4cea7848-77e3-430f-9d6c-f14d73a915dc",
       "name": "Send Alert to Slack",
@@ -401,8 +111,8 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.2,
       "position": [
-        2304,
-        1120
+        2016,
+        1016
       ],
       "id": "be75a84c-310c-4b0b-95a4-55011dacac84",
       "name": "Send OK to Slack (Optional)",
@@ -422,121 +132,14 @@
       "main": [
         [
           {
-            "node": "Fetch Dashboard",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch CrawlTask Summary",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch Outbox Summary",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch CrawledRaw Summary",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch External Health",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch ProductSync Failures",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch CrawlExecution Summary",
+            "node": "Fetch & Evaluate",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch Dashboard": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch CrawlTask Summary": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Outbox Summary": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch CrawledRaw Summary": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch External Health": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch ProductSync Failures": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch CrawlExecution Summary": {
-      "main": [
-        [
-          {
-            "node": "Evaluate Alert Conditions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Evaluate Alert Conditions": {
+    "Fetch & Evaluate": {
       "main": [
         [
           {
