@@ -121,8 +121,7 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(commandFacade, times(1))
-                    .completeSyncAndPersist(outbox, product, newExternalProductId);
+            verify(commandFacade, times(1)).completeSyncAndPersist(outbox, newExternalProductId);
         }
 
         @Test
@@ -146,8 +145,7 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(commandFacade, times(1))
-                    .completeSyncAndPersist(outbox, product, EXTERNAL_PRODUCT_ID);
+            verify(commandFacade, times(1)).completeSyncAndPersist(outbox, EXTERNAL_PRODUCT_ID);
         }
 
         @Test
@@ -172,7 +170,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(commandFacade, never()).completeSyncAndPersist(any(), any(), any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any());
         }
 
         @Test
@@ -197,7 +195,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(commandFacade, never()).completeSyncAndPersist(any(), any(), any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any());
         }
     }
 

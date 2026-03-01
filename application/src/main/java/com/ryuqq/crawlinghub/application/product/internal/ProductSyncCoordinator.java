@@ -6,7 +6,6 @@ import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProduct
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator.SyncTarget;
 import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
@@ -94,7 +93,7 @@ public class ProductSyncCoordinator {
                     externalProductServerClient.sync(target.outbox(), target.product(), seller);
 
             if (result.success()) {
-                completeSync(target.outbox(), target.product(), result.externalProductId());
+                completeSync(target.outbox(), result.externalProductId());
                 log.info(
                         "SQS 외부 동기화 성공: outboxId={}, productId={}, externalProductId={}",
                         target.outbox().getId(),
@@ -121,9 +120,8 @@ public class ProductSyncCoordinator {
 
     // === Private Methods ===
 
-    private void completeSync(
-            CrawledProductSyncOutbox outbox, CrawledProduct product, Long externalProductId) {
-        commandFacade.completeSyncAndPersist(outbox, product, externalProductId);
+    private void completeSync(CrawledProductSyncOutbox outbox, Long externalProductId) {
+        commandFacade.completeSyncAndPersist(outbox, externalProductId);
     }
 
     private void failSync(CrawledProductSyncOutbox outbox, String errorMessage) {

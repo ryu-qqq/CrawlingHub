@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.application.product.internal;
 
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
+import com.ryuqq.crawlinghub.application.product.manager.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
@@ -24,14 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class CrawledProductCommandFacade {
 
     private final CrawledProductCommandManager commandManager;
+    private final CrawledProductReadManager readManager;
     private final CrawledProductSyncOutboxCoordinator syncOutboxCoordinator;
     private final CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
 
     public CrawledProductCommandFacade(
             CrawledProductCommandManager commandManager,
+            CrawledProductReadManager readManager,
             CrawledProductSyncOutboxCoordinator syncOutboxCoordinator,
             CrawledProductSyncOutboxCommandManager syncOutboxCommandManager) {
         this.commandManager = commandManager;
+        this.readManager = readManager;
         this.syncOutboxCoordinator = syncOutboxCoordinator;
         this.syncOutboxCommandManager = syncOutboxCommandManager;
     }
@@ -65,25 +69,37 @@ public class CrawledProductCommandFacade {
      *
      * <ol>
      *   <li>SyncOutbox 완료 처리
+     *   <li>CrawledProduct를 DB에서 최신 버전으로 재조회
      *   <li>CrawledProduct 동기화 상태 갱신
      *   <li>CrawledProduct 저장
      * </ol>
      *
+     * <p><strong>Product 재조회 이유</strong>: Coordinator에서 전달된 Product 객체는 외부 API 호출 전에 로드된 것으로, 호출 중
+     * 다른 트랜잭션이 같은 Product를 수정하면 @Version 충돌(OptimisticLockException)이 발생합니다. 트랜잭션 내에서 최신 버전을 재조회하여
+     * 안전하게 저장합니다.
+     *
      * @param outbox 완료할 SyncOutbox
-     * @param product 상태를 갱신할 CrawledProduct
      * @param externalProductId 외부 상품 ID
      */
     @Transactional
-    public void completeSyncAndPersist(
-            CrawledProductSyncOutbox outbox, CrawledProduct product, Long externalProductId) {
+    public void completeSyncAndPersist(CrawledProductSyncOutbox outbox, Long externalProductId) {
         syncOutboxCommandManager.markAsCompleted(outbox, externalProductId);
+
+        CrawledProduct freshProduct =
+                readManager
+                        .findById(outbox.getCrawledProductId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "CrawledProduct를 찾을 수 없음: productId="
+                                                        + outbox.getCrawledProductIdValue()));
 
         Instant now = Instant.now();
         if (outbox.getSyncType().isCreate()) {
-            product.markAsSynced(externalProductId, now);
+            freshProduct.markAsSynced(externalProductId, now);
         } else {
-            product.markChangesSynced(Set.of(outbox.getSyncType().toChangeType()), now);
+            freshProduct.markChangesSynced(Set.of(outbox.getSyncType().toChangeType()), now);
         }
-        commandManager.persist(product);
+        commandManager.persist(freshProduct);
     }
 }
