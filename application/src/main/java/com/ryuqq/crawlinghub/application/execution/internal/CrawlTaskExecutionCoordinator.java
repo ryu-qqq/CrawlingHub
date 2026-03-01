@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.execution.internal;
 
+import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.execution.dto.bundle.CrawlTaskExecutionBundle;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlContextMapper;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.CrawlResultProcessor;
@@ -38,6 +39,8 @@ import org.springframework.stereotype.Component;
 public class CrawlTaskExecutionCoordinator {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlTaskExecutionCoordinator.class);
+    private static final String CYCLE_METRIC = "useragent_cycle_total";
+    private static final String HTTP_STATUS_METRIC = "crawl_http_status_total";
 
     private final ExecutionCommandFacade commandFacade;
     private final CrawlingUserAgentCoordinator userAgentCoordinator;
@@ -45,6 +48,7 @@ public class CrawlTaskExecutionCoordinator {
     private final CrawlResultProcessorProvider processorProvider;
     private final FollowUpTaskCreator followUpTaskCreator;
     private final CrawlContextMapper crawlContextMapper;
+    private final CrawlHubMetrics metrics;
 
     public CrawlTaskExecutionCoordinator(
             ExecutionCommandFacade commandFacade,
@@ -52,13 +56,15 @@ public class CrawlTaskExecutionCoordinator {
             CrawlingProcessor crawlingProcessor,
             CrawlResultProcessorProvider processorProvider,
             FollowUpTaskCreator followUpTaskCreator,
-            CrawlContextMapper crawlContextMapper) {
+            CrawlContextMapper crawlContextMapper,
+            CrawlHubMetrics metrics) {
         this.commandFacade = commandFacade;
         this.userAgentCoordinator = userAgentCoordinator;
         this.crawlingProcessor = crawlingProcessor;
         this.processorProvider = processorProvider;
         this.followUpTaskCreator = followUpTaskCreator;
         this.crawlContextMapper = crawlContextMapper;
+        this.metrics = metrics;
     }
 
     /**
@@ -99,6 +105,10 @@ public class CrawlTaskExecutionCoordinator {
         } finally {
             userAgentCoordinator.returnAgent(
                     agent.userAgentId(), success, httpStatusCode, agent.consecutiveRateLimits());
+            metrics.incrementCounter(CYCLE_METRIC, "outcome", success ? "success" : "failure");
+            if (httpStatusCode > 0) {
+                metrics.incrementCounterWithStatusCode(HTTP_STATUS_METRIC, httpStatusCode);
+            }
         }
     }
 
