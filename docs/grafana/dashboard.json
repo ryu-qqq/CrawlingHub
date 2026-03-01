@@ -431,7 +431,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) * 100",
+          "expr": "sum(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) / clamp_min(sum(jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}), 1) * 100",
           "legendFormat": "Heap %",
           "refId": "A"
         }
@@ -677,7 +677,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / clamp_min(sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), 1) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -3169,6 +3169,7 @@
           "type": "prometheus",
           "uid": "ef4r3izgbak8wb"
         },
+        "allValue": ".*",
         "definition": "",
         "hide": 0,
         "includeAll": true,
@@ -3176,7 +3177,7 @@
         "multi": true,
         "name": "task_id",
         "options": [],
-        "query": "label_values(up{job=\"$job\", environment=\"$environment\"}, aws_ecs_task_id)",
+        "query": "label_values(up{job=\"$job\", environment=~\"$environment\"}, aws_ecs_task_id)",
         "refresh": 2,
         "regex": "/.+/",
         "skipUrlSync": false,
