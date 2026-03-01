@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
 import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
+import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.execution.dto.bundle.CrawlTaskExecutionBundle;
 import com.ryuqq.crawlinghub.application.execution.dto.command.ExecuteCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlContextMapper;
@@ -58,6 +59,8 @@ class CrawlTaskExecutionCoordinatorTest {
     @Mock private FollowUpTaskCreator followUpTaskCreator;
 
     @Mock private CrawlContextMapper crawlContextMapper;
+
+    @Mock private CrawlHubMetrics metrics;
 
     @Mock private CrawlResultProcessor mockProcessor;
 
