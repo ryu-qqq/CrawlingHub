@@ -63,11 +63,21 @@ public class CrawlHubMetrics {
     }
 
     private String groupStatusCode(int code) {
-        if (code == 0) return "none";
-        if (code == 429) return "rate_limited";
-        if (code >= 200 && code < 300) return "2xx";
-        if (code >= 400 && code < 500) return "4xx";
-        if (code >= 500) return "5xx";
+        if (code == 0) {
+            return "none";
+        }
+        if (code == 429) {
+            return "rate_limited";
+        }
+        if (code >= 200 && code < 300) {
+            return "2xx";
+        }
+        if (code >= 400 && code < 500) {
+            return "4xx";
+        }
+        if (code >= 500) {
+            return "5xx";
+        }
         return "other";
     }
 
