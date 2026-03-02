@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.application.common.metric.annotation.OutboundClient
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpRequest;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpResponse;
 import com.ryuqq.crawlinghub.application.execution.port.out.client.HttpClient;
+import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -49,7 +50,7 @@ public class WebClientHttpAdapter implements HttpClient {
         try {
             return webClient
                     .get()
-                    .uri(request.url())
+                    .uri(URI.create(request.url()))
                     .headers(headers -> request.headers().forEach(headers::set))
                     .exchangeToMono(mapper::toHttpResponse)
                     .block();
@@ -70,7 +71,7 @@ public class WebClientHttpAdapter implements HttpClient {
         try {
             return webClient
                     .post()
-                    .uri(request.url())
+                    .uri(URI.create(request.url()))
                     .headers(headers -> request.headers().forEach(headers::set))
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request.body() != null ? request.body() : "")

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.ryuqq.crawlinghub.adapter.out.http.mapper.HttpResponseMapper;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpRequest;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.dto.HttpResponse;
+import java.net.URI;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,7 +61,7 @@ class WebClientHttpAdapterTest {
             WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
             when(webClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(any(String.class))).thenReturn(headersSpec);
+            when(uriSpec.uri(any(URI.class))).thenReturn(headersSpec);
             when(headersSpec.headers(any())).thenReturn(headersSpec);
             when(headersSpec.exchangeToMono(any())).thenReturn(Mono.just(expectedResponse));
 
@@ -92,7 +93,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(any(String.class))).thenReturn(headersSpec);
+            when(uriSpec.uri(any(URI.class))).thenReturn(headersSpec);
             when(headersSpec.headers(any())).thenReturn(headersSpec);
             when(headersSpec.exchangeToMono(any())).thenThrow(exception);
             when(mapper.fromException(exception)).thenReturn(errorResponse);
@@ -118,7 +119,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(any(String.class))).thenReturn(headersSpec);
+            when(uriSpec.uri(any(URI.class))).thenReturn(headersSpec);
             when(headersSpec.headers(any())).thenReturn(headersSpec);
             when(headersSpec.exchangeToMono(any())).thenThrow(connectionError);
             when(mapper.fromConnectionFailure(connectionError))
@@ -147,7 +148,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.get()).thenReturn(uriSpec);
-            when(uriSpec.uri(any(String.class))).thenReturn(headersSpec);
+            when(uriSpec.uri(any(URI.class))).thenReturn(headersSpec);
             when(headersSpec.headers(any())).thenReturn(headersSpec);
             when(headersSpec.exchangeToMono(any())).thenReturn(Mono.just(expectedResponse));
 
@@ -177,7 +178,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.post()).thenReturn(bodyUriSpec);
-            when(bodyUriSpec.uri(any(String.class))).thenReturn(bodySpec);
+            when(bodyUriSpec.uri(any(URI.class))).thenReturn(bodySpec);
             when(bodySpec.headers(any())).thenReturn(bodySpec);
             when(bodySpec.contentType(any())).thenReturn(bodySpec);
             when(bodySpec.bodyValue(any())).thenReturn(headersSpec);
@@ -203,7 +204,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.post()).thenReturn(bodyUriSpec);
-            when(bodyUriSpec.uri(any(String.class))).thenReturn(bodySpec);
+            when(bodyUriSpec.uri(any(URI.class))).thenReturn(bodySpec);
             when(bodySpec.headers(any())).thenReturn(bodySpec);
             when(bodySpec.contentType(any())).thenReturn(bodySpec);
             when(bodySpec.bodyValue(any())).thenReturn(headersSpec);
@@ -237,7 +238,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.post()).thenReturn(bodyUriSpec);
-            when(bodyUriSpec.uri(any(String.class))).thenReturn(bodySpec);
+            when(bodyUriSpec.uri(any(URI.class))).thenReturn(bodySpec);
             when(bodySpec.headers(any())).thenReturn(bodySpec);
             when(bodySpec.contentType(any())).thenReturn(bodySpec);
             when(bodySpec.bodyValue(any())).thenReturn(headersSpec);
@@ -266,7 +267,7 @@ class WebClientHttpAdapterTest {
             WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
 
             when(webClient.post()).thenReturn(bodyUriSpec);
-            when(bodyUriSpec.uri(any(String.class))).thenReturn(bodySpec);
+            when(bodyUriSpec.uri(any(URI.class))).thenReturn(bodySpec);
             when(bodySpec.headers(any())).thenReturn(bodySpec);
             when(bodySpec.contentType(any())).thenReturn(bodySpec);
             when(bodySpec.bodyValue(any())).thenReturn(headersSpec);
