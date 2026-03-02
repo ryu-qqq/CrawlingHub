@@ -29,15 +29,29 @@ public class CrawlResultMapper {
         return CrawlResult.failure(response.statusCode(), errorMessage);
     }
 
+    private static final int MAX_BODY_LENGTH = 500;
+
     private String buildErrorMessage(HttpResponse response) {
+        String prefix;
         if (response.isRateLimited()) {
-            return "Rate limited (429)";
+            prefix = "Rate limited (429)";
         } else if (response.isServerError()) {
-            return "Server error: " + response.statusCode();
+            prefix = "Server error: " + response.statusCode();
         } else if (response.isClientError()) {
-            return "Client error: " + response.statusCode();
+            prefix = "Client error: " + response.statusCode();
         } else {
-            return "HTTP error: " + response.statusCode();
+            prefix = "HTTP error: " + response.statusCode();
         }
+
+        String body = response.body();
+        if (body == null || body.isBlank()) {
+            return prefix;
+        }
+
+        String truncatedBody =
+                body.length() > MAX_BODY_LENGTH
+                        ? body.substring(0, MAX_BODY_LENGTH) + "...(truncated)"
+                        : body;
+        return prefix + " | body=" + truncatedBody;
     }
 }
