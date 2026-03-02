@@ -26,9 +26,7 @@ import com.ryuqq.crawlinghub.domain.product.vo.ShippingInfo;
 import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +42,6 @@ public class InboundProductRequestMapper {
     private static final int MAX_IMAGE_COUNT = 20;
     private static final String COLOR_GROUP_NAME = "색상";
     private static final String SIZE_GROUP_NAME = "사이즈";
-    private static final Pattern DIMS_PATTERN = Pattern.compile("/_dims_/.*$");
 
     public ReceiveInboundProductRequest toReceiveRequest(
             CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller) {
@@ -85,46 +82,24 @@ public class InboundProductRequestMapper {
             return new UpdateImagesRequest(List.of());
         }
 
-        List<ProductImage> descriptionImages = images.getDescriptionImages();
-        Set<String> descriptionBaseUrls =
-                descriptionImages.stream()
-                        .map(img -> stripDims(img.getEffectiveUrl()))
-                        .collect(Collectors.toSet());
+        List<ProductImage> thumbnails = images.getThumbnails();
+        if (thumbnails.isEmpty()) {
+            return new UpdateImagesRequest(List.of());
+        }
 
         List<UpdateImagesRequest.ImageEntry> entries = new ArrayList<>();
         AtomicInteger order = new AtomicInteger(0);
 
-        List<ProductImage> thumbnails = filterNonDuplicateThumbnails(images, descriptionBaseUrls);
-        boolean thumbnailAssigned = false;
+        entries.add(
+                new UpdateImagesRequest.ImageEntry(
+                        "THUMBNAIL", thumbnails.get(0).getEffectiveUrl(), order.getAndIncrement()));
 
-        if (!thumbnails.isEmpty()) {
+        for (int i = 1; i < thumbnails.size() && entries.size() < MAX_IMAGE_COUNT; i++) {
             entries.add(
                     new UpdateImagesRequest.ImageEntry(
-                            "THUMBNAIL",
-                            thumbnails.get(0).getEffectiveUrl(),
+                            "DETAIL",
+                            thumbnails.get(i).getEffectiveUrl(),
                             order.getAndIncrement()));
-            thumbnailAssigned = true;
-            for (int i = 1; i < thumbnails.size() && entries.size() < MAX_IMAGE_COUNT; i++) {
-                entries.add(
-                        new UpdateImagesRequest.ImageEntry(
-                                "DETAIL",
-                                thumbnails.get(i).getEffectiveUrl(),
-                                order.getAndIncrement()));
-            }
-        }
-
-        for (ProductImage img : descriptionImages) {
-            if (entries.size() >= MAX_IMAGE_COUNT) {
-                break;
-            }
-            String type = "DETAIL";
-            if (!thumbnailAssigned) {
-                type = "THUMBNAIL";
-                thumbnailAssigned = true;
-            }
-            entries.add(
-                    new UpdateImagesRequest.ImageEntry(
-                            type, img.getEffectiveUrl(), order.getAndIncrement()));
         }
 
         return new UpdateImagesRequest(entries);
@@ -161,68 +136,27 @@ public class InboundProductRequestMapper {
             return List.of();
         }
 
-        List<ProductImage> descriptionImages = images.getDescriptionImages();
-        Set<String> descriptionBaseUrls =
-                descriptionImages.stream()
-                        .map(img -> stripDims(img.getEffectiveUrl()))
-                        .collect(Collectors.toSet());
+        List<ProductImage> thumbnails = images.getThumbnails();
+        if (thumbnails.isEmpty()) {
+            return List.of();
+        }
 
         List<ImageRequest> requests = new ArrayList<>();
         AtomicInteger order = new AtomicInteger(0);
 
-        List<ProductImage> thumbnails = filterNonDuplicateThumbnails(images, descriptionBaseUrls);
-        boolean thumbnailAssigned = false;
+        requests.add(
+                new ImageRequest(
+                        "THUMBNAIL", thumbnails.get(0).getEffectiveUrl(), order.getAndIncrement()));
 
-        if (!thumbnails.isEmpty()) {
+        for (int i = 1; i < thumbnails.size() && requests.size() < MAX_IMAGE_COUNT; i++) {
             requests.add(
                     new ImageRequest(
-                            "THUMBNAIL",
-                            thumbnails.get(0).getEffectiveUrl(),
+                            "DETAIL",
+                            thumbnails.get(i).getEffectiveUrl(),
                             order.getAndIncrement()));
-            thumbnailAssigned = true;
-            for (int i = 1; i < thumbnails.size() && requests.size() < MAX_IMAGE_COUNT; i++) {
-                requests.add(
-                        new ImageRequest(
-                                "DETAIL",
-                                thumbnails.get(i).getEffectiveUrl(),
-                                order.getAndIncrement()));
-            }
-        }
-
-        for (ProductImage img : descriptionImages) {
-            if (requests.size() >= MAX_IMAGE_COUNT) {
-                break;
-            }
-            String type = "DETAIL";
-            if (!thumbnailAssigned) {
-                type = "THUMBNAIL";
-                thumbnailAssigned = true;
-            }
-            requests.add(new ImageRequest(type, img.getEffectiveUrl(), order.getAndIncrement()));
         }
 
         return requests;
-    }
-
-    /**
-     * 썸네일 중 상세 이미지와 중복되지 않는 것만 필터링
-     *
-     * <p>머스트잇 bannerImages는 /_dims_/resize/... 가 붙은 리사이즈 URL이고, detailImages는 원본 URL입니다. 같은 이미지가
-     * 리사이즈/원본 두 가지로 존재하므로 원본(상세)이 있는 경우 리사이즈(썸네일)를 제외합니다.
-     */
-    private List<ProductImage> filterNonDuplicateThumbnails(
-            ProductImages images, Set<String> descriptionBaseUrls) {
-        return images.getThumbnails().stream()
-                .filter(img -> !descriptionBaseUrls.contains(stripDims(img.getEffectiveUrl())))
-                .collect(Collectors.toList());
-    }
-
-    /** URL에서 /_dims_/... 경로를 제거하여 원본 이미지 경로 추출 */
-    private String stripDims(String url) {
-        if (url == null) {
-            return "";
-        }
-        return DIMS_PATTERN.matcher(url).replaceFirst("");
     }
 
     // --- OptionGroup 변환 ---

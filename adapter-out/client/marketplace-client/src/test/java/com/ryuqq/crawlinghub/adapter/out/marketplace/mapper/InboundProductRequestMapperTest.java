@@ -228,7 +228,7 @@ class InboundProductRequestMapperTest {
         }
 
         @Test
-        @DisplayName("첫 번째 썸네일만 THUMBNAIL, 나머지는 모두 DETAIL로 변환된다")
+        @DisplayName("썸네일만 이미지 목록에 포함되고 디스크립션 이미지는 제외된다")
         void toReceiveRequest_convertsImagesCorrectly() {
             // given
             CrawledProductSyncOutbox outbox = createOutbox();
@@ -239,10 +239,9 @@ class InboundProductRequestMapperTest {
             ReceiveInboundProductRequest request = mapper.toReceiveRequest(outbox, product, seller);
 
             // then
-            assertThat(request.images()).hasSize(3);
+            assertThat(request.images()).hasSize(2);
             assertThat(request.images().get(0).imageType()).isEqualTo("THUMBNAIL");
             assertThat(request.images().get(1).imageType()).isEqualTo("DETAIL");
-            assertThat(request.images().get(2).imageType()).isEqualTo("DETAIL");
         }
 
         @Test
@@ -377,7 +376,7 @@ class InboundProductRequestMapperTest {
     class ToUpdateImagesRequestTest {
 
         @Test
-        @DisplayName("첫 번째 썸네일만 THUMBNAIL, 나머지는 모두 DETAIL로 변환된다")
+        @DisplayName("썸네일만 이미지 목록에 포함되고 디스크립션 이미지는 제외된다")
         void toUpdateImagesRequest_convertsImages() {
             // given
             CrawledProduct product = createProductWithAll();
@@ -386,17 +385,13 @@ class InboundProductRequestMapperTest {
             UpdateImagesRequest request = mapper.toUpdateImagesRequest(product);
 
             // then
-            assertThat(request.images()).hasSize(3);
-            long thumbnailCount =
-                    request.images().stream()
-                            .filter(img -> "THUMBNAIL".equals(img.imageType()))
-                            .count();
-            long detailCount =
-                    request.images().stream()
-                            .filter(img -> "DETAIL".equals(img.imageType()))
-                            .count();
-            assertThat(thumbnailCount).isEqualTo(1);
-            assertThat(detailCount).isEqualTo(2);
+            assertThat(request.images()).hasSize(2);
+            assertThat(request.images().get(0).imageType()).isEqualTo("THUMBNAIL");
+            assertThat(request.images().get(0).originUrl())
+                    .isEqualTo("https://img.test/thumb1.jpg");
+            assertThat(request.images().get(1).imageType()).isEqualTo("DETAIL");
+            assertThat(request.images().get(1).originUrl())
+                    .isEqualTo("https://img.test/thumb2.jpg");
         }
 
         @Test
