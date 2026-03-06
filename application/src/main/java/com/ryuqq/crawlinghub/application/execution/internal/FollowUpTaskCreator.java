@@ -5,6 +5,7 @@ import com.ryuqq.crawlinghub.application.task.dto.command.CreateCrawlTaskCommand
 import com.ryuqq.crawlinghub.application.task.factory.command.CrawlTaskCommandFactory;
 import com.ryuqq.crawlinghub.application.task.internal.CrawlTaskCommandFacade;
 import com.ryuqq.crawlinghub.application.task.validator.CrawlTaskPersistenceValidator;
+import com.ryuqq.crawlinghub.domain.task.exception.DuplicateCrawlTaskException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,12 +66,21 @@ public class FollowUpTaskCreator {
         log.info("후속 CrawlTask 일괄 생성: count={}", commands.size());
 
         int successCount = 0;
+        int skipCount = 0;
         int failCount = 0;
 
         for (CreateCrawlTaskCommand command : commands) {
             try {
                 execute(command);
                 successCount++;
+            } catch (DuplicateCrawlTaskException e) {
+                skipCount++;
+                log.debug(
+                        "후속 CrawlTask 중복 스킵: schedulerId={}, sellerId={}, taskType={}, targetId={}",
+                        command.crawlSchedulerId(),
+                        command.sellerId(),
+                        command.taskType(),
+                        command.targetId());
             } catch (RuntimeException e) {
                 failCount++;
                 log.error(
@@ -87,9 +97,10 @@ public class FollowUpTaskCreator {
         }
 
         log.info(
-                "후속 CrawlTask 일괄 생성 완료: total={}, success={}, fail={}",
+                "후속 CrawlTask 일괄 생성 완료: total={}, success={}, skip={}, fail={}",
                 commands.size(),
                 successCount,
+                skipCount,
                 failCount);
     }
 }

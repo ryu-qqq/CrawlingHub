@@ -83,9 +83,8 @@ public class CrawlTaskPersistenceValidator {
                         CrawlTaskStatus.nonTerminalStatuses());
 
         if (exists) {
-            log.error(
-                    "중복 Task 감지! DuplicateCrawlTaskException 발생 예정 - "
-                            + "schedulerId={}, sellerId={}, taskType={}, endpointPath={}, "
+            log.warn(
+                    "중복 Task 감지 - schedulerId={}, sellerId={}, taskType={}, endpointPath={}, "
                             + "endpointQueryParams={}",
                     crawlTask.getCrawlSchedulerIdValue(),
                     crawlTask.getSellerIdValue(),

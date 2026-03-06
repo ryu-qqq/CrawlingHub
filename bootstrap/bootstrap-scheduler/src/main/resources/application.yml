@@ -120,7 +120,7 @@ scheduler:
     crawl-task-outbox:
       process-pending:
         enabled: true
-        cron: "0 */5 * * * *"          # 5분마다
+        cron: "*/5 * * * * *"          # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         delay-seconds: 30
@@ -174,7 +174,7 @@ scheduler:
     sync-outbox:
       publish-pending:
         enabled: true
-        cron: "*/30 * * * * *"            # 30초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         max-retry-count: 3
