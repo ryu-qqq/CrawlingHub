@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
 import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClientException;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.UpdateProductsRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.InboundProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
@@ -61,6 +62,15 @@ public class UpdateProductInfoSyncStrategy implements ProductSyncStrategy {
                     externalProductCode);
 
             return ProductSyncResult.success(outbox.getExternalProductId());
+        } catch (MarketPlaceClientException e) {
+            if (e.isNotYetConverted()) {
+                log.warn(
+                        "[UPDATE_PRODUCT_INFO] 변환 미완료(422) - outboxId={}, 자동 재시도 예정",
+                        outbox.getId());
+                return ProductSyncResult.failure("NOT_YET_CONVERTED", e.getMessage());
+            }
+            log.error("[UPDATE_PRODUCT_INFO] 상품 기본정보 수정 실패 - outboxId={}", outbox.getId(), e);
+            return ProductSyncResult.failure("UPDATE_PRODUCT_INFO_FAILED", e.getMessage());
         } catch (Exception e) {
             log.error("[UPDATE_PRODUCT_INFO] 상품 기본정보 수정 실패 - outboxId={}", outbox.getId(), e);
             return ProductSyncResult.failure("UPDATE_PRODUCT_INFO_FAILED", e.getMessage());

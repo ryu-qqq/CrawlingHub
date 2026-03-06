@@ -56,6 +56,7 @@ public class MarketPlaceClient {
             return response.data();
         } catch (WebClientResponseException e) {
             throw new MarketPlaceClientException(
+                    e.getStatusCode().value(),
                     String.format(
                             "인바운드 상품 수신 API 호출 실패: status=%d, body=%s",
                             e.getStatusCode().value(), e.getResponseBodyAsString()),
@@ -86,6 +87,7 @@ public class MarketPlaceClient {
                     .block();
         } catch (WebClientResponseException e) {
             throw new MarketPlaceClientException(
+                    e.getStatusCode().value(),
                     String.format(
                             "가격 수정 API 호출 실패: status=%d, body=%s",
                             e.getStatusCode().value(), e.getResponseBodyAsString()),
@@ -116,6 +118,7 @@ public class MarketPlaceClient {
                     .block();
         } catch (WebClientResponseException e) {
             throw new MarketPlaceClientException(
+                    e.getStatusCode().value(),
                     String.format(
                             "이미지 수정 API 호출 실패: status=%d, body=%s",
                             e.getStatusCode().value(), e.getResponseBodyAsString()),
@@ -146,6 +149,7 @@ public class MarketPlaceClient {
                     .block();
         } catch (WebClientResponseException e) {
             throw new MarketPlaceClientException(
+                    e.getStatusCode().value(),
                     String.format(
                             "상세설명 수정 API 호출 실패: status=%d, body=%s",
                             e.getStatusCode().value(), e.getResponseBodyAsString()),
@@ -176,6 +180,7 @@ public class MarketPlaceClient {
                     .block();
         } catch (WebClientResponseException e) {
             throw new MarketPlaceClientException(
+                    e.getStatusCode().value(),
                     String.format(
                             "상품/옵션 수정 API 호출 실패: status=%d, body=%s",
                             e.getStatusCode().value(), e.getResponseBodyAsString()),

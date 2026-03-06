@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
 import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClientException;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.ReceiveInboundProductRequest;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.response.InboundProductConversionResponse;
 import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.InboundProductRequestMapper;
@@ -71,6 +72,13 @@ public class CreateProductSyncStrategy implements ProductSyncStrategy {
                     response.action());
 
             return ProductSyncResult.success(response.inboundProductId());
+        } catch (MarketPlaceClientException e) {
+            if (e.isNotYetConverted()) {
+                log.warn("[CREATE] 변환 미완료(422) - outboxId={}, 자동 재시도 예정", outbox.getId());
+                return ProductSyncResult.failure("NOT_YET_CONVERTED", e.getMessage());
+            }
+            log.error("[CREATE] 인바운드 상품 수신 실패 - outboxId={}", outbox.getId(), e);
+            return ProductSyncResult.failure("CREATE_FAILED", e.getMessage());
         } catch (Exception e) {
             log.error("[CREATE] 인바운드 상품 수신 실패 - outboxId={}", outbox.getId(), e);
             return ProductSyncResult.failure("CREATE_FAILED", e.getMessage());
