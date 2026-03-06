@@ -100,7 +100,6 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
      * <ul>
      *   <li>keyword: 셀러명 (검색어)
      *   <li>sort: LATEST (최신순)
-     *   <li>f: us:NEW,lwp:Y (필터 조건)
      *   <li>pageNo: 페이지 번호
      * </ul>
      *
@@ -119,15 +118,7 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
                 "/mustit-api/facade-api/v1/search/items",
-                Map.of(
-                        "keyword",
-                        keyword,
-                        "sort",
-                        "LATEST",
-                        "f",
-                        "us:NEW,lwp:Y",
-                        "pageNo",
-                        String.valueOf(pageNo)));
+                Map.of("keyword", keyword, "sort", "LATEST", "pageNo", String.valueOf(pageNo)));
     }
 
     /**

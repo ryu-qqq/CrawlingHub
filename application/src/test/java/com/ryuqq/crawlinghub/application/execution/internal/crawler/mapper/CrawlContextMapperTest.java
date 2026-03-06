@@ -235,7 +235,7 @@ class CrawlContextMapperTest {
         void shouldWrapV1UrlIntoBffFormat() {
             // Given
             String v1Endpoint =
-                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=LIKEASTAR&sort=LATEST&f=us:NEW,lwp:Y&pageNo=1";
+                    "https://m.web.mustit.co.kr/mustit-api/facade-api/v1/search/items?keyword=LIKEASTAR&sort=LATEST&pageNo=1";
             String nid = "3cb41b66-b356-4094-9df3-adf8deab19f1";
             String mustitUid = "1764141487281.758544";
 
@@ -260,8 +260,7 @@ class CrawlContextMapperTest {
             String encodedPath = result.substring(BFF_PREFIX.length());
             String decodedPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
             assertThat(decodedPath)
-                    .isEqualTo(
-                            "/v1/search/items?keyword=LIKEASTAR&sort=LATEST&f=us:NEW,lwp:Y&pageNo=1");
+                    .isEqualTo("/v1/search/items?keyword=LIKEASTAR&sort=LATEST&pageNo=1");
         }
 
         @Test

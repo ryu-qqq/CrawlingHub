@@ -127,7 +127,7 @@ class CrawlEndpointTest {
             assertThat(endpoint.path()).isEqualTo("/mustit-api/facade-api/v1/search/items");
             assertThat(endpoint.queryParams()).containsEntry("keyword", "test-seller");
             assertThat(endpoint.queryParams()).containsEntry("sort", "LATEST");
-            assertThat(endpoint.queryParams()).containsEntry("f", "us:NEW,lwp:Y");
+            assertThat(endpoint.queryParams()).doesNotContainKey("f");
             assertThat(endpoint.queryParams()).containsEntry("pageNo", "1");
         }
 
