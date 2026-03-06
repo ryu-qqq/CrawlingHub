@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -90,7 +91,30 @@ public class CrawledProductCoordinator {
             commandFacade.persistAndSync(product);
             log.info("soft-deleted 상품 복원: sellerId={}, itemNo={}", sellerId.value(), itemNo);
         } else {
+            persistOrFallbackToUpdate(sellerId, itemNo, updater, creator);
+        }
+    }
+
+    /** 신규 상품 persist 시도, 레이스 컨디션으로 중복 키 발생 시 update로 전환 */
+    private void persistOrFallbackToUpdate(
+            SellerId sellerId,
+            long itemNo,
+            Consumer<CrawledProduct> updater,
+            Supplier<CrawledProduct> creator) {
+        try {
             commandManager.persist(creator.get());
+        } catch (DataIntegrityViolationException e) {
+            log.warn(
+                    "상품 insert 중복 키 감지, update로 전환: sellerId={}, itemNo={}",
+                    sellerId.value(),
+                    itemNo);
+            readManager
+                    .findBySellerIdAndItemNo(sellerId, itemNo)
+                    .ifPresent(
+                            product -> {
+                                updater.accept(product);
+                                commandFacade.persistAndSync(product);
+                            });
         }
     }
 
