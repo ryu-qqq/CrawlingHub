@@ -61,6 +61,14 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     }
 
     @Override
+    public Optional<CrawledProduct> findBySellerIdAndItemNoIncludingDeleted(
+            SellerId sellerId, long itemNo) {
+        return queryDslRepository
+                .findBySellerIdAndItemNoIncludingDeleted(sellerId.value(), itemNo)
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public List<CrawledProduct> findBySellerId(SellerId sellerId) {
         List<CrawledProductJpaEntity> entities =
                 queryDslRepository.findBySellerId(sellerId.value());
@@ -71,6 +79,11 @@ public class CrawledProductQueryAdapter implements CrawledProductQueryPort {
     public List<CrawledProduct> findNeedsSyncProducts(int limit) {
         List<CrawledProductJpaEntity> entities = queryDslRepository.findNeedsSyncProducts(limit);
         return entities.stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<CrawledProduct> findStaleProducts(int limit) {
+        return queryDslRepository.findStaleProducts(limit).stream().map(mapper::toDomain).toList();
     }
 
     @Override

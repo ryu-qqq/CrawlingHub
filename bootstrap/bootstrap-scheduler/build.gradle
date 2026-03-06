@@ -52,6 +52,9 @@ dependencies {
     // ========================================
     // Logging & Monitoring
     // ========================================
+    // Prometheus metrics exporter (for ADOT sidecar scraping)
+    implementation libs.micrometer.prometheus
+
     // JSON Logging (for prod/staging)
     implementation libs.logstash.logback.encoder
 

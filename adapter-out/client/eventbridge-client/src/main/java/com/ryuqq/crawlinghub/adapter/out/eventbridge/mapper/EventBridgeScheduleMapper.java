@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.adapter.out.eventbridge.config.EventBridgeClientPro
 import com.ryuqq.crawlinghub.adapter.out.eventbridge.exception.EventBridgePublishException;
 import com.ryuqq.crawlinghub.application.task.dto.messaging.EventBridgeTriggerPayload;
 import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.scheduler.model.ActionAfterCompletion;
 import software.amazon.awssdk.services.scheduler.model.CreateScheduleRequest;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.scheduler.model.UpdateScheduleRequest;
  * @since 1.0.0
  */
 @Component
+@ConditionalOnProperty(prefix = "eventbridge", name = "target-arn")
 public class EventBridgeScheduleMapper {
 
     private final EventBridgeClientProperties properties;

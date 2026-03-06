@@ -1,6 +1,7 @@
 package com.ryuqq.crawlinghub.domain.task.vo;
 
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -98,8 +99,7 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
      *
      * <ul>
      *   <li>keyword: 셀러명 (검색어)
-     *   <li>sort: POPULAR2 (인기순)
-     *   <li>f: us:NEW,lwp:Y (필터 조건)
+     *   <li>sort: LATEST (최신순)
      *   <li>pageNo: 페이지 번호
      * </ul>
      *
@@ -118,15 +118,7 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         return new CrawlEndpoint(
                 MUSTIT_BASE_URL,
                 "/mustit-api/facade-api/v1/search/items",
-                Map.of(
-                        "keyword",
-                        keyword,
-                        "sort",
-                        "POPULAR2",
-                        "f",
-                        "us:NEW,lwp:Y",
-                        "pageNo",
-                        String.valueOf(pageNo)));
+                Map.of("keyword", keyword, "sort", "LATEST", "pageNo", String.valueOf(pageNo)));
     }
 
     /**
@@ -141,13 +133,16 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         if (fullUrl == null || fullUrl.isBlank()) {
             throw new IllegalArgumentException("Search API URL은 null이거나 빈 값일 수 없습니다.");
         }
+
+        String normalizedUrl = normalizeSearchUrl(fullUrl);
+
         // URL 파싱하여 baseUrl과 path 분리
-        int pathStart = fullUrl.indexOf("/", fullUrl.indexOf("://") + 3);
+        int pathStart = normalizedUrl.indexOf("/", normalizedUrl.indexOf("://") + 3);
         if (pathStart == -1) {
-            return new CrawlEndpoint(fullUrl, "/", Map.of());
+            return new CrawlEndpoint(normalizedUrl, "/", Map.of());
         }
-        String baseUrl = fullUrl.substring(0, pathStart);
-        String pathWithQuery = fullUrl.substring(pathStart);
+        String baseUrl = normalizedUrl.substring(0, pathStart);
+        String pathWithQuery = normalizedUrl.substring(pathStart);
         int queryStart = pathWithQuery.indexOf("?");
         if (queryStart == -1) {
             return new CrawlEndpoint(baseUrl, pathWithQuery, Map.of());
@@ -156,6 +151,22 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         String queryString = pathWithQuery.substring(queryStart + 1);
         Map<String, String> queryParams = parseQueryString(queryString);
         return new CrawlEndpoint(baseUrl, path, queryParams);
+    }
+
+    private static final String MUSTIT_API_PREFIX = "/mustit-api/facade-api";
+
+    /**
+     * Search API nextApiUrl 정규화
+     *
+     * <p>MUSTIT Search API의 nextApiUrl이 상대 경로(예: /v1/search/items?...)로 오는 경우 baseUrl과 API prefix를
+     * 붙여 절대 URL로 변환합니다.
+     */
+    private static String normalizeSearchUrl(String url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
+        }
+        // 상대 경로: /v1/search/items?... → https://m.web.mustit.co.kr/mustit-api/facade-api/v1/...
+        return MUSTIT_BASE_URL + MUSTIT_API_PREFIX + url;
     }
 
     /**
@@ -174,7 +185,8 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
                         Collectors.toMap(
                                 param -> param.substring(0, param.indexOf("=")),
                                 param -> param.substring(param.indexOf("=") + 1),
-                                (v1, v2) -> v2));
+                                (v1, v2) -> v2,
+                                TreeMap::new));
     }
 
     /**
@@ -204,9 +216,10 @@ public record CrawlEndpoint(String baseUrl, String path, Map<String, String> que
         if (queryParams == null || queryParams.isEmpty()) {
             return null;
         }
-        return queryParams.entrySet().stream()
-                .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
-                .collect(Collectors.joining(",", "{", "}"));
+        return new TreeMap<>(queryParams)
+                .entrySet().stream()
+                        .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
+                        .collect(Collectors.joining(",", "{", "}"));
     }
 
     /**

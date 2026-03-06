@@ -11,7 +11,9 @@ import com.ryuqq.crawlinghub.application.product.port.in.command.ProcessPendingC
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledRaw;
 import com.ryuqq.crawlinghub.domain.product.vo.CrawlType;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -65,12 +67,20 @@ public class ProcessPendingCrawledRawService implements ProcessPendingCrawledRaw
             return SchedulerBatchProcessingResult.empty();
         }
 
-        log.info("CrawledRaw 가공 시작: type={}, count={}", crawlType, pendingRaws.size());
+        List<CrawledRaw> deduplicatedRaws = deduplicateBySellerAndItem(pendingRaws, crawlType);
+        int skippedDuplicates = pendingRaws.size() - deduplicatedRaws.size();
+
+        log.info(
+                "CrawledRaw 가공 시작: type={}, count={}, deduplicated={}, skipped={}",
+                crawlType,
+                pendingRaws.size(),
+                deduplicatedRaws.size(),
+                skippedDuplicates);
 
         int success = 0;
         int failed = 0;
 
-        for (CrawledRaw raw : pendingRaws) {
+        for (CrawledRaw raw : deduplicatedRaws) {
             try {
                 processRaw(raw);
                 crawledRawTransactionManager.markAsProcessed(raw, Instant.now());
@@ -95,6 +105,29 @@ public class ProcessPendingCrawledRawService implements ProcessPendingCrawledRaw
                 failed);
 
         return SchedulerBatchProcessingResult.of(pendingRaws.size(), success, failed);
+    }
+
+    /**
+     * MINI_SHOP 배치 내 동일 sellerId+itemNo 중복 제거
+     *
+     * <p>같은 배치에서 동일 상품의 Raw가 여러 건 있으면 마지막 건만 처리하고 나머지는 PROCESSED 처리합니다. MINI_SHOP 이외 타입은 중복 제거 없이
+     * 원본 그대로 반환합니다.
+     */
+    private List<CrawledRaw> deduplicateBySellerAndItem(
+            List<CrawledRaw> raws, CrawlType crawlType) {
+        if (crawlType != CrawlType.MINI_SHOP || raws.size() <= 1) {
+            return raws;
+        }
+
+        Map<String, CrawledRaw> latest = new LinkedHashMap<>();
+        for (CrawledRaw raw : raws) {
+            String key = raw.getSellerId() + ":" + raw.getItemNo();
+            CrawledRaw previous = latest.put(key, raw);
+            if (previous != null) {
+                crawledRawTransactionManager.markAsProcessed(previous, Instant.now());
+            }
+        }
+        return List.copyOf(latest.values());
     }
 
     private void processRaw(CrawledRaw raw) {

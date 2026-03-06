@@ -49,6 +49,7 @@ public class CrawledProduct {
     // MINI_SHOP 데이터
     private String itemName;
     private String brandName;
+    private long brandCode;
     private ProductPrice price;
     private ProductImages images;
     private boolean freeShipping;
@@ -77,6 +78,9 @@ public class CrawledProduct {
     // Soft Delete 상태
     private DeletionStatus deletionStatus;
 
+    // 낙관적 잠금 버전
+    private Long version;
+
     // 감사 정보
     private final Instant createdAt;
     private Instant updatedAt;
@@ -90,6 +94,7 @@ public class CrawledProduct {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
@@ -108,12 +113,14 @@ public class CrawledProduct {
             Set<ProductChangeType> pendingChanges,
             DeletionStatus deletionStatus,
             Instant createdAt,
-            Instant updatedAt) {
+            Instant updatedAt,
+            Long version) {
         this.id = id;
         this.sellerId = sellerId;
         this.itemNo = itemNo;
         this.itemName = itemName;
         this.brandName = brandName;
+        this.brandCode = brandCode;
         this.price = price;
         this.images = images;
         this.freeShipping = freeShipping;
@@ -136,6 +143,7 @@ public class CrawledProduct {
         this.deletionStatus = deletionStatus;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.version = version;
     }
 
     // === 팩토리 메서드 ===
@@ -168,6 +176,7 @@ public class CrawledProduct {
                 itemNo,
                 itemName,
                 brandName,
+                0L,
                 price,
                 images,
                 freeShipping,
@@ -186,7 +195,8 @@ public class CrawledProduct {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     /**
@@ -203,6 +213,7 @@ public class CrawledProduct {
                 crawlData.itemNo(),
                 crawlData.itemName(),
                 crawlData.brandName(),
+                0L,
                 crawlData.price(),
                 crawlData.images(),
                 crawlData.freeShipping(),
@@ -221,7 +232,8 @@ public class CrawledProduct {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     /** 기존 데이터로 CrawledProduct 복원 (영속성 계층 전용) */
@@ -231,6 +243,7 @@ public class CrawledProduct {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             ProductPrice price,
             ProductImages images,
             boolean freeShipping,
@@ -249,13 +262,15 @@ public class CrawledProduct {
             Set<ProductChangeType> pendingChanges,
             DeletionStatus deletionStatus,
             Instant createdAt,
-            Instant updatedAt) {
+            Instant updatedAt,
+            Long version) {
         return new CrawledProduct(
                 id,
                 sellerId,
                 itemNo,
                 itemName,
                 brandName,
+                brandCode,
                 price,
                 images,
                 freeShipping,
@@ -274,7 +289,8 @@ public class CrawledProduct {
                 pendingChanges,
                 deletionStatus,
                 createdAt,
-                updatedAt);
+                updatedAt,
+                version);
     }
 
     // === MINI_SHOP 업데이트 ===
@@ -394,6 +410,7 @@ public class CrawledProduct {
                         crawlData.originCountry(),
                         crawlData.shippingLocation());
 
+        this.brandCode = crawlData.brandCode();
         this.category = crawlData.category();
         this.shippingInfo = crawlData.shippingInfo();
         this.itemStatus = crawlData.itemStatus();
@@ -607,6 +624,16 @@ public class CrawledProduct {
         this.updatedAt = occurredAt;
     }
 
+    /**
+     * 소프트 삭제된 상품 복원
+     *
+     * @param occurredAt 복원 발생 시각
+     */
+    public void restore(Instant occurredAt) {
+        this.deletionStatus = DeletionStatus.active();
+        this.updatedAt = occurredAt;
+    }
+
     /** 삭제 여부 확인 */
     public boolean isDeleted() {
         return this.deletionStatus != null && this.deletionStatus.isDeleted();
@@ -632,8 +659,10 @@ public class CrawledProduct {
     // === 내부 헬퍼 ===
 
     private void addPendingChange(ProductChangeType changeType) {
-        this.pendingChanges.add(changeType);
         this.needsSync = true;
+        if (isRegisteredToExternalServer()) {
+            this.pendingChanges.add(changeType);
+        }
     }
 
     private boolean detectDetailProductInfoChanges(
@@ -664,13 +693,9 @@ public class CrawledProduct {
     // === 유틸리티 ===
 
     private boolean equalsNullSafe(String a, String b) {
-        if (a == null && b == null) {
-            return true;
-        }
-        if (a == null || b == null) {
-            return false;
-        }
-        return a.equals(b);
+        String normA = (a == null || a.isEmpty()) ? "" : a;
+        String normB = (b == null || b.isEmpty()) ? "" : b;
+        return normA.equals(normB);
     }
 
     // === Getters ===
@@ -701,6 +726,10 @@ public class CrawledProduct {
 
     public String getBrandName() {
         return brandName;
+    }
+
+    public long getBrandCode() {
+        return brandCode;
     }
 
     public ProductPrice getPrice() {
@@ -773,6 +802,10 @@ public class CrawledProduct {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     // === 도메인 이벤트 ===

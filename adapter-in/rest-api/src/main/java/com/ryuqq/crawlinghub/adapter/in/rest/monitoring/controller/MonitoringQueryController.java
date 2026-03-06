@@ -2,22 +2,28 @@ package com.ryuqq.crawlinghub.adapter.in.rest.monitoring.controller;
 
 import com.ryuqq.crawlinghub.adapter.in.rest.common.dto.response.ApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.MonitoringEndpoints;
+import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.CrawlExecutionSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.CrawlTaskSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.CrawledRawSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.DashboardSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.ExternalSystemHealthApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.OutboxSummaryApiResponse;
+import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.dto.response.ProductSyncFailureSummaryApiResponse;
 import com.ryuqq.crawlinghub.adapter.in.rest.monitoring.mapper.MonitoringQueryApiMapper;
+import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawlExecutionSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawlTaskSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.CrawledRawSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.DashboardSummaryResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ExternalSystemHealthResult;
 import com.ryuqq.crawlinghub.application.monitoring.dto.composite.OutboxSummaryResult;
+import com.ryuqq.crawlinghub.application.monitoring.dto.composite.ProductSyncFailureSummaryResult;
+import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawlExecutionSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawlTaskSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetCrawledRawSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetDashboardSummaryUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetExternalSystemHealthUseCase;
 import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetOutboxSummaryUseCase;
+import com.ryuqq.crawlinghub.application.monitoring.port.in.query.GetProductSyncFailureSummaryUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +46,8 @@ public class MonitoringQueryController {
     private final GetOutboxSummaryUseCase getOutboxSummaryUseCase;
     private final GetCrawledRawSummaryUseCase getCrawledRawSummaryUseCase;
     private final GetExternalSystemHealthUseCase getExternalSystemHealthUseCase;
+    private final GetProductSyncFailureSummaryUseCase getProductSyncFailureSummaryUseCase;
+    private final GetCrawlExecutionSummaryUseCase getCrawlExecutionSummaryUseCase;
     private final MonitoringQueryApiMapper monitoringQueryApiMapper;
 
     public MonitoringQueryController(
@@ -48,12 +56,16 @@ public class MonitoringQueryController {
             GetOutboxSummaryUseCase getOutboxSummaryUseCase,
             GetCrawledRawSummaryUseCase getCrawledRawSummaryUseCase,
             GetExternalSystemHealthUseCase getExternalSystemHealthUseCase,
+            GetProductSyncFailureSummaryUseCase getProductSyncFailureSummaryUseCase,
+            GetCrawlExecutionSummaryUseCase getCrawlExecutionSummaryUseCase,
             MonitoringQueryApiMapper monitoringQueryApiMapper) {
         this.getDashboardSummaryUseCase = getDashboardSummaryUseCase;
         this.getCrawlTaskSummaryUseCase = getCrawlTaskSummaryUseCase;
         this.getOutboxSummaryUseCase = getOutboxSummaryUseCase;
         this.getCrawledRawSummaryUseCase = getCrawledRawSummaryUseCase;
         this.getExternalSystemHealthUseCase = getExternalSystemHealthUseCase;
+        this.getProductSyncFailureSummaryUseCase = getProductSyncFailureSummaryUseCase;
+        this.getCrawlExecutionSummaryUseCase = getCrawlExecutionSummaryUseCase;
         this.monitoringQueryApiMapper = monitoringQueryApiMapper;
     }
 
@@ -107,6 +119,38 @@ public class MonitoringQueryController {
         ExternalSystemHealthResult result = getExternalSystemHealthUseCase.execute(lookback);
         return ResponseEntity.ok(
                 ApiResponse.of(monitoringQueryApiMapper.toExternalSystemHealthApiResponse(result)));
+    }
+
+    @GetMapping(MonitoringEndpoints.PRODUCT_SYNC_FAILURES)
+    @Operation(
+            summary = "ProductSync 실패 상세",
+            description = "ProductSync 실패 건수를 syncType별로 집계하고 에러 메시지 상세를 조회합니다.")
+    public ResponseEntity<ApiResponse<ProductSyncFailureSummaryApiResponse>>
+            getProductSyncFailureSummary(
+                    @Parameter(description = "조회 기간 (분)", example = "60")
+                            @RequestParam(value = "lookbackMinutes", required = false)
+                            Integer lookbackMinutes) {
+        Duration lookback = Duration.ofMinutes(resolveMinutes(lookbackMinutes));
+        ProductSyncFailureSummaryResult result =
+                getProductSyncFailureSummaryUseCase.execute(lookback);
+        return ResponseEntity.ok(
+                ApiResponse.of(
+                        monitoringQueryApiMapper.toProductSyncFailureSummaryApiResponse(result)));
+    }
+
+    @GetMapping(MonitoringEndpoints.CRAWL_EXECUTIONS_SUMMARY)
+    @Operation(
+            summary = "CrawlExecution 상태 요약",
+            description = "CrawlExecution 상태별 집계 및 성공률을 조회합니다.")
+    public ResponseEntity<ApiResponse<CrawlExecutionSummaryApiResponse>> getCrawlExecutionSummary(
+            @Parameter(description = "조회 기간 (분)", example = "60")
+                    @RequestParam(value = "lookbackMinutes", required = false)
+                    Integer lookbackMinutes) {
+        Duration lookback = Duration.ofMinutes(resolveMinutes(lookbackMinutes));
+        CrawlExecutionSummaryResult result = getCrawlExecutionSummaryUseCase.execute(lookback);
+        return ResponseEntity.ok(
+                ApiResponse.of(
+                        monitoringQueryApiMapper.toCrawlExecutionSummaryApiResponse(result)));
     }
 
     private int resolveMinutes(Integer lookbackMinutes) {

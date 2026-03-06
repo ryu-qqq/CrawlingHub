@@ -41,11 +41,11 @@ data "aws_caller_identity" "current" {}
 # EventBridge Configuration (from SSM)
 # ========================================
 data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
-  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-arn"
+  name = "/${var.project_name}/sqs-${var.environment}/eventbridge-trigger-queue-arn"
 }
 
 data "aws_ssm_parameter" "eventbridge_role_arn" {
-  name = "/${var.project_name}/eventbridge/role-arn"
+  name = "/${var.project_name}/eventbridge-${var.environment}/role-arn"
 }
 
 # ========================================
@@ -59,7 +59,7 @@ data "aws_ssm_parameter" "service_discovery_namespace_id" {
 # Service Token Secret (for internal service communication)
 # ========================================
 data "aws_ssm_parameter" "service_token_secret" {
-  name = "/shared/security/service-token-secret"
+  name = "/authhub/stage/security/service-token-secret"
 }
 
 # ========================================
@@ -203,7 +203,8 @@ module "ecs_task_execution_role" {
             ]
             Resource = [
               "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*",
-              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*"
+              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*",
+              "arn:aws:ssm:${var.aws_region}:*:parameter/authhub/*"
             ]
           },
           {
@@ -316,6 +317,20 @@ module "ecs_task_role" {
               "s3:GetObject"
             ]
             Resource = "arn:aws:s3:::prod-connectly/otel-config/*"
+          },
+          {
+            Sid    = "KMSDecryptOtelConfig"
+            Effect = "Allow"
+            Action = [
+              "kms:Decrypt",
+              "kms:GenerateDataKey"
+            ]
+            Resource = "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
+            Condition = {
+              StringEquals = {
+                "kms:ViaService" = "s3.${var.aws_region}.amazonaws.com"
+              }
+            }
           }
         ]
       })
@@ -430,7 +445,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
-  health_check_start_period = 120
+  health_check_start_period = 300 # Web API needs time to initialize JPA, Redis, and HTTP client connections (matched with prod)
 
   # Logging
   log_configuration = {

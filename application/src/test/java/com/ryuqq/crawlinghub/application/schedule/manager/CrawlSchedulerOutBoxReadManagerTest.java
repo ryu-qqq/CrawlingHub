@@ -115,7 +115,7 @@ class CrawlSchedulerOutBoxReadManagerTest {
 
         @Test
         @DisplayName("[성공] 지연 시간 이상 경과한 PENDING 아웃박스 조회")
-        void shouldFindPendingOutBoxesOlderThan() {
+        void shouldFindPendingSchedulerOutBoxesOlderThan() {
             // Given
             int limit = 5;
             int delaySeconds = 30;
@@ -138,7 +138,7 @@ class CrawlSchedulerOutBoxReadManagerTest {
 
         @Test
         @DisplayName("[성공] 타임아웃된 PROCESSING 아웃박스 조회")
-        void shouldFindStaleProcessingOutBoxes() {
+        void shouldFindStaleProcessingSchedulerOutBoxes() {
             // Given
             int limit = 10;
             long timeoutSeconds = 300L;

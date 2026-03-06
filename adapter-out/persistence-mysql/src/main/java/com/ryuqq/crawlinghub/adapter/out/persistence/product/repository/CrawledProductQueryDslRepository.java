@@ -70,6 +70,26 @@ public class CrawledProductQueryDslRepository {
                         .selectFrom(crawledProductJpaEntity)
                         .where(
                                 crawledProductJpaEntity.sellerId.eq(sellerId),
+                                crawledProductJpaEntity.itemNo.eq(itemNo),
+                                crawledProductJpaEntity.deletedAt.isNull())
+                        .fetchOne();
+        return Optional.ofNullable(entity);
+    }
+
+    /**
+     * SellerId와 ItemNo로 단건 조회 (soft-delete 포함)
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     * @return Entity (Optional, soft-deleted 포함)
+     */
+    public Optional<CrawledProductJpaEntity> findBySellerIdAndItemNoIncludingDeleted(
+            long sellerId, long itemNo) {
+        CrawledProductJpaEntity entity =
+                queryFactory
+                        .selectFrom(crawledProductJpaEntity)
+                        .where(
+                                crawledProductJpaEntity.sellerId.eq(sellerId),
                                 crawledProductJpaEntity.itemNo.eq(itemNo))
                         .fetchOne();
         return Optional.ofNullable(entity);
@@ -84,7 +104,9 @@ public class CrawledProductQueryDslRepository {
     public List<CrawledProductJpaEntity> findBySellerId(long sellerId) {
         return queryFactory
                 .selectFrom(crawledProductJpaEntity)
-                .where(crawledProductJpaEntity.sellerId.eq(sellerId))
+                .where(
+                        crawledProductJpaEntity.sellerId.eq(sellerId),
+                        crawledProductJpaEntity.deletedAt.isNull())
                 .orderBy(crawledProductJpaEntity.createdAt.desc())
                 .fetch();
     }
@@ -102,7 +124,8 @@ public class CrawledProductQueryDslRepository {
                         crawledProductJpaEntity.needsSync.isTrue(),
                         crawledProductJpaEntity.miniShopCrawledAt.isNotNull(),
                         crawledProductJpaEntity.detailCrawledAt.isNotNull(),
-                        crawledProductJpaEntity.optionCrawledAt.isNotNull())
+                        crawledProductJpaEntity.optionCrawledAt.isNotNull(),
+                        crawledProductJpaEntity.deletedAt.isNull())
                 .orderBy(crawledProductJpaEntity.createdAt.asc())
                 .limit(limit)
                 .fetch();
@@ -122,9 +145,29 @@ public class CrawledProductQueryDslRepository {
                         .from(crawledProductJpaEntity)
                         .where(
                                 crawledProductJpaEntity.sellerId.eq(sellerId),
-                                crawledProductJpaEntity.itemNo.eq(itemNo))
+                                crawledProductJpaEntity.itemNo.eq(itemNo),
+                                crawledProductJpaEntity.deletedAt.isNull())
                         .fetchFirst();
         return result != null;
+    }
+
+    /**
+     * 갱신이 오래된 상품 조회 (updatedAt ASC)
+     *
+     * <p>externalProductId가 존재하고 soft-delete되지 않은 상품 중 updatedAt이 가장 오래된 순으로 조회
+     *
+     * @param limit 조회 개수 제한
+     * @return Entity 목록
+     */
+    public List<CrawledProductJpaEntity> findStaleProducts(int limit) {
+        return queryFactory
+                .selectFrom(crawledProductJpaEntity)
+                .where(
+                        crawledProductJpaEntity.deletedAt.isNull(),
+                        crawledProductJpaEntity.externalProductId.isNotNull())
+                .orderBy(crawledProductJpaEntity.updatedAt.asc())
+                .limit(limit)
+                .fetch();
     }
 
     /**
@@ -138,7 +181,9 @@ public class CrawledProductQueryDslRepository {
                 queryFactory
                         .select(crawledProductJpaEntity.count())
                         .from(crawledProductJpaEntity)
-                        .where(crawledProductJpaEntity.sellerId.eq(sellerId))
+                        .where(
+                                crawledProductJpaEntity.sellerId.eq(sellerId),
+                                crawledProductJpaEntity.deletedAt.isNull())
                         .fetchOne();
 
         return count != null ? count : 0L;

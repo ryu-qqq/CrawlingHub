@@ -25,8 +25,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * <p>UseCase를 직접 호출하여 ProductSync Outbox 처리 플로우를 검증합니다:
  *
  * <ul>
- *   <li>FAILED (retryable) → SENT (SQS 재발행)
- *   <li>SENT 타임아웃 → PENDING 복구
+ *   <li>PENDING → SENT (SQS 발행)
+ *   <li>PROCESSING 타임아웃 → PENDING 복구
  *   <li>FAILED → PENDING 복구
  * </ul>
  */
@@ -41,16 +41,16 @@ class ProductSyncOutboxSchedulerIntegrationTest extends SchedulerIntegrationTest
     @Autowired private RecoverFailedProductSyncOutboxUseCase recoverFailedUseCase;
 
     @Nested
-    @DisplayName("FAILED Outbox 재발행")
-    class PublishRetryableOutbox {
+    @DisplayName("PENDING Outbox 발행")
+    class PublishPendingOutbox {
 
         @Test
-        @DisplayName("재시도 가능한 FAILED Outbox가 SQS로 발행되어 SENT 상태로 변경되어야 한다")
-        void shouldPublishRetryableFailedOutboxToSqs() {
-            // given - id=4: FAILED, retryCount=1 (재시도 가능)
+        @DisplayName("PENDING 상태의 Outbox가 SQS로 발행되어야 한다")
+        void shouldPublishPendingOutboxToSqs() {
+            // given - id=1: PENDING, retryCount=0 (신규)
             testDataHelper.insertProductOutboxTestData();
 
-            // when - maxRetryCount=3 → retryCount=1인 id=4는 재발행 대상
+            // when
             SchedulerBatchProcessingResult result =
                     publishPendingUseCase.execute(PublishPendingSyncOutboxCommand.of(10, 3));
 
@@ -59,26 +59,25 @@ class ProductSyncOutboxSchedulerIntegrationTest extends SchedulerIntegrationTest
 
             List<Map<String, Object>> outboxRows =
                     jdbcTemplate.queryForList(
-                            "SELECT status FROM product_sync_outbox WHERE id = 4");
+                            "SELECT status FROM product_sync_outbox WHERE id = 1");
             assertThat(outboxRows).isNotEmpty();
-            // SQS 발행 성공 시 SENT, 실패 시 FAILED 유지
+            // SQS 발행 성공 시 SENT, 실패 시 FAILED
             assertThat(outboxRows.get(0).get("status").toString()).isIn("SENT", "FAILED");
         }
 
         @Test
-        @DisplayName("최대 재시도 횟수를 초과한 FAILED Outbox는 재발행 대상이 아니어야 한다")
-        void shouldNotPublishMaxRetriedOutbox() {
-            // given - id=5: FAILED, retryCount=3 (재시도 불가)
+        @DisplayName("FAILED 상태의 Outbox는 PENDING 발행 대상이 아니어야 한다")
+        void shouldNotPublishFailedOutbox() {
+            // given - id=4: FAILED, retryCount=1
             testDataHelper.insertProductOutboxTestData();
 
-            // when - maxRetryCount=3 → retryCount=3인 id=5는 재발행 대상 아님 (lt 조건)
-            SchedulerBatchProcessingResult result =
-                    publishPendingUseCase.execute(PublishPendingSyncOutboxCommand.of(10, 3));
+            // when
+            publishPendingUseCase.execute(PublishPendingSyncOutboxCommand.of(10, 3));
 
-            // then - id=5는 FAILED 상태 유지
+            // then - id=4는 FAILED 상태 유지 (RecoverFailed 스케줄러가 PENDING으로 복원해야 재처리됨)
             List<Map<String, Object>> outboxRows =
                     jdbcTemplate.queryForList(
-                            "SELECT status FROM product_sync_outbox WHERE id = 5");
+                            "SELECT status FROM product_sync_outbox WHERE id = 4");
             assertThat(outboxRows).isNotEmpty();
             assertThat(outboxRows.get(0).get("status").toString()).isEqualTo("FAILED");
         }

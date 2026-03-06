@@ -3,10 +3,15 @@ package com.ryuqq.crawlinghub.application.task.service.command;
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
 import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionCommandManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.command.RecoverStuckCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskCommandManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
 import com.ryuqq.crawlinghub.application.task.port.in.command.RecoverStuckCrawlTaskUseCase;
+import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
+import com.ryuqq.crawlinghub.domain.execution.vo.CrawlExecutionStatus;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import java.time.Instant;
 import java.util.List;
@@ -42,14 +47,20 @@ public class RecoverStuckCrawlTaskService implements RecoverStuckCrawlTaskUseCas
 
     private final CrawlTaskReadManager readManager;
     private final CrawlTaskCommandManager commandManager;
+    private final CrawlExecutionReadManager executionReadManager;
+    private final CrawlExecutionCommandManager executionCommandManager;
     private final TimeProvider timeProvider;
 
     public RecoverStuckCrawlTaskService(
             CrawlTaskReadManager readManager,
             CrawlTaskCommandManager commandManager,
+            CrawlExecutionReadManager executionReadManager,
+            CrawlExecutionCommandManager executionCommandManager,
             TimeProvider timeProvider) {
         this.readManager = readManager;
         this.commandManager = commandManager;
+        this.executionReadManager = executionReadManager;
+        this.executionCommandManager = executionCommandManager;
         this.timeProvider = timeProvider;
     }
 
@@ -85,15 +96,18 @@ public class RecoverStuckCrawlTaskService implements RecoverStuckCrawlTaskUseCas
     }
 
     private void recoverTask(CrawlTask task, Instant now) {
-        // 1. RUNNING → FAILED
+        // 1. RUNNING 상태의 CrawlExecution도 함께 복구
+        recoverRunningExecutions(task, now);
+
+        // 2. RUNNING → FAILED
         task.markAsFailed(now);
 
-        // 2. 재시도 가능 여부 확인
+        // 3. 재시도 가능 여부 확인
         if (task.canRetry()) {
-            // 2-1. FAILED → RETRY + retryCount++
+            // 3-1. FAILED → RETRY + retryCount++
             task.attemptRetry(now);
 
-            // 2-2. Outbox를 PENDING으로 리셋 → ProcessPending 스케줄러가 재발행
+            // 3-2. Outbox를 PENDING으로 리셋 → ProcessPending 스케줄러가 재발행
             if (task.hasOutbox()) {
                 task.getOutbox().resetToPending();
             }
@@ -109,7 +123,34 @@ public class RecoverStuckCrawlTaskService implements RecoverStuckCrawlTaskUseCas
                     task.getRetryCountValue());
         }
 
-        // 3. 저장
+        // 4. 저장
         commandManager.persist(task);
+    }
+
+    private void recoverRunningExecutions(CrawlTask task, Instant now) {
+        CrawlExecutionCriteria criteria =
+                new CrawlExecutionCriteria(
+                        task.getId(),
+                        null,
+                        null,
+                        List.of(CrawlExecutionStatus.RUNNING),
+                        null,
+                        null,
+                        0,
+                        100);
+
+        List<CrawlExecution> runningExecutions = executionReadManager.findByCriteria(criteria);
+
+        for (CrawlExecution execution : runningExecutions) {
+            execution.completeWithTimeout("RUNNING 고아 복구: stuck task recovery", now);
+            executionCommandManager.persist(execution);
+        }
+
+        if (!runningExecutions.isEmpty()) {
+            log.info(
+                    "RUNNING 고아 CrawlExecution 복구: taskId={}, count={}",
+                    task.getIdValue(),
+                    runningExecutions.size());
+        }
     }
 }

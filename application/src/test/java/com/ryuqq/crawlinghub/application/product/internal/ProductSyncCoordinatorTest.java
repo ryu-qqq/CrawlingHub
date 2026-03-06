@@ -10,11 +10,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessProductSyncCommand;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator.SyncTarget;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.common.vo.DeletionStatus;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
@@ -29,7 +29,11 @@ import com.ryuqq.crawlinghub.domain.product.vo.ProductOptions;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductOutboxStatus;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductPrice;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import com.ryuqq.crawlinghub.domain.seller.vo.MustItSellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerName;
+import com.ryuqq.crawlinghub.domain.seller.vo.SellerStatus;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -59,8 +63,9 @@ class ProductSyncCoordinatorTest {
 
     @Mock private ProductSyncValidator validator;
     @Mock private CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
-    @Mock private CrawledProductCommandManager crawledProductCommandManager;
+    @Mock private CrawledProductCommandFacade commandFacade;
     @Mock private ExternalProductServerClient externalProductServerClient;
+    @Mock private SellerReadManager sellerReadManager;
 
     private ProductSyncCoordinator coordinator;
 
@@ -70,8 +75,9 @@ class ProductSyncCoordinatorTest {
                 new ProductSyncCoordinator(
                         validator,
                         syncOutboxCommandManager,
-                        crawledProductCommandManager,
-                        externalProductServerClient);
+                        commandFacade,
+                        externalProductServerClient,
+                        sellerReadManager);
     }
 
     @Nested
@@ -100,11 +106,13 @@ class ProductSyncCoordinatorTest {
             ProcessProductSyncCommand command = createCommand();
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
             CrawledProduct product = createMockProduct(null);
+            Seller seller = createSeller();
             Long newExternalProductId = 55555L;
 
             given(validator.validateAndResolve(command.outboxId()))
                     .willReturn(Optional.of(new SyncTarget(outbox, product)));
-            given(externalProductServerClient.sync(outbox, product))
+            given(sellerReadManager.findById(SELLER_ID)).willReturn(Optional.of(seller));
+            given(externalProductServerClient.sync(outbox, product, seller))
                     .willReturn(ProductSyncResult.success(newExternalProductId));
 
             // When
@@ -113,9 +121,7 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(syncOutboxCommandManager, times(1))
-                    .markAsCompleted(outbox, newExternalProductId);
-            verify(crawledProductCommandManager, times(1)).persist(product);
+            verify(commandFacade, times(1)).completeSyncAndPersist(outbox, newExternalProductId);
         }
 
         @Test
@@ -125,10 +131,12 @@ class ProductSyncCoordinatorTest {
             ProcessProductSyncCommand command = createCommand();
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.UPDATE_PRICE);
             CrawledProduct product = createMockProduct(EXTERNAL_PRODUCT_ID);
+            Seller seller = createSeller();
 
             given(validator.validateAndResolve(command.outboxId()))
                     .willReturn(Optional.of(new SyncTarget(outbox, product)));
-            given(externalProductServerClient.sync(outbox, product))
+            given(sellerReadManager.findById(SELLER_ID)).willReturn(Optional.of(seller));
+            given(externalProductServerClient.sync(outbox, product, seller))
                     .willReturn(ProductSyncResult.success(EXTERNAL_PRODUCT_ID));
 
             // When
@@ -137,8 +145,7 @@ class ProductSyncCoordinatorTest {
             // Then
             assertThat(result).isTrue();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
-            verify(syncOutboxCommandManager, times(1)).markAsCompleted(outbox, EXTERNAL_PRODUCT_ID);
-            verify(crawledProductCommandManager, times(1)).persist(product);
+            verify(commandFacade, times(1)).completeSyncAndPersist(outbox, EXTERNAL_PRODUCT_ID);
         }
 
         @Test
@@ -148,10 +155,12 @@ class ProductSyncCoordinatorTest {
             ProcessProductSyncCommand command = createCommand();
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
             CrawledProduct product = createMockProduct(null);
+            Seller seller = createSeller();
 
             given(validator.validateAndResolve(command.outboxId()))
                     .willReturn(Optional.of(new SyncTarget(outbox, product)));
-            given(externalProductServerClient.sync(outbox, product))
+            given(sellerReadManager.findById(SELLER_ID)).willReturn(Optional.of(seller));
+            given(externalProductServerClient.sync(outbox, product, seller))
                     .willReturn(ProductSyncResult.failure("ERR_001", "Server error"));
 
             // When
@@ -161,7 +170,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(crawledProductCommandManager, never()).persist(any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any());
         }
 
         @Test
@@ -171,10 +180,12 @@ class ProductSyncCoordinatorTest {
             ProcessProductSyncCommand command = createCommand();
             CrawledProductSyncOutbox outbox = createOutbox(SyncType.CREATE);
             CrawledProduct product = createMockProduct(null);
+            Seller seller = createSeller();
 
             given(validator.validateAndResolve(command.outboxId()))
                     .willReturn(Optional.of(new SyncTarget(outbox, product)));
-            given(externalProductServerClient.sync(outbox, product))
+            given(sellerReadManager.findById(SELLER_ID)).willReturn(Optional.of(seller));
+            given(externalProductServerClient.sync(outbox, product, seller))
                     .willThrow(new RuntimeException("Connection refused"));
 
             // When
@@ -184,7 +195,7 @@ class ProductSyncCoordinatorTest {
             assertThat(result).isFalse();
             verify(syncOutboxCommandManager, times(1)).markAsProcessing(outbox);
             verify(syncOutboxCommandManager, times(1)).markAsFailed(eq(outbox), anyString());
-            verify(crawledProductCommandManager, never()).persist(any());
+            verify(commandFacade, never()).completeSyncAndPersist(any(), any());
         }
     }
 
@@ -212,6 +223,18 @@ class ProductSyncCoordinatorTest {
                 FIXED_INSTANT);
     }
 
+    private Seller createSeller() {
+        return Seller.reconstitute(
+                SELLER_ID,
+                MustItSellerName.of("mustit-seller"),
+                SellerName.of("test-seller"),
+                999L,
+                SellerStatus.ACTIVE,
+                0,
+                FIXED_INSTANT,
+                FIXED_INSTANT);
+    }
+
     private CrawledProduct createMockProduct(Long externalProductId) {
         return CrawledProduct.reconstitute(
                 PRODUCT_ID,
@@ -219,6 +242,7 @@ class ProductSyncCoordinatorTest {
                 ITEM_NO,
                 "Test Product",
                 "Test Brand",
+                0L,
                 ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,
@@ -240,6 +264,7 @@ class ProductSyncCoordinatorTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 }

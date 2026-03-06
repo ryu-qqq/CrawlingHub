@@ -93,6 +93,7 @@ class CrawledProductSyncOutboxFactoryTest {
                 12345L,
                 "Test Product",
                 "Test Brand",
+                0L,
                 ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,
@@ -111,7 +112,8 @@ class CrawledProductSyncOutboxFactoryTest {
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     private CrawledProduct createExistingProduct(
@@ -123,6 +125,7 @@ class CrawledProductSyncOutboxFactoryTest {
                 12345L,
                 "Test Product",
                 "Test Brand",
+                0L,
                 ProductPrice.of(10000, 10000, 10000, 9000, 10, 10),
                 ProductImages.empty(),
                 true,
@@ -141,7 +144,8 @@ class CrawledProductSyncOutboxFactoryTest {
                 pendingChanges,
                 DeletionStatus.active(),
                 now,
-                now);
+                now,
+                null);
     }
 
     private CrawlCompletionStatus createAllCrawledStatus(Instant now) {

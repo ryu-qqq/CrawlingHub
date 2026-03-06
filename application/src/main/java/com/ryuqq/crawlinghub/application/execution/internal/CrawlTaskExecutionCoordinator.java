@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.execution.internal;
 
+import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.execution.dto.bundle.CrawlTaskExecutionBundle;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.mapper.CrawlContextMapper;
 import com.ryuqq.crawlinghub.application.execution.internal.crawler.processor.CrawlResultProcessor;
@@ -38,6 +39,8 @@ import org.springframework.stereotype.Component;
 public class CrawlTaskExecutionCoordinator {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlTaskExecutionCoordinator.class);
+    private static final String CYCLE_METRIC = "useragent_cycle_total";
+    private static final String HTTP_STATUS_METRIC = "crawl_http_status_total";
 
     private final ExecutionCommandFacade commandFacade;
     private final CrawlingUserAgentCoordinator userAgentCoordinator;
@@ -45,6 +48,7 @@ public class CrawlTaskExecutionCoordinator {
     private final CrawlResultProcessorProvider processorProvider;
     private final FollowUpTaskCreator followUpTaskCreator;
     private final CrawlContextMapper crawlContextMapper;
+    private final CrawlHubMetrics metrics;
 
     public CrawlTaskExecutionCoordinator(
             ExecutionCommandFacade commandFacade,
@@ -52,13 +56,15 @@ public class CrawlTaskExecutionCoordinator {
             CrawlingProcessor crawlingProcessor,
             CrawlResultProcessorProvider processorProvider,
             FollowUpTaskCreator followUpTaskCreator,
-            CrawlContextMapper crawlContextMapper) {
+            CrawlContextMapper crawlContextMapper,
+            CrawlHubMetrics metrics) {
         this.commandFacade = commandFacade;
         this.userAgentCoordinator = userAgentCoordinator;
         this.crawlingProcessor = crawlingProcessor;
         this.processorProvider = processorProvider;
         this.followUpTaskCreator = followUpTaskCreator;
         this.crawlContextMapper = crawlContextMapper;
+        this.metrics = metrics;
     }
 
     /**
@@ -99,6 +105,10 @@ public class CrawlTaskExecutionCoordinator {
         } finally {
             userAgentCoordinator.returnAgent(
                     agent.userAgentId(), success, httpStatusCode, agent.consecutiveRateLimits());
+            metrics.incrementCounter(CYCLE_METRIC, "outcome", success ? "success" : "failure");
+            if (httpStatusCode > 0) {
+                metrics.incrementCounterWithStatusCode(HTTP_STATUS_METRIC, httpStatusCode);
+            }
         }
     }
 
@@ -147,7 +157,8 @@ public class CrawlTaskExecutionCoordinator {
         CrawlTask task = bundle.crawlTask();
 
         if (result.isSuccess()) {
-            execution.completeWithSuccess(result.responseBody(), result.httpStatusCode(), now);
+            String responseSummary = buildResponseSummary(result.responseBody());
+            execution.completeWithSuccess(responseSummary, result.httpStatusCode(), now);
             task.markAsSuccess(now);
             log.info(
                     "CrawlTask 실행 완료: taskId={}, durationMs={}",
@@ -192,6 +203,18 @@ public class CrawlTaskExecutionCoordinator {
                     failureException.getMessage(),
                     failureException);
         }
+    }
+
+    /**
+     * 응답 본문 요약 생성
+     *
+     * <p>전체 raw 응답(수백KB) 대신 크기 정보만 저장하여 DB 부하를 줄입니다. 파싱된 상품 데이터는 crawled_raw 테이블에 별도 저장됩니다.
+     */
+    private String buildResponseSummary(String responseBody) {
+        if (responseBody == null) {
+            return null;
+        }
+        return "{\"responseLengthChars\":" + responseBody.length() + "}";
     }
 
     private void processResult(CrawlResult crawlResult, CrawlTask crawlTask) {

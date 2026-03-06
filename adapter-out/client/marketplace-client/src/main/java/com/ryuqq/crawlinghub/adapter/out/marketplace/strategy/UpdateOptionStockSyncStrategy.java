@@ -1,23 +1,36 @@
 package com.ryuqq.crawlinghub.adapter.out.marketplace.strategy;
 
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClient;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.client.MarketPlaceClientException;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.dto.request.UpdateProductsRequest;
+import com.ryuqq.crawlinghub.adapter.out.marketplace.mapper.InboundProductRequestMapper;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox.SyncType;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * 옵션/재고 갱신 전략 (STUB)
+ * 옵션/재고 갱신 전략
  *
- * @author development-team
- * @since 1.0.0
+ * <p>MarketPlace PATCH .../products 호출 (옵션 이름 기반 매칭으로 재고 갱신)
  */
 @Component
 public class UpdateOptionStockSyncStrategy implements ProductSyncStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(UpdateOptionStockSyncStrategy.class);
+
+    private final MarketPlaceClient marketPlaceClient;
+    private final InboundProductRequestMapper requestMapper;
+
+    public UpdateOptionStockSyncStrategy(
+            MarketPlaceClient marketPlaceClient, InboundProductRequestMapper requestMapper) {
+        this.marketPlaceClient = marketPlaceClient;
+        this.requestMapper = requestMapper;
+    }
 
     @Override
     public SyncType supportedType() {
@@ -25,15 +38,41 @@ public class UpdateOptionStockSyncStrategy implements ProductSyncStrategy {
     }
 
     @Override
-    public ProductSyncResult execute(CrawledProductSyncOutbox outbox, CrawledProduct product) {
-        log.info(
-                "[STUB] 옵션/재고 갱신 요청 - outboxId={}, crawledProductId={}, externalProductId={}, "
-                        + "optionCount={}",
-                outbox.getId(),
-                outbox.getCrawledProductIdValue(),
-                outbox.getExternalProductId(),
-                product.getOptions() != null ? product.getOptions().size() : 0);
+    public ProductSyncResult execute(
+            CrawledProductSyncOutbox outbox, CrawledProduct product, Seller seller) {
+        try {
+            long inboundSourceId = requestMapper.getInboundSourceId();
+            String externalProductCode = requestMapper.getExternalProductCode(outbox);
+            UpdateProductsRequest request = requestMapper.toUpdateProductsRequest(product);
 
-        return ProductSyncResult.success(outbox.getExternalProductId());
+            log.info(
+                    "[UPDATE_OPTION_STOCK] 옵션/재고 수정 요청 - outboxId={}, externalProductCode={},"
+                            + " optionGroupCount={}, productCount={}",
+                    outbox.getId(),
+                    externalProductCode,
+                    request.optionGroups().size(),
+                    request.products().size());
+
+            marketPlaceClient.updateProducts(inboundSourceId, externalProductCode, request);
+
+            log.info(
+                    "[UPDATE_OPTION_STOCK] 옵션/재고 수정 성공 - outboxId={}, externalProductCode={}",
+                    outbox.getId(),
+                    externalProductCode);
+
+            return ProductSyncResult.success(outbox.getExternalProductId());
+        } catch (MarketPlaceClientException e) {
+            if (e.isNotYetConverted()) {
+                log.warn(
+                        "[UPDATE_OPTION_STOCK] 변환 미완료(422) - outboxId={}, 자동 재시도 예정",
+                        outbox.getId());
+                return ProductSyncResult.failure("NOT_YET_CONVERTED", e.getMessage());
+            }
+            log.error("[UPDATE_OPTION_STOCK] 옵션/재고 수정 실패 - outboxId={}", outbox.getId(), e);
+            return ProductSyncResult.failure("UPDATE_OPTION_STOCK_FAILED", e.getMessage());
+        } catch (Exception e) {
+            log.error("[UPDATE_OPTION_STOCK] 옵션/재고 수정 실패 - outboxId={}", outbox.getId(), e);
+            return ProductSyncResult.failure("UPDATE_OPTION_STOCK_FAILED", e.getMessage());
+        }
     }
 }

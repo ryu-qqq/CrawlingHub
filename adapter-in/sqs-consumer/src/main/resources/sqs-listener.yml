@@ -13,7 +13,7 @@ spring:
       sqs:
         # SQS 리스너 기본 설정
         listener:
-          max-concurrent-messages: 10
+          max-concurrent-messages: 20
           max-messages-per-poll: 10
 
 aws:

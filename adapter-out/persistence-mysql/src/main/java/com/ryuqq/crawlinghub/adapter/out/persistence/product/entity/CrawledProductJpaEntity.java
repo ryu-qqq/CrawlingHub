@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 
 /**
@@ -67,6 +68,10 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
     /** 브랜드명 */
     @Column(name = "brand_name", length = 200)
     private String brandName;
+
+    /** 브랜드 코드 */
+    @Column(name = "brand_code", nullable = false)
+    private long brandCode;
 
     /** 원가 */
     @Column(name = "original_price")
@@ -160,6 +165,11 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
     @Column(name = "pending_changes", length = 200)
     private String pendingChanges;
 
+    /** 버전 (Optimistic Locking) */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     /** JPA 기본 생성자 (protected) */
     protected CrawledProductJpaEntity() {}
 
@@ -170,6 +180,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             Long originalPrice,
             Long discountPrice,
             Integer discountRate,
@@ -190,6 +201,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             LocalDateTime lastSyncedAt,
             boolean needsSync,
             String pendingChanges,
+            Long version,
             LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
@@ -199,6 +211,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
         this.itemNo = itemNo;
         this.itemName = itemName;
         this.brandName = brandName;
+        this.brandCode = brandCode;
         this.originalPrice = originalPrice;
         this.discountPrice = discountPrice;
         this.discountRate = discountRate;
@@ -219,6 +232,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
         this.lastSyncedAt = lastSyncedAt;
         this.needsSync = needsSync;
         this.pendingChanges = pendingChanges;
+        this.version = version;
     }
 
     /** of() 스태틱 팩토리 메서드 (Mapper 전용) */
@@ -228,6 +242,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             long itemNo,
             String itemName,
             String brandName,
+            long brandCode,
             Long originalPrice,
             Long discountPrice,
             Integer discountRate,
@@ -248,6 +263,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
             LocalDateTime lastSyncedAt,
             boolean needsSync,
             String pendingChanges,
+            Long version,
             LocalDateTime deletedAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
@@ -257,6 +273,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
                 itemNo,
                 itemName,
                 brandName,
+                brandCode,
                 originalPrice,
                 discountPrice,
                 discountRate,
@@ -277,6 +294,7 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
                 lastSyncedAt,
                 needsSync,
                 pendingChanges,
+                version,
                 deletedAt,
                 createdAt,
                 updatedAt);
@@ -302,6 +320,10 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
 
     public String getBrandName() {
         return brandName;
+    }
+
+    public long getBrandCode() {
+        return brandCode;
     }
 
     public Long getOriginalPrice() {
@@ -382,5 +404,9 @@ public class CrawledProductJpaEntity extends SoftDeletableEntity {
 
     public String getPendingChanges() {
         return pendingChanges;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 }

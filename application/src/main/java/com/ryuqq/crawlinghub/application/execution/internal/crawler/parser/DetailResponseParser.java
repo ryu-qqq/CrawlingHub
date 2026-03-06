@@ -145,6 +145,9 @@ public class DetailResponseParser {
                 .stock(getAsIntOrDefault(dataNode, "stock", 0))
                 .isSoldOut(getAsBooleanOrDefault(dataNode, "isSoldOut", false));
 
+        String smallCategoryCode = getAsText(dataNode, "smallCategoryCode");
+        String smallCategoryName = getAsText(dataNode, "smallCategory");
+
         ProductCategory category =
                 ProductCategory.of(
                         getAsTextOrDefault(dataNode, "headerCategoryCode", ""),
@@ -152,7 +155,9 @@ public class DetailResponseParser {
                         getAsTextOrDefault(dataNode, "largeCategoryCode", ""),
                         getAsTextOrDefault(dataNode, "largeCategory", ""),
                         getAsTextOrDefault(dataNode, "mediumCategoryCode", ""),
-                        getAsTextOrDefault(dataNode, "mediumCategory", ""));
+                        getAsTextOrDefault(dataNode, "mediumCategory", ""),
+                        smallCategoryCode,
+                        smallCategoryName);
         builder.category(category);
     }
 

@@ -71,6 +71,7 @@ public class CrawledProductJpaEntityMapper {
                 domain.getItemNo(),
                 domain.getItemName(),
                 domain.getBrandName(),
+                domain.getBrandCode(),
                 price != null ? (long) price.originalPrice() : null,
                 price != null ? (long) price.discountPrice() : null,
                 price != null ? price.discountRate() : null,
@@ -97,6 +98,7 @@ public class CrawledProductJpaEntityMapper {
                 toLocalDateTime(domain.getLastSyncedAt()),
                 domain.isNeedsSync(),
                 toPendingChangesString(domain.getPendingChanges()),
+                domain.getVersion(),
                 domain.getDeletionStatus() != null
                         ? toLocalDateTime(domain.getDeletionStatus().deletedAt())
                         : null,
@@ -131,6 +133,7 @@ public class CrawledProductJpaEntityMapper {
                 entity.getItemNo(),
                 entity.getItemName(),
                 entity.getBrandName(),
+                entity.getBrandCode(),
                 price,
                 images,
                 entity.isFreeShipping(),
@@ -149,7 +152,8 @@ public class CrawledProductJpaEntityMapper {
                 fromPendingChangesString(entity.getPendingChanges()),
                 deletionStatus,
                 toInstant(entity.getCreatedAt()),
-                toInstant(entity.getUpdatedAt()));
+                toInstant(entity.getUpdatedAt()),
+                entity.getVersion());
     }
 
     // === JSON 직렬화 ===

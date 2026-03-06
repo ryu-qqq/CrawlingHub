@@ -1,0 +1,16 @@
+# ============================================================
+# MarketPlace Client 스테이징 환경 설정
+# ============================================================
+# 활성화: spring.profiles.active=stage
+# ============================================================
+
+marketplace:
+  client:
+    base-url: http://marketplace-api-stage.connectly.local:8080
+    connect-timeout: 5
+    request-timeout: 15
+    service-token: ${SECURITY_SERVICE_TOKEN_SECRET:stage-default-token}
+
+logging:
+  level:
+    com.ryuqq.crawlinghub.adapter.out.marketplace: INFO

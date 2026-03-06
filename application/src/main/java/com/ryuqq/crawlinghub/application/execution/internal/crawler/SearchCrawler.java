@@ -66,11 +66,26 @@ public class SearchCrawler extends Crawler {
 
         HttpResponse response = httpClient.get(request);
 
-        log.info(
-                "SearchCrawler 응답: statusCode={}, userAgentId={}",
-                response.statusCode(),
-                context.userAgentId());
+        if (response.isSuccess()) {
+            log.info(
+                    "SearchCrawler 성공: statusCode={}, userAgentId={}",
+                    response.statusCode(),
+                    context.userAgentId());
+        } else {
+            log.error(
+                    "SearchCrawler 실패: statusCode={}, userAgentId={}, body={}",
+                    response.statusCode(),
+                    context.userAgentId(),
+                    truncateBody(response.body()));
+        }
 
         return crawlResultMapper.toCrawlResult(response);
+    }
+
+    private String truncateBody(String body) {
+        if (body == null) {
+            return "null";
+        }
+        return body.length() > 1000 ? body.substring(0, 1000) + "...(truncated)" : body;
     }
 }

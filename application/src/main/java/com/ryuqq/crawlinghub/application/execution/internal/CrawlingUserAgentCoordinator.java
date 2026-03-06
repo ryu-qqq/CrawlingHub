@@ -1,5 +1,6 @@
 package com.ryuqq.crawlinghub.application.execution.internal;
 
+import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.BorrowedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.dto.cache.CachedUserAgent;
 import com.ryuqq.crawlinghub.application.useragent.manager.UserAgentCommandManager;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Component;
 public class CrawlingUserAgentCoordinator {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlingUserAgentCoordinator.class);
+    private static final String BORROW_METRIC = "useragent_borrow_total";
 
     private final UserAgentPoolManager poolManager;
     private final UserAgentPoolValidator poolValidator;
@@ -54,6 +56,7 @@ public class CrawlingUserAgentCoordinator {
     private final UserAgentPoolCacheStateManager cacheStateManager;
     private final UserAgentReadManager readManager;
     private final UserAgentCommandManager commandManager;
+    private final CrawlHubMetrics metrics;
 
     public CrawlingUserAgentCoordinator(
             UserAgentPoolManager poolManager,
@@ -61,13 +64,15 @@ public class CrawlingUserAgentCoordinator {
             UserAgentPoolCacheCommandManager cacheCommandManager,
             UserAgentPoolCacheStateManager cacheStateManager,
             UserAgentReadManager readManager,
-            UserAgentCommandManager commandManager) {
+            UserAgentCommandManager commandManager,
+            CrawlHubMetrics metrics) {
         this.poolManager = poolManager;
         this.poolValidator = poolValidator;
         this.cacheCommandManager = cacheCommandManager;
         this.cacheStateManager = cacheStateManager;
         this.readManager = readManager;
         this.commandManager = commandManager;
+        this.metrics = metrics;
     }
 
     /**
@@ -81,11 +86,18 @@ public class CrawlingUserAgentCoordinator {
      */
     public BorrowedUserAgent borrow() {
         try {
-            return poolManager.borrow();
-        } catch (CircuitBreakerOpenException | NoAvailableUserAgentException e) {
+            BorrowedUserAgent agent = poolManager.borrow();
+            metrics.incrementCounter(BORROW_METRIC, "outcome", "success");
+            return agent;
+        } catch (CircuitBreakerOpenException e) {
+            metrics.incrementCounter(BORROW_METRIC, "outcome", "circuit_breaker_open");
+            throw e;
+        } catch (NoAvailableUserAgentException e) {
+            metrics.incrementCounter(BORROW_METRIC, "outcome", "no_available");
             throw e;
         } catch (Exception e) {
             log.warn("Redis borrow 실패, DB 폴백: {}", e.getMessage());
+            metrics.incrementCounter(BORROW_METRIC, "outcome", "fallback");
             return borrowFromDb();
         }
     }

@@ -14,6 +14,7 @@ import java.util.Objects;
  */
 public final class DetailCrawlData {
 
+    private final long brandCode;
     private final ProductCategory category;
     private final ShippingInfo shippingInfo;
     private final String descriptionMarkUp;
@@ -24,6 +25,7 @@ public final class DetailCrawlData {
     private final Instant updatedAt;
 
     private DetailCrawlData(
+            long brandCode,
             ProductCategory category,
             ShippingInfo shippingInfo,
             String descriptionMarkUp,
@@ -32,6 +34,7 @@ public final class DetailCrawlData {
             String shippingLocation,
             List<String> descriptionImages,
             Instant updatedAt) {
+        this.brandCode = brandCode;
         this.category = category;
         this.shippingInfo = shippingInfo;
         this.descriptionMarkUp = descriptionMarkUp;
@@ -44,6 +47,7 @@ public final class DetailCrawlData {
     }
 
     public static DetailCrawlData of(
+            long brandCode,
             ProductCategory category,
             ShippingInfo shippingInfo,
             String descriptionMarkUp,
@@ -53,6 +57,7 @@ public final class DetailCrawlData {
             List<String> descriptionImages,
             Instant updatedAt) {
         return new DetailCrawlData(
+                brandCode,
                 category,
                 shippingInfo,
                 descriptionMarkUp,
@@ -61,6 +66,10 @@ public final class DetailCrawlData {
                 shippingLocation,
                 descriptionImages,
                 updatedAt);
+    }
+
+    public long brandCode() {
+        return brandCode;
     }
 
     public ProductCategory category() {
@@ -104,7 +113,8 @@ public final class DetailCrawlData {
             return false;
         }
         DetailCrawlData that = (DetailCrawlData) o;
-        return Objects.equals(category, that.category)
+        return brandCode == that.brandCode
+                && Objects.equals(category, that.category)
                 && Objects.equals(shippingInfo, that.shippingInfo)
                 && Objects.equals(descriptionMarkUp, that.descriptionMarkUp)
                 && Objects.equals(itemStatus, that.itemStatus)
@@ -117,6 +127,7 @@ public final class DetailCrawlData {
     @Override
     public int hashCode() {
         return Objects.hash(
+                brandCode,
                 category,
                 shippingInfo,
                 descriptionMarkUp,
@@ -130,7 +141,9 @@ public final class DetailCrawlData {
     @Override
     public String toString() {
         return "DetailCrawlData{"
-                + "category="
+                + "brandCode="
+                + brandCode
+                + ", category="
                 + category
                 + ", itemStatus='"
                 + itemStatus

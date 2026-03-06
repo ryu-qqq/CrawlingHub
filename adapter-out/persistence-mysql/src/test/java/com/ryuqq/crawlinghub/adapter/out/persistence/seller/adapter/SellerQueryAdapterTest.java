@@ -61,7 +61,8 @@ class SellerQueryAdapterTest {
             SellerId sellerId = SellerId.of(1L);
             LocalDateTime now = LocalDateTime.now();
             SellerJpaEntity entity =
-                    SellerJpaEntity.of(1L, "mustit", "commerce", SellerStatus.ACTIVE, 0, now, now);
+                    SellerJpaEntity.of(
+                            1L, "mustit", "commerce", null, SellerStatus.ACTIVE, 0, now, now);
             Seller domain = SellerFixture.anActiveSeller();
 
             given(queryDslRepository.findById(1L)).willReturn(Optional.of(entity));
@@ -221,7 +222,8 @@ class SellerQueryAdapterTest {
                             null, null, List.of(SellerStatus.ACTIVE), null, null, 0, 10);
             LocalDateTime now = LocalDateTime.now();
             SellerJpaEntity entity =
-                    SellerJpaEntity.of(1L, "mustit", "commerce", SellerStatus.ACTIVE, 0, now, now);
+                    SellerJpaEntity.of(
+                            1L, "mustit", "commerce", null, SellerStatus.ACTIVE, 0, now, now);
             Seller domain = SellerFixture.anActiveSeller();
 
             given(queryDslRepository.findByCriteria(criteria)).willReturn(List.of(entity));

@@ -40,7 +40,7 @@ data "aws_caller_identity" "current" {}
 # Service Token Secret (for internal service communication)
 # ========================================
 data "aws_ssm_parameter" "service_token_secret" {
-  name = "/shared/security/service-token-secret"
+  name = "/authhub/stage/security/service-token-secret"
 }
 
 # ========================================
@@ -48,6 +48,17 @@ data "aws_ssm_parameter" "service_token_secret" {
 # ========================================
 data "aws_ssm_parameter" "sentry_dsn" {
   name = "/crawlinghub/sentry/dsn"
+}
+
+# ========================================
+# EventBridge Configuration (from SSM)
+# ========================================
+data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
+  name = "/${var.project_name}/sqs-stage/eventbridge-trigger-queue-arn"
+}
+
+data "aws_ssm_parameter" "eventbridge_role_arn" {
+  name = "/${var.project_name}/eventbridge-stage/role-arn"
 }
 
 # ========================================
@@ -173,7 +184,8 @@ module "scheduler_task_execution_role" {
             ]
             Resource = [
               "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*",
-              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*"
+              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*",
+              "arn:aws:ssm:${var.aws_region}:*:parameter/authhub/*"
             ]
           },
           {
@@ -233,6 +245,24 @@ module "scheduler_task_role" {
               "events:RemoveTargets"
             ]
             Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "scheduler:CreateSchedule",
+              "scheduler:UpdateSchedule",
+              "scheduler:DeleteSchedule",
+              "scheduler:GetSchedule",
+              "scheduler:ListSchedules"
+            ]
+            Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "iam:PassRole"
+            ]
+            Resource = data.aws_ssm_parameter.eventbridge_role_arn.value
           }
         ]
       })
@@ -268,6 +298,20 @@ module "scheduler_task_role" {
               "s3:GetObject"
             ]
             Resource = "arn:aws:s3:::prod-connectly/otel-config/*"
+          },
+          {
+            Sid    = "KMSDecryptOtelConfig"
+            Effect = "Allow"
+            Action = [
+              "kms:Decrypt",
+              "kms:GenerateDataKey"
+            ]
+            Resource = "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
+            Condition = {
+              StringEquals = {
+                "kms:ViaService" = "s3.${var.aws_region}.amazonaws.com"
+              }
+            }
           }
         ]
       })
@@ -375,6 +419,9 @@ module "ecs_service" {
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
     { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
     { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
+    # EventBridge Configuration (from SSM)
+    { name = "EVENTBRIDGE_TARGET_ARN", value = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value },
+    { name = "EVENTBRIDGE_ROLE_ARN", value = data.aws_ssm_parameter.eventbridge_role_arn.value },
     # Fileflow Client 설정 (Stage 내부 VPC Service Discovery 통신)
     { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-stage.connectly.local:8080" },
     { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-stage.connectly.local:8080/api/v1/webhook/image-upload" },
@@ -393,7 +440,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
-  health_check_start_period = 120
+  health_check_start_period = 300 # Scheduler needs more time to initialize Redisson, Redis, EventBridge connections (matched with prod)
 
   # Logging
   log_configuration = {

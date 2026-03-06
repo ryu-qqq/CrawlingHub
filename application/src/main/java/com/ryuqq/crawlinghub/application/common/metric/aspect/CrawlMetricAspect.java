@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.application.common.metric.aspect;
 
 import com.ryuqq.crawlinghub.application.common.metric.CrawlHubMetrics;
 import com.ryuqq.crawlinghub.application.common.metric.annotation.CrawlMetric;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.micrometer.core.instrument.Timer;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,6 +15,7 @@ public class CrawlMetricAspect {
 
     private final CrawlHubMetrics metrics;
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring-managed singleton bean")
     public CrawlMetricAspect(CrawlHubMetrics metrics) {
         this.metrics = metrics;
     }

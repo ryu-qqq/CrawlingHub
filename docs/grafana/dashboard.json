@@ -30,7 +30,7 @@
         "y": 0
       },
       "id": 100,
-      "title": "📊 Overview",
+      "title": "\ud83d\udcca Overview",
       "type": "row"
     },
     {
@@ -91,7 +91,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(up{job=\"$job\"})",
+          "expr": "sum(up{job=\"$job\",environment=~\"$environment\"})",
           "legendFormat": "UP",
           "refId": "A"
         }
@@ -155,7 +155,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -223,7 +223,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
           "legendFormat": "Avg",
           "refId": "A"
         }
@@ -291,7 +291,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -361,7 +361,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m])) * 100 or vector(0)",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])) * 100 or vector(0)",
           "legendFormat": "Error %",
           "refId": "A"
         }
@@ -431,7 +431,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(jvm_memory_used_bytes{job=\"$job\",area=\"heap\"} / jvm_memory_max_bytes{job=\"$job\",area=\"heap\"}) * 100",
+          "expr": "sum(jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}) / clamp_min(sum(jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\"}), 1) * 100",
           "legendFormat": "Heap %",
           "refId": "A"
         }
@@ -448,7 +448,7 @@
         "y": 5
       },
       "id": 500,
-      "title": "🗄️ Database (HikariCP)",
+      "title": "\ud83d\uddc4\ufe0f Database (HikariCP)",
       "type": "row"
     },
     {
@@ -475,7 +475,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_active{job=\"$job\"}",
+          "expr": "hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Active",
           "refId": "A"
         },
@@ -484,7 +484,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_idle{job=\"$job\"}",
+          "expr": "hikaricp_connections_idle{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Idle",
           "refId": "B"
         },
@@ -493,7 +493,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "hikaricp_connections_pending{job=\"$job\"}",
+          "expr": "hikaricp_connections_pending{job=\"$job\",environment=~\"$environment\"}",
           "legendFormat": "Pending",
           "refId": "C"
         }
@@ -550,7 +550,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "avg(hikaricp_connections_active{job=\"$job\"} / hikaricp_connections_max{job=\"$job\"}) * 100",
+          "expr": "avg(hikaricp_connections_active{job=\"$job\",environment=~\"$environment\"} / hikaricp_connections_max{job=\"$job\",environment=~\"$environment\"}) * 100",
           "legendFormat": "Usage %",
           "refId": "A"
         }
@@ -582,7 +582,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\"}[1m])",
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{job=\"$job\",environment=~\"$environment\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])",
           "legendFormat": "Avg Acquire Time",
           "refId": "A"
         }
@@ -599,7 +599,7 @@
         "y": 12
       },
       "id": 700,
-      "title": "☕ JVM Metrics",
+      "title": "\u2615 JVM Metrics",
       "type": "row"
     },
     {
@@ -629,7 +629,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -677,7 +677,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}) / clamp_min(sum by (aws_ecs_task_id) (jvm_memory_max_bytes{job=\"$job\",environment=~\"$environment\",area=\"heap\",aws_ecs_task_id=~\"$task_id\"}), 1) * 100, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -712,7 +712,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (jvm_memory_used_bytes{job=\"$job\",environment=~\"$environment\",area=\"nonheap\",aws_ecs_task_id=~\"$task_id\"}), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -747,7 +747,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(jvm_threads_live_threads{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(jvm_threads_live_threads{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -782,7 +782,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[5m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_sum{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[5m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -817,7 +817,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+          "expr": "label_replace(sum by (aws_ecs_task_id) (rate(jvm_gc_pause_seconds_count{job=\"$job\",environment=~\"$environment\",aws_ecs_task_id=~\"$task_id\"}[1m])) * 60, \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
           "legendFormat": "{{short_id}}",
           "refId": "A"
         }
@@ -834,7 +834,7 @@
         "y": 25
       },
       "id": 200,
-      "title": "🚀 API - Traffic & Latency",
+      "title": "\ud83d\ude80 API - Traffic & Latency",
       "type": "row",
       "panels": [
         {
@@ -922,7 +922,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m]))",
               "legendFormat": "Total RPS",
               "refId": "A"
             },
@@ -931,7 +931,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "label_replace(sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\"}[1m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
+              "expr": "label_replace(sum by (aws_ecs_task_id) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\"}[1m])), \"short_id\", \"$1\", \"aws_ecs_task_id\", \"^(.{8}).*\")",
               "legendFormat": "{{short_id}}",
               "refId": "B"
             }
@@ -1024,7 +1024,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P50",
               "refId": "A"
             },
@@ -1033,7 +1033,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P95",
               "refId": "B"
             },
@@ -1042,7 +1042,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\"}[1m])))",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[1m])))",
               "legendFormat": "P99",
               "refId": "C"
             }
@@ -1061,7 +1061,7 @@
         "y": 26
       },
       "id": 400,
-      "title": "⚠️ API - Errors & Status Codes",
+      "title": "\u26a0\ufe0f API - Errors & Status Codes",
       "type": "row",
       "panels": [
         {
@@ -1134,7 +1134,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"2..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"2..\"}[1m]))",
               "legendFormat": "2xx Success",
               "refId": "A"
             },
@@ -1143,7 +1143,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"4..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"4..\"}[1m]))",
               "legendFormat": "4xx Client Error",
               "refId": "B"
             },
@@ -1152,7 +1152,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",status=~\"5..\"}[1m]))",
+              "expr": "sum(rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",status=~\"5..\"}[1m]))",
               "legendFormat": "5xx Server Error",
               "refId": "C"
             }
@@ -1171,7 +1171,7 @@
         "y": 27
       },
       "id": 800,
-      "title": "🔗 API - Endpoints (by URI)",
+      "title": "\ud83d\udd17 API - Endpoints (by URI)",
       "type": "row",
       "panels": [
         {
@@ -1179,7 +1179,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "description": "API 엔드포인트별 요청 처리량",
+          "description": "API \uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 \uc694\uccad \ucc98\ub9ac\ub7c9",
           "fieldConfig": {
             "defaults": {
               "unit": "reqps"
@@ -1205,7 +1205,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[1m])))",
+              "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m])))",
               "legendFormat": "{{uri}}",
               "refId": "A"
             }
@@ -1218,7 +1218,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "description": "API 엔드포인트별 P95 응답시간",
+          "description": "API \uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 P95 \uc751\ub2f5\uc2dc\uac04",
           "fieldConfig": {
             "defaults": {
               "unit": "s"
@@ -1244,7 +1244,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",uri!~\"/actuator.*\"}[1m]))))",
+              "expr": "topk(10, histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[1m]))))",
               "legendFormat": "{{uri}}",
               "refId": "A"
             }
@@ -1257,7 +1257,7 @@
             "type": "prometheus",
             "uid": "ef4r3izgbak8wb"
           },
-          "description": "엔드포인트별 현재 상태 요약",
+          "description": "\uc5d4\ub4dc\ud3ec\uc778\ud2b8\ubcc4 \ud604\uc7ac \uc0c1\ud0dc \uc694\uc57d",
           "fieldConfig": {
             "defaults": {
               "decimals": 0,
@@ -1322,7 +1322,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",uri!~\"/actuator.*\"}[5m])))",
+              "expr": "topk(20, sum by (uri, method, status) (increase(http_server_requests_seconds_count{job=\"$job\",environment=~\"$environment\",uri!~\"/actuator.*\"}[5m])))",
               "format": "table",
               "instant": true,
               "legendFormat": "{{method}} {{uri}} - {{status}}",
@@ -1359,7 +1359,7 @@
         "y": 28
       },
       "id": 300,
-      "title": "📁 Worker - SQS Consumer",
+      "title": "Crawl Task Processing",
       "type": "row",
       "panels": [
         {
@@ -1382,7 +1382,7 @@
                   },
                   {
                     "color": "yellow",
-                    "value": 95
+                    "value": 90
                   },
                   {
                     "color": "green",
@@ -1424,12 +1424,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"download\",result=\"success\"}[5m])) / sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"download\"}[5m])) * 100 or vector(100)",
-              "legendFormat": "Success %",
+              "editorMode": "code",
+              "expr": "sum(rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\"}[5m])) * 100 or vector(100)",
+              "legendFormat": "success %",
+              "range": true,
               "refId": "A"
             }
           ],
-          "title": "SQS Download - Success Rate",
+          "title": "Crawl Task - Success Rate",
           "type": "stat"
         },
         {
@@ -1452,7 +1454,7 @@
                   },
                   {
                     "color": "yellow",
-                    "value": 95
+                    "value": 90
                   },
                   {
                     "color": "green",
@@ -1494,12 +1496,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"transform\",result=\"success\"}[5m])) / sum(rate(sqs_consumer_messages_total{job=\"$job\",queue=\"transform\"}[5m])) * 100 or vector(100)",
-              "legendFormat": "Success %",
+              "editorMode": "code",
+              "expr": "sum(rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[5m])) / sum(rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\"}[5m])) * 100 or vector(100)",
+              "legendFormat": "success %",
+              "range": true,
               "refId": "A"
             }
           ],
-          "title": "SQS Transform - Success Rate",
+          "title": "Outbound Client - Success Rate",
           "type": "stat"
         },
         {
@@ -1562,12 +1566,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(increase(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[5m])) or vector(0)",
-              "legendFormat": "Nack",
+              "editorMode": "code",
+              "expr": "sum(increase(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[5m])) or vector(0)",
+              "legendFormat": "errors",
+              "range": true,
               "refId": "A"
             }
           ],
-          "title": "Nack Messages (5m)",
+          "title": "Crawl Task Errors (5m)",
           "type": "stat"
         },
         {
@@ -1588,11 +1594,11 @@
                   },
                   {
                     "color": "yellow",
-                    "value": 10
+                    "value": 1
                   },
                   {
-                    "color": "orange",
-                    "value": 50
+                    "color": "red",
+                    "value": 10
                   }
                 ]
               },
@@ -1630,12 +1636,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(increase(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[5m])) or vector(0)",
-              "legendFormat": "Ack",
+              "editorMode": "code",
+              "expr": "sum(increase(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[5m])) or vector(0)",
+              "legendFormat": "errors",
+              "range": true,
               "refId": "A"
             }
           ],
-          "title": "Ack (Non-Retryable) (5m)",
+          "title": "Outbound Client Errors (5m)",
           "type": "stat"
         },
         {
@@ -1754,8 +1762,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\"}[1m]))",
-              "legendFormat": "{{queue}} Total",
+              "editorMode": "code",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\"}[1m]))",
+              "legendFormat": "{{operation}} - total",
+              "range": true,
               "refId": "A"
             },
             {
@@ -1763,8 +1773,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"success\"}[1m]))",
-              "legendFormat": "{{queue}} Success",
+              "editorMode": "code",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[1m]))",
+              "legendFormat": "{{operation}} - success",
+              "range": true,
               "refId": "B"
             },
             {
@@ -1772,12 +1784,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-              "legendFormat": "{{queue}} Nack",
+              "editorMode": "code",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
+              "legendFormat": "{{operation}} - error",
+              "range": true,
               "refId": "C"
             }
           ],
-          "title": "SQS Processing Rate (by Queue)",
+          "title": "Crawl Task Rate (by Operation)",
           "type": "timeseries"
         },
         {
@@ -1896,8 +1910,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"success\"}[1m]))",
-              "legendFormat": "Success",
+              "editorMode": "code",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"success\"}[1m]))",
+              "legendFormat": "{{system}} - success",
+              "range": true,
               "refId": "A"
             },
             {
@@ -1905,21 +1921,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[1m]))",
-              "legendFormat": "Ack (Non-Retryable)",
+              "editorMode": "code",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
+              "legendFormat": "{{system}} - error",
+              "range": true,
               "refId": "B"
-            },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "ef4r3izgbak8wb"
-              },
-              "expr": "sum(rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-              "legendFormat": "Nack (Retry)",
-              "refId": "C"
             }
           ],
-          "title": "SQS Message Result Breakdown",
+          "title": "Outbound Client Rate (by System)",
           "type": "timeseries"
         },
         {
@@ -1946,8 +1955,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P50",
+              "range": true,
               "refId": "A"
             },
             {
@@ -1955,8 +1966,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P95",
+              "range": true,
               "refId": "B"
             },
             {
@@ -1964,12 +1977,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"download\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_crawl_task_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P99",
+              "range": true,
               "refId": "C"
             }
           ],
-          "title": "SQS Download Duration (P50/P95/P99)",
+          "title": "Crawl Task Duration (P50/P95/P99)",
           "type": "timeseries"
         },
         {
@@ -1996,8 +2011,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.50, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P50",
+              "range": true,
               "refId": "A"
             },
             {
@@ -2005,8 +2022,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P95",
+              "range": true,
               "refId": "B"
             },
             {
@@ -2014,12 +2033,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.99, sum by (le) (rate(sqs_consumer_duration_seconds_bucket{job=\"$job\",queue=\"transform\"}[5m])))",
+              "editorMode": "code",
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(crawlinghub_outbound_client_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "P99",
+              "range": true,
               "refId": "C"
             }
           ],
-          "title": "SQS Transform Duration (P50/P95/P99)",
+          "title": "Outbound Client Duration (P50/P95/P99)",
           "type": "timeseries"
         },
         {
@@ -2052,8 +2073,10 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"nack\"}[1m]))",
-              "legendFormat": "{{queue}} Nack",
+              "editorMode": "code",
+              "expr": "sum by (operation) (rate(crawlinghub_crawl_task_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
+              "legendFormat": "crawl_task - {{operation}}",
+              "range": true,
               "refId": "A"
             },
             {
@@ -2061,12 +2084,14 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (queue) (rate(sqs_consumer_messages_total{job=\"$job\",result=\"ack\"}[1m]))",
-              "legendFormat": "{{queue}} Ack",
+              "editorMode": "code",
+              "expr": "sum by (system) (rate(crawlinghub_outbound_client_total{job=\"$job\",environment=~\"$environment\",outcome=\"error\"}[1m]))",
+              "legendFormat": "outbound - {{system}}",
+              "range": true,
               "refId": "B"
             }
           ],
-          "title": "SQS Error Rate (Nack / Ack)",
+          "title": "Error Rate (Crawl Task / Outbound Client)",
           "type": "timeseries"
         }
       ]
@@ -2080,7 +2105,7 @@
         "y": 29
       },
       "id": 900,
-      "title": "📡 Worker - SQS Queue Depth (CloudWatch)",
+      "title": "Worker - SQS Queue Depth (CloudWatch)",
       "type": "row",
       "panels": [
         {
@@ -2186,7 +2211,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-fileflow-external-download"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task"
                 ]
               },
               "expression": "",
@@ -2201,7 +2226,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (Main)"
+              "legendFormat": "Stage - Visible (Main)"
             },
             {
               "datasource": {
@@ -2210,7 +2235,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-fileflow-external-download-dlq"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task-dlq"
                 ]
               },
               "expression": "",
@@ -2225,10 +2250,58 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (DLQ)"
+              "legendFormat": "Stage - Visible (DLQ)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "C",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (Main)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task-dlq"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "D",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (DLQ)"
             }
           ],
-          "title": "Download Queue - Messages Visible",
+          "title": "Crawl Task Queue - Messages Visible",
           "type": "timeseries"
         },
         {
@@ -2334,7 +2407,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-fileflow-file-processing"
+                  "stage-monitoring-sqs-crawlinghub-product-sync"
                 ]
               },
               "expression": "",
@@ -2349,7 +2422,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (Main)"
+              "legendFormat": "Stage - Visible (Main)"
             },
             {
               "datasource": {
@@ -2358,7 +2431,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-fileflow-file-processing-dlq"
+                  "stage-monitoring-sqs-crawlinghub-product-sync-dlq"
                 ]
               },
               "expression": "",
@@ -2373,10 +2446,58 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "Visible (DLQ)"
+              "legendFormat": "Stage - Visible (DLQ)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "C",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (Main)"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync-dlq"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateNumberOfMessagesVisible",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "D",
+              "region": "ap-northeast-2",
+              "statistic": "Average",
+              "legendFormat": "Prod - Visible (DLQ)"
             }
           ],
-          "title": "File Processing Queue - Messages Visible",
+          "title": "Product Sync Queue - Messages Visible",
           "type": "timeseries"
         },
         {
@@ -2470,7 +2591,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-monitoring-sqs-fileflow-external-download"
+                  "stage-monitoring-sqs-crawlinghub-crawling-task"
                 ]
               },
               "expression": "",
@@ -2484,10 +2605,35 @@
               "queryMode": "Metrics",
               "refId": "A",
               "region": "ap-northeast-2",
-              "statistic": "Maximum"
+              "statistic": "Maximum",
+              "legendFormat": "Stage"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-crawling-task"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateAgeOfOldestMessage",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "B",
+              "region": "ap-northeast-2",
+              "statistic": "Maximum",
+              "legendFormat": "Prod"
             }
           ],
-          "title": "Download Queue - Message Age",
+          "title": "Crawl Task Queue - Message Age",
           "type": "timeseries"
         },
         {
@@ -2581,7 +2727,7 @@
               },
               "dimensions": {
                 "QueueName": [
-                  "prod-fileflow-file-processing"
+                  "stage-monitoring-sqs-crawlinghub-product-sync"
                 ]
               },
               "expression": "",
@@ -2595,10 +2741,35 @@
               "queryMode": "Metrics",
               "refId": "A",
               "region": "ap-northeast-2",
-              "statistic": "Maximum"
+              "statistic": "Maximum",
+              "legendFormat": "Stage"
+            },
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "$cw_datasource"
+              },
+              "dimensions": {
+                "QueueName": [
+                  "prod-monitoring-sqs-crawlinghub-product-sync"
+                ]
+              },
+              "expression": "",
+              "id": "",
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "ApproximateAgeOfOldestMessage",
+              "metricQueryType": 0,
+              "namespace": "AWS/SQS",
+              "period": "60",
+              "queryMode": "Metrics",
+              "refId": "B",
+              "region": "ap-northeast-2",
+              "statistic": "Maximum",
+              "legendFormat": "Prod"
             }
           ],
-          "title": "File Processing Queue - Message Age",
+          "title": "Product Sync Queue - Message Age",
           "type": "timeseries"
         }
       ]
@@ -2612,7 +2783,7 @@
         "y": 30
       },
       "id": 1000,
-      "title": "🖥️ Worker - ECS Resources (CloudWatch)",
+      "title": "\ud83d\udda5\ufe0f Worker - ECS Resources (CloudWatch)",
       "type": "row",
       "panels": [
         {
@@ -2706,10 +2877,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "fileflow-cluster-prod"
+                  "crawlinghub-cluster-stage"
                 ],
                 "ServiceName": [
-                  "fileflow-download-worker"
+                  "crawlinghub-crawl-worker-stage"
                 ]
               },
               "expression": "",
@@ -2724,7 +2895,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "download-worker"
+              "legendFormat": "Stage - crawl-worker"
             },
             {
               "datasource": {
@@ -2733,10 +2904,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "fileflow-cluster-prod"
+                  "crawlinghub-cluster-prod"
                 ],
                 "ServiceName": [
-                  "fileflow-resizing-worker"
+                  "crawlinghub-crawl-worker-prod"
                 ]
               },
               "expression": "",
@@ -2751,7 +2922,7 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "resizing-worker"
+              "legendFormat": "Prod - crawl-worker"
             }
           ],
           "title": "CPU Utilization",
@@ -2848,10 +3019,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "fileflow-cluster-prod"
+                  "crawlinghub-cluster-stage"
                 ],
                 "ServiceName": [
-                  "fileflow-download-worker"
+                  "crawlinghub-crawl-worker-stage"
                 ]
               },
               "expression": "",
@@ -2866,7 +3037,7 @@
               "refId": "A",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "download-worker"
+              "legendFormat": "Stage - crawl-worker"
             },
             {
               "datasource": {
@@ -2875,10 +3046,10 @@
               },
               "dimensions": {
                 "ClusterName": [
-                  "fileflow-cluster-prod"
+                  "crawlinghub-cluster-prod"
                 ],
                 "ServiceName": [
-                  "fileflow-resizing-worker"
+                  "crawlinghub-crawl-worker-prod"
                 ]
               },
               "expression": "",
@@ -2893,7 +3064,7 @@
               "refId": "B",
               "region": "ap-northeast-2",
               "statistic": "Average",
-              "legendFormat": "resizing-worker"
+              "legendFormat": "Prod - crawl-worker"
             }
           ],
           "title": "Memory Utilization",
@@ -2910,7 +3081,7 @@
         "y": 31
       },
       "id": 600,
-      "title": "📅 Scheduler - Jobs",
+      "title": "\ud83d\udcc5 Scheduler - Jobs",
       "type": "row",
       "panels": [
         {
@@ -2943,7 +3114,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (job_name) (rate(scheduler_job_duration_seconds_count{job=\"$job\"}[5m]))",
+              "expr": "sum by (job_name) (rate(crawlinghub_scheduler_job_duration_seconds_count{job=\"$job\",environment=~\"$environment\"}[5m]))",
               "legendFormat": "{{job_name}}",
               "refId": "A"
             }
@@ -2981,7 +3152,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(scheduler_job_duration_seconds_bucket{job=\"$job\"}[5m])))",
+              "expr": "histogram_quantile(0.95, sum by (le, job_name) (rate(crawlinghub_scheduler_job_duration_seconds_bucket{job=\"$job\",environment=~\"$environment\"}[5m])))",
               "legendFormat": "{{job_name}} P95",
               "refId": "A"
             }
@@ -3038,7 +3209,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) / (sum(rate(scheduler_job_items_total{job=\"$job\",result=\"success\"}[5m])) + sum(rate(scheduler_job_items_total{job=\"$job\",result=\"failed\"}[5m]))) * 100 or vector(100)",
+              "expr": "sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) / (sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"success\"}[5m])) + sum(rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\",result=\"failed\"}[5m]))) * 100 or vector(100)",
               "legendFormat": "Success %",
               "refId": "A"
             }
@@ -3070,7 +3241,7 @@
                 "type": "prometheus",
                 "uid": "ef4r3izgbak8wb"
               },
-              "expr": "sum by (job_name, result) (rate(scheduler_job_items_total{job=\"$job\"}[5m]))",
+              "expr": "sum by (job_name, result) (rate(crawlinghub_scheduler_job_batch_items_total{job=\"$job\",environment=~\"$environment\"}[5m]))",
               "legendFormat": "{{job_name}} {{result}}",
               "refId": "A"
             }
@@ -3084,11 +3255,37 @@
   "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
-    "fileflow",
-    "prod"
+    "crawlinghub"
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ef4r3izgbak8wb"
+        },
+        "definition": "label_values(up, environment)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(up, environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {},
         "datasource": {
@@ -3103,7 +3300,7 @@
         "options": [],
         "query": "label_values(up, job)",
         "refresh": 1,
-        "regex": "/fileflow.*/",
+        "regex": "/crawlinghub.*/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -3118,6 +3315,7 @@
           "type": "prometheus",
           "uid": "ef4r3izgbak8wb"
         },
+        "allValue": ".*",
         "definition": "",
         "hide": 0,
         "includeAll": true,
@@ -3125,7 +3323,7 @@
         "multi": true,
         "name": "task_id",
         "options": [],
-        "query": "label_values(up{job=\"$job\"}, aws_ecs_task_id)",
+        "query": "label_values(up{job=\"$job\", environment=~\"$environment\"}, aws_ecs_task_id)",
         "refresh": 2,
         "regex": "/.+/",
         "skipUrlSync": false,
@@ -3133,7 +3331,11 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "CloudWatch-prod",
+          "value": "CloudWatch-prod"
+        },
         "hide": 0,
         "includeAll": false,
         "label": "CloudWatch",
@@ -3154,8 +3356,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "FileFlow - Service Metrics",
-  "uid": "fileflow-service-metrics",
+  "title": "CrawlingHub - Service Metrics",
+  "uid": "crawlinghub-service-metrics",
   "version": 1,
   "weekStart": ""
 }

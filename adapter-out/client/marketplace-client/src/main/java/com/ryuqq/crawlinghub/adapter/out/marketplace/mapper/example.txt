@@ -1,0 +1,24 @@
+try:
+            item_name = module_data.get("itemName", "")
+            normal_price = module_data.get("normalPrice", 0)
+            selling_price = module_data.get("sellingPrice", 0)
+            discount_price = module_data.get("discountPrice", 0)
+
+            regular_price = 0
+            current_price = 0
+
+            if discount_price > 0 and normal_price == 0 and selling_price == 0:
+                regular_price = discount_price
+                current_price = discount_price
+
+            elif discount_price > 0 and normal_price > 0 and selling_price == 0:
+                regular_price = normal_price
+                current_price = discount_price
+            elif discount_price > 0 and normal_price == 0 and selling_price > 0:
+                regular_price = selling_price
+                current_price = selling_price
+            elif normal_price > 0 and selling_price > 0 and discount_price > 0:
+                regular_price = normal_price
+                current_price = selling_price
+            else:
+                pass

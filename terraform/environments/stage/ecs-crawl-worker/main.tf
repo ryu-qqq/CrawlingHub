@@ -41,7 +41,7 @@ data "aws_caller_identity" "current" {}
 # Service Token Secret (for internal service communication)
 # ========================================
 data "aws_ssm_parameter" "service_token_secret" {
-  name = "/shared/security/service-token-secret"
+  name = "/authhub/stage/security/service-token-secret"
 }
 
 # ========================================
@@ -174,7 +174,8 @@ module "crawl_worker_task_execution_role" {
             ]
             Resource = [
               "arn:aws:ssm:${var.aws_region}:*:parameter/shared/*",
-              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*"
+              "arn:aws:ssm:${var.aws_region}:*:parameter/crawlinghub/*",
+              "arn:aws:ssm:${var.aws_region}:*:parameter/authhub/*"
             ]
           },
           {
@@ -254,6 +255,20 @@ module "crawl_worker_task_role" {
               "s3:GetObject"
             ]
             Resource = "arn:aws:s3:::prod-connectly/otel-config/*"
+          },
+          {
+            Sid    = "KMSDecryptOtelConfig"
+            Effect = "Allow"
+            Action = [
+              "kms:Decrypt",
+              "kms:GenerateDataKey"
+            ]
+            Resource = "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
+            Condition = {
+              StringEquals = {
+                "kms:ViaService" = "s3.${var.aws_region}.amazonaws.com"
+              }
+            }
           }
         ]
       })
@@ -361,6 +376,8 @@ module "ecs_service" {
     { name = "REDIS_PORT", value = tostring(local.redis_port) },
     # SQS Main Queues (from SSM parameters)
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
+    { name = "SQS_CRAWL_TASK_DLQ_URL", value = local.sqs_crawl_task_dlq_url },
+    { name = "SQS_EVENTBRIDGE_TRIGGER_QUEUE_URL", value = local.sqs_eventbridge_trigger_queue_url },
     { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
     { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
     # Fileflow Client 설정 (Stage 내부 VPC Service Discovery 통신)
@@ -381,7 +398,7 @@ module "ecs_service" {
 
   # Health Check
   health_check_command      = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
-  health_check_start_period = 120
+  health_check_start_period = 300 # Worker needs more time to initialize Redisson, Redis, SQS connections (matched with prod)
 
   # Logging
   log_configuration = {

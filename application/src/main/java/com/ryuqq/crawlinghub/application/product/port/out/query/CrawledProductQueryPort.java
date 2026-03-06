@@ -36,6 +36,16 @@ public interface CrawledProductQueryPort {
     Optional<CrawledProduct> findBySellerIdAndItemNo(SellerId sellerId, long itemNo);
 
     /**
+     * Seller ID와 Item No로 CrawledProduct 조회 (soft-delete 포함)
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     * @return CrawledProduct (Optional, soft-deleted 포함)
+     */
+    Optional<CrawledProduct> findBySellerIdAndItemNoIncludingDeleted(
+            SellerId sellerId, long itemNo);
+
+    /**
      * Seller ID로 CrawledProduct 목록 조회
      *
      * @param sellerId 판매자 ID
@@ -52,6 +62,16 @@ public interface CrawledProductQueryPort {
      * @return 동기화가 필요한 CrawledProduct 목록
      */
     List<CrawledProduct> findNeedsSyncProducts(int limit);
+
+    /**
+     * 갱신이 오래된 상품 조회 (updatedAt ASC)
+     *
+     * <p>externalProductId가 존재하고 soft-delete되지 않은 상품 중 updatedAt이 가장 오래된 순으로 조회
+     *
+     * @param limit 조회 개수 제한
+     * @return 갱신이 필요한 CrawledProduct 목록
+     */
+    List<CrawledProduct> findStaleProducts(int limit);
 
     /**
      * Seller ID와 Item No로 존재 여부 확인

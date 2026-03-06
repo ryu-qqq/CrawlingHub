@@ -18,6 +18,8 @@ spring:
       - classpath:sqs.yml
       - optional:classpath:sqs-${spring.profiles.active:local}.yml
       - classpath:http-client.yml
+      - classpath:marketplace.yml
+      - optional:classpath:marketplace-${spring.profiles.active:local}.yml
 
   # ========================================
   # Flyway Configuration
@@ -73,8 +75,10 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        crawlinghub: true
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
+        crawlinghub: 0.5, 0.95, 0.99
 
 # ========================================
 # Logging Configuration
@@ -116,7 +120,7 @@ scheduler:
     crawl-task-outbox:
       process-pending:
         enabled: true
-        cron: "0 */5 * * * *"          # 5분마다
+        cron: "*/5 * * * * *"          # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         delay-seconds: 30
@@ -170,7 +174,7 @@ scheduler:
     sync-outbox:
       publish-pending:
         enabled: true
-        cron: "*/30 * * * * *"            # 30초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         max-retry-count: 3
@@ -180,6 +184,25 @@ scheduler:
         timezone: "Asia/Seoul"
         batch-size: 100
         max-retry-count: 3
+      recover-timeout:
+        enabled: true
+        cron: "0 */10 * * * *"           # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300              # 5분
+      recover-failed:
+        enabled: true
+        cron: "0 */10 * * * *"           # 10분마다
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60                # 1분 후 복구
+
+    product-refresh:
+      refresh-stale:
+        enabled: true
+        cron: "0 0 10,14,18 * * *"       # 10시, 14시, 18시
+        timezone: "Asia/Seoul"
+        batch-size: 3000
 
 ---
 # ========================================
@@ -273,6 +296,24 @@ scheduler:
         timezone: "Asia/Seoul"
         batch-size: 100
         max-retry-count: 3
+      recover-timeout:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        timeout-seconds: 300
+      recover-failed:
+        enabled: false
+        cron: "0 */10 * * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 50
+        delay-seconds: 60
+    product-refresh:
+      refresh-stale:
+        enabled: false
+        cron: "0 0 10,14,18 * * *"
+        timezone: "Asia/Seoul"
+        batch-size: 3000
   session-issuance:
     enabled: false
 

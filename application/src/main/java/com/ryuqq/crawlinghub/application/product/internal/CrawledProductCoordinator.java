@@ -4,9 +4,13 @@ import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandMa
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
 import com.ryuqq.crawlinghub.domain.seller.id.SellerId;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,17 +24,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class CrawledProductCoordinator {
 
+    private static final Logger log = LoggerFactory.getLogger(CrawledProductCoordinator.class);
+
     private final CrawledProductReadManager readManager;
     private final CrawledProductCommandManager commandManager;
-    private final CrawledProductSyncOutboxCoordinator syncOutboxCoordinator;
+    private final CrawledProductCommandFacade commandFacade;
 
     public CrawledProductCoordinator(
             CrawledProductReadManager readManager,
             CrawledProductCommandManager commandManager,
-            CrawledProductSyncOutboxCoordinator syncOutboxCoordinator) {
+            CrawledProductCommandFacade commandFacade) {
         this.readManager = readManager;
         this.commandManager = commandManager;
-        this.syncOutboxCoordinator = syncOutboxCoordinator;
+        this.commandFacade = commandFacade;
     }
 
     /**
@@ -49,7 +55,7 @@ public class CrawledProductCoordinator {
                 .ifPresent(
                         product -> {
                             updater.accept(product);
-                            persistAndSync(product);
+                            commandFacade.persistAndSync(product);
                         });
     }
 
@@ -71,19 +77,62 @@ public class CrawledProductCoordinator {
         if (existing.isPresent()) {
             CrawledProduct product = existing.get();
             updater.accept(product);
-            persistAndSync(product);
-        } else {
-            commandManager.persist(creator.get());
-        }
-    }
-
-    private void persistAndSync(CrawledProduct product) {
-        commandManager.persist(product);
-
-        if (!product.needsExternalSync()) {
+            commandFacade.persistAndSync(product);
             return;
         }
 
-        syncOutboxCoordinator.createAllIfAbsent(product);
+        Optional<CrawledProduct> deleted =
+                readManager.findBySellerIdAndItemNoIncludingDeleted(sellerId, itemNo);
+
+        if (deleted.isPresent()) {
+            CrawledProduct product = deleted.get();
+            product.restore(Instant.now());
+            updater.accept(product);
+            commandFacade.persistAndSync(product);
+            log.info("soft-deleted 상품 복원: sellerId={}, itemNo={}", sellerId.value(), itemNo);
+        } else {
+            persistOrFallbackToUpdate(sellerId, itemNo, updater, creator);
+        }
+    }
+
+    /** 신규 상품 persist 시도, 레이스 컨디션으로 중복 키 발생 시 update로 전환 */
+    private void persistOrFallbackToUpdate(
+            SellerId sellerId,
+            long itemNo,
+            Consumer<CrawledProduct> updater,
+            Supplier<CrawledProduct> creator) {
+        try {
+            commandManager.persist(creator.get());
+        } catch (DataIntegrityViolationException e) {
+            log.warn(
+                    "상품 insert 중복 키 감지, update로 전환: sellerId={}, itemNo={}",
+                    sellerId.value(),
+                    itemNo);
+            readManager
+                    .findBySellerIdAndItemNo(sellerId, itemNo)
+                    .ifPresent(
+                            product -> {
+                                updater.accept(product);
+                                commandFacade.persistAndSync(product);
+                            });
+        }
+    }
+
+    /**
+     * 기존 상품이 있으면 soft-delete 처리 (셀러 불일치 등으로 인한 정리)
+     *
+     * <p>상품이 존재하지 않으면 아무 동작도 하지 않습니다.
+     *
+     * @param sellerId 판매자 ID
+     * @param itemNo 상품 번호
+     */
+    public void softDeleteIfExists(SellerId sellerId, long itemNo) {
+        readManager
+                .findBySellerIdAndItemNo(sellerId, itemNo)
+                .ifPresent(
+                        product -> {
+                            product.delete(Instant.now());
+                            commandManager.persist(product);
+                        });
     }
 }

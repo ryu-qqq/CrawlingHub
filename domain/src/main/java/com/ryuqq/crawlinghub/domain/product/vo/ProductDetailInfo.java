@@ -109,7 +109,7 @@ public record ProductDetailInfo(
     }
 
     /** 모든 이미지 URL 반환 (배너 + 상세) */
-    public List<String> getAllImageUrls() {
+    public List<String> allImageUrls() {
         if (bannerImages.isEmpty() && detailImages.isEmpty()) {
             return List.of();
         }
@@ -118,7 +118,7 @@ public record ProductDetailInfo(
     }
 
     /** 대표 이미지 URL 반환 */
-    public String getMainImageUrl() {
+    public String mainImageUrl() {
         if (!bannerImages.isEmpty()) {
             return bannerImages.getFirst();
         }

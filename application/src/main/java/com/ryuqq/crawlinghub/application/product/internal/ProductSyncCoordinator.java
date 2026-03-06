@@ -1,17 +1,15 @@
 package com.ryuqq.crawlinghub.application.product.internal;
 
 import com.ryuqq.crawlinghub.application.product.dto.command.ProcessProductSyncCommand;
-import com.ryuqq.crawlinghub.application.product.manager.CrawledProductCommandManager;
 import com.ryuqq.crawlinghub.application.product.manager.CrawledProductSyncOutboxCommandManager;
 import com.ryuqq.crawlinghub.application.product.port.out.client.ExternalProductServerClient;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator;
 import com.ryuqq.crawlinghub.application.product.validator.ProductSyncValidator.SyncTarget;
-import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProduct;
+import com.ryuqq.crawlinghub.application.seller.manager.SellerReadManager;
 import com.ryuqq.crawlinghub.domain.product.aggregate.CrawledProductSyncOutbox;
 import com.ryuqq.crawlinghub.domain.product.vo.ProductSyncResult;
-import java.time.Instant;
+import com.ryuqq.crawlinghub.domain.seller.aggregate.Seller;
 import java.util.Optional;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -38,18 +36,21 @@ public class ProductSyncCoordinator {
 
     private final ProductSyncValidator validator;
     private final CrawledProductSyncOutboxCommandManager syncOutboxCommandManager;
-    private final CrawledProductCommandManager crawledProductCommandManager;
+    private final CrawledProductCommandFacade commandFacade;
     private final ExternalProductServerClient externalProductServerClient;
+    private final SellerReadManager sellerReadManager;
 
     public ProductSyncCoordinator(
             ProductSyncValidator validator,
             CrawledProductSyncOutboxCommandManager syncOutboxCommandManager,
-            CrawledProductCommandManager crawledProductCommandManager,
-            ExternalProductServerClient externalProductServerClient) {
+            CrawledProductCommandFacade commandFacade,
+            ExternalProductServerClient externalProductServerClient,
+            SellerReadManager sellerReadManager) {
         this.validator = validator;
         this.syncOutboxCommandManager = syncOutboxCommandManager;
-        this.crawledProductCommandManager = crawledProductCommandManager;
+        this.commandFacade = commandFacade;
         this.externalProductServerClient = externalProductServerClient;
+        this.sellerReadManager = sellerReadManager;
     }
 
     /**
@@ -73,16 +74,26 @@ public class ProductSyncCoordinator {
 
         SyncTarget target = targetOpt.get();
 
-        // 2. PROCESSING 상태 전환
+        // 2. Seller 조회
+        Seller seller =
+                sellerReadManager
+                        .findById(target.outbox().getSellerId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "Seller not found: sellerId="
+                                                        + target.outbox().getSellerIdValue()));
+
+        // 3. PROCESSING 상태 전환
         syncOutboxCommandManager.markAsProcessing(target.outbox());
 
-        // 3. 외부 API 호출 + 결과 처리
+        // 4. 외부 API 호출 + 결과 처리
         try {
             ProductSyncResult result =
-                    externalProductServerClient.sync(target.outbox(), target.product());
+                    externalProductServerClient.sync(target.outbox(), target.product(), seller);
 
             if (result.success()) {
-                completeSync(target.outbox(), target.product(), result.externalProductId());
+                completeSync(target.outbox(), result.externalProductId());
                 log.info(
                         "SQS 외부 동기화 성공: outboxId={}, productId={}, externalProductId={}",
                         target.outbox().getId(),
@@ -109,17 +120,8 @@ public class ProductSyncCoordinator {
 
     // === Private Methods ===
 
-    private void completeSync(
-            CrawledProductSyncOutbox outbox, CrawledProduct product, Long externalProductId) {
-        syncOutboxCommandManager.markAsCompleted(outbox, externalProductId);
-
-        Instant now = Instant.now();
-        if (outbox.getSyncType().isCreate()) {
-            product.markAsSynced(externalProductId, now);
-        } else {
-            product.markChangesSynced(Set.of(outbox.getSyncType().toChangeType()), now);
-        }
-        crawledProductCommandManager.persist(product);
+    private void completeSync(CrawledProductSyncOutbox outbox, Long externalProductId) {
+        commandFacade.completeSyncAndPersist(outbox, externalProductId);
     }
 
     private void failSync(CrawledProductSyncOutbox outbox, String errorMessage) {

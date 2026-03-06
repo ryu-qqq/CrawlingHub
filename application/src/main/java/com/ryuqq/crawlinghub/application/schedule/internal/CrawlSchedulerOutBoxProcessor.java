@@ -6,6 +6,7 @@ import com.ryuqq.crawlinghub.domain.schedule.aggregate.CrawlSchedulerOutBox;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Component
+@ConditionalOnProperty(prefix = "eventbridge", name = "target-arn")
 public class CrawlSchedulerOutBoxProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(CrawlSchedulerOutBoxProcessor.class);
@@ -47,11 +49,13 @@ public class CrawlSchedulerOutBoxProcessor {
         try {
             outBox.markAsProcessing(Instant.now());
             outBoxCommandManager.persist(outBox);
+            outBox.syncVersion();
 
             eventBridgeSyncManager.syncFromOutBox(outBox);
 
             outBox.markAsCompleted(Instant.now());
             outBoxCommandManager.persist(outBox);
+            outBox.syncVersion();
 
             log.debug("아웃박스 처리 성공: outBoxId={}", outBox.getOutBoxIdValue());
             return true;

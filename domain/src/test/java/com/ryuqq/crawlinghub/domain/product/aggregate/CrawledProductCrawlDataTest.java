@@ -79,12 +79,17 @@ class CrawledProductCrawlDataTest {
     }
 
     private CrawledProduct createFullyReconstituted() {
+        return createFullyReconstitutedWithExternalId(null);
+    }
+
+    private CrawledProduct createFullyReconstitutedWithExternalId(Long externalProductId) {
         return CrawledProduct.reconstitute(
                 CrawledProductId.of(1L),
                 SELLER_ID,
                 ITEM_NO,
                 ITEM_NAME,
                 BRAND_NAME,
+                0L,
                 createDefaultPrice(),
                 createDefaultImages(),
                 true,
@@ -97,13 +102,14 @@ class CrawledProductCrawlDataTest {
                 "Seoul",
                 createDefaultOptions(),
                 createAllCrawledStatus(),
-                null,
+                externalProductId,
                 null,
                 false,
                 EnumSet.noneOf(ProductChangeType.class),
                 DeletionStatus.active(),
                 FIXED_INSTANT,
-                FIXED_INSTANT);
+                FIXED_INSTANT,
+                null);
     }
 
     @Nested
@@ -150,6 +156,7 @@ class CrawledProductCrawlDataTest {
                     CrawledProduct.fromMiniShopCrawlData(createDefaultMiniShopCrawlData());
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
+                            0L,
                             null,
                             null,
                             "<h1>상품 설명</h1>",
@@ -176,7 +183,15 @@ class CrawledProductCrawlDataTest {
             String newDescription = "<h1>새로운 설명</h1>";
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
-                            null, null, newDescription, null, null, null, List.of(), LATER_INSTANT);
+                            0L,
+                            null,
+                            null,
+                            newDescription,
+                            null,
+                            null,
+                            null,
+                            List.of(),
+                            LATER_INSTANT);
 
             product.updateFromDetailCrawlData(crawlData);
 
@@ -192,7 +207,15 @@ class CrawledProductCrawlDataTest {
             List<String> descImages = List.of("https://example.com/desc1.jpg");
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
-                            null, null, "<h1>설명</h1>", null, null, null, descImages, LATER_INSTANT);
+                            0L,
+                            null,
+                            null,
+                            "<h1>설명</h1>",
+                            null,
+                            null,
+                            null,
+                            descImages,
+                            LATER_INSTANT);
 
             List<String> newUrls = product.updateFromDetailCrawlData(crawlData);
 
@@ -202,9 +225,10 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("모든 크롤링 완료 후 상세 변경 시 pendingChanges에 DESCRIPTION이 추가된다")
         void addsPendingDescriptionChangeWhenFullyCrawled() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             DetailCrawlData crawlData =
                     DetailCrawlData.of(
+                            0L,
                             null,
                             null,
                             "<h1>새 설명</h1>",
@@ -245,7 +269,7 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("옵션 변경 시 모든 크롤링 완료 상태면 pendingChanges에 OPTION_STOCK이 추가된다")
         void addsPendingOptionStockChangeWhenFullyCrawled() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             ProductOptions changedOptions =
                     ProductOptions.of(
                             List.of(new ProductOption(1L, ITEM_NO, "Red", "M", 99, null)));
@@ -254,6 +278,21 @@ class CrawledProductCrawlDataTest {
             product.updateFromOptionCrawlData(crawlData);
 
             assertThat(product.getPendingChanges()).contains(ProductChangeType.OPTION_STOCK);
+            assertThat(product.isNeedsSync()).isTrue();
+        }
+
+        @Test
+        @DisplayName("외부 서버 미등록 상품은 옵션 변경 시 pendingChanges가 비어있고 needsSync만 true다")
+        void doesNotAddPendingChangeForUnregisteredProduct() {
+            CrawledProduct product = createFullyReconstituted();
+            ProductOptions changedOptions =
+                    ProductOptions.of(
+                            List.of(new ProductOption(1L, ITEM_NO, "Red", "M", 99, null)));
+            OptionCrawlData crawlData = OptionCrawlData.of(changedOptions, LATER_INSTANT);
+
+            product.updateFromOptionCrawlData(crawlData);
+
+            assertThat(product.getPendingChanges()).isEmpty();
             assertThat(product.isNeedsSync()).isTrue();
         }
     }
@@ -329,7 +368,7 @@ class CrawledProductCrawlDataTest {
         @Test
         @DisplayName("특정 변경 유형 동기화 완료 처리한다")
         void marksSpecificChangeSynced() {
-            CrawledProduct product = createFullyReconstituted();
+            CrawledProduct product = createFullyReconstitutedWithExternalId(100L);
             MiniShopCrawlData crawlData =
                     MiniShopCrawlData.of(
                             SELLER_ID,
@@ -442,6 +481,7 @@ class CrawledProductCrawlDataTest {
                             ITEM_NO,
                             ITEM_NAME,
                             BRAND_NAME,
+                            0L,
                             createDefaultPrice(),
                             null,
                             true,
@@ -460,7 +500,8 @@ class CrawledProductCrawlDataTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
             assertThat(product.getPendingUploadImageUrls()).isEmpty();
         }
     }
@@ -499,6 +540,7 @@ class CrawledProductCrawlDataTest {
                             ITEM_NO,
                             ITEM_NAME,
                             BRAND_NAME,
+                            0L,
                             createDefaultPrice(),
                             createDefaultImages(),
                             true,
@@ -517,7 +559,8 @@ class CrawledProductCrawlDataTest {
                             EnumSet.noneOf(ProductChangeType.class),
                             DeletionStatus.active(),
                             FIXED_INSTANT,
-                            FIXED_INSTANT);
+                            FIXED_INSTANT,
+                            null);
             assertThat(product.getTotalStock()).isEqualTo(0);
         }
     }

@@ -2,6 +2,7 @@ package com.ryuqq.crawlinghub.adapter.in.scheduler.aspect;
 
 import com.ryuqq.crawlinghub.adapter.in.scheduler.annotation.SchedulerJob;
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -39,6 +40,9 @@ public class SchedulerLoggingAspect {
 
     private final MeterRegistry meterRegistry;
 
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "MeterRegistry는 Spring IoC 컨테이너가 관리하는 싱글톤이며, 외부 변경 위험 없음")
     public SchedulerLoggingAspect(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
@@ -100,29 +104,29 @@ public class SchedulerLoggingAspect {
 
     private void recordTimerMetric(String jobName, long elapsedMs, String outcome) {
         Timer.builder(METRIC_PREFIX + "scheduler_job_duration_seconds")
-                .tags("job", jobName, "outcome", outcome)
+                .tags("job_name", jobName, "outcome", outcome)
                 .register(meterRegistry)
                 .record(elapsedMs, TimeUnit.MILLISECONDS);
     }
 
     private void recordCounterMetric(String jobName, String outcome) {
         Counter.builder(METRIC_PREFIX + "scheduler_job_total")
-                .tags("job", jobName, "outcome", outcome)
+                .tags("job_name", jobName, "outcome", outcome)
                 .register(meterRegistry)
                 .increment();
     }
 
     private void recordBatchItemsMetric(String jobName, SchedulerBatchProcessingResult result) {
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "total")
+                .tags("job_name", jobName, "result", "total")
                 .register(meterRegistry)
                 .increment(result.total());
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "success")
+                .tags("job_name", jobName, "result", "success")
                 .register(meterRegistry)
                 .increment(result.success());
         Counter.builder(METRIC_PREFIX + "scheduler_job_batch_items_total")
-                .tags("job", jobName, "status", "failed")
+                .tags("job_name", jobName, "result", "failed")
                 .register(meterRegistry)
                 .increment(result.failed());
     }

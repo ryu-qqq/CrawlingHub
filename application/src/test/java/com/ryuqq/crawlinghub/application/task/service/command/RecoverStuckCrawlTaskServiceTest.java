@@ -6,11 +6,16 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import com.ryuqq.cralwinghub.domain.fixture.crawl.task.CrawlTaskFixture;
+import com.ryuqq.cralwinghub.domain.fixture.execution.CrawlExecutionFixture;
 import com.ryuqq.crawlinghub.application.common.dto.result.SchedulerBatchProcessingResult;
 import com.ryuqq.crawlinghub.application.common.time.TimeProvider;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionCommandManager;
+import com.ryuqq.crawlinghub.application.execution.manager.CrawlExecutionReadManager;
 import com.ryuqq.crawlinghub.application.task.dto.command.RecoverStuckCrawlTaskCommand;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskCommandManager;
 import com.ryuqq.crawlinghub.application.task.manager.CrawlTaskReadManager;
+import com.ryuqq.crawlinghub.domain.execution.aggregate.CrawlExecution;
+import com.ryuqq.crawlinghub.domain.execution.query.CrawlExecutionCriteria;
 import com.ryuqq.crawlinghub.domain.task.aggregate.CrawlTask;
 import java.time.Instant;
 import java.util.List;
@@ -34,10 +39,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("RecoverStuckCrawlTaskService 테스트")
 class RecoverStuckCrawlTaskServiceTest {
 
-    private static final Instant FIXED_INSTANT = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant FIXED_INSTANT = Instant.parse("2025-12-01T00:00:00Z");
 
     @Mock private CrawlTaskReadManager readManager;
     @Mock private CrawlTaskCommandManager commandManager;
+    @Mock private CrawlExecutionReadManager executionReadManager;
+    @Mock private CrawlExecutionCommandManager executionCommandManager;
     @Mock private TimeProvider timeProvider;
 
     @InjectMocks private RecoverStuckCrawlTaskService sut;
@@ -97,6 +104,32 @@ class RecoverStuckCrawlTaskServiceTest {
             // Then
             assertThat(result.total()).isEqualTo(2);
             assertThat(result.success()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("[성공] RUNNING 고아 CrawlExecution도 함께 TIMEOUT 처리")
+        void shouldRecoverRunningExecutionsAlongWithTask() {
+            // Given
+            RecoverStuckCrawlTaskCommand command = new RecoverStuckCrawlTaskCommand(10, 1800L);
+            CrawlTask stuckTask = CrawlTaskFixture.aRunningTask();
+            CrawlExecution runningExecution = CrawlExecutionFixture.aRunningExecution();
+
+            given(readManager.findRunningOlderThan(10, 1800L)).willReturn(List.of(stuckTask));
+            given(timeProvider.now()).willReturn(FIXED_INSTANT);
+            given(
+                            executionReadManager.findByCriteria(
+                                    org.mockito.ArgumentMatchers.any(CrawlExecutionCriteria.class)))
+                    .willReturn(List.of(runningExecution));
+
+            // When
+            SchedulerBatchProcessingResult result = sut.execute(command);
+
+            // Then
+            assertThat(result.total()).isEqualTo(1);
+            assertThat(result.success()).isEqualTo(1);
+            assertThat(runningExecution.isCompleted()).isTrue();
+            then(executionCommandManager).should().persist(runningExecution);
+            then(commandManager).should().persist(stuckTask);
         }
 
         @Test

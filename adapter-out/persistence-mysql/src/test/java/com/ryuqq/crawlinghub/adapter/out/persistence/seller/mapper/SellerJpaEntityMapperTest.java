@@ -120,6 +120,7 @@ class SellerJpaEntityMapperTest {
                             1L,
                             "mustit-seller",
                             "commerce-seller",
+                            null,
                             SellerStatus.ACTIVE,
                             50,
                             now,
@@ -149,6 +150,7 @@ class SellerJpaEntityMapperTest {
                             2L,
                             "inactive-mustit",
                             "inactive-commerce",
+                            null,
                             SellerStatus.INACTIVE,
                             0,
                             now,
@@ -221,6 +223,7 @@ class SellerJpaEntityMapperTest {
                             1L,
                             "mustit-seller",
                             "commerce-seller",
+                            null,
                             SellerStatus.ACTIVE,
                             0,
                             null, // createdAt null
@@ -244,6 +247,7 @@ class SellerJpaEntityMapperTest {
                             SellerId.of(1L),
                             MustItSellerName.of("mustit-seller"),
                             SellerName.of("commerce-seller"),
+                            null,
                             SellerStatus.ACTIVE,
                             0,
                             null, // createdAt null
