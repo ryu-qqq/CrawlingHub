@@ -138,10 +138,12 @@ data "aws_ssm_parameter" "amp_remote_write_url" {
 # ========================================
 data "aws_ssm_parameter" "sqs" {
   for_each = {
-    crawl_task_queue_url    = "/${var.project_name}/sqs/crawling-task-queue-url"
-    product_image_queue_url = "/${var.project_name}/sqs/product-image-queue-url"
-    product_sync_queue_url  = "/${var.project_name}/sqs/product-sync-queue-url"
-    access_policy_arn       = "/${var.project_name}/sqs/access-policy-arn"
+    crawl_task_queue_url          = "/${var.project_name}/sqs/crawling-task-queue-url"
+    crawl_task_dlq_url            = "/${var.project_name}/sqs/crawling-task-dlq-url"
+    eventbridge_trigger_queue_url = "/${var.project_name}/sqs/eventbridge-trigger-queue-url"
+    product_image_queue_url       = "/${var.project_name}/sqs/product-image-queue-url"
+    product_sync_queue_url        = "/${var.project_name}/sqs/product-sync-queue-url"
+    access_policy_arn             = "/${var.project_name}/sqs/access-policy-arn"
   }
   name = each.value
 }
@@ -170,8 +172,10 @@ locals {
   amp_remote_write_url = data.aws_ssm_parameter.amp_remote_write_url.value
 
   # SQS Configuration (from SSM via for_each)
-  sqs_crawl_task_queue_url    = data.aws_ssm_parameter.sqs["crawl_task_queue_url"].value
-  sqs_product_image_queue_url = data.aws_ssm_parameter.sqs["product_image_queue_url"].value
-  sqs_product_sync_queue_url  = data.aws_ssm_parameter.sqs["product_sync_queue_url"].value
-  sqs_access_policy_arn       = data.aws_ssm_parameter.sqs["access_policy_arn"].value
+  sqs_crawl_task_queue_url          = data.aws_ssm_parameter.sqs["crawl_task_queue_url"].value
+  sqs_crawl_task_dlq_url            = data.aws_ssm_parameter.sqs["crawl_task_dlq_url"].value
+  sqs_eventbridge_trigger_queue_url = data.aws_ssm_parameter.sqs["eventbridge_trigger_queue_url"].value
+  sqs_product_image_queue_url       = data.aws_ssm_parameter.sqs["product_image_queue_url"].value
+  sqs_product_sync_queue_url        = data.aws_ssm_parameter.sqs["product_sync_queue_url"].value
+  sqs_access_policy_arn             = data.aws_ssm_parameter.sqs["access_policy_arn"].value
 }
