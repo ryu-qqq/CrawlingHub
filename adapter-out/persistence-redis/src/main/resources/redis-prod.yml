@@ -11,9 +11,6 @@ spring:
       port: ${REDIS_PORT:6379}
       database: ${REDIS_DATABASE:0}
 
-      ssl:
-        enabled: ${REDIS_SSL_ENABLED:false}
-
 logging:
   level:
     org.redisson: INFO

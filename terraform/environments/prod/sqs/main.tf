@@ -435,3 +435,74 @@ resource "aws_ssm_parameter" "product_sync_dlq_url" {
     Environment = var.environment
   }
 }
+
+# ========================================
+# EventBridge Scheduler IAM Role
+# ========================================
+resource "aws_iam_role" "eventbridge_scheduler" {
+  name = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-sqs-role-${var.environment}"
+    Environment = var.environment
+    Service     = "${var.project_name}-eventbridge"
+  }
+}
+
+resource "aws_iam_role_policy" "eventbridge_scheduler_sqs" {
+  name = "${var.project_name}-eventbridge-sqs-policy-${var.environment}"
+  role = aws_iam_role.eventbridge_scheduler.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSQSSendMessage"
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = [
+          module.eventbridge_trigger_queue.queue_arn
+        ]
+      },
+      {
+        Sid    = "AllowKMSForSQS"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = [aws_kms_key.sqs.arn]
+      }
+    ]
+  })
+}
+
+# ========================================
+# SSM Parameters for EventBridge Scheduler
+# ========================================
+resource "aws_ssm_parameter" "eventbridge_role_arn" {
+  name        = "/${var.project_name}/eventbridge/role-arn"
+  description = "CrawlingHub EventBridge Scheduler IAM role ARN (prod)"
+  type        = "String"
+  value       = aws_iam_role.eventbridge_scheduler.arn
+
+  tags = {
+    Name        = "${var.project_name}-eventbridge-prod-role-arn"
+    Environment = var.environment
+  }
+}
