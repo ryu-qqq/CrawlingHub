@@ -233,6 +233,24 @@ module "scheduler_task_role" {
               "events:RemoveTargets"
             ]
             Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "scheduler:CreateSchedule",
+              "scheduler:UpdateSchedule",
+              "scheduler:DeleteSchedule",
+              "scheduler:GetSchedule",
+              "scheduler:ListSchedules"
+            ]
+            Resource = "*"
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "iam:PassRole"
+            ]
+            Resource = data.aws_ssm_parameter.eventbridge_role_arn.value
           }
         ]
       })
@@ -384,6 +402,9 @@ module "ecs_service" {
     { name = "SQS_CRAWL_TASK_QUEUE_URL", value = local.sqs_crawl_task_queue_url },
     { name = "SQS_PRODUCT_IMAGE_QUEUE_URL", value = local.sqs_product_image_queue_url },
     { name = "SQS_PRODUCT_SYNC_QUEUE_URL", value = local.sqs_product_sync_queue_url },
+    # EventBridge Configuration (from SSM)
+    { name = "EVENTBRIDGE_TARGET_ARN", value = data.aws_ssm_parameter.eventbridge_trigger_queue_arn.value },
+    { name = "EVENTBRIDGE_ROLE_ARN", value = data.aws_ssm_parameter.eventbridge_role_arn.value },
     # Fileflow Client 설정 (이미지 업로드 서비스)
     { name = "FILEFLOW_BASE_URL", value = "http://fileflow-web-api-prod.connectly.local:8080" },
     { name = "FILEFLOW_CALLBACK_URL", value = "http://crawlinghub-web-api-prod.connectly.local:8080/api/v1/webhook/image-upload" },

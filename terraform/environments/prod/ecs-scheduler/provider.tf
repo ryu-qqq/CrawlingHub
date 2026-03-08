@@ -128,6 +128,17 @@ data "aws_ssm_parameter" "amp_remote_write_url" {
 }
 
 # ========================================
+# EventBridge Configuration (from SSM)
+# ========================================
+data "aws_ssm_parameter" "eventbridge_trigger_queue_arn" {
+  name = "/${var.project_name}/sqs/eventbridge-trigger-queue-arn"
+}
+
+data "aws_ssm_parameter" "eventbridge_role_arn" {
+  name = "/${var.project_name}/eventbridge/role-arn"
+}
+
+# ========================================
 # SQS Queue Configuration (from sqs stack)
 # ========================================
 data "aws_ssm_parameter" "sqs" {

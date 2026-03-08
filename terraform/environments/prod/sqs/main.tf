@@ -437,6 +437,23 @@ resource "aws_ssm_parameter" "product_sync_dlq_url" {
 }
 
 # ========================================
+# EventBridge Scheduler → SQS Integration
+# ========================================
+# IAM Role for EventBridge Scheduler to send messages to SQS
+# Trust policy: scheduler.amazonaws.com (NOT events.amazonaws.com)
+# ========================================
+
+resource "aws_scheduler_schedule_group" "crawlinghub" {
+  name = "${var.project_name}-schedules"
+
+  tags = {
+    Name        = "${var.project_name}-schedules"
+    Environment = var.environment
+    Service     = "${var.project_name}-eventbridge"
+  }
+}
+
+# ========================================
 # EventBridge Scheduler IAM Role
 # ========================================
 resource "aws_iam_role" "eventbridge_scheduler" {
