@@ -106,65 +106,65 @@ scheduler:
     crawl-scheduler-outbox:
       process-pending:
         enabled: true
-        cron: "0 */5 * * * *"          # 5분마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         delay-seconds: 30
       recover-timeout:
         enabled: true
-        cron: "0 */10 * * * *"         # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
-        timeout-seconds: 300            # 5분
+        timeout-seconds: 300              # 5분
 
     crawl-task-outbox:
       process-pending:
         enabled: true
-        cron: "*/5 * * * * *"          # 5초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         delay-seconds: 30
       recover-timeout:
         enabled: true
-        cron: "0 */10 * * * *"         # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
-        timeout-seconds: 300            # 5분
+        timeout-seconds: 300              # 5분
       recover-failed:
         enabled: true
-        cron: "0 */10 * * * *"         # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
-        delay-seconds: 60              # 1분 후 복구
+        delay-seconds: 60                # 1분 후 복구
 
     crawl-task:
       recover-stuck:
         enabled: true
-        cron: "0 */10 * * * *"         # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
-        timeout-seconds: 600            # 10분
+        timeout-seconds: 600              # 10분
 
     crawled-raw-processing:
       process-mini-shop:
         enabled: true
-        cron: "*/30 * * * * *"          # 30초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
       process-detail:
         enabled: true
-        cron: "*/30 * * * * *"          # 30초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
       process-option:
         enabled: true
-        cron: "*/30 * * * * *"          # 30초마다
+        cron: "*/5 * * * * *"            # 5초마다
         timezone: "Asia/Seoul"
         batch-size: 100
 
     user-agent-housekeeper:
       enabled: true
-      fixed-delay-ms: 30000              # 30초
+      fixed-delay-ms: 30000               # 30초 (외부 세션 발급 포함 - rate limit 고려)
       renewal-buffer-minutes: 5           # 세션 만료 5분 전 갱신
       max-session-batch-size: 10          # 한 번에 최대 10건
       session-delay-millis: 500           # 발급 간 500ms 대기
@@ -180,19 +180,19 @@ scheduler:
         max-retry-count: 3
       retry-failed:
         enabled: true
-        cron: "0 */5 * * * *"            # 5분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 100
         max-retry-count: 3
       recover-timeout:
         enabled: true
-        cron: "0 */10 * * * *"           # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
         timeout-seconds: 300              # 5분
       recover-failed:
         enabled: true
-        cron: "0 */10 * * * *"           # 10분마다
+        cron: "*/10 * * * * *"           # 10초마다
         timezone: "Asia/Seoul"
         batch-size: 50
         delay-seconds: 60                # 1분 후 복구
@@ -200,7 +200,7 @@ scheduler:
     product-refresh:
       refresh-stale:
         enabled: true
-        cron: "0 0 10,14,18 * * *"       # 10시, 14시, 18시
+        cron: "0 0 10,13,16,19 * * *"    # 10시, 13시, 16시, 19시 (3시간 간격)
         timezone: "Asia/Seoul"
         batch-size: 3000
 
@@ -330,6 +330,46 @@ logging:
   level:
     root: INFO
     com.ryuqq.crawlinghub: INFO
+
+# Stage 환경: 모든 스케줄러 비활성화
+scheduler:
+  jobs:
+    crawl-scheduler-outbox:
+      process-pending:
+        enabled: false
+      recover-timeout:
+        enabled: false
+    crawl-task-outbox:
+      process-pending:
+        enabled: false
+      recover-timeout:
+        enabled: false
+      recover-failed:
+        enabled: false
+    crawl-task:
+      recover-stuck:
+        enabled: false
+    crawled-raw-processing:
+      process-mini-shop:
+        enabled: false
+      process-detail:
+        enabled: false
+      process-option:
+        enabled: false
+    user-agent-housekeeper:
+      enabled: false
+    sync-outbox:
+      publish-pending:
+        enabled: false
+      retry-failed:
+        enabled: false
+      recover-timeout:
+        enabled: false
+      recover-failed:
+        enabled: false
+    product-refresh:
+      refresh-stale:
+        enabled: false
 
 # Sentry 활성화 (stage 환경)
 sentry:

@@ -73,9 +73,11 @@ public class WebClientSessionTokenAdapter implements SessionTokenPort {
 
         } catch (Exception e) {
             log.error(
-                    "세션 발급 중 오류 발생: {} for UserAgent '{}'",
+                    "세션 발급 중 오류 발생: [{}] {} for UserAgent '{}'",
+                    e.getClass().getSimpleName(),
                     e.getMessage(),
-                    truncateUserAgent(userAgentValue));
+                    truncateUserAgent(userAgentValue),
+                    e);
             return Optional.empty();
         }
     }
